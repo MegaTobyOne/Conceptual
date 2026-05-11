@@ -37,6 +37,9 @@ try {
   const validationFailures = await page.locator("#validation .check.fail").count();
   const copyButtonVisible = await page.getByRole("button", { name: "Copy posture brief" }).isVisible();
   const brief = await page.evaluate(() => globalThis.pspfExplorerCurrentBrief && globalThis.pspfExplorerCurrentBrief());
+  const desktopLayoutChecks = await collectLayoutChecks(page, "Desktop");
+  await page.setViewportSize({ width: 390, height: 820 });
+  const narrowLayoutChecks = await collectLayoutChecks(page, "Narrow");
 
   const checks = [
     check("No page errors", pageErrors.length === 0, pageErrors.join("; ")),
@@ -50,7 +53,9 @@ try {
     check("Generated brief includes classification", typeof brief === "string" && brief.includes("OFFICIAL: Sensitive"), "classification"),
     check("Generated brief excludes sensitive summary", typeof brief === "string" && !brief.includes("Internal assessment working note"), "summary redaction"),
     check("Readable requirement title rendered", visibleText.includes("Validate governance reporting workflow"), "requirement title"),
-    check("Readable relationship target rendered", visibleText.includes("Governance committee terms of reference"), "evidence title")
+    check("Readable relationship target rendered", visibleText.includes("Governance committee terms of reference"), "evidence title"),
+    ...desktopLayoutChecks,
+    ...narrowLayoutChecks
   ];
 
   const failed = checks.filter((item) => !item.ok);
@@ -87,4 +92,53 @@ function readFileSyncText(path) {
 
 function check(name, ok, detail) {
   return { name, ok: Boolean(ok), detail };
+}
+
+async function collectLayoutChecks(page, viewportLabel) {
+  const result = await page.evaluate((label) => {
+    const checks = [];
+    const compactSelectors = [".check", ".version-pill", ".section-nav a"];
+    const compactElements = compactSelectors.flatMap((selector) => Array.from(document.querySelectorAll(selector)));
+    const wrappedCompact = compactElements.filter((element) => {
+      const style = getComputedStyle(element);
+      const lineHeight = Number.parseFloat(style.lineHeight) || Number.parseFloat(style.fontSize) * 1.35;
+      return element.getBoundingClientRect().height > lineHeight * 1.75;
+    });
+    checks.push({
+      name: `${label} compact labels stay single line`,
+      ok: wrappedCompact.length === 0,
+      detail: `${wrappedCompact.length} wrapped label(s)`
+    });
+
+    const titleCells = Array.from(document.querySelectorAll('td[data-field="title"], td[data-field="requirement"], td[data-field="control"], td[data-field="target"]'));
+    const minimumWidth = label === "Desktop" ? 250 : 220;
+    const narrowTitleCells = titleCells.filter((cell) => cell.getBoundingClientRect().width < minimumWidth);
+    checks.push({
+      name: `${label} title columns keep readable width`,
+      ok: narrowTitleCells.length === 0,
+      detail: `${narrowTitleCells.length}/${titleCells.length} title-like cell(s) below ${minimumWidth}px`
+    });
+
+    const pageOverflowingElements = Array.from(document.querySelectorAll("body *")).filter((element) => {
+      if (element.closest(".table-wrap")) {
+        return false;
+      }
+      return element.getBoundingClientRect().right > window.innerWidth + 1;
+    });
+    checks.push({
+      name: `${label} non-table content avoids horizontal overflow`,
+      ok: pageOverflowingElements.length === 0,
+      detail: `${pageOverflowingElements.length} overflowing non-table element(s)`
+    });
+
+    const denseTables = Array.from(document.querySelectorAll("#ism-coverage .table-wrap, #source-controls .table-wrap"));
+    checks.push({
+      name: `${label} dense tables use local overflow wrappers`,
+      ok: denseTables.every((wrapper) => getComputedStyle(wrapper).overflowX !== "visible"),
+      detail: `${denseTables.length} dense table wrapper(s)`
+    });
+
+    return checks;
+  }, viewportLabel);
+  return result.map((item) => check(item.name, item.ok, item.detail));
 }

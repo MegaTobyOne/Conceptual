@@ -1,6 +1,6 @@
 {
     "name": "pspf",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "private": true,
     "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
     "packageManager": "pnpm@10.10.0",
@@ -24,12 +24,13 @@
         "doctor": "node scripts/doctor.mjs",
         "e2e:v0.1": "pnpm run e2e:v0.3",
         "e2e:v0.2": "pnpm run e2e:v0.3",
-        "e2e:v0.3": "pnpm build && node scripts/e2e-v01.mjs && node scripts/check-personal-data-exclusion.mjs",
+        "e2e:v0.3": "pnpm run e2e:v0.4",
+        "e2e:v0.4": "pnpm build && node scripts/e2e-v01.mjs && node scripts/check-personal-data-exclusion.mjs",
         "validate:export": "pnpm build && node scripts/validate-export.mjs",
         "validate:debug-workspace": "pnpm build && node scripts/validate-debug-workspace.mjs && node scripts/check-personal-data-exclusion.mjs",
         "lint": "pnpm lint:au",
         "lint:au": "node scripts/lint-au-english.mjs",
-        "release:readiness": "pnpm e2e:v0.3 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && node scripts/release-readiness.mjs",
+        "release:readiness": "pnpm e2e:v0.4 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && node scripts/release-readiness.mjs",
         "test": "pnpm build && pnpm -r --if-present test",
         "typecheck": "tsc -b tsconfig.json"
     },

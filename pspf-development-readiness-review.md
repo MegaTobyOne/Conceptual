@@ -6,16 +6,17 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Status: v0.1 implementation slice complete, 11/11 release-readiness gates green, awaiting first manual operator validation.**
+**Status: v0.4 readiness and UI-resilience slice in progress. v0.3 has passed manual operator validation and the automated validation stack.**
 
-The v0.1 scaffold from the original readiness sequence is fully landed:
+The validated spine from the original readiness sequence is fully landed and has now been extended through the v0.3 ISM mapping slice:
 
 - pnpm workspaces with `@pspf/contracts`, `@pspf/brief-renderer`, `pspf-core`, `pspf-workshop`, and the Explorer static SPA.
 - Core: workspace bootstrap, SQLite system of record at `.pspf/core/pspf-core.db`, snapshot, integrity check, master-bundle export with manifest hashes, master-bundle import (`full-replace` with pre-replace rollback and `additive-merge`), writer lock, three version axes.
-- Workshop: Requirement, Evidence, Action, Risk authoring; Assessment Dashboard, Evidence Review Queue, Item Detail, Copy Posture Brief webview commands; PSPF v0.1.0 / Schema 1.0.0 / API 1.0.0 chips.
-- Explorer (publication mode only): static dark-mode SPA, bundle load with AJV validation, posture brief view with copy-to-clipboard, compliance donut, Relationships Board read-only, OFFICIAL: Sensitive banner, header version chip `Publication mode · v0.1.0`.
+- Workshop: Requirement, Evidence, Action, Risk authoring; Assessment Dashboard, Evidence Review Queue, Item Detail, Copy Posture Brief webview commands; ISM source-control browsing; Requirement to ISM control mapping with confidence, review metadata, and drift visibility.
+- Explorer (publication mode only): static dark-mode SPA, bundle load with AJV validation, posture brief view with copy-to-clipboard, compliance donut, Relationships Board read-only, ISM source controls, ISM coverage, mapping quality, drift status, OFFICIAL: Sensitive banner, and active version context.
 - Shared `@pspf/brief-renderer` package backs both Workshop and Explorer so the posture brief cannot diverge.
-- ISM integration is documented but not implemented; see [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md) and [pspf-ism-integration-spec.md](pspf-ism-integration-spec.md).
+- ISM integration phases 1–3 are implemented for the current seeded source-library slice; see [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md), [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md), [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md), and [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
+- v0.4 is governed by [adr/0021-v0-4-readiness-and-ui-resilience.md](adr/0021-v0-4-readiness-and-ui-resilience.md). It hardens Explorer/Workshop table readability and readiness documentation without changing the schema, bundle, or API axes from `1.2.0`.
 
 The core product decisions remain stable:
 
@@ -84,8 +85,8 @@ All eight steps from the original sequence are complete:
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v0.1 end-to-end spine test (`scripts/e2e-v01.mjs`).
 
-The next sequence is the first manual operator validation followed by the v0.2 entry items (Direction overlay, Action Impact ranking, ISM Phase 1 source library, posture editing, plan-apply intent).
+The next sequence is v0.4 validation followed by an explicit decision about the first v1 feature tranche: Action Impact plus Directions, Explorer local-authoring mode, or Shop/Pub foundations.
 
 ## Review conclusion
 
-The v0.1 thin slice is implemented end-to-end and gated. The remaining risks are documentation hygiene (lint scope, docs move, surface-spec naming) and one outstanding product activity (the first operator validation walkthrough). v0.2 work should not start in code until at least one external operator has run scenario 1 and the feedback has been recorded.
+The Core, Workshop, Explorer publication, and ISM mapping spine is implemented end-to-end and gated. v0.4 is the hardening bridge before larger v1 feature tranches: readability, release documentation, and layout regression coverage should be green before starting Shop, Pub, Explorer local authoring, Direction overlay, Action Impact ranking, posture editing, or plan-apply import.

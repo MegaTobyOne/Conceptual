@@ -51,6 +51,13 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **ISM drift gate**: `check:ism-drift` reports mappings affected by changed, new, or removed source-control statements.
 5. **Mapping quality round trip**: export → import preserves `confidence`, `lastReviewedAt`, `reviewBy`, endpoints, `coverageQualifier`, and `applicabilityProfile`.
 
+### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
+
+1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.
+2. **Workshop table layout gate**: Workshop webviews use the same field-aware table markup for title-like columns, compact fields, and dense tables.
+3. **Compatibility stability gate**: v0.4 keeps schema, bundle, and API axes at `1.2.0`; package/product version rolls to `0.4.0` only.
+4. **Readiness documentation gate**: readiness notes reflect the current v0.4 state and identify remaining v1 feature tranches explicitly.
+
 ## v1 release gates
 
 A v1 release candidate is not eligible for publication unless all gates pass:

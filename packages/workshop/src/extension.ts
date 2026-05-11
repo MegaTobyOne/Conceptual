@@ -599,14 +599,18 @@ function shellHtml(title: string, body: string): string {
     .metric { border: 1px solid #3f3f46; border-radius: 6px; padding: 10px; background: #202024; }
     .metric span { color: #a1a1aa; display: block; font-size: 13px; }
     .metric strong { display: block; font-size: 26px; margin-top: 4px; }
-    table { width: 100%; border-collapse: collapse; }
+    .table-wrap { width: 100%; overflow-x: auto; margin-top: 8px; }
+    table { width: 100%; min-width: min(760px, 100%); border-collapse: collapse; table-layout: auto; }
     th, td { text-align: left; padding: 8px; border-bottom: 1px solid #3f3f46; vertical-align: top; }
     td { overflow-wrap: anywhere; }
     th { color: #d4d4d8; }
+    th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"], th[data-field="target"], td[data-field="target"] { min-width: 18rem; max-width: 34rem; }
+    th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="freshness"], td[data-field="freshness"] { white-space: nowrap; width: 1%; }
     .banner { background: #3f2f11; border-bottom: 1px solid #d97706; color: #fde68a; padding: 8px 20px; font-weight: 600; }
     .muted { color: #a1a1aa; }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; white-space: nowrap; line-height: 1.4; }
+    @media (max-width: 720px) { main { padding: 16px; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"] { min-width: 16rem; } }
   </style>
 </head>
 <body>
@@ -764,9 +768,9 @@ function recordTable(title: string, records: readonly object[], fields: readonly
   if (records.length === 0) {
     return `<section><h2>${escapeHtml(title)}</h2><p class="muted">No records linked yet.</p></section>`;
   }
-  const header = fields.map((field) => `<th>${escapeHtml(label(field))}</th>`).join("");
-  const rows = records.map((record) => `<tr>${fields.map((field) => `<td>${escapeHtml(String(readRecordField(record, field) ?? ""))}</td>`).join("")}</tr>`).join("");
-  return `<section><h2>${escapeHtml(title)}</h2><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></section>`;
+  const header = fields.map((field) => `<th data-field="${escapeHtml(field)}">${escapeHtml(label(field))}</th>`).join("");
+  const rows = records.map((record) => `<tr>${fields.map((field) => `<td data-field="${escapeHtml(field)}">${escapeHtml(String(readRecordField(record, field) ?? ""))}</td>`).join("")}</tr>`).join("");
+  return `<section><h2>${escapeHtml(title)}</h2><div class="table-wrap" tabindex="0" aria-label="Scrollable ${escapeHtml(title)} table"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
 }
 
 function versionStrip(): string {

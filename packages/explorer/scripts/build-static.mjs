@@ -40,6 +40,7 @@ const html = `<!doctype html>
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
     .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; line-height: 1.4; white-space: nowrap; }
     .overview-grid { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 16px; align-items: start; }
+    .overview-grid > *, .bar-row > *, .panel, .panel-lite { min-width: 0; }
     .donut-wrap { display: grid; place-items: center; gap: 8px; }
     .donut { width: 210px; height: 210px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(#22c55e 0 var(--met), #f59e0b var(--met) var(--partial), #f87171 var(--partial) var(--not-met), #71717a var(--not-met) 100%); }
     .donut-centre { width: 126px; height: 126px; border-radius: 50%; background: #18181b; display: grid; place-items: center; text-align: center; border: 1px solid #3f3f46; }
@@ -53,10 +54,13 @@ const html = `<!doctype html>
     .check { display: inline-flex; align-items: center; justify-content: center; min-width: 4.75ch; box-sizing: border-box; border-radius: 999px; padding: 2px 8px; font-size: 12px; line-height: 1.35; font-weight: 700; white-space: nowrap; }
     .check.pass { background: #14532d; color: #dcfce7; }
     .check.fail { background: #7f1d1d; color: #fee2e2; }
-    table { width: 100%; border-collapse: collapse; }
+    .table-wrap { width: 100%; overflow-x: auto; margin-top: 8px; }
+    table { width: 100%; min-width: min(760px, 100%); border-collapse: collapse; table-layout: auto; }
     th, td { text-align: left; padding: 8px; border-bottom: 1px solid #3f3f46; vertical-align: top; }
     th { font-size: 13px; color: #d4d4d8; }
     td { overflow-wrap: anywhere; }
+    th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="target"], td[data-field="target"] { min-width: 18rem; max-width: 34rem; }
+    th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"] { white-space: nowrap; width: 1%; }
     .validation-table th:nth-child(2), .validation-table td:nth-child(2) { width: 1%; white-space: nowrap; }
     .empty-value { color: #a1a1aa; font-style: italic; }
     code { color: #bae6fd; }
@@ -64,7 +68,7 @@ const html = `<!doctype html>
     .footer { color: #a1a1aa; font-size: 13px; margin-top: 24px; }
     section { scroll-margin-top: 76px; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-    @media (max-width: 720px) { .overview-grid, .bar-row { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .overview-grid, .bar-row { grid-template-columns: 1fr; } main { padding: 16px; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"] { min-width: 16rem; } }
   </style>
 </head>
 <body>
@@ -354,7 +358,7 @@ async function validateBundle(manifest, collections, collectionTexts) {
 
 function validationTable(checks) {
   const rows = checks.map((item) => '<tr><td>' + escapeHtml(item.label) + '</td><td><span class="check ' + (item.ok ? "pass" : "fail") + '" aria-label="' + escapeHtml(item.ok ? "Pass" : "Fail") + '">' + (item.ok ? "PASS" : "FAIL") + '</span></td><td>' + escapeHtml(item.detail) + '</td></tr>').join("");
-  return '<table class="validation-table"><thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  return '<div class="table-wrap" tabindex="0" aria-label="Scrollable bundle validation table"><table class="validation-table"><thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 
 function check(label, ok, detail) {
@@ -514,9 +518,9 @@ function table(rows, keys) {
   if (rows.length === 0) {
     return '<p class="muted">No records in this collection yet.</p>';
   }
-  const header = keys.map((key) => '<th>' + escapeHtml(label(key)) + '</th>').join("");
-  const body = rows.map((row) => '<tr>' + keys.map((key) => '<td>' + tableValue(row[key]) + '</td>').join("") + '</tr>').join("");
-  return '<table><thead><tr>' + header + '</tr></thead><tbody>' + body + '</tbody></table>';
+  const header = keys.map((key) => '<th data-field="' + escapeHtml(key) + '">' + escapeHtml(label(key)) + '</th>').join("");
+  const body = rows.map((row) => '<tr>' + keys.map((key) => '<td data-field="' + escapeHtml(key) + '">' + tableValue(row[key]) + '</td>').join("") + '</tr>').join("");
+  return '<div class="table-wrap" tabindex="0" aria-label="Scrollable data table"><table><thead><tr>' + header + '</tr></thead><tbody>' + body + '</tbody></table></div>';
 }
 
 function tableValue(value) {
