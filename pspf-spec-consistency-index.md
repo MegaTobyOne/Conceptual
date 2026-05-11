@@ -1,0 +1,123 @@
+# PSPF Spec Consistency Index
+
+## Purpose
+
+This document is the cross-spec coordination index. It records which specification is authoritative for each topic, and points to the machine-checkable rules in `pspf-invariants.md` and the architectural decisions in `adr/`.
+
+For any cross-cutting rule, the order of authority is:
+
+1. **`pspf-invariants.md`** — machine-checkable rules enforced by CI.
+2. **`adr/`** — architectural decisions and the reasoning behind them.
+3. **`pspf-threat-model.md`** — threats and the controls that mitigate them; every security control elsewhere maps back here.
+4. **Topic-specific specs below** — detailed design that implements the above.
+
+Use this index before changing any architecture, schema, API, workflow, or pipeline behaviour.
+
+## Authoritative source by topic
+
+| Topic | Authoritative specification | Notes |
+|---|---|---|
+| Cross-spec invariants | `pspf-invariants.md` | Machine-checkable rules; CI enforces |
+| Terminology and AU spelling | `pspf-glossary.md` | Pinned meanings, vocabulary reconciliation matrix, AU-English allowlist |
+| Onboarding journey | `pspf-onboarding-spec.md` | Install permutations, first-run, welcome states, concurrent windows |
+| Development readiness | `pspf-development-readiness-review.md` | v0.1 readiness status, remaining risks, environment enhancements |
+| Architectural decisions | `adr/README.md` and individual ADRs | Decision log with reasoning |
+| Threat model and controls | `pspf-threat-model.md` | Trust boundaries, threats, mitigations |
+| Core architecture boundaries | `pspf-core-architecture-spec.md` | System of record, local-first boundary, trust posture, writer lock |
+| Core API contract | `pspf-core-api-contract-spec.md` | Commands, queries, events, errors, capabilities |
+| Canonical entities and links | `pspf-entity-link-spec.md` | IDs, entity envelope, link taxonomy, publication policy |
+| VS Code extension surface | `pspf-vscode-extension-surface-spec.md` | Commands, views, activation, menus |
+| Core/Workshop workflows | `pspf-core-workshop-screen-workflow-spec.md` | Screen model and primary user flows |
+| Explorer IA and workflows | `explorer-screen-workflow-spec.md` | Dual-mode screen model and interactions |
+| Explorer bundle schema | `pspf-explorer-json-bundle-schema-spec.md` | Export/import JSON contract; round-trip |
+| Design language and UX tone | `pspf-design-spec.md` | Visual system and content style; Australian context |
+| Repo and CI/CD model | `pspf-developer-pipeline-spec.md` | Single monorepo (ADR 0013), per-package release tags |
+| Backup and restore operations | `pspf-backup-and-restore-runbook.md` | Backup cadence and restore procedures |
+| Acceptance and quality gates | `pspf-acceptance-and-quality-gates.md` | Measurable done criteria for v0.1 and v1 |
+| Security and redaction controls | `pspf-security-redaction-controls.md` | Per-field publication policy and CI test contract |
+| Error and diagnostics model | `pspf-error-and-diagnostics-model.md` | Error taxonomy and remediation metadata |
+| Trusted caller policy | `pspf-trusted-caller-policy.md` | Core-distributed registry and subtractive workspace overrides |
+| Contract test governance | `pspf-contract-test-governance-spec.md` | In-repo compatibility testing policy |
+| Secrets and incident response | `pspf-secrets-rotation-and-incident-runbook.md` | Rotation cadence and compromise response |
+| Performance and benchmarks | `pspf-performance-profile-and-benchmarks.md` | Reference machine, scale assumptions, thresholds |
+| Migration safety | `pspf-migration-safety-runbook.md` | Migration classes, no auto-run policy |
+| ISM integration roadmap | `pspf-ism-integration-spec.md`, `adr/0017-ism-integration-roadmap.md`, `adr/0018-ism-source-library.md`, and `adr/0019-requirement-control-mapping.md` | Phased PSPF ↔ ISM model; ISM source library and mapping entity; OSCAL provenance |
+
+## Locked v1 clarifications
+
+1. Canonical datastore path is `.pspf/core/pspf-core.db`.
+2. Canonical config directory is `.pspf/config/` with `workspace.json`, `products.json`, and `policies.json`.
+3. SQLite uses `journal_mode=WAL`, `synchronous=NORMAL`, `busy_timeout=5000`; writes are serialised through Core's API queue.
+4. **Five products**: Core, Workshop, Shop, Pub, Explorer (ADR 0001). Earlier names `Hearth`/`Trail`/`Lookout`/`Skylight` are retired.
+5. **Four separate VS Code extensions**: `pspf-core`, `pspf-workshop`, `pspf-shop`, `pspf-pub` (ADR 0007). No bundled platform VSIX.
+6. **Explorer is dual-mode**: publication consumer **and** browser-local authoring surface (ADR 0004). Local edits in `IndexedDB`; export to JSON; round-trip back to Core.
+7. **IDs are UUIDv7 with timestamp stripped on the publication boundary** (ADR 0002). `PER` and `ASM` IDs are stripped in all artefacts.
+8. **Link taxonomy is a closed 22-verb vocabulary** with a `(fromType, linkType, toType)` constraint table (ADR 0003).
+9. **Default-deny per-field publication policy** (ADR 0005). Default for new fields is `sensitive`. Personal fields are `restricted` and never appear in any bundle.
+10. **Snapshots are immutable**; APP 11.2 erasure uses redaction events that overlay at query time, with `purgeEntity` as the destructive last resort (ADR 0006).
+11. **Three canonical version axes** only: `schemaVersion`, `bundleVersion`, `apiVersion` (ADR 0008). `apiMajor` and `exportVersion` are retired.
+12. **No migration runs automatically**; every migration requires explicit operator command from a trusted workspace.
+13. v1 execution posture is local-only for supported environments. Workspace Trust is mandatory for the Core API to load.
+14. Bundles carry **checksums**, not integrity guarantees. Field name is `checksum`; `integrity` is deprecated.
+15. Bundle imports enforce minimum size/depth/count limits and reject with `PSPF_IMPORT_LIMIT_EXCEEDED`.
+16. Performance thresholds are measured on the **PSPF reference machine** defined in `pspf-performance-profile-and-benchmarks.md`.
+17. Accessibility is enforced by automated `axe-core` CI checks in addition to manual review.
+18. **Single master Explorer bundle** (ADR 0009). All Explorer data exchanges use the one manifest-led bundle defined in `pspf-explorer-json-bundle-schema-spec.md`. The standalone-prototype format tags `pspfBackup`, `pspfShare`, `pspfGrcCapture`, and `pspfWorkImport` are retired; their behaviours survive as bundle `intent` and per-collection options (`statusNormalisation`, `linkMode`, `updateMode`, evidence-append on GRC capture).
+19. **Explorer behavioural rules carried over from the standalone prototype** are codified as invariants E1–E16 in `pspf-invariants.md` and as the "Behavioural rules" section of `explorer-screen-workflow-spec.md`. Headline rules: compliance % excludes Not-applicable from numerator and denominator; default compliance state is `not-set` and is materialised lazily; compliance state changes produce `from→to` audit events and same-state writes do not; action overdue rule is `dueAt set ∧ dueAt < now ∧ status ∉ {done, cancelled}`; risk bands are `<5/5–9/10–15/≥16`; Direction response set is `{not-set, yes, no, risk-managed}` (no `not-applicable`); the OFFICIAL: Sensitive + TLP banner is on every screen; zero network egress at runtime.
+20. **Explorer local-authoring collections.** In addition to the canonical entity collections, Explorer-authored bundles MAY carry: `tags`, `saved-views`, `directions`, `compliance-entries`, `compliance-events`, `work-log-entries`, `posture` (singleton), and `relationships`. Their entity-type strings, collection names, and ID prefixes are recorded in `pspf-invariants.md` § N1 / N2 / N3.
+21. **Relationships surface is the column Board** (ADR 0010, invariant E17). The standalone prototype's network-graph view is retired in v1. No graph-layout library may ship in the Explorer runtime bundle.
+22. **Cross-entity links are picker-driven and validated.** Explorer link fields are autocomplete pickers (E19) that propose only existing entities; first-class `relationships` records with an unresolvable endpoint are rejected unconditionally; bundle imports honour the top-level `linkValidation ∈ { strict, lenient, drop }` for non-relationship dangling refs (default `lenient`) (E18).
+23. **Hybrid uniqueness on identifiers and labels** (E20). Hard-reject on `Direction.reference`, `Tag.label`, `SavedView.name`; soft-warn with explicit-confirmation override on `Risk.title`, `Action.title`. Comparison is case- and whitespace-insensitive.
+24. **Sensitive-data posture in v1 is labelling-only** (ADR 0011). Local IndexedDB and exported bundles are unencrypted; no idle lock or passphrase ships in v1. Future direction is passphrase-encrypted local storage and/or encrypted backups; ADR 0011 documents the reopening criteria.
+25. **Compliance event trail is append-only locally**; the only deletion path is per-import undo (E2 + E21). Export-time toggle "Include compliance history" (default on) is the v1 retention control. No automatic retention or in-app prune ships in v1.
+26. **Conflict policy on `additive-merge` is smart-default plan-and-review.** Pure-add bundles apply silently with a post-import summary; any collision opens the plan-and-review pane with `keep existing` as the per-record default. Silent "existing wins, no summary" is retired. The `intent: plan-apply` flow always reviews (E10).
+27. **Per-import undo (E21).** Every `additive-merge` and `plan-apply` write is wrapped in a single transaction tagged with an `importId`; "Undo this import" is available until the next write, navigation, or refresh. Manual single-record edits are not reversible in v1.
+28. **List preferences live in `sessionStorage` only** (E22). Filters, sort, column visibility, pagination, search query, and the Board's lane visibility/order are namespaced under `pspf:explorer:` and never travel in the bundle. Selection and scroll position are not persisted at all. "Reset local data" wipes both web-storage namespaces.
+29. **Explorer interactive performance budgets are inherited from the prototype as non-regression baselines**, plus a new Board initial-render budget; the plan-and-review render budget is deferred until the M1 measuring milestone. Numbers are owned by `pspf-performance-profile-and-benchmarks.md` § Explorer interactive thresholds.
+30. **Per-version JSON Schema publication contract** (ADR 0012, E23). The bundle schema is published per-`schemaVersion` at `schemas/explorer-bundle/<schemaVersion>/`, served same-origin at the same path. Once published, breaking changes to a `schemaVersion` are forbidden; remote `$ref`s are forbidden; the runtime validator and the served schema MUST hash-match for the active version.
+31. **Accessibility floor is WCAG 2.2 AA-aligned** (E24). Keyboard reachability of every primary route, a keyboard equivalent for moving Board cards between lanes, full respect for `prefers-reduced-motion`, and zero `serious`/`critical` `axe-core` violations per route. An audited claim is deferred until a third-party audit is commissioned.
+32. **Action Impact is explainable and derived** (E25). v1 ranks actions by deterministic component scores and explanatory facts across requirement, domain, overall, Essential Eight, and Direction scopes. Urgency is shown beside impact but does not by itself increase positive-impact score.
+33. **Evidence review queues classify old, incomplete, changed, unverified, missing, and unlinked evidence** (E26). Domain scope is mandatory and one-or-more requirement scope is supported. Workshop, Explorer, and posture brief evidence-confidence signals use the same classification rules.
+34. **Posture brief is constrained and traceable** (E27). The common output is a simple graphic/text posture summary plus data-backed action plan for overall, domain, and Essential Eight posture. It is not a free-form report writer in v1, and every claim must trace to backing IDs or counts.
+35. **Shareable work briefs are copy/paste outputs for email and Teams** (E28). They are available as plain text and Markdown, may include HTML clipboard content, and apply the same redaction/publication policy as bundles.
+36. **Shareable Explorer charts support copy/save image with table alternatives** (E29). Primary charts include compliance donut, action timeline, grouped action checklist, and risk impact/likelihood matrix. Exported images include scope/time/filter/source cues and apply bundle-equivalent redaction.
+37. **Shop forecasts are explainable planning projections** (E30). Shop may rank invest-now-save-later opportunities, but every forecast must distinguish planned/committed spend from expected/realised savings and expose assumptions, confidence, and linked requirements/actions/risks.
+38. **v0.1 is a thin slice** (ADR 0014). Scope: Core (bootstrap, snapshot, integrity, full-replace + additive-merge bundles, writer lock, trusted-caller registry); Workshop (Requirement, Evidence, Action, Risk + daily assessment loop + evidence review queue + posture brief read-only + shareable brief copy); Explorer publication-mode only; AU-English UI; OFFICIAL: Sensitive banner. Deferred to v0.2+: Shop, Pub, Explorer local-authoring, Action Impact ranking (E25), Direction overlay, posture editing, plan-apply intent, per-import undo (E21) beyond full-replace rollback, worker-backed integrity scan (E15), spend forecast/savings opportunities (E29/E30), notification-rule entity, third-party accessibility audit, multi-window editing.
+39. **Single private monorepo** (ADR 0013). One GitHub Pro repo `pspf` with pnpm workspaces; packages under `packages/{contracts,core,workshop,shop,pub,explorer}`; docs and ADRs under `docs/`; per-version bundle schemas under `schemas/explorer-bundle/<schemaVersion>/`. Per-package release tags (`<package>/<version>`) trigger independent VSIX releases; ADR 0007 packaging decision unchanged.
+40. **Item Detail is a WebviewPanel** (ADR 0015). One per-entity panel implementation, opened by `pspf.workshop.openItemDetail`. Custom editors and TextDocument-backed editors are explicitly not used in v1.
+41. **Australian context is amplified, not background** (ADR 0016). All user-facing copy in Australian English; AU date `DD MMM YYYY`; AUD currency; FY `2025–26` with en-dash; PSPF Domains as primary navigation; Essential Eight on Posture using ASD names; OFFICIAL: Sensitive + TLP:AMBER+STRICT used literally; citations to Home Affairs, ASD, ACSC, OAIC visible. AU-English lint enforces the spelling allowlist in `pspf-glossary.md` § Spelling against `docs/**` and extracted UI strings.
+42. **Vocabulary reconciliation matrix** (`pspf-glossary.md`). Single source of truth for assessment status, effectiveness, reporting readiness, Direction response, Action status, Risk band, Evidence freshness, and the Status chip family. Internal field values may differ; UI labels are normative everywhere.
+43. **Domain always means PSPF Domain.** Bare "domain" outside the PSPF context is flagged by lint; disambiguate with "information domain", "business domain", "DNS domain", or "email domain".
+44. **Writer lock for multi-window safety** (S8). Core acquires `.pspf/core/locks/writer.lock` on activation; a second window opening the same workspace opens read-only and exposes "Take over as writer". Multi-writer concurrency is not in v1.
+45. **Full-replace rollback in v0.1.** Because `plan-apply` is deferred, v0.1's per-import undo extends to a single pre-replace snapshot for `full-replace` imports, exposed as "Roll back this restore" until the next write/navigation/refresh.
+46. **ISM is a distinct external control catalogue, not a second class of PSPF Requirement** (ADR 0017). v0.1 records ISM references as free text only. v0.2 introduces a read-only ISM source library built from a vendored ASD OSCAL snapshot (current upstream release `v2026.03.24` at <https://github.com/AustralianCyberSecurityCentre/ism-oscal>, CC BY 4.0), modelled as `source-control` entities under the existing `SRC` prefix with `externalRefs` to the natural ISM control identifier (ADR 0018). v0.2 introduces a first-class `requirement-control-mapping` entity under the `MAP` prefix carrying `rationale`, `coverageQualifier`, and `applicabilityProfile`; the closed 22-verb link taxonomy remains unchanged for v0.2 (ADR 0019). No network egress at runtime in any phase.
+
+## Conflict resolution process
+
+When two specs disagree:
+
+1. Check `pspf-invariants.md` first; if it covers the topic, that text wins.
+2. Check the relevant ADR; if it covers the topic, that text wins over downstream specs.
+3. If neither covers it, raise a consistency issue with label `spec-consistency`, identify all affected specs, update the authoritative spec first, then dependents in the same PR.
+
+## Change control rules
+
+1. Any change to API/schema/storage paths requires a new ADR.
+2. Any change to bundle shape requires fixture updates and Explorer compatibility tests.
+3. Any change to redaction or publication policy requires updates to `pspf-security-redaction-controls.md`, `pspf-invariants.md`, and acceptance gates.
+4. Any migration behaviour change requires update to migration runbook and backup runbook.
+5. Any change to the link taxonomy requires an ADR plus an `pspf-invariants.md` update.
+
+## Verification checklist
+
+Before marking a specification PR as complete:
+
+- Path references are consistent across all touched docs.
+- Terminology for entity types, IDs, link types, and lifecycle states is consistent with `pspf-invariants.md`.
+- Version compatibility notes are updated where relevant.
+- Related runbooks and quality gates are updated.
+- No implementation-facing spec describes the bundle as integrity-protected; bundles carry checksums only unless a future ADR introduces signed attestation.
+- No spec implies bundling Core+Workshop into a single VSIX.
+- No implementation-facing spec uses `Hearth`, `Trail`, `Lookout`, or `Skylight` as product or container names; ADRs may mention them only as historical retired names.
+- No implementation-facing spec references `apiMajor` or `exportVersion`; ADRs may mention them only as historical retired fields.
+- At least one reviewer confirms no unresolved consistency conflicts remain.

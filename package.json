@@ -1,0 +1,41 @@
+{
+    "name": "pspf",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
+    "packageManager": "pnpm@10.10.0",
+    "engines": {
+        "node": ">=22.15.0",
+        "pnpm": ">=10.10.0"
+    },
+    "scripts": {
+        "build": "pnpm -r --if-present build",
+        "check:accessibility": "pnpm build && node scripts/check-accessibility.mjs",
+        "check:backup-restore": "pnpm build && node scripts/backup-restore-dry-run.mjs",
+        "check:brief-redaction": "pnpm build && node scripts/check-brief-redaction.mjs",
+        "check:explorer-publication": "pnpm build && node scripts/check-explorer-publication.mjs",
+        "check:gates": "pnpm build && node scripts/check-schema-policy.mjs && node scripts/check-schema-coverage.mjs && node scripts/check-personal-data-exclusion.mjs && node scripts/check-brief-redaction.mjs && node scripts/check-explorer-publication.mjs && node scripts/check-writer-lock.mjs && node scripts/backup-restore-dry-run.mjs && node scripts/check-accessibility.mjs",
+        "check:personal-data": "pnpm build && node scripts/check-personal-data-exclusion.mjs",
+        "check:schema-coverage": "pnpm build && node scripts/check-schema-coverage.mjs",
+        "check:schema-policy": "pnpm build && node scripts/check-schema-policy.mjs",
+        "check:writer-lock": "pnpm build && node scripts/check-writer-lock.mjs",
+        "debug:reset": "node scripts/reset-debug-workspace.mjs",
+        "doctor": "node scripts/doctor.mjs",
+        "e2e:v0.1": "pnpm build && node scripts/e2e-v01.mjs && node scripts/check-personal-data-exclusion.mjs",
+        "validate:export": "pnpm build && node scripts/validate-export.mjs",
+        "validate:debug-workspace": "pnpm build && node scripts/validate-debug-workspace.mjs && node scripts/check-personal-data-exclusion.mjs",
+        "lint": "pnpm lint:au",
+        "lint:au": "node scripts/lint-au-english.mjs",
+        "release:readiness": "pnpm e2e:v0.1 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && node scripts/release-readiness.mjs",
+        "test": "pnpm build && pnpm -r --if-present test",
+        "typecheck": "tsc -b tsconfig.json"
+    },
+    "devDependencies": {
+        "@axe-core/playwright": "^4.11.3",
+        "@types/node": "^22.15.17",
+        "@types/vscode": "^1.100.0",
+        "ajv": "^8.20.0",
+        "playwright": "^1.59.1",
+        "typescript": "^5.8.3"
+    }
+}

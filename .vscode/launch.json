@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run PSPF Core + Workshop",
+            "type": "extensionHost",
+            "request": "launch",
+            "preLaunchTask": "pnpm: build",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/core",
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/workshop",
+                "${workspaceFolder}/debug-workspace"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/packages/*/dist/**/*.js"
+            ]
+        }
+    ]
+}

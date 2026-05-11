@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "dbaeumer.vscode-eslint",
+        "ms-playwright.playwright",
+        "github.vscode-github-actions",
+        "github.vscode-pull-request-github",
+        "davidanson.vscode-markdownlint",
+        "github.copilot",
+        "github.copilot-chat"
+    ]
+}

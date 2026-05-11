@@ -1,0 +1,13 @@
+{
+    "description": "Control fixture that intentionally includes restricted personal fields. It must never be treated as a published bundle.",
+    "person": {
+        "id": "PER-00000000-0000-7000-8000-000000000001",
+        "name": "Example Person",
+        "email": "person@example.gov.au"
+    },
+    "assignment": {
+        "id": "ASM-00000000-0000-7000-8000-000000000001",
+        "personId": "PER-00000000-0000-7000-8000-000000000001",
+        "roleId": "ROL-00000000-0000-7000-8000-000000000001"
+    }
+}

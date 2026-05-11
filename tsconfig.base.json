@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "baseUrl": ".",
+        "declaration": true,
+        "declarationMap": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "lib": [
+            "ES2022",
+            "DOM"
+        ],
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "newLine": "lf",
+        "noEmitOnError": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        "noUncheckedIndexedAccess": true,
+        "outDir": "dist",
+        "paths": {
+            "@pspf/brief-renderer": [
+                "packages/brief-renderer/src/index.ts"
+            ],
+            "@pspf/contracts": [
+                "packages/contracts/src/index.ts"
+            ]
+        },
+        "resolveJsonModule": true,
+        "rootDir": "src",
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "ES2022"
+    }
+}

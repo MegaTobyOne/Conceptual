@@ -1,0 +1,70 @@
+{
+    "name": "pspf-core",
+    "displayName": "PSPF Core",
+    "description": "Local PSPF system of record, workspace bootstrap, validation, snapshots, and export operations.",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "publisher": "pspf",
+    "engines": {
+        "vscode": "^1.100.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onStartupFinished",
+        "workspaceContains:.pspf/config/workspace.json",
+        "workspaceContains:.pspf/core/pspf-core.db"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "configuration": {
+            "title": "PSPF Core",
+            "properties": {
+                "pspf.core.initialiseOnActivation": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Initialise the PSPF workspace automatically when PSPF Core activates. Intended for trusted debug or dedicated PSPF workspaces."
+                }
+            }
+        },
+        "commands": [
+            {
+                "command": "pspf.core.initialiseWorkspace",
+                "title": "PSPF: Initialise PSPF Workspace"
+            },
+            {
+                "command": "pspf.core.validateWorkspace",
+                "title": "PSPF: Validate Workspace"
+            },
+            {
+                "command": "pspf.core.verifyIntegrity",
+                "title": "PSPF: Verify Integrity"
+            },
+            {
+                "command": "pspf.core.createSnapshot",
+                "title": "PSPF: Create Snapshot"
+            },
+            {
+                "command": "pspf.core.exportBundle",
+                "title": "PSPF: Export Master Bundle"
+            },
+            {
+                "command": "pspf.core.importBundle",
+                "title": "PSPF: Import Master Bundle"
+            },
+            {
+                "command": "pspf.core.showWriterLock",
+                "title": "PSPF: Show Writer Lock"
+            }
+        ]
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "test": "node --test dist/**/*.test.js"
+    },
+    "dependencies": {
+        "@pspf/contracts": "workspace:*"
+    }
+}

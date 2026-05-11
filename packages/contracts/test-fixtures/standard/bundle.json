@@ -1,0 +1,72 @@
+{
+    "manifest": {
+        "bundleType": "pspf-explorer-bundle",
+        "bundleVersion": "1.0.0",
+        "schemaVersion": "1.0.0",
+        "apiVersion": "1.0.0",
+        "generatedAt": "2026-05-10T00:00:00.000Z",
+        "generator": {
+            "product": "pspf-core",
+            "mode": "publication",
+            "productVersion": "0.1.0"
+        },
+        "security": {
+            "classification": "OFFICIAL: Sensitive",
+            "containsSensitiveData": true,
+            "redactionProfile": "explorer-default"
+        },
+        "collections": []
+    },
+    "collections": {
+        "domains": [
+            {
+                "id": "DOM-00000000-0000-7000-8000-000000000001",
+                "entityType": "domain",
+                "schemaVersion": "1.0.0",
+                "title": "Governance",
+                "createdAt": "2026-05-10T00:00:00.000Z",
+                "updatedAt": "2026-05-10T00:00:00.000Z",
+                "sourceProduct": "core",
+                "recordStatus": "active",
+                "code": "governance",
+                "sortOrder": 1
+            }
+        ],
+        "requirements": [
+            {
+                "id": "REQ-00000000-0000-7000-8000-000000000101",
+                "entityType": "requirement",
+                "schemaVersion": "1.0.0",
+                "title": "Governance arrangements are established",
+                "createdAt": "2026-05-10T00:00:00.000Z",
+                "updatedAt": "2026-05-10T00:00:00.000Z",
+                "sourceProduct": "workshop",
+                "recordStatus": "active",
+                "domainId": "DOM-00000000-0000-7000-8000-000000000001",
+                "assessmentStatus": "in-progress"
+            }
+        ],
+        "evidence": [],
+        "actions": [],
+        "risks": [],
+        "snapshots": [],
+        "links": [],
+        "tags": [],
+        "posture": [
+            {
+                "id": "POSTURE",
+                "entityType": "posture",
+                "schemaVersion": "1.0.0",
+                "title": "PSPF posture for standard fixture",
+                "createdAt": "2026-05-10T00:00:00.000Z",
+                "updatedAt": "2026-05-10T00:00:00.000Z",
+                "sourceProduct": "core",
+                "recordStatus": "active",
+                "requirementCount": 1,
+                "evidenceCount": 0,
+                "actionCount": 0,
+                "riskCount": 0
+            }
+        ]
+    }
+}

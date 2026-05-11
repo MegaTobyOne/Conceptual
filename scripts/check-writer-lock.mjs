@@ -1,0 +1,39 @@
+import assert from "node:assert/strict";
+import { rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { createCoreService } from "../packages/core/dist/service.js";
+import { PSPF_DOMAINS, withEnvelope } from "../packages/contracts/dist/index.js";
+
+const root = process.cwd();
+const workspaceRoot = join(root, ".tmp", "writer-lock-gate-workspace");
+await rm(workspaceRoot, { recursive: true, force: true });
+
+const service = createCoreService(workspaceRoot);
+const paths = await service.initialiseWorkspace();
+const lock = await service.getWriterLock();
+assert.equal(lock.writable, true, lock.detail);
+
+await writeFile(join(paths.locks, "writer-lock.json"), `${JSON.stringify({
+  holderPid: 1,
+  acquiredAt: new Date().toISOString(),
+  currentPid: process.pid,
+  writable: false,
+  detail: "Simulated second-window writer lock."
+}, null, 2)}\n`, "utf8");
+
+const readOnlyLock = await service.getWriterLock();
+assert.equal(readOnlyLock.writable, false, readOnlyLock.detail);
+
+const requirement = withEnvelope(
+  "requirement",
+  {
+    entityType: "requirement",
+    title: "Writer lock should block this write",
+    domainId: PSPF_DOMAINS[0].id,
+    assessmentStatus: "in-progress"
+  },
+  "workshop"
+);
+
+await assert.rejects(() => service.upsertEntity(requirement), /read-only|writer lock/i);
+console.log("ok writer-lock gate blocks writes when another live process holds the lock");

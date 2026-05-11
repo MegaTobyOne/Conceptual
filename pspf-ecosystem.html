@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en-AU" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>PSPF Ecosystem</title>
+  <meta name="description"
+    content="A public guide to an Australian PSPF-focused tool ecosystem: Core, Workshop, and Explorer in the v0.1 slice, with Shop and Pub deferred. Independent, not affiliated with any Australian Government entity." />
+  <meta property="og:title" content="PSPF Ecosystem" />
+  <meta property="og:description"
+    content="A public guide to an Australian PSPF-focused tool ecosystem. v0.1 centres on Core, Workshop, and Explorer publication mode. Independent and experimental." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="robots" content="index,follow" />
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('pspf-theme');
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.setAttribute('data-theme', stored);
+        }
+      } catch (e) {
+        // Ignore storage access issues and continue with CSS default.
+      }
+    })();
+  </script>
+  <style>
+    :root,
+    [data-theme="light"] {
+      --color-bg: #f7f6f2;
+      --color-surface: #f9f8f5;
+      --color-surface-2: #fbfbf9;
+      --color-surface-offset: #f3f0ec;
+      --color-surface-dynamic: #e6e4df;
+      --color-divider: #dcd9d5;
+      --color-border: #d4d1ca;
+      --color-text: #28251d;
+      --color-text-muted: #66635d;
+      --color-text-faint: #9b9891;
+      --color-text-inverse: #f9f8f4;
+      --color-bg-elevated: rgba(247, 246, 242, 0.86);
+      --color-border-subtle: #dbd8d2;
+      --color-primary: #01696f;
+      --color-primary-hover: #0c4e54;
+      --color-primary-highlight: #cedcd8;
+      --color-success: #437a22;
+      --color-warning: #964219;
+      --color-error: #a12c7b;
+      --radius-sm: 0.375rem;
+      --radius-md: 0.625rem;
+      --radius-lg: 0.875rem;
+      --radius-xl: 1.125rem;
+      --radius-full: 9999px;
+      --shadow-sm: 0 1px 2px rgba(40, 37, 29, 0.06);
+      --shadow-md: 0 8px 24px rgba(40, 37, 29, 0.08);
+      --shadow-lg: 0 16px 40px rgba(40, 37, 29, 0.12);
+      --text-xs: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.82rem + 0.2vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1.03rem + 0.5vw, 1.375rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1vw, 2.1rem);
+      --text-2xl: clamp(2rem, 1.5rem + 2vw, 3.2rem);
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      --space-20: 5rem;
+      --content-default: 1120px;
+      --font-body: 'Aptos', 'Segoe UI', 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+      --font-display: 'Georgia', 'Times New Roman', serif;
+      --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #171614;
+      --color-surface: #1c1b19;
+      --color-surface-2: #201f1d;
+      --color-surface-offset: #1d1c1a;
+      --color-surface-dynamic: #2d2c2a;
+      --color-divider: #262523;
+      --color-border: #393836;
+      --color-text: #cdccca;
+      --color-text-muted: #9e9b95;
+      --color-text-faint: #6c6a66;
+      --color-text-inverse: #2b2a28;
+      --color-bg-elevated: rgba(23, 22, 20, 0.86);
+      --color-border-subtle: #343331;
+      --color-primary: #4f98a3;
+      --color-primary-hover: #227f8b;
+      --color-primary-highlight: #313b3b;
+      --color-success: #6daa45;
+      --color-warning: #bb653b;
+      --color-error: #d163a7;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
+      --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.36);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: 1.65;
+      background: var(--color-bg);
+      color: var(--color-text);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      transition: color var(--transition), background var(--transition), border-color var(--transition), box-shadow var(--transition);
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: 0;
+      cursor: pointer;
+    }
+
+    img,
+    svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: var(--space-3);
+      z-index: 20;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+      border-radius: var(--radius-md);
+    }
+
+    .skip-link:focus {
+      left: var(--space-3);
+    }
+
+    .container {
+      width: min(calc(100% - 2rem), var(--content-default));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--color-bg-elevated);
+      border-bottom: 1px solid var(--color-border-subtle);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+    }
+
+    .header-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      min-height: 4.5rem;
+      padding-top: var(--space-2);
+      padding-bottom: var(--space-3);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-mark {
+      width: 2rem;
+      height: 2rem;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--color-primary-highlight), var(--color-surface-dynamic));
+      border: 1px solid var(--color-border-subtle);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-mark svg {
+      width: 1.15rem;
+      height: 1.15rem;
+      color: var(--color-primary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .theme-toggle,
+    .header-link {
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-surface);
+      color: var(--color-text);
+      border-radius: var(--radius-full);
+      min-height: 2.75rem;
+      padding: 0 var(--space-4);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-link:hover,
+    .theme-toggle:hover,
+    .button:hover,
+    .tool-card:hover,
+    .step-card:hover,
+    .source-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .hero {
+      padding: clamp(4rem, 9vw, 7rem) 0 clamp(2.5rem, 5vw, 4rem);
+    }
+
+    .hero-grid {
+      display: grid;
+      gap: var(--space-8);
+      align-items: start;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-full);
+      background: var(--color-primary-highlight);
+      color: var(--color-primary-hover);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    h1,
+    h2 {
+      font-family: var(--font-display);
+    }
+
+    h1 {
+      font-size: var(--text-2xl);
+      max-width: 11ch;
+      margin-top: var(--space-4);
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      margin-bottom: var(--space-4);
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-family: var(--font-body);
+    }
+
+    p {
+      margin: 0;
+      color: var(--color-text-muted);
+      max-width: 68ch;
+    }
+
+    .hero-copy p {
+      font-size: 1.05em;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-top: var(--space-6);
+    }
+
+    .button {
+      min-height: 3rem;
+      padding: 0 var(--space-5);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-border-subtle);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      font-weight: 600;
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .button.primary {
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+      border-color: var(--color-primary);
+    }
+
+    .button.primary:hover {
+      background: var(--color-primary-hover);
+    }
+
+    .hero-panel,
+    .section-panel {
+      background: linear-gradient(180deg, var(--color-surface), var(--color-surface-offset));
+      border: 1px solid var(--color-border-subtle);
+      border-radius: calc(var(--radius-xl) + 0.25rem);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .hero-panel {
+      padding: var(--space-6);
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .stack {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .mini-label {
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-text-faint);
+      font-weight: 700;
+    }
+
+    .flow-list {
+      display: grid;
+      gap: var(--space-3);
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .flow-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--space-3);
+      align-items: start;
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .flow-num {
+      width: 2rem;
+      height: 2rem;
+      border-radius: var(--radius-full);
+      display: grid;
+      place-items: center;
+      background: var(--color-primary-highlight);
+      color: var(--color-primary-hover);
+      font-size: var(--text-sm);
+      font-weight: 700;
+    }
+
+    section {
+      padding: clamp(2.5rem, 5vw, 4.5rem) 0;
+    }
+
+    .section-head {
+      display: grid;
+      gap: var(--space-3);
+      margin-bottom: var(--space-8);
+    }
+
+    .tool-grid,
+    .step-grid,
+    .source-grid {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .tool-card,
+    .step-card,
+    .source-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-sm);
+      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+    }
+
+    .tool-card:hover,
+    .step-card:hover,
+    .source-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .tool-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      margin-bottom: var(--space-3);
+    }
+
+    .tool-tag {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--radius-full);
+      background: var(--color-surface-offset);
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .tool-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .simple-list {
+      margin: var(--space-4) 0 0;
+      padding-left: 1.1rem;
+      color: var(--color-text-muted);
+    }
+
+    .simple-list li+li {
+      margin-top: var(--space-2);
+    }
+
+    .glue-band {
+      padding: var(--space-6);
+      border-radius: calc(var(--radius-xl) + 0.25rem);
+      background: linear-gradient(135deg, var(--color-primary-highlight), var(--color-surface));
+      border: 1px solid var(--color-border-subtle);
+      box-shadow: var(--shadow-md);
+    }
+
+    .footer {
+      padding: var(--space-10) 0 var(--space-12);
+      border-top: 1px solid var(--color-border-subtle);
+    }
+
+    .footer-inner {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .muted {
+      color: var(--color-text-faint);
+    }
+
+    .kicker {
+      color: var(--color-text);
+      font-weight: 600;
+    }
+
+    .site-nav {
+      display: inline-flex;
+      gap: var(--space-4);
+      align-items: center;
+      order: 3;
+      width: 100%;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-bottom: var(--space-1);
+    }
+
+    .site-nav a {
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      font-weight: 600;
+    }
+
+    .site-nav a:hover {
+      color: var(--color-text);
+    }
+
+    .link-disabled {
+      color: var(--color-text-faint);
+      cursor: not-allowed;
+      border-bottom: 1px dashed var(--color-border);
+      padding-bottom: 0.05rem;
+    }
+
+    .assistive-note {
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-offset);
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+
+    .notice-wrap {
+      padding-top: var(--space-6);
+    }
+
+    .project-notice {
+      border: 1px solid var(--color-border);
+      border-left: 4px solid var(--color-warning);
+      background: var(--color-surface-2);
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-4);
+    }
+
+    .project-notice p+p {
+      margin-top: var(--space-2);
+    }
+
+    .footer-disclaimer {
+      margin-top: var(--space-4);
+    }
+
+    @media (min-width: 780px) {
+      .hero-grid {
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      }
+
+      .tool-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .step-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .source-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .header-inner {
+        flex-wrap: nowrap;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+
+      .site-nav {
+        order: 0;
+        width: auto;
+        overflow: visible;
+        white-space: normal;
+        padding-bottom: 0;
+      }
+    }
+
+    @media (min-width: 1080px) {
+      .tool-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .source-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      * {
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#top" class="brand" aria-label="PSPF Ecosystem home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M4 17.5 12 4l8 13.5" />
+            <path d="M7.5 17.5h9" />
+            <path d="M10 12.5h4" />
+          </svg>
+        </span>
+        <span>PSPF Ecosystem</span>
+      </a>
+      <nav class="site-nav" aria-label="Section navigation">
+        <a href="#how-it-works">How it works</a>
+        <a href="#tools">Tools</a>
+        <a href="#how-to-start">How to start</a>
+        <a href="#development">Development</a>
+        <a href="#links">Links</a>
+      </nav>
+      <div class="header-actions">
+        <a class="header-link" href="https://www.protectivesecurity.gov.au" target="_blank"
+          rel="noopener noreferrer">Authoritative source</a>
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode">
+          <span aria-hidden="true">◐</span>
+          <span>Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container notice-wrap">
+      <aside class="project-notice" role="note" aria-label="Independent project notice">
+        <p><strong>Independent project.</strong> This is a self-managed productivity project. It is <strong>not
+            affiliated with, endorsed by, or operated by</strong> the Department of Home Affairs, the Attorney-General's
+          Department, or any other Australian Government entity. The Protective Security Policy Framework remains the
+          authoritative source for Australian Government protective security policy.</p>
+        <p><strong>Experimental v0.1 slice.</strong> The first working slice is intentionally small: Core, Workshop, and
+          Explorer publication mode. Shop, Pub, Explorer local authoring, forecasting, and advanced ranking are
+          deferred.</p>
+        <p><strong>Hosting.</strong> This page is currently hosted on a non-Australian content delivery network. Do not
+          enter information classified above OFFICIAL: Sensitive into any tool reachable from this site, and do not
+          assume Australian data residency for any data this page or its linked tools may collect. We intend to re-host
+          on an Australian-resident host in due course.</p>
+      </aside>
+    </div>
+
+    <section class="hero" id="top">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">Australian PSPF tool ecosystem</span>
+          <h1>Start small, stay traceable, speak the PSPF language.</h1>
+          <p>PSPF is the Australian Government's Protective Security Policy Framework. This ecosystem helps Australian
+            entities assess PSPF requirements and the ASD Essential Eight locally, then share a clear publication-mode
+            view through Explorer.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#how-it-works">See how it works</a>
+            <a class="button" href="#links">Go to the links</a>
+          </div>
+        </div>
+        <aside class="hero-panel" aria-label="Ecosystem summary">
+          <div class="stack">
+            <span class="mini-label">At a glance</span>
+            <p class="kicker">v0.1 proves the spine before the full ecosystem.</p>
+            <p>Core keeps the trusted local record. Workshop supports Requirement, Evidence, Action, and Risk authoring
+              in VS Code. Explorer turns a curated bundle into a shareable, read-only publication view. Shop and Pub
+              remain part of the design, but are deliberately deferred until the spine is reliable.</p>
+          </div>
+          <ul class="flow-list" role="list">
+            <li class="flow-item">
+              <span class="flow-num">1</span>
+              <div>
+                <strong>Capture and maintain</strong>
+                <p>Core and Workshop organise Requirements, Evidence, Actions, and Risks for the v0.1 assessment loop.
+                </p>
+              </div>
+            </li>
+            <li class="flow-item">
+              <span class="flow-num">2</span>
+              <div>
+                <strong>Validate and package</strong>
+                <p>The working data is checked, snapshotted, versioned, and exported into a shareable JSON bundle.</p>
+              </div>
+            </li>
+            <li class="flow-item">
+              <span class="flow-num">3</span>
+              <div>
+                <strong>Explore and explain</strong>
+                <p>Explorer turns the bundle into a simple publication-mode interface for posture, readiness, evidence
+                  freshness, and shareable brief copy.</p>
+              </div>
+            </li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="how-it-works">
+      <div class="container">
+        <div class="section-head">
+          <h2>How the ecosystem works together</h2>
+          <p>The ecosystem separates policy source, operational working data, and published sharing views. Authoritative
+            PSPF content comes from Home Affairs, Essential Eight terminology comes from ASD, local working data stays
+            in the toolchain, and shareable views are generated from that data rather than edited by hand.</p>
+        </div>
+        <div class="section-panel glue-band">
+          <div class="step-grid">
+            <article class="step-card">
+              <span class="mini-label">Source</span>
+              <h3>PSPF guidance</h3>
+              <p>The PSPF site defines the framework, PSPF Domains, requirements, structure and reporting expectations.
+                It is the place to check official wording and the current release.</p>
+            </article>
+            <article class="step-card">
+              <span class="mini-label">Working layer</span>
+              <h3>Core and Workshop first</h3>
+              <p>v0.1 captures local assessment state, evidence, actions, and risks. Core is the local store; Workshop
+                is the VS Code authoring surface that talks to Core.</p>
+            </article>
+            <article class="step-card">
+              <span class="mini-label">Sharing</span>
+              <h3>Explorer</h3>
+              <p>Explorer consumes a curated JSON bundle and presents the information in a simple static interface. v0.1
+                is publication mode only; browser-local authoring is deferred.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tools">
+      <div class="container">
+        <div class="section-head">
+          <h2>Products in the ecosystem</h2>
+          <p>Each product has one main job. v0.1 implements only the shortest useful path: initialise a workspace,
+            create assessment evidence, export a bundle, and share an Explorer posture brief.</p>
+        </div>
+        <div class="tool-grid">
+          <article class="tool-card">
+            <div class="tool-top">
+              <h3>Core</h3>
+              <span class="tool-tag">v0.1</span>
+            </div>
+            <p>Core is the local system of record. It manages the canonical entity and link model, validation, writer
+              lock, snapshots, bundle import/export, and operational health.</p>
+            <ul class="simple-list">
+              <li>Stores the structured PSPF workspace.</li>
+              <li>Runs validation, backup, restore and integrity checks.</li>
+              <li>Exports the bundle consumed by Explorer.</li>
+            </ul>
+            <a class="tool-link" href="#links">Add Core link →</a>
+          </article>
+
+          <article class="tool-card">
+            <div class="tool-top">
+              <h3>Workshop</h3>
+              <span class="tool-tag">v0.1</span>
+            </div>
+            <p>Workshop is the day-to-day authoring surface. It helps users work with Requirements, Evidence, Actions,
+              Risks, evidence review, and posture brief preparation inside VS Code.</p>
+            <ul class="simple-list">
+              <li>Organises work by requirement and linked objects.</li>
+              <li>Highlights stale evidence, gaps and follow-up actions.</li>
+              <li>Supports reporting preparation before export.</li>
+            </ul>
+            <a class="tool-link" href="#links">Add Workshop link →</a>
+          </article>
+
+          <article class="tool-card">
+            <div class="tool-top">
+              <h3>Shop</h3>
+              <span class="tool-tag">v0.2+</span>
+            </div>
+            <p>Shop covers supplier, contract, and spend workflows. It is designed to surface commercial obligations and
+              link them to the controls and risks they affect, but is deferred beyond v0.1.</p>
+            <ul class="simple-list">
+              <li>Tracks suppliers, contracts and spend items.</li>
+              <li>Links commercial records to requirements and risks.</li>
+              <li>Supports obligation reporting.</li>
+            </ul>
+            <a class="tool-link" href="#links">Add Shop link →</a>
+          </article>
+
+          <article class="tool-card">
+            <div class="tool-top">
+              <h3>Pub</h3>
+              <span class="tool-tag">v0.2+</span>
+            </div>
+            <p>Pub covers people, role, and assignment workflows. It is designed to keep personal data inside the
+              workspace and out of published bundles, but is deferred beyond v0.1.</p>
+            <ul class="simple-list">
+              <li>Records people, teams and roles.</li>
+              <li>Maps assignments to actions, requirements and risks.</li>
+              <li>Keeps personal data inside the workspace and out of bundles.</li>
+            </ul>
+            <a class="tool-link" href="#links">Add Pub link →</a>
+          </article>
+
+          <article class="tool-card">
+            <div class="tool-top">
+              <h3>Explorer</h3>
+              <span class="tool-tag">v0.1 publication</span>
+            </div>
+            <p>Explorer is the simple, portable web interface. v0.1 reads a curated bundle, shows posture and readiness,
+              and lets reviewers copy a shareable brief without installing VS Code.</p>
+            <ul class="simple-list">
+              <li>Presents posture, gaps and readiness visually.</li>
+              <li>Lets users drill from summary to detail.</li>
+              <li>Shows OFFICIAL: Sensitive and TLP:AMBER+STRICT handling cues.</li>
+              <li>Browser-local authoring and round-trip export are deferred.</li>
+            </ul>
+            <a class="tool-link" href="#links">Open Explorer →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-to-start">
+      <div class="container">
+        <div class="section-head">
+          <h2>High-level instructions</h2>
+          <p>This is the simplest way to explain the v0.1 operating model to someone else. It is intentionally high
+            level so people can see the assessment spine before worrying about implementation detail.</p>
+        </div>
+        <div class="step-grid">
+          <article class="step-card">
+            <span class="mini-label">Step 1</span>
+            <h3>Start with the PSPF</h3>
+            <p>Use the official PSPF site to understand the current framework, PSPF Domains, requirements, and guidance.
+              Treat that source as the policy authority.</p>
+          </article>
+          <article class="step-card">
+            <span class="mini-label">Step 2</span>
+            <h3>Capture local assessment reality</h3>
+            <p>Use Core with Workshop to record how your environment maps to the framework, including assessment status,
+              linked evidence, actions, and risks.</p>
+          </article>
+          <article class="step-card">
+            <span class="mini-label">Step 3</span>
+            <h3>Share the picture</h3>
+            <p>Export a bundle and publish it to Explorer so reviewers can see posture, evidence freshness, gaps, and
+              the shareable brief from summary to detail.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="development">
+      <div class="container">
+        <div class="section-head">
+          <h2>Development model</h2>
+          <p>The implementation plan is deliberately lightweight: one private GitHub Pro repository, pnpm workspaces, VS
+            Code on macOS for the maintainer loop, and GitHub Actions for repeatable checks and releases.</p>
+        </div>
+        <div class="step-grid">
+          <article class="step-card">
+            <span class="mini-label">Source</span>
+            <h3>Single monorepo</h3>
+            <p>Core, Workshop, Explorer, shared contracts, docs, ADRs, and schemas live together so one pull request can
+              update the contract and every affected product.</p>
+          </article>
+          <article class="step-card">
+            <span class="mini-label">Local loop</span>
+            <h3>VS Code on macOS</h3>
+            <p>The maintainer path uses VS Code, Node LTS, pnpm via Corepack, SQLite WAL checks, Playwright for
+              Explorer, and GitHub CLI for release tasks.</p>
+          </article>
+          <article class="step-card">
+            <span class="mini-label">Guardrails</span>
+            <h3>Tests before trust</h3>
+            <p>v0.1 gates include AU-English lint, schema-policy checks, personal-data exclusion, accessibility floor,
+              contract tests, fixture round-trips, and a single-writer lock test.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="links">
+      <div class="container">
+        <div class="section-head">
+          <h2>Useful links</h2>
+          <p>This section is the practical handoff for public access. Links are published progressively as each tool
+            endpoint is released; deferred products stay marked as deferred until they ship.</p>
+        </div>
+        <div class="source-grid">
+          <article class="source-card">
+            <span class="mini-label">Authoritative source</span>
+            <h3>Protective Security Policy Framework</h3>
+            <p>The PSPF sets out Australian Government protective security policy and prescribes what Australian
+              Government entities must do to protect their people, information, and resources.</p>
+            <a class="tool-link" href="https://www.protectivesecurity.gov.au" target="_blank"
+              rel="noopener noreferrer">Open protectivesecurity.gov.au →</a>
+          </article>
+
+          <article class="source-card">
+            <span class="mini-label">v0.1 local tool</span>
+            <h3>Core</h3>
+            <p>Public URL to be published. This will point to the Core extension page or official documentation.</p>
+            <span class="tool-link link-disabled" aria-disabled="true">Core URL coming soon</span>
+          </article>
+
+          <article class="source-card">
+            <span class="mini-label">v0.1 local tool</span>
+            <h3>Workshop</h3>
+            <p>Public URL to be published. This will point to the Workshop extension page or official documentation.</p>
+            <span class="tool-link link-disabled" aria-disabled="true">Workshop URL coming soon</span>
+          </article>
+
+          <article class="source-card">
+            <span class="mini-label">Deferred local tool</span>
+            <h3>Shop</h3>
+            <p>Deferred to v0.2+. Public URL to be published when the Shop extension exists.</p>
+            <span class="tool-link link-disabled" aria-disabled="true">Shop deferred to v0.2+</span>
+          </article>
+
+          <article class="source-card">
+            <span class="mini-label">Deferred local tool</span>
+            <h3>Pub</h3>
+            <p>Deferred to v0.2+. Public URL to be published when the Pub extension exists.</p>
+            <span class="tool-link link-disabled" aria-disabled="true">Pub deferred to v0.2+</span>
+          </article>
+
+          <article class="source-card">
+            <span class="mini-label">v0.1 published view</span>
+            <h3>Explorer</h3>
+            <p>Public URL to be published. This will point to the Explorer GitHub Pages publication-mode site when
+              released.</p>
+            <span class="tool-link link-disabled" aria-disabled="true">Explorer URL coming soon</span>
+          </article>
+
+          <article class="source-card">
+            <span class="mini-label">Authoritative cyber source</span>
+            <h3>ASD Essential Eight</h3>
+            <p>The ASD Essential Eight mitigation strategies are surfaced in the posture view using ASD terminology.</p>
+            <a class="tool-link"
+              href="https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight"
+              target="_blank" rel="noopener noreferrer">Open cyber.gov.au →</a>
+          </article>
+
+          <article class="source-card">
+            <span class="mini-label">Implementation</span>
+            <h3>Readiness review</h3>
+            <p>The current spec set is ready to scaffold v0.1, with guardrails around schema policy, personal-data
+              fixtures, writer lock, and AU-English lint.</p>
+            <span class="tool-link link-disabled" aria-disabled="true">Documentation URL coming soon</span>
+          </article>
+        </div>
+        <p class="assistive-note">Note: links marked "coming soon" are intentionally unavailable until the relevant
+          public endpoint is released.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p class="kicker">This page connects the ecosystem.</p>
+      <p>It is not the policy source and it is not the working system. Its role is to help people understand how the
+        v0.1 slice fits together, why the parts are separated, and where to go next.</p>
+      <p class="muted">Use the official PSPF site for authoritative policy and guidance, use cyber.gov.au for Essential
+        Eight terminology, then use the local tools and Explorer to apply that model in practice.</p>
+      <p class="muted footer-disclaimer"><strong>Independent project.</strong> Not affiliated with, endorsed by, or
+        operated by the Department of Home Affairs, the Attorney-General's Department, or any other Australian
+        Government entity. Experimental software; not for compliance assertions. Hosting may be outside Australia until
+        re-hosted.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const toggle = document.querySelector('[data-theme-toggle]');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const stored = localStorage.getItem('pspf-theme');
+      let mode = stored === 'light' || stored === 'dark' ? stored : 'dark';
+      root.setAttribute('data-theme', mode);
+      function updateLabel() {
+        if (!toggle) return;
+        toggle.setAttribute('aria-label', mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+      updateLabel();
+      toggle && toggle.addEventListener('click', function () {
+        mode = mode === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', mode);
+        localStorage.setItem('pspf-theme', mode);
+        updateLabel();
+      });
+    })();
+  </script>
+</body>
+
+</html>

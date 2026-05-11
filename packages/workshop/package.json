@@ -1,0 +1,63 @@
+{
+    "name": "pspf-workshop",
+    "displayName": "PSPF Workshop",
+    "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "publisher": "pspf",
+    "engines": {
+        "vscode": "^1.100.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "extensionDependencies": [
+        "pspf.pspf-core"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "pspf.workshop.createRequirement",
+                "title": "PSPF: Create Requirement"
+            },
+            {
+                "command": "pspf.workshop.attachEvidence",
+                "title": "PSPF: Attach Evidence to Requirement"
+            },
+            {
+                "command": "pspf.workshop.createAction",
+                "title": "PSPF: Create Action"
+            },
+            {
+                "command": "pspf.workshop.createRisk",
+                "title": "PSPF: Create Risk"
+            },
+            {
+                "command": "pspf.workshop.openAssessmentDashboard",
+                "title": "PSPF: Open Assessment Dashboard"
+            },
+            {
+                "command": "pspf.workshop.openEvidenceReviewQueue",
+                "title": "PSPF: Open Evidence Review Queue"
+            },
+            {
+                "command": "pspf.workshop.openItemDetail",
+                "title": "PSPF: Open Item Detail"
+            },
+            {
+                "command": "pspf.workshop.copyPostureBrief",
+                "title": "PSPF: Copy Posture Brief"
+            }
+        ]
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "test": "node --test dist/**/*.test.js"
+    },
+    "dependencies": {
+        "@pspf/brief-renderer": "workspace:*",
+        "@pspf/contracts": "workspace:*"
+    }
+}

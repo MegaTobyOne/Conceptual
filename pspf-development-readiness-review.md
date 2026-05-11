@@ -1,0 +1,91 @@
+# PSPF Development Readiness Review
+
+## Purpose
+
+This review records whether the PSPF spec set is ready to move from conceptual design into the v0.1 implementation slice. It also captures development-environment enhancements for the assumed maintainer setup: VS Code on macOS, one private GitHub Pro repo, pnpm workspaces, and GitHub Actions.
+
+## Readiness status
+
+**Status: v0.1 implementation slice complete, 11/11 release-readiness gates green, awaiting first manual operator validation.**
+
+The v0.1 scaffold from the original readiness sequence is fully landed:
+
+- pnpm workspaces with `@pspf/contracts`, `@pspf/brief-renderer`, `pspf-core`, `pspf-workshop`, and the Explorer static SPA.
+- Core: workspace bootstrap, SQLite system of record at `.pspf/core/pspf-core.db`, snapshot, integrity check, master-bundle export with manifest hashes, master-bundle import (`full-replace` with pre-replace rollback and `additive-merge`), writer lock, three version axes.
+- Workshop: Requirement, Evidence, Action, Risk authoring; Assessment Dashboard, Evidence Review Queue, Item Detail, Copy Posture Brief webview commands; PSPF v0.1.0 / Schema 1.0.0 / API 1.0.0 chips.
+- Explorer (publication mode only): static dark-mode SPA, bundle load with AJV validation, posture brief view with copy-to-clipboard, compliance donut, Relationships Board read-only, OFFICIAL: Sensitive banner, header version chip `Publication mode · v0.1.0`.
+- Shared `@pspf/brief-renderer` package backs both Workshop and Explorer so the posture brief cannot diverge.
+- ISM integration is documented but not implemented; see [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md) and [pspf-ism-integration-spec.md](pspf-ism-integration-spec.md).
+
+The core product decisions remain stable:
+
+- v0.1 scope is pinned by ADR 0014.
+- Source layout is pinned by ADR 0013.
+- Australian context, AU English, and terminology are pinned by ADR 0016 and `pspf-glossary.md`.
+- Item Detail is pinned to a `WebviewPanel` by ADR 0015 (implemented).
+- Single-writer behaviour is pinned in `pspf-core-architecture-spec.md`, `pspf-onboarding-spec.md`, and S8 in `pspf-invariants.md` (implemented).
+- Acceptance gates distinguish v0.1 from v1, and v0.2 candidate gates for ISM are now listed.
+
+## Gate status
+
+`npx pnpm@10.10.0 run release:readiness` is green at 11/11:
+
+1. Spine workflow (Playwright end-to-end + headless `e2e:v0.1`).
+2. Schema-policy.
+3. Personal-data exclusion.
+4. AU-English lint (current scope: `README.md`, `.github/copilot-instructions.md`, and `docs/**/*.md` — see remaining risk #1).
+5. Per-version schema publication (`schemas/explorer-bundle/1.0.0/`).
+6. Accessibility floor (`axe-core` via Playwright).
+7. Writer lock.
+8. Backup / restore dry-run.
+9. Brief redaction.
+10. Explorer publication smoke.
+11. Copy posture brief parity (Workshop ↔ Explorer through the shared renderer).
+
+## Remaining readiness risks
+
+These are open before, during, or after the first manual operator validation. None block the v0.1 release candidate, but each is tracked.
+
+1. **AU-English lint scope** — ADR 0016 expects the lint to scan all user-facing copy, but until docs move to `docs/` (ADR 0013) only two files are effectively in scope. Either (a) extend `scripts/lint-au-english.mjs` to include `pspf-*.md`, `adr/**/*.md`, and `validation-scenario-*.md` while carving out fenced code blocks, or (b) mechanically move docs under `docs/` and update inbound links. The repository's Copilot instructions already acknowledge the docs have not yet moved.
+2. **Explorer CSP gap** — the static ecosystem page (`pspf-ecosystem.html`) still allows inline script/style for its own simple behaviour. The product Explorer build at `packages/explorer/dist/index.html` MUST keep meeting S4; do not copy this page's relaxed CSP into Explorer. Spot-check on every Explorer change.
+3. **Shop / Pub expectation management** — Shop and Pub are v0.2+, so public copy, release notes, and the README must keep saying "deferred" until the packages exist. `packages/shop/README.md` and `packages/pub/README.md` currently hold deferral notes only.
+4. **`chart-renderer` package** — ADR 0014 names a shared `chart-renderer` alongside `brief-renderer`. v0.1 ships only `brief-renderer` because Workshop has no chart surface; the compliance donut is rendered inline by Explorer. The shared package will land in v0.2 when a chart is shared between surfaces. Tracked here so the gap is not forgotten.
+5. **Health view** — the v1 spec set references a Core "Health view" in `pspf-acceptance-and-quality-gates.md` Core criterion #2, `pspf-vscode-extension-surface-spec.md`, `pspf-onboarding-spec.md`, `pspf-core-architecture-spec.md`, and `pspf-core-workshop-screen-workflow-spec.md`. v0.1 surfaces the same information through discrete commands (`PSPF: Validate Workspace`, `PSPF: Verify Integrity`, `PSPF: Show Writer Lock`) and does not ship a single Health view webview. The unified view arrives in v0.2.
+6. **Command rename in extension surface spec** — `pspf-vscode-extension-surface-spec.md` still lists `pspf.core.exportExplorerBundle`; the implementation correctly uses `pspf.core.exportBundle` per ADR 0009 (single master bundle). The spec text is patched alongside this review; this risk closes when the patch lands.
+7. **Core API contract shape** — `pspf-core-api-contract-spec.md` describes a layered `PspfCoreApi` object (`platform`, `queries`, `commands`, `events`). v0.1 exposes a flat object plus VS Code commands; the layered shape is targeted for v0.2 once a second consuming product exists. Documented here rather than treated as drift, because v0.1 has only one consumer.
+8. **First operator validation** — the slice has not yet been put in front of an external operator using `validation-scenario-1-operator-workflow.md`. This is the next sequenced activity, not a code task.
+
+## Development environment enhancements
+
+Landed:
+
+- `.node-version`, `packageManager` in root `package.json`, `pnpm-workspace.yaml`.
+- Root `doctor` script verifying Node, pnpm, VS Code engine compatibility, and SQLite WAL support.
+- `.vscode/extensions.json` recommending the maintainer toolchain.
+- `.github/copilot-instructions.md` pointing generated-code work to the spec set.
+- `docs/lint/au-english.json` spelling list.
+
+Deferred / outstanding:
+
+- `.devcontainer/` for non-macOS contributors.
+- Playwright browser cache hygiene in CI.
+- `gh` release-workflow command sequence in `pspf-backup-and-restore-runbook.md` once the first VSIX tag is cut.
+
+## First implementation sequence
+
+All eight steps from the original sequence are complete:
+
+1. Monorepo scaffold (docs not yet moved — see remaining risk #1).
+2. Contracts package with entity IDs, glossary-driven labels, and publication-policy metadata.
+3. Schema-policy and AU-English lint scripts.
+4. Core bootstrap and writer lock with tests.
+5. Personal-data fixture and fail-closed exporter test.
+6. Workshop Requirement / Evidence / Action / Risk authoring.
+7. Snapshot, master-bundle export, and Explorer publication-mode load.
+8. v0.1 end-to-end spine test (`scripts/e2e-v01.mjs`).
+
+The next sequence is the first manual operator validation followed by the v0.2 entry items (Direction overlay, Action Impact ranking, ISM Phase 1 source library, posture editing, plan-apply intent).
+
+## Review conclusion
+
+The v0.1 thin slice is implemented end-to-end and gated. The remaining risks are documentation hygiene (lint scope, docs move, surface-spec naming) and one outstanding product activity (the first operator validation walkthrough). v0.2 work should not start in code until at least one external operator has run scenario 1 and the feedback has been recorded.
