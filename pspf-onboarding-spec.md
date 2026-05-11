@@ -61,6 +61,18 @@ To avoid broad activation:
 
 That sequence is the v0.1 acceptance journey. Total target time on a populated standard-fixture workspace: under 5 minutes.
 
+## v0.8 first-run test path
+
+For initial assurance-user testing, v0.8 adds a shorter sample-driven path without changing the v0.1 operator spine:
+
+1. Open a trusted folder in VS Code with PSPF Core and PSPF Workshop installed.
+2. Run `PSPF: Open Workshop Welcome` to confirm the workspace count strip renders.
+3. Run `PSPF: Load Sample Workspace`; Workshop writes the shared privacy-safe fixture through Core APIs.
+4. Open `PSPF: Open Assessment Dashboard`, `PSPF: Open Evidence Review Queue`, `PSPF: Open Item Detail`, and `PSPF: Open Direction Detail` to inspect the loaded scenario.
+5. Run `PSPF: Run Integrity Scan`, then `PSPF: Export Master Bundle` and open the bundle in Explorer.
+
+The same sample path is enforced by `pnpm run check:sample-workspace`.
+
 ## Welcome states (per surface)
 
 ### Core Health — empty

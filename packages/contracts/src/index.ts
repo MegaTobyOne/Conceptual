@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.3.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "0.7.0" as const;
+export const PSPF_SLICE_VERSION = "0.8.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -458,6 +458,209 @@ export function withEnvelope<EntityType extends V01EntityType>(
     ...value,
     entityType
   } as unknown as EntityFor<EntityType>;
+}
+
+export interface SampleWorkspaceOptions {
+  readonly sourceControls?: readonly SourceControlEntity[];
+  readonly timestamp?: string;
+}
+
+export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {}): V01Entity[] {
+  const timestamp = options.timestamp ?? "2026-05-11T00:00:00.000Z";
+  const governanceDomain = PSPF_DOMAINS.find((domain) => domain.code === "governance") ?? PSPF_DOMAINS[0]!;
+  const informationDomain = PSPF_DOMAINS.find((domain) => domain.code === "information") ?? PSPF_DOMAINS[1] ?? PSPF_DOMAINS[0]!;
+  const personnelDomain = PSPF_DOMAINS.find((domain) => domain.code === "personnel") ?? PSPF_DOMAINS[2] ?? PSPF_DOMAINS[0]!;
+  const sourceControl = options.sourceControls?.[0];
+
+  const requirementGovernance: RequirementEntity = sampleEntity("requirement", "REQ-00000000-0000-4000-8000-000000000801", timestamp, {
+    entityType: "requirement",
+    title: "Confirm security governance cadence",
+    domainId: governanceDomain.id,
+    assessmentStatus: "in-progress",
+    summary: "Internal sample note excluded from publication."
+  });
+  const requirementInformation: RequirementEntity = sampleEntity("requirement", "REQ-00000000-0000-4000-8000-000000000802", timestamp, {
+    entityType: "requirement",
+    title: "Review information handling controls",
+    domainId: informationDomain.id,
+    assessmentStatus: "partially-met",
+    summary: "Internal sample note excluded from publication."
+  });
+  const requirementPersonnel: RequirementEntity = sampleEntity("requirement", "REQ-00000000-0000-4000-8000-000000000803", timestamp, {
+    entityType: "requirement",
+    title: "Validate role-based access review",
+    domainId: personnelDomain.id,
+    assessmentStatus: "under-review",
+    summary: "Internal sample note excluded from publication."
+  });
+
+  const evidenceGovernance: EvidenceEntity = sampleEntity("evidence", "EVD-00000000-0000-4000-8000-000000000801", timestamp, {
+    entityType: "evidence",
+    title: "Governance forum terms of reference",
+    evidenceType: "document",
+    reference: "sample/governance-forum-tor.pdf",
+    freshness: "current"
+  });
+  const evidenceAccess: EvidenceEntity = sampleEntity("evidence", "EVD-00000000-0000-4000-8000-000000000802", timestamp, {
+    entityType: "evidence",
+    title: "Access review export",
+    evidenceType: "document",
+    reference: "sample/access-review-export.csv",
+    freshness: "stale"
+  });
+
+  const actionGovernance: ActionEntity = sampleEntity("action", "ACT-00000000-0000-4000-8000-000000000801", timestamp, {
+    entityType: "action",
+    title: "Schedule quarterly governance evidence review",
+    status: "todo",
+    dueDate: "2026-05-18T00:00:00.000Z"
+  });
+  const actionEncryption: ActionEntity = sampleEntity("action", "ACT-00000000-0000-4000-8000-000000000802", timestamp, {
+    entityType: "action",
+    title: "Resolve encryption exception register",
+    status: "blocked",
+    dueDate: "2026-05-01T00:00:00.000Z"
+  });
+  const actionAccess: ActionEntity = sampleEntity("action", "ACT-00000000-0000-4000-8000-000000000803", timestamp, {
+    entityType: "action",
+    title: "Refresh role access review evidence",
+    status: "in-progress",
+    dueDate: "2026-05-14T00:00:00.000Z"
+  });
+
+  const riskGovernance: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000801", timestamp, {
+    entityType: "risk",
+    title: "Governance evidence may fall out of date",
+    status: "open",
+    likelihood: 3,
+    impact: 3
+  });
+  const riskEncryption: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000802", timestamp, {
+    entityType: "risk",
+    title: "Encryption exception remains untreated",
+    status: "open",
+    likelihood: 4,
+    impact: 4
+  });
+  const riskAccess: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000803", timestamp, {
+    entityType: "risk",
+    title: "Dormant access is retained",
+    status: "monitored",
+    likelihood: 3,
+    impact: 2
+  });
+  const riskClosed: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000804", timestamp, {
+    entityType: "risk",
+    title: "Legacy sample risk closed",
+    status: "closed",
+    likelihood: 1,
+    impact: 1
+  });
+
+  const directionEncryption: DirectionEntity = sampleEntity("direction", "DIR-00000000-0000-4000-8000-000000000801", timestamp, {
+    entityType: "direction",
+    title: "Home Affairs Direction - encryption baseline",
+    reference: "HA-DIR-2026-01",
+    sourceAuthority: "Department of Home Affairs",
+    issuedAt: "2026-04-01T00:00:00.000Z",
+    responseState: "not-set"
+  });
+  const directionReporting: DirectionEntity = sampleEntity("direction", "DIR-00000000-0000-4000-8000-000000000802", timestamp, {
+    entityType: "direction",
+    title: "Home Affairs Direction - assurance reporting",
+    reference: "HA-DIR-2026-02",
+    sourceAuthority: "Department of Home Affairs",
+    issuedAt: "2026-04-15T00:00:00.000Z",
+    responseState: "risk-managed"
+  });
+
+  const entities: V01Entity[] = [
+    requirementGovernance,
+    requirementInformation,
+    requirementPersonnel,
+    evidenceGovernance,
+    evidenceAccess,
+    actionGovernance,
+    actionEncryption,
+    actionAccess,
+    riskGovernance,
+    riskEncryption,
+    riskAccess,
+    riskClosed,
+    directionEncryption,
+    directionReporting,
+    sampleLink("LNK-00000000-0000-4000-8000-000000000801", timestamp, "Governance requirement supported by current evidence", "supported-by", requirementGovernance, evidenceGovernance),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000802", timestamp, "Access requirement supported by stale evidence", "supported-by", requirementPersonnel, evidenceAccess),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000803", timestamp, "Governance requirement addressed by review action", "addressed-by", requirementGovernance, actionGovernance),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000804", timestamp, "Information requirement addressed by encryption action", "addressed-by", requirementInformation, actionEncryption),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000805", timestamp, "Personnel requirement addressed by access action", "addressed-by", requirementPersonnel, actionAccess),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000806", timestamp, "Governance risk treated by review action", "addressed-by", riskGovernance, actionGovernance),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000807", timestamp, "Encryption risk treated by encryption action", "addressed-by", riskEncryption, actionEncryption),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000808", timestamp, "Access risk treated by access action", "addressed-by", riskAccess, actionAccess),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000809", timestamp, "Encryption Direction targets information requirement", "targets", directionEncryption, requirementInformation),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000810", timestamp, "Reporting Direction targets governance requirement", "targets", directionReporting, requirementGovernance),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000811", timestamp, "Encryption Direction addressed by encryption action", "addressed-by", directionEncryption, actionEncryption),
+    sampleLink("LNK-00000000-0000-4000-8000-000000000812", timestamp, "Reporting Direction addressed by review action", "addressed-by", directionReporting, actionGovernance)
+  ];
+
+  if (sourceControl) {
+    entities.push(sampleEntity("requirement-control-mapping", "MAP-00000000-0000-4000-8000-000000000801", timestamp, {
+      entityType: "requirement-control-mapping",
+      title: `${requirementGovernance.title} mapped to ${sourceControl.controlId}`,
+      requirementId: requirementGovernance.id,
+      sourceControlId: sourceControl.id,
+      coverageQualifier: "primary",
+      applicabilityProfile: "official-sensitive",
+      confidence: "medium",
+      lastReviewedAt: "2026-05-11T00:00:00.000Z",
+      reviewBy: "Sample assurance role",
+      rationale: "Internal sample mapping rationale excluded from publication.",
+      provenance: {
+        author: "sample-workspace",
+        createdAt: timestamp,
+        oscalRelease: sourceControl.provenance.oscalRelease
+      }
+    }));
+  }
+
+  return entities;
+}
+
+function sampleEntity<EntityType extends V01EntityType>(
+  entityType: EntityType,
+  id: EntityFor<EntityType>["id"],
+  timestamp: string,
+  value: EntityDraft<EntityType>
+): EntityFor<EntityType> {
+  return {
+    id,
+    schemaVersion: VERSION_AXES.schemaVersion,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    sourceProduct: "workshop",
+    recordStatus: "active",
+    ...value,
+    entityType
+  } as unknown as EntityFor<EntityType>;
+}
+
+function sampleLink(
+  id: string,
+  timestamp: string,
+  title: string,
+  linkType: LinkType,
+  from: V01Entity,
+  to: V01Entity
+): LinkEntity {
+  return sampleEntity("link", id, timestamp, {
+    entityType: "link",
+    title,
+    linkType,
+    fromId: from.id,
+    fromType: from.entityType,
+    toId: to.id,
+    toType: to.entityType
+  });
 }
 
 export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {

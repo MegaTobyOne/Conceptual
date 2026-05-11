@@ -2,7 +2,7 @@
     "name": "pspf-workshop",
     "displayName": "PSPF Workshop",
     "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "private": true,
     "type": "module",
     "publisher": "pspf",
@@ -18,6 +18,14 @@
     "main": "./dist/extension.js",
     "contributes": {
         "commands": [
+            {
+                "command": "pspf.workshop.openWelcome",
+                "title": "PSPF: Open Workshop Welcome"
+            },
+            {
+                "command": "pspf.workshop.loadSampleWorkspace",
+                "title": "PSPF: Load Sample Workspace"
+            },
             {
                 "command": "pspf.workshop.createRequirement",
                 "title": "PSPF: Create Requirement"

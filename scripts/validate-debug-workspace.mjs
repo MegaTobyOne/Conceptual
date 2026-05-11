@@ -7,8 +7,16 @@ import { findLatestBundle, validateExportBundle, writeValidationReport } from ".
 const root = process.cwd();
 const workspaceRoot = join(root, "debug-workspace");
 const service = createCoreService(workspaceRoot);
-await service.initialiseWorkspace();
-await service.exportBundle();
+try {
+  await service.initialiseWorkspace();
+  await service.exportBundle();
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (!/writer lock|read-only/i.test(message)) {
+    throw error;
+  }
+  console.warn(`debug workspace is read-only (${message}); validating latest existing export`);
+}
 const bundlePath = findLatestBundle(workspaceRoot);
 
 if (!bundlePath || !existsSync(bundlePath)) {

@@ -82,6 +82,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **Multi-window writer-lock gate**: writer-lock state declares `policy: "single-writer"`; `scripts/check-writer-lock.mjs` proves live second-window writes are blocked and stale locks recover.
 5. **Compatibility gate**: schema, bundle, and API axes remain at `1.3.0`; only product version rolls to `0.7.0`. No new published-bundle field is introduced.
 
+### v0.8 candidate gates (first-run and packaging readiness, per ADR 0026)
+
+1. **Sample workspace gate**: `buildSampleWorkspaceEntities()` creates a privacy-safe scenario covering Requirements, Evidence, Actions, Risks, Directions, links, and an ISM mapping when source controls are available.
+2. **Workshop first-run gate**: `PSPF: Open Workshop Welcome` renders an `enableScripts: false` first-run panel and `PSPF: Load Sample Workspace` writes the shared sample through Core APIs.
+3. **Sample validation gate**: `scripts/check-sample-workspace.mjs` loads the sample into a clean workspace, validates counts, runs `runIntegrityScan()`, exports the bundle, and checks redaction/publication safety.
+4. **Packaging rehearsal gate**: `scripts/check-package-shape.mjs` verifies Core and Workshop package manifests, command contributions, built extension entry points, and Workshop's Core extension dependency in line with ADR 0007.
+5. **Compatibility gate**: schema, bundle, and API axes remain at `1.3.0`; only product version rolls to `0.8.0`. No new published-bundle field is introduced.
+
 ## v1 release gates
 
 A v1 release candidate is not eligible for publication unless all gates pass:

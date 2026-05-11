@@ -9,6 +9,7 @@ import {
   type AssessmentStatus,
   type DirectionEntity,
   type DirectionResponseState,
+  buildSampleWorkspaceEntities,
   enrichActionsWithImpact,
   type EvidenceEntity,
   type EvidenceFreshness,
@@ -30,6 +31,8 @@ export function activate(context: vscode.ExtensionContext): void {
   workshopContext = context;
   context.subscriptions.push(
     vscode.commands.registerCommand("pspf.workshop.createRequirement", createRequirement),
+    vscode.commands.registerCommand("pspf.workshop.openWelcome", openWelcome),
+    vscode.commands.registerCommand("pspf.workshop.loadSampleWorkspace", loadSampleWorkspace),
     vscode.commands.registerCommand("pspf.workshop.attachEvidence", attachEvidence),
     vscode.commands.registerCommand("pspf.workshop.createAction", createAction),
     vscode.commands.registerCommand("pspf.workshop.createRisk", createRisk),
@@ -47,6 +50,53 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {
   // No runtime resources to dispose yet.
+}
+
+async function openWelcome(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const requirements = allEntities.filter((entity) => entity.entityType === "requirement").length;
+  const evidence = allEntities.filter((entity) => entity.entityType === "evidence").length;
+  const actions = allEntities.filter((entity) => entity.entityType === "action").length;
+  const directions = allEntities.filter((entity) => entity.entityType === "direction").length;
+  const rows = [
+    { step: "Load sample", command: "PSPF: Load Sample Workspace", outcome: "Adds a privacy-safe assurance scenario" },
+    { step: "Review posture", command: "PSPF: Open Assessment Dashboard", outcome: "Shows Directions and Action Impact" },
+    { step: "Triage evidence", command: "PSPF: Open Evidence Review Queue", outcome: "Shows missing evidence and urgent actions" },
+    { step: "Inspect records", command: "PSPF: Open Item Detail", outcome: "Shows linked evidence, actions, risks, ISM, and Directions" },
+    { step: "Publish", command: "PSPF: Export Master Bundle", outcome: "Creates the Explorer bundle" },
+    { step: "Check", command: "PSPF: Run Integrity Scan", outcome: "Writes .pspf/logs/integrity-scan.json" }
+  ];
+
+  const panel = vscode.window.createWebviewPanel("pspfWorkshopWelcome", "PSPF Workshop Welcome", vscode.ViewColumn.One, { enableScripts: false });
+  panel.webview.html = shellHtml("PSPF Workshop Welcome", `
+    <section>
+      <h1>Workshop Welcome</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))}</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Requirements", requirements)}
+        ${metricCard("Evidence", evidence)}
+        ${metricCard("Actions", actions)}
+        ${metricCard("Directions", directions)}
+      </div>
+    </section>
+    ${recordTable("First-Run Path", rows, ["step", "command", "outcome"])}
+  `);
+}
+
+async function loadSampleWorkspace(): Promise<void> {
+  await ensureCoreReady();
+  const sourceControls = await listSourceControls();
+  const entities = buildSampleWorkspaceEntities({ sourceControls });
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", entities);
+  const action = await vscode.window.showInformationMessage(`PSPF sample workspace loaded: ${entities.length} record(s).`, "Open Welcome", "Open Dashboard");
+  if (action === "Open Welcome") {
+    await openWelcome();
+  }
+  if (action === "Open Dashboard") {
+    await openAssessmentDashboard();
+  }
 }
 
 async function createRequirement(): Promise<void> {
@@ -363,7 +413,8 @@ async function openAssessmentDashboard(): Promise<void> {
         evidenceUplift,
         riskReduction,
         directionUplift,
-        explanation: (impact.explanation ?? []).join("; ")
+        explanation: summariseImpactExplanation(impact.explanation ?? []),
+        explanationFull: (impact.explanation ?? []).join("; ")
       };
     })
     .sort((left, right) => right.total - left.total)
@@ -847,6 +898,8 @@ function shellHtml(title: string, body: string): string {
     td { overflow-wrap: anywhere; }
     th { color: #d4d4d8; }
     th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"], th[data-field="target"], td[data-field="target"] { min-width: 18rem; max-width: 34rem; }
+    th[data-field="explanation"], td[data-field="explanation"] { max-width: 18rem; }
+    .cell-compact { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="freshness"], td[data-field="freshness"] { white-space: nowrap; width: 1%; }
     .banner { background: #3f2f11; border-bottom: 1px solid #d97706; color: #fde68a; padding: 8px 20px; font-weight: 600; }
     .muted { color: #a1a1aa; }
@@ -1040,8 +1093,24 @@ function recordTable(title: string, records: readonly object[], fields: readonly
     return `<section><h2>${escapeHtml(title)}</h2><p class="muted">No records linked yet.</p></section>`;
   }
   const header = fields.map((field) => `<th data-field="${escapeHtml(field)}">${escapeHtml(label(field))}</th>`).join("");
-  const rows = records.map((record) => `<tr>${fields.map((field) => `<td data-field="${escapeHtml(field)}">${escapeHtml(String(readRecordField(record, field) ?? ""))}</td>`).join("")}</tr>`).join("");
+  const rows = records.map((record) => `<tr>${fields.map((field) => tableCell(record, field)).join("")}</tr>`).join("");
   return `<section><h2>${escapeHtml(title)}</h2><div class="table-wrap" tabindex="0" aria-label="Scrollable ${escapeHtml(title)} table"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
+}
+
+function tableCell(record: object, field: string): string {
+  const value = String(readRecordField(record, field) ?? "");
+  if (field === "explanation") {
+    const fullValue = String(readRecordField(record, "explanationFull") ?? value);
+    return `<td data-field="${escapeHtml(field)}" title="${escapeHtml(fullValue)}"><span class="cell-compact">${escapeHtml(value)}</span></td>`;
+  }
+  return `<td data-field="${escapeHtml(field)}">${escapeHtml(value)}</td>`;
+}
+
+function summariseImpactExplanation(explanation: readonly string[]): string {
+  if (explanation.length <= 1) {
+    return explanation[0] ?? "No linked impact signals";
+  }
+  return `${explanation[0]} (+${explanation.length - 1} more)`;
 }
 
 function versionStrip(): string {
