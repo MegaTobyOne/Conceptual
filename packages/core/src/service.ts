@@ -14,6 +14,7 @@ import {
   PSPF_DOMAINS,
   VERSION_AXES,
   V0_1_COLLECTIONS,
+  enrichActionsWithImpact,
   nowIso,
   sanitiseEntityForPublication,
   withEnvelope
@@ -53,6 +54,7 @@ export interface CoreService {
   readonly initialiseWorkspace: () => Promise<WorkspacePaths>;
   readonly validateWorkspace: () => Promise<{ ok: boolean; message: string; counts: Record<V01Collection, number> }>;
   readonly verifyIntegrity: () => Promise<{ ok: boolean; detail: string }>;
+  readonly runIntegrityScan: () => Promise<IntegrityScanReport>;
   readonly createSnapshot: () => Promise<V01Entity>;
   readonly exportBundle: () => Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }>;
   readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<{ imported: number; mode: ImportMode; bundlePath: string }>;
@@ -62,29 +64,99 @@ export interface CoreService {
   readonly listEntities: (entityType?: V01Entity["entityType"]) => Promise<V01Entity[]>;
 }
 
+export interface CoreReadApi {
+  readonly getWorkspacePaths: () => WorkspacePaths;
+  readonly validateWorkspace: () => Promise<{ ok: boolean; message: string; counts: Record<V01Collection, number> }>;
+  readonly listEntities: (entityType?: V01Entity["entityType"]) => Promise<V01Entity[]>;
+}
+
+export interface CoreWriteApi {
+  readonly initialiseWorkspace: () => Promise<WorkspacePaths>;
+  readonly createSnapshot: () => Promise<V01Entity>;
+  readonly getWriterLock: () => Promise<WriterLockState>;
+  readonly upsertEntity: (entity: V01Entity) => Promise<V01Entity>;
+  readonly upsertEntities: (entities: readonly V01Entity[]) => Promise<readonly V01Entity[]>;
+}
+
+export interface CoreExchangeApi {
+  readonly exportBundle: () => Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }>;
+  readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<{ imported: number; mode: ImportMode; bundlePath: string }>;
+}
+
+export interface CoreIntegrityApi {
+  readonly verifyIntegrity: () => Promise<{ ok: boolean; detail: string }>;
+  readonly runIntegrityScan: () => Promise<IntegrityScanReport>;
+}
+
 export type ImportMode = "additive-merge" | "full-replace";
 
 export interface WriterLockState {
   readonly holderPid?: number;
   readonly acquiredAt?: string;
   readonly currentPid: number;
+  readonly policy: "single-writer";
   readonly writable: boolean;
   readonly detail: string;
 }
 
+export interface IntegrityScanFinding {
+  readonly section: "sqlite" | "payload" | "links" | "writer-lock" | "lifecycle";
+  readonly severity: "info" | "warning" | "error";
+  readonly message: string;
+}
+
+export interface IntegrityScanReport {
+  readonly ok: boolean;
+  readonly generatedAt: string;
+  readonly summary: string;
+  readonly findings: readonly IntegrityScanFinding[];
+  readonly counts: {
+    readonly entities: number;
+    readonly links: number;
+    readonly orphanedLinks: number;
+    readonly mistypedLinks: number;
+    readonly unparseablePayloads: number;
+  };
+}
+
 export function createCoreService(workspaceRoot: string): CoreService {
   return {
+    ...createCoreReadApi(workspaceRoot),
+    ...createCoreWriteApi(workspaceRoot),
+    ...createCoreExchangeApi(workspaceRoot),
+    ...createCoreIntegrityApi(workspaceRoot)
+  };
+}
+
+export function createCoreReadApi(workspaceRoot: string): CoreReadApi {
+  return {
     getWorkspacePaths: () => getWorkspacePaths(workspaceRoot),
-    initialiseWorkspace: () => initialiseWorkspace(workspaceRoot),
     validateWorkspace: () => validateWorkspace(workspaceRoot),
-    verifyIntegrity: () => verifyIntegrity(workspaceRoot),
+    listEntities: (entityType) => listEntities(workspaceRoot, entityType)
+  };
+}
+
+export function createCoreWriteApi(workspaceRoot: string): CoreWriteApi {
+  return {
+    initialiseWorkspace: () => initialiseWorkspace(workspaceRoot),
     createSnapshot: () => createSnapshot(workspaceRoot),
-    exportBundle: () => exportBundle(workspaceRoot),
-    importBundle: (bundlePath, mode) => importBundle(workspaceRoot, bundlePath, mode),
     getWriterLock: () => getWriterLock(workspaceRoot),
     upsertEntity: (entity) => upsertEntity(workspaceRoot, entity),
-    upsertEntities: (entities) => upsertEntities(workspaceRoot, entities),
-    listEntities: (entityType) => listEntities(workspaceRoot, entityType)
+    upsertEntities: (entities) => upsertEntities(workspaceRoot, entities)
+  };
+}
+
+export function createCoreExchangeApi(workspaceRoot: string): CoreExchangeApi {
+  return {
+    exportBundle: () => exportBundle(workspaceRoot),
+    importBundle: (bundlePath, mode) => importBundle(workspaceRoot, bundlePath, mode)
+  };
+}
+
+export function createCoreIntegrityApi(workspaceRoot: string): CoreIntegrityApi {
+  return {
+    verifyIntegrity: () => verifyIntegrity(workspaceRoot),
+    runIntegrityScan: () => runIntegrityScan(workspaceRoot)
   };
 }
 
@@ -170,6 +242,98 @@ async function verifyIntegrity(workspaceRoot: string): Promise<{ ok: boolean; de
   const output = await runSql(paths.db, "PRAGMA integrity_check;");
   const detail = output.trim();
   return { ok: detail === "ok", detail };
+}
+
+async function runIntegrityScan(workspaceRoot: string): Promise<IntegrityScanReport> {
+  const paths = await ensureInitialised(workspaceRoot);
+  const findings: IntegrityScanFinding[] = [];
+
+  const sqliteResult = (await runSql(paths.db, "PRAGMA integrity_check;")).trim();
+  if (sqliteResult === "ok") {
+    findings.push({ section: "sqlite", severity: "info", message: "SQLite PRAGMA integrity_check returned ok." });
+  } else {
+    findings.push({ section: "sqlite", severity: "error", message: `SQLite integrity_check returned: ${sqliteResult}` });
+  }
+
+  const rawOutput = await runSql(paths.db, "SELECT id, entity_type, payload FROM entities;", ["-json"]);
+  const rows = rawOutput.trim() === "" ? [] : JSON.parse(rawOutput) as readonly { id: string; entity_type: string; payload: string }[];
+  const entitiesById = new Map<string, V01Entity>();
+  let unparseable = 0;
+  for (const row of rows) {
+    try {
+      const entity = JSON.parse(row.payload) as V01Entity;
+      if (entity.id !== row.id) {
+        findings.push({ section: "payload", severity: "error", message: `Entity row id ${row.id} does not match payload id ${entity.id}.` });
+      }
+      if (entity.entityType !== row.entity_type) {
+        findings.push({ section: "payload", severity: "error", message: `Entity ${entity.id} entity_type column (${row.entity_type}) does not match payload entityType (${entity.entityType}).` });
+      }
+      entitiesById.set(entity.id, entity);
+    } catch (error) {
+      unparseable += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      findings.push({ section: "payload", severity: "error", message: `Entity row ${row.id} payload is not valid JSON: ${message}` });
+    }
+  }
+
+  let orphanedLinks = 0;
+  let mistypedLinks = 0;
+  let linkCount = 0;
+  for (const entity of entitiesById.values()) {
+    if (entity.entityType !== "link") {
+      continue;
+    }
+    linkCount += 1;
+    const link = entity as V01Entity & { fromId: string; fromType: string; toId: string; toType: string; linkType: string };
+    const fromEntity = entitiesById.get(link.fromId);
+    const toEntity = entitiesById.get(link.toId);
+    if (!fromEntity) {
+      orphanedLinks += 1;
+      findings.push({ section: "links", severity: "error", message: `Link ${link.id} references missing fromId ${link.fromId}.` });
+    } else if (fromEntity.entityType !== link.fromType) {
+      mistypedLinks += 1;
+      findings.push({ section: "links", severity: "error", message: `Link ${link.id} fromType ${link.fromType} does not match referenced entity ${link.fromId} (${fromEntity.entityType}).` });
+    }
+    if (!toEntity) {
+      orphanedLinks += 1;
+      findings.push({ section: "links", severity: "error", message: `Link ${link.id} references missing toId ${link.toId}.` });
+    } else if (toEntity.entityType !== link.toType) {
+      mistypedLinks += 1;
+      findings.push({ section: "links", severity: "error", message: `Link ${link.id} toType ${link.toType} does not match referenced entity ${link.toId} (${toEntity.entityType}).` });
+    }
+  }
+
+  const lock = await readWriterLock(paths);
+  if (lock.holderPid && lock.holderPid !== process.pid && !isProcessAlive(lock.holderPid)) {
+    findings.push({ section: "writer-lock", severity: "warning", message: `Writer lock holder pid ${lock.holderPid} is no longer alive; lock is stale.` });
+  } else {
+    findings.push({ section: "writer-lock", severity: "info", message: lock.detail });
+  }
+
+  const ok = findings.every((finding) => finding.severity !== "error");
+  const errorCount = findings.filter((finding) => finding.severity === "error").length;
+  const warningCount = findings.filter((finding) => finding.severity === "warning").length;
+  const summary = ok
+    ? `Integrity scan passed: ${entitiesById.size} entities, ${linkCount} links, ${warningCount} warning(s).`
+    : `Integrity scan failed: ${errorCount} error(s), ${warningCount} warning(s).`;
+
+  const report: IntegrityScanReport = {
+    ok,
+    generatedAt: nowIso(),
+    summary,
+    findings,
+    counts: {
+      entities: entitiesById.size,
+      links: linkCount,
+      orphanedLinks,
+      mistypedLinks,
+      unparseablePayloads: unparseable
+    }
+  };
+
+  await writeJson(join(paths.logs, "integrity-scan.json"), report);
+  await recordOperation(paths, "integrity-scan", ok ? "success" : "failure", summary);
+  return report;
 }
 
 async function createSnapshot(workspaceRoot: string): Promise<V01Entity> {
@@ -335,134 +499,6 @@ async function getBundleCollections(workspaceRoot: string, paths: WorkspacePaths
 
   collections.posture = [buildPosture(collections, paths)];
   return collections;
-}
-
-function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Entity[] {
-  const requirements = new Map<string, V01Entity & { assessmentStatus?: string }>();
-  for (const entity of entities) {
-    if (entity.entityType === "requirement") {
-      requirements.set(entity.id, entity as V01Entity & { assessmentStatus?: string });
-    }
-  }
-  const evidenceById = new Map<string, V01Entity & { freshness?: string }>();
-  for (const entity of entities) {
-    if (entity.entityType === "evidence") {
-      evidenceById.set(entity.id, entity as V01Entity & { freshness?: string });
-    }
-  }
-  const directionsById = new Map<string, V01Entity & { responseState?: string }>();
-  for (const entity of entities) {
-    if (entity.entityType === "direction") {
-      directionsById.set(entity.id, entity as V01Entity & { responseState?: string });
-    }
-  }
-  const risksById = new Map<string, V01Entity & { status?: string; likelihood?: number; impact?: number }>();
-  for (const entity of entities) {
-    if (entity.entityType === "risk") {
-      risksById.set(entity.id, entity as V01Entity & { status?: string; likelihood?: number; impact?: number });
-    }
-  }
-
-  const links = entities.filter((entity): entity is V01Entity & { linkType: string; fromId: string; fromType: string; toId: string; toType: string } => entity.entityType === "link");
-  const requirementsByAction = new Map<string, string[]>();
-  const evidenceByRequirement = new Map<string, string[]>();
-  const risksByAction = new Map<string, string[]>();
-  const directionsByAction = new Map<string, string[]>();
-  for (const link of links) {
-    if (link.linkType === "addressed-by" && link.fromType === "requirement" && link.toType === "action") {
-      requirementsByAction.set(link.toId, [...(requirementsByAction.get(link.toId) ?? []), link.fromId]);
-    }
-    if (link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence") {
-      evidenceByRequirement.set(link.fromId, [...(evidenceByRequirement.get(link.fromId) ?? []), link.toId]);
-    }
-    if (link.linkType === "addressed-by" && link.fromType === "risk" && link.toType === "action") {
-      risksByAction.set(link.toId, [...(risksByAction.get(link.toId) ?? []), link.fromId]);
-    }
-    if (link.linkType === "addressed-by" && link.fromType === "direction" && link.toType === "action") {
-      directionsByAction.set(link.toId, [...(directionsByAction.get(link.toId) ?? []), link.fromId]);
-    }
-  }
-
-  return entities.map((entity) => {
-    if (entity.entityType !== "action") {
-      return entity;
-    }
-    const linkedRequirementIds = requirementsByAction.get(entity.id) ?? [];
-    const nonFinalStatuses = new Set(["not-started", "in-progress", "partially-met", "not-met", "under-review"]);
-    let postureUplift = 0;
-    let evidenceUplift = 0;
-    const explanation: string[] = [];
-    for (const requirementId of linkedRequirementIds) {
-      const requirement = requirements.get(requirementId);
-      if (requirement && nonFinalStatuses.has(requirement.assessmentStatus ?? "")) {
-        postureUplift += 2;
-        explanation.push(`Linked to non-final requirement (${requirement.assessmentStatus})`);
-      }
-      const evidenceIds = evidenceByRequirement.get(requirementId) ?? [];
-      const hasCurrentEvidence = evidenceIds.some((id) => evidenceById.get(id)?.freshness === "current");
-      if (evidenceIds.length === 0) {
-        evidenceUplift += 2;
-        explanation.push(`Closes evidence gap on linked requirement`);
-      } else if (!hasCurrentEvidence) {
-        evidenceUplift += 1;
-        explanation.push(`Refreshes ageing or stale evidence`);
-      }
-    }
-    const linkedRiskIds = risksByAction.get(entity.id) ?? [];
-    let riskReduction = 0;
-    for (const riskId of linkedRiskIds) {
-      const risk = risksById.get(riskId);
-      if (risk && risk.status !== "closed") {
-        const severity = (risk.likelihood ?? 0) * (risk.impact ?? 0);
-        riskReduction += severity >= 10 ? 3 : severity >= 5 ? 2 : 1;
-        explanation.push(`Treats open risk (severity ${severity})`);
-      }
-    }
-    const linkedDirectionIds = directionsByAction.get(entity.id) ?? [];
-    let directionUplift = 0;
-    for (const directionId of linkedDirectionIds) {
-      const direction = directionsById.get(directionId);
-      if (direction && direction.responseState !== "yes") {
-        directionUplift += 2;
-        explanation.push(`Contributes to Direction response (${direction.responseState})`);
-      }
-    }
-    const action = entity as V01Entity & { status: string; dueDate?: string };
-    let urgency: "normal" | "due-soon" | "overdue" | "blocked" = "normal";
-    if (action.status === "blocked") {
-      urgency = "blocked";
-      explanation.push("Action is blocked");
-    } else if (action.dueDate) {
-      const due = Date.parse(action.dueDate);
-      if (!Number.isNaN(due)) {
-        const now = Date.now();
-        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-        if (due < now) {
-          urgency = "overdue";
-          explanation.push("Past due date");
-        } else if (due - now < sevenDaysMs) {
-          urgency = "due-soon";
-          explanation.push("Due within seven days");
-        }
-      }
-    }
-    if (explanation.length === 0) {
-      explanation.push("No linked requirements, evidence, risks, or Directions");
-    }
-    const impact = {
-      postureUplift,
-      evidenceUplift,
-      riskReduction,
-      directionUplift,
-      urgency,
-      explanation: dedupe(explanation)
-    };
-    return { ...entity, impact } as V01Entity;
-  });
-}
-
-function dedupe<T>(items: readonly T[]): T[] {
-  return Array.from(new Set(items));
 }
 
 function createEmptyCollections(): BundleCollections {
@@ -633,6 +669,7 @@ async function acquireWriterLock(paths: WorkspacePaths): Promise<WriterLockState
     holderPid: process.pid,
     acquiredAt: nowIso(),
     currentPid: process.pid,
+    policy: "single-writer",
     writable: true,
     detail: "Writer lock held by current process."
   };
@@ -643,7 +680,7 @@ async function acquireWriterLock(paths: WorkspacePaths): Promise<WriterLockState
 async function readWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
   const lockPath = join(paths.locks, "writer-lock.json");
   if (!existsSync(lockPath)) {
-    return { currentPid: process.pid, writable: true, detail: "No writer lock exists yet." };
+    return { currentPid: process.pid, policy: "single-writer", writable: true, detail: "No writer lock exists yet." };
   }
 
   const value = JSON.parse(await readFile(lockPath, "utf8")) as Partial<WriterLockState>;
@@ -654,6 +691,7 @@ async function readWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
     holderPid,
     acquiredAt: value.acquiredAt,
     currentPid: process.pid,
+    policy: "single-writer",
     writable,
     detail: writable
       ? heldByCurrentProcess ? "Writer lock held by current process." : "Writer lock is available."

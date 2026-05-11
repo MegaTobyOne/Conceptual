@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.3.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "0.5.0" as const;
+export const PSPF_SLICE_VERSION = "0.7.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -486,6 +486,121 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
   }
 
   return output as unknown as V01Entity;
+}
+
+export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Entity[] {
+  const requirements = new Map<string, V01Entity & { assessmentStatus?: string }>();
+  const evidenceById = new Map<string, V01Entity & { freshness?: string }>();
+  const directionsById = new Map<string, V01Entity & { responseState?: string }>();
+  const risksById = new Map<string, V01Entity & { status?: string; likelihood?: number; impact?: number }>();
+  for (const entity of entities) {
+    if (entity.entityType === "requirement") {
+      requirements.set(entity.id, entity as V01Entity & { assessmentStatus?: string });
+    } else if (entity.entityType === "evidence") {
+      evidenceById.set(entity.id, entity as V01Entity & { freshness?: string });
+    } else if (entity.entityType === "direction") {
+      directionsById.set(entity.id, entity as V01Entity & { responseState?: string });
+    } else if (entity.entityType === "risk") {
+      risksById.set(entity.id, entity as V01Entity & { status?: string; likelihood?: number; impact?: number });
+    }
+  }
+
+  const links = entities.filter((entity): entity is V01Entity & { linkType: string; fromId: string; fromType: string; toId: string; toType: string } => entity.entityType === "link");
+  const requirementsByAction = new Map<string, string[]>();
+  const evidenceByRequirement = new Map<string, string[]>();
+  const risksByAction = new Map<string, string[]>();
+  const directionsByAction = new Map<string, string[]>();
+  for (const link of links) {
+    if (link.linkType === "addressed-by" && link.fromType === "requirement" && link.toType === "action") {
+      requirementsByAction.set(link.toId, [...(requirementsByAction.get(link.toId) ?? []), link.fromId]);
+    }
+    if (link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence") {
+      evidenceByRequirement.set(link.fromId, [...(evidenceByRequirement.get(link.fromId) ?? []), link.toId]);
+    }
+    if (link.linkType === "addressed-by" && link.fromType === "risk" && link.toType === "action") {
+      risksByAction.set(link.toId, [...(risksByAction.get(link.toId) ?? []), link.fromId]);
+    }
+    if (link.linkType === "addressed-by" && link.fromType === "direction" && link.toType === "action") {
+      directionsByAction.set(link.toId, [...(directionsByAction.get(link.toId) ?? []), link.fromId]);
+    }
+  }
+
+  const nonFinalStatuses = new Set(["not-started", "in-progress", "partially-met", "not-met", "under-review"]);
+  return entities.map((entity) => {
+    if (entity.entityType !== "action") {
+      return entity;
+    }
+    const linkedRequirementIds = requirementsByAction.get(entity.id) ?? [];
+    let postureUplift = 0;
+    let evidenceUplift = 0;
+    const explanation: string[] = [];
+    for (const requirementId of linkedRequirementIds) {
+      const requirement = requirements.get(requirementId);
+      if (requirement && nonFinalStatuses.has(requirement.assessmentStatus ?? "")) {
+        postureUplift += 2;
+        explanation.push(`Linked to non-final requirement (${requirement.assessmentStatus})`);
+      }
+      const evidenceIds = evidenceByRequirement.get(requirementId) ?? [];
+      const hasCurrentEvidence = evidenceIds.some((id) => evidenceById.get(id)?.freshness === "current");
+      if (evidenceIds.length === 0) {
+        evidenceUplift += 2;
+        explanation.push(`Closes evidence gap on linked requirement`);
+      } else if (!hasCurrentEvidence) {
+        evidenceUplift += 1;
+        explanation.push(`Refreshes ageing or stale evidence`);
+      }
+    }
+    const linkedRiskIds = risksByAction.get(entity.id) ?? [];
+    let riskReduction = 0;
+    for (const riskId of linkedRiskIds) {
+      const risk = risksById.get(riskId);
+      if (risk && risk.status !== "closed") {
+        const severity = (risk.likelihood ?? 0) * (risk.impact ?? 0);
+        riskReduction += severity >= 10 ? 3 : severity >= 5 ? 2 : 1;
+        explanation.push(`Treats open risk (severity ${severity})`);
+      }
+    }
+    const linkedDirectionIds = directionsByAction.get(entity.id) ?? [];
+    let directionUplift = 0;
+    for (const directionId of linkedDirectionIds) {
+      const direction = directionsById.get(directionId);
+      if (direction && direction.responseState !== "yes") {
+        directionUplift += 2;
+        explanation.push(`Contributes to Direction response (${direction.responseState})`);
+      }
+    }
+    const action = entity as V01Entity & { status: string; dueDate?: string };
+    let urgency: "normal" | "due-soon" | "overdue" | "blocked" = "normal";
+    if (action.status === "blocked") {
+      urgency = "blocked";
+      explanation.push("Action is blocked");
+    } else if (action.dueDate) {
+      const due = Date.parse(action.dueDate);
+      if (!Number.isNaN(due)) {
+        const now = Date.now();
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        if (due < now) {
+          urgency = "overdue";
+          explanation.push("Past due date");
+        } else if (due - now < sevenDaysMs) {
+          urgency = "due-soon";
+          explanation.push("Due within seven days");
+        }
+      }
+    }
+    if (explanation.length === 0) {
+      explanation.push("No linked requirements, evidence, risks, or Directions");
+    }
+    const impact = {
+      postureUplift,
+      evidenceUplift,
+      riskReduction,
+      directionUplift,
+      urgency,
+      explanation: Array.from(new Set(explanation))
+    };
+    return { ...entity, impact } as V01Entity;
+  });
 }
 
 function publicFields(...fields: readonly string[]): readonly FieldPolicy[] {

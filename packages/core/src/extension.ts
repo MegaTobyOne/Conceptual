@@ -10,6 +10,7 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     initialiseWorkspace: () => getService().initialiseWorkspace(),
     validateWorkspace: () => getService().validateWorkspace(),
     verifyIntegrity: () => getService().verifyIntegrity(),
+    runIntegrityScan: () => getService().runIntegrityScan(),
     createSnapshot: () => getService().createSnapshot(),
     exportBundle: () => getService().exportBundle(),
     importBundle: getService().importBundle,
@@ -35,6 +36,11 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       const result = await getService().verifyIntegrity();
       await vscode.window.showInformationMessage(result.ok ? "PSPF SQLite integrity check passed." : `PSPF integrity check failed: ${result.detail}`);
       return result;
+    }),
+    vscode.commands.registerCommand("pspf.core.runIntegrityScan", async () => {
+      const report = await getService().runIntegrityScan();
+      await vscode.window.showInformationMessage(report.ok ? report.summary : `PSPF integrity scan failed: ${report.summary}`);
+      return report;
     }),
     vscode.commands.registerCommand("pspf.core.createSnapshot", async () => {
       const snapshot = await getService().createSnapshot();
@@ -82,6 +88,7 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     }),
     vscode.commands.registerCommand("pspf.core.importBundleFromPath", (bundlePath: string, mode: ImportMode) => getService().importBundle(bundlePath, mode)),
     vscode.commands.registerCommand("pspf.core.ensureWorkspaceReady", async () => getService().initialiseWorkspace()),
+    vscode.commands.registerCommand("pspf.core.runIntegrityScanHeadless", async () => getService().runIntegrityScan()),
     vscode.commands.registerCommand("pspf.core.upsertEntity", (entity) => getService().upsertEntity(entity)),
     vscode.commands.registerCommand("pspf.core.upsertEntities", (entities) => getService().upsertEntities(entities)),
     vscode.commands.registerCommand("pspf.core.listEntities", (entityType) => getService().listEntities(entityType)),

@@ -36,6 +36,8 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0021 | v0.4 readiness and UI resilience | accepted |
 | 0022 | v1.0 scope for initial assurance user testing | accepted |
 | 0023 | v0.5 Directions overlay and Action Impact ranking | accepted |
+| 0024 | v0.6 Workshop parity for Directions and Action Impact | accepted |
+| 0025 | v0.7 engine hardening | accepted |
 
 ## Template
 

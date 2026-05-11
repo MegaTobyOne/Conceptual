@@ -2,7 +2,7 @@
     "name": "pspf-core",
     "displayName": "PSPF Core",
     "description": "Local PSPF system of record, workspace bootstrap, validation, snapshots, and export operations.",
-    "version": "0.5.0",
+    "version": "0.7.0",
     "private": true,
     "type": "module",
     "publisher": "pspf",
@@ -41,6 +41,10 @@
             {
                 "command": "pspf.core.verifyIntegrity",
                 "title": "PSPF: Verify Integrity"
+            },
+            {
+                "command": "pspf.core.runIntegrityScan",
+                "title": "PSPF: Run Integrity Scan"
             },
             {
                 "command": "pspf.core.createSnapshot",

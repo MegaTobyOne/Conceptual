@@ -9,6 +9,7 @@ import {
   type AssessmentStatus,
   type DirectionEntity,
   type DirectionResponseState,
+  enrichActionsWithImpact,
   type EvidenceEntity,
   type EvidenceFreshness,
   type LinkEntity,
@@ -39,6 +40,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.createRequirementControlMapping", createRequirementControlMapping),
     vscode.commands.registerCommand("pspf.workshop.registerDirection", registerDirection),
     vscode.commands.registerCommand("pspf.workshop.updateDirectionResponse", updateDirectionResponse),
+    vscode.commands.registerCommand("pspf.workshop.openDirectionDetail", openDirectionDetail),
     vscode.commands.registerCommand("pspf.workshop.copyPostureBrief", copyPostureBrief)
   );
 }
@@ -317,17 +319,55 @@ async function upsertLinkedEntity(entity: V01Entity, link: LinkEntity, requireme
 async function openAssessmentDashboard(): Promise<void> {
   await ensureCoreReady();
   const allEntities = await listAllEntities();
+  const enrichedEntities = enrichActionsWithImpact(allEntities);
   const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
   const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence");
-  const actions = allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action");
+  const actions = enrichedEntities.filter((entity): entity is ActionEntity => entity.entityType === "action");
   const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
   const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
+  const directions = allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction");
   const evidenceRequirementIds = new Set(links.filter((link) => link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence").map((link) => link.fromId));
   const validationHints = buildValidationHints(requirements, actions, risks, links);
   const recentRequirementId = getRecentRequirementId();
   const recentRequirement = recentRequirementId ? requirements.find((requirement) => requirement.id === recentRequirementId) : undefined;
   const openActionCount = actions.filter((action) => !["done", "cancelled"].includes(action.status)).length;
   const openRiskCount = risks.filter((risk) => risk.status !== "closed").length;
+  const directionResponseCounts: Record<DirectionResponseState, number> = {
+    "not-set": directions.filter((direction) => direction.responseState === "not-set").length,
+    "yes": directions.filter((direction) => direction.responseState === "yes").length,
+    "no": directions.filter((direction) => direction.responseState === "no").length,
+    "risk-managed": directions.filter((direction) => direction.responseState === "risk-managed").length
+  };
+  const directionRows = directions.map((direction) => ({
+    reference: direction.reference,
+    title: direction.title,
+    responseState: label(direction.responseState),
+    sourceAuthority: direction.sourceAuthority ?? "Not recorded",
+    issuedAt: direction.issuedAt ? formatDisplayDate(new Date(direction.issuedAt)) : "Not recorded"
+  }));
+  const actionImpactRows = actions
+    .filter((action): action is ActionEntity & { impact: NonNullable<ActionEntity["impact"]> } => Boolean(action.impact))
+    .map((action) => {
+      const impact = action.impact;
+      const postureUplift = impact.postureUplift ?? 0;
+      const evidenceUplift = impact.evidenceUplift ?? 0;
+      const riskReduction = impact.riskReduction ?? 0;
+      const directionUplift = impact.directionUplift ?? 0;
+      const total = postureUplift + evidenceUplift + riskReduction + directionUplift;
+      return {
+        title: action.title,
+        status: label(action.status),
+        urgency: label(impact.urgency ?? "normal"),
+        total,
+        postureUplift,
+        evidenceUplift,
+        riskReduction,
+        directionUplift,
+        explanation: (impact.explanation ?? []).join("; ")
+      };
+    })
+    .sort((left, right) => right.total - left.total)
+    .slice(0, 5);
   const domainRows = PSPF_DOMAINS.map((domain) => {
     const domainRequirements = requirements.filter((requirement) => requirement.domainId === domain.id);
     return {
@@ -371,11 +411,15 @@ async function openAssessmentDashboard(): Promise<void> {
         ${metricCard("Evidence", evidence.length)}
         ${metricCard("Open actions", openActionCount)}
         ${metricCard("Open risks", openRiskCount)}
+        ${metricCard("Directions", directions.length)}
       </div>
+      <p class="muted">Direction responses: ${directionChips(directionResponseCounts)}</p>
       <p class="muted">Recent requirement: ${escapeHtml(recentRequirement?.title ?? "None selected yet")}</p>
     </section>
     ${recordTable("Validation Hints", validationHints, ["priority", "requirement", "hint"])}
     ${recordTable("Domain Summary", domainRows, ["domain", "requirements", "evidenceGaps", "inProgress", "met", "notMet"])}
+    ${recordTable("Action Impact — Top 5", actionImpactRows, ["title", "status", "urgency", "total", "postureUplift", "evidenceUplift", "riskReduction", "directionUplift", "explanation"])}
+    ${recordTable("Directions", directionRows, ["reference", "title", "responseState", "sourceAuthority", "issuedAt"])}
     ${recordTable("Next Requirements To Review", nextRequirements, ["title", "domain", "status", "evidence"])}
     ${recordTable("Latest Activity", recentActivity, ["type", "title", "created"])}
   `);
@@ -384,6 +428,7 @@ async function openAssessmentDashboard(): Promise<void> {
 async function openEvidenceReviewQueue(): Promise<void> {
   await ensureCoreReady();
   const allEntities = await listAllEntities();
+  const enrichedEntities = enrichActionsWithImpact(allEntities);
   const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
   const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence");
   const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
@@ -399,6 +444,15 @@ async function openEvidenceReviewQueue(): Promise<void> {
   const unlinkedEvidence = evidence
     .filter((item) => !linkedEvidenceIds.has(item.id))
     .map((item) => ({ title: item.title, freshness: label(item.freshness), reference: item.reference }));
+  const urgentActions = enrichedEntities
+    .filter((entity): entity is ActionEntity => entity.entityType === "action")
+    .filter((action) => action.impact?.urgency === "blocked" || action.impact?.urgency === "overdue")
+    .map((action) => ({
+      title: action.title,
+      urgency: action.impact ? label(action.impact.urgency) : "",
+      status: label(action.status),
+      dueDate: action.dueDate ?? "Not set"
+    }));
 
   const panel = vscode.window.createWebviewPanel("pspfEvidenceReviewQueue", "PSPF Evidence Review Queue", vscode.ViewColumn.One, { enableScripts: false });
   panel.webview.html = shellHtml("PSPF Evidence Review Queue", `
@@ -410,8 +464,10 @@ async function openEvidenceReviewQueue(): Promise<void> {
         ${metricCard("Missing evidence", missingEvidence.length)}
         ${metricCard("Needs freshness review", ageingEvidence.length)}
         ${metricCard("Unlinked evidence", unlinkedEvidence.length)}
+        ${metricCard("Urgent actions", urgentActions.length)}
       </div>
     </section>
+    ${recordTable("Urgent Actions (Blocked or Overdue)", urgentActions, ["title", "urgency", "status", "dueDate"])}
     ${recordTable("Requirements Missing Evidence", missingEvidence, ["title", "domain", "status"])}
     ${recordTable("Evidence Needing Freshness Review", ageingEvidence, ["title", "freshness", "reference"])}
     ${recordTable("Unlinked Evidence", unlinkedEvidence, ["title", "freshness", "reference"])}
@@ -645,15 +701,85 @@ async function updateDirectionResponse(): Promise<void> {
   await vscode.window.showInformationMessage(`Direction ${updated.reference} response set to ${label(updated.responseState)}.`);
 }
 
+async function openDirectionDetail(): Promise<void> {
+  await ensureCoreReady();
+  const directions = await listDirections();
+  if (directions.length === 0) {
+    await vscode.window.showWarningMessage("No Directions registered. Run PSPF: Register Direction first.");
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    directions.map((direction) => ({
+      label: `${direction.reference}: ${direction.title}`,
+      description: label(direction.responseState),
+      detail: direction.sourceAuthority ?? "",
+      direction
+    })),
+    { title: "Open Direction Detail", ignoreFocusOut: true }
+  );
+  if (!picked) {
+    return;
+  }
+  await openItemDetailForDirection(picked.direction);
+}
+
+async function openItemDetailForDirection(direction: DirectionEntity): Promise<void> {
+  const allEntities = await listAllEntities();
+  const entitiesById = new Map(allEntities.map((entity) => [entity.id, entity]));
+  const outboundLinks = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.fromId === direction.id);
+  const relationships = outboundLinks.map((link) => ({
+    title: link.title,
+    relationship: label(link.linkType),
+    targetType: label(link.toType),
+    target: entitiesById.get(link.toId)?.title ?? label(link.toType)
+  }));
+
+  const panel = vscode.window.createWebviewPanel("pspfItemDetail", direction.title, vscode.ViewColumn.One, { enableScripts: false });
+  panel.webview.html = shellHtml(direction.title, `
+    <section>
+      <h1>${escapeHtml(direction.title)}</h1>
+      <p>Reference: ${escapeHtml(direction.reference)}</p>
+      <p>Response state: ${escapeHtml(label(direction.responseState))}</p>
+      <p>Source authority: ${escapeHtml(direction.sourceAuthority ?? "Not recorded")}</p>
+      <p>Issued: ${escapeHtml(direction.issuedAt ? formatDisplayDate(new Date(direction.issuedAt)) : "Not recorded")}</p>
+      <p class="muted">To update the response, run the command <strong>PSPF: Update Direction Response</strong>.</p>
+      ${versionStrip()}
+    </section>
+    ${recordTable("Outbound Relationships", relationships, ["title", "relationship", "targetType", "target"])}
+  `);
+}
+
 async function openItemDetailForRequirement(requirement: RequirementEntity): Promise<void> {
   await rememberRequirement(requirement);
 
   const allEntities = await listAllEntities();
-  const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.fromId === requirement.id);
-  const linkedIds = new Set(links.map((link) => link.toId));
+  const enrichedEntities = enrichActionsWithImpact(allEntities);
+  const outboundLinks = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.fromId === requirement.id);
+  const inboundLinks = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.toId === requirement.id);
+  const linkedIds = new Set(outboundLinks.map((link) => link.toId));
   const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && linkedIds.has(entity.id));
-  const actions = allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action" && linkedIds.has(entity.id));
+  const enrichedActionsById = new Map(enrichedEntities.filter((entity): entity is ActionEntity => entity.entityType === "action").map((action) => [action.id, action]));
+  const actions = Array.from(linkedIds)
+    .map((id) => enrichedActionsById.get(id))
+    .filter((action): action is ActionEntity => Boolean(action));
+  const actionRows = actions.map((action) => ({
+    title: action.title,
+    status: label(action.status),
+    urgency: action.impact ? label(action.impact.urgency) : "normal",
+    dueDate: action.dueDate ?? "Not set"
+  }));
   const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk" && linkedIds.has(entity.id));
+  const directionsById = new Map(allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction").map((entity) => [entity.id, entity]));
+  const directionRows = inboundLinks
+    .filter((link) => link.fromType === "direction")
+    .map((link) => directionsById.get(link.fromId))
+    .filter((direction): direction is DirectionEntity => Boolean(direction))
+    .map((direction) => ({
+      reference: direction.reference,
+      title: direction.title,
+      responseState: label(direction.responseState),
+      sourceAuthority: direction.sourceAuthority ?? "Not recorded"
+    }));
   const sourceControlsById = new Map(allEntities.filter((entity): entity is SourceControlEntity => entity.entityType === "source-control").map((entity) => [entity.id, entity]));
   const mappings = allEntities
     .filter((entity): entity is RequirementControlMappingEntity => entity.entityType === "requirement-control-mapping" && entity.requirementId === requirement.id)
@@ -672,7 +798,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
       };
     });
   const entitiesById = new Map(allEntities.map((entity) => [entity.id, entity]));
-  const relationships = links.map((link) => ({
+  const relationships = outboundLinks.map((link) => ({
     title: link.title,
     relationship: label(link.linkType),
     targetType: label(link.toType),
@@ -687,8 +813,9 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
       <p>Domain: ${escapeHtml(domainName(requirement.domainId))}</p>
       ${versionStrip()}
     </section>
+    ${recordTable("Directions Targeting This Requirement", directionRows, ["reference", "title", "responseState", "sourceAuthority"])}
     ${recordTable("Evidence", evidence, ["title", "evidenceType", "freshness", "reference"])}
-    ${recordTable("Actions", actions, ["title", "status", "dueDate"])}
+    ${recordTable("Actions", actionRows, ["title", "status", "urgency", "dueDate"])}
     ${recordTable("Risks", risks, ["title", "status", "likelihood", "impact"])}
     ${recordTable("ISM Mappings", mappings, ["controlId", "title", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"])}
     ${recordTable("Relationships", relationships, ["title", "relationship", "targetType", "target"])}
@@ -923,6 +1050,13 @@ function versionStrip(): string {
 
 function metricCard(label: string, value: number | string): string {
   return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${value}</strong></div>`;
+}
+
+function directionChips(counts: Record<DirectionResponseState, number>): string {
+  const order: DirectionResponseState[] = ["not-set", "yes", "no", "risk-managed"];
+  return order
+    .map((state) => `<span class="version-pill">${escapeHtml(label(state))}: ${counts[state] ?? 0}</span>`)
+    .join(" ");
 }
 
 function domainName(domainId: string): string {

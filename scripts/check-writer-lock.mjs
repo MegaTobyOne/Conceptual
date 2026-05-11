@@ -12,6 +12,7 @@ const service = createCoreService(workspaceRoot);
 const paths = await service.initialiseWorkspace();
 const lock = await service.getWriterLock();
 assert.equal(lock.writable, true, lock.detail);
+assert.equal(lock.policy, "single-writer");
 
 await writeFile(join(paths.locks, "writer-lock.json"), `${JSON.stringify({
   holderPid: 1,
@@ -23,6 +24,7 @@ await writeFile(join(paths.locks, "writer-lock.json"), `${JSON.stringify({
 
 const readOnlyLock = await service.getWriterLock();
 assert.equal(readOnlyLock.writable, false, readOnlyLock.detail);
+assert.equal(readOnlyLock.policy, "single-writer");
 
 const requirement = withEnvelope(
   "requirement",
@@ -36,4 +38,17 @@ const requirement = withEnvelope(
 );
 
 await assert.rejects(() => service.upsertEntity(requirement), /read-only|writer lock/i);
-console.log("ok writer-lock gate blocks writes when another live process holds the lock");
+
+await writeFile(join(paths.locks, "writer-lock.json"), `${JSON.stringify({
+  holderPid: 999999,
+  acquiredAt: new Date().toISOString(),
+  currentPid: process.pid,
+  policy: "single-writer",
+  writable: false,
+  detail: "Simulated stale second-window writer lock."
+}, null, 2)}\n`, "utf8");
+
+const recoveredLock = await service.getWriterLock();
+assert.equal(recoveredLock.writable, true, recoveredLock.detail);
+await service.upsertEntity(requirement);
+console.log("ok writer-lock gate blocks live second-window writes and recovers stale locks");

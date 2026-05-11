@@ -66,6 +66,22 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **Workshop authoring gate**: `pspf.workshop.registerDirection` and `pspf.workshop.updateDirectionResponse` route through `pspf.core.upsertEntity`/`upsertEntities` and trip writer-lock, integrity, and validation gates unchanged.
 5. **Compatibility gate**: schema, bundle, and API axes bump together to `1.3.0`; product version rolls to `0.5.0`.
 
+### v0.6 candidate gates (Workshop parity for Directions and Action Impact, per ADR 0024)
+
+1. **Dashboard parity gate**: Assessment Dashboard shows a `Directions` metric tile, four always-on response-state chips (`not-set` / `yes` / `no` / `risk-managed`), and an `Action Impact — Top 5` table sorted by total uplift descending. Counts and ranking match the values published in the Explorer bundle for the same workspace.
+2. **Item Detail parity gate**: Requirement Item Detail renders `Directions Targeting This Requirement` (inbound `direction → requirement` links) and the `Actions` table includes an `urgency` column matching the export. `PSPF: Open Direction Detail` opens a read-only panel for a chosen Direction.
+3. **Queue urgency gate**: Evidence Review Queue renders an `Urgent Actions (Blocked or Overdue)` table and a matching tile; values match the action-impact urgency emitted in the export.
+4. **Shared algorithm gate**: `enrichActionsWithImpact` lives in `@pspf/contracts` and is the only implementation; Core and Workshop both import from `@pspf/contracts`.
+5. **Compatibility gate**: schema, bundle, and API axes remain at `1.3.0`; only product version rolls to `0.6.0`. No new published-bundle field is introduced.
+
+### v0.7 candidate gates (engine hardening, per ADR 0025)
+
+1. **Layered Core API gate**: `packages/core/src/service.ts` exposes explicit read, write, exchange, and integrity API layer interfaces while preserving `createCoreService()` as the compatibility facade used by extensions and scripts.
+2. **Integrity scan gate**: `PSPF: Run Integrity Scan` / `runIntegrityScan()` checks SQLite integrity, entity payload parseability, id/entityType consistency, link target existence/type consistency, and writer-lock state, then writes `.pspf/logs/integrity-scan.json`.
+3. **Broken-link fixture gate**: `scripts/check-integrity-scan.mjs` proves a clean workspace passes and a deliberate orphaned link fails with an orphaned-link finding.
+4. **Multi-window writer-lock gate**: writer-lock state declares `policy: "single-writer"`; `scripts/check-writer-lock.mjs` proves live second-window writes are blocked and stale locks recover.
+5. **Compatibility gate**: schema, bundle, and API axes remain at `1.3.0`; only product version rolls to `0.7.0`. No new published-bundle field is introduced.
+
 ## v1 release gates
 
 A v1 release candidate is not eligible for publication unless all gates pass:

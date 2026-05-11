@@ -6,9 +6,9 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Status: v0.5 Directions overlay and Action Impact ranking implemented. v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
+**Status: v0.7 engine hardening implemented. v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
-The validated spine from the original readiness sequence is fully landed and has now been extended through the v0.5 Directions and Action Impact slice:
+The validated spine from the original readiness sequence is fully landed and has now been extended through the v0.7 engine-hardening slice:
 
 - pnpm workspaces with `@pspf/contracts`, `@pspf/brief-renderer`, `pspf-core`, `pspf-workshop`, and the Explorer static SPA.
 - Core: workspace bootstrap, SQLite system of record at `.pspf/core/pspf-core.db`, snapshot, integrity check, master-bundle export with manifest hashes, master-bundle import (`full-replace` with pre-replace rollback and `additive-merge`), writer lock, three version axes.
@@ -18,6 +18,8 @@ The validated spine from the original readiness sequence is fully landed and has
 - ISM integration phases 1–3 are implemented for the current seeded source-library slice; see [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md), [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md), [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md), and [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
 - v0.4 is governed by [adr/0021-v0-4-readiness-and-ui-resilience.md](adr/0021-v0-4-readiness-and-ui-resilience.md). It hardens Explorer/Workshop table readability and readiness documentation without changing the schema, bundle, or API axes from `1.2.0`.
 - v0.5 is governed by [adr/0023-v0-5-direction-and-action-impact.md](adr/0023-v0-5-direction-and-action-impact.md). It introduces the `direction` entity (prefix `DIR-`), posture `directionCount`, and derived `action.impact` with deterministic uplift ranking; schema/bundle/API axes bump together to `1.3.0`.
+- v0.6 is governed by [adr/0024-v0-6-workshop-parity.md](adr/0024-v0-6-workshop-parity.md). It lifts the v0.5 signals into the Workshop authoring loop (Directions tile and chips, Action Impact top-5 on the Dashboard, inbound Directions and action urgency in Item Detail, Urgent Actions in the Evidence Review Queue, a new `PSPF: Open Direction Detail` panel) and consolidates `enrichActionsWithImpact` in `@pspf/contracts`. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `0.6.0`.
+- v0.7 is governed by [adr/0025-v0-7-engine-hardening.md](adr/0025-v0-7-engine-hardening.md). It adds explicit Core API layers, `runIntegrityScan()` plus `PSPF: Run Integrity Scan`, a broken-link integrity fixture gate, and explicit single-writer policy with stale-lock recovery coverage. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `0.7.0`.
 - v1.0 scope is governed by [adr/0022-v1-0-scope.md](adr/0022-v1-0-scope.md): Core + Workshop + Explorer publication mode plus the v0.5 surface; Shop, Pub, Explorer local authoring, chart export, plan-apply, editable posture, and third-party accessibility audit are deferred past v1.0; performance reference is a current MacBook Air.
 
 The core product decisions remain stable:
