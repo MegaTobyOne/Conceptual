@@ -7,6 +7,8 @@ import {
   type ActionEntity,
   type ActionStatus,
   type AssessmentStatus,
+  type DirectionEntity,
+  type DirectionResponseState,
   type EvidenceEntity,
   type EvidenceFreshness,
   type LinkEntity,
@@ -35,6 +37,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
     vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
     vscode.commands.registerCommand("pspf.workshop.createRequirementControlMapping", createRequirementControlMapping),
+    vscode.commands.registerCommand("pspf.workshop.registerDirection", registerDirection),
+    vscode.commands.registerCommand("pspf.workshop.updateDirectionResponse", updateDirectionResponse),
     vscode.commands.registerCommand("pspf.workshop.copyPostureBrief", copyPostureBrief)
   );
 }
@@ -530,6 +534,117 @@ async function createRequirementControlMapping(): Promise<void> {
   }
 }
 
+async function registerDirection(): Promise<void> {
+  await ensureCoreReady();
+  const reference = await vscode.window.showInputBox({
+    title: "Register Direction",
+    prompt: "Authoritative reference (for example HA-DIR-2026-01)",
+    ignoreFocusOut: true,
+    validateInput: (value) => value.trim().length === 0 ? "Enter a Direction reference." : undefined
+  });
+  if (!reference) {
+    return;
+  }
+  const title = await vscode.window.showInputBox({
+    title: "Register Direction",
+    prompt: "Short Direction title",
+    ignoreFocusOut: true,
+    validateInput: (value) => value.trim().length === 0 ? "Enter a Direction title." : undefined
+  });
+  if (!title) {
+    return;
+  }
+  const sourceAuthority = await vscode.window.showInputBox({
+    title: "Register Direction",
+    prompt: "Issuing authority (for example Home Affairs). Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (sourceAuthority === undefined) {
+    return;
+  }
+  const issuedAt = await vscode.window.showInputBox({
+    title: "Register Direction",
+    prompt: "Issue date, for example 01 Mar 2026. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (issuedAt === undefined) {
+    return;
+  }
+  const responseState = await vscode.window.showQuickPick(
+    directionResponseStateItems,
+    { title: "Select initial Direction response", ignoreFocusOut: true }
+  );
+  if (!responseState) {
+    return;
+  }
+  const linkedRequirement = await pickOptionalRequirement("Optionally link this Direction to a requirement");
+  const direction = withEnvelope(
+    "direction",
+    {
+      entityType: "direction",
+      title: title.trim(),
+      reference: reference.trim(),
+      sourceAuthority: sourceAuthority.trim() || undefined,
+      issuedAt: issuedAt.trim() || undefined,
+      responseState: responseState.value
+    },
+    "workshop"
+  );
+  const entities: V01Entity[] = [direction];
+  if (linkedRequirement) {
+    entities.push(withEnvelope(
+      "link",
+      {
+        entityType: "link",
+        title: `${direction.title} targets ${linkedRequirement.title}`,
+        linkType: "targets",
+        fromId: direction.id,
+        fromType: "direction",
+        toId: linkedRequirement.id,
+        toType: "requirement"
+      },
+      "workshop"
+    ));
+  }
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", entities);
+  await vscode.window.showInformationMessage(`Direction registered: ${direction.reference} ${direction.title}`);
+}
+
+async function updateDirectionResponse(): Promise<void> {
+  await ensureCoreReady();
+  const directions = await listDirections();
+  if (directions.length === 0) {
+    await vscode.window.showWarningMessage("No Directions registered. Run PSPF: Register Direction first.");
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    directions.map((direction) => ({
+      label: `${direction.reference}: ${direction.title}`,
+      description: label(direction.responseState),
+      detail: direction.sourceAuthority ?? "",
+      direction
+    })),
+    { title: "Select Direction", ignoreFocusOut: true }
+  );
+  if (!picked) {
+    return;
+  }
+  const nextState = await vscode.window.showQuickPick(
+    directionResponseStateItems,
+    { title: `Update response for ${picked.direction.reference}`, ignoreFocusOut: true }
+  );
+  if (!nextState) {
+    return;
+  }
+  const updated: DirectionEntity = {
+    ...picked.direction,
+    responseState: nextState.value,
+    updatedAt: new Date().toISOString()
+  };
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+  await vscode.window.showInformationMessage(`Direction ${updated.reference} response set to ${label(updated.responseState)}.`);
+}
+
 async function openItemDetailForRequirement(requirement: RequirementEntity): Promise<void> {
   await rememberRequirement(requirement);
 
@@ -631,6 +746,7 @@ async function copyPostureBrief(): Promise<void> {
   const actions = allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action");
   const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
   const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
+  const directions = allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction");
   const brief = renderPostureBriefMarkdown({
     generatedAt: new Date(),
     requirements,
@@ -638,6 +754,7 @@ async function copyPostureBrief(): Promise<void> {
     actions,
     risks,
     links,
+    directions,
     domains: PSPF_DOMAINS,
     sourceLabel: "PSPF Workshop"
   });
@@ -685,6 +802,33 @@ async function pickRequirement(): Promise<RequirementEntity | undefined> {
     await rememberRequirement(picked.requirement);
   }
   return picked?.requirement;
+}
+
+async function pickOptionalRequirement(prompt: string): Promise<RequirementEntity | undefined> {
+  const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "requirement");
+  const requirements = (entities ?? []).filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+  if (requirements.length === 0) {
+    return undefined;
+  }
+  const picked = await vscode.window.showQuickPick(
+    [
+      { label: "$(circle-slash) No requirement link", description: "Register without linking", requirement: undefined as RequirementEntity | undefined },
+      ...[...requirements]
+        .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+        .map((requirement) => ({
+          label: requirement.title,
+          description: `${domainName(requirement.domainId)} · ${label(requirement.assessmentStatus)}`,
+          requirement
+        }))
+    ],
+    { title: prompt, placeHolder: "Optionally link to a requirement", ignoreFocusOut: true }
+  );
+  return picked?.requirement;
+}
+
+async function listDirections(): Promise<DirectionEntity[]> {
+  const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "direction");
+  return (entities ?? []).filter((entity): entity is DirectionEntity => entity.entityType === "direction");
 }
 
 async function listSourceControls(): Promise<SourceControlEntity[]> {
@@ -805,6 +949,13 @@ const assessmentStatusItems: readonly { readonly label: string; readonly value: 
   { label: "Not met", value: "not-met" },
   { label: "Not applicable", value: "not-applicable" },
   { label: "Under review", value: "under-review" }
+];
+
+const directionResponseStateItems: readonly { readonly label: string; readonly value: DirectionResponseState }[] = [
+  { label: "Not set", value: "not-set" },
+  { label: "Yes — complying", value: "yes" },
+  { label: "No — not complying", value: "no" },
+  { label: "Risk managed", value: "risk-managed" }
 ];
 
 const evidenceTypeItems = [

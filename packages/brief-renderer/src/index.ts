@@ -1,4 +1,4 @@
-import type { ActionEntity, DomainEntity, EvidenceEntity, LinkEntity, RequirementEntity, RiskEntity } from "@pspf/contracts";
+import type { ActionEntity, DirectionEntity, DomainEntity, EvidenceEntity, LinkEntity, RequirementEntity, RiskEntity } from "@pspf/contracts";
 
 export interface PostureBriefInput {
   readonly generatedAt: Date | string;
@@ -8,6 +8,7 @@ export interface PostureBriefInput {
   readonly risks: readonly RiskEntity[];
   readonly links: readonly LinkEntity[];
   readonly domains: readonly Pick<DomainEntity, "id" | "title">[];
+  readonly directions?: readonly DirectionEntity[];
   readonly sourceLabel?: string;
   readonly bundleVersion?: string;
   readonly schemaVersion?: string;
@@ -20,6 +21,8 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
   const evidenceById = new Map(input.evidence.map((item) => [item.id, item]));
   const openActions = input.actions.filter((action) => !["done", "cancelled"].includes(action.status));
   const openRisks = input.risks.filter((risk) => risk.status !== "closed");
+  const directions = input.directions ?? [];
+  const directionsNeedingResponse = directions.filter((direction) => direction.responseState === "not-set" || direction.responseState === "no").length;
   const currentEvidenceRequirements = input.requirements.filter((requirement) => (evidenceIdsByRequirement.get(requirement.id) ?? []).some((evidenceId) => evidenceById.get(evidenceId)?.freshness === "current")).length;
   const evidenceNeedsReview = input.evidence.filter((item) => item.freshness !== "current").length;
   const metadata = [
@@ -42,6 +45,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
     `- Evidence items: ${input.evidence.length}`,
     `- Actions: ${input.actions.length}`,
     `- Risks: ${input.risks.length}`,
+    `- Directions: ${directions.length}${directions.length > 0 ? ` (${directionsNeedingResponse} need a response)` : ""}`,
     "",
     "## Requirement Status",
     "",
@@ -68,6 +72,10 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
     "",
     ...(openRisks.length === 0 ? ["- None recorded."] : openRisks.map((risk) => `- ${risk.title} (${label(risk.status)}, likelihood ${risk.likelihood}, impact ${risk.impact}) - ${requirementTitlesByTargetId.get(risk.id) ?? "No linked requirement"}`)),
     "",
+    "## Directions",
+    "",
+    ...(directions.length === 0 ? ["- None registered."] : directions.map((direction) => `- ${direction.reference}: ${direction.title} (${label(direction.responseState)}${direction.sourceAuthority ? `, ${direction.sourceAuthority}` : ""})`)),
+    "",
     "Note: internal summaries and restricted personal fields are excluded from this brief."
   ].join("\n");
 }
@@ -80,6 +88,8 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     const evidenceById = new Map((input.evidence || []).map((item) => [item.id, item]));
     const openActions = (input.actions || []).filter((action) => !["done", "cancelled"].includes(action.status));
     const openRisks = (input.risks || []).filter((risk) => risk.status !== "closed");
+    const directions = input.directions || [];
+    const directionsNeedingResponse = directions.filter((direction) => direction.responseState === "not-set" || direction.responseState === "no").length;
     const currentEvidenceRequirements = (input.requirements || []).filter((requirement) => (evidenceIdsByRequirement.get(requirement.id) || []).some((evidenceId) => evidenceById.get(evidenceId)?.freshness === "current")).length;
     const evidenceNeedsReview = (input.evidence || []).filter((item) => item.freshness !== "current").length;
     const metadata = [
@@ -101,6 +111,7 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "- Evidence items: " + (input.evidence || []).length,
       "- Actions: " + (input.actions || []).length,
       "- Risks: " + (input.risks || []).length,
+      "- Directions: " + directions.length + (directions.length > 0 ? " (" + directionsNeedingResponse + " need a response)" : ""),
       "",
       "## Requirement Status",
       "",
@@ -126,6 +137,10 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "## Open Risks",
       "",
       ...(openRisks.length === 0 ? ["- None recorded."] : openRisks.map((risk) => "- " + risk.title + " (" + label(risk.status) + ", likelihood " + risk.likelihood + ", impact " + risk.impact + ") - " + (requirementTitlesByTargetId.get(risk.id) || "No linked requirement"))),
+      "",
+      "## Directions",
+      "",
+      ...(directions.length === 0 ? ["- None registered."] : directions.map((direction) => "- " + direction.reference + ": " + direction.title + " (" + label(direction.responseState) + (direction.sourceAuthority ? ", " + direction.sourceAuthority : "") + ")")),
       "",
       "Note: internal summaries and restricted personal fields are excluded from this brief."
     ].join("\n");

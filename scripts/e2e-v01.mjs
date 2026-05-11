@@ -135,6 +135,33 @@ const mapping = withEnvelope(
 );
 await service.upsertEntity(mapping);
 
+const direction = withEnvelope(
+  "direction",
+  {
+    entityType: "direction",
+    title: "Home Affairs Direction — encryption baseline",
+    reference: "HA-DIR-2026-01",
+    sourceAuthority: "Department of Home Affairs",
+    issuedAt: "2026-04-01T00:00:00.000Z",
+    responseState: "not-set"
+  },
+  "workshop"
+);
+await service.upsertEntity(direction);
+await service.upsertEntity(withEnvelope(
+  "link",
+  {
+    entityType: "link",
+    title: `${direction.title} targets ${requirement.title}`,
+    linkType: "targets",
+    fromId: direction.id,
+    fromType: "direction",
+    toId: requirement.id,
+    toType: "requirement"
+  },
+  "workshop"
+));
+
 const snapshot = await service.createSnapshot();
 assert.equal(snapshot.entityType, "snapshot");
 
@@ -147,10 +174,11 @@ assert.equal(validation.counts.requirements, 1);
 assert.equal(validation.counts.evidence, 1);
 assert.equal(validation.counts.actions, 1);
 assert.equal(validation.counts.risks, 1);
-assert.equal(validation.counts.links, 3);
+assert.equal(validation.counts.links, 4);
 assert.equal(validation.counts.snapshots, 1);
 assert.equal(validation.counts["source-controls"], 4);
 assert.equal(validation.counts["requirement-control-mappings"], 1);
+assert.equal(validation.counts.directions, 1);
 
 const exported = await service.exportBundle();
 const bundlePath = join(exported.exportDirectory, "bundle.json");
@@ -161,10 +189,11 @@ assert.equal(report.counts.requirements, 1);
 assert.equal(report.counts.evidence, 1);
 assert.equal(report.counts.actions, 1);
 assert.equal(report.counts.risks, 1);
-assert.equal(report.counts.links, 3);
+assert.equal(report.counts.links, 4);
 assert.equal(report.counts.snapshots, 1);
 assert.equal(report.counts["source-controls"], 4);
 assert.equal(report.counts["requirement-control-mappings"], 1);
+assert.equal(report.counts.directions, 1);
 assert.equal(report.mappingRedaction.ok, true, report.mappingRedaction.detail);
 assert.equal(report.mappingQuality.checks.every((check) => check.ok), true, JSON.stringify(report.mappingQuality.checks));
 assert.equal(report.ismDrift.affectedMappings.length, 1);
@@ -173,16 +202,17 @@ const reportPaths = await writeValidationReport(report, join(workspaceRoot, ".ps
 const importService = createCoreService(importWorkspaceRoot);
 await importService.initialiseWorkspace();
 const imported = await importService.importBundle(bundlePath, "full-replace");
-assert.equal(imported.imported, 17);
+assert.equal(imported.imported, 19);
 const importValidation = await importService.validateWorkspace();
 assert.equal(importValidation.ok, true, importValidation.message);
 assert.equal(importValidation.counts.requirements, 1);
 assert.equal(importValidation.counts.evidence, 1);
 assert.equal(importValidation.counts.actions, 1);
 assert.equal(importValidation.counts.risks, 1);
-assert.equal(importValidation.counts.links, 3);
+assert.equal(importValidation.counts.links, 4);
 assert.equal(importValidation.counts["source-controls"], 4);
 assert.equal(importValidation.counts["requirement-control-mappings"], 1);
+assert.equal(importValidation.counts.directions, 1);
 const importedMappings = await importService.listEntities("requirement-control-mapping");
 assert.equal(importedMappings[0].confidence, "medium");
 assert.equal(importedMappings[0].lastReviewedAt, "2026-05-10T00:00:00.000Z");

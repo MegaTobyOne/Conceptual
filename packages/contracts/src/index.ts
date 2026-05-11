@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.2.0",
-  bundleVersion: "1.2.0",
-  apiVersion: "1.2.0"
+  schemaVersion: "1.3.0",
+  bundleVersion: "1.3.0",
+  apiVersion: "1.3.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "0.4.0" as const;
+export const PSPF_SLICE_VERSION = "0.5.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -19,6 +19,7 @@ export const V0_1_ENTITY_TYPES = [
   "tag",
   "source-control",
   "requirement-control-mapping",
+  "direction",
   "posture"
 ] as const;
 
@@ -35,6 +36,7 @@ export const V0_1_COLLECTIONS = [
   "tags",
   "source-controls",
   "requirement-control-mappings",
+  "directions",
   "posture"
 ] as const;
 
@@ -130,11 +132,23 @@ export interface EvidenceEntity extends EntityEnvelope {
 
 export type ActionStatus = "todo" | "in-progress" | "blocked" | "done" | "cancelled";
 
+export type ActionImpactUrgency = "normal" | "due-soon" | "overdue" | "blocked";
+
+export interface ActionImpact {
+  readonly postureUplift: number;
+  readonly evidenceUplift: number;
+  readonly riskReduction: number;
+  readonly directionUplift?: number;
+  readonly urgency: ActionImpactUrgency;
+  readonly explanation: readonly string[];
+}
+
 export interface ActionEntity extends EntityEnvelope {
   readonly entityType: "action";
   readonly title: string;
   readonly status: ActionStatus;
   readonly dueDate?: string;
+  readonly impact?: ActionImpact;
 }
 
 export type RiskStatus = "open" | "monitored" | "closed";
@@ -224,6 +238,18 @@ export interface PostureEntity extends EntityEnvelope {
   readonly riskCount: number;
   readonly sourceControlCount?: number;
   readonly requirementControlMappingCount?: number;
+  readonly directionCount?: number;
+}
+
+export type DirectionResponseState = "not-set" | "yes" | "no" | "risk-managed";
+
+export interface DirectionEntity extends EntityEnvelope {
+  readonly entityType: "direction";
+  readonly title: string;
+  readonly reference: string;
+  readonly issuedAt?: string;
+  readonly sourceAuthority?: string;
+  readonly responseState: DirectionResponseState;
 }
 
 export type V01Entity =
@@ -237,6 +263,7 @@ export type V01Entity =
   | TagEntity
   | SourceControlEntity
   | RequirementControlMappingEntity
+  | DirectionEntity
   | PostureEntity;
 
 export type EntityByCollection = {
@@ -250,6 +277,7 @@ export type EntityByCollection = {
   tags: TagEntity;
   "source-controls": SourceControlEntity;
   "requirement-control-mappings": RequirementControlMappingEntity;
+  directions: DirectionEntity;
   posture: PostureEntity;
 };
 
@@ -289,7 +317,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   },
   {
     entityType: "action",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "status", "dueDate")
+    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "status", "dueDate", "impact")
   },
   {
     entityType: "risk",
@@ -322,8 +350,12 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
     ]
   },
   {
+    entityType: "direction",
+    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "reference", "issuedAt", "sourceAuthority", "responseState")
+  },
+  {
     entityType: "posture",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount")
+    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount", "directionCount")
   }
 ] as const;
 
@@ -381,6 +413,7 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   tag: "tags",
   "source-control": "source-controls",
   "requirement-control-mapping": "requirement-control-mappings",
+  direction: "directions",
   posture: "posture"
 };
 
@@ -395,6 +428,7 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   tag: "TAG",
   "source-control": "SRC",
   "requirement-control-mapping": "MAP",
+  direction: "DIR",
   posture: "POSTURE"
 };
 

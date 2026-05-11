@@ -55,6 +55,7 @@ export async function validateExportBundle(bundlePath, options = {}) {
     check(posture.evidenceCount === counts.evidence, "posture evidence count matches collection", failures);
     check(posture.actionCount === counts.actions, "posture action count matches collection", failures);
     check(posture.riskCount === counts.risks, "posture risk count matches collection", failures);
+    check(posture.directionCount === (counts.directions ?? 0), "posture direction count matches collection", failures);
   } else {
     failures.push("posture record is present");
   }

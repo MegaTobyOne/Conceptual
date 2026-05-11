@@ -58,6 +58,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 3. **Compatibility stability gate**: v0.4 keeps schema, bundle, and API axes at `1.2.0`; package/product version rolls to `0.4.0` only.
 4. **Readiness documentation gate**: readiness notes reflect the current v0.4 state and identify remaining v1 feature tranches explicitly.
 
+### v0.5 candidate gates (Directions overlay and Action Impact, per ADR 0023)
+
+1. **Directions schema gate**: `schemas/explorer-bundle/1.3.0/directions.schema.json` validates the standard fixture; `1.2.0` and earlier remain byte-identical.
+2. **Directions publication gate**: published bundles include the `directions` collection with `reference`, `title`, `responseState`, optional `issuedAt`, and optional `sourceAuthority`; posture record carries `directionCount` equal to `directions.length`.
+3. **Action Impact derivation gate**: e2e fixture authors at least one Direction linked to a Requirement; exported Action carries `impact.postureUplift > 0`, deterministic `urgency`, and a non-empty `explanation`.
+4. **Workshop authoring gate**: `pspf.workshop.registerDirection` and `pspf.workshop.updateDirectionResponse` route through `pspf.core.upsertEntity`/`upsertEntities` and trip writer-lock, integrity, and validation gates unchanged.
+5. **Compatibility gate**: schema, bundle, and API axes bump together to `1.3.0`; product version rolls to `0.5.0`.
+
 ## v1 release gates
 
 A v1 release candidate is not eligible for publication unless all gates pass:

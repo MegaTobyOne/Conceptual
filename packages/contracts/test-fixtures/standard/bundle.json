@@ -1,9 +1,9 @@
 {
     "manifest": {
         "bundleType": "pspf-explorer-bundle",
-        "bundleVersion": "1.2.0",
-        "schemaVersion": "1.2.0",
-        "apiVersion": "1.2.0",
+        "bundleVersion": "1.3.0",
+        "schemaVersion": "1.3.0",
+        "apiVersion": "1.3.0",
         "generatedAt": "2026-05-10T00:00:00.000Z",
         "generator": {
             "product": "pspf-core",
@@ -22,7 +22,7 @@
             {
                 "id": "DOM-00000000-0000-7000-8000-000000000001",
                 "entityType": "domain",
-                "schemaVersion": "1.2.0",
+                "schemaVersion": "1.3.0",
                 "title": "Governance",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -36,7 +36,7 @@
             {
                 "id": "REQ-00000000-0000-7000-8000-000000000101",
                 "entityType": "requirement",
-                "schemaVersion": "1.2.0",
+                "schemaVersion": "1.3.0",
                 "title": "Governance arrangements are established",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -56,7 +56,7 @@
             {
                 "id": "SRC-00000000-0000-7000-8000-000000000101",
                 "entityType": "source-control",
-                "schemaVersion": "1.2.0",
+                "schemaVersion": "1.3.0",
                 "title": "Application control is implemented",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -91,7 +91,7 @@
             {
                 "id": "MAP-00000000-0000-7000-8000-000000000101",
                 "entityType": "requirement-control-mapping",
-                "schemaVersion": "1.2.0",
+                "schemaVersion": "1.3.0",
                 "title": "Governance arrangements are established mapped to ISM-1657",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -115,7 +115,7 @@
             {
                 "id": "POSTURE",
                 "entityType": "posture",
-                "schemaVersion": "1.2.0",
+                "schemaVersion": "1.3.0",
                 "title": "PSPF posture for standard fixture",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -126,8 +126,10 @@
                 "actionCount": 0,
                 "riskCount": 0,
                 "sourceControlCount": 1,
-                "requirementControlMappingCount": 1
+                "requirementControlMappingCount": 1,
+                "directionCount": 0
             }
-        ]
+        ],
+        "directions": []
     }
 }

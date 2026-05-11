@@ -1,4 +1,4 @@
-import type { SourceControlEntity } from "@pspf/contracts";
+import { VERSION_AXES, type SourceControlEntity } from "@pspf/contracts";
 
 export const ISM_OSCAL_RELEASE = "v2026.03.24" as const;
 export const PREVIOUS_ISM_OSCAL_RELEASE = "v2025.12.15" as const;
@@ -8,7 +8,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     id: "SRC-00000000-0000-7000-8000-000000000101",
     entityType: "source-control",
-    schemaVersion: "1.2.0",
+    schemaVersion: VERSION_AXES.schemaVersion,
     title: "Application control is implemented",
     sourceProduct: "core",
     recordStatus: "active",
@@ -30,7 +30,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     id: "SRC-00000000-0000-7000-8000-000000000102",
     entityType: "source-control",
-    schemaVersion: "1.2.0",
+    schemaVersion: VERSION_AXES.schemaVersion,
     title: "Multi-factor authentication is used",
     sourceProduct: "core",
     recordStatus: "active",
@@ -52,7 +52,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     id: "SRC-00000000-0000-7000-8000-000000000103",
     entityType: "source-control",
-    schemaVersion: "1.2.0",
+    schemaVersion: VERSION_AXES.schemaVersion,
     title: "Security patches are applied to applications",
     sourceProduct: "core",
     recordStatus: "active",
@@ -74,7 +74,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     id: "SRC-00000000-0000-7000-8000-000000000104",
     entityType: "source-control",
-    schemaVersion: "1.2.0",
+    schemaVersion: VERSION_AXES.schemaVersion,
     title: "Backups are performed and tested",
     sourceProduct: "core",
     recordStatus: "active",

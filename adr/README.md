@@ -34,6 +34,8 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0019 | Requirement to ISM control mapping | accepted |
 | 0020 | ISM mapping quality and version drift | accepted |
 | 0021 | v0.4 readiness and UI resilience | accepted |
+| 0022 | v1.0 scope for initial assurance user testing | accepted |
+| 0023 | v0.5 Directions overlay and Action Impact ranking | accepted |
 
 ## Template
 

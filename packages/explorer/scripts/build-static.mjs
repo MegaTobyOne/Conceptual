@@ -59,8 +59,8 @@ const html = `<!doctype html>
     th, td { text-align: left; padding: 8px; border-bottom: 1px solid #3f3f46; vertical-align: top; }
     th { font-size: 13px; color: #d4d4d8; }
     td { overflow-wrap: anywhere; }
-    th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="target"], td[data-field="target"] { min-width: 18rem; max-width: 34rem; }
-    th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"] { white-space: nowrap; width: 1%; }
+    th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="target"], td[data-field="target"], th[data-field="explanation"], td[data-field="explanation"] { min-width: 18rem; max-width: 34rem; }
+    th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="responseState"], td[data-field="responseState"], th[data-field="reference"], td[data-field="reference"], th[data-field="total"], td[data-field="total"], th[data-field="postureUplift"], td[data-field="postureUplift"], th[data-field="evidenceUplift"], td[data-field="evidenceUplift"], th[data-field="riskReduction"], td[data-field="riskReduction"], th[data-field="directionUplift"], td[data-field="directionUplift"], th[data-field="urgency"], td[data-field="urgency"] { white-space: nowrap; width: 1%; }
     .validation-table th:nth-child(2), .validation-table td:nth-child(2) { width: 1%; white-space: nowrap; }
     .empty-value { color: #a1a1aa; font-style: italic; }
     code { color: #bae6fd; }
@@ -89,7 +89,9 @@ const html = `<!doctype html>
       <a href="#requirements">Requirements</a>
       <a href="#evidence">Evidence</a>
       <a href="#actions">Actions</a>
+      <a href="#action-impact">Action Impact</a>
       <a href="#risks">Risks</a>
+      <a href="#directions">Directions</a>
       <a href="#source-controls">ISM Source Controls</a>
       <a href="#ism-coverage">ISM Coverage</a>
       <a href="#links">Relationships</a>
@@ -99,7 +101,9 @@ const html = `<!doctype html>
     <section id="requirements" class="panel" hidden></section>
     <section id="evidence" class="panel" hidden></section>
     <section id="actions" class="panel" hidden></section>
+    <section id="action-impact" class="panel" hidden></section>
     <section id="risks" class="panel" hidden></section>
+    <section id="directions" class="panel" hidden></section>
     <section id="source-controls" class="panel" hidden></section>
     <section id="ism-coverage" class="panel" hidden></section>
     <section id="links" class="panel" hidden></section>
@@ -118,7 +122,9 @@ const validationSection = document.querySelector("#validation");
 const requirementsSection = document.querySelector("#requirements");
 const evidenceSection = document.querySelector("#evidence");
 const actionsSection = document.querySelector("#actions");
+const actionImpactSection = document.querySelector("#action-impact");
 const risksSection = document.querySelector("#risks");
+const directionsSection = document.querySelector("#directions");
 const sourceControlsSection = document.querySelector("#source-controls");
 const ismCoverageSection = document.querySelector("#ism-coverage");
 const linksSection = document.querySelector("#links");
@@ -211,6 +217,7 @@ async function render(manifest, collections, collectionTexts = undefined) {
     risks: collections.risks || [],
     links: collections.links || [],
     domains: collections.domains || [],
+    directions: collections.directions || [],
     sourceLabel: "PSPF Explorer publication mode",
     bundleVersion: manifest.bundleVersion,
     schemaVersion: manifest.schemaVersion
@@ -232,6 +239,7 @@ async function render(manifest, collections, collectionTexts = undefined) {
       metric("Evidence", (collections.evidence || []).length) +
       metric("Actions", (collections.actions || []).length) +
       metric("Risks", (collections.risks || []).length) +
+      metric("Directions", (collections.directions || []).length) +
       metric("ISM controls", (collections["source-controls"] || []).length) +
       metric("ISM mappings", (collections["requirement-control-mappings"] || []).length) +
     '</div>' +
@@ -251,8 +259,21 @@ async function render(manifest, collections, collectionTexts = undefined) {
   actionsSection.hidden = false;
   actionsSection.innerHTML = '<h2>Actions</h2>' + table(actions, ["title", "status", "dueDate", "requirements"]);
 
+  actionImpactSection.hidden = false;
+  actionImpactSection.innerHTML = '<h2>Action Impact ranking</h2><p class="muted">Derived from linked requirements, evidence, risks, and Directions. Scoring is explainable and deterministic.</p>' + actionImpactTable(collections);
+
   risksSection.hidden = false;
   risksSection.innerHTML = '<h2>Risks</h2>' + table(risks, ["title", "status", "likelihood", "impact", "requirements"]);
+
+  const directions = (collections.directions || []).map((direction) => ({
+    reference: direction.reference,
+    title: direction.title,
+    responseState: label(direction.responseState),
+    sourceAuthority: direction.sourceAuthority || "Not recorded",
+    issuedAt: direction.issuedAt ? formatDate(direction.issuedAt) : "Not recorded"
+  }));
+  directionsSection.hidden = false;
+  directionsSection.innerHTML = '<h2>Directions</h2><p class="muted">Authoritative Directions overlay PSPF Requirements; once registered they always apply.</p>' + table(directions, ["reference", "title", "responseState", "sourceAuthority", "issuedAt"]);
 
   sourceControlsSection.hidden = false;
   sourceControlsSection.innerHTML = '<h2>ISM Source Controls</h2><p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0.</p>' + table(sourceControls, ["controlId", "title", "profiles", "release", "drift"]);
@@ -312,7 +333,7 @@ async function writeClipboardText(value) {
 }
 
 async function validateBundle(manifest, collections, collectionTexts) {
-  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "posture"];
+  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "directions", "posture"];
   const checks = [
     check("Bundle version", manifest.bundleVersion === "${VERSION_AXES.bundleVersion}", manifest.bundleVersion || "missing"),
     check("Schema version", manifest.schemaVersion === "${VERSION_AXES.schemaVersion}", manifest.schemaVersion || "missing"),
@@ -409,9 +430,31 @@ function titleList(ids, requirementsById) {
   return titles.length > 0 ? titles.join("; ") : "None linked";
 }
 
+function actionImpactTable(collections) {
+  const actions = (collections.actions || []).filter((action) => action.impact);
+  if (actions.length === 0) {
+    return '<p class="muted">No Action Impact scores published in this bundle. Add at least one Action linked to a requirement, evidence gap, risk, or Direction.</p>';
+  }
+  const rows = actions.map((action) => {
+    const impact = action.impact || {};
+    const total = (impact.postureUplift || 0) + (impact.evidenceUplift || 0) + (impact.riskReduction || 0) + (impact.directionUplift || 0);
+    return {
+      title: action.title,
+      total,
+      postureUplift: impact.postureUplift || 0,
+      evidenceUplift: impact.evidenceUplift || 0,
+      riskReduction: impact.riskReduction || 0,
+      directionUplift: impact.directionUplift || 0,
+      urgency: label(impact.urgency || "normal"),
+      explanation: (impact.explanation || []).join("; ")
+    };
+  }).sort((left, right) => right.total - left.total).slice(0, 10);
+  return table(rows, ["title", "total", "postureUplift", "evidenceUplift", "riskReduction", "directionUplift", "urgency", "explanation"]);
+}
+
 function entityTitleMap(collections) {
   const entitiesById = new Map();
-  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "posture"]) {
+  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "directions", "posture"]) {
     for (const entity of collections[collectionName] || []) {
       entitiesById.set(entity.id, entity.title || label(entity.entityType));
     }
