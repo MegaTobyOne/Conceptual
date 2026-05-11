@@ -2,7 +2,7 @@
     "name": "pspf-workshop",
     "displayName": "PSPF Workshop",
     "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "private": true,
     "type": "module",
     "publisher": "pspf",
@@ -45,6 +45,14 @@
             {
                 "command": "pspf.workshop.openItemDetail",
                 "title": "PSPF: Open Item Detail"
+            },
+            {
+                "command": "pspf.workshop.browseIsmSourceControls",
+                "title": "PSPF: Browse ISM Source Controls"
+            },
+            {
+                "command": "pspf.workshop.createRequirementControlMapping",
+                "title": "PSPF: Map Requirement to ISM Control"
             },
             {
                 "command": "pspf.workshop.copyPostureBrief",

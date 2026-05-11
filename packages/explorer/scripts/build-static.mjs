@@ -20,7 +20,7 @@ const html = `<!doctype html>
     header { background: #18181b; color: #fafafa; border-bottom: 1px solid #3f3f46; padding: 12px 20px; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
     main { max-width: 1120px; margin: 0 auto; padding: 24px; }
     button, input { font: inherit; }
-    button { background: #0f766e; color: #f0fdfa; border: 1px solid #14b8a6; border-radius: 6px; padding: 8px 12px; font-weight: 700; cursor: pointer; }
+    button { background: #0f766e; color: #f0fdfa; border: 1px solid #14b8a6; border-radius: 6px; padding: 8px 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
     button:hover { background: #0d9488; }
     button:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
     input { color: #f4f4f5; }
@@ -31,14 +31,14 @@ const html = `<!doctype html>
     .banner { background: #3f2f11; border-bottom: 1px solid #d97706; color: #fde68a; padding: 8px 20px; font-weight: 600; }
     .panel { background: #18181b; border: 1px solid #3f3f46; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
     .section-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: rgba(17, 17, 19, 0.92); border: 1px solid #3f3f46; border-radius: 6px; padding: 8px; margin: 0 0 16px; backdrop-filter: blur(10px); }
-    .section-nav a { color: #e4e4e7; text-decoration: none; border: 1px solid #3f3f46; background: #202024; border-radius: 6px; padding: 6px 10px; font-size: 14px; }
+    .section-nav a { color: #e4e4e7; text-decoration: none; border: 1px solid #3f3f46; background: #202024; border-radius: 6px; padding: 6px 10px; font-size: 14px; white-space: nowrap; }
     .section-nav a:hover { border-color: #38bdf8; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
     .metric { border: 1px solid #3f3f46; border-radius: 6px; padding: 12px; background: #202024; }
     .metric strong { display: block; font-size: 28px; }
     .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
-    .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; }
+    .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; line-height: 1.4; white-space: nowrap; }
     .overview-grid { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 16px; align-items: start; }
     .donut-wrap { display: grid; place-items: center; gap: 8px; }
     .donut { width: 210px; height: 210px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(#22c55e 0 var(--met), #f59e0b var(--met) var(--partial), #f87171 var(--partial) var(--not-met), #71717a var(--not-met) 100%); }
@@ -50,13 +50,14 @@ const html = `<!doctype html>
     .bar-row { display: grid; grid-template-columns: minmax(110px, 1fr) 2fr auto; gap: 10px; align-items: center; }
     .bar-track { height: 12px; background: #27272a; border-radius: 999px; overflow: hidden; }
     .bar-fill { height: 100%; background: #22c55e; width: var(--value); }
-    .check { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+    .check { display: inline-flex; align-items: center; justify-content: center; min-width: 4.75ch; box-sizing: border-box; border-radius: 999px; padding: 2px 8px; font-size: 12px; line-height: 1.35; font-weight: 700; white-space: nowrap; }
     .check.pass { background: #14532d; color: #dcfce7; }
     .check.fail { background: #7f1d1d; color: #fee2e2; }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 8px; border-bottom: 1px solid #3f3f46; vertical-align: top; }
     th { font-size: 13px; color: #d4d4d8; }
     td { overflow-wrap: anywhere; }
+    .validation-table th:nth-child(2), .validation-table td:nth-child(2) { width: 1%; white-space: nowrap; }
     .empty-value { color: #a1a1aa; font-style: italic; }
     code { color: #bae6fd; }
     .muted { color: #a1a1aa; }
@@ -85,6 +86,8 @@ const html = `<!doctype html>
       <a href="#evidence">Evidence</a>
       <a href="#actions">Actions</a>
       <a href="#risks">Risks</a>
+      <a href="#source-controls">ISM Source Controls</a>
+      <a href="#ism-coverage">ISM Coverage</a>
       <a href="#links">Relationships</a>
     </nav>
     <section id="summary" class="panel" aria-live="polite" hidden></section>
@@ -93,8 +96,10 @@ const html = `<!doctype html>
     <section id="evidence" class="panel" hidden></section>
     <section id="actions" class="panel" hidden></section>
     <section id="risks" class="panel" hidden></section>
+    <section id="source-controls" class="panel" hidden></section>
+    <section id="ism-coverage" class="panel" hidden></section>
     <section id="links" class="panel" hidden></section>
-    <p class="footer">PSPF source: protectivesecurity.gov.au · Essential Eight source: cyber.gov.au</p>
+    <p class="footer">PSPF source: protectivesecurity.gov.au · Essential Eight source: cyber.gov.au · ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0</p>
   </main>
   <script src="./brief-renderer.js"></script>
   <script src="./app.js"></script>
@@ -110,6 +115,8 @@ const requirementsSection = document.querySelector("#requirements");
 const evidenceSection = document.querySelector("#evidence");
 const actionsSection = document.querySelector("#actions");
 const risksSection = document.querySelector("#risks");
+const sourceControlsSection = document.querySelector("#source-controls");
+const ismCoverageSection = document.querySelector("#ism-coverage");
 const linksSection = document.querySelector("#links");
 let currentBriefInput;
 
@@ -148,6 +155,7 @@ async function render(manifest, collections, collectionTexts = undefined) {
   const domainsById = new Map((collections.domains || []).map((domain) => [domain.id, domain.title]));
   const relationshipSummary = summariseRelationships(collections.links || []);
   const requirementsById = new Map((collections.requirements || []).map((requirement) => [requirement.id, requirement]));
+  const sourceControlsById = new Map((collections["source-controls"] || []).map((sourceControl) => [sourceControl.id, sourceControl]));
   const entitiesById = entityTitleMap(collections);
   const requirements = (collections.requirements || []).map((requirement) => ({
     ...requirement,
@@ -168,6 +176,24 @@ async function render(manifest, collections, collectionTexts = undefined) {
     ...item,
     requirements: titleList(relationshipSummary.requirementsByRisk.get(item.id), requirementsById)
   }));
+  const sourceControls = (collections["source-controls"] || []).map((item) => ({
+    controlId: item.controlId,
+    title: item.title,
+    profiles: (item.profileTags || []).join(", "),
+    release: item.provenance && item.provenance.oscalRelease || "unknown"
+  }));
+  const ismCoverage = (collections["requirement-control-mappings"] || []).map((mapping) => {
+    const requirement = requirementsById.get(mapping.requirementId);
+    const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+    return {
+      requirement: requirement ? requirement.title : mapping.requirementId,
+      controlId: sourceControl ? sourceControl.controlId : mapping.sourceControlId,
+      control: sourceControl ? sourceControl.title : "Unknown source control",
+      coverage: label(mapping.coverageQualifier),
+      profile: mapping.applicabilityProfile,
+      release: mapping.provenance && mapping.provenance.oscalRelease || "unknown"
+    };
+  });
   currentBriefInput = {
     generatedAt: manifest.generatedAt || new Date().toISOString(),
     requirements: collections.requirements || [],
@@ -197,6 +223,8 @@ async function render(manifest, collections, collectionTexts = undefined) {
       metric("Evidence", (collections.evidence || []).length) +
       metric("Actions", (collections.actions || []).length) +
       metric("Risks", (collections.risks || []).length) +
+      metric("ISM controls", (collections["source-controls"] || []).length) +
+      metric("ISM mappings", (collections["requirement-control-mappings"] || []).length) +
     '</div>' +
     overview(requirements, collections) +
     '<p class="muted">Bundle ' + escapeHtml(manifest.bundleVersion) + " · Schema " + escapeHtml(manifest.schemaVersion) + " · Generated " + formatDate(manifest.generatedAt) + '</p>';
@@ -216,6 +244,12 @@ async function render(manifest, collections, collectionTexts = undefined) {
 
   risksSection.hidden = false;
   risksSection.innerHTML = '<h2>Risks</h2>' + table(risks, ["title", "status", "likelihood", "impact", "requirements"]);
+
+  sourceControlsSection.hidden = false;
+  sourceControlsSection.innerHTML = '<h2>ISM Source Controls</h2><p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0.</p>' + table(sourceControls, ["controlId", "title", "profiles", "release"]);
+
+  ismCoverageSection.hidden = false;
+  ismCoverageSection.innerHTML = '<h2>ISM Coverage</h2>' + table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "release"]);
 
   linksSection.hidden = false;
   linksSection.innerHTML = '<h2>Relationships Board</h2>' + table(relationships, ["title", "relationship", "from", "to"]);
@@ -269,11 +303,11 @@ async function writeClipboardText(value) {
 }
 
 async function validateBundle(manifest, collections, collectionTexts) {
-  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "posture"];
+  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "posture"];
   const checks = [
-    check("Bundle version", manifest.bundleVersion === "1.0.0", manifest.bundleVersion || "missing"),
-    check("Schema version", manifest.schemaVersion === "1.0.0", manifest.schemaVersion || "missing"),
-    check("API version", manifest.apiVersion === "1.0.0", manifest.apiVersion || "missing"),
+    check("Bundle version", manifest.bundleVersion === "1.1.0", manifest.bundleVersion || "missing"),
+    check("Schema version", manifest.schemaVersion === "1.1.0", manifest.schemaVersion || "missing"),
+    check("API version", manifest.apiVersion === "1.1.0", manifest.apiVersion || "missing"),
     check("Publication mode", manifest.generator && manifest.generator.mode === "publication", manifest.generator && manifest.generator.mode || "missing"),
     check("Classification", manifest.security && manifest.security.classification === "OFFICIAL: Sensitive", manifest.security && manifest.security.classification || "missing")
   ];
@@ -294,6 +328,9 @@ async function validateBundle(manifest, collections, collectionTexts) {
   checks.push(check("Posture evidence", posture.evidenceCount === (collections.evidence || []).length, String(posture.evidenceCount || 0)));
   checks.push(check("Posture actions", posture.actionCount === (collections.actions || []).length, String(posture.actionCount || 0)));
   checks.push(check("Posture risks", posture.riskCount === (collections.risks || []).length, String(posture.riskCount || 0)));
+  checks.push(check("Posture ISM controls", posture.sourceControlCount === (collections["source-controls"] || []).length, String(posture.sourceControlCount || 0)));
+  checks.push(check("Posture ISM mappings", posture.requirementControlMappingCount === (collections["requirement-control-mappings"] || []).length, String(posture.requirementControlMappingCount || 0)));
+  checks.push(check("Mapping rationale excluded", !containsPath(collections["requirement-control-mappings"] || [], ["rationale"]), "default deny"));
 
   const disallowed = ["person.name", "person.email", "assignment.personId"];
   for (const fieldPath of disallowed) {
@@ -305,7 +342,7 @@ async function validateBundle(manifest, collections, collectionTexts) {
 
 function validationTable(checks) {
   const rows = checks.map((item) => '<tr><td>' + escapeHtml(item.label) + '</td><td><span class="check ' + (item.ok ? "pass" : "fail") + '" aria-label="' + escapeHtml(item.ok ? "Pass" : "Fail") + '">' + (item.ok ? "PASS" : "FAIL") + '</span></td><td>' + escapeHtml(item.detail) + '</td></tr>').join("");
-  return '<table><thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  return '<table class="validation-table"><thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function check(label, ok, detail) {
@@ -358,7 +395,7 @@ function titleList(ids, requirementsById) {
 
 function entityTitleMap(collections) {
   const entitiesById = new Map();
-  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "posture"]) {
+  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "posture"]) {
     for (const entity of collections[collectionName] || []) {
       entitiesById.set(entity.id, entity.title || label(entity.entityType));
     }

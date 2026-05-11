@@ -1,9 +1,9 @@
 {
     "manifest": {
         "bundleType": "pspf-explorer-bundle",
-        "bundleVersion": "1.0.0",
-        "schemaVersion": "1.0.0",
-        "apiVersion": "1.0.0",
+        "bundleVersion": "1.1.0",
+        "schemaVersion": "1.1.0",
+        "apiVersion": "1.1.0",
         "generatedAt": "2026-05-10T00:00:00.000Z",
         "generator": {
             "product": "pspf-core",
@@ -22,7 +22,7 @@
             {
                 "id": "DOM-00000000-0000-7000-8000-000000000001",
                 "entityType": "domain",
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "1.1.0",
                 "title": "Governance",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -36,7 +36,7 @@
             {
                 "id": "REQ-00000000-0000-7000-8000-000000000101",
                 "entityType": "requirement",
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "1.1.0",
                 "title": "Governance arrangements are established",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -52,11 +52,66 @@
         "snapshots": [],
         "links": [],
         "tags": [],
+        "source-controls": [
+            {
+                "id": "SRC-00000000-0000-7000-8000-000000000101",
+                "entityType": "source-control",
+                "schemaVersion": "1.1.0",
+                "title": "Application control is implemented",
+                "createdAt": "2026-05-10T00:00:00.000Z",
+                "updatedAt": "2026-05-10T00:00:00.000Z",
+                "sourceProduct": "core",
+                "recordStatus": "active",
+                "controlId": "ISM-1657",
+                "statement": "Application control is implemented on workstations and servers to prevent unauthorised applications from executing.",
+                "profileTags": [
+                    "e8-ml1",
+                    "official-sensitive"
+                ],
+                "externalRefs": [
+                    {
+                        "scheme": "ism-control-id",
+                        "value": "ISM-1657"
+                    },
+                    {
+                        "scheme": "oscal-uuid",
+                        "value": "00000000-0000-7000-8000-000000001657"
+                    }
+                ],
+                "provenance": {
+                    "oscalRelease": "v2026.03.24",
+                    "catalog": "ISM_catalog.json",
+                    "profile": "official-sensitive.json",
+                    "sourceUrl": "https://github.com/AustralianCyberSecurityCentre/ism-oscal"
+                }
+            }
+        ],
+        "requirement-control-mappings": [
+            {
+                "id": "MAP-00000000-0000-7000-8000-000000000101",
+                "entityType": "requirement-control-mapping",
+                "schemaVersion": "1.1.0",
+                "title": "Governance arrangements are established mapped to ISM-1657",
+                "createdAt": "2026-05-10T00:00:00.000Z",
+                "updatedAt": "2026-05-10T00:00:00.000Z",
+                "sourceProduct": "workshop",
+                "recordStatus": "active",
+                "requirementId": "REQ-00000000-0000-7000-8000-000000000101",
+                "sourceControlId": "SRC-00000000-0000-7000-8000-000000000101",
+                "coverageQualifier": "primary",
+                "applicabilityProfile": "official-sensitive",
+                "provenance": {
+                    "author": "fixture",
+                    "createdAt": "2026-05-10T00:00:00.000Z",
+                    "oscalRelease": "v2026.03.24"
+                }
+            }
+        ],
         "posture": [
             {
                 "id": "POSTURE",
                 "entityType": "posture",
-                "schemaVersion": "1.0.0",
+                "schemaVersion": "1.1.0",
                 "title": "PSPF posture for standard fixture",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -65,7 +120,9 @@
                 "requirementCount": 1,
                 "evidenceCount": 0,
                 "actionCount": 0,
-                "riskCount": 0
+                "riskCount": 0,
+                "sourceControlCount": 1,
+                "requirementControlMappingCount": 1
             }
         ]
     }

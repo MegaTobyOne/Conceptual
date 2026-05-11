@@ -1,5 +1,5 @@
 {
-    "name": "@pspf/contracts",
+    "name": "@pspf/ism-source-library",
     "version": "0.2.0",
     "private": true,
     "type": "module",
@@ -12,7 +12,9 @@
         }
     },
     "scripts": {
-        "build": "tsc -p tsconfig.json",
-        "test": "node --test dist/**/*.test.js"
+        "build": "tsc -p tsconfig.json"
+    },
+    "dependencies": {
+        "@pspf/contracts": "workspace:*"
     }
 }

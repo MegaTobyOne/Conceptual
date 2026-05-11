@@ -9,6 +9,9 @@
             "path": "./packages/contracts"
         },
         {
+            "path": "./packages/ism-source-library"
+        },
+        {
             "path": "./packages/brief-renderer"
         },
         {

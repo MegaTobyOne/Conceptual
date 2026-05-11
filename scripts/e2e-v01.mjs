@@ -17,6 +17,7 @@ await service.initialiseWorkspace();
 const initialValidation = await service.validateWorkspace();
 assert.equal(initialValidation.ok, true, initialValidation.message);
 assert.equal(initialValidation.counts.domains, 4);
+assert.equal(initialValidation.counts["source-controls"], 4);
 
 const requirement = withEnvelope(
   "requirement",
@@ -108,6 +109,29 @@ await service.upsertEntity(withEnvelope(
   "workshop"
 ));
 
+const sourceControls = await service.listEntities("source-control");
+assert.equal(sourceControls.length, 4);
+const sourceControl = sourceControls[0];
+const mapping = withEnvelope(
+  "requirement-control-mapping",
+  {
+    entityType: "requirement-control-mapping",
+    title: `${requirement.title} mapped to ${sourceControl.controlId}`,
+    requirementId: requirement.id,
+    sourceControlId: sourceControl.id,
+    coverageQualifier: "primary",
+    applicabilityProfile: "official-sensitive",
+    rationale: "Sensitive operator interpretation that must not be exported.",
+    provenance: {
+      author: "e2e",
+      createdAt: new Date().toISOString(),
+      oscalRelease: sourceControl.provenance.oscalRelease
+    }
+  },
+  "workshop"
+);
+await service.upsertEntity(mapping);
+
 const snapshot = await service.createSnapshot();
 assert.equal(snapshot.entityType, "snapshot");
 
@@ -122,6 +146,8 @@ assert.equal(validation.counts.actions, 1);
 assert.equal(validation.counts.risks, 1);
 assert.equal(validation.counts.links, 3);
 assert.equal(validation.counts.snapshots, 1);
+assert.equal(validation.counts["source-controls"], 4);
+assert.equal(validation.counts["requirement-control-mappings"], 1);
 
 const exported = await service.exportBundle();
 const bundlePath = join(exported.exportDirectory, "bundle.json");
@@ -134,12 +160,15 @@ assert.equal(report.counts.actions, 1);
 assert.equal(report.counts.risks, 1);
 assert.equal(report.counts.links, 3);
 assert.equal(report.counts.snapshots, 1);
+assert.equal(report.counts["source-controls"], 4);
+assert.equal(report.counts["requirement-control-mappings"], 1);
+assert.equal(report.mappingRedaction.ok, true, report.mappingRedaction.detail);
 const reportPaths = await writeValidationReport(report, join(workspaceRoot, ".pspf", "reports"));
 
 const importService = createCoreService(importWorkspaceRoot);
 await importService.initialiseWorkspace();
 const imported = await importService.importBundle(bundlePath, "full-replace");
-assert.equal(imported.imported, 12);
+assert.equal(imported.imported, 17);
 const importValidation = await importService.validateWorkspace();
 assert.equal(importValidation.ok, true, importValidation.message);
 assert.equal(importValidation.counts.requirements, 1);
@@ -147,8 +176,10 @@ assert.equal(importValidation.counts.evidence, 1);
 assert.equal(importValidation.counts.actions, 1);
 assert.equal(importValidation.counts.risks, 1);
 assert.equal(importValidation.counts.links, 3);
+assert.equal(importValidation.counts["source-controls"], 4);
+assert.equal(importValidation.counts["requirement-control-mappings"], 1);
 
-console.log("ok e2e v0.1 workspace initialised, authored, snapshotted, exported, and verified");
+console.log("ok e2e workspace initialised, authored, mapped to ISM, snapshotted, exported, and verified");
 console.log(`workspace: ${relative(root, workspaceRoot)}`);
 console.log(`import workspace: ${relative(root, importWorkspaceRoot)}`);
 console.log(`bundle: ${relative(root, bundlePath)}`);

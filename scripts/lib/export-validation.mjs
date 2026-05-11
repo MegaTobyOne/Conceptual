@@ -22,7 +22,7 @@ export async function validateExportBundle(bundlePath, options = {}) {
   check(manifest.security?.classification === "OFFICIAL: Sensitive", "classification is OFFICIAL: Sensitive", failures);
 
   const manifestCollectionNames = (manifest.collections ?? []).map((collection) => collection.name);
-  check(JSON.stringify(manifestCollectionNames) === JSON.stringify(V0_1_COLLECTIONS), "manifest lists every v0.1 collection in order", failures);
+  check(JSON.stringify(manifestCollectionNames) === JSON.stringify(V0_1_COLLECTIONS), "manifest lists every active collection in order", failures);
 
   const counts = {};
   for (const collectionName of V0_1_COLLECTIONS) {
@@ -66,6 +66,9 @@ export async function validateExportBundle(bundlePath, options = {}) {
     check(ok, `published bundle excludes ${fieldPath}`, failures);
   }
 
+  const mappingRationaleExcluded = !containsPath(collections["requirement-control-mappings"] ?? [], ["rationale"]);
+  check(mappingRationaleExcluded, "published mappings exclude sensitive rationale", failures);
+
   const schemaChecks = await validateBundleSchemas(root, manifest, collections);
   for (const schemaCheck of schemaChecks) {
     check(schemaCheck.ok, schemaCheck.detail, failures);
@@ -90,6 +93,10 @@ export async function validateExportBundle(bundlePath, options = {}) {
     counts,
     hashChecks,
     redactionChecks,
+    mappingRedaction: {
+      ok: mappingRationaleExcluded,
+      detail: mappingRationaleExcluded ? "Mapping rationale excluded from published bundle" : "Mapping rationale leaked into published bundle"
+    },
     schemaChecks,
     expectedExplorer: buildExpectedExplorer(collections)
   };
@@ -148,14 +155,16 @@ function buildExpectedExplorer(collections) {
     evidence: (collections.evidence ?? []).map((record) => record.title),
     actions: (collections.actions ?? []).map((record) => record.title),
     risks: (collections.risks ?? []).map((record) => record.title),
-    relationshipCount: collections.links?.length ?? 0
+    relationshipCount: collections.links?.length ?? 0,
+    sourceControls: (collections["source-controls"] ?? []).map((record) => record.controlId),
+    requirementControlMappingCount: collections["requirement-control-mappings"]?.length ?? 0
   };
 }
 
 function toMarkdown(report) {
   const status = report.ok ? "PASS" : "FAIL";
   const lines = [
-    "# PSPF v0.1 E2E Report",
+    "# PSPF E2E Report",
     "",
     `Status: ${status}`,
     `Generated: ${report.generatedAt}`,
@@ -168,6 +177,8 @@ function toMarkdown(report) {
     `- Evidence: ${report.counts.evidence}`,
     `- Actions: ${report.counts.actions}`,
     `- Risks: ${report.counts.risks}`,
+    `- ISM source controls: ${report.counts["source-controls"] ?? 0}`,
+    `- ISM mappings: ${report.counts["requirement-control-mappings"] ?? 0}`,
     `- Relationship links: ${report.counts.links}`,
     `- Snapshots: ${report.counts.snapshots}`,
     "",
@@ -177,13 +188,16 @@ function toMarkdown(report) {
     ...report.expectedExplorer.evidence.map((title) => `- Evidence: ${title}`),
     ...report.expectedExplorer.actions.map((title) => `- Action: ${title}`),
     ...report.expectedExplorer.risks.map((title) => `- Risk: ${title}`),
+    ...report.expectedExplorer.sourceControls.map((controlId) => `- ISM source control: ${controlId}`),
+    `- ISM mappings: ${report.expectedExplorer.requirementControlMappingCount}`,
     `- Relationships Board links: ${report.expectedExplorer.relationshipCount}`,
     "",
     "## Checks",
     "",
     ...report.schemaChecks.map((check) => `- Schema ${check.name}: ${check.ok ? "PASS" : "FAIL"}`),
     ...report.hashChecks.map((check) => `- Hash ${check.name}: ${check.ok ? "PASS" : "FAIL"}`),
-    ...report.redactionChecks.map((check) => `- Redaction ${check.fieldPath}: ${check.ok ? "PASS" : "FAIL"}`)
+    ...report.redactionChecks.map((check) => `- Redaction ${check.fieldPath}: ${check.ok ? "PASS" : "FAIL"}`),
+    `- Mapping rationale redaction: ${report.mappingRedaction.ok ? "PASS" : "FAIL"}`
   ];
 
   if (report.failures.length > 0) {

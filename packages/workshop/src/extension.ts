@@ -11,8 +11,10 @@ import {
   type EvidenceFreshness,
   type LinkEntity,
   type RequirementEntity,
+  type RequirementControlMappingEntity,
   type RiskEntity,
   type RiskStatus,
+  type SourceControlEntity,
   type V01Entity,
   withEnvelope
 } from "@pspf/contracts";
@@ -30,6 +32,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
+    vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
+    vscode.commands.registerCommand("pspf.workshop.createRequirementControlMapping", createRequirementControlMapping),
     vscode.commands.registerCommand("pspf.workshop.copyPostureBrief", copyPostureBrief)
   );
 }
@@ -417,6 +421,91 @@ async function openItemDetail(): Promise<void> {
   await openItemDetailForRequirement(requirement);
 }
 
+async function browseIsmSourceControls(): Promise<void> {
+  await ensureCoreReady();
+  const sourceControls = await listSourceControls();
+  const rows = sourceControls.map((sourceControl) => ({
+    controlId: sourceControl.controlId,
+    title: sourceControl.title,
+    profiles: sourceControl.profileTags.join(", "),
+    release: sourceControl.provenance.oscalRelease
+  }));
+
+  const panel = vscode.window.createWebviewPanel("pspfIsmSourceControls", "PSPF ISM Source Controls", vscode.ViewColumn.One, { enableScripts: false });
+  panel.webview.html = shellHtml("PSPF ISM Source Controls", `
+    <section>
+      <h1>ISM Source Controls</h1>
+      <p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0 · OSCAL release ${escapeHtml(sourceControls[0]?.provenance.oscalRelease ?? "not loaded")}.</p>
+      ${versionStrip()}
+    </section>
+    ${recordTable("Source Controls", rows, ["controlId", "title", "profiles", "release"])}
+  `);
+}
+
+async function createRequirementControlMapping(): Promise<void> {
+  await ensureCoreReady();
+  const requirement = await pickRequirement();
+  if (!requirement) {
+    return;
+  }
+
+  const sourceControl = await pickSourceControl();
+  if (!sourceControl) {
+    return;
+  }
+
+  const coverage = await vscode.window.showQuickPick(
+    coverageQualifierItems,
+    { title: "Select ISM Coverage", ignoreFocusOut: true }
+  );
+  if (!coverage) {
+    return;
+  }
+
+  const profile = await vscode.window.showQuickPick(
+    profileItems(sourceControl),
+    { title: "Select ISM Applicability Profile", ignoreFocusOut: true }
+  );
+  if (!profile) {
+    return;
+  }
+
+  const rationale = await vscode.window.showInputBox({
+    title: "Map Requirement to ISM Control",
+    prompt: "Sensitive mapping rationale, not published by default",
+    ignoreFocusOut: true
+  });
+  if (rationale === undefined) {
+    return;
+  }
+
+  const mapping = withEnvelope(
+    "requirement-control-mapping",
+    {
+      entityType: "requirement-control-mapping",
+      title: `${requirement.title} mapped to ${sourceControl.controlId}`,
+      requirementId: requirement.id,
+      sourceControlId: sourceControl.id,
+      coverageQualifier: coverage.value,
+      applicabilityProfile: profile.value,
+      rationale: rationale.trim() || undefined,
+      provenance: {
+        author: "workshop",
+        createdAt: new Date().toISOString(),
+        oscalRelease: sourceControl.provenance.oscalRelease
+      }
+    },
+    "workshop"
+  );
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", mapping);
+  await rememberRequirement(requirement);
+  const action = await vscode.window.showInformationMessage(`Mapped ${requirement.title} to ${sourceControl.controlId}.`, "Open Item Detail");
+  if (action === "Open Item Detail") {
+    await openItemDetailForRequirement(requirement);
+  }
+}
+
 async function openItemDetailForRequirement(requirement: RequirementEntity): Promise<void> {
   await rememberRequirement(requirement);
 
@@ -426,6 +515,19 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
   const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && linkedIds.has(entity.id));
   const actions = allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action" && linkedIds.has(entity.id));
   const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk" && linkedIds.has(entity.id));
+  const sourceControlsById = new Map(allEntities.filter((entity): entity is SourceControlEntity => entity.entityType === "source-control").map((entity) => [entity.id, entity]));
+  const mappings = allEntities
+    .filter((entity): entity is RequirementControlMappingEntity => entity.entityType === "requirement-control-mapping" && entity.requirementId === requirement.id)
+    .map((mapping) => {
+      const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+      return {
+        controlId: sourceControl?.controlId ?? mapping.sourceControlId,
+        title: sourceControl?.title ?? "Unknown source control",
+        coverage: label(mapping.coverageQualifier),
+        profile: mapping.applicabilityProfile,
+        release: mapping.provenance.oscalRelease
+      };
+    });
   const entitiesById = new Map(allEntities.map((entity) => [entity.id, entity]));
   const relationships = links.map((link) => ({
     title: link.title,
@@ -445,6 +547,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     ${recordTable("Evidence", evidence, ["title", "evidenceType", "freshness", "reference"])}
     ${recordTable("Actions", actions, ["title", "status", "dueDate"])}
     ${recordTable("Risks", risks, ["title", "status", "likelihood", "impact"])}
+    ${recordTable("ISM Mappings", mappings, ["controlId", "title", "coverage", "profile", "release"])}
     ${recordTable("Relationships", relationships, ["title", "relationship", "targetType", "target"])}
   `);
 }
@@ -549,6 +652,30 @@ async function pickRequirement(): Promise<RequirementEntity | undefined> {
     await rememberRequirement(picked.requirement);
   }
   return picked?.requirement;
+}
+
+async function listSourceControls(): Promise<SourceControlEntity[]> {
+  const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "source-control");
+  return (entities ?? []).filter((entity): entity is SourceControlEntity => entity.entityType === "source-control");
+}
+
+async function pickSourceControl(): Promise<SourceControlEntity | undefined> {
+  const sourceControls = await listSourceControls();
+  if (sourceControls.length === 0) {
+    await vscode.window.showWarningMessage("No ISM source controls are loaded. Run PSPF: Initialise PSPF Workspace and try again.");
+    return undefined;
+  }
+
+  const picked = await vscode.window.showQuickPick(
+    sourceControls.map((sourceControl) => ({
+      label: `${sourceControl.controlId}: ${sourceControl.title}`,
+      description: sourceControl.profileTags.join(", "),
+      detail: `OSCAL release ${sourceControl.provenance.oscalRelease} · ${sourceControl.statement}`,
+      sourceControl
+    })),
+    { title: "Select ISM Source Control", placeHolder: "Choose the ISM control this requirement maps to", ignoreFocusOut: true }
+  );
+  return picked?.sourceControl;
 }
 
 function buildValidationHints(
@@ -674,3 +801,13 @@ const riskStatusItems: readonly { readonly label: string; readonly value: RiskSt
   { label: "Monitored", value: "monitored" },
   { label: "Closed", value: "closed" }
 ];
+
+const coverageQualifierItems = [
+  { label: "Primary", value: "primary" },
+  { label: "Partial", value: "partial" },
+  { label: "Compensating", value: "compensating" }
+] as const;
+
+function profileItems(sourceControl: SourceControlEntity): readonly { readonly label: string; readonly value: string }[] {
+  return ["all", ...sourceControl.profileTags].map((profile) => ({ label: label(profile), value: profile }));
+}

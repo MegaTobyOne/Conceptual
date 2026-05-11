@@ -1,11 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import Ajv from "ajv";
-import { V0_1_COLLECTIONS } from "../packages/contracts/dist/index.js";
+import { VERSION_AXES, V0_1_COLLECTIONS } from "../packages/contracts/dist/index.js";
 
 const root = process.cwd();
-const schemaRoot = join(root, "schemas/explorer-bundle/1.0.0/collections");
-const manifestSchemaPath = join(root, "schemas/explorer-bundle/1.0.0/manifest.schema.json");
+const schemaRoot = join(root, "schemas/explorer-bundle", VERSION_AXES.schemaVersion, "collections");
+const manifestSchemaPath = join(root, "schemas/explorer-bundle", VERSION_AXES.schemaVersion, "manifest.schema.json");
 const standardFixturePath = join(root, "packages/contracts/test-fixtures/standard/bundle.json");
 const failures = [];
 const ajv = new Ajv({ allErrors: true, strict: false, validateFormats: false });

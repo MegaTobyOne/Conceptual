@@ -25,6 +25,9 @@
             ],
             "@pspf/contracts": [
                 "packages/contracts/src/index.ts"
+            ],
+            "@pspf/ism-source-library": [
+                "packages/ism-source-library/src/index.ts"
             ]
         },
         "resolveJsonModule": true,

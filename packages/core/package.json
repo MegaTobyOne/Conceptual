@@ -2,7 +2,7 @@
     "name": "pspf-core",
     "displayName": "PSPF Core",
     "description": "Local PSPF system of record, workspace bootstrap, validation, snapshots, and export operations.",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "private": true,
     "type": "module",
     "publisher": "pspf",
@@ -65,6 +65,7 @@
         "test": "node --test dist/**/*.test.js"
     },
     "dependencies": {
-        "@pspf/contracts": "workspace:*"
+        "@pspf/contracts": "workspace:*",
+        "@pspf/ism-source-library": "workspace:*"
     }
 }

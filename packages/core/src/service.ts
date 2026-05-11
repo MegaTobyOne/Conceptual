@@ -8,6 +8,7 @@ import {
   COLLECTION_BY_ENTITY_TYPE,
   type BundleCollections,
   type EntityByCollection,
+  PSPF_SLICE_VERSION,
   type V01Collection,
   type V01Entity,
   PSPF_DOMAINS,
@@ -17,6 +18,7 @@ import {
   sanitiseEntityForPublication,
   withEnvelope
 } from "@pspf/contracts";
+import { ISM_SOURCE_CONTROLS } from "@pspf/ism-source-library";
 
 const execFileAsync = promisify(execFile);
 
@@ -142,6 +144,9 @@ INSERT INTO metadata(key, value) VALUES ('apiVersion', '${VERSION_AXES.apiVersio
   for (const domain of PSPF_DOMAINS) {
     await upsertEntity(workspaceRoot, { ...domain, createdAt: timestamp, updatedAt: timestamp });
   }
+  for (const sourceControl of ISM_SOURCE_CONTROLS) {
+    await upsertEntity(workspaceRoot, { ...sourceControl, createdAt: timestamp, updatedAt: timestamp });
+  }
 
   return paths;
 }
@@ -226,12 +231,12 @@ async function exportBundle(workspaceRoot: string): Promise<{ exportDirectory: s
     generator: {
       product: "pspf-core",
       mode: "publication",
-      productVersion: "0.1.0",
+      productVersion: PSPF_SLICE_VERSION,
       workspaceId: `WS-${sha256(paths.root).slice(0, 12)}`
     },
     compatibility: {
-      explorerMin: "0.1.0",
-      explorerTested: "0.1.0"
+      explorerMin: PSPF_SLICE_VERSION,
+      explorerTested: PSPF_SLICE_VERSION
     },
     security: {
       classification: "OFFICIAL: Sensitive",
@@ -259,6 +264,7 @@ async function importBundle(workspaceRoot: string, bundlePath: string, mode: Imp
   await assertWritable(paths);
   const bundle = JSON.parse(await readFile(bundlePath, "utf8")) as { readonly collections?: Partial<BundleCollections> };
   const entities = flattenImportEntities(bundle.collections ?? {});
+  validateImportedMappings(entities);
 
   if (mode === "full-replace") {
     const existing = await listEntities(workspaceRoot);
@@ -304,7 +310,7 @@ ON CONFLICT(id) DO UPDATE SET
 }
 
 async function getWriterLock(workspaceRoot: string): Promise<WriterLockState> {
-  const paths = await ensureInitialised(workspaceRoot);
+  const paths = await ensureInitialised(workspaceRoot, false);
   return readWriterLock(paths);
 }
 
@@ -340,6 +346,8 @@ function createEmptyCollections(): BundleCollections {
     snapshots: [],
     links: [],
     tags: [],
+    "source-controls": [],
+    "requirement-control-mappings": [],
     posture: []
   };
 }
@@ -378,7 +386,9 @@ function buildPosture(collections: BundleCollections, paths: WorkspacePaths): En
     requirementCount: collections.requirements.length,
     evidenceCount: collections.evidence.length,
     actionCount: collections.actions.length,
-    riskCount: collections.risks.length
+    riskCount: collections.risks.length,
+    sourceControlCount: collections["source-controls"].length,
+    requirementControlMappingCount: collections["requirement-control-mappings"].length
   };
 }
 
@@ -392,6 +402,8 @@ function getCollectionCounts(collections: BundleCollections): Record<V01Collecti
     snapshots: collections.snapshots.length,
     links: collections.links.length,
     tags: collections.tags.length,
+    "source-controls": collections["source-controls"].length,
+    "requirement-control-mappings": collections["requirement-control-mappings"].length,
     posture: collections.posture.length
   };
 }
@@ -402,8 +414,22 @@ function buildStatusSummary(collections: BundleCollections): Record<string, unkn
     requirements: countBy(collections.requirements, (requirement) => requirement.assessmentStatus),
     evidence: countBy(collections.evidence, (evidence) => evidence.freshness),
     actions: countBy(collections.actions, (action) => action.status),
-    risks: countBy(collections.risks, (risk) => risk.status)
+    risks: countBy(collections.risks, (risk) => risk.status),
+    sourceControls: countBy(collections["source-controls"], (sourceControl) => sourceControl.profileTags[0] ?? "unprofiled"),
+    requirementControlMappings: countBy(collections["requirement-control-mappings"], (mapping) => mapping.coverageQualifier)
   };
+}
+
+function validateImportedMappings(entities: readonly V01Entity[]): void {
+  const entityIds = new Set(entities.map((entity) => entity.id));
+  for (const mapping of entities.filter((entity) => entity.entityType === "requirement-control-mapping")) {
+    if (!entityIds.has(mapping.requirementId)) {
+      throw new Error(`Import rejected: mapping ${mapping.id} references missing requirement ${mapping.requirementId}`);
+    }
+    if (!entityIds.has(mapping.sourceControlId)) {
+      throw new Error(`Import rejected: mapping ${mapping.id} references missing source control ${mapping.sourceControlId}`);
+    }
+  }
 }
 
 function countBy<T>(items: readonly T[], getKey: (item: T) => string): Record<string, number> {
@@ -442,7 +468,20 @@ async function ensureInitialised(workspaceRoot: string, createIfMissing = true):
     }
     await initialiseWorkspace(workspaceRoot);
   }
+  if (createIfMissing) {
+    await refreshReferenceData(workspaceRoot);
+  }
   return paths;
+}
+
+async function refreshReferenceData(workspaceRoot: string): Promise<void> {
+  const timestamp = nowIso();
+  for (const domain of PSPF_DOMAINS) {
+    await upsertEntity(workspaceRoot, { ...domain, createdAt: timestamp, updatedAt: timestamp });
+  }
+  for (const sourceControl of ISM_SOURCE_CONTROLS) {
+    await upsertEntity(workspaceRoot, { ...sourceControl, createdAt: timestamp, updatedAt: timestamp });
+  }
 }
 
 async function assertWritable(paths: WorkspacePaths): Promise<void> {

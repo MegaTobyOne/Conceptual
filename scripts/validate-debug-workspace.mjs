@@ -1,10 +1,14 @@
 import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { createCoreService } from "../packages/core/dist/service.js";
 import { findLatestBundle, validateExportBundle, writeValidationReport } from "./lib/export-validation.mjs";
 
 const root = process.cwd();
 const workspaceRoot = join(root, "debug-workspace");
+const service = createCoreService(workspaceRoot);
+await service.initialiseWorkspace();
+await service.exportBundle();
 const bundlePath = findLatestBundle(workspaceRoot);
 
 if (!bundlePath || !existsSync(bundlePath)) {

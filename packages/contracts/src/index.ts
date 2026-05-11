@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.0.0",
-  bundleVersion: "1.0.0",
-  apiVersion: "1.0.0"
+  schemaVersion: "1.1.0",
+  bundleVersion: "1.1.0",
+  apiVersion: "1.1.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "0.1.0" as const;
+export const PSPF_SLICE_VERSION = "0.2.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -17,6 +17,8 @@ export const V0_1_ENTITY_TYPES = [
   "snapshot",
   "link",
   "tag",
+  "source-control",
+  "requirement-control-mapping",
   "posture"
 ] as const;
 
@@ -31,6 +33,8 @@ export const V0_1_COLLECTIONS = [
   "snapshots",
   "links",
   "tags",
+  "source-controls",
+  "requirement-control-mappings",
   "posture"
 ] as const;
 
@@ -163,6 +167,47 @@ export interface TagEntity extends EntityEnvelope {
   readonly title: string;
 }
 
+export interface SourceControlExternalRef {
+  readonly scheme: "ism-control-id" | "oscal-uuid" | string;
+  readonly value: string;
+}
+
+export interface SourceControlProvenance {
+  readonly oscalRelease: string;
+  readonly catalog: string;
+  readonly profile: string | null;
+  readonly sourceUrl: string;
+}
+
+export interface SourceControlEntity extends EntityEnvelope {
+  readonly entityType: "source-control";
+  readonly title: string;
+  readonly controlId: string;
+  readonly statement: string;
+  readonly profileTags: readonly string[];
+  readonly externalRefs: readonly SourceControlExternalRef[];
+  readonly provenance: SourceControlProvenance;
+  readonly localApplicabilityNote?: string;
+}
+
+export type CoverageQualifier = "primary" | "partial" | "compensating";
+
+export interface RequirementControlMappingProvenance {
+  readonly author: string;
+  readonly createdAt: string;
+  readonly oscalRelease: string;
+}
+
+export interface RequirementControlMappingEntity extends EntityEnvelope {
+  readonly entityType: "requirement-control-mapping";
+  readonly requirementId: string;
+  readonly sourceControlId: string;
+  readonly coverageQualifier: CoverageQualifier;
+  readonly applicabilityProfile: string;
+  readonly rationale?: string;
+  readonly provenance: RequirementControlMappingProvenance;
+}
+
 export interface PostureEntity extends EntityEnvelope {
   readonly id: "POSTURE";
   readonly entityType: "posture";
@@ -171,6 +216,8 @@ export interface PostureEntity extends EntityEnvelope {
   readonly evidenceCount: number;
   readonly actionCount: number;
   readonly riskCount: number;
+  readonly sourceControlCount?: number;
+  readonly requirementControlMappingCount?: number;
 }
 
 export type V01Entity =
@@ -182,6 +229,8 @@ export type V01Entity =
   | LinkEntity
   | SnapshotEntity
   | TagEntity
+  | SourceControlEntity
+  | RequirementControlMappingEntity
   | PostureEntity;
 
 export type EntityByCollection = {
@@ -193,6 +242,8 @@ export type EntityByCollection = {
   snapshots: SnapshotEntity;
   links: LinkEntity;
   tags: TagEntity;
+  "source-controls": SourceControlEntity;
+  "requirement-control-mappings": RequirementControlMappingEntity;
   posture: PostureEntity;
 };
 
@@ -251,8 +302,22 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
     fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus")
   },
   {
+    entityType: "source-control",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "controlId", "statement", "profileTags", "externalRefs", "provenance"),
+      { field: "localApplicabilityNote", publication: "sensitive" }
+    ]
+  },
+  {
+    entityType: "requirement-control-mapping",
+    fields: [
+      ...internalFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementId", "sourceControlId", "coverageQualifier", "applicabilityProfile", "provenance"),
+      { field: "rationale", publication: "sensitive" }
+    ]
+  },
+  {
     entityType: "posture",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount")
+    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount")
   }
 ] as const;
 
@@ -308,6 +373,8 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   snapshot: "snapshots",
   link: "links",
   tag: "tags",
+  "source-control": "source-controls",
+  "requirement-control-mapping": "requirement-control-mappings",
   posture: "posture"
 };
 
@@ -320,6 +387,8 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   snapshot: "SNP",
   link: "LNK",
   tag: "TAG",
+  "source-control": "SRC",
+  "requirement-control-mapping": "MAP",
   posture: "POSTURE"
 };
 
@@ -367,8 +436,8 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
     if (publication === "restricted") {
       throw new Error(`Restricted field cannot be published: ${entity.entityType}.${field}`);
     }
-    if (publication === "public") {
-      output[field] = value;
+    if (publication === "public" || publication === "internal") {
+      output[field] = field === "schemaVersion" ? VERSION_AXES.schemaVersion : value;
     }
   }
 
@@ -377,6 +446,10 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
 
 function publicFields(...fields: readonly string[]): readonly FieldPolicy[] {
   return fields.map((field) => ({ field, publication: "public" as const }));
+}
+
+function internalFields(...fields: readonly string[]): readonly FieldPolicy[] {
+  return fields.map((field) => ({ field, publication: "internal" as const }));
 }
 
 export function assertNever(value: never): never {

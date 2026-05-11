@@ -40,12 +40,21 @@ importers:
       '@pspf/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@pspf/ism-source-library':
+        specifier: workspace:*
+        version: link:../ism-source-library
 
   packages/explorer:
     dependencies:
       '@pspf/brief-renderer':
         specifier: workspace:*
         version: link:../brief-renderer
+      '@pspf/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
+  packages/ism-source-library:
+    dependencies:
       '@pspf/contracts':
         specifier: workspace:*
         version: link:../contracts
