@@ -121,6 +121,9 @@ const mapping = withEnvelope(
     sourceControlId: sourceControl.id,
     coverageQualifier: "primary",
     applicabilityProfile: "official-sensitive",
+    confidence: "medium",
+    lastReviewedAt: "2026-05-10T00:00:00.000Z",
+    reviewBy: "Cyber assurance lead",
     rationale: "Sensitive operator interpretation that must not be exported.",
     provenance: {
       author: "e2e",
@@ -163,6 +166,8 @@ assert.equal(report.counts.snapshots, 1);
 assert.equal(report.counts["source-controls"], 4);
 assert.equal(report.counts["requirement-control-mappings"], 1);
 assert.equal(report.mappingRedaction.ok, true, report.mappingRedaction.detail);
+assert.equal(report.mappingQuality.checks.every((check) => check.ok), true, JSON.stringify(report.mappingQuality.checks));
+assert.equal(report.ismDrift.affectedMappings.length, 1);
 const reportPaths = await writeValidationReport(report, join(workspaceRoot, ".pspf", "reports"));
 
 const importService = createCoreService(importWorkspaceRoot);
@@ -178,6 +183,10 @@ assert.equal(importValidation.counts.risks, 1);
 assert.equal(importValidation.counts.links, 3);
 assert.equal(importValidation.counts["source-controls"], 4);
 assert.equal(importValidation.counts["requirement-control-mappings"], 1);
+const importedMappings = await importService.listEntities("requirement-control-mapping");
+assert.equal(importedMappings[0].confidence, "medium");
+assert.equal(importedMappings[0].lastReviewedAt, "2026-05-10T00:00:00.000Z");
+assert.equal(importedMappings[0].reviewBy, "Cyber assurance lead");
 
 console.log("ok e2e workspace initialised, authored, mapped to ISM, snapshotted, exported, and verified");
 console.log(`workspace: ${relative(root, workspaceRoot)}`);

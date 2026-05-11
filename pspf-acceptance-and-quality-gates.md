@@ -43,6 +43,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 5. **Mapping survives round trip**: snapshot → export → import preserves mapping endpoints, `coverageQualifier`, and `applicabilityProfile`.
 6. **ISM version-drift detection**: changing the vendored OSCAL release tag flags mappings whose underlying ISM control text has changed.
 
+### v0.3 candidate gates (ISM mapping quality, per ADR 0020)
+
+1. **Mapping quality field gate**: every exported mapping carries `confidence`; legacy mappings default to `medium`; optional review fields validate when present.
+2. **Mapping rationale redaction gate**: `RequirementControlMapping.rationale` remains excluded from default published bundles after the v0.3 schema change.
+3. **Drift status gate**: every exported source control carries `statementChangeStatus`.
+4. **ISM drift gate**: `check:ism-drift` reports mappings affected by changed, new, or removed source-control statements.
+5. **Mapping quality round trip**: export → import preserves `confidence`, `lastReviewedAt`, `reviewBy`, endpoints, `coverageQualifier`, and `applicabilityProfile`.
+
 ## v1 release gates
 
 A v1 release candidate is not eligible for publication unless all gates pass:

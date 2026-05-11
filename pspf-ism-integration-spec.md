@@ -2,7 +2,7 @@
 
 ## Status
 
-Forward-looking. v0.1 implements **nothing** from this spec beyond the glossary and free-text ISM references. Phases 1–3 are governed by [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md). Phase 1 is fixed by [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md); Phase 2 is fixed by [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md).
+Forward-looking. v0.1 implements **nothing** from this spec beyond the glossary and free-text ISM references. Phases 1–3 are governed by [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md). Phase 1 is fixed by [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md); Phase 2 is fixed by [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md); Phase 3 is fixed by [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
 
 ## Purpose
 
@@ -26,7 +26,7 @@ Each OSCAL release ships a master `ISM_catalog.{json,xml,yaml}` plus resolved pr
 | 0 | v0.1 | No model change. ISM references are free text in `Evidence.reference`, `Action.notes`, `Risk.notes`. |
 | 1 | v0.2 | Read-only ISM source library: vendored OSCAL snapshot → `source-control` (`SRC-*`) entities, browsable in Workshop and Explorer. See ADR 0018. |
 | 2 | v0.2 | First-class **Requirement ↔ ISM control mapping** entity (`MAP-*`) with `rationale`, `coverageQualifier`, `applicabilityProfile`. Posture brief gains an ISM coverage section. See ADR 0019. |
-| 3 | v0.3+ | Mapping `confidence`, `lastReviewedAt`, `reviewBy`; automated version-drift detection across OSCAL releases; optional profile picker on the Posture screen. |
+| 3 | v0.3 | Mapping `confidence`, `lastReviewedAt`, `reviewBy`; automated version-drift detection across OSCAL releases. The profile picker remains deferred. See ADR 0020. |
 
 ## Phase 1 — Read-only ISM Source Library
 
@@ -85,9 +85,10 @@ The posture brief (E27) gains an **ISM coverage** section. Every claim ("57% of 
 
 ## Phase 3 — Mapping quality and version drift
 
-- Mapping gains `confidence ∈ {low, medium, high}`, `lastReviewedAt`, `reviewBy` (free text, not a `Person` link to preserve personal-data exclusion).
-- An automated harness compares the active vendored OSCAL release against the previous one and flags every mapping whose `sourceControlId` has a changed statement.
-- Posture screen MAY surface an ISM profile picker so the operator can ask "what is my coverage against the OFFICIAL: Sensitive baseline today?".
+- Mapping gains required `confidence ∈ {low, medium, high}`, optional `lastReviewedAt`, and optional `reviewBy` (free text, not a `Person` link to preserve personal-data exclusion).
+- Source controls gain `statementChangeStatus ∈ { unchanged, changed, new, removed }`.
+- An automated harness compares the active vendored OSCAL release against the previous one and flags every mapping whose `sourceControlId` has a changed, new, or removed statement.
+- The Posture profile picker is deferred beyond v0.3.
 
 ## Cross-cutting constraints
 

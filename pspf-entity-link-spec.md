@@ -710,6 +710,7 @@ ISM `SRC-*` records carry `externalRefs` to the natural ISM control identifier a
 | `title` | string | ISM control title |
 | `statement` | string | ISM control text from OSCAL |
 | `profileTags` | string[] | ISM profile membership |
+| `statementChangeStatus` | string | unchanged, changed, new, removed |
 | `externalRefs` | object[] | OSCAL UUID and natural ISM identifier |
 | `provenance` | object | `oscalRelease`, `catalog`, `profile`, `sourceUrl` |
 | `localApplicabilityNote` | string | optional operator interpretation; sensitive by default |
@@ -728,6 +729,9 @@ Represents a first-class mapping from one PSPF Requirement to one ISM source con
 | `sourceControlId` | string | `SRC-*` endpoint |
 | `coverageQualifier` | string | primary, partial, compensating |
 | `applicabilityProfile` | string | ISM profile key or all |
+| `confidence` | string | low, medium, high |
+| `lastReviewedAt` | string/null | optional mapping review timestamp |
+| `reviewBy` | string/null | optional free-text reviewer label; not a Person link |
 | `rationale` | string | operator-authored explanation; sensitive by default |
 | `provenance` | object | author, createdAt, oscalRelease |
 

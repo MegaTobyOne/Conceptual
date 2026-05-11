@@ -69,6 +69,14 @@ export async function validateExportBundle(bundlePath, options = {}) {
   const mappingRationaleExcluded = !containsPath(collections["requirement-control-mappings"] ?? [], ["rationale"]);
   check(mappingRationaleExcluded, "published mappings exclude sensitive rationale", failures);
 
+  const mappingQuality = validateMappingQuality(collections["requirement-control-mappings"] ?? []);
+  for (const qualityCheck of mappingQuality.checks) {
+    check(qualityCheck.ok, qualityCheck.detail, failures);
+  }
+
+  const ismDrift = summariseIsmDrift(collections);
+  check(ismDrift.sourceControlsWithStatus === (collections["source-controls"] ?? []).length, "source controls carry statement drift status", failures);
+
   const schemaChecks = await validateBundleSchemas(root, manifest, collections);
   for (const schemaCheck of schemaChecks) {
     check(schemaCheck.ok, schemaCheck.detail, failures);
@@ -97,6 +105,8 @@ export async function validateExportBundle(bundlePath, options = {}) {
       ok: mappingRationaleExcluded,
       detail: mappingRationaleExcluded ? "Mapping rationale excluded from published bundle" : "Mapping rationale leaked into published bundle"
     },
+    mappingQuality,
+    ismDrift,
     schemaChecks,
     expectedExplorer: buildExpectedExplorer(collections)
   };
@@ -197,7 +207,10 @@ function toMarkdown(report) {
     ...report.schemaChecks.map((check) => `- Schema ${check.name}: ${check.ok ? "PASS" : "FAIL"}`),
     ...report.hashChecks.map((check) => `- Hash ${check.name}: ${check.ok ? "PASS" : "FAIL"}`),
     ...report.redactionChecks.map((check) => `- Redaction ${check.fieldPath}: ${check.ok ? "PASS" : "FAIL"}`),
-    `- Mapping rationale redaction: ${report.mappingRedaction.ok ? "PASS" : "FAIL"}`
+    `- Mapping rationale redaction: ${report.mappingRedaction.ok ? "PASS" : "FAIL"}`,
+    `- Mapping confidence: ${report.mappingQuality.checks.every((check) => check.ok) ? "PASS" : "FAIL"}`,
+    `- ISM drift status: ${report.ismDrift.sourceControlsWithStatus}/${report.counts["source-controls"] ?? 0} source controls`,
+    `- ISM mappings needing drift review: ${report.ismDrift.affectedMappings.length}`
   ];
 
   if (report.failures.length > 0) {
@@ -232,6 +245,59 @@ function schemaCheck(name, ok, errors) {
     ? `${name} validates against schema`
     : `${name} schema validation failed: ${(errors ?? []).map((error) => `${error.instancePath || "/"} ${error.message}`).join("; ")}`;
   return { name, ok: Boolean(ok), detail };
+}
+
+function validateMappingQuality(mappings) {
+  const validConfidence = new Set(["low", "medium", "high"]);
+  const checks = [
+    {
+      name: "confidence-present",
+      ok: mappings.every((mapping) => validConfidence.has(mapping.confidence)),
+      detail: "published mappings carry confidence"
+    },
+    {
+      name: "review-date-format",
+      ok: mappings.every((mapping) => !mapping.lastReviewedAt || !Number.isNaN(Date.parse(mapping.lastReviewedAt))),
+      detail: "mapping lastReviewedAt is ISO date-time when present"
+    },
+    {
+      name: "reviewer-free-text",
+      ok: mappings.every((mapping) => !mapping.reviewBy || typeof mapping.reviewBy === "string"),
+      detail: "mapping reviewBy is optional free text"
+    }
+  ];
+  return {
+    checks,
+    confidenceCounts: mappings.reduce((counts, mapping) => {
+      const confidence = validConfidence.has(mapping.confidence) ? mapping.confidence : "missing";
+      counts[confidence] = (counts[confidence] ?? 0) + 1;
+      return counts;
+    }, {})
+  };
+}
+
+function summariseIsmDrift(collections) {
+  const sourceControls = collections["source-controls"] ?? [];
+  const sourceControlsById = new Map(sourceControls.map((sourceControl) => [sourceControl.id, sourceControl]));
+  const affectedStatuses = new Set(["changed", "new", "removed"]);
+  const affectedMappings = [];
+  for (const mapping of collections["requirement-control-mappings"] ?? []) {
+    const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+    if (sourceControl && affectedStatuses.has(sourceControl.statementChangeStatus)) {
+      affectedMappings.push({
+        mappingId: mapping.id,
+        requirementId: mapping.requirementId,
+        sourceControlId: mapping.sourceControlId,
+        controlId: sourceControl.controlId,
+        status: sourceControl.statementChangeStatus,
+        confidence: mapping.confidence
+      });
+    }
+  }
+  return {
+    sourceControlsWithStatus: sourceControls.filter((sourceControl) => typeof sourceControl.statementChangeStatus === "string").length,
+    affectedMappings
+  };
 }
 
 function check(condition, message, failures) {

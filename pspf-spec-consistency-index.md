@@ -41,7 +41,7 @@ Use this index before changing any architecture, schema, API, workflow, or pipel
 | Secrets and incident response | `pspf-secrets-rotation-and-incident-runbook.md` | Rotation cadence and compromise response |
 | Performance and benchmarks | `pspf-performance-profile-and-benchmarks.md` | Reference machine, scale assumptions, thresholds |
 | Migration safety | `pspf-migration-safety-runbook.md` | Migration classes, no auto-run policy |
-| ISM integration roadmap | `pspf-ism-integration-spec.md`, `adr/0017-ism-integration-roadmap.md`, `adr/0018-ism-source-library.md`, and `adr/0019-requirement-control-mapping.md` | Phased PSPF ↔ ISM model; ISM source library and mapping entity; OSCAL provenance |
+| ISM integration roadmap | `pspf-ism-integration-spec.md`, `adr/0017-ism-integration-roadmap.md`, `adr/0018-ism-source-library.md`, `adr/0019-requirement-control-mapping.md`, and `adr/0020-ism-mapping-quality-and-drift.md` | Phased PSPF ↔ ISM model; ISM source library, mapping entity, quality metadata, drift detection, and OSCAL provenance |
 
 ## Locked v1 clarifications
 
@@ -91,6 +91,7 @@ Use this index before changing any architecture, schema, API, workflow, or pipel
 44. **Writer lock for multi-window safety** (S8). Core acquires `.pspf/core/locks/writer.lock` on activation; a second window opening the same workspace opens read-only and exposes "Take over as writer". Multi-writer concurrency is not in v1.
 45. **Full-replace rollback in v0.1.** Because `plan-apply` is deferred, v0.1's per-import undo extends to a single pre-replace snapshot for `full-replace` imports, exposed as "Roll back this restore" until the next write/navigation/refresh.
 46. **ISM is a distinct external control catalogue, not a second class of PSPF Requirement** (ADR 0017). v0.1 records ISM references as free text only. v0.2 introduces a read-only ISM source library built from a vendored ASD OSCAL snapshot (current upstream release `v2026.03.24` at <https://github.com/AustralianCyberSecurityCentre/ism-oscal>, CC BY 4.0), modelled as `source-control` entities under the existing `SRC` prefix with `externalRefs` to the natural ISM control identifier (ADR 0018). v0.2 introduces a first-class `requirement-control-mapping` entity under the `MAP` prefix carrying `rationale`, `coverageQualifier`, and `applicabilityProfile`; the closed 22-verb link taxonomy remains unchanged for v0.2 (ADR 0019). No network egress at runtime in any phase.
+47. **ISM mapping quality and drift detection** (ADR 0020). v0.3 adds `confidence`, optional `lastReviewedAt`, and optional free-text `reviewBy` to `requirement-control-mapping`; `reviewBy` is not a Person link. `source-control.statementChangeStatus` records whether the source statement is unchanged, changed, new, or removed compared with the previous vendored source set. The `check:ism-drift` gate flags mappings whose mapped source-control statement changed.
 
 ## Conflict resolution process
 

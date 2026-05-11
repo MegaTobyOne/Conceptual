@@ -180,7 +180,8 @@ async function render(manifest, collections, collectionTexts = undefined) {
     controlId: item.controlId,
     title: item.title,
     profiles: (item.profileTags || []).join(", "),
-    release: item.provenance && item.provenance.oscalRelease || "unknown"
+    release: item.provenance && item.provenance.oscalRelease || "unknown",
+    drift: driftStatusLabel(item.statementChangeStatus)
   }));
   const ismCoverage = (collections["requirement-control-mappings"] || []).map((mapping) => {
     const requirement = requirementsById.get(mapping.requirementId);
@@ -191,6 +192,10 @@ async function render(manifest, collections, collectionTexts = undefined) {
       control: sourceControl ? sourceControl.title : "Unknown source control",
       coverage: label(mapping.coverageQualifier),
       profile: mapping.applicabilityProfile,
+      confidence: label(mapping.confidence || "medium"),
+      reviewed: mapping.lastReviewedAt ? formatDate(mapping.lastReviewedAt) : "Not recorded",
+      reviewer: mapping.reviewBy || "Not recorded",
+      drift: driftStatusLabel(sourceControl && sourceControl.statementChangeStatus),
       release: mapping.provenance && mapping.provenance.oscalRelease || "unknown"
     };
   });
@@ -246,10 +251,10 @@ async function render(manifest, collections, collectionTexts = undefined) {
   risksSection.innerHTML = '<h2>Risks</h2>' + table(risks, ["title", "status", "likelihood", "impact", "requirements"]);
 
   sourceControlsSection.hidden = false;
-  sourceControlsSection.innerHTML = '<h2>ISM Source Controls</h2><p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0.</p>' + table(sourceControls, ["controlId", "title", "profiles", "release"]);
+  sourceControlsSection.innerHTML = '<h2>ISM Source Controls</h2><p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0.</p>' + table(sourceControls, ["controlId", "title", "profiles", "release", "drift"]);
 
   ismCoverageSection.hidden = false;
-  ismCoverageSection.innerHTML = '<h2>ISM Coverage</h2>' + table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "release"]);
+  ismCoverageSection.innerHTML = '<h2>ISM Coverage</h2>' + table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"]);
 
   linksSection.hidden = false;
   linksSection.innerHTML = '<h2>Relationships Board</h2>' + table(relationships, ["title", "relationship", "from", "to"]);
@@ -305,9 +310,9 @@ async function writeClipboardText(value) {
 async function validateBundle(manifest, collections, collectionTexts) {
   const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "posture"];
   const checks = [
-    check("Bundle version", manifest.bundleVersion === "1.1.0", manifest.bundleVersion || "missing"),
-    check("Schema version", manifest.schemaVersion === "1.1.0", manifest.schemaVersion || "missing"),
-    check("API version", manifest.apiVersion === "1.1.0", manifest.apiVersion || "missing"),
+    check("Bundle version", manifest.bundleVersion === "${VERSION_AXES.bundleVersion}", manifest.bundleVersion || "missing"),
+    check("Schema version", manifest.schemaVersion === "${VERSION_AXES.schemaVersion}", manifest.schemaVersion || "missing"),
+    check("API version", manifest.apiVersion === "${VERSION_AXES.apiVersion}", manifest.apiVersion || "missing"),
     check("Publication mode", manifest.generator && manifest.generator.mode === "publication", manifest.generator && manifest.generator.mode || "missing"),
     check("Classification", manifest.security && manifest.security.classification === "OFFICIAL: Sensitive", manifest.security && manifest.security.classification || "missing")
   ];
@@ -331,6 +336,13 @@ async function validateBundle(manifest, collections, collectionTexts) {
   checks.push(check("Posture ISM controls", posture.sourceControlCount === (collections["source-controls"] || []).length, String(posture.sourceControlCount || 0)));
   checks.push(check("Posture ISM mappings", posture.requirementControlMappingCount === (collections["requirement-control-mappings"] || []).length, String(posture.requirementControlMappingCount || 0)));
   checks.push(check("Mapping rationale excluded", !containsPath(collections["requirement-control-mappings"] || [], ["rationale"]), "default deny"));
+  const mappings = collections["requirement-control-mappings"] || [];
+  const validConfidence = new Set(["low", "medium", "high"]);
+  checks.push(check("Mapping confidence present", mappings.every((mapping) => validConfidence.has(mapping.confidence)), mappings.length + " mapping(s)"));
+  checks.push(check("Mapping review dates valid", mappings.every((mapping) => !mapping.lastReviewedAt || !Number.isNaN(Date.parse(mapping.lastReviewedAt))), "optional date-time"));
+  const validDriftStatus = new Set(["unchanged", "changed", "new", "removed"]);
+  const sourceControls = collections["source-controls"] || [];
+  checks.push(check("Source-control drift status", sourceControls.every((sourceControl) => validDriftStatus.has(sourceControl.statementChangeStatus)), sourceControls.length + " source control(s)"));
 
   const disallowed = ["person.name", "person.email", "assignment.personId"];
   for (const fieldPath of disallowed) {
@@ -518,7 +530,21 @@ function tableValue(value) {
 }
 
 function label(value) {
-  return value.replace(/[A-Z]/g, (letter) => " " + letter.toLowerCase()).replace(/^./, (letter) => letter.toUpperCase());
+  return String(value).replace(/-/g, " ").replace(/[A-Z]/g, (letter) => " " + letter.toLowerCase()).replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function driftStatusLabel(status) {
+  switch (status) {
+    case "changed":
+      return "Review current";
+    case "new":
+      return "New control";
+    case "removed":
+      return "Removed upstream";
+    case "unchanged":
+    default:
+      return "Current";
+  }
 }
 
 function readJson(file) {

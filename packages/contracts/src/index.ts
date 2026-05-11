@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.1.0",
-  bundleVersion: "1.1.0",
-  apiVersion: "1.1.0"
+  schemaVersion: "1.2.0",
+  bundleVersion: "1.2.0",
+  apiVersion: "1.2.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "0.2.0" as const;
+export const PSPF_SLICE_VERSION = "0.3.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -185,12 +185,15 @@ export interface SourceControlEntity extends EntityEnvelope {
   readonly controlId: string;
   readonly statement: string;
   readonly profileTags: readonly string[];
+  readonly statementChangeStatus: StatementChangeStatus;
   readonly externalRefs: readonly SourceControlExternalRef[];
   readonly provenance: SourceControlProvenance;
   readonly localApplicabilityNote?: string;
 }
 
 export type CoverageQualifier = "primary" | "partial" | "compensating";
+export type MappingConfidence = "low" | "medium" | "high";
+export type StatementChangeStatus = "unchanged" | "changed" | "new" | "removed";
 
 export interface RequirementControlMappingProvenance {
   readonly author: string;
@@ -204,6 +207,9 @@ export interface RequirementControlMappingEntity extends EntityEnvelope {
   readonly sourceControlId: string;
   readonly coverageQualifier: CoverageQualifier;
   readonly applicabilityProfile: string;
+  readonly confidence: MappingConfidence;
+  readonly lastReviewedAt?: string;
+  readonly reviewBy?: string;
   readonly rationale?: string;
   readonly provenance: RequirementControlMappingProvenance;
 }
@@ -304,14 +310,14 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "source-control",
     fields: [
-      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "controlId", "statement", "profileTags", "externalRefs", "provenance"),
+      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "controlId", "statement", "profileTags", "statementChangeStatus", "externalRefs", "provenance"),
       { field: "localApplicabilityNote", publication: "sensitive" }
     ]
   },
   {
     entityType: "requirement-control-mapping",
     fields: [
-      ...internalFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementId", "sourceControlId", "coverageQualifier", "applicabilityProfile", "provenance"),
+      ...internalFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementId", "sourceControlId", "coverageQualifier", "applicabilityProfile", "confidence", "lastReviewedAt", "reviewBy", "provenance"),
       { field: "rationale", publication: "sensitive" }
     ]
   },
@@ -439,6 +445,10 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
     if (publication === "public" || publication === "internal") {
       output[field] = field === "schemaVersion" ? VERSION_AXES.schemaVersion : value;
     }
+  }
+
+  if (entity.entityType === "requirement-control-mapping" && output.confidence === undefined) {
+    output.confidence = "medium";
   }
 
   return output as unknown as V01Entity;

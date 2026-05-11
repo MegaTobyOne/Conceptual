@@ -10,6 +10,7 @@ import {
   type EvidenceEntity,
   type EvidenceFreshness,
   type LinkEntity,
+  type MappingConfidence,
   type RequirementEntity,
   type RequirementControlMappingEntity,
   type RiskEntity,
@@ -428,7 +429,8 @@ async function browseIsmSourceControls(): Promise<void> {
     controlId: sourceControl.controlId,
     title: sourceControl.title,
     profiles: sourceControl.profileTags.join(", "),
-    release: sourceControl.provenance.oscalRelease
+    release: sourceControl.provenance.oscalRelease,
+    drift: statementChangeLabel(sourceControl.statementChangeStatus)
   }));
 
   const panel = vscode.window.createWebviewPanel("pspfIsmSourceControls", "PSPF ISM Source Controls", vscode.ViewColumn.One, { enableScripts: false });
@@ -438,7 +440,7 @@ async function browseIsmSourceControls(): Promise<void> {
       <p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0 · OSCAL release ${escapeHtml(sourceControls[0]?.provenance.oscalRelease ?? "not loaded")}.</p>
       ${versionStrip()}
     </section>
-    ${recordTable("Source Controls", rows, ["controlId", "title", "profiles", "release"])}
+    ${recordTable("Source Controls", rows, ["controlId", "title", "profiles", "release", "drift"])}
   `);
 }
 
@@ -470,6 +472,25 @@ async function createRequirementControlMapping(): Promise<void> {
     return;
   }
 
+  const confidence = await vscode.window.showQuickPick(
+    confidenceItems,
+    { title: "Select Mapping Confidence", ignoreFocusOut: true }
+  );
+  if (!confidence) {
+    return;
+  }
+
+  const reviewBy = await vscode.window.showInputBox({
+    title: "Map Requirement to ISM Control",
+    prompt: "Optional reviewer role or team label",
+    ignoreFocusOut: true
+  });
+  if (reviewBy === undefined) {
+    return;
+  }
+
+  const reviewedAt = new Date().toISOString();
+
   const rationale = await vscode.window.showInputBox({
     title: "Map Requirement to ISM Control",
     prompt: "Sensitive mapping rationale, not published by default",
@@ -488,6 +509,9 @@ async function createRequirementControlMapping(): Promise<void> {
       sourceControlId: sourceControl.id,
       coverageQualifier: coverage.value,
       applicabilityProfile: profile.value,
+      confidence: confidence.value,
+      lastReviewedAt: reviewedAt,
+      reviewBy: reviewBy.trim() || undefined,
       rationale: rationale.trim() || undefined,
       provenance: {
         author: "workshop",
@@ -525,6 +549,10 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
         title: sourceControl?.title ?? "Unknown source control",
         coverage: label(mapping.coverageQualifier),
         profile: mapping.applicabilityProfile,
+        confidence: label(mapping.confidence ?? "medium"),
+        reviewed: mapping.lastReviewedAt ? formatDisplayDate(new Date(mapping.lastReviewedAt)) : "Not recorded",
+        reviewer: mapping.reviewBy ?? "Not recorded",
+        drift: statementChangeLabel(sourceControl?.statementChangeStatus ?? "unchanged"),
         release: mapping.provenance.oscalRelease
       };
     });
@@ -547,7 +575,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     ${recordTable("Evidence", evidence, ["title", "evidenceType", "freshness", "reference"])}
     ${recordTable("Actions", actions, ["title", "status", "dueDate"])}
     ${recordTable("Risks", risks, ["title", "status", "likelihood", "impact"])}
-    ${recordTable("ISM Mappings", mappings, ["controlId", "title", "coverage", "profile", "release"])}
+    ${recordTable("ISM Mappings", mappings, ["controlId", "title", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"])}
     ${recordTable("Relationships", relationships, ["title", "relationship", "targetType", "target"])}
   `);
 }
@@ -573,11 +601,12 @@ function shellHtml(title: string, body: string): string {
     .metric strong { display: block; font-size: 26px; margin-top: 4px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 8px; border-bottom: 1px solid #3f3f46; vertical-align: top; }
+    td { overflow-wrap: anywhere; }
     th { color: #d4d4d8; }
     .banner { background: #3f2f11; border-bottom: 1px solid #d97706; color: #fde68a; padding: 8px 20px; font-weight: 600; }
     .muted { color: #a1a1aa; }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; }
+    .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; white-space: nowrap; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -807,6 +836,26 @@ const coverageQualifierItems = [
   { label: "Partial", value: "partial" },
   { label: "Compensating", value: "compensating" }
 ] as const;
+
+const confidenceItems: readonly { readonly label: string; readonly value: MappingConfidence; readonly description?: string; readonly picked?: boolean }[] = [
+  { label: "High", value: "high", description: "Direct, stable mapping" },
+  { label: "Medium", value: "medium", description: "Good working assumption", picked: true },
+  { label: "Low", value: "low", description: "Needs review or weak fit" }
+];
+
+function statementChangeLabel(status: SourceControlEntity["statementChangeStatus"] | undefined): string {
+  switch (status) {
+    case "changed":
+      return "Review current";
+    case "new":
+      return "New control";
+    case "removed":
+      return "Removed upstream";
+    case "unchanged":
+    default:
+      return "Current";
+  }
+}
 
 function profileItems(sourceControl: SourceControlEntity): readonly { readonly label: string; readonly value: string }[] {
   return ["all", ...sourceControl.profileTags].map((profile) => ({ label: label(profile), value: profile }));
