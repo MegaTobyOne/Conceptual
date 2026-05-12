@@ -26,10 +26,21 @@ import {
 
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
 let workshopContext: vscode.ExtensionContext | undefined;
+let homeViewProvider: WorkshopHomeViewProvider | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   workshopContext = context;
+  homeViewProvider = new WorkshopHomeViewProvider();
+  const statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 90);
+  statusItem.text = `$(shield) PSPF v${PSPF_SLICE_VERSION}`;
+  statusItem.tooltip = `PSPF Workshop ${PSPF_SLICE_VERSION}\nSchema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
+  statusItem.command = "pspf.workshop.openHome";
+  statusItem.show();
+
   context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider("pspfWorkshop.homeView", homeViewProvider),
+    statusItem,
+    vscode.commands.registerCommand("pspf.workshop.openHome", openHome),
     vscode.commands.registerCommand("pspf.workshop.createRequirement", createRequirement),
     vscode.commands.registerCommand("pspf.workshop.openWelcome", openWelcome),
     vscode.commands.registerCommand("pspf.workshop.loadSampleWorkspace", loadSampleWorkspace),
@@ -50,6 +61,249 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {
   // No runtime resources to dispose yet.
+}
+
+async function openHome(): Promise<void> {
+  await vscode.commands.executeCommand("workbench.view.extension.pspfWorkshop");
+  await homeViewProvider?.refresh();
+}
+
+class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
+  private view: vscode.WebviewView | undefined;
+
+  resolveWebviewView(webviewView: vscode.WebviewView): void {
+    this.view = webviewView;
+    webviewView.webview.options = { enableScripts: true };
+    webviewView.webview.html = homeShellHtml("Loading", `<section><p class="muted">Loading PSPF Workshop Home...</p></section>`);
+    webviewView.webview.onDidReceiveMessage((message: { readonly command?: string }) => {
+      void this.handleMessage(message.command);
+    });
+    void this.refresh();
+  }
+
+  async refresh(): Promise<void> {
+    if (!this.view) {
+      return;
+    }
+
+    try {
+      const model = await buildHomeModel();
+      this.view.webview.html = renderHomeView(model);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.view.webview.html = homeShellHtml("Action Needed", `
+        <section>
+          <h2>Workspace not ready</h2>
+          <p class="muted">${escapeHtml(message)}</p>
+          ${homeButton("pspf.core.initialiseWorkspace", "Initialise workspace")}
+        </section>
+      `);
+    }
+  }
+
+  private async handleMessage(command: string | undefined): Promise<void> {
+    if (!command) {
+      return;
+    }
+
+    if (command === "pspf.workshop.home.refresh") {
+      await this.refresh();
+      return;
+    }
+
+    if (command === "pspf.workshop.home.continue") {
+      await continueNextTask();
+      await this.refresh();
+      return;
+    }
+
+    const allowedCommands = new Set([
+      "pspf.core.initialiseWorkspace",
+      "pspf.core.validateWorkspace",
+      "pspf.core.verifyIntegrity",
+      "pspf.core.runIntegrityScan",
+      "pspf.core.createSnapshot",
+      "pspf.core.exportBundle",
+      "pspf.workshop.loadSampleWorkspace",
+      "pspf.workshop.createRequirement",
+      "pspf.workshop.attachEvidence",
+      "pspf.workshop.createAction",
+      "pspf.workshop.createRisk",
+      "pspf.workshop.openAssessmentDashboard",
+      "pspf.workshop.openEvidenceReviewQueue",
+      "pspf.workshop.openItemDetail",
+      "pspf.workshop.registerDirection",
+      "pspf.workshop.updateDirectionResponse",
+      "pspf.workshop.openDirectionDetail",
+      "pspf.workshop.copyPostureBrief"
+    ]);
+
+    if (!allowedCommands.has(command)) {
+      return;
+    }
+
+    await vscode.commands.executeCommand(command);
+    await this.refresh();
+  }
+}
+
+interface WorkshopHomeModel {
+  readonly counts: {
+    readonly requirements: number;
+    readonly evidence: number;
+    readonly actions: number;
+    readonly risks: number;
+    readonly directions: number;
+  };
+  readonly missingEvidence: number;
+  readonly evidenceReview: number;
+  readonly urgentActions: number;
+  readonly directionsNeedingResponse: number;
+  readonly recentRequirementTitle: string;
+}
+
+async function buildHomeModel(): Promise<WorkshopHomeModel> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const enrichedEntities = enrichActionsWithImpact(allEntities);
+  const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+  const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence");
+  const actions = enrichedEntities.filter((entity): entity is ActionEntity => entity.entityType === "action");
+  const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+  const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
+  const directions = allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction");
+  const evidenceRequirementIds = new Set(links.filter((link) => link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence").map((link) => link.fromId));
+  const linkedEvidenceIds = new Set(links.filter((link) => link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence").map((link) => link.toId));
+  const recentRequirementId = getRecentRequirementId();
+  const recentRequirement = recentRequirementId ? requirements.find((requirement) => requirement.id === recentRequirementId) : undefined;
+
+  return {
+    counts: {
+      requirements: requirements.length,
+      evidence: evidence.length,
+      actions: actions.length,
+      risks: risks.length,
+      directions: directions.length
+    },
+    missingEvidence: requirements.filter((requirement) => !evidenceRequirementIds.has(requirement.id)).length,
+    evidenceReview: evidence.filter((item) => item.freshness !== "current" || !linkedEvidenceIds.has(item.id)).length,
+    urgentActions: actions.filter((action) => action.impact?.urgency === "blocked" || action.impact?.urgency === "overdue").length,
+    directionsNeedingResponse: directions.filter((direction) => direction.responseState === "not-set").length,
+    recentRequirementTitle: recentRequirement?.title ?? "None selected yet"
+  };
+}
+
+async function continueNextTask(): Promise<void> {
+  const model = await buildHomeModel();
+  if (model.missingEvidence > 0 || model.evidenceReview > 0 || model.urgentActions > 0) {
+    await openEvidenceReviewQueue();
+    return;
+  }
+  await openAssessmentDashboard();
+}
+
+function renderHomeView(model: WorkshopHomeModel): string {
+  return homeShellHtml("Workshop Home", `
+    <section>
+      <h2>Workspace</h2>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))}</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Requirements", model.counts.requirements)}
+        ${metricCard("Evidence", model.counts.evidence)}
+        ${metricCard("Actions", model.counts.actions)}
+        ${metricCard("Risks", model.counts.risks)}
+        ${metricCard("Directions", model.counts.directions)}
+      </div>
+    </section>
+    <section>
+      <h2>Needs Attention</h2>
+      <div class="grid">
+        ${metricCard("Missing evidence", model.missingEvidence)}
+        ${metricCard("Evidence review", model.evidenceReview)}
+        ${metricCard("Urgent actions", model.urgentActions)}
+        ${metricCard("Directions not set", model.directionsNeedingResponse)}
+      </div>
+      <p class="muted">Recent requirement: ${escapeHtml(model.recentRequirementTitle)}</p>
+      <div class="action-list">
+        ${homeButton("pspf.workshop.home.continue", "Continue next task", "Open the highest-priority review surface")}
+        ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
+        ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
+      </div>
+    </section>
+    <section>
+      <h2>Create</h2>
+      <div class="action-list compact">
+        ${homeButton("pspf.workshop.createRequirement", "Requirement")}
+        ${homeButton("pspf.workshop.attachEvidence", "Evidence")}
+        ${homeButton("pspf.workshop.createAction", "Action")}
+        ${homeButton("pspf.workshop.createRisk", "Risk")}
+        ${homeButton("pspf.workshop.registerDirection", "Direction")}
+      </div>
+    </section>
+    <section>
+      <h2>Check And Share</h2>
+      <div class="action-list compact">
+        ${homeButton("pspf.core.validateWorkspace", "Validate")}
+        ${homeButton("pspf.core.runIntegrityScan", "Integrity scan")}
+        ${homeButton("pspf.core.createSnapshot", "Snapshot")}
+        ${homeButton("pspf.core.exportBundle", "Export")}
+        ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
+      </div>
+    </section>
+    <section>
+      <h2>Panel</h2>
+      <div class="action-list compact">
+        ${homeButton("pspf.workshop.home.refresh", "Refresh")}
+        ${homeButton("pspf.workshop.loadSampleWorkspace", "Load sample")}
+      </div>
+    </section>
+  `);
+}
+
+function homeShellHtml(title: string, body: string): string {
+  return `<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(title)}</title>
+  <style>
+    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; color: var(--vscode-foreground); background: var(--vscode-sideBar-background); }
+    main { padding: 12px; }
+    section { border: 1px solid var(--vscode-sideBarSectionHeader-border); border-radius: 6px; padding: 10px; margin-bottom: 10px; background: var(--vscode-editor-background); }
+    h2 { font-size: 13px; line-height: 1.3; margin: 0 0 8px; text-transform: uppercase; }
+    .muted { color: var(--vscode-descriptionForeground); font-size: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; }
+    .metric { border: 1px solid var(--vscode-input-border); border-radius: 6px; padding: 8px; background: var(--vscode-input-background); }
+    .metric span { color: var(--vscode-descriptionForeground); display: block; font-size: 11px; }
+    .metric strong { display: block; font-size: 20px; line-height: 1.2; margin-top: 2px; }
+    .action-list { display: grid; grid-template-columns: 1fr; gap: 6px; }
+    .action-list.compact { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); }
+    button { width: 100%; min-width: 0; border: 1px solid var(--vscode-button-border, transparent); border-radius: 4px; padding: 7px 8px; color: var(--vscode-button-foreground); background: var(--vscode-button-background); font: inherit; cursor: pointer; text-align: left; }
+    button:hover { background: var(--vscode-button-hoverBackground); }
+    button:focus { outline: 1px solid var(--vscode-focusBorder); outline-offset: 2px; }
+    .button-title { display: block; overflow-wrap: anywhere; }
+    .button-description { display: block; margin-top: 2px; color: var(--vscode-button-secondaryForeground, var(--vscode-descriptionForeground)); font-size: 11px; line-height: 1.3; }
+    .version-strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .version-pill { border: 1px solid var(--vscode-input-border); border-radius: 999px; padding: 2px 6px; color: var(--vscode-descriptionForeground); background: var(--vscode-input-background); font-size: 11px; white-space: nowrap; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <main>${body}</main>
+  <script>
+    const vscode = acquireVsCodeApi();
+    document.querySelectorAll("button[data-command]").forEach((button) => {
+      button.addEventListener("click", () => vscode.postMessage({ command: button.dataset.command }));
+    });
+  </script>
+</body>
+</html>`;
+}
+
+function homeButton(command: string, text: string, description?: string): string {
+  const descriptionHtml = description ? `<span class="button-description">${escapeHtml(description)}</span>` : "";
+  return `<button type="button" data-command="${escapeHtml(command)}"><span class="button-title">${escapeHtml(text)}</span>${descriptionHtml}</button>`;
 }
 
 async function openWelcome(): Promise<void> {

@@ -13,7 +13,7 @@ PSPF/security operator preparing an internal assurance view for early governance
 In scope:
 
 - PSPF Core workspace initialisation, validation, integrity scan, snapshot, and export.
-- PSPF Workshop Welcome, sample workspace loading, dashboard, evidence queue, item detail, Direction detail, and posture brief commands.
+- PSPF Workshop Activity Bar Home, status bar version context, Welcome, sample workspace loading, dashboard, evidence queue, item detail, Direction detail, and posture brief commands.
 - PSPF Explorer publication-mode bundle loading and validation panel.
 - Redaction/default-deny checks for publication output.
 
@@ -47,24 +47,25 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 
 1. Launch `Run PSPF Core + Workshop`.
 2. Confirm the debug workspace has auto-initialised. If not, run `PSPF: Initialise PSPF Workspace` manually; the command is idempotent.
-3. Run `PSPF: Open Workshop Welcome` and confirm it shows `PSPF v1.0.0`, `Schema 1.3.0`, and `API 1.3.0`.
-4. Run `PSPF: Load Sample Workspace`.
-5. Run `PSPF: Open Assessment Dashboard` and confirm the sample counts look right: 3 Requirements, 2 Evidence items, 3 Actions, 4 Risks, and 2 Directions.
-6. Confirm the dashboard shows Direction response chips and an `Action Impact — Top 5` table with compact Explanation cells.
-7. Run `PSPF: Open Evidence Review Queue` and confirm `Urgent Actions (Blocked or Overdue)` appears.
-8. Run `PSPF: Open Item Detail` and select a sample Requirement. Confirm linked evidence, actions with urgency, risks, ISM mappings, inbound Directions, relationships, and version context.
-9. Run `PSPF: Open Direction Detail` and confirm Direction reference, response state, source authority, issue date, and outbound relationships.
-10. Optional: run `PSPF: Create Requirement`, `PSPF: Attach Evidence to Requirement`, `PSPF: Create Action`, and `PSPF: Create Risk` using the add-on test data above.
-11. Run `PSPF: Validate Workspace`.
-12. Run `PSPF: Verify Integrity`.
-13. Run `PSPF: Run Integrity Scan` and confirm it passes.
-14. Run `PSPF: Create Snapshot`.
-15. Run `PSPF: Copy Posture Brief` and paste the brief into a scratch note to confirm it is readable and includes Directions.
-16. Run `PSPF: Export Master Bundle`.
-17. Run `PSPF: Show Writer Lock` and confirm the current window is writable or, if another Extension Host owns the lock, that the workspace is clearly read-only.
-18. Run `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
-19. Open `packages/explorer/dist/index.html` and select the latest debug `bundle.json`.
-20. Click `Copy posture brief` in Explorer and paste it into a scratch note.
+3. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.0.0`, `Schema 1.3.0`, and `API 1.3.0`.
+4. Confirm the VS Code status bar shows `PSPF v1.0.0` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+5. From `Workshop Home`, click `Load sample`.
+6. From `Workshop Home`, click `Open dashboard` and confirm the sample counts look right: 3 Requirements, 2 Evidence items, 3 Actions, 4 Risks, and 2 Directions.
+7. Confirm the dashboard shows Direction response chips and an `Action Impact — Top 5` table with compact Explanation cells.
+8. From `Workshop Home`, click `Review evidence` and confirm `Urgent Actions (Blocked or Overdue)` appears.
+9. Run `PSPF: Open Item Detail` and select a sample Requirement. Confirm linked evidence, actions with urgency, risks, ISM mappings, inbound Directions, relationships, and version context.
+10. Run `PSPF: Open Direction Detail` and confirm Direction reference, response state, source authority, issue date, and outbound relationships.
+11. Optional: use `Workshop Home` or the command palette to create one Requirement, Evidence, Action, and Risk using the add-on test data above.
+12. From `Workshop Home`, click `Validate`.
+13. Run `PSPF: Verify Integrity`.
+14. From `Workshop Home`, click `Integrity scan` and confirm it invokes `PSPF: Run Integrity Scan` and passes.
+15. From `Workshop Home`, click `Snapshot`.
+16. From `Workshop Home`, click `Copy brief` and paste the brief into a scratch note to confirm it is readable and includes Directions.
+17. From `Workshop Home`, click `Export`.
+18. Run `PSPF: Show Writer Lock` and confirm the current window is writable or, if another Extension Host owns the lock, that the workspace is clearly read-only.
+19. Run `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
+20. Open `packages/explorer/dist/index.html` and select the latest debug `bundle.json`.
+21. Click `Copy posture brief` in Explorer and paste it into a scratch note.
 
 ## Expected Explorer Behaviour
 
@@ -87,6 +88,8 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 - The copied posture brief includes domain summary and groups open actions/risks by linked requirement.
 - The Workshop and Explorer copied posture briefs use the same sections and exclude the internal summary.
 - The Workshop dashboard shows workspace ready status, validation hints, Direction chips, Action Impact top-5, latest activity, and the same core counts as the exported bundle.
+- Workshop Home is available from the Activity Bar and offers one-click access to the dashboard, evidence review queue, validation, integrity scan, snapshot, export, and posture brief copy.
+- The PSPF status bar item shows the active product version and exposes schema, bundle, and API context in its tooltip without sensitive record values.
 - The evidence review queue separates missing evidence, freshness review, and unlinked evidence.
 - The evidence review queue includes Urgent Actions for blocked or overdue actions.
 

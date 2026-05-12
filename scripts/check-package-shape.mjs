@@ -24,6 +24,7 @@ const extensionPackages = [
     dependency: "pspf.pspf-core",
     expectedCommands: [
       "pspf.workshop.openWelcome",
+      "pspf.workshop.openHome",
       "pspf.workshop.loadSampleWorkspace",
       "pspf.workshop.createRequirement",
       "pspf.workshop.attachEvidence",
@@ -52,6 +53,10 @@ for (const extensionPackage of extensionPackages) {
   const commands = new Set((manifest.contributes?.commands ?? []).map((command) => command.command));
   for (const expectedCommand of extensionPackage.expectedCommands) {
     assert.equal(commands.has(expectedCommand), true, `${extensionPackage.name} manifest contributes ${expectedCommand}`);
+  }
+  if (extensionPackage.name === "Workshop") {
+    assert.equal(manifest.contributes?.viewsContainers?.activitybar?.some((container) => container.id === "pspfWorkshop"), true, "Workshop contributes an Activity Bar container");
+    assert.equal(manifest.contributes?.views?.pspfWorkshop?.some((view) => view.id === "pspfWorkshop.homeView" && view.type === "webview"), true, "Workshop contributes the Home webview view");
   }
   if (extensionPackage.dependency) {
     assert.equal(manifest.extensionDependencies?.includes(extensionPackage.dependency), true, `${extensionPackage.name} declares Core extension dependency`);

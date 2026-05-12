@@ -17,7 +17,29 @@
     ],
     "main": "./dist/extension.js",
     "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "pspfWorkshop",
+                    "title": "PSPF Workshop",
+                    "icon": "resources/workshop.svg"
+                }
+            ]
+        },
+        "views": {
+            "pspfWorkshop": [
+                {
+                    "type": "webview",
+                    "id": "pspfWorkshop.homeView",
+                    "name": "Workshop Home"
+                }
+            ]
+        },
         "commands": [
+            {
+                "command": "pspf.workshop.openHome",
+                "title": "PSPF: Open Workshop Home"
+            },
             {
                 "command": "pspf.workshop.openWelcome",
                 "title": "PSPF: Open Workshop Welcome"

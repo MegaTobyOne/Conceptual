@@ -45,7 +45,7 @@ for (const requiredPath of [
 }
 
 const scenario = await readFile(join(root, "validation-scenario-1-operator-workflow.md"), "utf8");
-for (const requiredText of [`PSPF v${expectedVersion}`, "Schema 1.3.0", "PSPF: Load Sample Workspace", "PSPF: Run Integrity Scan", "Directions", "Action Impact"]) {
+for (const requiredText of [`PSPF v${expectedVersion}`, "Schema 1.3.0", "Bundle 1.3.0", "Workshop Home", "status bar", "PSPF: Load Sample Workspace", "PSPF: Run Integrity Scan", "Directions", "Action Impact"]) {
   assert.equal(scenario.includes(requiredText), true, `validation scenario should mention ${requiredText}`);
 }
 

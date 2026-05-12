@@ -147,12 +147,13 @@ Suggested views under Workshop:
 | `pspfWorkshop.actionsView` | Tree View | actions grouped by owner/due state |
 | `pspfWorkshop.risksView` | Tree View | risk items grouped by severity/domain |
 | `pspfWorkshop.directionsView` | Tree View | Directions grouped by response state/domain |
+| `pspfWorkshop.homeView` | WebviewView | compact Workshop Home for readiness counts, next actions, and command launch buttons |
 | `pspfWorkshop.summaryView` | WebviewView | compact posture summary and readiness |
 | `pspfWorkshop.welcomeView` | Welcome view | empty-state guidance |
 
 ### Why this split
 
-Tree Views are better for entity navigation, count scanning, filtering, and reveal actions. A single WebviewView for summary is justified because it can present richer rollups, progress blocks, and small cards that would be awkward in a pure tree.
+Tree Views are better for entity navigation, count scanning, filtering, and reveal actions. A small WebviewView for Workshop Home or summary is justified because it can present richer rollups, progress blocks, and command launch buttons that would be awkward in a pure tree. Home must not become a duplicate navigator; it launches existing workflows and shows high-level readiness only.
 
 ### Shop view container
 
@@ -205,6 +206,7 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 | Command ID | Title | Placement |
 |---|---|---|
 | `pspf.workshop.openRequirement` | Workshop: Open Requirement | tree item, context |
+| `pspf.workshop.openHome` | Workshop: Open Home | activity bar, status bar, command palette |
 | `pspf.workshop.newRequirement` | Workshop: New Requirement | palette, view title |
 | `pspf.workshop.newEvidence` | Workshop: New Evidence | palette, view title |
 | `pspf.workshop.linkEvidence` | Workshop: Link Evidence | item context, editor title |

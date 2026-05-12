@@ -100,11 +100,11 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 
 ### v1.0 release gates (initial assurance user testing release, per ADR 0028)
 
-1. **Release cut gate**: v1.0 adds no new product entities, published-bundle fields, schema axes, or UI workflows beyond v0.9.
+1. **Release cut gate**: v1.0 adds no new product entities, published-bundle fields, schema axes, or authoring workflows beyond v0.9. A Workshop Activity Bar Home view and PSPF version status bar item are allowed as discoverability affordances that launch existing commands.
 2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.0.0`; schema, bundle, and API axes remain `1.3.0`.
 3. **Automated spine gate**: `e2e:v1.0`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 4. **Readiness-report gate**: `release:readiness` writes `.tmp/release-readiness/v1.0.0-readiness-report.md` with all tracked gates passing.
-5. **Manual validation gate**: `validation-scenario-1-operator-workflow.md` completes without intervention and confirms Workshop, Explorer, posture brief, integrity scan, Directions, Action Impact, and redaction behaviour.
+5. **Manual validation gate**: `validation-scenario-1-operator-workflow.md` completes without intervention and confirms Workshop Activity Bar access, status bar version context, Workshop, Explorer, posture brief, integrity scan, Directions, Action Impact, and redaction behaviour.
 
 ## v1 release gates
 
