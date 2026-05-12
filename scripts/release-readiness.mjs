@@ -6,6 +6,8 @@ import { findLatestBundle, validateExportBundle } from "./lib/export-validation.
 const root = process.cwd();
 const reportDirectory = join(root, ".tmp", "release-readiness");
 await mkdir(reportDirectory, { recursive: true });
+const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+const sliceVersion = packageJson.version;
 
 const e2eBundle = findLatestBundle(join(root, ".tmp", "e2e-v0.1-workspace"));
 const debugBundle = findLatestBundle(join(root, "debug-workspace"));
@@ -25,6 +27,10 @@ const gates = [
   gate("AU-English lint", true, "release:readiness runs lint before this report."),
   gate("Per-version schema publication", Boolean(e2eReport?.schemaChecks.every((check) => check.ok)), "AJV validates manifest and collection schemas for the active schemaVersion."),
   gate("Writer lock", true, "check:gates runs the writer-lock write-blocking gate."),
+  gate("Integrity scan", true, "check:gates runs the integrity-scan and broken-link fixture gate."),
+  gate("Sample workspace", true, "check:gates runs the sample workspace validation gate."),
+  gate("Package shape", true, "check:gates runs the Core/Workshop package-shape rehearsal."),
+  gate("Release-candidate consistency", true, "release:readiness runs check:release-candidate before this report."),
   gate("Backup/restore dry-run", true, "check:gates runs the .pspf backup/restore dry-run gate."),
   gate("Accessibility floor", accessibilityReport?.seriousOrCriticalCount === 0, "axe-core/Playwright scan reports zero serious/critical Explorer findings."),
   gate("Copy posture brief", Boolean(briefReport?.checks?.every((check) => check.ok)), "Shared Workshop/Explorer posture brief renderer passes redaction and readability checks."),
@@ -34,7 +40,7 @@ const gates = [
 
 const passed = gates.filter((item) => item.ok).length;
 const markdown = [
-  "# PSPF v0.1 Release Readiness",
+  `# PSPF v${sliceVersion} Release Readiness`,
   "",
   `Generated: ${new Date().toISOString()}`,
   `Gate score: ${passed}/${gates.length}`,
@@ -42,8 +48,8 @@ const markdown = [
   "## Current Assessment",
   "",
   passed === gates.length
-    ? "All tracked v0.1 gates are passing."
-    : "The implementation is close to v0.1 validation readiness, with the remaining gap shown below.",
+    ? `All tracked v${sliceVersion} gates are passing.`
+    : `The implementation is close to v${sliceVersion} validation readiness, with the remaining gap shown below.`,
   "",
   "## Gates",
   "",
@@ -66,9 +72,9 @@ const markdown = [
     : "Resolve any OPEN gates above before manual operator validation."
 ].join("\n");
 
-await writeFile(join(reportDirectory, "v0.1-readiness-report.md"), `${markdown}\n`, "utf8");
-await writeFile(join(reportDirectory, "v0.1-readiness-report.json"), `${JSON.stringify({ generatedAt: new Date().toISOString(), passed, total: gates.length, gates }, null, 2)}\n`, "utf8");
-console.log(`ok release readiness report written to .tmp/release-readiness/v0.1-readiness-report.md (${passed}/${gates.length})`);
+await writeFile(join(reportDirectory, `v${sliceVersion}-readiness-report.md`), `${markdown}\n`, "utf8");
+await writeFile(join(reportDirectory, `v${sliceVersion}-readiness-report.json`), `${JSON.stringify({ generatedAt: new Date().toISOString(), version: sliceVersion, passed, total: gates.length, gates }, null, 2)}\n`, "utf8");
+console.log(`ok release readiness report written to .tmp/release-readiness/v${sliceVersion}-readiness-report.md (${passed}/${gates.length})`);
 
 function gate(name, ok, evidence) {
   return { name, ok, evidence };

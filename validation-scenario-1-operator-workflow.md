@@ -1,8 +1,8 @@
-# Validation Scenario 1: Evidence-Backed PSPF Requirement
+# Validation Scenario 1: v0.9 Release-Candidate Operator Workflow
 
 ## Purpose
 
-Validate that a PSPF/security operator can complete the first v0.1 workflow without developer assistance: initialise a local workspace, create an evidence-backed requirement, record action and risk context, inspect the item, export a publication bundle, and confirm Explorer/reporting behaviour.
+Validate that a PSPF/security operator can complete the v0.9 release-candidate workflow without developer assistance: initialise a local workspace, load the sample assurance scenario, inspect Directions and Action Impact in Workshop, run integrity checks, export a publication bundle, and confirm Explorer/reporting behaviour.
 
 ## Persona
 
@@ -12,17 +12,19 @@ PSPF/security operator preparing an internal assurance view for early governance
 
 In scope:
 
-- PSPF Core workspace initialisation, validation, integrity check, snapshot, and export.
-- PSPF Workshop requirement, evidence, action, risk, and item detail commands.
+- PSPF Core workspace initialisation, validation, integrity scan, snapshot, and export.
+- PSPF Workshop Welcome, sample workspace loading, dashboard, evidence queue, item detail, Direction detail, and posture brief commands.
 - PSPF Explorer publication-mode bundle loading and validation panel.
 - Redaction/default-deny checks for publication output.
 
-Out of scope for v0.1:
+Out of scope for v0.9 and v1.0:
 
-- Shop, Pub, Explorer local authoring, plan-apply imports, editable posture, Action Impact ranking, and chart image export.
+- Shop, Pub, Explorer local authoring, plan-apply imports, editable posture, chart image export, numeric performance benchmarking, and third-party accessibility audit.
 
 ## Test Data
 
+- Use `PSPF: Load Sample Workspace` for the primary run. It loads a privacy-safe fixture with 3 Requirements, 2 Evidence items, 3 Actions, 4 Risks, 2 Directions, 12 links, and 1 ISM mapping when source controls are available.
+- Optional manual add-on: create one extra Requirement, Evidence, Action, and Risk using the original governance test data below if the operator wants to exercise Quick Pick authoring after the sample load.
 - Requirement title: `Validate governance reporting workflow`
 - Domain: `Governance`
 - Assessment status: `In progress`
@@ -45,30 +47,30 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 
 1. Launch `Run PSPF Core + Workshop`.
 2. Confirm the debug workspace has auto-initialised. If not, run `PSPF: Initialise PSPF Workspace` manually; the command is idempotent.
-3. Run `PSPF: Create Requirement` and enter the test requirement details.
-4. Run `PSPF: Attach Evidence to Requirement` and enter the test evidence details.
-5. Run `PSPF: Create Action` and enter the test action details.
-6. Run `PSPF: Create Risk` and enter the test risk details.
-7. Run `PSPF: Open Assessment Dashboard` and confirm the requirement, evidence, action, and risk counts look right.
-	Confirm the dashboard shows `PSPF v0.1.0`, `Schema 1.0.0`, and `API 1.0.0`.
-8. Run `PSPF: Open Evidence Review Queue` and confirm this scenario does not list the requirement as missing evidence.
-9. Run `PSPF: Open Item Detail` and select the requirement.
-10. Confirm the item detail shows the requirement plus linked evidence, action, risk, relationships, and version context.
+3. Run `PSPF: Open Workshop Welcome` and confirm it shows `PSPF v0.9.0`, `Schema 1.3.0`, and `API 1.3.0`.
+4. Run `PSPF: Load Sample Workspace`.
+5. Run `PSPF: Open Assessment Dashboard` and confirm the sample counts look right: 3 Requirements, 2 Evidence items, 3 Actions, 4 Risks, and 2 Directions.
+6. Confirm the dashboard shows Direction response chips and an `Action Impact — Top 5` table with compact Explanation cells.
+7. Run `PSPF: Open Evidence Review Queue` and confirm `Urgent Actions (Blocked or Overdue)` appears.
+8. Run `PSPF: Open Item Detail` and select a sample Requirement. Confirm linked evidence, actions with urgency, risks, ISM mappings, inbound Directions, relationships, and version context.
+9. Run `PSPF: Open Direction Detail` and confirm Direction reference, response state, source authority, issue date, and outbound relationships.
+10. Optional: run `PSPF: Create Requirement`, `PSPF: Attach Evidence to Requirement`, `PSPF: Create Action`, and `PSPF: Create Risk` using the add-on test data above.
 11. Run `PSPF: Validate Workspace`.
 12. Run `PSPF: Verify Integrity`.
-13. Run `PSPF: Create Snapshot`.
-14. Run `PSPF: Copy Posture Brief` and paste the brief into a scratch note to confirm it is readable.
-15. Run `PSPF: Export Master Bundle`.
-16. Run `PSPF: Show Writer Lock` and confirm the current window is writable.
-17. Run `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
-18. Open `packages/explorer/dist/index.html` and select the latest debug `bundle.json`.
-19. Click `Copy posture brief` in Explorer and paste it into a scratch note.
+13. Run `PSPF: Run Integrity Scan` and confirm it passes.
+14. Run `PSPF: Create Snapshot`.
+15. Run `PSPF: Copy Posture Brief` and paste the brief into a scratch note to confirm it is readable and includes Directions.
+16. Run `PSPF: Export Master Bundle`.
+17. Run `PSPF: Show Writer Lock` and confirm the current window is writable or, if another Extension Host owns the lock, that the workspace is clearly read-only.
+18. Run `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
+19. Open `packages/explorer/dist/index.html` and select the latest debug `bundle.json`.
+20. Click `Copy posture brief` in Explorer and paste it into a scratch note.
 
 ## Expected Explorer Behaviour
 
 - Bundle Validation shows PASS for versions, collection contract, counts, hashes, posture counts, and redaction checks.
-- Explorer visibly shows `PSPF v0.1.0`, `Schema 1.0.0`, `Bundle 1.0.0`, and `API 1.0.0`.
-- Posture Brief shows 1 requirement, 1 evidence item, 1 action, and 1 risk for this scenario.
+- Explorer visibly shows `PSPF v0.9.0`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+- Posture Brief shows the sample workspace counts and Direction summary.
 - Compliance Status shows a donut with the met percentage and a table alternative.
 - Domain Posture shows domain-level posture bars and a table alternative.
 - Needs Attention lists requirements that are not met or need evidence review.
@@ -76,21 +78,24 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 - Requirements shows `Validate governance reporting workflow`, the `Governance` domain label, and evidence/action/risk link counts.
 - Evidence shows `Governance committee terms of reference` and the linked requirement title.
 - Actions shows `Confirm next governance review date` and the linked requirement title.
+- Actions shows Action Impact where applicable, including Direction uplift and urgency.
 - Risks shows `Governance review evidence may become stale` and the linked requirement title.
+- Directions shows the sample Home Affairs Directions and response states.
 - Relationships Board shows links from the requirement to evidence, action, and risk using readable titles rather than raw IDs.
 - The internal summary does not appear in Explorer or exported publication JSON.
 - The copied posture brief includes counts and action/risk summary, but excludes internal summaries and restricted personal fields.
 - The copied posture brief includes domain summary and groups open actions/risks by linked requirement.
 - The Workshop and Explorer copied posture briefs use the same sections and exclude the internal summary.
-- The Workshop dashboard shows workspace ready status, validation hints, the current recent requirement, latest activity, and the same core counts as the exported bundle.
+- The Workshop dashboard shows workspace ready status, validation hints, Direction chips, Action Impact top-5, latest activity, and the same core counts as the exported bundle.
 - The evidence review queue separates missing evidence, freshness review, and unlinked evidence.
+- The evidence review queue includes Urgent Actions for blocked or overdue actions.
 
 ## Automated Baseline
 
 Run:
 
 ```sh
-npx pnpm@10.10.0 run e2e:v0.1
+npx pnpm@10.10.0 run e2e:v0.9
 ```
 
 Expected outputs:
@@ -111,7 +116,7 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v0.1-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v0.9.0-readiness-report.md`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
 - Manual operator validation is the next step.

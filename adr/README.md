@@ -39,6 +39,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0024 | v0.6 Workshop parity for Directions and Action Impact | accepted |
 | 0025 | v0.7 engine hardening | accepted |
 | 0026 | v0.8 first-run and packaging readiness | accepted |
+| 0027 | v0.9 release-candidate freeze | accepted |
 
 ## Template
 

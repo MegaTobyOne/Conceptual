@@ -90,6 +90,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **Packaging rehearsal gate**: `scripts/check-package-shape.mjs` verifies Core and Workshop package manifests, command contributions, built extension entry points, and Workshop's Core extension dependency in line with ADR 0007.
 5. **Compatibility gate**: schema, bundle, and API axes remain at `1.3.0`; only product version rolls to `0.8.0`. No new published-bundle field is introduced.
 
+### v0.9 candidate gates (release-candidate freeze, per ADR 0027)
+
+1. **Scope-freeze gate**: no new product entities, published-bundle fields, schema axes, or UI workflows are introduced beyond the v0.8 surface.
+2. **Manual scenario gate**: `validation-scenario-1-operator-workflow.md` describes the current v0.9 tester path, including sample workspace load, Directions, Action Impact, integrity scan, export, Explorer review, and posture brief copy.
+3. **Release-candidate consistency gate**: `scripts/check-release-candidate.mjs` verifies versions, compatibility axes, v0.9 scripts/docs, manual scenario coverage, and Shop/Pub deferral notes.
+4. **Readiness-report gate**: `release:readiness` targets `e2e:v0.9`, runs all automated gates, and writes a versioned readiness report under `.tmp/release-readiness/`.
+5. **Compatibility gate**: schema, bundle, and API axes remain at `1.3.0`; only product version rolls to `0.9.0`. No new published-bundle field is introduced.
+
 ## v1 release gates
 
 A v1 release candidate is not eligible for publication unless all gates pass:
