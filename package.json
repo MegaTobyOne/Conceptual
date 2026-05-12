@@ -1,6 +1,6 @@
 {
     "name": "pspf",
-    "version": "0.9.0",
+    "version": "1.0.0",
     "private": true,
     "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
     "packageManager": "pnpm@10.10.0",
@@ -34,12 +34,13 @@
         "e2e:v0.6": "pnpm run e2e:v0.7",
         "e2e:v0.7": "pnpm run e2e:v0.8",
         "e2e:v0.8": "pnpm run e2e:v0.9",
-        "e2e:v0.9": "pnpm build && node scripts/e2e-v01.mjs && node scripts/check-personal-data-exclusion.mjs && node scripts/check-integrity-scan.mjs && node scripts/check-sample-workspace.mjs && node scripts/check-package-shape.mjs && node scripts/check-release-candidate.mjs",
+        "e2e:v0.9": "pnpm run e2e:v1.0",
+        "e2e:v1.0": "pnpm build && node scripts/e2e-v01.mjs && node scripts/check-personal-data-exclusion.mjs && node scripts/check-integrity-scan.mjs && node scripts/check-sample-workspace.mjs && node scripts/check-package-shape.mjs && node scripts/check-release-candidate.mjs",
         "validate:export": "pnpm build && node scripts/validate-export.mjs",
         "validate:debug-workspace": "pnpm build && node scripts/validate-debug-workspace.mjs && node scripts/check-personal-data-exclusion.mjs",
         "lint": "pnpm lint:au",
         "lint:au": "node scripts/lint-au-english.mjs",
-        "release:readiness": "pnpm e2e:v0.9 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
+        "release:readiness": "pnpm e2e:v1.0 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
         "test": "pnpm build && pnpm -r --if-present test",
         "typecheck": "tsc -b tsconfig.json"
     },

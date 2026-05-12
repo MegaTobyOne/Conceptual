@@ -98,6 +98,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **Readiness-report gate**: `release:readiness` targets `e2e:v0.9`, runs all automated gates, and writes a versioned readiness report under `.tmp/release-readiness/`.
 5. **Compatibility gate**: schema, bundle, and API axes remain at `1.3.0`; only product version rolls to `0.9.0`. No new published-bundle field is introduced.
 
+### v1.0 release gates (initial assurance user testing release, per ADR 0028)
+
+1. **Release cut gate**: v1.0 adds no new product entities, published-bundle fields, schema axes, or UI workflows beyond v0.9.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.0.0`; schema, bundle, and API axes remain `1.3.0`.
+3. **Automated spine gate**: `e2e:v1.0`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+4. **Readiness-report gate**: `release:readiness` writes `.tmp/release-readiness/v1.0.0-readiness-report.md` with all tracked gates passing.
+5. **Manual validation gate**: `validation-scenario-1-operator-workflow.md` completes without intervention and confirms Workshop, Explorer, posture brief, integrity scan, Directions, Action Impact, and redaction behaviour.
+
 ## v1 release gates
 
 A v1 release candidate is not eligible for publication unless all gates pass:

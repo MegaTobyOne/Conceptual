@@ -73,9 +73,9 @@ For initial assurance-user testing, v0.8 adds a shorter sample-driven path witho
 
 The same sample path is enforced by `pnpm run check:sample-workspace`.
 
-## v0.9 release-candidate test path
+## v1.0 release test path
 
-v0.9 freezes the v1.0 validation surface. Operators use [validation-scenario-1-operator-workflow.md](validation-scenario-1-operator-workflow.md) as the manual dogfood script. Automated readiness uses:
+v1.0 uses [validation-scenario-1-operator-workflow.md](validation-scenario-1-operator-workflow.md) as the manual assurance-user validation script. Automated readiness uses:
 
 ```sh
 npx pnpm@10.10.0 run release:readiness

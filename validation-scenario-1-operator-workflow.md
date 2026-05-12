@@ -1,8 +1,8 @@
-# Validation Scenario 1: v0.9 Release-Candidate Operator Workflow
+# Validation Scenario 1: v1.0 Initial Assurance User Testing Workflow
 
 ## Purpose
 
-Validate that a PSPF/security operator can complete the v0.9 release-candidate workflow without developer assistance: initialise a local workspace, load the sample assurance scenario, inspect Directions and Action Impact in Workshop, run integrity checks, export a publication bundle, and confirm Explorer/reporting behaviour.
+Validate that a PSPF/security operator can complete the v1.0 initial assurance user testing workflow without developer assistance: initialise a local workspace, load the sample assurance scenario, inspect Directions and Action Impact in Workshop, run integrity checks, export a publication bundle, and confirm Explorer/reporting behaviour.
 
 ## Persona
 
@@ -17,7 +17,7 @@ In scope:
 - PSPF Explorer publication-mode bundle loading and validation panel.
 - Redaction/default-deny checks for publication output.
 
-Out of scope for v0.9 and v1.0:
+Out of scope for v1.0:
 
 - Shop, Pub, Explorer local authoring, plan-apply imports, editable posture, chart image export, numeric performance benchmarking, and third-party accessibility audit.
 
@@ -47,7 +47,7 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 
 1. Launch `Run PSPF Core + Workshop`.
 2. Confirm the debug workspace has auto-initialised. If not, run `PSPF: Initialise PSPF Workspace` manually; the command is idempotent.
-3. Run `PSPF: Open Workshop Welcome` and confirm it shows `PSPF v0.9.0`, `Schema 1.3.0`, and `API 1.3.0`.
+3. Run `PSPF: Open Workshop Welcome` and confirm it shows `PSPF v1.0.0`, `Schema 1.3.0`, and `API 1.3.0`.
 4. Run `PSPF: Load Sample Workspace`.
 5. Run `PSPF: Open Assessment Dashboard` and confirm the sample counts look right: 3 Requirements, 2 Evidence items, 3 Actions, 4 Risks, and 2 Directions.
 6. Confirm the dashboard shows Direction response chips and an `Action Impact — Top 5` table with compact Explanation cells.
@@ -69,7 +69,7 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 ## Expected Explorer Behaviour
 
 - Bundle Validation shows PASS for versions, collection contract, counts, hashes, posture counts, and redaction checks.
-- Explorer visibly shows `PSPF v0.9.0`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+- Explorer visibly shows `PSPF v1.0.0`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
 - Posture Brief shows the sample workspace counts and Direction summary.
 - Compliance Status shows a donut with the met percentage and a table alternative.
 - Domain Posture shows domain-level posture bars and a table alternative.
@@ -95,7 +95,7 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 Run:
 
 ```sh
-npx pnpm@10.10.0 run e2e:v0.9
+npx pnpm@10.10.0 run e2e:v1.0
 ```
 
 Expected outputs:
@@ -116,7 +116,7 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v0.9.0-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.0.0-readiness-report.md`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
 - Manual operator validation is the next step.
