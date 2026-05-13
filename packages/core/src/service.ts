@@ -1,9 +1,8 @@
-import { execFile } from "node:child_process";
+import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { promisify } from "node:util";
 import {
   COLLECTION_BY_ENTITY_TYPE,
   type BundleCollections,
@@ -20,8 +19,10 @@ import {
   withEnvelope
 } from "@pspf/contracts";
 import { ISM_SOURCE_CONTROLS } from "@pspf/ism-source-library";
+import { PSPF_BASELINE_DIRECTIONS, PSPF_BASELINE_DIRECTION_LINKS, PSPF_BASELINE_REQUIREMENTS } from "@pspf/reference-data";
 
-const execFileAsync = promisify(execFile);
+const SQLITE_BUSY_TIMEOUT_MS = 5000;
+const workspaceOperationQueues = new Map<string, Promise<void>>();
 
 export interface WorkspacePaths {
   readonly root: string;
@@ -131,33 +132,49 @@ export function createCoreService(workspaceRoot: string): CoreService {
 export function createCoreReadApi(workspaceRoot: string): CoreReadApi {
   return {
     getWorkspacePaths: () => getWorkspacePaths(workspaceRoot),
-    validateWorkspace: () => validateWorkspace(workspaceRoot),
-    listEntities: (entityType) => listEntities(workspaceRoot, entityType)
+    validateWorkspace: () => serialiseWorkspaceOperation(workspaceRoot, () => validateWorkspace(workspaceRoot)),
+    listEntities: (entityType) => serialiseWorkspaceOperation(workspaceRoot, () => listEntities(workspaceRoot, entityType))
   };
 }
 
 export function createCoreWriteApi(workspaceRoot: string): CoreWriteApi {
   return {
-    initialiseWorkspace: () => initialiseWorkspace(workspaceRoot),
-    createSnapshot: () => createSnapshot(workspaceRoot),
-    getWriterLock: () => getWriterLock(workspaceRoot),
-    upsertEntity: (entity) => upsertEntity(workspaceRoot, entity),
-    upsertEntities: (entities) => upsertEntities(workspaceRoot, entities)
+    initialiseWorkspace: () => serialiseWorkspaceOperation(workspaceRoot, () => initialiseWorkspace(workspaceRoot)),
+    createSnapshot: () => serialiseWorkspaceOperation(workspaceRoot, () => createSnapshot(workspaceRoot)),
+    getWriterLock: () => serialiseWorkspaceOperation(workspaceRoot, () => getWriterLock(workspaceRoot)),
+    upsertEntity: (entity) => serialiseWorkspaceOperation(workspaceRoot, () => upsertEntity(workspaceRoot, entity)),
+    upsertEntities: (entities) => serialiseWorkspaceOperation(workspaceRoot, () => upsertEntities(workspaceRoot, entities))
   };
 }
 
 export function createCoreExchangeApi(workspaceRoot: string): CoreExchangeApi {
   return {
-    exportBundle: () => exportBundle(workspaceRoot),
-    importBundle: (bundlePath, mode) => importBundle(workspaceRoot, bundlePath, mode)
+    exportBundle: () => serialiseWorkspaceOperation(workspaceRoot, () => exportBundle(workspaceRoot)),
+    importBundle: (bundlePath, mode) => serialiseWorkspaceOperation(workspaceRoot, () => importBundle(workspaceRoot, bundlePath, mode))
   };
 }
 
 export function createCoreIntegrityApi(workspaceRoot: string): CoreIntegrityApi {
   return {
-    verifyIntegrity: () => verifyIntegrity(workspaceRoot),
-    runIntegrityScan: () => runIntegrityScan(workspaceRoot)
+    verifyIntegrity: () => serialiseWorkspaceOperation(workspaceRoot, () => verifyIntegrity(workspaceRoot)),
+    runIntegrityScan: () => serialiseWorkspaceOperation(workspaceRoot, () => runIntegrityScan(workspaceRoot))
   };
+}
+
+async function serialiseWorkspaceOperation<T>(workspaceRoot: string, operation: () => Promise<T>): Promise<T> {
+  const previous = workspaceOperationQueues.get(workspaceRoot) ?? Promise.resolve();
+  const current = previous.catch(() => undefined).then(operation);
+  const queueTail = current.then(
+    () => undefined,
+    () => undefined
+  );
+  workspaceOperationQueues.set(workspaceRoot, queueTail);
+  queueTail.finally(() => {
+    if (workspaceOperationQueues.get(workspaceRoot) === queueTail) {
+      workspaceOperationQueues.delete(workspaceRoot);
+    }
+  });
+  return current;
 }
 
 async function initialiseWorkspace(workspaceRoot: string): Promise<WorkspacePaths> {
@@ -185,7 +202,9 @@ async function initialiseWorkspace(workspaceRoot: string): Promise<WorkspacePath
   await writeJson(join(paths.config, "policies.json"), { publicationDefault: "sensitive" });
 
   await runSql(paths.db, `
+  PRAGMA busy_timeout=${SQLITE_BUSY_TIMEOUT_MS};
 PRAGMA journal_mode=WAL;
+  PRAGMA synchronous=NORMAL;
 CREATE TABLE IF NOT EXISTS metadata (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
@@ -213,13 +232,13 @@ INSERT INTO metadata(key, value) VALUES ('apiVersion', '${VERSION_AXES.apiVersio
 `);
 
   const timestamp = nowIso();
-  for (const domain of PSPF_DOMAINS) {
-    await upsertEntity(workspaceRoot, { ...domain, createdAt: timestamp, updatedAt: timestamp });
-  }
-  for (const sourceControl of ISM_SOURCE_CONTROLS) {
-    await upsertEntity(workspaceRoot, { ...sourceControl, createdAt: timestamp, updatedAt: timestamp });
-  }
-
+  const seededDomains: V01Entity[] = PSPF_DOMAINS.map((domain) => ({ ...domain, createdAt: timestamp, updatedAt: timestamp }));
+  const seededSourceControls: V01Entity[] = ISM_SOURCE_CONTROLS.map((sourceControl) => ({ ...sourceControl, createdAt: timestamp, updatedAt: timestamp }));
+  const seededRequirements: V01Entity[] = PSPF_BASELINE_REQUIREMENTS.map((requirement) => ({ ...requirement, createdAt: timestamp, updatedAt: timestamp }));
+  const seededDirections: V01Entity[] = PSPF_BASELINE_DIRECTIONS.map((direction) => ({ ...direction, createdAt: timestamp, updatedAt: timestamp }));
+  const seededDirectionLinks: V01Entity[] = PSPF_BASELINE_DIRECTION_LINKS.map((link) => ({ ...link, createdAt: timestamp, updatedAt: timestamp }));
+  await upsertEntities(workspaceRoot, [...seededDomains, ...seededSourceControls]);
+  await insertReferenceEntitiesIfMissing(workspaceRoot, [...seededRequirements, ...seededDirections, ...seededDirectionLinks]);
   return paths;
 }
 
@@ -644,12 +663,45 @@ async function ensureInitialised(workspaceRoot: string, createIfMissing = true):
 
 async function refreshReferenceData(workspaceRoot: string): Promise<void> {
   const timestamp = nowIso();
-  for (const domain of PSPF_DOMAINS) {
-    await upsertEntity(workspaceRoot, { ...domain, createdAt: timestamp, updatedAt: timestamp });
+  await deleteRetiredCoreReferenceEntities(workspaceRoot, "source-control", new Set(ISM_SOURCE_CONTROLS.map((control) => control.id)));
+  await deleteRetiredCoreReferenceEntities(workspaceRoot, "direction", new Set(PSPF_BASELINE_DIRECTIONS.map((direction) => direction.id)), "DIR-PSPF-");
+  await deleteRetiredCoreReferenceEntities(workspaceRoot, "link", new Set(PSPF_BASELINE_DIRECTION_LINKS.map((link) => link.id)), "LNK-PSPF-DIRECTION-");
+  const seededDomains: V01Entity[] = PSPF_DOMAINS.map((domain) => ({ ...domain, createdAt: timestamp, updatedAt: timestamp }));
+  const seededSourceControls: V01Entity[] = ISM_SOURCE_CONTROLS.map((sourceControl) => ({ ...sourceControl, createdAt: timestamp, updatedAt: timestamp }));
+  const seededRequirements: V01Entity[] = PSPF_BASELINE_REQUIREMENTS.map((requirement) => ({ ...requirement, createdAt: timestamp, updatedAt: timestamp }));
+  const seededDirections: V01Entity[] = PSPF_BASELINE_DIRECTIONS.map((direction) => ({ ...direction, createdAt: timestamp, updatedAt: timestamp }));
+  const seededDirectionLinks: V01Entity[] = PSPF_BASELINE_DIRECTION_LINKS.map((link) => ({ ...link, createdAt: timestamp, updatedAt: timestamp }));
+  await upsertEntities(workspaceRoot, [...seededDomains, ...seededSourceControls]);
+  await insertReferenceEntitiesIfMissing(workspaceRoot, [...seededRequirements, ...seededDirections, ...seededDirectionLinks]);
+}
+
+async function deleteRetiredCoreReferenceEntities(workspaceRoot: string, entityType: V01Entity["entityType"], activeIds: ReadonlySet<string>, idPrefix?: string): Promise<void> {
+  const paths = getWorkspacePaths(workspaceRoot);
+  const output = await runSql(paths.db, `SELECT payload FROM entities WHERE entity_type = '${sqlEscape(entityType)}';`, ["-json"]);
+  const rows = output.trim() === "" ? [] : JSON.parse(output) as readonly { payload: string }[];
+  const existing = rows.map((row) => JSON.parse(row.payload) as V01Entity);
+  const retiredIds = existing
+    .filter((entity) => entity.sourceProduct === "core" && (!idPrefix || entity.id.startsWith(idPrefix)) && !activeIds.has(entity.id))
+    .map((entity) => entity.id);
+  if (retiredIds.length === 0) {
+    return;
   }
-  for (const sourceControl of ISM_SOURCE_CONTROLS) {
-    await upsertEntity(workspaceRoot, { ...sourceControl, createdAt: timestamp, updatedAt: timestamp });
+
+  await runSql(paths.db, `DELETE FROM entities WHERE id IN (${retiredIds.map((id) => `'${sqlEscape(id)}'`).join(", ")});`);
+}
+
+async function insertReferenceEntitiesIfMissing(workspaceRoot: string, entities: readonly V01Entity[]): Promise<void> {
+  if (entities.length === 0) {
+    return;
   }
+  const paths = getWorkspacePaths(workspaceRoot);
+  await runSql(paths.db, ["BEGIN IMMEDIATE;", ...entities.map(insertEntityIfMissingSql), "COMMIT;"].join("\n"));
+}
+
+function insertEntityIfMissingSql(entity: V01Entity): string {
+  return `INSERT INTO entities(id, entity_type, payload, created_at, updated_at)
+VALUES ('${sqlEscape(entity.id)}', '${sqlEscape(entity.entityType)}', '${sqlEscape(JSON.stringify(entity))}', '${sqlEscape(entity.createdAt)}', '${sqlEscape(entity.updatedAt)}')
+ON CONFLICT(id) DO NOTHING;`;
 }
 
 async function assertWritable(paths: WorkspacePaths): Promise<void> {
@@ -722,12 +774,30 @@ async function writeJson(path: string, value: unknown): Promise<void> {
 }
 
 async function runSql(dbPath: string, sql: string, extraArgs: readonly string[] = []): Promise<string> {
-  const args = [...extraArgs, dbPath, sql];
-  const { stdout, stderr } = await execFileAsync("sqlite3", args, { encoding: "utf8" });
-  if (stderr.trim().length > 0) {
-    throw new Error(stderr.trim());
-  }
-  return stdout;
+  return new Promise((resolve, reject) => {
+    const child = spawn("sqlite3", ["-cmd", `.timeout ${SQLITE_BUSY_TIMEOUT_MS}`, ...extraArgs, dbPath], { stdio: ["pipe", "pipe", "pipe"] });
+    const stdoutChunks: Buffer[] = [];
+    const stderrChunks: Buffer[] = [];
+
+    child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+    child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
+    child.on("error", reject);
+    child.on("close", (code) => {
+      const stdout = Buffer.concat(stdoutChunks).toString("utf8");
+      const stderr = Buffer.concat(stderrChunks).toString("utf8");
+      if (code !== 0) {
+        reject(new Error(stderr.trim() || `sqlite3 exited with code ${code ?? "unknown"}`));
+        return;
+      }
+      if (stderr.trim().length > 0) {
+        reject(new Error(stderr.trim()));
+        return;
+      }
+      resolve(stdout);
+    });
+
+    child.stdin.end(sql);
+  });
 }
 
 function sqlEscape(value: string): string {

@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-05-13T01:49:11.133Z",
+  "sources": [
+    {
+      "sourceId": "pspf-release-2025-list-requirements",
+      "title": "PSPF Release 2025 - List of Requirements",
+      "sourceUrl": "https://www.protectivesecurity.gov.au/system/files/2026-04/pspf-release-2025-list-requirements.pdf",
+      "localPath": "packages/reference-data/data/sources/pspf-release-2025/pspf-release-2025-list-requirements.pdf",
+      "publicationDate": "2025-07-24",
+      "lastUpdated": "2026-04-21",
+      "licence": "Creative Commons Attribution 3.0 Australia",
+      "attribution": "Australian Government Department of Home Affairs",
+      "sha256": "b62e4980fa62c9bc602cc59001eae34695eccd3c67b9db60f6c069a4bed1506c"
+    },
+    {
+      "sourceId": "ism-oscal-v2026.03.24-catalog",
+      "title": "Information security manual OSCAL catalog v2026.03.24",
+      "sourceUrl": "https://raw.githubusercontent.com/AustralianCyberSecurityCentre/ism-oscal/v2026.03.24/ISM_catalog.json",
+      "localPath": "packages/reference-data/data/sources/ism-oscal/v2026.03.24/ISM_catalog.json",
+      "publicationDate": "2026-03-24",
+      "lastUpdated": "2026-03-24",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "sha256": "54629fa7f6d1be9bee887250091a2c47ee4816d7f758e16bd605091a98e28695"
+    }
+  ],
+  "pspf": {
+    "displayedRequirementCount": 217,
+    "minRequirementNumber": 1,
+    "maxRequirementNumber": 218,
+    "missingRequirementNumbers": [
+      113
+    ],
+    "duplicateRequirementNumbers": [],
+    "domainFamilies": [
+      "GOV",
+      "INFO",
+      "PER",
+      "PHYS",
+      "RISK",
+      "TECH"
+    ],
+    "publishedDirectionCount": 9,
+    "directionsReflectedInRequirements": 5
+  },
+  "ism": {
+    "oscalRelease": "v2026.03.24",
+    "sourceControlCount": 1130,
+    "changedFixtureControlId": "ism-principle-gov-01"
+  }
+}

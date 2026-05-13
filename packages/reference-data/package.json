@@ -1,5 +1,5 @@
 {
-    "name": "@pspf/ism-source-library",
+    "name": "@pspf/reference-data",
     "version": "1.0.0",
     "private": true,
     "type": "module",
@@ -12,10 +12,10 @@
         }
     },
     "scripts": {
-        "build": "tsc -p tsconfig.json"
+        "build": "tsc -p tsconfig.json",
+        "generate": "node ../../scripts/generate-reference-data.mjs"
     },
     "dependencies": {
-        "@pspf/contracts": "workspace:*",
-        "@pspf/reference-data": "workspace:*"
+        "@pspf/contracts": "workspace:*"
     }
 }

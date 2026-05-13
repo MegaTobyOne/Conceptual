@@ -59,7 +59,9 @@
             "code": {
                 "enum": [
                     "governance",
+                    "security-risk",
                     "information",
+                    "technology",
                     "personnel",
                     "physical"
                 ]

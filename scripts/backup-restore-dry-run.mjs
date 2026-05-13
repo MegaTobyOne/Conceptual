@@ -3,6 +3,7 @@ import { cp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { createCoreService } from "../packages/core/dist/service.js";
 import { PSPF_DOMAINS, withEnvelope } from "../packages/contracts/dist/index.js";
+import { PSPF_BASELINE_REQUIREMENTS } from "../packages/reference-data/dist/index.js";
 
 const root = process.cwd();
 const sourceWorkspace = join(root, ".tmp", "backup-source-workspace");
@@ -30,6 +31,6 @@ const integrity = await restored.verifyIntegrity();
 assert.equal(integrity.ok, true, integrity.detail);
 const validation = await restored.validateWorkspace();
 assert.equal(validation.ok, true, validation.message);
-assert.equal(validation.counts.requirements, 1);
+assert.equal(validation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length + 1);
 
 console.log("ok backup/restore dry-run restored .pspf and passed integrity plus Core validation");

@@ -98,7 +98,7 @@ export interface EntityEnvelope {
 
 export interface DomainEntity extends EntityEnvelope {
   readonly entityType: "domain";
-  readonly code: "governance" | "information" | "personnel" | "physical";
+  readonly code: "governance" | "security-risk" | "information" | "technology" | "personnel" | "physical";
   readonly title: string;
   readonly sortOrder: number;
 }
@@ -374,8 +374,8 @@ export const PSPF_DOMAINS: readonly Omit<DomainEntity, "createdAt" | "updatedAt"
     id: "DOM-00000000-0000-7000-8000-000000000002",
     entityType: "domain",
     schemaVersion: VERSION_AXES.schemaVersion,
-    title: "Information",
-    code: "information",
+    title: "Security Risk",
+    code: "security-risk",
     sortOrder: 2,
     sourceProduct: "core",
     recordStatus: "active"
@@ -384,8 +384,8 @@ export const PSPF_DOMAINS: readonly Omit<DomainEntity, "createdAt" | "updatedAt"
     id: "DOM-00000000-0000-7000-8000-000000000003",
     entityType: "domain",
     schemaVersion: VERSION_AXES.schemaVersion,
-    title: "Personnel",
-    code: "personnel",
+    title: "Information",
+    code: "information",
     sortOrder: 3,
     sourceProduct: "core",
     recordStatus: "active"
@@ -394,9 +394,29 @@ export const PSPF_DOMAINS: readonly Omit<DomainEntity, "createdAt" | "updatedAt"
     id: "DOM-00000000-0000-7000-8000-000000000004",
     entityType: "domain",
     schemaVersion: VERSION_AXES.schemaVersion,
+    title: "Technology",
+    code: "technology",
+    sortOrder: 4,
+    sourceProduct: "core",
+    recordStatus: "active"
+  },
+  {
+    id: "DOM-00000000-0000-7000-8000-000000000005",
+    entityType: "domain",
+    schemaVersion: VERSION_AXES.schemaVersion,
+    title: "Personnel",
+    code: "personnel",
+    sortOrder: 5,
+    sourceProduct: "core",
+    recordStatus: "active"
+  },
+  {
+    id: "DOM-00000000-0000-7000-8000-000000000006",
+    entityType: "domain",
+    schemaVersion: VERSION_AXES.schemaVersion,
     title: "Physical",
     code: "physical",
-    sortOrder: 4,
+    sortOrder: 6,
     sourceProduct: "core",
     recordStatus: "active"
   }

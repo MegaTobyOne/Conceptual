@@ -70,6 +70,7 @@
     },
     "dependencies": {
         "@pspf/contracts": "workspace:*",
-        "@pspf/ism-source-library": "workspace:*"
+        "@pspf/ism-source-library": "workspace:*",
+        "@pspf/reference-data": "workspace:*"
     }
 }

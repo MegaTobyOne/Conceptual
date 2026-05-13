@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { createCoreService } from "../packages/core/dist/service.js";
+import { ISM_SOURCE_CONTROLS, PSPF_BASELINE_REQUIREMENTS } from "../packages/reference-data/dist/index.js";
 import { findLatestBundle, validateExportBundle, writeValidationReport } from "./lib/export-validation.mjs";
 
 const root = process.cwd();
@@ -9,6 +10,15 @@ const workspaceRoot = join(root, "debug-workspace");
 const service = createCoreService(workspaceRoot);
 try {
   await service.initialiseWorkspace();
+  const validation = await service.validateWorkspace();
+  if (!validation.ok) {
+    console.error(`Debug workspace not ready: ${validation.message}`);
+    process.exit(1);
+  }
+  if (validation.counts.domains !== 6 || validation.counts.requirements < PSPF_BASELINE_REQUIREMENTS.length || validation.counts["source-controls"] !== ISM_SOURCE_CONTROLS.length) {
+    console.error(`Debug workspace baseline incomplete: domains=${validation.counts.domains} requirements=${validation.counts.requirements} source-controls=${validation.counts["source-controls"]}`);
+    process.exit(1);
+  }
   await service.exportBundle();
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);

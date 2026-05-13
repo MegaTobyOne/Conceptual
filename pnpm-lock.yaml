@@ -43,6 +43,9 @@ importers:
       '@pspf/ism-source-library':
         specifier: workspace:*
         version: link:../ism-source-library
+      '@pspf/reference-data':
+        specifier: workspace:*
+        version: link:../reference-data
 
   packages/explorer:
     dependencies:
@@ -54,6 +57,15 @@ importers:
         version: link:../contracts
 
   packages/ism-source-library:
+    dependencies:
+      '@pspf/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@pspf/reference-data':
+        specifier: workspace:*
+        version: link:../reference-data
+
+  packages/reference-data:
     dependencies:
       '@pspf/contracts':
         specifier: workspace:*

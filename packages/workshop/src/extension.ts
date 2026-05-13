@@ -659,6 +659,7 @@ async function openAssessmentDashboard(): Promise<void> {
       const directionUplift = impact.directionUplift ?? 0;
       const total = postureUplift + evidenceUplift + riskReduction + directionUplift;
       return {
+        openActionId: action.id,
         title: action.title,
         status: label(action.status),
         urgency: label(impact.urgency ?? "normal"),
@@ -705,6 +706,8 @@ async function openAssessmentDashboard(): Promise<void> {
     }));
 
   const panel = vscode.window.createWebviewPanel("pspfAssessmentDashboard", "PSPF Assessment Dashboard", vscode.ViewColumn.One, { enableScripts: false });
+  panel.webview.options = { enableScripts: true };
+  wireWorkshopPanelMessages(panel);
   panel.webview.html = shellHtml("PSPF Assessment Dashboard", `
     <section>
       <h1>Assessment Dashboard</h1>
@@ -753,6 +756,7 @@ async function openEvidenceReviewQueue(): Promise<void> {
     .filter((entity): entity is ActionEntity => entity.entityType === "action")
     .filter((action) => action.impact?.urgency === "blocked" || action.impact?.urgency === "overdue")
     .map((action) => ({
+      openActionId: action.id,
       title: action.title,
       urgency: action.impact ? label(action.impact.urgency) : "",
       status: label(action.status),
@@ -760,6 +764,8 @@ async function openEvidenceReviewQueue(): Promise<void> {
     }));
 
   const panel = vscode.window.createWebviewPanel("pspfEvidenceReviewQueue", "PSPF Evidence Review Queue", vscode.ViewColumn.One, { enableScripts: false });
+  panel.webview.options = { enableScripts: true };
+  wireWorkshopPanelMessages(panel);
   panel.webview.html = shellHtml("PSPF Evidence Review Queue", `
     <section>
       <h1>Evidence Review Queue</h1>
@@ -1068,6 +1074,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     .map((id) => enrichedActionsById.get(id))
     .filter((action): action is ActionEntity => Boolean(action));
   const actionRows = actions.map((action) => ({
+    openActionId: action.id,
     title: action.title,
     status: label(action.status),
     urgency: action.impact ? label(action.impact.urgency) : "normal",
@@ -1111,6 +1118,8 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
   }));
 
   const panel = vscode.window.createWebviewPanel("pspfItemDetail", requirement.title, vscode.ViewColumn.One, { enableScripts: false });
+  panel.webview.options = { enableScripts: true };
+  wireWorkshopPanelMessages(panel);
   panel.webview.html = shellHtml(requirement.title, `
     <section>
       <h1>${escapeHtml(requirement.title)}</h1>
@@ -1125,6 +1134,49 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     ${recordTable("ISM Mappings", mappings, ["controlId", "title", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"])}
     ${recordTable("Relationships", relationships, ["title", "relationship", "targetType", "target"])}
   `);
+}
+
+async function openItemDetailForAction(actionId: string): Promise<void> {
+  const allEntities = await listAllEntities();
+  const action = allEntities.find((entity): entity is ActionEntity => entity.entityType === "action" && entity.id === actionId);
+  if (!action) {
+    await vscode.window.showWarningMessage("Action no longer exists in this workspace.");
+    return;
+  }
+  await openActionEditor(action);
+}
+
+async function openActionEditor(action: ActionEntity): Promise<void> {
+  const panel = vscode.window.createWebviewPanel("pspfActionDetail", action.title, vscode.ViewColumn.One, { enableScripts: true });
+  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly actionId?: string; readonly title?: string; readonly status?: ActionStatus; readonly dueDate?: string }) => {
+    if (message.command !== "saveAction" || message.actionId !== action.id) {
+      return;
+    }
+
+    const nextTitle = message.title?.trim();
+    if (!nextTitle) {
+      await vscode.window.showWarningMessage("Enter an Action title before saving.");
+      return;
+    }
+    const nextStatus = message.status;
+    if (!nextStatus || !actionStatusItems.some((item) => item.value === nextStatus)) {
+      await vscode.window.showWarningMessage("Select a valid Action status before saving.");
+      return;
+    }
+
+    const updated: ActionEntity = {
+      ...action,
+      title: nextTitle,
+      status: nextStatus,
+      dueDate: message.dueDate?.trim() || undefined,
+      updatedAt: new Date().toISOString()
+    };
+    await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+    await vscode.window.showInformationMessage(`Action updated: ${updated.title}`);
+    panel.dispose();
+    await openActionEditor(updated);
+  });
+  panel.webview.html = shellHtml(action.title, renderActionEditor(action));
 }
 
 function shellHtml(title: string, body: string): string {
@@ -1155,6 +1207,14 @@ function shellHtml(title: string, body: string): string {
     th[data-field="explanation"], td[data-field="explanation"] { max-width: 18rem; }
     .cell-compact { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="freshness"], td[data-field="freshness"] { white-space: nowrap; width: 1%; }
+    th[data-field="open"], td[data-field="open"] { white-space: nowrap; width: 1%; }
+    button, input, select { font: inherit; }
+    button { border: 1px solid #52525b; border-radius: 4px; background: #27272a; color: #fafafa; padding: 5px 9px; cursor: pointer; }
+    button:hover { background: #3f3f46; }
+    .form-grid { display: grid; gap: 12px; max-width: 620px; }
+    label { display: grid; gap: 5px; color: #d4d4d8; }
+    input, select { box-sizing: border-box; width: 100%; border: 1px solid #52525b; border-radius: 4px; background: #09090b; color: #fafafa; padding: 8px; }
+    .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
     .banner { background: #3f2f11; border-bottom: 1px solid #d97706; color: #fde68a; padding: 8px 20px; font-weight: 600; }
     .muted { color: #a1a1aa; }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -1168,8 +1228,74 @@ function shellHtml(title: string, body: string): string {
   <main>
     ${body}
   </main>
+  <script>
+    const vscode = typeof acquireVsCodeApi === 'function' ? acquireVsCodeApi() : undefined;
+    document.addEventListener('click', (event) => {
+      const button = event.target instanceof HTMLElement ? event.target.closest('button[data-command]') : null;
+      if (!button || !vscode) {
+        return;
+      }
+      const command = button.getAttribute('data-command');
+      if (command === 'openAction') {
+        vscode.postMessage({ command, actionId: button.getAttribute('data-action-id') });
+      }
+      if (command === 'saveAction') {
+        const form = button.closest('form');
+        if (!form) {
+          return;
+        }
+        const data = new FormData(form);
+        vscode.postMessage({
+          command,
+          actionId: String(data.get('actionId') || ''),
+          title: String(data.get('title') || ''),
+          status: String(data.get('status') || ''),
+          dueDate: String(data.get('dueDate') || '')
+        });
+      }
+    });
+  </script>
 </body>
 </html>`;
+}
+
+function wireWorkshopPanelMessages(panel: vscode.WebviewPanel): void {
+  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly actionId?: string }) => {
+    if (message.command === "openAction" && message.actionId) {
+      await openItemDetailForAction(message.actionId);
+    }
+  });
+}
+
+function renderActionEditor(action: ActionEntity): string {
+  const statusOptions = actionStatusItems
+    .map((item) => `<option value="${escapeHtml(item.value)}"${item.value === action.status ? " selected" : ""}>${escapeHtml(item.label)}</option>`)
+    .join("");
+  return `
+    <section>
+      <h1>${escapeHtml(action.title)}</h1>
+      <p class="muted">Update the Action fields used by Workshop queues, Item Detail, and published Action Impact.</p>
+      ${versionStrip()}
+    </section>
+    <section>
+      <h2>Edit Action</h2>
+      <form class="form-grid">
+        <input type="hidden" name="actionId" value="${escapeHtml(action.id)}">
+        <label>Title
+          <input name="title" value="${escapeHtml(action.title)}" required>
+        </label>
+        <label>Status
+          <select name="status">${statusOptions}</select>
+        </label>
+        <label>Due date
+          <input name="dueDate" value="${escapeHtml(action.dueDate ?? "")}" placeholder="30 Jun 2026">
+        </label>
+        <div class="form-actions">
+          <button type="button" data-command="saveAction">Save</button>
+        </div>
+      </form>
+    </section>
+  `;
 }
 
 async function copyPostureBrief(): Promise<void> {
@@ -1346,9 +1472,19 @@ function recordTable(title: string, records: readonly object[], fields: readonly
   if (records.length === 0) {
     return `<section><h2>${escapeHtml(title)}</h2><p class="muted">No records linked yet.</p></section>`;
   }
-  const header = fields.map((field) => `<th data-field="${escapeHtml(field)}">${escapeHtml(label(field))}</th>`).join("");
-  const rows = records.map((record) => `<tr>${fields.map((field) => tableCell(record, field)).join("")}</tr>`).join("");
+  const hasOpenAction = records.some((record) => typeof readRecordField(record, "openActionId") === "string");
+  const actionHeader = hasOpenAction ? `<th data-field="open">Open</th>` : "";
+  const header = `${actionHeader}${fields.map((field) => `<th data-field="${escapeHtml(field)}">${escapeHtml(label(field))}</th>`).join("")}`;
+  const rows = records.map((record) => `<tr>${hasOpenAction ? tableActionCell(record) : ""}${fields.map((field) => tableCell(record, field)).join("")}</tr>`).join("");
   return `<section><h2>${escapeHtml(title)}</h2><div class="table-wrap" tabindex="0" aria-label="Scrollable ${escapeHtml(title)} table"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
+}
+
+function tableActionCell(record: object): string {
+  const actionId = readRecordField(record, "openActionId");
+  if (typeof actionId !== "string") {
+    return `<td data-field="open"></td>`;
+  }
+  return `<td data-field="open"><button type="button" data-command="openAction" data-action-id="${escapeHtml(actionId)}">Open</button></td>`;
 }
 
 function tableCell(record: object, field: string): string {

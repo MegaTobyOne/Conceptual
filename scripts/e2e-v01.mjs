@@ -3,6 +3,7 @@ import { rm } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { createCoreService } from "../packages/core/dist/service.js";
 import { PSPF_DOMAINS, withEnvelope } from "../packages/contracts/dist/index.js";
+import { ISM_SOURCE_CONTROLS, PSPF_BASELINE_DIRECTIONS, PSPF_BASELINE_DIRECTION_LINKS, PSPF_BASELINE_REQUIREMENTS } from "../packages/reference-data/dist/index.js";
 import { validateExportBundle, writeValidationReport } from "./lib/export-validation.mjs";
 
 const root = process.cwd();
@@ -16,8 +17,11 @@ await service.initialiseWorkspace();
 
 const initialValidation = await service.validateWorkspace();
 assert.equal(initialValidation.ok, true, initialValidation.message);
-assert.equal(initialValidation.counts.domains, 4);
-assert.equal(initialValidation.counts["source-controls"], 4);
+assert.equal(initialValidation.counts.domains, 6);
+assert.equal(initialValidation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length);
+assert.equal(initialValidation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
+assert.equal(initialValidation.counts.directions, PSPF_BASELINE_DIRECTIONS.length);
+assert.equal(initialValidation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length);
 
 const requirement = withEnvelope(
   "requirement",
@@ -110,7 +114,7 @@ await service.upsertEntity(withEnvelope(
 ));
 
 const sourceControls = await service.listEntities("source-control");
-assert.equal(sourceControls.length, 4);
+assert.equal(sourceControls.length, ISM_SOURCE_CONTROLS.length);
 const sourceControl = sourceControls[0];
 const mapping = withEnvelope(
   "requirement-control-mapping",
@@ -170,30 +174,30 @@ assert.equal(integrity.ok, true, integrity.detail);
 
 const validation = await service.validateWorkspace();
 assert.equal(validation.ok, true, validation.message);
-assert.equal(validation.counts.requirements, 1);
+assert.equal(validation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length + 1);
 assert.equal(validation.counts.evidence, 1);
 assert.equal(validation.counts.actions, 1);
 assert.equal(validation.counts.risks, 1);
-assert.equal(validation.counts.links, 4);
+assert.equal(validation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 4);
 assert.equal(validation.counts.snapshots, 1);
-assert.equal(validation.counts["source-controls"], 4);
+assert.equal(validation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(validation.counts["requirement-control-mappings"], 1);
-assert.equal(validation.counts.directions, 1);
+assert.equal(validation.counts.directions, PSPF_BASELINE_DIRECTIONS.length + 1);
 
 const exported = await service.exportBundle();
 const bundlePath = join(exported.exportDirectory, "bundle.json");
 const report = await validateExportBundle(bundlePath, { root });
 assert.equal(report.ok, true, report.failures.join("\n"));
-assert.equal(report.counts.domains, 4);
-assert.equal(report.counts.requirements, 1);
+assert.equal(report.counts.domains, 6);
+assert.equal(report.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length + 1);
 assert.equal(report.counts.evidence, 1);
 assert.equal(report.counts.actions, 1);
 assert.equal(report.counts.risks, 1);
-assert.equal(report.counts.links, 4);
+assert.equal(report.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 4);
 assert.equal(report.counts.snapshots, 1);
-assert.equal(report.counts["source-controls"], 4);
+assert.equal(report.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(report.counts["requirement-control-mappings"], 1);
-assert.equal(report.counts.directions, 1);
+assert.equal(report.counts.directions, PSPF_BASELINE_DIRECTIONS.length + 1);
 assert.equal(report.mappingRedaction.ok, true, report.mappingRedaction.detail);
 assert.equal(report.mappingQuality.checks.every((check) => check.ok), true, JSON.stringify(report.mappingQuality.checks));
 assert.equal(report.ismDrift.affectedMappings.length, 1);
@@ -202,17 +206,20 @@ const reportPaths = await writeValidationReport(report, join(workspaceRoot, ".ps
 const importService = createCoreService(importWorkspaceRoot);
 await importService.initialiseWorkspace();
 const imported = await importService.importBundle(bundlePath, "full-replace");
-assert.equal(imported.imported, 19);
+const expectedImported = Object.entries(report.counts)
+  .filter(([collection]) => collection !== "posture")
+  .reduce((total, [, count]) => total + count, 0);
+assert.equal(imported.imported, expectedImported);
 const importValidation = await importService.validateWorkspace();
 assert.equal(importValidation.ok, true, importValidation.message);
-assert.equal(importValidation.counts.requirements, 1);
+assert.equal(importValidation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length + 1);
 assert.equal(importValidation.counts.evidence, 1);
 assert.equal(importValidation.counts.actions, 1);
 assert.equal(importValidation.counts.risks, 1);
-assert.equal(importValidation.counts.links, 4);
-assert.equal(importValidation.counts["source-controls"], 4);
+assert.equal(importValidation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 4);
+assert.equal(importValidation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(importValidation.counts["requirement-control-mappings"], 1);
-assert.equal(importValidation.counts.directions, 1);
+assert.equal(importValidation.counts.directions, PSPF_BASELINE_DIRECTIONS.length + 1);
 const importedMappings = await importService.listEntities("requirement-control-mapping");
 assert.equal(importedMappings[0].confidence, "medium");
 assert.equal(importedMappings[0].lastReviewedAt, "2026-05-10T00:00:00.000Z");

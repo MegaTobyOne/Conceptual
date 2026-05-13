@@ -28,6 +28,9 @@
             ],
             "@pspf/ism-source-library": [
                 "packages/ism-source-library/src/index.ts"
+            ],
+            "@pspf/reference-data": [
+                "packages/reference-data/src/index.ts"
             ]
         },
         "resolveJsonModule": true,

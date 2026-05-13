@@ -10,12 +10,6 @@
     "references": [
         {
             "path": "../contracts"
-        },
-        {
-            "path": "../ism-source-library"
-        },
-        {
-            "path": "../reference-data"
         }
     ]
 }

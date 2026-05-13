@@ -37,6 +37,8 @@ for (const requiredPath of [
   "adr/0027-v0-9-release-candidate-freeze.md",
   "validation-scenario-1-operator-workflow.md",
   expectedVersion === "1.0.0" ? "adr/0028-v1-0-initial-assurance-user-testing-release.md" : "adr/0027-v0-9-release-candidate-freeze.md",
+  "adr/0029-v1-0-reference-data-baseline.md",
+  "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
   "pspf-spec-consistency-index.md"
@@ -52,6 +54,13 @@ for (const requiredText of [`PSPF v${expectedVersion}`, "Schema 1.3.0", "Bundle 
 for (const deferredPackage of ["packages/shop/README.md", "packages/pub/README.md"]) {
   const text = await readFile(join(root, deferredPackage), "utf8");
   assert.match(text, /deferred/i, `${deferredPackage} should remain a deferral note for ${expectedVersion}`);
+}
+
+if (expectedVersion === "1.0.0") {
+  const referenceBaselineAdr = await readFile(join(root, "adr/0029-v1-0-reference-data-baseline.md"), "utf8");
+  for (const requiredText of ["218", "GOV", "RISK", "INFO", "TECH", "PER", "PHYS", "v2026.03.24", "no runtime egress"]) {
+    assert.equal(referenceBaselineAdr.includes(requiredText), true, `reference baseline ADR should mention ${requiredText}`);
+  }
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

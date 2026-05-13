@@ -106,6 +106,21 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **Readiness-report gate**: `release:readiness` writes `.tmp/release-readiness/v1.0.0-readiness-report.md` with all tracked gates passing.
 5. **Manual validation gate**: `validation-scenario-1-operator-workflow.md` completes without intervention and confirms Workshop Activity Bar access, status bar version context, Workshop, Explorer, posture brief, integrity scan, Directions, Action Impact, and redaction behaviour.
 
+### v1.0 reference-data baseline candidate gates (per ADR 0029)
+
+These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.
+
+1. **Source integrity gate**: PSPF and ISM source files match recorded source URLs and SHA-256 hashes.
+2. **PSPF extraction gate**: PSPF Release 2025 mandatory requirements extract every displayed source row; the current April 2026 PDF yields 217 displayed rows across the 1 through 218 numbering range, with no duplicates and the missing requirement `113` source anomaly recorded.
+3. **PSPF domain gate**: the baseline contains exactly the six PSPF Release 2025 domain families: `GOV`, `RISK`, `INFO`, `TECH`, `PER`, and `PHYS`.
+4. **Metadata completeness gate**: every PSPF requirement carries statement, section, applicability, start date, release decision, question type, mandatory flag, scored flag, source, licence, and attribution.
+5. **ISM OSCAL gate**: the generated ISM source library is reproducible from vendored `v2026.03.24` OSCAL master-catalogue files and carries required provenance.
+6. **Mapping gate**: every PSPF-to-ISM mapping is human-reviewable, has confidence/provenance, and references existing PSPF and ISM endpoints.
+7. **No-runtime-egress gate**: Core, Workshop, and Explorer do not fetch PSPF or ISM reference data at runtime.
+8. **Attribution and redaction gate**: source-text surfaces show required attribution, every new field has publication policy, and redaction gates still pass.
+
+`check:reference-data-baseline` is part of both `check:gates` and `e2e:v1.0` for the implemented v1.0 baseline.
+
 ## v1 release gates
 
 A v1 release candidate is not eligible for publication unless all gates pass:
