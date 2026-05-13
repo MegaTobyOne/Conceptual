@@ -1,6 +1,6 @@
 {
     "name": "pspf",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "private": true,
     "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
     "packageManager": "pnpm@10.10.0",
@@ -14,7 +14,8 @@
         "check:backup-restore": "pnpm build && node scripts/backup-restore-dry-run.mjs",
         "check:brief-redaction": "pnpm build && node scripts/check-brief-redaction.mjs",
         "check:explorer-publication": "pnpm build && node scripts/check-explorer-publication.mjs",
-        "check:gates": "pnpm build && node scripts/check-reference-data-baseline.mjs && node scripts/check-schema-policy.mjs && node scripts/check-schema-coverage.mjs && node scripts/check-personal-data-exclusion.mjs && node scripts/check-brief-redaction.mjs && node scripts/check-ism-drift.mjs && node scripts/check-explorer-publication.mjs && node scripts/check-writer-lock.mjs && node scripts/check-integrity-scan.mjs && node scripts/check-sample-workspace.mjs && node scripts/check-package-shape.mjs && node scripts/backup-restore-dry-run.mjs && node scripts/check-accessibility.mjs",
+        "check:gates": "pnpm build && node scripts/check-reference-data-baseline.mjs && node scripts/check-schema-policy.mjs && node scripts/check-schema-coverage.mjs && node scripts/check-personal-data-exclusion.mjs && node scripts/check-deployment-safety.mjs && node scripts/check-brief-redaction.mjs && node scripts/check-ism-drift.mjs && node scripts/check-explorer-publication.mjs && node scripts/check-writer-lock.mjs && node scripts/check-integrity-scan.mjs && node scripts/check-sample-workspace.mjs && node scripts/check-package-shape.mjs && node scripts/backup-restore-dry-run.mjs && node scripts/check-accessibility.mjs",
+        "check:deployment-safety": "pnpm build && node scripts/check-deployment-safety.mjs",
         "check:integrity-scan": "pnpm build && node scripts/check-integrity-scan.mjs",
         "check:ism-drift": "pnpm build && node scripts/check-ism-drift.mjs",
         "check:sample-workspace": "pnpm build && node scripts/check-sample-workspace.mjs",

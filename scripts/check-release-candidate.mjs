@@ -7,6 +7,7 @@ const root = process.cwd();
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const expectedVersion = packageJson.version;
 const expectedAxes = "1.3.0";
+const isV1Release = /^1\.0\.\d+$/.test(expectedVersion);
 const packagePaths = [
   "package.json",
   "packages/brief-renderer/package.json",
@@ -28,7 +29,7 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), "schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), "bundleVersion should stay 1.3.0");
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), "apiVersion should stay 1.3.0");
 
-const e2eScript = expectedVersion === "1.0.0" ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -36,8 +37,9 @@ for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "
 for (const requiredPath of [
   "adr/0027-v0-9-release-candidate-freeze.md",
   "validation-scenario-1-operator-workflow.md",
-  expectedVersion === "1.0.0" ? "adr/0028-v1-0-initial-assurance-user-testing-release.md" : "adr/0027-v0-9-release-candidate-freeze.md",
+  isV1Release ? "adr/0028-v1-0-initial-assurance-user-testing-release.md" : "adr/0027-v0-9-release-candidate-freeze.md",
   "adr/0029-v1-0-reference-data-baseline.md",
+  "adr/0030-v1-0-1-validation-closure-and-explorer-local-authoring-phase-1.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -56,10 +58,15 @@ for (const deferredPackage of ["packages/shop/README.md", "packages/pub/README.m
   assert.match(text, /deferred/i, `${deferredPackage} should remain a deferral note for ${expectedVersion}`);
 }
 
-if (expectedVersion === "1.0.0") {
+if (isV1Release) {
   const referenceBaselineAdr = await readFile(join(root, "adr/0029-v1-0-reference-data-baseline.md"), "utf8");
   for (const requiredText of ["218", "GOV", "RISK", "INFO", "TECH", "PER", "PHYS", "v2026.03.24", "no runtime egress"]) {
     assert.equal(referenceBaselineAdr.includes(requiredText), true, `reference baseline ADR should mention ${requiredText}`);
+  }
+
+  const patchAdr = await readFile(join(root, "adr/0030-v1-0-1-validation-closure-and-explorer-local-authoring-phase-1.md"), "utf8");
+  for (const requiredText of ["v1.0.1", "manual validation", "Explorer local-authoring phase 1", "IndexedDB", "1.3.0"]) {
+    assert.equal(patchAdr.includes(requiredText), true, `v1.0.1 ADR should mention ${requiredText}`);
   }
 }
 

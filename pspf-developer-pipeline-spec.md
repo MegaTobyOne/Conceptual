@@ -293,6 +293,7 @@ All workflow files live in `.github/workflows/` at the repo root. Each is scoped
 | `accessibility.yml` | PR touching `packages/explorer/**` | `axe-core` per primary route on the standard fixture |
 | `schema-publish.yml` | PR touching `schemas/**` | hash-match validator vs served schema; remote `$ref` lint; per-version directory check (E23) |
 | `personal-data-gate.yml` | every PR | exporter run against personal-data fixture; fail-closed assertion (N6, S7) |
+| `deployment-safety.yml` | every PR and release/deploy tag | static deployment and publication-bundle safety scan; blocks hosted sensitive/restricted fields, personal data, secrets, and workspace/runtime artefacts |
 | `au-english-lint.yml` | every PR | scan `docs/**` and extracted UI strings against the spelling allowlist |
 | `core-release.yml` | tag `core/<v>` | package `packages/core` as signed VSIX, attach to GitHub release, publish to Marketplace |
 | `workshop-release.yml` | tag `workshop/<v>` | as above for Workshop |
@@ -310,6 +311,9 @@ Release pattern:
 - attach to the GitHub release,
 - publish only from signed-off tags,
 - generate release notes from PR labels.
+- run a post-publish smoke check in a clean VS Code profile before announcing the release.
+
+Marketplace and web deployment are separate channels. `VSCE_TOKEN` and optional `OVSX_TOKEN` are used only by extension release workflows; VentraIP SSH keys are used only by static web deployment workflows.
 
 ## Shop and Pub CI/CD
 
@@ -328,7 +332,9 @@ If Core API compatibility changes, affected package compatibility suites should 
 
 ### Deployment model
 
-Explorer should build as a static site and deploy to GitHub Pages using GitHub Actions. GitHub Pages custom workflows require the correct permissions, Pages deployment actions, and an explicit environment for deployment.
+Explorer should build as a static site and deploy through GitHub Actions. GitHub Pages remains the reference deployment target, and VentraIP cPanel hosting is an acceptable static-host alternative when the same release gates, redaction gates, and rollback discipline are used. GitHub Pages custom workflows require the correct permissions, Pages deployment actions, and an explicit environment for deployment. VentraIP workflows use SSH/SFTP deployment to separate test and production document roots.
+
+The primary domain is production. A test subdomain, such as `test.<primary-domain>` or `preview.<primary-domain>`, receives new Explorer builds first so schema, data, headers, and browser behaviour can be validated before production promotion.
 
 ### Explorer workflows
 
@@ -340,6 +346,7 @@ Explorer uses the repo-level workflows listed above. Product-specific Explorer j
 | `preview.yml` | PR | optional preview artefact or Pages preview strategy |
 | `explorer-release.yml` | push to main or release tag | build and deploy to GitHub Pages |
 | `bundle-verify.yml` | PR touching schema/import/export | validate JSON bundle compatibility |
+| `deployment-safety.yml` | PR, push, release tag | run `pnpm run check:deployment-safety` before any static deployment or Marketplace release |
 
 ### Pages deployment requirements
 
@@ -358,6 +365,8 @@ Explorer should keep deployments reversible and legible:
 - visible build artefacts,
 - version displayed in the app footer or about screen,
 - and schema/export bundle version displayed where relevant.
+
+For VentraIP deployments, keep separate release directories and deploy keys for test and production. Deploy only `packages/explorer/dist/`, served schemas, and deliberately published `data/` bundle files that have passed deployment-safety and personal-data gates. Public PSPF and ISM reference requirements may be hosted because they are already available online; organisation-specific assessment notes, mapping rationale, local applicability notes, secrets, workspaces, and raw debug exports may not be hosted.
 
 ## Test strategy
 

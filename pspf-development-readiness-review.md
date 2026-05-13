@@ -6,7 +6,7 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Status: v1.0 initial assurance user testing release implemented. v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
+**Status: v1.0.1 patch release prepared. v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
 
@@ -23,6 +23,7 @@ The validated spine from the original readiness sequence is fully landed and has
 - v0.8 is governed by [adr/0026-v0-8-first-run-and-packaging-readiness.md](adr/0026-v0-8-first-run-and-packaging-readiness.md). It adds a shared sample-workspace fixture, Workshop Welcome and Load Sample commands, sample-workspace validation, and Core/Workshop package-shape rehearsal. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `0.8.0`.
 - v0.9 is governed by [adr/0027-v0-9-release-candidate-freeze.md](adr/0027-v0-9-release-candidate-freeze.md). It adds no product features; it refreshes the manual validation scenario, makes release-readiness reporting active-version aware, and adds release-candidate consistency checks. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `0.9.0`.
 - v1.0 is governed by [adr/0028-v1-0-initial-assurance-user-testing-release.md](adr/0028-v1-0-initial-assurance-user-testing-release.md). It is a release cut from v0.9 for initial assurance user testing. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.0.0`.
+- v1.0.1 is governed by [adr/0030-v1-0-1-validation-closure-and-explorer-local-authoring-phase-1.md](adr/0030-v1-0-1-validation-closure-and-explorer-local-authoring-phase-1.md). It records clean manual validation to date and the next Explorer local-authoring phase 1 decision. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.0.1`.
 - v1.0 scope is governed by [adr/0022-v1-0-scope.md](adr/0022-v1-0-scope.md): Core + Workshop + Explorer publication mode plus the v0.5 surface; Shop, Pub, Explorer local authoring, chart export, plan-apply, editable posture, and third-party accessibility audit are deferred past v1.0; performance reference is a current MacBook Air.
 
 The core product decisions remain stable:
@@ -65,7 +66,7 @@ These are open before, during, or after the first manual operator validation. No
 5. **Health view** — the v1 spec set references a Core "Health view" in `pspf-acceptance-and-quality-gates.md` Core criterion #2, `pspf-vscode-extension-surface-spec.md`, `pspf-onboarding-spec.md`, `pspf-core-architecture-spec.md`, and `pspf-core-workshop-screen-workflow-spec.md`. v0.1 surfaces the same information through discrete commands (`PSPF: Validate Workspace`, `PSPF: Verify Integrity`, `PSPF: Show Writer Lock`) and does not ship a single Health view webview. The unified view arrives in v0.2.
 6. **Command rename in extension surface spec** — `pspf-vscode-extension-surface-spec.md` still lists `pspf.core.exportExplorerBundle`; the implementation correctly uses `pspf.core.exportBundle` per ADR 0009 (single master bundle). The spec text is patched alongside this review; this risk closes when the patch lands.
 7. **Core API contract shape** — `pspf-core-api-contract-spec.md` describes a layered `PspfCoreApi` object (`platform`, `queries`, `commands`, `events`). v0.1 exposes a flat object plus VS Code commands; the layered shape is targeted for v0.2 once a second consuming product exists. Documented here rather than treated as drift, because v0.1 has only one consumer.
-8. **First operator validation** — the slice has not yet been put in front of an external operator using `validation-scenario-1-operator-workflow.md`. This is the next sequenced activity, not a code task.
+8. **First operator validation** — manual validation using `validation-scenario-1-operator-workflow.md` has been clean to date. Keep recording any future operator findings against the scenario before expanding post-v1.0 scope.
 
 ## Development environment enhancements
 
@@ -96,8 +97,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual operator validation using `validation-scenario-1-operator-workflow.md`, followed by a decision on post-v1.0 scope.
+The next sequence is v1.0.1 patch validation, then Explorer local-authoring phase 1 as recorded in ADR 0030.
 
 ## Review conclusion
 
-The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, and integrity/readiness spine is implemented end-to-end and gated for v1.0 initial assurance user testing. No additional product feature work is required before manual validation; any post-v1.0 feature tranche should be reopened explicitly through a new ADR.
+The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, and integrity/readiness spine is implemented end-to-end and gated for v1.0 initial assurance user testing. Manual validation has been clean to date. v1.0.1 is a patch release; the next feature tranche is Explorer local-authoring phase 1 under ADR 0030.

@@ -8,6 +8,7 @@ const reportDirectory = join(root, ".tmp", "release-readiness");
 await mkdir(reportDirectory, { recursive: true });
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const sliceVersion = packageJson.version;
+const manualValidationCleanToDate = sliceVersion === "1.0.1";
 
 const e2eBundle = findLatestBundle(join(root, ".tmp", "e2e-v0.1-workspace"));
 const debugBundle = findLatestBundle(join(root, "debug-workspace"));
@@ -47,9 +48,11 @@ const markdown = [
   "",
   "## Current Assessment",
   "",
-  passed === gates.length
-    ? `All tracked v${sliceVersion} gates are passing.`
-    : `The implementation is close to v${sliceVersion} validation readiness, with the remaining gap shown below.`,
+  passed === gates.length && manualValidationCleanToDate
+    ? `All tracked v${sliceVersion} gates are passing, and manual validation has been clean to date.`
+    : passed === gates.length
+      ? `All tracked v${sliceVersion} gates are passing.`
+      : `The implementation is close to v${sliceVersion} validation readiness, with the remaining gap shown below.`,
   "",
   "## Gates",
   "",
@@ -67,9 +70,11 @@ const markdown = [
   "",
   "## Next Gap To Close",
   "",
-  passed === gates.length
-    ? "Manual operator validation using Scenario 1."
-    : "Resolve any OPEN gates above before manual operator validation."
+  passed === gates.length && manualValidationCleanToDate
+    ? "Continue recording operator findings against Scenario 1; next feature work is Explorer local-authoring phase 1 under ADR 0030."
+    : passed === gates.length
+      ? "Manual operator validation using Scenario 1."
+      : "Resolve any OPEN gates above before manual operator validation."
 ].join("\n");
 
 await writeFile(join(reportDirectory, `v${sliceVersion}-readiness-report.md`), `${markdown}\n`, "utf8");

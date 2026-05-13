@@ -33,13 +33,80 @@ try {
   }, bundle);
   await page.waitForSelector("#validation:not([hidden])");
 
+  const validationInitiallyCollapsed = await page.locator("#validation").evaluate((element) => element instanceof HTMLDetailsElement && !element.open);
+  await page.locator('.section-nav a[href="#validation"]').click();
+  await page.waitForFunction(() => document.querySelector("#validation")?.open === true);
+  const validationNavOpened = await page.locator("#validation").evaluate((element) => element instanceof HTMLDetailsElement && element.open);
+  const requirementsInitiallyCollapsed = await page.locator("#requirements").evaluate((element) => element instanceof HTMLDetailsElement && !element.open);
+  await page.locator('.section-nav a[href="#requirements"]').click();
+  await page.waitForFunction(() => document.querySelector("#requirements")?.open === true);
+  const requirementsNavOpened = await page.locator("#requirements").evaluate((element) => element instanceof HTMLDetailsElement && element.open);
+  const requirementsText = await page.locator("#requirements").innerText();
+  await page.getByRole("button", { name: "Close All" }).click();
+  const closeAllCollapsedSections = await page.locator("details.panel").evaluateAll((sections) => sections.every((section) => section instanceof HTMLDetailsElement && !section.open));
+  await page.evaluate(() => {
+    document.querySelectorAll("details.panel").forEach((section) => {
+      section.open = true;
+    });
+  });
+
   const visibleText = await page.locator("body").innerText();
   const validationFailures = await page.locator("#validation .check.fail").count();
   const copyButtonVisible = await page.getByRole("button", { name: "Copy posture brief" }).isVisible();
   const brief = await page.evaluate(() => globalThis.pspfExplorerCurrentBrief && globalThis.pspfExplorerCurrentBrief());
+  const statusTableUnderDonut = await page.locator("#summary .panel-lite .table-wrap").count();
+  const rawActionDueDateCount = await page.locator('#actions td[data-field="dueDate"]').evaluateAll((cells) => cells.filter((cell) => /\d{4}-\d{2}-\d{2}T|\d{4}-\d{2}-\d{2}/.test(cell.textContent || "")).length);
   const desktopLayoutChecks = await collectLayoutChecks(page, "Desktop");
+  await page.setViewportSize({ width: 1600, height: 900 });
+  const wideLayoutChecks = await collectLayoutChecks(page, "Wide");
   await page.setViewportSize({ width: 390, height: 820 });
   const narrowLayoutChecks = await collectLayoutChecks(page, "Narrow");
+  const syntheticExplorerValues = await page.evaluate(async (value) => {
+    const clone = JSON.parse(JSON.stringify(value));
+    const collections = clone.collections || {};
+    const requirement = (collections.requirements || [])[0];
+    collections.actions = [
+      ...(collections.actions || []),
+      {
+        id: "ACT-00000000-0000-4000-8000-00000000ABCD",
+        entityType: "action",
+        schemaVersion: clone.manifest.schemaVersion,
+        title: "Synthetic ISO due date action",
+        createdAt: "2026-05-14T00:00:00.000Z",
+        updatedAt: "2026-05-14T00:00:00.000Z",
+        sourceProduct: "workshop",
+        recordStatus: "active",
+        status: "todo",
+        dueDate: "2026-06-30T00:00:00.000Z"
+      }
+    ];
+    collections["requirement-control-mappings"] = [
+      ...(collections["requirement-control-mappings"] || []),
+      {
+        id: "MAP-00000000-0000-4000-8000-00000000ABCD",
+        entityType: "requirement-control-mapping",
+        schemaVersion: clone.manifest.schemaVersion,
+        title: "Manual mapping to unresolved source control",
+        createdAt: "2026-05-14T00:00:00.000Z",
+        updatedAt: "2026-05-14T00:00:00.000Z",
+        sourceProduct: "workshop",
+        recordStatus: "active",
+        requirementId: requirement?.id || "REQ-00000000-0000-4000-8000-00000000ABCD",
+        sourceControlId: "SRC-00000000-0000-4000-8000-00000000ABCD",
+        coverageQualifier: "partial",
+        applicabilityProfile: "manual",
+        confidence: "medium",
+        provenance: { oscalRelease: "manual-test" }
+      }
+    ];
+    await globalThis.pspfExplorerRender(clone.manifest, collections);
+    document.querySelector("#actions").open = true;
+    document.querySelector("#ism-coverage").open = true;
+    return {
+      actionDueDate: Array.from(document.querySelectorAll('#actions td[data-field="dueDate"]')).at(-1)?.textContent?.trim(),
+      manualCoverageControlId: Array.from(document.querySelectorAll('#ism-coverage td[data-field="controlId"]')).at(-1)?.textContent?.trim()
+    };
+  }, bundle);
 
   const checks = [
     check("No page errors", pageErrors.length === 0, pageErrors.join("; ")),
@@ -50,11 +117,21 @@ try {
     check("Visible bundle version", visibleText.includes(`Bundle ${VERSION_AXES.bundleVersion}`), `Bundle ${VERSION_AXES.bundleVersion}`),
     check("Visible API version", visibleText.includes(`API ${VERSION_AXES.apiVersion}`), `API ${VERSION_AXES.apiVersion}`),
     check("Copy posture brief button visible", copyButtonVisible, "button"),
+    check("Compliance status table sits under donut", statusTableUnderDonut === 1, `${statusTableUnderDonut} table(s)`),
+    check("Validation section starts collapsed", validationInitiallyCollapsed, "collapsed by default"),
+    check("Validation nav opens section", validationNavOpened, "nav target opens"),
+    check("Requirements section starts collapsed", requirementsInitiallyCollapsed, "collapsed by default"),
+    check("Requirements nav opens section", requirementsNavOpened, "nav target opens"),
+    check("Close All collapses record sections", closeAllCollapsedSections, "all details closed"),
+    check("Action due dates avoid raw ISO text", rawActionDueDateCount === 0, `${rawActionDueDateCount} raw date cell(s)`),
+    check("Synthetic ISO action due date renders short AU", syntheticExplorerValues.actionDueDate === "30 Jun 2026", syntheticExplorerValues.actionDueDate || "missing"),
+    check("Manual ISM source IDs render compactly", syntheticExplorerValues.manualCoverageControlId === "SRC-ABCD", syntheticExplorerValues.manualCoverageControlId || "missing"),
     check("Generated brief includes classification", typeof brief === "string" && brief.includes("OFFICIAL: Sensitive"), "classification"),
     check("Generated brief excludes sensitive summary", typeof brief === "string" && !brief.includes("Internal assessment working note"), "summary redaction"),
-    check("Readable requirement title rendered", visibleText.includes("Validate governance reporting workflow"), "requirement title"),
+    check("Readable requirement title rendered", requirementsText.includes("Validate governance reporting workflow"), "requirement title"),
     check("Readable relationship target rendered", visibleText.includes("Governance committee terms of reference"), "evidence title"),
     ...desktopLayoutChecks,
+    ...wideLayoutChecks,
     ...narrowLayoutChecks
   ];
 
@@ -97,6 +174,16 @@ function check(name, ok, detail) {
 async function collectLayoutChecks(page, viewportLabel) {
   const result = await page.evaluate((label) => {
     const checks = [];
+    const main = document.querySelector("main");
+    if (label === "Wide") {
+      const mainWidth = main ? main.getBoundingClientRect().width : 0;
+      checks.push({
+        name: "Wide Explorer workspace uses available width",
+        ok: mainWidth >= 1500,
+        detail: `${Math.round(mainWidth)}px main width`
+      });
+    }
+
     const compactSelectors = [".check", ".version-pill", ".section-nav a"];
     const compactElements = compactSelectors.flatMap((selector) => Array.from(document.querySelectorAll(selector)));
     const wrappedCompact = compactElements.filter((element) => {
@@ -110,13 +197,21 @@ async function collectLayoutChecks(page, viewportLabel) {
       detail: `${wrappedCompact.length} wrapped label(s)`
     });
 
-    const titleCells = Array.from(document.querySelectorAll('td[data-field="title"], td[data-field="requirement"], td[data-field="control"], td[data-field="target"]'));
+    const titleCells = Array.from(document.querySelectorAll('td[data-field="title"], td[data-field="requirement"], td[data-field="control"], td[data-field="from"], td[data-field="to"], td[data-field="target"]'));
     const minimumWidth = label === "Desktop" ? 250 : 220;
     const narrowTitleCells = titleCells.filter((cell) => cell.getBoundingClientRect().width < minimumWidth);
     checks.push({
       name: `${label} title columns keep readable width`,
       ok: narrowTitleCells.length === 0,
       detail: `${narrowTitleCells.length}/${titleCells.length} title-like cell(s) below ${minimumWidth}px`
+    });
+
+    const relationshipFromCells = Array.from(document.querySelectorAll('#links td[data-field="from"]'));
+    const narrowRelationshipFromCells = relationshipFromCells.filter((cell) => cell.getBoundingClientRect().width < minimumWidth);
+    checks.push({
+      name: `${label} Relationships From column keeps readable width`,
+      ok: narrowRelationshipFromCells.length === 0,
+      detail: `${narrowRelationshipFromCells.length}/${relationshipFromCells.length} From cell(s) below ${minimumWidth}px`
     });
 
     const pageOverflowingElements = Array.from(document.querySelectorAll("body *")).filter((element) => {

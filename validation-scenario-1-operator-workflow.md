@@ -23,7 +23,7 @@ Out of scope for v1.0:
 
 ## Test Data
 
-- Use `PSPF: Load Sample Workspace` for the primary run. It loads a privacy-safe fixture with 3 Requirements, 2 Evidence items, 3 Actions, 4 Risks, 2 Directions, 12 links, and 1 ISM mapping when source controls are available.
+- Use `PSPF: Load Sample Workspace` for the primary run. The baseline workspace includes 9 published Home Affairs Directions; the sample fixture adds 3 Requirements, 2 Evidence items, 3 Actions, 4 Risks, 2 sample Directions, 12 sample links, and 1 ISM mapping when source controls are available.
 - Optional manual add-on: create one extra Requirement, Evidence, Action, and Risk using the original governance test data below if the operator wants to exercise Quick Pick authoring after the sample load.
 - Requirement title: `Validate governance reporting workflow`
 - Domain: `Governance`
@@ -47,10 +47,10 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 
 1. Launch `Run PSPF Core + Workshop`.
 2. Confirm the debug workspace has auto-initialised. If not, run `PSPF: Initialise PSPF Workspace` manually; the command is idempotent.
-3. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.0.0`, `Schema 1.3.0`, and `API 1.3.0`.
-4. Confirm the VS Code status bar shows `PSPF v1.0.0` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+3. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.0.1`, `Schema 1.3.0`, and `API 1.3.0`.
+4. Confirm the VS Code status bar shows `PSPF v1.0.1` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
 5. From `Workshop Home`, click `Load sample`.
-6. From `Workshop Home`, click `Open dashboard` and confirm the sample counts look right: 3 Requirements, 2 Evidence items, 3 Actions, 4 Risks, and 2 Directions.
+6. From `Workshop Home`, click `Open dashboard` and confirm the sample counts look right: baseline PSPF requirements plus 3 sample Requirements, 2 Evidence items, 3 Actions, 4 Risks, 11 Directions, and baseline Direction links plus 12 sample links.
 7. Confirm the dashboard shows Direction response chips and an `Action Impact — Top 5` table with compact Explanation cells.
 8. From `Workshop Home`, click `Review evidence` and confirm `Urgent Actions (Blocked or Overdue)` appears.
 9. Run `PSPF: Open Item Detail` and select a sample Requirement. Confirm linked evidence, actions with urgency, risks, ISM mappings, inbound Directions, relationships, and version context.
@@ -70,7 +70,7 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 ## Expected Explorer Behaviour
 
 - Bundle Validation shows PASS for versions, collection contract, counts, hashes, posture counts, and redaction checks.
-- Explorer visibly shows `PSPF v1.0.0`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+- Explorer visibly shows `PSPF v1.0.1`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
 - Posture Brief shows the sample workspace counts and Direction summary.
 - Compliance Status shows a donut with the met percentage and a table alternative.
 - Domain Posture shows domain-level posture bars and a table alternative.
@@ -81,7 +81,7 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 - Actions shows `Confirm next governance review date` and the linked requirement title.
 - Actions shows Action Impact where applicable, including Direction uplift and urgency.
 - Risks shows `Governance review evidence may become stale` and the linked requirement title.
-- Directions shows the sample Home Affairs Directions and response states.
+- Directions shows the published baseline Home Affairs Directions plus the sample Directions and response states.
 - Relationships Board shows links from the requirement to evidence, action, and risk using readable titles rather than raw IDs.
 - The internal summary does not appear in Explorer or exported publication JSON.
 - The copied posture brief includes counts and action/risk summary, but excludes internal summaries and restricted personal fields.
@@ -119,7 +119,7 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.0.0-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.0.1-readiness-report.md`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
 - Manual operator validation is the next step.

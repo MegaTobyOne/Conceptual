@@ -2,7 +2,9 @@
 
 PSPF is the Australian Government's Protective Security Policy Framework, administered by the Department of Home Affairs. This product helps Australian entities assess and report against PSPF requirements and the ASD Essential Eight, locally and offline.
 
-This repository is starting with the v0.1 working slice: PSPF Core, PSPF Workshop, and PSPF Explorer publication mode. Shop, Pub, Explorer local-authoring mode, editable posture, Action Impact ranking, and plan-apply imports are deferred to v0.2+.
+This repository currently implements the v1.0.1 initial assurance user-testing slice: PSPF Core, PSPF Workshop, and PSPF Explorer publication mode. Shop, Pub, Explorer local-authoring mode, editable posture, chart image export, and plan-apply imports remain deferred.
+
+Current user-facing improvements include sample workspace loading, Direction and ISM mapping review, Action Impact summaries, compact Workshop edit tabs, AU-formatted due dates, save-and-close edit actions, and a wider Explorer publication view with collapsible sections.
 
 ## Local Setup
 
@@ -26,25 +28,25 @@ The first manual user-validation path is captured in `validation-scenario-1-oper
 
 Use the VS Code launch configuration `Run PSPF Core + Workshop` to open `debug-workspace/` in an Extension Host. The first validation scenario is:
 
-The debug workspace opts into `pspf.core.initialiseOnActivation`, so `.pspf/` is prepared when the Extension Host starts. The manual `PSPF: Initialise PSPF Workspace` command is still available and idempotent, but you should not need it for the debug launch.
+The debug workspace opts into `pspf.core.initialiseOnActivation`, so `.pspf/` is prepared when the Extension Host starts. The manual `PSPF: Initialise PSPF Workspace` command is still available and idempotent, but you should not need it for the debug launch. For the quickest validation path, use `PSPF: Load Sample Workspace` from Workshop Home before opening the dashboard or Explorer export.
 
 For a clean manual run, close the Extension Host and run `npx pnpm@10.10.0 run debug:reset` from the repository root before relaunching.
 
-1. `PSPF: Create Requirement`
-2. `PSPF: Attach Evidence to Requirement`
-3. `PSPF: Create Action`
-4. `PSPF: Create Risk`
-5. `PSPF: Open Assessment Dashboard`
-6. `PSPF: Open Evidence Review Queue`
-7. `PSPF: Open Item Detail`
-8. `PSPF: Copy Posture Brief`
-9. `PSPF: Validate Workspace`
-10. `PSPF: Verify Integrity`
+1. `PSPF: Load Sample Workspace`
+2. `PSPF: Open Assessment Dashboard`
+3. `PSPF: Open Evidence Review Queue`
+4. `PSPF: Open Item Detail`
+5. `PSPF: Open Direction Detail`
+6. Optional: create or edit a Requirement, Evidence, Action, Risk, Direction, or ISM mapping.
+7. `PSPF: Copy Posture Brief`
+8. `PSPF: Validate Workspace`
+9. `PSPF: Verify Integrity`
+10. `PSPF: Run Integrity Scan`
 11. `PSPF: Create Snapshot`
 12. `PSPF: Export Master Bundle`
 13. `PSPF: Show Writer Lock`
 
-Open `packages/explorer/dist/index.html` in a browser and select the exported `debug-workspace/.pspf/exchange/exports/export-*/bundle.json` file. The Explorer validation panel should pass, and the Requirements table should show the PSPF domain label rather than a raw domain ID.
+Open `packages/explorer/dist/index.html` in a browser and select the exported `debug-workspace/.pspf/exchange/exports/export-*/bundle.json` file. Explorer should show a posture brief, donut with its status table directly underneath, collapsible record sections, top navigation that opens a target section, a `Close All` control, AU-formatted Action due dates, compact unresolved ISM IDs, and readable Relationships columns.
 
 ## Headless v0.1 E2E
 
@@ -66,6 +68,8 @@ The command prints the generated `bundle.json` path. Open `packages/explorer/dis
 - Actions: `Confirm next governance review date`.
 - Risks: `Governance review evidence may become stale`.
 - Relationships Board: three links from the requirement to evidence, action, and risk.
+- Explorer navigation: collapsed record sections that open from the top buttons and collapse via `Close All`.
+- Actions: due dates displayed in short AU format.
 
 ## Manual Debug Validation
 
@@ -84,6 +88,7 @@ The command finds the latest `debug-workspace/.pspf/exchange/exports/export-*/bu
 - `pnpm run validate:debug-workspace` validates the latest bundle produced by manual Extension Host testing.
 - `pnpm run validate:export -- <export-directory|bundle.json>` validates a specific export path, including manifest/collection schema validation.
 - `pnpm run check:accessibility` scans Explorer with Playwright and axe-core and fails on serious or critical findings.
+- `pnpm run check:explorer-publication` builds Explorer and checks validation, section navigation, collapsed panels, `Close All`, AU Action dates, compact ISM IDs, wide layout usage, and readable table columns.
 - `pnpm run check:writer-lock` confirms a simulated second writer blocks writes.
 - `pnpm run check:backup-restore` restores a copied `.pspf` workspace and verifies integrity plus Core validation.
 - `pnpm run check:schema-coverage` confirms every v0.1 Explorer collection has a Draft 07 schema file and validates the standard fixture with AJV.
@@ -100,4 +105,4 @@ Run:
 npx pnpm@10.10.0 run release:readiness
 ```
 
-This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v0.1-readiness-report.md`. When the report shows all gates passing, the slice is ready for manual operator validation using `validation-scenario-1-operator-workflow.md`.
+This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.0.1-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.

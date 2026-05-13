@@ -41,6 +41,8 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0026 | v0.8 first-run and packaging readiness | accepted |
 | 0027 | v0.9 release-candidate freeze | accepted |
 | 0028 | v1.0 initial assurance user testing release | accepted |
+| 0029 | v1.0 reference data baseline | accepted and implemented |
+| 0030 | v1.0.1 validation closure and Explorer local-authoring phase 1 | accepted |
 
 ## Template
 

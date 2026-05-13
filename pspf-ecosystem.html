@@ -9,10 +9,10 @@
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>PSPF Ecosystem</title>
   <meta name="description"
-    content="A public guide to an Australian PSPF-focused tool ecosystem: Core, Workshop, and Explorer in the v0.1 slice, with Shop and Pub deferred. Independent, not affiliated with any Australian Government entity." />
+    content="A public guide to an Australian PSPF-focused tool ecosystem: Core, Workshop, and Explorer publication mode for initial assurance user testing, with Shop and Pub deferred. Independent, not affiliated with any Australian Government entity." />
   <meta property="og:title" content="PSPF Ecosystem" />
   <meta property="og:description"
-    content="A public guide to an Australian PSPF-focused tool ecosystem. v0.1 centres on Core, Workshop, and Explorer publication mode. Independent and experimental." />
+    content="A public guide to an Australian PSPF-focused tool ecosystem. The current slice centres on Core, Workshop, and Explorer publication mode. Independent and experimental." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="robots" content="index,follow" />
@@ -655,9 +655,9 @@
             affiliated with, endorsed by, or operated by</strong> the Department of Home Affairs, the Attorney-General's
           Department, or any other Australian Government entity. The Protective Security Policy Framework remains the
           authoritative source for Australian Government protective security policy.</p>
-        <p><strong>Experimental v0.1 slice.</strong> The first working slice is intentionally small: Core, Workshop, and
-          Explorer publication mode. Shop, Pub, Explorer local authoring, forecasting, and advanced ranking are
-          deferred.</p>
+        <p><strong>Initial assurance testing slice.</strong> The current working slice is intentionally focused: Core,
+          Workshop, and Explorer publication mode. Shop, Pub, Explorer local authoring, forecasting, editable posture,
+          and chart image export are deferred.</p>
         <p><strong>Hosting.</strong> This page is currently hosted on a non-Australian content delivery network. Do not
           enter information classified above OFFICIAL: Sensitive into any tool reachable from this site, and do not
           assume Australian data residency for any data this page or its linked tools may collect. We intend to re-host
@@ -681,9 +681,10 @@
         <aside class="hero-panel" aria-label="Ecosystem summary">
           <div class="stack">
             <span class="mini-label">At a glance</span>
-            <p class="kicker">v0.1 proves the spine before the full ecosystem.</p>
-            <p>Core keeps the trusted local record. Workshop supports Requirement, Evidence, Action, and Risk authoring
-              in VS Code. Explorer turns a curated bundle into a shareable, read-only publication view. Shop and Pub
+            <p class="kicker">The current slice proves the spine before the full ecosystem.</p>
+            <p>Core keeps the trusted local record. Workshop supports Requirements, Evidence, Actions, Risks,
+              Directions, ISM mappings, and save-and-close editing in VS Code. Explorer turns a curated bundle into a
+              wider, collapsible, read-only publication view with AU dates and a copyable posture brief. Shop and Pub
               remain part of the design, but are deliberately deferred until the spine is reliable.</p>
           </div>
           <ul class="flow-list" role="list">
@@ -691,7 +692,8 @@
               <span class="flow-num">1</span>
               <div>
                 <strong>Capture and maintain</strong>
-                <p>Core and Workshop organise Requirements, Evidence, Actions, and Risks for the v0.1 assessment loop.
+                <p>Core and Workshop organise Requirements, Evidence, Actions, Risks, Directions, and ISM mappings for
+                  the current assessment loop.
                 </p>
               </div>
             </li>
@@ -706,8 +708,8 @@
               <span class="flow-num">3</span>
               <div>
                 <strong>Explore and explain</strong>
-                <p>Explorer turns the bundle into a simple publication-mode interface for posture, readiness, evidence
-                  freshness, and shareable brief copy.</p>
+                <p>Explorer turns the bundle into a publication-mode interface for posture, readiness, evidence
+                  freshness, Action Impact, ISM coverage, relationships, and shareable brief copy.</p>
               </div>
             </li>
           </ul>
@@ -734,14 +736,15 @@
             <article class="step-card">
               <span class="mini-label">Working layer</span>
               <h3>Core and Workshop first</h3>
-              <p>v0.1 captures local assessment state, evidence, actions, and risks. Core is the local store; Workshop
-                is the VS Code authoring surface that talks to Core.</p>
+              <p>The current slice captures local assessment state, evidence, actions, risks, Directions, and ISM
+                mappings. Core is the local store; Workshop is the VS Code authoring surface that talks to Core.</p>
             </article>
             <article class="step-card">
               <span class="mini-label">Sharing</span>
               <h3>Explorer</h3>
-              <p>Explorer consumes a curated JSON bundle and presents the information in a simple static interface. v0.1
-                is publication mode only; browser-local authoring is deferred.</p>
+              <p>Explorer consumes a curated JSON bundle and presents the information in a static interface with a
+                posture donut, compact status table, collapsible sections, AU dates, ISM coverage, and readable
+                relationship tables. Browser-local authoring is deferred.</p>
             </article>
           </div>
         </div>
@@ -752,8 +755,8 @@
       <div class="container">
         <div class="section-head">
           <h2>Products in the ecosystem</h2>
-          <p>Each product has one main job. v0.1 implements only the shortest useful path: initialise a workspace,
-            create assessment evidence, export a bundle, and share an Explorer posture brief.</p>
+          <p>Each product has one main job. The current slice supports a practical validation path: load sample data,
+            review assessment posture, edit key records, export a bundle, and share an Explorer posture brief.</p>
         </div>
         <div class="tool-grid">
           <article class="tool-card">
@@ -777,10 +780,11 @@
               <span class="tool-tag">v0.1</span>
             </div>
             <p>Workshop is the day-to-day authoring surface. It helps users work with Requirements, Evidence, Actions,
-              Risks, evidence review, and posture brief preparation inside VS Code.</p>
+              Risks, Directions, ISM mappings, evidence review, and posture brief preparation inside VS Code.</p>
             <ul class="simple-list">
               <li>Organises work by requirement and linked objects.</li>
               <li>Highlights stale evidence, gaps and follow-up actions.</li>
+              <li>Uses compact edit tab titles, AU-formatted dates and save-and-close actions.</li>
               <li>Supports reporting preparation before export.</li>
             </ul>
             <a class="tool-link" href="#links">Add Workshop link →</a>
@@ -821,11 +825,13 @@
               <h3>Explorer</h3>
               <span class="tool-tag">v0.1 publication</span>
             </div>
-            <p>Explorer is the simple, portable web interface. v0.1 reads a curated bundle, shows posture and readiness,
+            <p>Explorer is the simple, portable web interface. It reads a curated bundle, shows posture and readiness,
               and lets reviewers copy a shareable brief without installing VS Code.</p>
             <ul class="simple-list">
-              <li>Presents posture, gaps and readiness visually.</li>
-              <li>Lets users drill from summary to detail.</li>
+              <li>Presents posture, gaps, Directions, Action Impact and ISM coverage visually.</li>
+              <li>Uses collapsible sections, a Close All control, wide reading space and readable relationship columns.
+              </li>
+              <li>Shows short AU dates and compact unresolved IDs in published tables.</li>
               <li>Shows OFFICIAL: Sensitive and TLP:AMBER+STRICT handling cues.</li>
               <li>Browser-local authoring and round-trip export are deferred.</li>
             </ul>
@@ -853,13 +859,13 @@
             <span class="mini-label">Step 2</span>
             <h3>Capture local assessment reality</h3>
             <p>Use Core with Workshop to record how your environment maps to the framework, including assessment status,
-              linked evidence, actions, and risks.</p>
+              linked evidence, actions, risks, Directions, and ISM mappings.</p>
           </article>
           <article class="step-card">
             <span class="mini-label">Step 3</span>
             <h3>Share the picture</h3>
-            <p>Export a bundle and publish it to Explorer so reviewers can see posture, evidence freshness, gaps, and
-              the shareable brief from summary to detail.</p>
+            <p>Export a bundle and publish it to Explorer so reviewers can see posture, evidence freshness, gaps,
+              Action Impact, ISM coverage, relationships, and the shareable brief from summary to detail.</p>
           </article>
         </div>
       </div>
@@ -888,8 +894,9 @@
           <article class="step-card">
             <span class="mini-label">Guardrails</span>
             <h3>Tests before trust</h3>
-            <p>v0.1 gates include AU-English lint, schema-policy checks, personal-data exclusion, accessibility floor,
-              contract tests, fixture round-trips, and a single-writer lock test.</p>
+            <p>Current gates include AU-English lint, schema-policy checks, personal-data exclusion, accessibility
+              floor,
+              Explorer publication smoke tests, contract tests, fixture round-trips, and a single-writer lock test.</p>
           </article>
         </div>
       </div>
@@ -943,8 +950,8 @@
           <article class="source-card">
             <span class="mini-label">v0.1 published view</span>
             <h3>Explorer</h3>
-            <p>Public URL to be published. This will point to the Explorer GitHub Pages publication-mode site when
-              released.</p>
+            <p>Public URL to be published. This will point to the Explorer publication-mode site when released; the
+              local build already opens from <code>packages/explorer/dist/index.html</code>.</p>
             <span class="tool-link link-disabled" aria-disabled="true">Explorer URL coming soon</span>
           </article>
 

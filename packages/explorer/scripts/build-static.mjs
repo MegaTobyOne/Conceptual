@@ -18,7 +18,7 @@ const html = `<!doctype html>
     :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     body { margin: 0; background: #111113; color: #f4f4f5; }
     header { background: #18181b; color: #fafafa; border-bottom: 1px solid #3f3f46; padding: 12px 20px; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
-    main { max-width: 1120px; margin: 0 auto; padding: 24px; }
+    main { width: min(1680px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0; }
     button, input { font: inherit; }
     button { background: #0f766e; color: #f0fdfa; border: 1px solid #14b8a6; border-radius: 6px; padding: 8px 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
     button:hover { background: #0d9488; }
@@ -31,8 +31,16 @@ const html = `<!doctype html>
     .banner { background: #3f2f11; border-bottom: 1px solid #d97706; color: #fde68a; padding: 8px 20px; font-weight: 600; }
     .panel { background: #18181b; border: 1px solid #3f3f46; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
     .section-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: rgba(17, 17, 19, 0.92); border: 1px solid #3f3f46; border-radius: 6px; padding: 8px; margin: 0 0 16px; backdrop-filter: blur(10px); }
-    .section-nav a { color: #e4e4e7; text-decoration: none; border: 1px solid #3f3f46; background: #202024; border-radius: 6px; padding: 6px 10px; font-size: 14px; white-space: nowrap; }
-    .section-nav a:hover { border-color: #38bdf8; }
+    .section-nav a, .section-nav button { color: #e4e4e7; text-decoration: none; border: 1px solid #3f3f46; background: #202024; border-radius: 6px; padding: 6px 10px; font-size: 14px; white-space: nowrap; font-weight: 600; }
+    .section-nav a:hover, .section-nav button:hover { border-color: #38bdf8; background: #27272a; }
+    details.panel { padding: 0; }
+    details.panel > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; cursor: pointer; }
+    details.panel > summary::-webkit-details-marker { display: none; }
+    details.panel > summary h2 { margin: 0; }
+    details.panel > summary::after { content: "Open"; border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; white-space: nowrap; }
+    details.panel[open] > summary { border-bottom: 1px solid #3f3f46; }
+    details.panel[open] > summary::after { content: "Close"; }
+    .section-body { padding: 16px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
     .metric { border: 1px solid #3f3f46; border-radius: 6px; padding: 12px; background: #202024; }
     .metric strong { display: block; font-size: 28px; }
@@ -59,7 +67,7 @@ const html = `<!doctype html>
     th, td { text-align: left; padding: 8px; border-bottom: 1px solid #3f3f46; vertical-align: top; }
     th { font-size: 13px; color: #d4d4d8; }
     td { overflow-wrap: anywhere; }
-    th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="target"], td[data-field="target"], th[data-field="explanation"], td[data-field="explanation"] { min-width: 18rem; max-width: 34rem; }
+    th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="from"], td[data-field="from"], th[data-field="to"], td[data-field="to"], th[data-field="target"], td[data-field="target"], th[data-field="explanation"], td[data-field="explanation"] { min-width: 18rem; max-width: 34rem; }
     th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="responseState"], td[data-field="responseState"], th[data-field="reference"], td[data-field="reference"], th[data-field="total"], td[data-field="total"], th[data-field="postureUplift"], td[data-field="postureUplift"], th[data-field="evidenceUplift"], td[data-field="evidenceUplift"], th[data-field="riskReduction"], td[data-field="riskReduction"], th[data-field="directionUplift"], td[data-field="directionUplift"], th[data-field="urgency"], td[data-field="urgency"] { white-space: nowrap; width: 1%; }
     .validation-table th:nth-child(2), .validation-table td:nth-child(2) { width: 1%; white-space: nowrap; }
     .empty-value { color: #a1a1aa; font-style: italic; }
@@ -68,7 +76,7 @@ const html = `<!doctype html>
     .footer { color: #a1a1aa; font-size: 13px; margin-top: 24px; }
     section { scroll-margin-top: 76px; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-    @media (max-width: 720px) { .overview-grid, .bar-row { grid-template-columns: 1fr; } main { padding: 16px; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"] { min-width: 16rem; } }
+    @media (max-width: 720px) { .overview-grid, .bar-row { grid-template-columns: 1fr; } main { width: calc(100% - 32px); padding: 16px 0; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="from"], td[data-field="from"], th[data-field="to"], td[data-field="to"] { min-width: 16rem; } }
   </style>
 </head>
 <body>
@@ -95,18 +103,19 @@ const html = `<!doctype html>
       <a href="#source-controls">ISM Source Controls</a>
       <a href="#ism-coverage">ISM Coverage</a>
       <a href="#links">Relationships</a>
+      <button type="button" id="close-all-sections">Close All</button>
     </nav>
     <section id="summary" class="panel" aria-live="polite" hidden></section>
-    <section id="validation" class="panel" aria-live="polite" hidden></section>
-    <section id="requirements" class="panel" hidden></section>
-    <section id="evidence" class="panel" hidden></section>
-    <section id="actions" class="panel" hidden></section>
-    <section id="action-impact" class="panel" hidden></section>
-    <section id="risks" class="panel" hidden></section>
-    <section id="directions" class="panel" hidden></section>
-    <section id="source-controls" class="panel" hidden></section>
-    <section id="ism-coverage" class="panel" hidden></section>
-    <section id="links" class="panel" hidden></section>
+    <details id="validation" class="panel" aria-live="polite" hidden></details>
+    <details id="requirements" class="panel" hidden></details>
+    <details id="evidence" class="panel" hidden></details>
+    <details id="actions" class="panel" hidden></details>
+    <details id="action-impact" class="panel" hidden></details>
+    <details id="risks" class="panel" hidden></details>
+    <details id="directions" class="panel" hidden></details>
+    <details id="source-controls" class="panel" hidden></details>
+    <details id="ism-coverage" class="panel" hidden></details>
+    <details id="links" class="panel" hidden></details>
     <p class="footer">PSPF source: protectivesecurity.gov.au · Essential Eight source: cyber.gov.au · ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0</p>
   </main>
   <script src="./brief-renderer.js"></script>
@@ -129,6 +138,23 @@ const sourceControlsSection = document.querySelector("#source-controls");
 const ismCoverageSection = document.querySelector("#ism-coverage");
 const linksSection = document.querySelector("#links");
 let currentBriefInput;
+
+sectionNav.addEventListener("click", (event) => {
+  if (event.target instanceof HTMLElement && event.target.closest("#close-all-sections")) {
+    document.querySelectorAll("details.panel").forEach((section) => {
+      section.open = false;
+    });
+    return;
+  }
+  const link = event.target instanceof HTMLElement ? event.target.closest('a[href^="#"]') : null;
+  if (!link) {
+    return;
+  }
+  const target = document.querySelector(link.getAttribute("href"));
+  if (target instanceof HTMLDetailsElement) {
+    target.open = true;
+  }
+});
 
 input.addEventListener("change", async () => {
   const files = Array.from(input.files || []);
@@ -180,6 +206,7 @@ async function render(manifest, collections, collectionTexts = undefined) {
   }));
   const actions = (collections.actions || []).map((item) => ({
     ...item,
+    dueDate: formatShortDate(item.dueDate) || item.dueDate,
     requirements: titleList(relationshipSummary.requirementsByAction.get(item.id), requirementsById)
   }));
   const risks = (collections.risks || []).map((item) => ({
@@ -197,9 +224,9 @@ async function render(manifest, collections, collectionTexts = undefined) {
     const requirement = requirementsById.get(mapping.requirementId);
     const sourceControl = sourceControlsById.get(mapping.sourceControlId);
     return {
-      requirement: requirement ? requirement.title : mapping.requirementId,
-      controlId: sourceControl ? sourceControl.controlId : mapping.sourceControlId,
-      control: sourceControl ? sourceControl.title : "Unknown source control",
+      requirement: requirement ? requirement.title : compactEntityId(mapping.requirementId),
+      controlId: sourceControl ? sourceControl.controlId : compactEntityId(mapping.sourceControlId),
+      control: sourceControl ? sourceControl.title : "Source control not in bundle",
       coverage: label(mapping.coverageQualifier),
       profile: mapping.applicabilityProfile,
       confidence: label(mapping.confidence || "medium"),
@@ -248,22 +275,22 @@ async function render(manifest, collections, collectionTexts = undefined) {
   document.querySelector("#copy-brief")?.addEventListener("click", copyPostureBrief);
 
   validationSection.hidden = false;
-  validationSection.innerHTML = '<h2>Bundle Validation</h2>' + validationTable(validation);
+  renderExplorerSection(validationSection, "Bundle Validation", validationTable(validation));
 
   requirementsSection.hidden = false;
-  requirementsSection.innerHTML = '<h2>Requirements</h2>' + table(requirements, ["title", "assessmentStatus", "domain", "evidence", "actions", "risks"]);
+  renderExplorerSection(requirementsSection, "Requirements", table(requirements, ["title", "assessmentStatus", "domain", "evidence", "actions", "risks"]));
 
   evidenceSection.hidden = false;
-  evidenceSection.innerHTML = '<h2>Evidence</h2>' + table(evidence, ["title", "evidenceType", "freshness", "requirements", "reference"]);
+  renderExplorerSection(evidenceSection, "Evidence", table(evidence, ["title", "evidenceType", "freshness", "requirements", "reference"]));
 
   actionsSection.hidden = false;
-  actionsSection.innerHTML = '<h2>Actions</h2>' + table(actions, ["title", "status", "dueDate", "requirements"]);
+  renderExplorerSection(actionsSection, "Actions", table(actions, ["title", "status", "dueDate", "requirements"]));
 
   actionImpactSection.hidden = false;
-  actionImpactSection.innerHTML = '<h2>Action Impact ranking</h2><p class="muted">Derived from linked requirements, evidence, risks, and Directions. Scoring is explainable and deterministic.</p>' + actionImpactTable(collections);
+  renderExplorerSection(actionImpactSection, "Action Impact ranking", '<p class="muted">Derived from linked requirements, evidence, risks, and Directions. Scoring is explainable and deterministic.</p>' + actionImpactTable(collections));
 
   risksSection.hidden = false;
-  risksSection.innerHTML = '<h2>Risks</h2>' + table(risks, ["title", "status", "likelihood", "impact", "requirements"]);
+  renderExplorerSection(risksSection, "Risks", table(risks, ["title", "status", "likelihood", "impact", "requirements"]));
 
   const directions = (collections.directions || []).map((direction) => ({
     reference: direction.reference,
@@ -273,16 +300,21 @@ async function render(manifest, collections, collectionTexts = undefined) {
     issuedAt: direction.issuedAt ? formatDate(direction.issuedAt) : "Not recorded"
   }));
   directionsSection.hidden = false;
-  directionsSection.innerHTML = '<h2>Directions</h2><p class="muted">Authoritative Directions overlay PSPF Requirements; once registered they always apply.</p>' + table(directions, ["reference", "title", "responseState", "sourceAuthority", "issuedAt"]);
+  renderExplorerSection(directionsSection, "Directions", '<p class="muted">Authoritative Directions overlay PSPF Requirements; once registered they always apply.</p>' + table(directions, ["reference", "title", "responseState", "sourceAuthority", "issuedAt"]));
 
   sourceControlsSection.hidden = false;
-  sourceControlsSection.innerHTML = '<h2>ISM Source Controls</h2><p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0.</p>' + table(sourceControls, ["controlId", "title", "profiles", "release", "drift"]);
+  renderExplorerSection(sourceControlsSection, "ISM Source Controls", '<p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0.</p>' + table(sourceControls, ["controlId", "title", "profiles", "release", "drift"]));
 
   ismCoverageSection.hidden = false;
-  ismCoverageSection.innerHTML = '<h2>ISM Coverage</h2>' + table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"]);
+  renderExplorerSection(ismCoverageSection, "ISM Coverage", table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"]));
 
   linksSection.hidden = false;
-  linksSection.innerHTML = '<h2>Relationships Board</h2>' + table(relationships, ["title", "relationship", "from", "to"]);
+  renderExplorerSection(linksSection, "Relationships Board", table(relationships, ["title", "relationship", "from", "to"]));
+}
+
+function renderExplorerSection(section, heading, body, open = false) {
+  section.open = open;
+  section.innerHTML = '<summary><h2>' + escapeHtml(heading) + '</h2></summary><div class="section-body">' + body + '</div>';
 }
 
 function versionStrip(manifest) {
@@ -472,6 +504,13 @@ function overview(requirements, collections) {
   const metEnd = percent(met, total);
   const partialEnd = percent(met + partial, total);
   const notMetEnd = percent(met + partial + notMet, total);
+  const statusTable = '<h3 class="visually-hidden">Compliance status table alternative</h3>' +
+    table([
+      { status: "Met", count: met },
+      { status: "In progress, partial, or under review", count: partial },
+      { status: "Not met", count: notMet },
+      { status: "Other", count: Math.max(total - met - partial - notMet, 0) }
+    ], ["status", "count"]);
   return '<div class="overview-grid" aria-label="Posture overview">' +
     '<div class="panel-lite">' +
       '<h3>Compliance Status</h3>' +
@@ -486,19 +525,13 @@ function overview(requirements, collections) {
           '<span style="--swatch: #71717a;">Other: ' + Math.max(total - met - partial - notMet, 0) + '</span>' +
         '</div>' +
       '</div>' +
+      statusTable +
     '</div>' +
     '<div>' +
       '<h3>Domain Posture</h3>' + domainBars(requirements) +
       '<h3>Needs Attention</h3>' + attentionList(requirements, collections) +
     '</div>' +
-  '</div>' +
-  '<h3 class="visually-hidden">Compliance status table alternative</h3>' +
-  table([
-    { status: "Met", count: met },
-    { status: "In progress, partial, or under review", count: partial },
-    { status: "Not met", count: notMet },
-    { status: "Other", count: Math.max(total - met - partial - notMet, 0) }
-  ], ["status", "count"]);
+  '</div>';
 }
 
 function statusCounts(requirements) {
@@ -578,6 +611,41 @@ function tableValue(value) {
 
 function label(value) {
   return String(value).replace(/-/g, " ").replace(/[A-Z]/g, (letter) => " " + letter.toLowerCase()).replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function compactEntityId(value) {
+  const id = String(value || "");
+  const match = id.match(/^([A-Z]+)-.*?([0-9A-Fa-f]{4})$/);
+  return match ? match[1] + "-" + match[2].toUpperCase() : id;
+}
+
+function formatShortDate(value) {
+  if (!value) {
+    return undefined;
+  }
+  const text = String(value).trim();
+  const isoMatch = text.match(/^(\\d{4})-(\\d{2})-(\\d{2})(?:T00:00:00(?:\\.000)?Z?)?$/);
+  if (isoMatch) {
+    return formatDateParts(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]));
+  }
+  const auMatch = text.match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{4})$/);
+  if (auMatch) {
+    return formatDateParts(Number(auMatch[3]), Number(auMatch[2]), Number(auMatch[1]));
+  }
+  const parsed = new Date(text);
+  if (Number.isNaN(parsed.getTime())) {
+    return undefined;
+  }
+  return formatDateParts(parsed.getFullYear(), parsed.getMonth() + 1, parsed.getDate());
+}
+
+function formatDateParts(year, month, day) {
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return undefined;
+  }
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return day + " " + months[month - 1] + " " + year;
 }
 
 function driftStatusLabel(status) {

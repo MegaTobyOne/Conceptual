@@ -106,6 +106,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **Readiness-report gate**: `release:readiness` writes `.tmp/release-readiness/v1.0.0-readiness-report.md` with all tracked gates passing.
 5. **Manual validation gate**: `validation-scenario-1-operator-workflow.md` completes without intervention and confirms Workshop Activity Bar access, status bar version context, Workshop, Explorer, posture brief, integrity scan, Directions, Action Impact, and redaction behaviour.
 
+### v1.0.1 patch gates (validation closure and roadmap decision, per ADR 0030)
+
+1. **Patch-scope gate**: v1.0.1 introduces no new product entities, published-bundle fields, schema axes, import semantics, or Explorer authoring workflows beyond v1.0.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.0.1`; schema, bundle, and API axes remain `1.3.0`.
+3. **Manual validation record gate**: current manual validation status is recorded as clean to date in the readiness review and the validation scenario remains the active acceptance path.
+4. **Roadmap decision gate**: ADR 0030 records Explorer local-authoring phase 1 as the next feature tranche: `IndexedDB`-backed user-owned compliance/status overlays with standard master-bundle export/import.
+5. **Regression gate**: `e2e:v1.0`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass unchanged except for the `1.0.1` version context.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

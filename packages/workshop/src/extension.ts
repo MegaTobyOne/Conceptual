@@ -23,6 +23,7 @@ import {
   type V01Entity,
   withEnvelope
 } from "@pspf/contracts";
+import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
 
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
 let workshopContext: vscode.ExtensionContext | undefined;
@@ -518,7 +519,7 @@ async function createAction(): Promise<void> {
       entityType: "action",
       title: title.trim(),
       status: status.value,
-      dueDate: dueDate?.trim() || undefined
+      dueDate: normaliseShortAuDateTime(dueDate)
     },
     "workshop"
   );
@@ -643,6 +644,8 @@ async function openAssessmentDashboard(): Promise<void> {
     "risk-managed": directions.filter((direction) => direction.responseState === "risk-managed").length
   };
   const directionRows = directions.map((direction) => ({
+    openEntityType: "direction",
+    openEntityId: direction.id,
     reference: direction.reference,
     title: direction.title,
     responseState: label(direction.responseState),
@@ -659,7 +662,8 @@ async function openAssessmentDashboard(): Promise<void> {
       const directionUplift = impact.directionUplift ?? 0;
       const total = postureUplift + evidenceUplift + riskReduction + directionUplift;
       return {
-        openActionId: action.id,
+        openEntityType: "action",
+        openEntityId: action.id,
         title: action.title,
         status: label(action.status),
         urgency: label(impact.urgency ?? "normal"),
@@ -745,22 +749,23 @@ async function openEvidenceReviewQueue(): Promise<void> {
   const linkedEvidenceIds = new Set(supportedByLinks.map((link) => link.toId));
   const missingEvidence = requirements
     .filter((requirement) => !evidenceRequirementIds.has(requirement.id))
-    .map((requirement) => ({ title: requirement.title, domain: domainName(requirement.domainId), status: label(requirement.assessmentStatus) }));
+    .map((requirement) => ({ openEntityType: "requirement", openEntityId: requirement.id, title: requirement.title, domain: domainName(requirement.domainId), status: label(requirement.assessmentStatus) }));
   const ageingEvidence = evidence
     .filter((item) => item.freshness !== "current")
-    .map((item) => ({ title: item.title, freshness: label(item.freshness), reference: item.reference }));
+    .map((item) => ({ openEntityType: "evidence", openEntityId: item.id, title: item.title, freshness: label(item.freshness), reference: item.reference }));
   const unlinkedEvidence = evidence
     .filter((item) => !linkedEvidenceIds.has(item.id))
-    .map((item) => ({ title: item.title, freshness: label(item.freshness), reference: item.reference }));
+    .map((item) => ({ openEntityType: "evidence", openEntityId: item.id, title: item.title, freshness: label(item.freshness), reference: item.reference }));
   const urgentActions = enrichedEntities
     .filter((entity): entity is ActionEntity => entity.entityType === "action")
     .filter((action) => action.impact?.urgency === "blocked" || action.impact?.urgency === "overdue")
     .map((action) => ({
-      openActionId: action.id,
+      openEntityType: "action",
+      openEntityId: action.id,
       title: action.title,
       urgency: action.impact ? label(action.impact.urgency) : "",
       status: label(action.status),
-      dueDate: action.dueDate ?? "Not set"
+      dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set"
     }));
 
   const panel = vscode.window.createWebviewPanel("pspfEvidenceReviewQueue", "PSPF Evidence Review Queue", vscode.ViewColumn.One, { enableScripts: false });
@@ -1039,13 +1044,17 @@ async function openItemDetailForDirection(direction: DirectionEntity): Promise<v
   const entitiesById = new Map(allEntities.map((entity) => [entity.id, entity]));
   const outboundLinks = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.fromId === direction.id);
   const relationships = outboundLinks.map((link) => ({
+    openEntityType: link.toType,
+    openEntityId: link.toId,
     title: link.title,
     relationship: label(link.linkType),
     targetType: label(link.toType),
     target: entitiesById.get(link.toId)?.title ?? label(link.toType)
   }));
 
-  const panel = vscode.window.createWebviewPanel("pspfItemDetail", direction.title, vscode.ViewColumn.One, { enableScripts: false });
+  const panel = vscode.window.createWebviewPanel("pspfItemDetail", shortWorkshopPanelTitle(direction), vscode.ViewColumn.One, { enableScripts: false });
+  panel.webview.options = { enableScripts: true };
+  wireWorkshopPanelMessages(panel);
   panel.webview.html = shellHtml(direction.title, `
     <section>
       <h1>${escapeHtml(direction.title)}</h1>
@@ -1053,8 +1062,8 @@ async function openItemDetailForDirection(direction: DirectionEntity): Promise<v
       <p>Response state: ${escapeHtml(label(direction.responseState))}</p>
       <p>Source authority: ${escapeHtml(direction.sourceAuthority ?? "Not recorded")}</p>
       <p>Issued: ${escapeHtml(direction.issuedAt ? formatDisplayDate(new Date(direction.issuedAt)) : "Not recorded")}</p>
-      <p class="muted">To update the response, run the command <strong>PSPF: Update Direction Response</strong>.</p>
       ${versionStrip()}
+      <div class="form-actions"><button type="button" data-command="openEntity" data-entity-type="direction" data-entity-id="${escapeHtml(direction.id)}">Edit</button></div>
     </section>
     ${recordTable("Outbound Relationships", relationships, ["title", "relationship", "targetType", "target"])}
   `);
@@ -1069,24 +1078,43 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
   const inboundLinks = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.toId === requirement.id);
   const linkedIds = new Set(outboundLinks.map((link) => link.toId));
   const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && linkedIds.has(entity.id));
+  const evidenceRows = evidence.map((item) => ({
+    openEntityType: "evidence",
+    openEntityId: item.id,
+    title: item.title,
+    evidenceType: label(item.evidenceType),
+    freshness: label(item.freshness),
+    reference: item.reference
+  }));
   const enrichedActionsById = new Map(enrichedEntities.filter((entity): entity is ActionEntity => entity.entityType === "action").map((action) => [action.id, action]));
   const actions = Array.from(linkedIds)
     .map((id) => enrichedActionsById.get(id))
     .filter((action): action is ActionEntity => Boolean(action));
   const actionRows = actions.map((action) => ({
-    openActionId: action.id,
+    openEntityType: "action",
+    openEntityId: action.id,
     title: action.title,
     status: label(action.status),
     urgency: action.impact ? label(action.impact.urgency) : "normal",
-    dueDate: action.dueDate ?? "Not set"
+    dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set"
   }));
   const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk" && linkedIds.has(entity.id));
+  const riskRows = risks.map((risk) => ({
+    openEntityType: "risk",
+    openEntityId: risk.id,
+    title: risk.title,
+    status: label(risk.status),
+    likelihood: risk.likelihood,
+    impact: risk.impact
+  }));
   const directionsById = new Map(allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction").map((entity) => [entity.id, entity]));
   const directionRows = inboundLinks
     .filter((link) => link.fromType === "direction")
     .map((link) => directionsById.get(link.fromId))
     .filter((direction): direction is DirectionEntity => Boolean(direction))
     .map((direction) => ({
+      openEntityType: "direction",
+      openEntityId: direction.id,
       reference: direction.reference,
       title: direction.title,
       responseState: label(direction.responseState),
@@ -1098,6 +1126,8 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     .map((mapping) => {
       const sourceControl = sourceControlsById.get(mapping.sourceControlId);
       return {
+        openEntityType: "requirement-control-mapping",
+        openEntityId: mapping.id,
         controlId: sourceControl?.controlId ?? mapping.sourceControlId,
         title: sourceControl?.title ?? "Unknown source control",
         coverage: label(mapping.coverageQualifier),
@@ -1111,13 +1141,15 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     });
   const entitiesById = new Map(allEntities.map((entity) => [entity.id, entity]));
   const relationships = outboundLinks.map((link) => ({
+    openEntityType: link.toType,
+    openEntityId: link.toId,
     title: link.title,
     relationship: label(link.linkType),
     targetType: label(link.toType),
     target: entitiesById.get(link.toId)?.title ?? label(link.toType)
   }));
 
-  const panel = vscode.window.createWebviewPanel("pspfItemDetail", requirement.title, vscode.ViewColumn.One, { enableScripts: false });
+  const panel = vscode.window.createWebviewPanel("pspfItemDetail", shortWorkshopPanelTitle(requirement), vscode.ViewColumn.One, { enableScripts: false });
   panel.webview.options = { enableScripts: true };
   wireWorkshopPanelMessages(panel);
   panel.webview.html = shellHtml(requirement.title, `
@@ -1126,57 +1158,62 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
       <p>Assessment status: ${escapeHtml(label(requirement.assessmentStatus))}</p>
       <p>Domain: ${escapeHtml(domainName(requirement.domainId))}</p>
       ${versionStrip()}
+      <div class="form-actions"><button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Edit</button></div>
     </section>
     ${recordTable("Directions Targeting This Requirement", directionRows, ["reference", "title", "responseState", "sourceAuthority"])}
-    ${recordTable("Evidence", evidence, ["title", "evidenceType", "freshness", "reference"])}
+    ${recordTable("Evidence", evidenceRows, ["title", "evidenceType", "freshness", "reference"])}
     ${recordTable("Actions", actionRows, ["title", "status", "urgency", "dueDate"])}
-    ${recordTable("Risks", risks, ["title", "status", "likelihood", "impact"])}
+    ${recordTable("Risks", riskRows, ["title", "status", "likelihood", "impact"])}
     ${recordTable("ISM Mappings", mappings, ["controlId", "title", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"])}
     ${recordTable("Relationships", relationships, ["title", "relationship", "targetType", "target"])}
   `);
 }
 
-async function openItemDetailForAction(actionId: string): Promise<void> {
+type SaveEntityMessage = {
+  readonly command?: "saveEntity" | "saveAndCloseEntity";
+  readonly entityType?: string;
+  readonly entityId?: string;
+  readonly fields?: Record<string, string>;
+};
+
+type EditableWorkshopEntity = RequirementEntity | EvidenceEntity | ActionEntity | RiskEntity | DirectionEntity | RequirementControlMappingEntity;
+
+async function openItemDetailForEntity(entityType: string, entityId: string): Promise<void> {
   const allEntities = await listAllEntities();
-  const action = allEntities.find((entity): entity is ActionEntity => entity.entityType === "action" && entity.id === actionId);
-  if (!action) {
-    await vscode.window.showWarningMessage("Action no longer exists in this workspace.");
+  const entity = allEntities.find((item): item is EditableWorkshopEntity => item.entityType === entityType && item.id === entityId && isEditableWorkshopEntity(item));
+  if (!entity) {
+    await vscode.window.showWarningMessage("This record is read-only or no longer exists in this workspace.");
     return;
   }
-  await openActionEditor(action);
+  await openEntityEditor(entity, allEntities);
 }
 
-async function openActionEditor(action: ActionEntity): Promise<void> {
-  const panel = vscode.window.createWebviewPanel("pspfActionDetail", action.title, vscode.ViewColumn.One, { enableScripts: true });
-  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly actionId?: string; readonly title?: string; readonly status?: ActionStatus; readonly dueDate?: string }) => {
-    if (message.command !== "saveAction" || message.actionId !== action.id) {
-      return;
-    }
+function isEditableWorkshopEntity(entity: V01Entity): entity is EditableWorkshopEntity {
+  return ["requirement", "evidence", "action", "risk", "direction", "requirement-control-mapping"].includes(entity.entityType);
+}
 
-    const nextTitle = message.title?.trim();
-    if (!nextTitle) {
-      await vscode.window.showWarningMessage("Enter an Action title before saving.");
+async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: readonly V01Entity[]): Promise<void> {
+  let currentEntity = entity;
+  const panel = vscode.window.createWebviewPanel("pspfEntityDetail", shortWorkshopPanelTitle(currentEntity), vscode.ViewColumn.One, { enableScripts: true });
+  panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
+    if (!["saveEntity", "saveAndCloseEntity"].includes(message.command ?? "") || message.entityType !== currentEntity.entityType || message.entityId !== currentEntity.id) {
       return;
     }
-    const nextStatus = message.status;
-    if (!nextStatus || !actionStatusItems.some((item) => item.value === nextStatus)) {
-      await vscode.window.showWarningMessage("Select a valid Action status before saving.");
+    const updated = await buildUpdatedEntity(currentEntity, message.fields ?? {});
+    if (!updated) {
       return;
     }
-
-    const updated: ActionEntity = {
-      ...action,
-      title: nextTitle,
-      status: nextStatus,
-      dueDate: message.dueDate?.trim() || undefined,
-      updatedAt: new Date().toISOString()
-    };
     await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
-    await vscode.window.showInformationMessage(`Action updated: ${updated.title}`);
-    panel.dispose();
-    await openActionEditor(updated);
+    await vscode.window.showInformationMessage(`${label(updated.entityType)} updated: ${updated.title ?? updated.id}`);
+    currentEntity = updated;
+    panel.title = shortWorkshopPanelTitle(updated);
+    if (message.command === "saveAndCloseEntity") {
+      panel.dispose();
+      return;
+    }
+    panel.webview.html = shellHtml(updated.title ?? updated.id, renderEntityEditor(updated, allEntities));
   });
-  panel.webview.html = shellHtml(action.title, renderActionEditor(action));
+  panel.webview.html = shellHtml(entity.title ?? entity.id, renderEntityEditor(entity, allEntities));
 }
 
 function shellHtml(title: string, body: string): string {
@@ -1208,12 +1245,14 @@ function shellHtml(title: string, body: string): string {
     .cell-compact { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="freshness"], td[data-field="freshness"] { white-space: nowrap; width: 1%; }
     th[data-field="open"], td[data-field="open"] { white-space: nowrap; width: 1%; }
-    button, input, select { font: inherit; }
+    button, input, select, textarea { font: inherit; }
     button { border: 1px solid #52525b; border-radius: 4px; background: #27272a; color: #fafafa; padding: 5px 9px; cursor: pointer; }
     button:hover { background: #3f3f46; }
     .form-grid { display: grid; gap: 12px; max-width: 620px; }
     label { display: grid; gap: 5px; color: #d4d4d8; }
-    input, select { box-sizing: border-box; width: 100%; border: 1px solid #52525b; border-radius: 4px; background: #09090b; color: #fafafa; padding: 8px; }
+    input, select, textarea { box-sizing: border-box; width: 100%; border: 1px solid #52525b; border-radius: 4px; background: #09090b; color: #fafafa; padding: 8px; }
+    textarea { resize: vertical; min-height: 88px; }
+    input[readonly] { color: #d4d4d8; background: #18181b; }
     .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
     .banner { background: #3f2f11; border-bottom: 1px solid #d97706; color: #fde68a; padding: 8px 20px; font-weight: 600; }
     .muted { color: #a1a1aa; }
@@ -1236,21 +1275,24 @@ function shellHtml(title: string, body: string): string {
         return;
       }
       const command = button.getAttribute('data-command');
-      if (command === 'openAction') {
-        vscode.postMessage({ command, actionId: button.getAttribute('data-action-id') });
+      if (command === 'openEntity') {
+        vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
       }
-      if (command === 'saveAction') {
+      if (command === 'saveEntity' || command === 'saveAndCloseEntity') {
         const form = button.closest('form');
         if (!form) {
           return;
         }
         const data = new FormData(form);
+        const fields = {};
+        for (const [key, value] of data.entries()) {
+          fields[key] = String(value);
+        }
         vscode.postMessage({
           command,
-          actionId: String(data.get('actionId') || ''),
-          title: String(data.get('title') || ''),
-          status: String(data.get('status') || ''),
-          dueDate: String(data.get('dueDate') || '')
+          entityType: String(data.get('entityType') || ''),
+          entityId: String(data.get('entityId') || ''),
+          fields
         });
       }
     });
@@ -1260,42 +1302,316 @@ function shellHtml(title: string, body: string): string {
 }
 
 function wireWorkshopPanelMessages(panel: vscode.WebviewPanel): void {
-  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly actionId?: string }) => {
-    if (message.command === "openAction" && message.actionId) {
-      await openItemDetailForAction(message.actionId);
+  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string }) => {
+    if (message.command === "openEntity" && message.entityType && message.entityId) {
+      await openItemDetailForEntity(message.entityType, message.entityId);
     }
   });
 }
 
+async function buildUpdatedEntity(entity: EditableWorkshopEntity, fields: Record<string, string>): Promise<EditableWorkshopEntity | undefined> {
+  const updatedAt = new Date().toISOString();
+  switch (entity.entityType) {
+    case "requirement": {
+      const status = fields.assessmentStatus;
+      if (!isAssessmentStatus(status)) {
+        await vscode.window.showWarningMessage("Select a valid assessment status before saving.");
+        return undefined;
+      }
+      const isBaseline = entity.sourceProduct === "core";
+      const title = isBaseline ? entity.title : fields.title?.trim();
+      const domainId = isBaseline ? entity.domainId : fields.domainId;
+      if (!title) {
+        await vscode.window.showWarningMessage("Enter a Requirement title before saving.");
+        return undefined;
+      }
+      if (!domainId || !PSPF_DOMAINS.some((domain) => domain.id === domainId)) {
+        await vscode.window.showWarningMessage("Select a valid Requirement domain before saving.");
+        return undefined;
+      }
+      return { ...entity, title, domainId, assessmentStatus: status, summary: trimOptional(fields.summary), updatedAt };
+    }
+    case "evidence": {
+      const title = fields.title?.trim();
+      const evidenceType = fields.evidenceType;
+      const freshness = fields.freshness;
+      if (!title) {
+        await vscode.window.showWarningMessage("Enter an Evidence title before saving.");
+        return undefined;
+      }
+      if (!isEvidenceType(evidenceType)) {
+        await vscode.window.showWarningMessage("Select a valid Evidence type before saving.");
+        return undefined;
+      }
+      if (!isEvidenceFreshness(freshness)) {
+        await vscode.window.showWarningMessage("Select a valid Evidence freshness before saving.");
+        return undefined;
+      }
+      const reference = fields.reference?.trim();
+      if (!reference) {
+        await vscode.window.showWarningMessage("Enter an Evidence reference before saving.");
+        return undefined;
+      }
+      return { ...entity, title, evidenceType, reference, freshness, updatedAt };
+    }
+    case "action": {
+      const title = fields.title?.trim();
+      const status = fields.status;
+      if (!title) {
+        await vscode.window.showWarningMessage("Enter an Action title before saving.");
+        return undefined;
+      }
+      if (!isActionStatus(status)) {
+        await vscode.window.showWarningMessage("Select a valid Action status before saving.");
+        return undefined;
+      }
+      return { ...entity, title, status, dueDate: normaliseShortAuDateTime(fields.dueDate), updatedAt };
+    }
+    case "risk": {
+      const title = fields.title?.trim();
+      const status = fields.status;
+      const likelihood = Number(fields.likelihood);
+      const impact = Number(fields.impact);
+      if (!title) {
+        await vscode.window.showWarningMessage("Enter a Risk title before saving.");
+        return undefined;
+      }
+      if (!isRiskStatus(status)) {
+        await vscode.window.showWarningMessage("Select a valid Risk status before saving.");
+        return undefined;
+      }
+      if (!isScore(likelihood) || !isScore(impact)) {
+        await vscode.window.showWarningMessage("Risk likelihood and impact must be whole numbers from 1 to 5.");
+        return undefined;
+      }
+      return { ...entity, title, status, likelihood, impact, updatedAt };
+    }
+    case "direction": {
+      const responseState = fields.responseState;
+      if (!isDirectionResponseState(responseState)) {
+        await vscode.window.showWarningMessage("Select a valid Direction response before saving.");
+        return undefined;
+      }
+      if (entity.sourceProduct === "core") {
+        return { ...entity, responseState, updatedAt };
+      }
+      const title = fields.title?.trim();
+      const reference = fields.reference?.trim();
+      if (!title || !reference) {
+        await vscode.window.showWarningMessage("Enter a Direction reference and title before saving.");
+        return undefined;
+      }
+      return { ...entity, title, reference, sourceAuthority: trimOptional(fields.sourceAuthority), issuedAt: trimOptional(fields.issuedAt), responseState, updatedAt };
+    }
+    case "requirement-control-mapping": {
+      const coverageQualifier = fields.coverageQualifier;
+      const confidence = fields.confidence;
+      if (!isCoverageQualifier(coverageQualifier)) {
+        await vscode.window.showWarningMessage("Select a valid mapping coverage before saving.");
+        return undefined;
+      }
+      if (!isMappingConfidence(confidence)) {
+        await vscode.window.showWarningMessage("Select a valid mapping confidence before saving.");
+        return undefined;
+      }
+      const applicabilityProfile = fields.applicabilityProfile?.trim();
+      if (!applicabilityProfile) {
+        await vscode.window.showWarningMessage("Enter a mapping applicability profile before saving.");
+        return undefined;
+      }
+      return {
+        ...entity,
+        coverageQualifier,
+        applicabilityProfile,
+        confidence,
+        lastReviewedAt: trimOptional(fields.lastReviewedAt),
+        reviewBy: trimOptional(fields.reviewBy),
+        rationale: trimOptional(fields.rationale),
+        updatedAt
+      };
+    }
+  }
+}
+
+function renderEntityEditor(entity: EditableWorkshopEntity, allEntities: readonly V01Entity[]): string {
+  switch (entity.entityType) {
+    case "requirement":
+      return renderRequirementEditor(entity);
+    case "evidence":
+      return renderEvidenceEditor(entity);
+    case "action":
+      return renderActionEditor(entity);
+    case "risk":
+      return renderRiskEditor(entity);
+    case "direction":
+      return renderDirectionEditor(entity);
+    case "requirement-control-mapping":
+      return renderMappingEditor(entity, allEntities);
+  }
+}
+
+function renderRequirementEditor(requirement: RequirementEntity): string {
+  const isBaseline = requirement.sourceProduct === "core";
+  const domainOptions = PSPF_DOMAINS.map((domain) => ({ label: domain.title, value: domain.id }));
+  return editorShell(requirement, "Edit Requirement", `
+    ${isBaseline ? readonlyField("Title", requirement.title) : inputField("title", "Title", requirement.title, true)}
+    ${isBaseline ? readonlyField("Domain", domainName(requirement.domainId)) : selectField("domainId", "Domain", domainOptions, requirement.domainId)}
+    ${selectField("assessmentStatus", "Assessment status", assessmentStatusItems, requirement.assessmentStatus)}
+    ${textareaField("summary", "Summary", requirement.summary ?? "")}
+  `, isBaseline ? "Official PSPF baseline title and domain are locked." : undefined);
+}
+
+function renderEvidenceEditor(evidence: EvidenceEntity): string {
+  return editorShell(evidence, "Edit Evidence", `
+    ${inputField("title", "Title", evidence.title, true)}
+    ${selectField("evidenceType", "Evidence type", evidenceTypeItems, evidence.evidenceType)}
+    ${inputField("reference", "Reference", evidence.reference, true)}
+    ${selectField("freshness", "Freshness", freshnessItems, evidence.freshness)}
+  `);
+}
+
 function renderActionEditor(action: ActionEntity): string {
-  const statusOptions = actionStatusItems
-    .map((item) => `<option value="${escapeHtml(item.value)}"${item.value === action.status ? " selected" : ""}>${escapeHtml(item.label)}</option>`)
-    .join("");
+  const impact = action.impact;
+  const readOnlyImpact = impact ? `
+    <section>
+      <h2>Action Impact</h2>
+      <div class="grid">
+        ${metricCard("Urgency", label(impact.urgency))}
+        ${metricCard("Posture uplift", impact.postureUplift)}
+        ${metricCard("Evidence uplift", impact.evidenceUplift)}
+        ${metricCard("Risk reduction", impact.riskReduction)}
+        ${metricCard("Direction uplift", impact.directionUplift ?? 0)}
+      </div>
+      <p class="muted">${escapeHtml((impact.explanation ?? []).join("; ") || "No linked impact signals")}</p>
+    </section>
+  ` : "";
+  return `${editorShell(action, "Edit Action", `
+    ${inputField("title", "Title", action.title, true)}
+    ${selectField("status", "Status", actionStatusItems, action.status)}
+    ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "30 Jun 2026")}
+  `)}${readOnlyImpact}`;
+}
+
+function renderRiskEditor(risk: RiskEntity): string {
+  const scoreOptions = [1, 2, 3, 4, 5].map((value) => ({ label: String(value), value: String(value) }));
+  return editorShell(risk, "Edit Risk", `
+    ${inputField("title", "Title", risk.title, true)}
+    ${selectField("status", "Status", riskStatusItems, risk.status)}
+    ${selectField("likelihood", "Likelihood", scoreOptions, String(risk.likelihood))}
+    ${selectField("impact", "Impact", scoreOptions, String(risk.impact))}
+  `);
+}
+
+function renderDirectionEditor(direction: DirectionEntity): string {
+  const isBaseline = direction.sourceProduct === "core";
+  return editorShell(direction, "Edit Direction", `
+    ${isBaseline ? readonlyField("Reference", direction.reference) : inputField("reference", "Reference", direction.reference, true)}
+    ${isBaseline ? readonlyField("Title", direction.title) : inputField("title", "Title", direction.title, true)}
+    ${isBaseline ? readonlyField("Source authority", direction.sourceAuthority ?? "Not recorded") : inputField("sourceAuthority", "Source authority", direction.sourceAuthority ?? "")}
+    ${isBaseline ? readonlyField("Issued", direction.issuedAt ?? "Not recorded") : inputField("issuedAt", "Issued", direction.issuedAt ?? "")}
+    ${selectField("responseState", "Response", directionResponseStateItems, direction.responseState)}
+  `, isBaseline ? "Official published Direction fields are locked." : undefined);
+}
+
+function renderMappingEditor(mapping: RequirementControlMappingEntity, allEntities: readonly V01Entity[]): string {
+  const requirement = allEntities.find((entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.id === mapping.requirementId);
+  const sourceControl = allEntities.find((entity): entity is SourceControlEntity => entity.entityType === "source-control" && entity.id === mapping.sourceControlId);
+  const profileOptions = sourceControl ? profileItems(sourceControl) : [{ label: label(mapping.applicabilityProfile), value: mapping.applicabilityProfile }];
+  const profileValues = new Set(profileOptions.map((item) => item.value));
+  const resolvedProfileOptions = profileValues.has(mapping.applicabilityProfile) ? profileOptions : [{ label: label(mapping.applicabilityProfile), value: mapping.applicabilityProfile }, ...profileOptions];
+  return editorShell(mapping, "Edit ISM Mapping", `
+    ${readonlyField("Requirement", requirement?.title ?? mapping.requirementId)}
+    ${readonlyField("ISM control", sourceControl ? `${sourceControl.controlId}: ${sourceControl.title}` : mapping.sourceControlId)}
+    ${selectField("coverageQualifier", "Coverage", coverageQualifierItems, mapping.coverageQualifier)}
+    ${selectField("applicabilityProfile", "Applicability profile", resolvedProfileOptions, mapping.applicabilityProfile)}
+    ${selectField("confidence", "Confidence", confidenceItems, mapping.confidence)}
+    ${inputField("lastReviewedAt", "Last reviewed", mapping.lastReviewedAt ?? "")}
+    ${inputField("reviewBy", "Review by", mapping.reviewBy ?? "")}
+    ${textareaField("rationale", "Rationale", mapping.rationale ?? "")}
+  `, "Requirement and ISM control endpoints are locked after creation.");
+}
+
+function editorShell(entity: EditableWorkshopEntity, heading: string, fieldsHtml: string, note?: string): string {
   return `
     <section>
-      <h1>${escapeHtml(action.title)}</h1>
-      <p class="muted">Update the Action fields used by Workshop queues, Item Detail, and published Action Impact.</p>
+      <h1>${escapeHtml(entity.title ?? entity.id)}</h1>
+      <p class="muted">${escapeHtml(label(entity.entityType))} · ${escapeHtml(entity.id)}</p>
       ${versionStrip()}
     </section>
     <section>
-      <h2>Edit Action</h2>
+      <h2>${escapeHtml(heading)}</h2>
+      ${note ? `<p class="muted">${escapeHtml(note)}</p>` : ""}
       <form class="form-grid">
-        <input type="hidden" name="actionId" value="${escapeHtml(action.id)}">
-        <label>Title
-          <input name="title" value="${escapeHtml(action.title)}" required>
-        </label>
-        <label>Status
-          <select name="status">${statusOptions}</select>
-        </label>
-        <label>Due date
-          <input name="dueDate" value="${escapeHtml(action.dueDate ?? "")}" placeholder="30 Jun 2026">
-        </label>
+        <input type="hidden" name="entityType" value="${escapeHtml(entity.entityType)}">
+        <input type="hidden" name="entityId" value="${escapeHtml(entity.id)}">
+        ${fieldsHtml}
         <div class="form-actions">
-          <button type="button" data-command="saveAction">Save</button>
+          <button type="button" data-command="saveEntity">Save</button>
+          <button type="button" data-command="saveAndCloseEntity">Save and close</button>
         </div>
       </form>
     </section>
   `;
+}
+
+function inputField(name: string, fieldLabel: string, value: string, required = false, placeholder = ""): string {
+  return `<label>${escapeHtml(fieldLabel)}<input name="${escapeHtml(name)}" value="${escapeHtml(value)}"${required ? " required" : ""}${placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ""}></label>`;
+}
+
+function textareaField(name: string, fieldLabel: string, value: string): string {
+  return `<label>${escapeHtml(fieldLabel)}<textarea name="${escapeHtml(name)}" rows="4">${escapeHtml(value)}</textarea></label>`;
+}
+
+function readonlyField(fieldLabel: string, value: string): string {
+  return `<label>${escapeHtml(fieldLabel)}<input value="${escapeHtml(value)}" readonly></label>`;
+}
+
+function selectField(name: string, fieldLabel: string, options: readonly { readonly label: string; readonly value: string }[], selectedValue: string): string {
+  const renderedOptions = options
+    .map((item) => `<option value="${escapeHtml(item.value)}"${item.value === selectedValue ? " selected" : ""}>${escapeHtml(item.label)}</option>`)
+    .join("");
+  return `<label>${escapeHtml(fieldLabel)}<select name="${escapeHtml(name)}">${renderedOptions}</select></label>`;
+}
+
+function trimOptional(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function isAssessmentStatus(value: string | undefined): value is AssessmentStatus {
+  return assessmentStatusItems.some((item) => item.value === value);
+}
+
+function isEvidenceType(value: string | undefined): value is EvidenceEntity["evidenceType"] {
+  return evidenceTypeItems.some((item) => item.value === value);
+}
+
+function isEvidenceFreshness(value: string | undefined): value is EvidenceFreshness {
+  return freshnessItems.some((item) => item.value === value);
+}
+
+function isActionStatus(value: string | undefined): value is ActionStatus {
+  return actionStatusItems.some((item) => item.value === value);
+}
+
+function isRiskStatus(value: string | undefined): value is RiskStatus {
+  return riskStatusItems.some((item) => item.value === value);
+}
+
+function isDirectionResponseState(value: string | undefined): value is DirectionResponseState {
+  return directionResponseStateItems.some((item) => item.value === value);
+}
+
+function isCoverageQualifier(value: string | undefined): value is RequirementControlMappingEntity["coverageQualifier"] {
+  return coverageQualifierItems.some((item) => item.value === value);
+}
+
+function isMappingConfidence(value: string | undefined): value is MappingConfidence {
+  return confidenceItems.some((item) => item.value === value);
+}
+
+function isScore(value: number): boolean {
+  return Number.isInteger(value) && value >= 1 && value <= 5;
 }
 
 async function copyPostureBrief(): Promise<void> {
@@ -1420,23 +1736,23 @@ function buildValidationHints(
   actions: readonly ActionEntity[],
   risks: readonly RiskEntity[],
   links: readonly LinkEntity[]
-): readonly { readonly priority: string; readonly requirement: string; readonly hint: string }[] {
+): readonly { readonly openEntityType: "requirement"; readonly openEntityId: string; readonly priority: string; readonly requirement: string; readonly hint: string }[] {
   const evidenceRequirementIds = new Set(links.filter((link) => link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence").map((link) => link.fromId));
   const openActionIds = new Set(actions.filter((action) => !["done", "cancelled"].includes(action.status)).map((action) => action.id));
   const openRiskIds = new Set(risks.filter((risk) => risk.status !== "closed").map((risk) => risk.id));
   const actionRequirementIds = new Set(links.filter((link) => link.linkType === "addressed-by" && openActionIds.has(link.toId)).map((link) => link.fromId));
   const riskRequirementIds = new Set(links.filter((link) => link.linkType === "exposed-by" && openRiskIds.has(link.toId)).map((link) => link.fromId));
-  const rows: { priority: string; requirement: string; hint: string }[] = [];
+  const rows: { openEntityType: "requirement"; openEntityId: string; priority: string; requirement: string; hint: string }[] = [];
 
   for (const requirement of requirements) {
     if (!evidenceRequirementIds.has(requirement.id)) {
-      rows.push({ priority: "High", requirement: requirement.title, hint: "No evidence linked yet." });
+      rows.push({ openEntityType: "requirement", openEntityId: requirement.id, priority: "High", requirement: requirement.title, hint: "No evidence linked yet." });
     }
     if (["in-progress", "partially-met", "not-met", "under-review"].includes(requirement.assessmentStatus) && !actionRequirementIds.has(requirement.id)) {
-      rows.push({ priority: "Medium", requirement: requirement.title, hint: "No open action linked to this non-final assessment." });
+      rows.push({ openEntityType: "requirement", openEntityId: requirement.id, priority: "Medium", requirement: requirement.title, hint: "No open action linked to this non-final assessment." });
     }
     if (riskRequirementIds.has(requirement.id) && !actionRequirementIds.has(requirement.id)) {
-      rows.push({ priority: "Medium", requirement: requirement.title, hint: "Open risk has no linked open action." });
+      rows.push({ openEntityType: "requirement", openEntityId: requirement.id, priority: "Medium", requirement: requirement.title, hint: "Open risk has no linked open action." });
     }
   }
 
@@ -1472,19 +1788,20 @@ function recordTable(title: string, records: readonly object[], fields: readonly
   if (records.length === 0) {
     return `<section><h2>${escapeHtml(title)}</h2><p class="muted">No records linked yet.</p></section>`;
   }
-  const hasOpenAction = records.some((record) => typeof readRecordField(record, "openActionId") === "string");
-  const actionHeader = hasOpenAction ? `<th data-field="open">Open</th>` : "";
+  const hasOpenEntity = records.some((record) => typeof readRecordField(record, "openEntityId") === "string" && typeof readRecordField(record, "openEntityType") === "string");
+  const actionHeader = hasOpenEntity ? `<th data-field="open">Open</th>` : "";
   const header = `${actionHeader}${fields.map((field) => `<th data-field="${escapeHtml(field)}">${escapeHtml(label(field))}</th>`).join("")}`;
-  const rows = records.map((record) => `<tr>${hasOpenAction ? tableActionCell(record) : ""}${fields.map((field) => tableCell(record, field)).join("")}</tr>`).join("");
+  const rows = records.map((record) => `<tr>${hasOpenEntity ? tableOpenCell(record) : ""}${fields.map((field) => tableCell(record, field)).join("")}</tr>`).join("");
   return `<section><h2>${escapeHtml(title)}</h2><div class="table-wrap" tabindex="0" aria-label="Scrollable ${escapeHtml(title)} table"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
 }
 
-function tableActionCell(record: object): string {
-  const actionId = readRecordField(record, "openActionId");
-  if (typeof actionId !== "string") {
+function tableOpenCell(record: object): string {
+  const entityId = readRecordField(record, "openEntityId");
+  const entityType = readRecordField(record, "openEntityType");
+  if (typeof entityId !== "string" || typeof entityType !== "string") {
     return `<td data-field="open"></td>`;
   }
-  return `<td data-field="open"><button type="button" data-command="openAction" data-action-id="${escapeHtml(actionId)}">Open</button></td>`;
+  return `<td data-field="open"><button type="button" data-command="openEntity" data-entity-type="${escapeHtml(entityType)}" data-entity-id="${escapeHtml(entityId)}">Open</button></td>`;
 }
 
 function tableCell(record: object, field: string): string {
