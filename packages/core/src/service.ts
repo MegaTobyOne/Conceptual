@@ -58,7 +58,7 @@ export interface CoreService {
   readonly runIntegrityScan: () => Promise<IntegrityScanReport>;
   readonly createSnapshot: () => Promise<V01Entity>;
   readonly exportBundle: () => Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }>;
-  readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<{ imported: number; mode: ImportMode; bundlePath: string }>;
+  readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
   readonly getWriterLock: () => Promise<WriterLockState>;
   readonly upsertEntity: (entity: V01Entity) => Promise<V01Entity>;
   readonly upsertEntities: (entities: readonly V01Entity[]) => Promise<readonly V01Entity[]>;
@@ -81,7 +81,7 @@ export interface CoreWriteApi {
 
 export interface CoreExchangeApi {
   readonly exportBundle: () => Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }>;
-  readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<{ imported: number; mode: ImportMode; bundlePath: string }>;
+  readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
 }
 
 export interface CoreIntegrityApi {
@@ -90,6 +90,31 @@ export interface CoreIntegrityApi {
 }
 
 export type ImportMode = "additive-merge" | "full-replace";
+
+export interface ImportTypeSummary {
+  readonly total: number;
+  readonly created: number;
+  readonly updated: number;
+  readonly unchanged: number;
+  readonly written: number;
+}
+
+export interface ImportSummary {
+  readonly total: number;
+  readonly created: number;
+  readonly updated: number;
+  readonly unchanged: number;
+  readonly written: number;
+  readonly byType: Record<string, ImportTypeSummary>;
+  readonly examples: readonly string[];
+}
+
+export interface ImportResult {
+  readonly imported: number;
+  readonly mode: ImportMode;
+  readonly bundlePath: string;
+  readonly summary: ImportSummary;
+}
 
 export interface WriterLockState {
   readonly holderPid?: number;
@@ -442,19 +467,28 @@ async function exportBundle(workspaceRoot: string): Promise<{ exportDirectory: s
   return { exportDirectory, manifestPath, collectionCount: manifestCollections.length };
 }
 
-async function importBundle(workspaceRoot: string, bundlePath: string, mode: ImportMode): Promise<{ imported: number; mode: ImportMode; bundlePath: string }> {
+async function importBundle(workspaceRoot: string, bundlePath: string, mode: ImportMode): Promise<ImportResult> {
   const paths = await ensureInitialised(workspaceRoot);
   await assertWritable(paths);
   const bundle = JSON.parse(await readFile(bundlePath, "utf8")) as { readonly collections?: Partial<BundleCollections> };
-  const entities = flattenImportEntities(bundle.collections ?? {});
-  validateImportedMappings(entities);
+  let entities = flattenImportEntities(bundle.collections ?? {});
+  if (mode === "full-replace") {
+    entities = await includeExistingReferencedSourceControls(workspaceRoot, entities);
+  }
+  const existingEntities = await listEntities(workspaceRoot);
+  const validationEntities = mode === "additive-merge" ? [...existingEntities, ...entities] : entities;
+  validateImportedMappings(validationEntities);
+  const incomingEntities = entities;
+  if (mode === "additive-merge") {
+    entities = additiveMergeWriteSet(entities, existingEntities);
+  }
+  const summary = summariseImportChanges(incomingEntities, existingEntities, entities);
 
   if (mode === "full-replace") {
-    const existing = await listEntities(workspaceRoot);
     await writeJson(join(paths.imports, `pre-full-replace-${new Date().toISOString().replace(/[:.]/g, "-")}.json`), {
       generatedAt: nowIso(),
       reason: "pre full-replace import rollback point",
-      entities: existing
+      entities: existingEntities
     });
     await runSql(paths.db, "DELETE FROM entities;");
   }
@@ -463,7 +497,101 @@ async function importBundle(workspaceRoot: string, bundlePath: string, mode: Imp
     await upsertEntity(workspaceRoot, entity);
   }
   await recordOperation(paths, "import", "success", `${mode}:${bundlePath}`);
-  return { imported: entities.length, mode, bundlePath };
+  return { imported: entities.length, mode, bundlePath, summary };
+}
+
+function summariseImportChanges(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[], writeSet: readonly V01Entity[]): ImportSummary {
+  const existingById = new Map(existingEntities.map((entity) => [entity.id, entity]));
+  const writtenIds = new Set(writeSet.map((entity) => entity.id));
+  const byType: Record<string, ImportTypeSummary> = {};
+  const examples: string[] = [];
+  let created = 0;
+  let updated = 0;
+  let unchanged = 0;
+
+  for (const incoming of incomingEntities) {
+    const typeSummary = { ...(byType[incoming.entityType] || { total: 0, created: 0, updated: 0, unchanged: 0, written: 0 }) };
+    const existing = existingById.get(incoming.id);
+    const written = writtenIds.has(incoming.id);
+    typeSummary.total += 1;
+    if (written) {
+      typeSummary.written += 1;
+    }
+
+    if (!existing) {
+      created += 1;
+      typeSummary.created += 1;
+      pushImportExample(examples, `Created ${entityChangeLabel(incoming)}`);
+    } else if (canonicalEntityJson({ ...incoming, createdAt: existing.createdAt } as V01Entity) === canonicalEntityJson(existing)) {
+      unchanged += 1;
+      typeSummary.unchanged += 1;
+    } else if (written) {
+      updated += 1;
+      typeSummary.updated += 1;
+      pushImportExample(examples, describeEntityUpdate(existing, incoming));
+    } else {
+      unchanged += 1;
+      typeSummary.unchanged += 1;
+    }
+    byType[incoming.entityType] = typeSummary;
+  }
+
+  return { total: incomingEntities.length, created, updated, unchanged, written: writeSet.length, byType, examples };
+}
+
+function pushImportExample(examples: string[], example: string): void {
+  if (examples.length < 8 && example) {
+    examples.push(example);
+  }
+}
+
+function describeEntityUpdate(existing: V01Entity, incoming: V01Entity): string {
+  if (existing.entityType === "requirement" && incoming.entityType === "requirement" && existing.assessmentStatus !== incoming.assessmentStatus) {
+    return `Updated ${entityChangeLabel(incoming)} status ${labelValue(existing.assessmentStatus)} -> ${labelValue(incoming.assessmentStatus)}`;
+  }
+  if (existing.entityType === "action" && incoming.entityType === "action" && existing.status !== incoming.status) {
+    return `Updated ${entityChangeLabel(incoming)} status ${labelValue(existing.status)} -> ${labelValue(incoming.status)}`;
+  }
+  if (existing.entityType === "risk" && incoming.entityType === "risk" && existing.status !== incoming.status) {
+    return `Updated ${entityChangeLabel(incoming)} status ${labelValue(existing.status)} -> ${labelValue(incoming.status)}`;
+  }
+  return `Updated ${entityChangeLabel(incoming)}`;
+}
+
+function entityChangeLabel(entity: V01Entity): string {
+  const title = "title" in entity && typeof entity.title === "string" ? ` ${truncate(entity.title, 80)}` : "";
+  return `${labelValue(entity.entityType)} ${entity.id}${title}`;
+}
+
+function truncate(value: string, limit: number): string {
+  return value.length <= limit ? value : `${value.slice(0, limit - 1)}...`;
+}
+
+function labelValue(value: string | undefined): string {
+  return String(value || "not recorded").replace(/-/g, " ").replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function additiveMergeWriteSet(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): V01Entity[] {
+  const existingById = new Map(existingEntities.map((entity) => [entity.id, entity]));
+  const writeSet: V01Entity[] = [];
+  for (const incoming of incomingEntities) {
+    const existing = existingById.get(incoming.id);
+    if (!existing) {
+      writeSet.push(incoming);
+      continue;
+    }
+
+    const merged = { ...incoming, createdAt: existing.createdAt } as V01Entity;
+    if (canonicalEntityJson(merged) !== canonicalEntityJson(existing)) {
+      writeSet.push(merged);
+    }
+  }
+  return writeSet;
+}
+
+function canonicalEntityJson(entity: V01Entity): string {
+  const { createdAt: _createdAt, updatedAt: _updatedAt, ...stableEntity } = entity;
+  return JSON.stringify(stableEntity);
 }
 
 async function upsertEntity(workspaceRoot: string, entity: V01Entity): Promise<V01Entity> {
@@ -549,6 +677,26 @@ function flattenImportEntities(collections: Partial<BundleCollections>): V01Enti
   return entities;
 }
 
+async function includeExistingReferencedSourceControls(workspaceRoot: string, entities: readonly V01Entity[]): Promise<V01Entity[]> {
+  const entityIds = new Set(entities.map((entity) => entity.id));
+  const missingSourceControlIds = new Set<string>();
+  for (const entity of entities) {
+    if (entity.entityType === "requirement-control-mapping") {
+      const sourceControlId = (entity as EntityByCollection["requirement-control-mappings"]).sourceControlId;
+      if (!entityIds.has(sourceControlId)) {
+        missingSourceControlIds.add(sourceControlId);
+      }
+    }
+  }
+  if (missingSourceControlIds.size === 0) {
+    return [...entities];
+  }
+
+  const existingSourceControls = await listEntities(workspaceRoot, "source-control");
+  const sourceControlsToPreserve = existingSourceControls.filter((sourceControl) => missingSourceControlIds.has(sourceControl.id));
+  return [...entities, ...sourceControlsToPreserve];
+}
+
 function pushEntity<Collection extends V01Collection>(
   collections: BundleCollections,
   collectionName: Collection,
@@ -612,9 +760,6 @@ function validateImportedMappings(entities: readonly V01Entity[]): void {
   for (const mapping of entities.filter((entity) => entity.entityType === "requirement-control-mapping")) {
     if (!entityIds.has(mapping.requirementId)) {
       throw new Error(`Import rejected: mapping ${mapping.id} references missing requirement ${mapping.requirementId}`);
-    }
-    if (!entityIds.has(mapping.sourceControlId)) {
-      throw new Error(`Import rejected: mapping ${mapping.id} references missing source control ${mapping.sourceControlId}`);
     }
   }
 }

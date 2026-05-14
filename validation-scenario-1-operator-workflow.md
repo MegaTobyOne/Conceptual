@@ -47,8 +47,8 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 
 1. Launch `Run PSPF Core + Workshop`.
 2. Confirm the debug workspace has auto-initialised. If not, run `PSPF: Initialise PSPF Workspace` manually; the command is idempotent.
-3. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.1.0`, `Schema 1.3.0`, and `API 1.3.0`.
-4. Confirm the VS Code status bar shows `PSPF v1.1.0` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+3. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.4.0`, `Schema 1.3.0`, and `API 1.3.0`.
+4. Confirm the VS Code status bar shows `PSPF v1.4.0` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
 5. From `Workshop Home`, click `Load sample`.
 6. From `Workshop Home`, click `Open dashboard` and confirm the sample counts look right: baseline PSPF requirements plus 3 sample Requirements, 2 Evidence items, 3 Actions, 4 Risks, 11 Directions, and baseline Direction links plus 12 sample links.
 7. Confirm the dashboard shows Direction response chips and an `Action Impact — Top 5` table with compact Explanation cells.
@@ -70,10 +70,14 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 ## Expected Explorer Behaviour
 
 - Bundle Validation shows PASS for versions, collection contract, counts, hashes, posture counts, and redaction checks.
-- Explorer visibly shows `PSPF v1.1.0`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+- Explorer visibly shows `PSPF v1.4.0`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
 - Explorer shows `Local Authoring`, `Export local JSON`, `Reset local data`, and an `IndexedDB` storage status.
-- In Explorer, change one Requirement status in Local Authoring, reload the same bundle, and confirm the edited status remains marked as `local` while the baseline status remains visible.
+- In Explorer Local Authoring, use `Find Requirement` to narrow the Requirement list, select one Requirement, change its status in the selected-Requirement workspace, reload the same bundle, and confirm the edited status remains marked as `local` while the baseline status remains visible.
 - Click `Export local JSON` and confirm the downloaded bundle uses `generator.mode = "local-authoring"` and keeps `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+- Add one local evidence reference for the same Requirement, export local JSON again, and confirm the bundle includes a new `evidence` record plus a `supported-by` `link` with `sourceProduct = "explorer"`.
+- Add one local Action for the same Requirement, export local JSON again, and confirm the bundle includes a new `action` record plus an `addressed-by` `link` with `sourceProduct = "explorer"`.
+- Add one local Risk for the same Requirement, export local JSON again, and confirm the bundle includes a new `risk` record plus an `exposed-by` `link` with `sourceProduct = "explorer"`.
+- If you load a refreshed bundle from the same workspace where the baseline status differs from the saved local overlay, confirm Local Authoring shows a local status conflict.
 - Click `Reset local data`, confirm reset, reload the bundle, and confirm the edited Requirement returns to the bundle status.
 - Posture Brief shows the sample workspace counts and Direction summary.
 - Compliance Status shows a donut with the met percentage and a table alternative.
@@ -93,6 +97,7 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 - The Workshop and Explorer copied posture briefs use the same sections and exclude the internal summary.
 - The Workshop dashboard shows workspace ready status, validation hints, Direction chips, Action Impact top-5, latest activity, and the same core counts as the exported bundle.
 - Workshop Home is available from the Activity Bar and offers one-click access to the dashboard, evidence review queue, validation, integrity scan, snapshot, export, and posture brief copy.
+- Workshop Home exposes `PSPF: Import Explorer Local JSON` in the view title for Explorer local-authoring exports; importing one or more Explorer local JSON bundles shows progress, then a notification summarising created, updated, and unchanged records with `Show Details` opening the Core output summary.
 - The PSPF status bar item shows the active product version and exposes schema, bundle, and API context in its tooltip without sensitive record values.
 - The evidence review queue separates missing evidence, freshness review, and unlinked evidence.
 - The evidence review queue includes Urgent Actions for blocked or overdue actions.
@@ -123,11 +128,12 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.1.0-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.4.0-readiness-report.md`.
 - An Explorer local-authoring smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
+- An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
-- Manual operator validation of the v1.1 Explorer local-authoring path is the next step.
+- Manual operator validation of the v1.4 Explorer local Risk and conflict-display path is the next step.
 
 ## Pass Criteria
 
@@ -136,6 +142,7 @@ Expected output:
 - Explorer renders the latest bundle and its validation panel passes.
 - The generated report matches the visible Explorer counts and titles.
 - Full-replace import round-trip succeeds on the automated fixture.
+- Explorer-to-Workshop import smoke succeeds on a real Explorer local-authoring export.
 - Writer-lock, backup/restore, schema, and personal-data gates pass.
 - Accessibility gate passes with zero serious or critical findings.
 - Restricted personal fields and internal summaries are absent from publication output.

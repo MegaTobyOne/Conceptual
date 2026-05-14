@@ -45,6 +45,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.createRequirement", createRequirement),
     vscode.commands.registerCommand("pspf.workshop.openWelcome", openWelcome),
     vscode.commands.registerCommand("pspf.workshop.loadSampleWorkspace", loadSampleWorkspace),
+    vscode.commands.registerCommand("pspf.workshop.importBundle", importBundle),
     vscode.commands.registerCommand("pspf.workshop.attachEvidence", attachEvidence),
     vscode.commands.registerCommand("pspf.workshop.createAction", createAction),
     vscode.commands.registerCommand("pspf.workshop.createRisk", createRisk),
@@ -66,6 +67,11 @@ export function deactivate(): void {
 
 async function openHome(): Promise<void> {
   await vscode.commands.executeCommand("workbench.view.extension.pspfWorkshop");
+  await homeViewProvider?.refresh();
+}
+
+async function importBundle(): Promise<void> {
+  await vscode.commands.executeCommand("pspf.core.importExplorerLocalBundle");
   await homeViewProvider?.refresh();
 }
 
@@ -1204,13 +1210,14 @@ async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: rea
       return;
     }
     await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
-    await vscode.window.showInformationMessage(`${label(updated.entityType)} updated: ${updated.title ?? updated.id}`);
     currentEntity = updated;
     panel.title = shortWorkshopPanelTitle(updated);
     if (message.command === "saveAndCloseEntity") {
       panel.dispose();
+      void vscode.window.showInformationMessage(`${label(updated.entityType)} updated: ${updated.title ?? updated.id}`);
       return;
     }
+    void vscode.window.showInformationMessage(`${label(updated.entityType)} updated: ${updated.title ?? updated.id}`);
     panel.webview.html = shellHtml(updated.title ?? updated.id, renderEntityEditor(updated, allEntities));
   });
   panel.webview.html = shellHtml(entity.title ?? entity.id, renderEntityEditor(entity, allEntities));

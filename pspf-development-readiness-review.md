@@ -6,14 +6,14 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Status: v1.1 Explorer local-authoring phase 1 implemented for test. v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
+**Status: v1.4 Explorer local Risks and conflict display implemented for test. v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
 
 - pnpm workspaces with `@pspf/contracts`, `@pspf/brief-renderer`, `pspf-core`, `pspf-workshop`, and the Explorer static SPA.
 - Core: workspace bootstrap, SQLite system of record at `.pspf/core/pspf-core.db`, snapshot, integrity check, master-bundle export with manifest hashes, master-bundle import (`full-replace` with pre-replace rollback and `additive-merge`), writer lock, three version axes.
 - Workshop: Requirement, Evidence, Action, Risk authoring; Assessment Dashboard, Evidence Review Queue, Item Detail, Copy Posture Brief webview commands; ISM source-control browsing; Requirement to ISM control mapping with confidence, review metadata, and drift visibility.
-- Explorer: static dark-mode SPA, bundle load with AJV validation, posture brief view with copy-to-clipboard, compliance donut, Relationships Board read-only, ISM source controls, ISM coverage, mapping quality, drift status, OFFICIAL: Sensitive banner, active version context, and v1.1 local-authoring phase 1 for browser-local Requirement status overlays.
+- Explorer: static dark-mode SPA, bundle load with AJV validation, posture brief view with copy-to-clipboard, compliance donut, Relationships Board read-only, ISM source controls, ISM coverage, mapping quality, drift status, OFFICIAL: Sensitive banner, active version context, v1.1 browser-local Requirement status overlays, v1.2 browser-local evidence references, v1.3 browser-local Actions, and v1.4 browser-local Risks plus local status conflict display.
 - Shared `@pspf/brief-renderer` package backs both Workshop and Explorer so the posture brief cannot diverge.
 - ISM integration phases 1–3 are implemented for the current seeded source-library slice; see [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md), [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md), [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md), and [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
 - v0.4 is governed by [adr/0021-v0-4-readiness-and-ui-resilience.md](adr/0021-v0-4-readiness-and-ui-resilience.md). It hardens Explorer/Workshop table readability and readiness documentation without changing the schema, bundle, or API axes from `1.2.0`.
@@ -25,6 +25,9 @@ The validated spine from the original readiness sequence is fully landed and has
 - v1.0 is governed by [adr/0028-v1-0-initial-assurance-user-testing-release.md](adr/0028-v1-0-initial-assurance-user-testing-release.md). It is a release cut from v0.9 for initial assurance user testing. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.0.0`.
 - v1.0.1 is governed by [adr/0030-v1-0-1-validation-closure-and-explorer-local-authoring-phase-1.md](adr/0030-v1-0-1-validation-closure-and-explorer-local-authoring-phase-1.md). It records clean manual validation to date and the next Explorer local-authoring phase 1 decision. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.0.1`.
 - v1.1 is governed by [adr/0031-v1-1-explorer-local-authoring-phase-1.md](adr/0031-v1-1-explorer-local-authoring-phase-1.md). Explorer persists Requirement `assessmentStatus` overlays in `IndexedDB`, visibly separates local from bundle status, and exports a standard local-authoring master bundle. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.1.0`.
+- v1.2 is governed by [adr/0032-v1-2-explorer-local-evidence-references.md](adr/0032-v1-2-explorer-local-evidence-references.md). Explorer persists local evidence references in `IndexedDB`, materialises them as existing `evidence` and `supported-by` `link` records, and exports them in the same local-authoring master bundle. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.2.0`.
+- v1.3 is governed by [adr/0033-v1-3-explorer-local-actions.md](adr/0033-v1-3-explorer-local-actions.md). Explorer persists local Actions in `IndexedDB`, materialises them as existing `action` and `addressed-by` `link` records, and exports them in the same local-authoring master bundle. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.3.0`.
+- v1.4 is governed by [adr/0034-v1-4-explorer-local-risks-and-conflicts.md](adr/0034-v1-4-explorer-local-risks-and-conflicts.md). Explorer persists local Risks in `IndexedDB`, materialises them as existing `risk` and `exposed-by` `link` records, shows informational local status conflicts against refreshed bundle baselines, and exports them in the same local-authoring master bundle. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.4.0`.
 - v1.0 scope is governed by [adr/0022-v1-0-scope.md](adr/0022-v1-0-scope.md): Core + Workshop + Explorer publication mode plus the v0.5 surface; Shop, Pub, Explorer local authoring, chart export, plan-apply, editable posture, and third-party accessibility audit are deferred past v1.0; performance reference is a current MacBook Air.
 
 The core product decisions remain stable:
@@ -38,9 +41,9 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is expected to be green at 16/16 for v1.1:
+`npx pnpm@10.10.0 run release:readiness` is expected to be green at 17/17 for v1.4:
 
-1. Spine workflow (headless `e2e:v1.1`).
+1. Spine workflow (headless `e2e:v1.4`).
 2. Schema-policy.
 3. Personal-data exclusion.
 4. AU-English lint.
@@ -55,7 +58,8 @@ The core product decisions remain stable:
 13. Brief redaction.
 14. Explorer publication smoke.
 15. Explorer local-authoring smoke.
-16. Master-bundle import.
+16. Explorer-to-Workshop import smoke.
+17. Master-bundle import.
 
 ## Remaining readiness risks
 
@@ -99,8 +103,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.1, including Explorer local-authoring phase 1.
+The next sequence is manual validation of v1.4, including Explorer local Risks and conflict display.
 
 ## Review conclusion
 
-The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, and Explorer local-authoring phase 1 are implemented end-to-end for v1.1 test. Manual validation has been clean to date through the v1.0.1 surface; v1.1 awaits operator validation.
+The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Explorer local status overlays, Explorer local evidence references, Explorer local Actions, Explorer local Risks, and local status conflict display are implemented end-to-end for v1.4 test. Manual validation has been clean to date through the v1.3 local-authoring import path; v1.4 awaits operator validation.

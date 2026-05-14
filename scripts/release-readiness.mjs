@@ -22,6 +22,8 @@ const explorerPublicationReportPath = join(root, ".tmp", "explorer-publication",
 const explorerPublicationReport = existsSync(explorerPublicationReportPath) ? JSON.parse(await readFile(explorerPublicationReportPath, "utf8")) : undefined;
 const explorerLocalAuthoringReportPath = join(root, ".tmp", "explorer-local-authoring", "explorer-local-authoring-report.json");
 const explorerLocalAuthoringReport = existsSync(explorerLocalAuthoringReportPath) ? JSON.parse(await readFile(explorerLocalAuthoringReportPath, "utf8")) : undefined;
+const explorerToWorkshopImportReportPath = join(root, ".tmp", "explorer-to-workshop-import", "explorer-to-workshop-import-report.json");
+const explorerToWorkshopImportReport = existsSync(explorerToWorkshopImportReportPath) ? JSON.parse(await readFile(explorerToWorkshopImportReportPath, "utf8")) : undefined;
 
 const gates = [
   gate("Spine workflow", Boolean(e2eReport?.ok), "Automated Core to Workshop-authored records to snapshot/export/import flow passes."),
@@ -38,7 +40,8 @@ const gates = [
   gate("Accessibility floor", accessibilityReport?.seriousOrCriticalCount === 0, "axe-core/Playwright scan reports zero serious/critical Explorer findings."),
   gate("Copy posture brief", Boolean(briefReport?.checks?.every((check) => check.ok)), "Shared Workshop/Explorer posture brief renderer passes redaction and readability checks."),
   gate("Explorer publication smoke", Boolean(explorerPublicationReport?.checks?.every((check) => check.ok)), "Explorer renders readable records, version markers, validation PASS states, and copy-brief payload."),
-  gate("Explorer local authoring", Boolean(explorerLocalAuthoringReport?.checks?.every((check) => check.ok)), "Explorer persists local Requirement status overlays in IndexedDB and exports a local-authoring master bundle."),
+  gate("Explorer local authoring", Boolean(explorerLocalAuthoringReport?.checks?.every((check) => check.ok)), "Explorer persists local Requirement status overlays, evidence references, Actions, and Risks in IndexedDB, shows local status conflicts, and exports a local-authoring master bundle."),
+  gate("Explorer-to-Workshop import", Boolean(explorerToWorkshopImportReport?.checks?.every((check) => check.ok)), "Core imports an Explorer local-authoring export into a fresh workspace and Workshop-visible records include local status, evidence, Actions, Risks, and links."),
   gate("Master-bundle import", Boolean(e2eReport?.ok), "e2e:v0.1 validates full-replace import into a fresh workspace.")
 ];
 
@@ -71,13 +74,14 @@ const markdown = [
   "- Scenario: validation-scenario-1-operator-workflow.md",
   "- Explorer publication smoke: .tmp/explorer-publication/explorer-publication-report.json",
   "- Explorer local authoring smoke: .tmp/explorer-local-authoring/explorer-local-authoring-report.json",
+  "- Explorer-to-Workshop import smoke: .tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json",
   "",
   "## Next Gap To Close",
   "",
   passed === gates.length && manualValidationCleanToDate
     ? "Continue recording operator findings against Scenario 1; next feature work is Explorer local-authoring phase 1 under ADR 0030."
     : passed === gates.length
-      ? "Manual operator validation using Scenario 1, including the v1.1 Explorer local-authoring path."
+      ? `Manual operator validation using Scenario 1, including the v${sliceVersion} Explorer local-authoring path.`
       : "Resolve any OPEN gates above before manual operator validation."
 ].join("\n");
 

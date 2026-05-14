@@ -44,6 +44,9 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0029 | v1.0 reference data baseline | accepted and implemented |
 | 0030 | v1.0.1 validation closure and Explorer local-authoring phase 1 | accepted |
 | 0031 | v1.1 Explorer local-authoring phase 1 | accepted |
+| 0032 | v1.2 Explorer local evidence references | accepted |
+| 0033 | v1.3 Explorer local actions | accepted |
+| 0034 | v1.4 Explorer local Risks and conflict display | accepted |
 
 ## Template
 

@@ -47,6 +47,23 @@ const html = `<!doctype html>
     .metric { border: 1px solid #3f3f46; border-radius: 6px; padding: 12px; background: #202024; }
     .metric strong { display: block; font-size: 28px; }
     .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
+    .toolbar > * { min-width: 0; }
+    .toolbar input, .toolbar select { max-width: 100%; }
+    .local-authoring-grid { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
+    .local-picker { border: 1px solid #3f3f46; border-radius: 6px; background: #202024; padding: 12px; position: sticky; top: 64px; }
+    .local-picker input { box-sizing: border-box; width: 100%; background: #111113; border: 1px solid #52525b; border-radius: 6px; color: #f4f4f5; padding: 8px; }
+    .local-requirement-list { display: grid; gap: 6px; max-height: min(54vh, 34rem); overflow: auto; margin-top: 10px; padding-right: 2px; }
+    .local-requirement-option { width: 100%; display: grid; gap: 4px; text-align: left; background: #18181b; border-color: #3f3f46; color: #f4f4f5; white-space: normal; font-weight: 600; }
+    .local-requirement-option[aria-pressed="true"] { border-color: #14b8a6; background: #134e4a; }
+    .local-requirement-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: #d4d4d8; font-size: 12px; font-weight: 500; }
+    .local-workspace { display: grid; gap: 14px; min-width: 0; }
+    .local-card { border: 1px solid #3f3f46; border-radius: 6px; padding: 12px; background: #202024; }
+    .local-card h3 { margin-top: 0; }
+    .local-card select, .local-card input { background: #111113; border: 1px solid #52525b; border-radius: 6px; color: #f4f4f5; padding: 6px 8px; }
+    .local-card .toolbar { align-items: end; }
+    #local-evidence-requirement { width: min(30rem, 100%); }
+    #local-evidence-title, #local-evidence-reference, #local-action-title, #local-action-due-date, #local-risk-title { width: min(20rem, 100%); }
+    #local-action-requirement, #local-risk-requirement { width: min(30rem, 100%); }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
     .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; line-height: 1.4; white-space: nowrap; }
     .local-badge { border-color: #14b8a6; color: #ccfbf1; background: #134e4a; }
@@ -80,7 +97,7 @@ const html = `<!doctype html>
     .footer { color: #a1a1aa; font-size: 13px; margin-top: 24px; }
     section { scroll-margin-top: 76px; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-    @media (max-width: 720px) { .overview-grid, .bar-row { grid-template-columns: 1fr; } main { width: calc(100% - 32px); padding: 16px 0; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="from"], td[data-field="from"], th[data-field="to"], td[data-field="to"] { min-width: 16rem; } }
+    @media (max-width: 720px) { .overview-grid, .bar-row, .local-authoring-grid { grid-template-columns: 1fr; } .local-picker { position: static; } main { width: calc(100% - 32px); padding: 16px 0; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="from"], td[data-field="from"], th[data-field="to"], td[data-field="to"] { min-width: 16rem; } }
   </style>
 </head>
 <body>
@@ -150,9 +167,19 @@ let currentBaselineCollections;
 let currentCollections;
 let currentBundleKey;
 let currentLocalOverlays = new Map();
+let currentLocalEvidenceReferences = [];
+let currentLocalActions = [];
+let currentLocalRisks = [];
+let currentLocalRequirementId;
+let currentLocalRequirementFilter = "";
 const localDbName = "pspf-explorer-local-v1";
 const localStoreName = "requirement-status-overlays";
+const localEvidenceStoreName = "requirement-evidence-references";
+const localActionStoreName = "requirement-actions";
+const localRiskStoreName = "requirement-risks";
 const assessmentStatuses = ["not-started", "in-progress", "met", "partially-met", "not-met", "not-applicable", "under-review"];
+const actionStatuses = ["todo", "in-progress", "blocked", "done", "cancelled"];
+const riskStatuses = ["open", "monitored", "closed"];
 
 sectionNav.addEventListener("click", (event) => {
   if (event.target instanceof HTMLElement && event.target.closest("#close-all-sections")) {
@@ -205,7 +232,10 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   currentBaselineCollections = cloneCollections(incomingCollections || {});
   currentBundleKey = bundleStorageKey(manifest);
   currentLocalOverlays = await loadLocalRequirementStatuses(currentBundleKey);
-  const collections = applyLocalRequirementStatuses(currentBaselineCollections, currentLocalOverlays);
+  currentLocalEvidenceReferences = await loadLocalEvidenceReferences(currentBundleKey);
+  currentLocalActions = await loadLocalActions(currentBundleKey);
+  currentLocalRisks = await loadLocalRisks(currentBundleKey);
+  const collections = applyLocalEdits(currentBaselineCollections, currentLocalOverlays, currentLocalEvidenceReferences, currentLocalActions, currentLocalRisks);
   currentCollections = collections;
   const posture = collections.posture && collections.posture[0] ? collections.posture[0] : {};
   const validation = await validateBundle(manifest, currentBaselineCollections, collectionTexts);
@@ -339,8 +369,9 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
 }
 
 function renderExplorerSection(section, heading, body, open = false) {
-  section.open = open;
+  const shouldOpen = section.open || open;
   section.innerHTML = '<summary><h2>' + escapeHtml(heading) + '</h2></summary><div class="section-body">' + body + '</div>';
+  section.open = shouldOpen;
 }
 
 function versionStrip(manifest) {
@@ -436,15 +467,25 @@ async function validateBundle(manifest, collections, collectionTexts) {
 }
 
 function localAuthoringPanel(requirements) {
+  const selectedRequirement = selectedLocalRequirement(requirements);
+  const selectedBaseline = baselineRequirement(selectedRequirement?.id);
+  const selectedOverlay = selectedRequirement ? currentLocalOverlays.get(selectedRequirement.id) : undefined;
+  const selectedConflict = selectedOverlay && selectedBaseline && selectedOverlay.baselineStatus !== selectedBaseline.assessmentStatus;
   const localCount = currentLocalOverlays.size;
+  const conflictCount = localStatusConflicts().length;
+  const localEvidenceCount = currentLocalEvidenceReferences.length;
+  const localActionCount = currentLocalActions.length;
+  const localRiskCount = currentLocalRisks.length;
   const rows = requirements.map((requirement) => {
     const baseline = baselineRequirement(requirement.id);
-    const selected = requirement.assessmentStatus;
+    const overlay = currentLocalOverlays.get(requirement.id);
+    const conflict = overlay && baseline && overlay.baselineStatus !== baseline.assessmentStatus;
     return {
       title: requirement.title,
       baseline: label(baseline?.assessmentStatus || requirement.assessmentStatus),
-      local: statusSelect(requirement.id, selected),
-      source: currentLocalOverlays.has(requirement.id) ? '<span class="version-pill local-badge">local</span>' : '<span class="version-pill baseline-badge">from bundle</span>'
+      local: label(requirement.assessmentStatus),
+      source: currentLocalOverlays.has(requirement.id) ? '<span class="version-pill local-badge">local</span>' : '<span class="version-pill baseline-badge">from bundle</span>',
+      conflict: conflict ? '<span class="check fail">Baseline changed</span>' : '<span class="muted">None</span>'
     };
   });
   return '<div class="toolbar">' +
@@ -453,14 +494,79 @@ function localAuthoringPanel(requirements) {
     '<span id="local-storage-status" class="muted" role="status">IndexedDB checking storage...</span>' +
     '</div>' +
     '<p class="muted">Local status overlays: ' + localCount + '</p>' +
-    tableHtml(rows, ["title", "baseline", "local", "source"]);
+    '<p class="muted">Local status conflicts: ' + conflictCount + '</p>' +
+    '<div class="local-authoring-grid">' +
+      '<aside class="local-picker" aria-label="Requirement picker">' +
+        '<label for="local-requirement-filter">Find Requirement</label>' +
+        '<input id="local-requirement-filter" type="search" placeholder="Search title, ID, status, or domain" autocomplete="off" value="' + escapeHtml(currentLocalRequirementFilter) + '">' +
+        '<div class="local-requirement-list" id="local-requirement-list">' + localRequirementButtons(requirements, selectedRequirement?.id) + '</div>' +
+        '<p id="local-requirement-empty" class="muted"' + (matchingLocalRequirements(requirements).length === 0 ? '' : ' hidden') + '>No matching Requirements.</p>' +
+      '</aside>' +
+      '<div class="local-workspace">' +
+        '<section class="local-card" aria-labelledby="local-selected-heading">' +
+          '<h3 id="local-selected-heading">Selected Requirement</h3>' +
+          '<p><strong>' + escapeHtml(selectedRequirement?.title || "No Requirement selected") + '</strong></p>' +
+          '<p class="muted">Baseline: ' + escapeHtml(label(selectedBaseline?.assessmentStatus || selectedRequirement?.assessmentStatus || "not-started")) + ' · Local: ' + escapeHtml(label(selectedRequirement?.assessmentStatus || "not-started")) + (selectedConflict ? ' · <span class="check fail">Baseline changed</span>' : '') + '</p>' +
+          (selectedRequirement ? '<div class="toolbar"><label for="local-selected-status">Status</label>' + statusSelect(selectedRequirement.id, selectedRequirement.assessmentStatus, "local-selected-status") + '</div>' : '') +
+        '</section>' +
+        '<section class="local-card" aria-labelledby="local-evidence-heading">' +
+          '<h3 id="local-evidence-heading">Add Evidence Reference</h3>' +
+          '<div class="toolbar">' +
+            '<label for="local-evidence-title">Title</label><input id="local-evidence-title" type="text" value="Local evidence reference">' +
+            '<label for="local-evidence-reference">Reference</label><input id="local-evidence-reference" type="text" placeholder="Document path or URL">' +
+            '<button type="button" id="add-local-evidence">Add evidence</button>' +
+          '</div>' +
+          '<p class="muted">Local evidence references: ' + localEvidenceCount + '</p>' +
+          table(localEvidenceRows(selectedRequirement?.id), ["title", "requirement", "reference", "source"]) +
+        '</section>' +
+        '<section class="local-card" aria-labelledby="local-action-heading">' +
+          '<h3 id="local-action-heading">Add Action</h3>' +
+          '<div class="toolbar">' +
+            '<label for="local-action-title">Title</label><input id="local-action-title" type="text" value="Local follow-up action">' +
+            '<label for="local-action-status">Status</label>' + actionStatusSelect() +
+            '<label for="local-action-due-date">Due date</label><input id="local-action-due-date" type="date">' +
+            '<button type="button" id="add-local-action">Add action</button>' +
+          '</div>' +
+          '<p class="muted">Local actions: ' + localActionCount + '</p>' +
+          table(localActionRows(selectedRequirement?.id), ["title", "requirement", "status", "dueDate", "source"]) +
+        '</section>' +
+        '<section class="local-card" aria-labelledby="local-risk-heading">' +
+          '<h3 id="local-risk-heading">Add Risk</h3>' +
+          '<div class="toolbar">' +
+            '<label for="local-risk-title">Title</label><input id="local-risk-title" type="text" value="Local risk">' +
+            '<label for="local-risk-status">Status</label>' + riskStatusSelect() +
+            '<label for="local-risk-likelihood">Likelihood</label>' + scoreSelect("local-risk-likelihood", 3) +
+            '<label for="local-risk-impact">Impact</label>' + scoreSelect("local-risk-impact", 3) +
+            '<button type="button" id="add-local-risk">Add risk</button>' +
+          '</div>' +
+          '<p class="muted">Local risks: ' + localRiskCount + '</p>' +
+          table(localRiskRows(selectedRequirement?.id), ["title", "requirement", "status", "likelihood", "impact", "source"]) +
+        '</section>' +
+      '</div>' +
+    '</div>' +
+    '<details class="local-card"><summary><strong>All local status overlays</strong></summary>' + tableHtml(rows, ["title", "baseline", "local", "source", "conflict"]) + '</details>';
 }
 
 function bindLocalAuthoringControls() {
   localAuthoringSection.querySelectorAll("select[data-requirement-id]").forEach((select) => {
     select.addEventListener("change", async () => {
+      currentLocalRequirementId = select.dataset.requirementId;
       await setLocalRequirementStatus(select.dataset.requirementId, select.value);
     });
+  });
+  localAuthoringSection.querySelectorAll(".local-requirement-option").forEach((button) => {
+    button.addEventListener("click", async () => {
+      currentLocalRequirementId = button.dataset.requirementId;
+      await render(currentManifest, currentBaselineCollections);
+    });
+  });
+  localAuthoringSection.querySelector("#local-requirement-filter")?.addEventListener("input", async (event) => {
+    currentLocalRequirementFilter = String(event.target?.value || "");
+    const nextRequirementId = filterLocalRequirementList(currentLocalRequirementFilter);
+    if (nextRequirementId !== undefined && nextRequirementId !== currentLocalRequirementId) {
+      currentLocalRequirementId = nextRequirementId || undefined;
+      await render(currentManifest, currentBaselineCollections);
+    }
   });
   localAuthoringSection.querySelector("#export-local-bundle")?.addEventListener("click", async () => {
     const bundle = await exportLocalAuthoringBundle();
@@ -468,16 +574,157 @@ function bindLocalAuthoringControls() {
   });
   localAuthoringSection.querySelector("#reset-local-data")?.addEventListener("click", async () => {
     if (confirm("Reset local Explorer data for this bundle? Export local JSON first if you need to keep it.")) {
-      await resetLocalRequirementStatuses(currentBundleKey);
+      await resetLocalData(currentBundleKey);
       await render(currentManifest, currentBaselineCollections);
     }
+  });
+  localAuthoringSection.querySelector("#add-local-evidence")?.addEventListener("click", async () => {
+    const requirementId = currentLocalRequirementId;
+    const title = localAuthoringSection.querySelector("#local-evidence-title")?.value;
+    const reference = localAuthoringSection.querySelector("#local-evidence-reference")?.value;
+    await addLocalEvidenceReference(requirementId, title, reference);
+  });
+  localAuthoringSection.querySelector("#add-local-action")?.addEventListener("click", async () => {
+    const requirementId = currentLocalRequirementId;
+    const title = localAuthoringSection.querySelector("#local-action-title")?.value;
+    const status = localAuthoringSection.querySelector("#local-action-status")?.value;
+    const dueDate = localAuthoringSection.querySelector("#local-action-due-date")?.value;
+    await addLocalAction(requirementId, title, status, dueDate);
+  });
+  localAuthoringSection.querySelector("#add-local-risk")?.addEventListener("click", async () => {
+    const requirementId = currentLocalRequirementId;
+    const title = localAuthoringSection.querySelector("#local-risk-title")?.value;
+    const status = localAuthoringSection.querySelector("#local-risk-status")?.value;
+    const likelihood = Number(localAuthoringSection.querySelector("#local-risk-likelihood")?.value || 3);
+    const impact = Number(localAuthoringSection.querySelector("#local-risk-impact")?.value || 3);
+    await addLocalRisk(requirementId, title, status, likelihood, impact);
   });
   updateStorageStatus();
 }
 
-function statusSelect(requirementId, selected) {
+function requirementSelect(requirements, id = "local-evidence-requirement") {
+  const options = requirements.map((requirement) => '<option value="' + escapeHtml(requirement.id) + '">' + escapeHtml(requirement.title) + '</option>').join("");
+  return '<select id="' + escapeHtml(id) + '">' + options + '</select>';
+}
+
+function selectedLocalRequirement(requirements) {
+  const matches = matchingLocalRequirements(requirements);
+  if (!matches.length) {
+    currentLocalRequirementId = undefined;
+    return undefined;
+  }
+  let selected = matches.find((requirement) => requirement.id === currentLocalRequirementId);
+  if (!selected) {
+    selected = matches.find((requirement) => currentLocalOverlays.has(requirement.id)) || matches[0];
+    currentLocalRequirementId = selected.id;
+  }
+  return selected;
+}
+
+function matchingLocalRequirements(requirements) {
+  const needle = currentLocalRequirementFilter.trim().toLowerCase();
+  if (!needle) {
+    return requirements;
+  }
+  return requirements.filter((requirement) => localRequirementSearchText(requirement).includes(needle));
+}
+
+function localRequirementButtons(requirements, selectedRequirementId) {
+  return requirements.map((requirement) => {
+    const baseline = baselineRequirement(requirement.id);
+    const overlay = currentLocalOverlays.get(requirement.id);
+    const conflict = overlay && baseline && overlay.baselineStatus !== baseline.assessmentStatus;
+    const badges = [label(requirement.assessmentStatus), requirement.domain || "No domain"];
+    if (currentLocalOverlays.has(requirement.id)) {
+      badges.push("local status");
+    }
+    if (conflict) {
+      badges.push("conflict");
+    }
+    const matchesFilter = matchingLocalRequirements([requirement]).length > 0;
+    return '<button type="button" class="local-requirement-option" data-requirement-id="' + escapeHtml(requirement.id) + '" data-search="' + escapeHtml(localRequirementSearchText(requirement)) + '" aria-pressed="' + (requirement.id === selectedRequirementId ? "true" : "false") + '"' + (matchesFilter ? '' : ' hidden') + '>' +
+      '<span>' + escapeHtml(requirement.title) + '</span>' +
+      '<span class="local-requirement-meta">' + badges.map((badge) => '<span class="version-pill' + (badge === "local status" ? " local-badge" : "") + '">' + escapeHtml(badge) + '</span>').join("") + '</span>' +
+    '</button>';
+  }).join("");
+}
+
+function filterLocalRequirementList(query) {
+  const needle = query.trim().toLowerCase();
+  let firstVisibleRequirementId;
+  let currentVisible = false;
+  localAuthoringSection.querySelectorAll(".local-requirement-option").forEach((button) => {
+    const visible = needle.length === 0 || String(button.dataset.search || "").includes(needle);
+    button.hidden = !visible;
+    if (visible && !firstVisibleRequirementId) {
+      firstVisibleRequirementId = button.dataset.requirementId;
+    }
+    if (visible && button.dataset.requirementId === currentLocalRequirementId) {
+      currentVisible = true;
+    }
+  });
+  const empty = localAuthoringSection.querySelector("#local-requirement-empty");
+  if (empty) {
+    empty.hidden = Boolean(firstVisibleRequirementId);
+  }
+  return currentVisible ? undefined : firstVisibleRequirementId || "";
+}
+
+function localRequirementSearchText(requirement) {
+  return [requirement.title, requirement.assessmentStatus, requirement.domain, requirement.id].join(" ").toLowerCase();
+}
+
+function actionStatusSelect() {
+  const options = actionStatuses.map((status) => '<option value="' + escapeHtml(status) + '">' + escapeHtml(label(status)) + '</option>').join("");
+  return '<select id="local-action-status">' + options + '</select>';
+}
+
+function riskStatusSelect() {
+  const options = riskStatuses.map((status) => '<option value="' + escapeHtml(status) + '">' + escapeHtml(label(status)) + '</option>').join("");
+  return '<select id="local-risk-status">' + options + '</select>';
+}
+
+function scoreSelect(id, selected) {
+  const options = [1, 2, 3, 4, 5].map((score) => '<option value="' + score + '"' + (score === selected ? " selected" : "") + '>' + score + '</option>').join("");
+  return '<select id="' + escapeHtml(id) + '">' + options + '</select>';
+}
+
+function localEvidenceRows(requirementId) {
+  const requirementsById = new Map((currentBaselineCollections?.requirements || []).map((requirement) => [requirement.id, requirement]));
+  return currentLocalEvidenceReferences.filter((reference) => !requirementId || reference.requirementId === requirementId).map((reference) => ({
+    title: reference.title,
+    requirement: requirementsById.get(reference.requirementId)?.title || reference.requirementId,
+    reference: reference.reference,
+    source: '<span class="version-pill local-badge">local</span>'
+  }));
+}
+
+function localActionRows(requirementId) {
+  const requirementsById = new Map((currentBaselineCollections?.requirements || []).map((requirement) => [requirement.id, requirement]));
+  return currentLocalActions.filter((action) => !requirementId || action.requirementId === requirementId).map((action) => ({
+    title: action.title,
+    requirement: requirementsById.get(action.requirementId)?.title || action.requirementId,
+    status: label(action.status),
+    dueDate: action.dueDate ? formatShortDate(action.dueDate) || action.dueDate : "Not recorded",
+    source: '<span class="version-pill local-badge">local</span>'
+  }));
+}
+
+function localRiskRows(requirementId) {
+  const requirementsById = new Map((currentBaselineCollections?.requirements || []).map((requirement) => [requirement.id, requirement]));
+  return currentLocalRisks.filter((risk) => !requirementId || risk.requirementId === requirementId).map((risk) => ({
+    title: risk.title,
+    requirement: requirementsById.get(risk.requirementId)?.title || risk.requirementId,
+    status: label(risk.status),
+    likelihood: risk.likelihood,
+    impact: risk.impact,
+    source: '<span class="version-pill local-badge">local</span>'
+  }));
+}
+
+function statusSelect(requirementId, selected, id) {
   const options = assessmentStatuses.map((status) => '<option value="' + escapeHtml(status) + '"' + (status === selected ? " selected" : "") + '>' + escapeHtml(label(status)) + '</option>').join("");
-  return '<select data-requirement-id="' + escapeHtml(requirementId) + '" aria-label="Assessment status for ' + escapeHtml(requirementId) + '">' + options + '</select>';
+  return '<select' + (id ? ' id="' + escapeHtml(id) + '"' : '') + ' data-requirement-id="' + escapeHtml(requirementId) + '" aria-label="Assessment status for ' + escapeHtml(requirementId) + '">' + options + '</select>';
 }
 
 async function setLocalRequirementStatus(requirementId, assessmentStatus) {
@@ -507,7 +754,18 @@ function baselineRequirement(requirementId) {
   return (currentBaselineCollections?.requirements || []).find((requirement) => requirement.id === requirementId);
 }
 
-function applyLocalRequirementStatuses(collections, overlays) {
+function localStatusConflicts() {
+  const conflicts = [];
+  for (const overlay of currentLocalOverlays.values()) {
+    const baseline = baselineRequirement(overlay.requirementId);
+    if (baseline && overlay.baselineStatus !== baseline.assessmentStatus) {
+      conflicts.push({ overlay, baseline });
+    }
+  }
+  return conflicts;
+}
+
+function applyLocalEdits(collections, overlays, evidenceReferences, localActions, localRisks) {
   const clone = cloneCollections(collections);
   clone.requirements = (clone.requirements || []).map((requirement) => {
     const overlay = overlays.get(requirement.id);
@@ -521,12 +779,234 @@ function applyLocalRequirementStatuses(collections, overlays) {
       sourceProduct: "explorer"
     };
   });
+  for (const evidenceReference of evidenceReferences) {
+    const materialised = materialiseLocalEvidenceReference(evidenceReference);
+    if (!(clone.evidence || []).some((item) => item.id === materialised.evidence.id)) {
+      clone.evidence = [...(clone.evidence || []), materialised.evidence];
+    }
+    if (!(clone.links || []).some((item) => item.id === materialised.link.id)) {
+      clone.links = [...(clone.links || []), materialised.link];
+    }
+  }
+  for (const localAction of localActions) {
+    const materialised = materialiseLocalAction(localAction);
+    if (!(clone.actions || []).some((item) => item.id === materialised.action.id)) {
+      clone.actions = [...(clone.actions || []), materialised.action];
+    }
+    if (!(clone.links || []).some((item) => item.id === materialised.link.id)) {
+      clone.links = [...(clone.links || []), materialised.link];
+    }
+  }
+  for (const localRisk of localRisks) {
+    const materialised = materialiseLocalRisk(localRisk);
+    if (!(clone.risks || []).some((item) => item.id === materialised.risk.id)) {
+      clone.risks = [...(clone.risks || []), materialised.risk];
+    }
+    if (!(clone.links || []).some((item) => item.id === materialised.link.id)) {
+      clone.links = [...(clone.links || []), materialised.link];
+    }
+  }
   clone.posture = (clone.posture || []).map((posture) => ({
     ...posture,
     updatedAt: new Date().toISOString(),
-    sourceProduct: "explorer"
+    sourceProduct: "explorer",
+    requirementCount: (clone.requirements || []).length,
+    evidenceCount: (clone.evidence || []).length,
+    actionCount: (clone.actions || []).length,
+    riskCount: (clone.risks || []).length,
+    sourceControlCount: (clone["source-controls"] || []).length,
+    requirementControlMappingCount: (clone["requirement-control-mappings"] || []).length,
+    directionCount: (clone.directions || []).length
   }));
   return clone;
+}
+
+async function addLocalRisk(requirementId, title, status, likelihood, impact) {
+  const requirement = baselineRequirement(requirementId);
+  const cleanTitle = String(title || "").trim();
+  const cleanStatus = riskStatuses.includes(status) ? status : "open";
+  const cleanLikelihood = clampScore(likelihood);
+  const cleanImpact = clampScore(impact);
+  if (!requirement || !cleanTitle) {
+    return;
+  }
+  const timestamp = new Date().toISOString();
+  const token = crypto.randomUUID();
+  await saveLocalRisk({
+    key: currentBundleKey + "::" + token,
+    bundleKey: currentBundleKey,
+    requirementId,
+    riskId: "RSK-" + token,
+    linkId: "LNK-" + crypto.randomUUID(),
+    title: cleanTitle,
+    status: cleanStatus,
+    likelihood: cleanLikelihood,
+    impact: cleanImpact,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  });
+  await render(currentManifest, currentBaselineCollections);
+}
+
+function clampScore(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return 3;
+  }
+  return Math.max(1, Math.min(5, Math.round(number)));
+}
+
+function materialiseLocalRisk(record) {
+  const timestamp = record.updatedAt || new Date().toISOString();
+  return {
+    risk: {
+      id: record.riskId,
+      entityType: "risk",
+      schemaVersion: "${VERSION_AXES.schemaVersion}",
+      title: record.title,
+      createdAt: record.createdAt || timestamp,
+      updatedAt: timestamp,
+      sourceProduct: "explorer",
+      recordStatus: "active",
+      status: record.status || "open",
+      likelihood: clampScore(record.likelihood),
+      impact: clampScore(record.impact)
+    },
+    link: {
+      id: record.linkId,
+      entityType: "link",
+      schemaVersion: "${VERSION_AXES.schemaVersion}",
+      title: "Local risk exposes requirement",
+      createdAt: record.createdAt || timestamp,
+      updatedAt: timestamp,
+      sourceProduct: "explorer",
+      recordStatus: "active",
+      linkType: "exposed-by",
+      fromId: record.requirementId,
+      fromType: "requirement",
+      toId: record.riskId,
+      toType: "risk"
+    }
+  };
+}
+
+async function addLocalAction(requirementId, title, status, dueDate) {
+  const requirement = baselineRequirement(requirementId);
+  const cleanTitle = String(title || "").trim();
+  const cleanStatus = actionStatuses.includes(status) ? status : "todo";
+  if (!requirement || !cleanTitle) {
+    return;
+  }
+  const timestamp = new Date().toISOString();
+  const token = crypto.randomUUID();
+  await saveLocalAction({
+    key: currentBundleKey + "::" + token,
+    bundleKey: currentBundleKey,
+    requirementId,
+    actionId: "ACT-" + token,
+    linkId: "LNK-" + crypto.randomUUID(),
+    title: cleanTitle,
+    status: cleanStatus,
+    dueDate: String(dueDate || "").trim() || undefined,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  });
+  await render(currentManifest, currentBaselineCollections);
+}
+
+function materialiseLocalAction(record) {
+  const timestamp = record.updatedAt || new Date().toISOString();
+  const action = {
+    id: record.actionId,
+    entityType: "action",
+    schemaVersion: "${VERSION_AXES.schemaVersion}",
+    title: record.title,
+    createdAt: record.createdAt || timestamp,
+    updatedAt: timestamp,
+    sourceProduct: "explorer",
+    recordStatus: "active",
+    status: record.status || "todo"
+  };
+  if (record.dueDate) {
+    action.dueDate = record.dueDate;
+  }
+  return {
+    action,
+    link: {
+      id: record.linkId,
+      entityType: "link",
+      schemaVersion: "${VERSION_AXES.schemaVersion}",
+      title: "Local action addresses requirement",
+      createdAt: record.createdAt || timestamp,
+      updatedAt: timestamp,
+      sourceProduct: "explorer",
+      recordStatus: "active",
+      linkType: "addressed-by",
+      fromId: record.requirementId,
+      fromType: "requirement",
+      toId: record.actionId,
+      toType: "action"
+    }
+  };
+}
+
+async function addLocalEvidenceReference(requirementId, title, reference) {
+  const requirement = baselineRequirement(requirementId);
+  const cleanTitle = String(title || "").trim();
+  const cleanReference = String(reference || "").trim();
+  if (!requirement || !cleanTitle || !cleanReference) {
+    return;
+  }
+  const timestamp = new Date().toISOString();
+  const token = crypto.randomUUID();
+  await saveLocalEvidenceReference({
+    key: currentBundleKey + "::" + token,
+    bundleKey: currentBundleKey,
+    requirementId,
+    evidenceId: "EVD-" + token,
+    linkId: "LNK-" + crypto.randomUUID(),
+    title: cleanTitle,
+    reference: cleanReference,
+    evidenceType: cleanReference.startsWith("http://") || cleanReference.startsWith("https://") ? "url" : "document",
+    freshness: "unknown",
+    createdAt: timestamp,
+    updatedAt: timestamp
+  });
+  await render(currentManifest, currentBaselineCollections);
+}
+
+function materialiseLocalEvidenceReference(record) {
+  const timestamp = record.updatedAt || new Date().toISOString();
+  return {
+    evidence: {
+      id: record.evidenceId,
+      entityType: "evidence",
+      schemaVersion: "${VERSION_AXES.schemaVersion}",
+      title: record.title,
+      createdAt: record.createdAt || timestamp,
+      updatedAt: timestamp,
+      sourceProduct: "explorer",
+      recordStatus: "active",
+      evidenceType: record.evidenceType || "document",
+      reference: record.reference,
+      freshness: record.freshness || "unknown"
+    },
+    link: {
+      id: record.linkId,
+      entityType: "link",
+      schemaVersion: "${VERSION_AXES.schemaVersion}",
+      title: "Local evidence supports requirement",
+      createdAt: record.createdAt || timestamp,
+      updatedAt: timestamp,
+      sourceProduct: "explorer",
+      recordStatus: "active",
+      linkType: "supported-by",
+      fromId: record.requirementId,
+      fromType: "requirement",
+      toId: record.evidenceId,
+      toType: "evidence"
+    }
+  };
 }
 
 async function exportLocalAuthoringBundle() {
@@ -610,7 +1090,11 @@ function formatBytes(value) {
 }
 
 function bundleStorageKey(manifest) {
-  return [manifest?.generator?.workspaceId, manifest?.generator?.snapshotId, manifest?.generatedAt, manifest?.schemaVersion].filter(Boolean).join("::") || "default";
+  const stableParts = [manifest?.generator?.workspaceId, manifest?.generator?.snapshotId, manifest?.schemaVersion].filter(Boolean);
+  if (stableParts.length > 0) {
+    return stableParts.join("::");
+  }
+  return [manifest?.generatedAt, manifest?.schemaVersion].filter(Boolean).join("::") || "default";
 }
 
 function cloneCollections(collections) {
@@ -619,16 +1103,97 @@ function cloneCollections(collections) {
 
 function openLocalDb() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(localDbName, 1);
+    const request = indexedDB.open(localDbName, 4);
     request.addEventListener("upgradeneeded", () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(localStoreName)) {
         const store = db.createObjectStore(localStoreName, { keyPath: "key" });
         store.createIndex("bundleKey", "bundleKey", { unique: false });
       }
+      if (!db.objectStoreNames.contains(localEvidenceStoreName)) {
+        const store = db.createObjectStore(localEvidenceStoreName, { keyPath: "key" });
+        store.createIndex("bundleKey", "bundleKey", { unique: false });
+      }
+      if (!db.objectStoreNames.contains(localActionStoreName)) {
+        const store = db.createObjectStore(localActionStoreName, { keyPath: "key" });
+        store.createIndex("bundleKey", "bundleKey", { unique: false });
+      }
+      if (!db.objectStoreNames.contains(localRiskStoreName)) {
+        const store = db.createObjectStore(localRiskStoreName, { keyPath: "key" });
+        store.createIndex("bundleKey", "bundleKey", { unique: false });
+      }
     });
     request.addEventListener("success", () => resolve(request.result));
     request.addEventListener("error", () => reject(request.error));
+  });
+}
+
+async function loadLocalRisks(bundleKey) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localRiskStoreName, "readonly");
+    const store = transaction.objectStore(localRiskStoreName);
+    const index = store.index("bundleKey");
+    const request = index.getAll(bundleKey);
+    request.addEventListener("success", () => resolve(request.result.sort((left, right) => left.createdAt.localeCompare(right.createdAt))));
+    request.addEventListener("error", () => reject(request.error));
+    transaction.addEventListener("complete", () => db.close());
+  });
+}
+
+async function saveLocalRisk(record) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localRiskStoreName, "readwrite");
+    transaction.objectStore(localRiskStoreName).put(record);
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
+  });
+}
+
+async function loadLocalActions(bundleKey) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localActionStoreName, "readonly");
+    const store = transaction.objectStore(localActionStoreName);
+    const index = store.index("bundleKey");
+    const request = index.getAll(bundleKey);
+    request.addEventListener("success", () => resolve(request.result.sort((left, right) => left.createdAt.localeCompare(right.createdAt))));
+    request.addEventListener("error", () => reject(request.error));
+    transaction.addEventListener("complete", () => db.close());
+  });
+}
+
+async function saveLocalAction(record) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localActionStoreName, "readwrite");
+    transaction.objectStore(localActionStoreName).put(record);
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
+  });
+}
+
+async function loadLocalEvidenceReferences(bundleKey) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localEvidenceStoreName, "readonly");
+    const store = transaction.objectStore(localEvidenceStoreName);
+    const index = store.index("bundleKey");
+    const request = index.getAll(bundleKey);
+    request.addEventListener("success", () => resolve(request.result.sort((left, right) => left.createdAt.localeCompare(right.createdAt))));
+    request.addEventListener("error", () => reject(request.error));
+    transaction.addEventListener("complete", () => db.close());
+  });
+}
+
+async function saveLocalEvidenceReference(record) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localEvidenceStoreName, "readwrite");
+    transaction.objectStore(localEvidenceStoreName).put(record);
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
   });
 }
 
@@ -666,15 +1231,38 @@ async function deleteLocalRequirementStatus(bundleKey, requirementId) {
 }
 
 async function resetLocalRequirementStatuses(bundleKey) {
+  await resetObjectStoreByBundleKey(localStoreName, bundleKey);
+}
+
+async function resetLocalEvidenceReferences(bundleKey) {
+  await resetObjectStoreByBundleKey(localEvidenceStoreName, bundleKey);
+}
+
+async function resetLocalData(bundleKey) {
+  await resetLocalRequirementStatuses(bundleKey);
+  await resetLocalEvidenceReferences(bundleKey);
+  await resetLocalActions(bundleKey);
+  await resetLocalRisks(bundleKey);
+}
+
+async function resetLocalActions(bundleKey) {
+  await resetObjectStoreByBundleKey(localActionStoreName, bundleKey);
+}
+
+async function resetLocalRisks(bundleKey) {
+  await resetObjectStoreByBundleKey(localRiskStoreName, bundleKey);
+}
+
+async function resetObjectStoreByBundleKey(storeName, bundleKey) {
   const db = await openLocalDb();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(localStoreName, "readwrite");
-    const store = transaction.objectStore(localStoreName);
-    const index = store.index("bundleKey");
+    const transaction = db.transaction(storeName, "readwrite");
+    const targetStore = transaction.objectStore(storeName);
+    const index = targetStore.index("bundleKey");
     const request = index.getAllKeys(bundleKey);
     request.addEventListener("success", () => {
       for (const key of request.result) {
-        store.delete(key);
+        targetStore.delete(key);
       }
     });
     transaction.addEventListener("complete", () => { db.close(); resolve(); });
@@ -1000,8 +1588,11 @@ function escapeHtml(value) {
 globalThis.pspfExplorerRender = render;
 globalThis.pspfExplorerCurrentBrief = () => currentBriefInput && globalThis.pspfBriefRenderer ? globalThis.pspfBriefRenderer.renderPostureBriefMarkdown(currentBriefInput) : undefined;
 globalThis.pspfExplorerSetLocalRequirementStatus = setLocalRequirementStatus;
+globalThis.pspfExplorerAddLocalEvidenceReference = addLocalEvidenceReference;
+globalThis.pspfExplorerAddLocalAction = addLocalAction;
+globalThis.pspfExplorerAddLocalRisk = addLocalRisk;
 globalThis.pspfExplorerExportLocalBundle = exportLocalAuthoringBundle;
-globalThis.pspfExplorerResetLocalData = () => resetLocalRequirementStatuses(currentBundleKey);
+globalThis.pspfExplorerResetLocalData = () => resetLocalData(currentBundleKey);
 `;
 
 await writeFile(join(dist, "index.html"), html, "utf8");

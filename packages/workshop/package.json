@@ -2,7 +2,7 @@
     "name": "pspf-workshop",
     "displayName": "PSPF Workshop",
     "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-    "version": "1.1.0",
+    "version": "1.4.0",
     "private": true,
     "type": "module",
     "publisher": "pspf",
@@ -47,6 +47,11 @@
             {
                 "command": "pspf.workshop.loadSampleWorkspace",
                 "title": "PSPF: Load Sample Workspace"
+            },
+            {
+                "command": "pspf.workshop.importBundle",
+                "title": "PSPF: Import Explorer Local JSON",
+                "icon": "$(cloud-download)"
             },
             {
                 "command": "pspf.workshop.createRequirement",
@@ -100,7 +105,21 @@
                 "command": "pspf.workshop.copyPostureBrief",
                 "title": "PSPF: Copy Posture Brief"
             }
-        ]
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "pspf.workshop.importBundle",
+                    "when": "view == pspfWorkshop.homeView",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "pspf.workshop.loadSampleWorkspace",
+                    "when": "view == pspfWorkshop.homeView",
+                    "group": "navigation@2"
+                }
+            ]
+        }
     },
     "scripts": {
         "build": "tsc -p tsconfig.json",

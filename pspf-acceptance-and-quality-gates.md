@@ -124,6 +124,38 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **Deferred-scope gate**: v1.1 does not introduce new entity types, collections, schema directories, `plan-apply`, local evidence/action/risk creation, editable posture, chart image export, Shop, or Pub.
 7. **Regression gate**: `e2e:v1.1`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.2 release gates (Explorer local evidence references, per ADR 0032)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.2.0`; schema, bundle, and API axes remain `1.3.0`.
+2. **Evidence persistence gate**: Explorer persists local evidence references in `IndexedDB`, scoped to the loaded bundle/workspace key.
+3. **Materialisation gate**: each local evidence reference exports as an existing `evidence` entity plus a `supported-by` `link` from the selected Requirement, both with `sourceProduct = "explorer"`.
+4. **Export gate**: Explorer exports local status overlays and local evidence references through the existing master JSON bundle format with `generator.mode = "local-authoring"`, the full collection set, and no restricted personal fields.
+5. **Reset/storage gate**: reset local data clears both Requirement status overlays and local evidence references; local authoring data is not written to `localStorage`.
+6. **Deferred-scope gate**: v1.2 introduces no new entity type, collection, schema directory, compatibility-axis bump, `plan-apply`, local Action/Risk creation, editable posture, Shop, or Pub.
+7. **Regression gate**: `e2e:v1.2`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.3 release gates (Explorer local Actions, per ADR 0033)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.3.0`; schema, bundle, and API axes remain `1.3.0`.
+2. **Action persistence gate**: Explorer persists local Actions in `IndexedDB`, scoped to the loaded bundle/workspace key.
+3. **Materialisation gate**: each local Action exports as an existing `action` entity plus an `addressed-by` `link` from the selected Requirement, both with `sourceProduct = "explorer"`.
+4. **Export gate**: Explorer exports local status overlays, evidence references, and Actions through the existing master JSON bundle format with `generator.mode = "local-authoring"`, the full collection set, and no restricted personal fields.
+5. **Explorer-to-Workshop import gate**: a real Explorer local-authoring export imports through Core into a fresh workspace; Workshop-visible records include the local Requirement status, evidence reference, Action, and links.
+6. **Reset/storage gate**: reset local data clears Requirement status overlays, local evidence references, and local Actions; local authoring data is not written to `localStorage`.
+7. **Deferred-scope gate**: v1.3 introduces no new entity type, collection, schema directory, compatibility-axis bump, `plan-apply`, local Risk creation, editable posture, Shop, or Pub.
+8. **Regression gate**: `e2e:v1.3`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.4 release gates (Explorer local Risks and conflicts, per ADR 0034)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.4.0`; schema, bundle, and API axes remain `1.3.0`.
+2. **Risk persistence gate**: Explorer persists local Risks in `IndexedDB`, scoped to the loaded bundle/workspace key.
+3. **Materialisation gate**: each local Risk exports as an existing `risk` entity plus an `exposed-by` `link` from the selected Requirement, both with `sourceProduct = "explorer"`.
+4. **Conflict display gate**: Explorer shows a local status conflict when a saved local status overlay was authored against a different baseline status than the currently loaded bundle.
+5. **Export/import gate**: Explorer exports local status overlays, evidence references, Actions, and Risks through the existing master JSON bundle format; Core imports the exported bundle and Workshop-visible records include the local records and links.
+6. **Reset/storage gate**: reset local data clears Requirement status overlays, local evidence references, local Actions, and local Risks; local authoring data is not written to `localStorage`.
+7. **Deferred-scope gate**: v1.4 introduces no new entity type, collection, schema directory, compatibility-axis bump, `plan-apply`, tags, saved views, compliance-history export controls, editable posture, Shop, or Pub.
+8. **Regression gate**: `e2e:v1.4`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.
