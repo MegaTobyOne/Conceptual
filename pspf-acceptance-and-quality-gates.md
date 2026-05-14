@@ -114,6 +114,16 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **Roadmap decision gate**: ADR 0030 records Explorer local-authoring phase 1 as the next feature tranche: `IndexedDB`-backed user-owned compliance/status overlays with standard master-bundle export/import.
 5. **Regression gate**: `e2e:v1.0`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass unchanged except for the `1.0.1` version context.
 
+### v1.1 release gates (Explorer local-authoring phase 1, per ADR 0031)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.1.0`; schema, bundle, and API axes remain `1.3.0`.
+2. **Local persistence gate**: Explorer persists Requirement `assessmentStatus` overlays in `IndexedDB`, scoped to the loaded bundle/workspace key, and restores them when the same bundle is rendered again.
+3. **Visual separation gate**: Explorer shows whether each editable status value is `local` or `from bundle`, and exposes the baseline status beside the local selector.
+4. **Export gate**: Explorer exports the effective state as the existing master JSON format with `generator.product = "pspf-explorer"`, `generator.mode = "local-authoring"`, the full collection set, and no restricted personal fields.
+5. **Reset/storage gate**: Explorer exposes storage status and a reset-local-data path for the phase-1 store. Local authoring data is not written to `localStorage`.
+6. **Deferred-scope gate**: v1.1 does not introduce new entity types, collections, schema directories, `plan-apply`, local evidence/action/risk creation, editable posture, chart image export, Shop, or Pub.
+7. **Regression gate**: `e2e:v1.1`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

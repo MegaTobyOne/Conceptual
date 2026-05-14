@@ -21,9 +21,11 @@ const html = `<!doctype html>
     main { width: min(1680px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0; }
     button, input { font: inherit; }
     button { background: #0f766e; color: #f0fdfa; border: 1px solid #14b8a6; border-radius: 6px; padding: 8px 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    button.secondary { background: #27272a; border-color: #52525b; color: #f4f4f5; }
     button:hover { background: #0d9488; }
     button:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
-    input { color: #f4f4f5; }
+    input, select { color: #f4f4f5; }
+    select { background: #202024; border: 1px solid #52525b; border-radius: 6px; padding: 6px 8px; }
     input::file-selector-button { background: #27272a; color: #f4f4f5; border: 1px solid #52525b; border-radius: 6px; padding: 6px 10px; }
     input:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
     a { color: #bae6fd; }
@@ -47,6 +49,8 @@ const html = `<!doctype html>
     .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
     .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; line-height: 1.4; white-space: nowrap; }
+    .local-badge { border-color: #14b8a6; color: #ccfbf1; background: #134e4a; }
+    .baseline-badge { border-color: #52525b; }
     .overview-grid { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 16px; align-items: start; }
     .overview-grid > *, .bar-row > *, .panel, .panel-lite { min-width: 0; }
     .donut-wrap { display: grid; place-items: center; gap: 8px; }
@@ -80,7 +84,7 @@ const html = `<!doctype html>
   </style>
 </head>
 <body>
-  <header role="banner"><strong>PSPF Explorer</strong><span>Publication mode · v${PSPF_SLICE_VERSION}</span></header>
+  <header role="banner"><strong>PSPF Explorer</strong><span>Publication + local authoring phase 1 · v${PSPF_SLICE_VERSION}</span></header>
   <div class="banner" role="status">OFFICIAL: Sensitive</div>
   <main>
     <section class="panel" aria-labelledby="bundle-heading">
@@ -94,6 +98,7 @@ const html = `<!doctype html>
     <nav class="section-nav" aria-label="Explorer sections" hidden>
       <a href="#summary">Overview</a>
       <a href="#validation">Validation</a>
+      <a href="#local-authoring">Local Authoring</a>
       <a href="#requirements">Requirements</a>
       <a href="#evidence">Evidence</a>
       <a href="#actions">Actions</a>
@@ -107,6 +112,7 @@ const html = `<!doctype html>
     </nav>
     <section id="summary" class="panel" aria-live="polite" hidden></section>
     <details id="validation" class="panel" aria-live="polite" hidden></details>
+    <details id="local-authoring" class="panel" aria-live="polite" hidden></details>
     <details id="requirements" class="panel" hidden></details>
     <details id="evidence" class="panel" hidden></details>
     <details id="actions" class="panel" hidden></details>
@@ -128,6 +134,7 @@ const app = `const input = document.querySelector("#bundle-files");
 const summary = document.querySelector("#summary");
 const sectionNav = document.querySelector(".section-nav");
 const validationSection = document.querySelector("#validation");
+const localAuthoringSection = document.querySelector("#local-authoring");
 const requirementsSection = document.querySelector("#requirements");
 const evidenceSection = document.querySelector("#evidence");
 const actionsSection = document.querySelector("#actions");
@@ -138,6 +145,14 @@ const sourceControlsSection = document.querySelector("#source-controls");
 const ismCoverageSection = document.querySelector("#ism-coverage");
 const linksSection = document.querySelector("#links");
 let currentBriefInput;
+let currentManifest;
+let currentBaselineCollections;
+let currentCollections;
+let currentBundleKey;
+let currentLocalOverlays = new Map();
+const localDbName = "pspf-explorer-local-v1";
+const localStoreName = "requirement-status-overlays";
+const assessmentStatuses = ["not-started", "in-progress", "met", "partially-met", "not-met", "not-applicable", "under-review"];
 
 sectionNav.addEventListener("click", (event) => {
   if (event.target instanceof HTMLElement && event.target.closest("#close-all-sections")) {
@@ -185,9 +200,15 @@ input.addEventListener("change", async () => {
   await render(manifest, collections, collectionTexts);
 });
 
-async function render(manifest, collections, collectionTexts = undefined) {
+async function render(manifest, incomingCollections, collectionTexts = undefined) {
+  currentManifest = manifest;
+  currentBaselineCollections = cloneCollections(incomingCollections || {});
+  currentBundleKey = bundleStorageKey(manifest);
+  currentLocalOverlays = await loadLocalRequirementStatuses(currentBundleKey);
+  const collections = applyLocalRequirementStatuses(currentBaselineCollections, currentLocalOverlays);
+  currentCollections = collections;
   const posture = collections.posture && collections.posture[0] ? collections.posture[0] : {};
-  const validation = await validateBundle(manifest, collections, collectionTexts);
+  const validation = await validateBundle(manifest, currentBaselineCollections, collectionTexts);
   const domainsById = new Map((collections.domains || []).map((domain) => [domain.id, domain.title]));
   const relationshipSummary = summariseRelationships(collections.links || []);
   const requirementsById = new Map((collections.requirements || []).map((requirement) => [requirement.id, requirement]));
@@ -198,7 +219,8 @@ async function render(manifest, collections, collectionTexts = undefined) {
     domain: domainsById.get(requirement.domainId) || requirement.domainId,
     evidence: relationshipSummary.evidenceByRequirement.get(requirement.id) || 0,
     actions: relationshipSummary.actionsByRequirement.get(requirement.id) || 0,
-    risks: relationshipSummary.risksByRequirement.get(requirement.id) || 0
+    risks: relationshipSummary.risksByRequirement.get(requirement.id) || 0,
+    statusSource: currentLocalOverlays.has(requirement.id) ? "Local" : "From bundle"
   }));
   const evidence = (collections.evidence || []).map((item) => ({
     ...item,
@@ -277,8 +299,12 @@ async function render(manifest, collections, collectionTexts = undefined) {
   validationSection.hidden = false;
   renderExplorerSection(validationSection, "Bundle Validation", validationTable(validation));
 
+  localAuthoringSection.hidden = false;
+  renderExplorerSection(localAuthoringSection, "Local Authoring", localAuthoringPanel(requirements));
+  bindLocalAuthoringControls();
+
   requirementsSection.hidden = false;
-  renderExplorerSection(requirementsSection, "Requirements", table(requirements, ["title", "assessmentStatus", "domain", "evidence", "actions", "risks"]));
+  renderExplorerSection(requirementsSection, "Requirements", table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "evidence", "actions", "risks"]));
 
   evidenceSection.hidden = false;
   renderExplorerSection(evidenceSection, "Evidence", table(evidence, ["title", "evidenceType", "freshness", "requirements", "reference"]));
@@ -370,7 +396,7 @@ async function validateBundle(manifest, collections, collectionTexts) {
     check("Bundle version", manifest.bundleVersion === "${VERSION_AXES.bundleVersion}", manifest.bundleVersion || "missing"),
     check("Schema version", manifest.schemaVersion === "${VERSION_AXES.schemaVersion}", manifest.schemaVersion || "missing"),
     check("API version", manifest.apiVersion === "${VERSION_AXES.apiVersion}", manifest.apiVersion || "missing"),
-    check("Publication mode", manifest.generator && manifest.generator.mode === "publication", manifest.generator && manifest.generator.mode || "missing"),
+    check("Generator mode", manifest.generator && ["publication", "local-authoring"].includes(manifest.generator.mode), manifest.generator && manifest.generator.mode || "missing"),
     check("Classification", manifest.security && manifest.security.classification === "OFFICIAL: Sensitive", manifest.security && manifest.security.classification || "missing")
   ];
 
@@ -407,6 +433,253 @@ async function validateBundle(manifest, collections, collectionTexts) {
   }
 
   return checks;
+}
+
+function localAuthoringPanel(requirements) {
+  const localCount = currentLocalOverlays.size;
+  const rows = requirements.map((requirement) => {
+    const baseline = baselineRequirement(requirement.id);
+    const selected = requirement.assessmentStatus;
+    return {
+      title: requirement.title,
+      baseline: label(baseline?.assessmentStatus || requirement.assessmentStatus),
+      local: statusSelect(requirement.id, selected),
+      source: currentLocalOverlays.has(requirement.id) ? '<span class="version-pill local-badge">local</span>' : '<span class="version-pill baseline-badge">from bundle</span>'
+    };
+  });
+  return '<div class="toolbar">' +
+    '<button type="button" id="export-local-bundle">Export local JSON</button>' +
+    '<button type="button" class="secondary" id="reset-local-data">Reset local data</button>' +
+    '<span id="local-storage-status" class="muted" role="status">IndexedDB checking storage...</span>' +
+    '</div>' +
+    '<p class="muted">Local status overlays: ' + localCount + '</p>' +
+    tableHtml(rows, ["title", "baseline", "local", "source"]);
+}
+
+function bindLocalAuthoringControls() {
+  localAuthoringSection.querySelectorAll("select[data-requirement-id]").forEach((select) => {
+    select.addEventListener("change", async () => {
+      await setLocalRequirementStatus(select.dataset.requirementId, select.value);
+    });
+  });
+  localAuthoringSection.querySelector("#export-local-bundle")?.addEventListener("click", async () => {
+    const bundle = await exportLocalAuthoringBundle();
+    downloadJson("pspf-explorer-local-authoring-bundle.json", bundle);
+  });
+  localAuthoringSection.querySelector("#reset-local-data")?.addEventListener("click", async () => {
+    if (confirm("Reset local Explorer data for this bundle? Export local JSON first if you need to keep it.")) {
+      await resetLocalRequirementStatuses(currentBundleKey);
+      await render(currentManifest, currentBaselineCollections);
+    }
+  });
+  updateStorageStatus();
+}
+
+function statusSelect(requirementId, selected) {
+  const options = assessmentStatuses.map((status) => '<option value="' + escapeHtml(status) + '"' + (status === selected ? " selected" : "") + '>' + escapeHtml(label(status)) + '</option>').join("");
+  return '<select data-requirement-id="' + escapeHtml(requirementId) + '" aria-label="Assessment status for ' + escapeHtml(requirementId) + '">' + options + '</select>';
+}
+
+async function setLocalRequirementStatus(requirementId, assessmentStatus) {
+  if (!requirementId || !assessmentStatuses.includes(assessmentStatus)) {
+    return;
+  }
+  const baseline = baselineRequirement(requirementId);
+  if (!baseline) {
+    return;
+  }
+  if (baseline.assessmentStatus === assessmentStatus) {
+    await deleteLocalRequirementStatus(currentBundleKey, requirementId);
+  } else {
+    await saveLocalRequirementStatus({
+      key: currentBundleKey + "::" + requirementId,
+      bundleKey: currentBundleKey,
+      requirementId,
+      baselineStatus: baseline.assessmentStatus,
+      assessmentStatus,
+      updatedAt: new Date().toISOString()
+    });
+  }
+  await render(currentManifest, currentBaselineCollections);
+}
+
+function baselineRequirement(requirementId) {
+  return (currentBaselineCollections?.requirements || []).find((requirement) => requirement.id === requirementId);
+}
+
+function applyLocalRequirementStatuses(collections, overlays) {
+  const clone = cloneCollections(collections);
+  clone.requirements = (clone.requirements || []).map((requirement) => {
+    const overlay = overlays.get(requirement.id);
+    if (!overlay) {
+      return requirement;
+    }
+    return {
+      ...requirement,
+      assessmentStatus: overlay.assessmentStatus,
+      updatedAt: overlay.updatedAt,
+      sourceProduct: "explorer"
+    };
+  });
+  clone.posture = (clone.posture || []).map((posture) => ({
+    ...posture,
+    updatedAt: new Date().toISOString(),
+    sourceProduct: "explorer"
+  }));
+  return clone;
+}
+
+async function exportLocalAuthoringBundle() {
+  const collections = cloneCollections(currentCollections || {});
+  const manifestCollections = [];
+  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "directions", "posture"]) {
+    const records = collections[collectionName] || [];
+    const serialised = JSON.stringify(records, null, 2) + "\\n";
+    manifestCollections.push({
+      name: collectionName,
+      path: "./collections/" + collectionName + ".json",
+      count: records.length,
+      hash: { alg: "SHA-256", value: await sha256(serialised) }
+    });
+  }
+  return {
+    manifest: {
+      $schema: "./schemas/manifest.schema.json",
+      bundleType: "pspf-explorer-bundle",
+      bundleVersion: "${VERSION_AXES.bundleVersion}",
+      schemaVersion: "${VERSION_AXES.schemaVersion}",
+      apiVersion: "${VERSION_AXES.apiVersion}",
+      generatedAt: new Date().toISOString(),
+      generator: {
+        product: "pspf-explorer",
+        mode: "local-authoring",
+        productVersion: "${PSPF_SLICE_VERSION}",
+        workspaceId: currentManifest?.generator?.workspaceId || currentBundleKey
+      },
+      compatibility: {
+        explorerMin: "${PSPF_SLICE_VERSION}",
+        explorerTested: "${PSPF_SLICE_VERSION}"
+      },
+      security: currentManifest?.security || {
+        classification: "OFFICIAL: Sensitive",
+        containsSensitiveData: true,
+        redactionProfile: "explorer-default"
+      },
+      collections: manifestCollections,
+      indexes: []
+    },
+    collections
+  };
+}
+
+function downloadJson(fileName, value) {
+  const blob = new Blob([JSON.stringify(value, null, 2) + "\\n"], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function updateStorageStatus() {
+  const target = document.querySelector("#local-storage-status");
+  if (!target) {
+    return;
+  }
+  if (!navigator.storage?.estimate) {
+    target.textContent = "IndexedDB ready.";
+    return;
+  }
+  const estimate = await navigator.storage.estimate();
+  const used = estimate.usage || 0;
+  const quota = estimate.quota || 0;
+  target.textContent = quota > 0 ? "IndexedDB " + formatBytes(used) + " used of " + formatBytes(quota) : "IndexedDB ready.";
+}
+
+function formatBytes(value) {
+  if (value < 1024) {
+    return value + " B";
+  }
+  if (value < 1024 * 1024) {
+    return Math.round(value / 1024) + " KB";
+  }
+  return Math.round(value / (1024 * 1024)) + " MB";
+}
+
+function bundleStorageKey(manifest) {
+  return [manifest?.generator?.workspaceId, manifest?.generator?.snapshotId, manifest?.generatedAt, manifest?.schemaVersion].filter(Boolean).join("::") || "default";
+}
+
+function cloneCollections(collections) {
+  return JSON.parse(JSON.stringify(collections || {}));
+}
+
+function openLocalDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(localDbName, 1);
+    request.addEventListener("upgradeneeded", () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(localStoreName)) {
+        const store = db.createObjectStore(localStoreName, { keyPath: "key" });
+        store.createIndex("bundleKey", "bundleKey", { unique: false });
+      }
+    });
+    request.addEventListener("success", () => resolve(request.result));
+    request.addEventListener("error", () => reject(request.error));
+  });
+}
+
+async function loadLocalRequirementStatuses(bundleKey) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localStoreName, "readonly");
+    const store = transaction.objectStore(localStoreName);
+    const index = store.index("bundleKey");
+    const request = index.getAll(bundleKey);
+    request.addEventListener("success", () => resolve(new Map(request.result.map((item) => [item.requirementId, item]))));
+    request.addEventListener("error", () => reject(request.error));
+    transaction.addEventListener("complete", () => db.close());
+  });
+}
+
+async function saveLocalRequirementStatus(record) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localStoreName, "readwrite");
+    transaction.objectStore(localStoreName).put(record);
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
+  });
+}
+
+async function deleteLocalRequirementStatus(bundleKey, requirementId) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localStoreName, "readwrite");
+    transaction.objectStore(localStoreName).delete(bundleKey + "::" + requirementId);
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
+  });
+}
+
+async function resetLocalRequirementStatuses(bundleKey) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localStoreName, "readwrite");
+    const store = transaction.objectStore(localStoreName);
+    const index = store.index("bundleKey");
+    const request = index.getAllKeys(bundleKey);
+    request.addEventListener("success", () => {
+      for (const key of request.result) {
+        store.delete(key);
+      }
+    });
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
+  });
 }
 
 function validationTable(checks) {
@@ -594,14 +867,21 @@ function table(rows, keys) {
   if (rows.length === 0) {
     return '<p class="muted">No records in this collection yet.</p>';
   }
+  return tableHtml(rows, keys);
+}
+
+function tableHtml(rows, keys) {
   const header = keys.map((key) => '<th data-field="' + escapeHtml(key) + '">' + escapeHtml(label(key)) + '</th>').join("");
-  const body = rows.map((row) => '<tr>' + keys.map((key) => '<td data-field="' + escapeHtml(key) + '">' + tableValue(row[key]) + '</td>').join("") + '</tr>').join("");
+  const body = rows.map((row) => '<tr>' + keys.map((key) => '<td data-field="' + escapeHtml(key) + '">' + tableValue(row[key], key) + '</td>').join("") + '</tr>').join("");
   return '<div class="table-wrap" tabindex="0" aria-label="Scrollable data table"><table><thead><tr>' + header + '</tr></thead><tbody>' + body + '</tbody></table></div>';
 }
 
-function tableValue(value) {
+function tableValue(value, key) {
   if (value === undefined || value === null || value === "") {
     return '<span class="empty-value">Not recorded</span>';
+  }
+  if (key === "local" || key === "source") {
+    return String(value);
   }
   if (value === 0) {
     return '<span class="empty-value">None</span>';
@@ -719,6 +999,9 @@ function escapeHtml(value) {
 
 globalThis.pspfExplorerRender = render;
 globalThis.pspfExplorerCurrentBrief = () => currentBriefInput && globalThis.pspfBriefRenderer ? globalThis.pspfBriefRenderer.renderPostureBriefMarkdown(currentBriefInput) : undefined;
+globalThis.pspfExplorerSetLocalRequirementStatus = setLocalRequirementStatus;
+globalThis.pspfExplorerExportLocalBundle = exportLocalAuthoringBundle;
+globalThis.pspfExplorerResetLocalData = () => resetLocalRequirementStatuses(currentBundleKey);
 `;
 
 await writeFile(join(dist, "index.html"), html, "utf8");

@@ -47,8 +47,8 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 
 1. Launch `Run PSPF Core + Workshop`.
 2. Confirm the debug workspace has auto-initialised. If not, run `PSPF: Initialise PSPF Workspace` manually; the command is idempotent.
-3. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.0.1`, `Schema 1.3.0`, and `API 1.3.0`.
-4. Confirm the VS Code status bar shows `PSPF v1.0.1` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+3. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.1.0`, `Schema 1.3.0`, and `API 1.3.0`.
+4. Confirm the VS Code status bar shows `PSPF v1.1.0` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
 5. From `Workshop Home`, click `Load sample`.
 6. From `Workshop Home`, click `Open dashboard` and confirm the sample counts look right: baseline PSPF requirements plus 3 sample Requirements, 2 Evidence items, 3 Actions, 4 Risks, 11 Directions, and baseline Direction links plus 12 sample links.
 7. Confirm the dashboard shows Direction response chips and an `Action Impact — Top 5` table with compact Explanation cells.
@@ -70,7 +70,11 @@ Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug
 ## Expected Explorer Behaviour
 
 - Bundle Validation shows PASS for versions, collection contract, counts, hashes, posture counts, and redaction checks.
-- Explorer visibly shows `PSPF v1.0.1`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+- Explorer visibly shows `PSPF v1.1.0`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+- Explorer shows `Local Authoring`, `Export local JSON`, `Reset local data`, and an `IndexedDB` storage status.
+- In Explorer, change one Requirement status in Local Authoring, reload the same bundle, and confirm the edited status remains marked as `local` while the baseline status remains visible.
+- Click `Export local JSON` and confirm the downloaded bundle uses `generator.mode = "local-authoring"` and keeps `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+- Click `Reset local data`, confirm reset, reload the bundle, and confirm the edited Requirement returns to the bundle status.
 - Posture Brief shows the sample workspace counts and Direction summary.
 - Compliance Status shows a donut with the met percentage and a table alternative.
 - Domain Posture shows domain-level posture bars and a table alternative.
@@ -119,10 +123,11 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.0.1-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.1.0-readiness-report.md`.
+- An Explorer local-authoring smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
-- Manual operator validation is the next step.
+- Manual operator validation of the v1.1 Explorer local-authoring path is the next step.
 
 ## Pass Criteria
 

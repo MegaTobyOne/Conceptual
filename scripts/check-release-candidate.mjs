@@ -7,7 +7,8 @@ const root = process.cwd();
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const expectedVersion = packageJson.version;
 const expectedAxes = "1.3.0";
-const isV1Release = /^1\.0\.\d+$/.test(expectedVersion);
+const isV1Release = /^1\.(0|1)\.\d+$/.test(expectedVersion);
+const isV11Release = /^1\.1\.\d+$/.test(expectedVersion);
 const packagePaths = [
   "package.json",
   "packages/brief-renderer/package.json",
@@ -29,7 +30,7 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), "schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), "bundleVersion should stay 1.3.0");
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), "apiVersion should stay 1.3.0");
 
-const e2eScript = isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = isV11Release ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -40,6 +41,7 @@ for (const requiredPath of [
   isV1Release ? "adr/0028-v1-0-initial-assurance-user-testing-release.md" : "adr/0027-v0-9-release-candidate-freeze.md",
   "adr/0029-v1-0-reference-data-baseline.md",
   "adr/0030-v1-0-1-validation-closure-and-explorer-local-authoring-phase-1.md",
+  "adr/0031-v1-1-explorer-local-authoring-phase-1.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -68,6 +70,14 @@ if (isV1Release) {
   for (const requiredText of ["v1.0.1", "manual validation", "Explorer local-authoring phase 1", "IndexedDB", "1.3.0"]) {
     assert.equal(patchAdr.includes(requiredText), true, `v1.0.1 ADR should mention ${requiredText}`);
   }
+}
+
+if (isV11Release) {
+  const v11Adr = await readFile(join(root, "adr/0031-v1-1-explorer-local-authoring-phase-1.md"), "utf8");
+  for (const requiredText of ["v1.1", "IndexedDB", "assessmentStatus", "local-authoring", "1.3.0", "plan-apply"]) {
+    assert.equal(v11Adr.includes(requiredText), true, `v1.1 ADR should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["check:explorer-local-authoring"], "string", "root package should define check:explorer-local-authoring");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

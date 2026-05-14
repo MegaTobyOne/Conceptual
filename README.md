@@ -2,7 +2,7 @@
 
 PSPF is the Australian Government's Protective Security Policy Framework, administered by the Department of Home Affairs. This product helps Australian entities assess and report against PSPF requirements and the ASD Essential Eight, locally and offline.
 
-This repository currently implements the v1.0.1 initial assurance user-testing slice: PSPF Core, PSPF Workshop, and PSPF Explorer publication mode. Shop, Pub, Explorer local-authoring mode, editable posture, chart image export, and plan-apply imports remain deferred.
+This repository currently implements the v1.1 initial assurance user-testing slice: PSPF Core, PSPF Workshop, PSPF Explorer publication mode, and Explorer local-authoring phase 1 for browser-local Requirement status overlays. Shop, Pub, editable posture, chart image export, plan-apply imports, and broader Explorer local evidence/action/risk authoring remain deferred.
 
 Current user-facing improvements include sample workspace loading, Direction and ISM mapping review, Action Impact summaries, compact Workshop edit tabs, AU-formatted due dates, save-and-close edit actions, and a wider Explorer publication view with collapsible sections.
 
@@ -48,6 +48,8 @@ For a clean manual run, close the Extension Host and run `npx pnpm@10.10.0 run d
 
 Open `packages/explorer/dist/index.html` in a browser and select the exported `debug-workspace/.pspf/exchange/exports/export-*/bundle.json` file. Explorer should show a posture brief, donut with its status table directly underneath, collapsible record sections, top navigation that opens a target section, a `Close All` control, AU-formatted Action due dates, compact unresolved ISM IDs, and readable Relationships columns.
 
+For v1.1 local-authoring validation, open `Local Authoring`, change one Requirement status, reload the same bundle to confirm the local status persists, export local JSON, and then reset local data. The exported JSON remains the standard master bundle format with `generator.mode` set to `local-authoring`.
+
 ## Headless v0.1 E2E
 
 Run the automated v0.1 path with:
@@ -89,6 +91,7 @@ The command finds the latest `debug-workspace/.pspf/exchange/exports/export-*/bu
 - `pnpm run validate:export -- <export-directory|bundle.json>` validates a specific export path, including manifest/collection schema validation.
 - `pnpm run check:accessibility` scans Explorer with Playwright and axe-core and fails on serious or critical findings.
 - `pnpm run check:explorer-publication` builds Explorer and checks validation, section navigation, collapsed panels, `Close All`, AU Action dates, compact ISM IDs, wide layout usage, and readable table columns.
+- `pnpm run check:explorer-local-authoring` builds Explorer and checks IndexedDB status persistence, local-vs-bundle display, local JSON export, reset, and personal-data exclusion.
 - `pnpm run check:writer-lock` confirms a simulated second writer blocks writes.
 - `pnpm run check:backup-restore` restores a copied `.pspf` workspace and verifies integrity plus Core validation.
 - `pnpm run check:schema-coverage` confirms every v0.1 Explorer collection has a Draft 07 schema file and validates the standard fixture with AJV.
@@ -105,4 +108,4 @@ Run:
 npx pnpm@10.10.0 run release:readiness
 ```
 
-This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.0.1-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.
+This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.1.0-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.
