@@ -183,6 +183,7 @@ Store the private deploy key in the CI platform secret store and authorize only 
 
 Recommended secret handling:
 - One SSH keypair per app and environment.[cite:2]
+- If VentraIP requires passphrased SSH keys, store the passphrase as a separate environment secret and let the workflow unlock the key through `ssh-agent`; do not rely on interactive password prompts.
 - No repository write access from the hosting account.[cite:14]
 - No build secrets stored on the VentraIP filesystem unless the app genuinely needs runtime secrets.[cite:14]
 - Separate production and non-production targets if more than one environment is required.[cite:14]
@@ -195,13 +196,17 @@ GitHub environment variables required by `.github/workflows/web-release.yml`:
 | `test-web` | `SITE_URL` | `https://test.tobyharvey.online` |
 | `test-web` | `VENTRAIP_SSH_USER` | VentraIP SSH username |
 | `test-web` | `VENTRAIP_SSH_HOST` | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
-| `test-web` | `VENTRAIP_APP_DIR` | Suggested: `~/apps/pspf-web-test` |
+| `test-web` | `VENTRAIP_APP_DIR` | Suggested: `/home/<ssh-user>/apps/pspf-web-test` |
 | `test-web` | `VENTRAIP_DOCROOT` | cPanel document root for `test.tobyharvey.online` |
+| `test-web` | Secret `VENTRAIP_DEPLOY_KEY_TEST` | Passphrase-protected private deploy key |
+| `test-web` | Secret `VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST` | Passphrase for the test deploy key |
 | `production-web` | `SITE_URL` | `https://tobyharvey.online` |
 | `production-web` | `VENTRAIP_SSH_USER` | VentraIP SSH username |
 | `production-web` | `VENTRAIP_SSH_HOST` | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
-| `production-web` | `VENTRAIP_APP_DIR` | Suggested: `~/apps/pspf-web-prod` |
+| `production-web` | `VENTRAIP_APP_DIR` | Suggested: `/home/<ssh-user>/apps/pspf-web-prod` |
 | `production-web` | `VENTRAIP_DOCROOT` | cPanel document root for `tobyharvey.online` |
+| `production-web` | Secret `VENTRAIP_DEPLOY_KEY_PROD` | Passphrase-protected private deploy key |
+| `production-web` | Secret `VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD` | Passphrase for the production deploy key |
 
 ## VS Code Marketplace deployment path
 
