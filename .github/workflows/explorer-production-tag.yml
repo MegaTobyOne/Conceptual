@@ -56,6 +56,9 @@ jobs:
             exit 1
           fi
 
+      - name: Install Playwright browser for release readiness
+        run: npx pnpm@10.10.0 exec playwright install --with-deps chromium
+
       - name: Release readiness
         run: npx pnpm@10.10.0 run release:readiness
 

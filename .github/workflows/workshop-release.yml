@@ -40,6 +40,9 @@ jobs:
           git fetch origin main --depth=1
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
 
+      - name: Install Playwright browser for release readiness
+        run: npx pnpm@10.10.0 exec playwright install --with-deps chromium
+
       - name: Release readiness
         run: npx pnpm@10.10.0 run release:readiness
 
