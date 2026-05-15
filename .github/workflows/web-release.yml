@@ -84,7 +84,7 @@ jobs:
     name: Deploy test web
     needs: build
     if: github.ref == 'refs/heads/develop' || inputs.target == 'test'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, mechastopheles]
     environment:
       name: test-web
       url: ${{ vars.SITE_URL }}
@@ -126,7 +126,7 @@ jobs:
     name: Deploy production web
     needs: build
     if: startsWith(github.ref, 'refs/tags/explorer/') || (inputs.target == 'production' && github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, mechastopheles]
     environment:
       name: production-web
       url: ${{ vars.SITE_URL }}

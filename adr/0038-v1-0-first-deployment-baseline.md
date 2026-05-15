@@ -28,7 +28,7 @@ The v1.0 first deployment uses a single public-facing host and a single Marketpl
 - Primary domain: **`tobyharvey.online`** (production).
 - Test subdomain: **`test.tobyharvey.online`** (staging).
 - Fallback SFTP/SSH hostname for VentraIP: `s04le.syd7.hostingplatform.net.au`, SSH port 2683.
-- VIPcontrol IP allowlisting on SSH/SFTP is required where the GitHub Actions runner egress IP set is stable enough to manage; otherwise SSH keys remain the primary control and the allowlist is operated as best-effort.
+- VIPcontrol IP allowlisting on SSH/SFTP is required. Because GitHub-hosted Actions egress ranges are too broad and changeable for practical allowlisting, the final web deploy jobs run on a dedicated self-hosted macOS runner labelled `mechastopheles` from a stable allowlisted IP.
 
 ### Marketplace publishing
 
@@ -58,6 +58,8 @@ The v1.0 first deployment uses a single public-facing host and a single Marketpl
 ### Deployment safety
 
 Every deploy job runs `pnpm run check:deployment-safety` and `pnpm run check:personal-data` before transport. Production web and Marketplace jobs additionally require `pnpm run release:readiness` to have succeeded on the release tag.
+
+Build, redaction, personal-data, deployment-safety, release-readiness, and package-shape checks run before the self-hosted deploy runner is used. The self-hosted runner is deploy-only and must not be used for pull-request checks or unreviewed code execution.
 
 ## Consequences
 
