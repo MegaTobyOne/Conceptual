@@ -38,21 +38,30 @@ try {
     }, bundle);
     await page.waitForSelector("#local-authoring:not([hidden])");
     const pickerVisible = await page.locator("#local-requirement-list").isVisible();
+    const explorerSearchVisible = await page.locator("#explorer-search").isVisible();
+    const localInlineFinderCount = await page.locator("#local-requirement-filter").count();
     const initialVisibleRequirements = await page.locator(".local-requirement-option:not([hidden])").count();
-    await page.locator("#local-requirement-filter").fill(finderTargetRequirement.id);
+    await page.locator("#explorer-search").click();
+    await page.keyboard.type(finderTargetRequirement.id, { delay: 1 });
     await page.waitForFunction((title) => document.querySelector('[aria-labelledby="local-selected-heading"]')?.textContent?.includes(title), finderTargetRequirement.title);
     const finderExactMatch = await page.evaluate((expectedId) => ({
         filteredVisible: Array.from(document.querySelectorAll(".local-requirement-option")).filter((button) => !button.hidden).length,
-        retainedQuery: document.querySelector("#local-requirement-filter")?.value === expectedId
+        retainedQuery: document.querySelector("#explorer-search")?.value === expectedId,
+        statusText: document.querySelector("#explorer-search-status")?.textContent || ""
     }), finderTargetRequirement.id);
-    await page.locator("#local-requirement-filter").fill("zzz-no-match-pspf");
+    await page.locator("#explorer-search").fill("zzz-no-match-pspf");
     await page.waitForFunction(() => document.querySelector('[aria-labelledby="local-selected-heading"]')?.textContent?.includes("No Requirement selected"));
     const finderNoMatch = await page.evaluate(() => ({
         filteredVisible: Array.from(document.querySelectorAll(".local-requirement-option")).filter((button) => !button.hidden).length,
         emptyVisible: !document.querySelector("#local-requirement-empty")?.hidden
     }));
-    await page.locator("#local-requirement-filter").fill("");
+    await page.locator("#explorer-search").fill("");
     await page.waitForFunction(() => document.querySelectorAll(".local-requirement-option:not([hidden])").length > 1);
+    await page.locator(`.local-requirement-option[data-requirement-id="${requirement.id}"]`).click();
+    await page.waitForFunction((title) => document.querySelector('[aria-labelledby="local-selected-heading"]')?.textContent?.includes(title), requirement.title);
+    const clickSelection = await page.evaluate((expectedId) => ({
+        selectedId: document.querySelector('.local-requirement-option[aria-pressed="true"]')?.dataset.requirementId
+    }), requirement.id);
 
     await page.evaluate(async ({ requirementId }) => {
         await globalThis.pspfExplorerSetLocalRequirementStatus(requirementId, "met");
@@ -80,6 +89,21 @@ try {
     }, { requirementId: requirement.id });
     await page.waitForFunction(() => document.querySelector("#local-authoring")?.textContent?.includes("Local risks: 1"));
     const localAuthoringOpenAfterRiskSave = await page.locator("#local-authoring").evaluate((section) => section instanceof HTMLDetailsElement && section.open);
+
+    await page.reload();
+    await page.waitForSelector("#summary:not([hidden])");
+    await page.evaluate(() => { document.querySelector("#local-authoring").open = true; });
+    await page.waitForFunction((requirementId) => {
+        const select = document.querySelector(`select[data-requirement-id="${requirementId}"]`);
+        return select?.value === "met" && document.querySelector("#local-authoring")?.textContent?.includes("Local risks: 1");
+    }, requirement.id);
+    const refreshPersistence = await page.evaluate((requirementId) => ({
+        bundleRestored: !document.querySelector("#summary")?.hidden,
+        selectedStatus: document.querySelector(`select[data-requirement-id="${requirementId}"]`)?.value,
+        evidenceVisible: document.querySelector("#local-authoring")?.textContent?.includes("Local evidence references: 1"),
+        actionVisible: document.querySelector("#local-authoring")?.textContent?.includes("Local actions: 1"),
+        riskVisible: document.querySelector("#local-authoring")?.textContent?.includes("Local risks: 1")
+    }), requirement.id);
 
     const conflictVisible = await page.evaluate(async (value) => {
         const changedBundle = JSON.parse(JSON.stringify(value.bundle));
@@ -165,16 +189,24 @@ try {
     const checks = [
         check("No page errors", pageErrors.length === 0, pageErrors.join("; ")),
         check("No console errors", consoleErrors.length === 0, consoleErrors.join("; ")),
-        check("Local authoring section visible", visibleText.includes("Local Authoring"), "section"),
+        check("Local Changes section visible", visibleText.includes("Local Changes"), "section"),
         check("Local Requirement picker visible", pickerVisible, "picker"),
-        check("Local Requirement filter narrows list", finderExactMatch.filteredVisible > 0 && finderExactMatch.filteredVisible < initialVisibleRequirements, `${finderExactMatch.filteredVisible}/${initialVisibleRequirements}`),
-        check("Local Requirement finder moves workspace", finderExactMatch.filteredVisible === 1 && finderExactMatch.retainedQuery, `visible=${finderExactMatch.filteredVisible}`),
-        check("Local Requirement finder shows no-match state", finderNoMatch.filteredVisible === 0 && finderNoMatch.emptyVisible, `visible=${finderNoMatch.filteredVisible}`),
+        check("Explorer Search visible", explorerSearchVisible, "search"),
+        check("Local inline finder removed", localInlineFinderCount === 0, `${localInlineFinderCount} inline finder(s)`),
+        check("Explorer Search narrows Local Changes list", finderExactMatch.filteredVisible > 0 && finderExactMatch.filteredVisible < initialVisibleRequirements, `${finderExactMatch.filteredVisible}/${initialVisibleRequirements}`),
+        check("Explorer Search moves Local Changes workspace", finderExactMatch.filteredVisible === 1 && finderExactMatch.retainedQuery && finderExactMatch.statusText.includes("Local Changes"), `visible=${finderExactMatch.filteredVisible}`),
+        check("Explorer Search shows Local Changes no-match state", finderNoMatch.filteredVisible === 0 && finderNoMatch.emptyVisible, `visible=${finderNoMatch.filteredVisible}`),
+        check("Local Requirement click selects workspace", clickSelection.selectedId === requirement.id, clickSelection.selectedId || "missing"),
         check("Storage status visible", storageStatusText?.includes("IndexedDB"), storageStatusText || "missing"),
-        check("Local Authoring stays open after status save", localAuthoringOpenAfterStatusSave, "section focus"),
-        check("Local Authoring stays open after evidence save", localAuthoringOpenAfterEvidenceSave, "section focus"),
-        check("Local Authoring stays open after action save", localAuthoringOpenAfterActionSave, "section focus"),
-        check("Local Authoring stays open after risk save", localAuthoringOpenAfterRiskSave, "section focus"),
+        check("Local Changes stays open after status save", localAuthoringOpenAfterStatusSave, "section focus"),
+        check("Local Changes stays open after evidence save", localAuthoringOpenAfterEvidenceSave, "section focus"),
+        check("Local Changes stays open after action save", localAuthoringOpenAfterActionSave, "section focus"),
+        check("Local Changes stays open after risk save", localAuthoringOpenAfterRiskSave, "section focus"),
+        check("Refresh restores remembered bundle", refreshPersistence.bundleRestored, "remembered bundle"),
+        check("Refresh restores local status", refreshPersistence.selectedStatus === "met", refreshPersistence.selectedStatus || "missing"),
+        check("Refresh restores local evidence", refreshPersistence.evidenceVisible, "local evidence count"),
+        check("Refresh restores local action", refreshPersistence.actionVisible, "local action count"),
+        check("Refresh restores local risk", refreshPersistence.riskVisible, "local risk count"),
         check("Local status conflict visible", conflictVisible, "baseline conflict"),
         check("Local status persisted in IndexedDB", persisted.selectValue === "met", persisted.selectValue || "missing"),
         check("Local badge visible", persisted.localBadgeCount > 0, `${persisted.localBadgeCount} badge(s)`),

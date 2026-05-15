@@ -356,6 +356,8 @@ Core Pub page types:
 
 Explorer is the most outward-facing product. It should be readable by users who are not living inside the authoring environment and should privilege understanding over editing.
 
+Per ADR 0036, Explorer is the portable review, briefing, lightweight annotation, and round-trip suggestion surface. Workshop remains the system of record and decision surface for canonical authoring, validation, import review, merge/undo history, and audit-friendly decisions. Explorer local edits are browser-local proposed changes until Workshop accepts them through import.
+
 ### Explorer visual behaviour
 
 Explorer should feel more editorial and more presentational than the extensions:
@@ -364,6 +366,17 @@ Explorer should feel more editorial and more presentational than the extensions:
 - clear story blocks,
 - stronger summary cards,
 - and obvious export/share affordances.
+
+The Explorer identity variation should use a warmer, briefing-style expression of the PSPF family:
+
+- warm charcoal and stone-neutral surfaces rather than VS Code-like grey panels;
+- restrained teal for trust, navigation, active state, and local-change markers;
+- amber only for sensitivity, TLP, and browser-local storage notices;
+- a masthead that presents `PSPF Explorer` as a portable assurance view;
+- a persistent mode strip showing `Bundle baseline`, `Local changes`, and `Export to Workshop`;
+- visible trust markers such as `from bundle`, `local`, `remembered in this browser`, and `ready to export`.
+
+The visible Explorer local-editing surface is named `Local Changes`. Internal code identifiers and bundle exchange mode may continue to use `local-authoring` where that is the stable contract term.
 
 ### Explorer page model
 

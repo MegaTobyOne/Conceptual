@@ -13,7 +13,9 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     runIntegrityScan: () => getService().runIntegrityScan(),
     createSnapshot: () => getService().createSnapshot(),
     exportBundle: () => getService().exportBundle(),
+    planImportBundle: getService().planImportBundle,
     importBundle: getService().importBundle,
+    undoLastImport: getService().undoLastImport,
     ensureWorkspaceReady: () => getService().initialiseWorkspace(),
     getWriterLock: () => getService().getWriterLock(),
     upsertEntity: getService().upsertEntity,
@@ -76,6 +78,12 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       await vscode.window.showInformationMessage(message);
       return lock;
     }),
+    vscode.commands.registerCommand("pspf.core.undoLastImport", async () => {
+      const result = await getService().undoLastImport();
+      await vscode.window.showInformationMessage(result.message);
+      return result;
+    }),
+    vscode.commands.registerCommand("pspf.core.planImportBundleFromPath", (bundlePath: string, mode: ImportMode) => getService().planImportBundle(bundlePath, mode)),
     vscode.commands.registerCommand("pspf.core.importBundleFromPath", (bundlePath: string, mode: ImportMode) => getService().importBundle(bundlePath, mode)),
     vscode.commands.registerCommand("pspf.core.ensureWorkspaceReady", async () => getService().initialiseWorkspace()),
     vscode.commands.registerCommand("pspf.core.runIntegrityScanHeadless", async () => getService().runIntegrityScan()),
@@ -109,6 +117,7 @@ async function importBundlesFromPicker(
   const pickedMode = await vscode.window.showQuickPick(
     [
       { label: "Additive merge", description: "Add or update bundle records without deleting existing records", value: "additive-merge" as const },
+      { label: "Plan, review, apply", description: "Preview changes and confirm before writing", value: "plan-apply" as const },
       { label: "Full replace", description: "Create a rollback snapshot, then replace existing records", value: "full-replace" as const }
     ],
     { title: "Select Import Mode", ignoreFocusOut: true }
@@ -118,6 +127,52 @@ async function importBundlesFromPicker(
   }
 
   try {
+    if (pickedMode.value === "plan-apply") {
+      const plans = await Promise.all(bundlePaths.map((bundlePath) => getService().planImportBundle(bundlePath, "plan-apply")));
+      writeImportSummary(output, plans);
+      const planSummary = combineImportSummaries(plans);
+      const reviewAction = await vscode.window.showWarningMessage(
+        `Apply Explorer import plan? ${plans.length} file(s), ${planSummary.created} created, ${planSummary.updated} updated, ${planSummary.unchanged} unchanged.`,
+        { modal: true, detail: planDetail(plans) },
+        "Apply Import",
+        "Show Details"
+      );
+      if (reviewAction === "Show Details") {
+        output.show(true);
+        return plans.length === 1 ? plans[0] : plans;
+      }
+      if (reviewAction !== "Apply Import") {
+        return undefined;
+      }
+      const results = await vscode.window.withProgress(
+        { location: vscode.ProgressLocation.Notification, title: labels.progressTitle, cancellable: false },
+        async (progress) => {
+          const importedResults: ImportResult[] = [];
+          for (const [index, bundlePath] of bundlePaths.entries()) {
+            progress.report({ message: `${index + 1}/${bundlePaths.length} ${basename(bundlePath)}` });
+            importedResults.push(await getService().importBundle(bundlePath, "plan-apply"));
+            progress.report({ increment: 100 / bundlePaths.length });
+          }
+          progress.report({ message: "Import summary ready" });
+          return importedResults;
+        }
+      );
+      writeImportSummary(output, results);
+      const applySummary = combineImportSummaries(results);
+      const action = await vscode.window.showInformationMessage(
+        `${labels.completePrefix}: ${results.length} file(s), ${applySummary.created} created, ${applySummary.updated} updated, ${applySummary.unchanged} unchanged.`,
+        "Show Details",
+        "Undo Import"
+      );
+      if (action === "Show Details") {
+        output.show(true);
+      } else if (action === "Undo Import") {
+        const undo = await getService().undoLastImport();
+        await vscode.window.showInformationMessage(undo.message);
+      }
+      return results.length === 1 ? results[0] : results;
+    }
+
     const results = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: labels.progressTitle, cancellable: false },
       async (progress) => {
@@ -135,10 +190,14 @@ async function importBundlesFromPicker(
     const summary = combineImportSummaries(results);
     const action = await vscode.window.showInformationMessage(
       `${labels.completePrefix}: ${results.length} file(s), ${summary.created} created, ${summary.updated} updated, ${summary.unchanged} unchanged.`,
-      "Show Details"
+      "Show Details",
+      "Undo Import"
     );
     if (action === "Show Details") {
       output.show(true);
+    } else if (action === "Undo Import") {
+      const undo = await getService().undoLastImport();
+      await vscode.window.showInformationMessage(undo.message);
     }
     return results.length === 1 ? results[0] : results;
   } catch (error) {
@@ -146,6 +205,13 @@ async function importBundlesFromPicker(
     await vscode.window.showErrorMessage(`${labels.errorPrefix}: ${message}`);
     return undefined;
   }
+}
+
+function planDetail(results: readonly ImportResult[]): string {
+  return results.flatMap((result) => [
+    `${basename(result.bundlePath)}: ${result.summary.created} created, ${result.summary.updated} updated, ${result.summary.unchanged} unchanged.`,
+    ...result.summary.examples.slice(0, 5)
+  ]).join("\n");
 }
 
 function combineImportSummaries(results: readonly ImportResult[]): { created: number; updated: number; unchanged: number } {

@@ -47,6 +47,8 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0032 | v1.2 Explorer local evidence references | accepted |
 | 0033 | v1.3 Explorer local actions | accepted |
 | 0034 | v1.4 Explorer local Risks and conflict display | accepted |
+| 0035 | v1.5 plan-apply import and undo | accepted |
+| 0036 | v1.5.1 Explorer and Workshop product boundary and Explorer identity | accepted |
 
 ## Template
 

@@ -42,6 +42,17 @@ try {
   await page.waitForFunction(() => document.querySelector("#requirements")?.open === true);
   const requirementsNavOpened = await page.locator("#requirements").evaluate((element) => element instanceof HTMLDetailsElement && element.open);
   const requirementsText = await page.locator("#requirements").innerText();
+  const initialRequirementRows = await page.locator("#requirements tbody tr:not([hidden])").count();
+  await page.locator("#explorer-search").fill("Validate governance reporting workflow");
+  await page.waitForFunction(() => document.querySelector("#requirements")?.open === true && Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden).length === 1);
+  const explorerSearchResult = await page.evaluate(() => ({
+    visibleRequirementRows: Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden).length,
+    hiddenRequirementRows: Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => row.hidden).length,
+    statusText: document.querySelector("#explorer-search-status")?.textContent || "",
+    matchedText: Array.from(document.querySelectorAll("#requirements tbody tr")).find((row) => !row.hidden)?.textContent || ""
+  }));
+  await page.locator("#explorer-search").fill("");
+  await page.waitForFunction((expectedRows) => Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden).length === expectedRows, initialRequirementRows);
   await page.getByRole("button", { name: "Close All" }).click();
   const closeAllCollapsedSections = await page.locator("details.panel").evaluateAll((sections) => sections.every((section) => section instanceof HTMLDetailsElement && !section.open));
   await page.evaluate(() => {
@@ -54,7 +65,43 @@ try {
   const validationFailures = await page.locator("#validation .check.fail").count();
   const copyButtonVisible = await page.getByRole("button", { name: "Copy posture brief" }).isVisible();
   const brief = await page.evaluate(() => globalThis.pspfExplorerCurrentBrief && globalThis.pspfExplorerCurrentBrief());
+  const modePillColours = await page.evaluate(() => {
+    const baseline = document.querySelector(".mode-step.baseline");
+    const local = document.querySelector(".mode-step.local");
+    const exportStep = document.querySelector(".mode-step.export");
+    return {
+      baselineBackground: baseline ? getComputedStyle(baseline).backgroundColor : "missing",
+      localBackground: local ? getComputedStyle(local).backgroundColor : "missing",
+      exportBackground: exportStep ? getComputedStyle(exportStep).backgroundColor : "missing"
+    };
+  });
   const statusTableUnderDonut = await page.locator("#summary .panel-lite .table-wrap").count();
+  const explorerSearchPlacement = await page.evaluate(() => {
+    const summary = document.querySelector("#summary");
+    const searchPanel = document.querySelector("#explorer-search-panel");
+    const localChanges = document.querySelector("#local-authoring");
+    const validation = document.querySelector("#validation");
+    const links = document.querySelector("#links");
+    const bundleTools = document.querySelector("#bundle-tools");
+    const searchInput = document.querySelector("#explorer-search");
+    if (!summary || !searchPanel || !localChanges || !validation || !links || !bundleTools || !searchInput) {
+      return { visible: false, afterSummary: false, beforeLocalChanges: false, validationAfterLinks: false, bundleToolsAfterValidation: false, searchUsesPanelWidth: false };
+    }
+    const position = summary.compareDocumentPosition(searchPanel);
+    const localChangesPosition = searchPanel.compareDocumentPosition(localChanges);
+    const validationPosition = links.compareDocumentPosition(validation);
+    const bundleToolsPosition = validation.compareDocumentPosition(bundleTools);
+    const panelRect = searchPanel.getBoundingClientRect();
+    const inputRect = searchInput.getBoundingClientRect();
+    return {
+      visible: !searchPanel.hidden,
+      afterSummary: Boolean(position & Node.DOCUMENT_POSITION_FOLLOWING),
+      beforeLocalChanges: Boolean(localChangesPosition & Node.DOCUMENT_POSITION_FOLLOWING),
+      validationAfterLinks: Boolean(validationPosition & Node.DOCUMENT_POSITION_FOLLOWING),
+      bundleToolsAfterValidation: Boolean(bundleToolsPosition & Node.DOCUMENT_POSITION_FOLLOWING),
+      searchUsesPanelWidth: inputRect.width >= panelRect.width - 34
+    };
+  });
   const rawActionDueDateCount = await page.locator('#actions td[data-field="dueDate"]').evaluateAll((cells) => cells.filter((cell) => /\d{4}-\d{2}-\d{2}T|\d{4}-\d{2}-\d{2}/.test(cell.textContent || "")).length);
   const desktopLayoutChecks = await collectLayoutChecks(page, "Desktop");
   await page.setViewportSize({ width: 1600, height: 900 });
@@ -116,12 +163,19 @@ try {
     check("Visible schema version", visibleText.includes(`Schema ${VERSION_AXES.schemaVersion}`), `Schema ${VERSION_AXES.schemaVersion}`),
     check("Visible bundle version", visibleText.includes(`Bundle ${VERSION_AXES.bundleVersion}`), `Bundle ${VERSION_AXES.bundleVersion}`),
     check("Visible API version", visibleText.includes(`API ${VERSION_AXES.apiVersion}`), `API ${VERSION_AXES.apiVersion}`),
+    check("Mode strip distinguishes baseline and local", modePillColours.baselineBackground !== modePillColours.localBackground && modePillColours.localBackground !== "missing", JSON.stringify(modePillColours)),
     check("Copy posture brief button visible", copyButtonVisible, "button"),
     check("Compliance status table sits under donut", statusTableUnderDonut === 1, `${statusTableUnderDonut} table(s)`),
+    check("Explorer Search sits below posture brief", explorerSearchPlacement.visible && explorerSearchPlacement.afterSummary && explorerSearchPlacement.beforeLocalChanges, JSON.stringify(explorerSearchPlacement)),
+    check("Explorer Search uses full panel width", explorerSearchPlacement.searchUsesPanelWidth, JSON.stringify(explorerSearchPlacement)),
+    check("Bundle diagnostics sit after record sections", explorerSearchPlacement.validationAfterLinks && explorerSearchPlacement.bundleToolsAfterValidation, JSON.stringify(explorerSearchPlacement)),
     check("Validation section starts collapsed", validationInitiallyCollapsed, "collapsed by default"),
     check("Validation nav opens section", validationNavOpened, "nav target opens"),
     check("Requirements section starts collapsed", requirementsInitiallyCollapsed, "collapsed by default"),
     check("Requirements nav opens section", requirementsNavOpened, "nav target opens"),
+    check("Explorer Search filters requirement rows", explorerSearchResult.visibleRequirementRows === 1 && explorerSearchResult.hiddenRequirementRows > 0, `${explorerSearchResult.visibleRequirementRows} visible / ${explorerSearchResult.hiddenRequirementRows} hidden`),
+    check("Explorer Search keeps matching requirement readable", explorerSearchResult.matchedText.includes("Validate governance reporting workflow"), explorerSearchResult.matchedText || "missing"),
+    check("Explorer Search reports row matches", explorerSearchResult.statusText.includes("rows match"), explorerSearchResult.statusText || "missing"),
     check("Close All collapses record sections", closeAllCollapsedSections, "all details closed"),
     check("Action due dates avoid raw ISO text", rawActionDueDateCount === 0, `${rawActionDueDateCount} raw date cell(s)`),
     check("Synthetic ISO action due date renders short AU", syntheticExplorerValues.actionDueDate === "30 Jun 2026", syntheticExplorerValues.actionDueDate || "missing"),

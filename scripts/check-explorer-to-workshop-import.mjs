@@ -16,10 +16,12 @@ const importWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-import-work
 const additiveImportWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-additive-import-workspace");
 const partialFullReplaceWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-full-replace-partial-workspace");
 const historicalMappingWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-historical-mapping-workspace");
+const planApplyWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-plan-apply-workspace");
 await rm(importWorkspaceRoot, { recursive: true, force: true });
 await rm(additiveImportWorkspaceRoot, { recursive: true, force: true });
 await rm(partialFullReplaceWorkspaceRoot, { recursive: true, force: true });
 await rm(historicalMappingWorkspaceRoot, { recursive: true, force: true });
+await rm(planApplyWorkspaceRoot, { recursive: true, force: true });
 await mkdir(reportDirectory, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
@@ -103,6 +105,16 @@ try {
     const additiveEvidenceRecord = (await additiveImportService.listEntities("evidence")).find((item) => item.title === "Explorer import evidence");
     const additiveActionRecord = (await additiveImportService.listEntities("action")).find((item) => item.title === "Explorer import action");
     const additiveRiskRecord = (await additiveImportService.listEntities("risk")).find((item) => item.title === "Explorer import risk");
+    const planApplyService = createCoreService(planApplyWorkspaceRoot);
+    await planApplyService.initialiseWorkspace();
+    const planBeforeRequirement = (await planApplyService.listEntities("requirement")).find((item) => item.id === requirement.id);
+    assert.ok(planBeforeRequirement, "fixture should include the changed baseline requirement before plan apply");
+    const plan = await planApplyService.planImportBundle(partialBundlePath, "plan-apply");
+    const planAfterPlanningRequirement = (await planApplyService.listEntities("requirement")).find((item) => item.id === requirement.id);
+    const planApplied = await planApplyService.importBundle(partialBundlePath, "plan-apply");
+    const planAfterApplyRequirement = (await planApplyService.listEntities("requirement")).find((item) => item.id === requirement.id);
+    const planUndo = await planApplyService.undoLastImport();
+    const planAfterUndoRequirement = (await planApplyService.listEntities("requirement")).find((item) => item.id === requirement.id);
     const partialFullReplaceImportService = createCoreService(partialFullReplaceWorkspaceRoot);
     await partialFullReplaceImportService.initialiseWorkspace();
     const partialFullReplaceImported = await partialFullReplaceImportService.importBundle(partialBundlePath, "full-replace");
@@ -146,6 +158,10 @@ try {
         check("Additive import carries local evidence", additiveEvidenceRecord?.sourceProduct === "explorer", additiveEvidenceRecord?.sourceProduct || "missing"),
         check("Additive import carries local action", additiveActionRecord?.sourceProduct === "explorer", additiveActionRecord?.sourceProduct || "missing"),
         check("Additive import carries local risk", additiveRiskRecord?.sourceProduct === "explorer", additiveRiskRecord?.sourceProduct || "missing"),
+        check("Plan-apply reports a reviewable plan", plan.imported > 0 && plan.summary.updated > 0 && plan.summary.conflicts.length > 0, `${plan.imported} planned, ${plan.summary.conflicts.length} conflict(s)`),
+        check("Plan-apply planning makes no writes", planAfterPlanningRequirement?.assessmentStatus === planBeforeRequirement.assessmentStatus, planAfterPlanningRequirement?.assessmentStatus || "missing"),
+        check("Plan-apply applies after confirmation", planApplied.imported > 0 && planAfterApplyRequirement?.assessmentStatus === "met", `${planApplied.imported} imported, ${planAfterApplyRequirement?.assessmentStatus || "missing"}`),
+        check("Plan-apply undo restores previous records", planUndo.undone && planAfterUndoRequirement?.assessmentStatus === planBeforeRequirement.assessmentStatus, planUndo.message),
         check("Full-replace import preserves referenced source controls", partialFullReplaceImported.imported > 0 && partialFullReplaceValidation.ok && partialFullReplaceSourceControls.length > 0, `${partialFullReplaceImported.imported} record(s), ${partialFullReplaceSourceControls.length} source control(s)`),
         check("Full-replace partial import carries local status", partialFullReplaceRequirement?.assessmentStatus === "met", partialFullReplaceRequirement?.assessmentStatus || "missing"),
         check("Historical mapping source-control reference imports", historicalMappingImported.imported > 0 && historicalMapping?.sourceControlId === "SRC-00000000-0000-7000-8000-000000000102", historicalMapping?.sourceControlId || "missing")
@@ -160,6 +176,7 @@ try {
         historicalMappingBundlePath: relative(root, historicalMappingBundlePath),
         importWorkspaceRoot: relative(root, importWorkspaceRoot),
         additiveImportWorkspaceRoot: relative(root, additiveImportWorkspaceRoot),
+        planApplyWorkspaceRoot: relative(root, planApplyWorkspaceRoot),
         partialFullReplaceWorkspaceRoot: relative(root, partialFullReplaceWorkspaceRoot),
         historicalMappingWorkspaceRoot: relative(root, historicalMappingWorkspaceRoot),
         requirementId: requirement.id,

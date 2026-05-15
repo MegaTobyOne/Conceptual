@@ -2,7 +2,7 @@
     "name": "pspf-core",
     "displayName": "PSPF Core",
     "description": "Local PSPF system of record, workspace bootstrap, validation, snapshots, and export operations.",
-    "version": "1.4.0",
+    "version": "1.5.1",
     "private": true,
     "type": "module",
     "publisher": "pspf",
@@ -61,6 +61,10 @@
             {
                 "command": "pspf.core.importExplorerLocalBundle",
                 "title": "PSPF: Import Explorer Local JSON"
+            },
+            {
+                "command": "pspf.core.undoLastImport",
+                "title": "PSPF: Undo Last Import"
             },
             {
                 "command": "pspf.core.showWriterLock",

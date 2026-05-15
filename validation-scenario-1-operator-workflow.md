@@ -1,8 +1,8 @@
-# Validation Scenario 1: v1.0 Initial Assurance User Testing Workflow
+# Validation Scenario 1: v1.5.1 Initial Assurance User Testing Workflow
 
 ## Purpose
 
-Validate that a PSPF/security operator can complete the v1.0 initial assurance user testing workflow without developer assistance: initialise a local workspace, load the sample assurance scenario, inspect Directions and Action Impact in Workshop, run integrity checks, export a publication bundle, and confirm Explorer/reporting behaviour.
+Validate that a PSPF/security operator can complete the current initial assurance workflow without developer assistance: open Workshop, load the sample assurance scenario, confirm the main Workshop signals, export to Explorer, review Explorer Local Changes, and confirm Explorer-to-Workshop import/undo behaviour.
 
 ## Persona
 
@@ -10,101 +10,56 @@ PSPF/security operator preparing an internal assurance view for early governance
 
 ## Scope
 
-In scope:
+Manual focus:
 
-- PSPF Core workspace initialisation, validation, integrity scan, snapshot, and export.
-- PSPF Workshop Activity Bar Home, status bar version context, Welcome, sample workspace loading, dashboard, evidence queue, item detail, Direction detail, and posture brief commands.
-- PSPF Explorer publication-mode bundle loading and validation panel.
-- Redaction/default-deny checks for publication output.
+- Workshop launch, Activity Bar access, status bar version context, and sample workspace loading.
+- Workshop dashboard orientation: Directions, Action Impact, evidence queue, and version context.
+- Explorer visual identity, publication load, full-width Explorer Search, Local Changes, refresh restore, and local JSON export.
+- Core/Workshop plan-review-apply import and undo for Explorer local JSON.
 
-Out of scope for v1.0:
+Automated coverage handles detailed counts, redaction/default-deny, schema validation, accessibility, writer lock, backup/restore, personal-data exclusion, and import/export round trips. Do not repeat those manually unless a visible behaviour looks wrong.
 
-- Shop, Pub, Explorer local authoring, plan-apply imports, editable posture, chart image export, numeric performance benchmarking, and third-party accessibility audit.
+Still out of scope for v1.5.1:
+
+- Shop, Pub, editable posture, chart image export, numeric performance benchmarking, tags, saved views, compliance-history export controls, and third-party accessibility audit.
 
 ## Test Data
 
-- Use `PSPF: Load Sample Workspace` for the primary run. The baseline workspace includes 9 published Home Affairs Directions; the sample fixture adds 3 Requirements, 2 Evidence items, 3 Actions, 4 Risks, 2 sample Directions, 12 sample links, and 1 ISM mapping when source controls are available.
-- Optional manual add-on: create one extra Requirement, Evidence, Action, and Risk using the original governance test data below if the operator wants to exercise Quick Pick authoring after the sample load.
-- Requirement title: `Validate governance reporting workflow`
-- Domain: `Governance`
-- Assessment status: `In progress`
-- Internal summary: `Internal assessment working note that must not be exported.`
-- Evidence title: `Governance committee terms of reference`
-- Evidence type: `Document`
-- Evidence reference: `records/governance-committee-tor.pdf`
-- Evidence freshness: `Current`
-- Action title: `Confirm next governance review date`
-- Action status: `Todo`
-- Due date: `30 Jun 2026`
-- Risk title: `Governance review evidence may become stale`
-- Risk status: `Open`
-- Likelihood: `3`
-- Impact: `3`
+- Use `PSPF: Load Sample Workspace` for the primary run.
+- Use one existing sample Requirement for Explorer Local Changes; avoid creating extra Workshop records unless specifically testing authoring.
+- For Explorer Local Changes, use short obvious values such as `Explorer validation evidence`, `Explorer validation action`, and `Explorer validation risk`.
 
-## Manual Extension Host Steps
+## Manual Operator Steps
 
 Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug:reset` from the repository root before relaunching.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Confirm the debug workspace has auto-initialised. If not, run `PSPF: Initialise PSPF Workspace` manually; the command is idempotent.
-3. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.4.0`, `Schema 1.3.0`, and `API 1.3.0`.
-4. Confirm the VS Code status bar shows `PSPF v1.4.0` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
-5. From `Workshop Home`, click `Load sample`.
-6. From `Workshop Home`, click `Open dashboard` and confirm the sample counts look right: baseline PSPF requirements plus 3 sample Requirements, 2 Evidence items, 3 Actions, 4 Risks, 11 Directions, and baseline Direction links plus 12 sample links.
-7. Confirm the dashboard shows Direction response chips and an `Action Impact — Top 5` table with compact Explanation cells.
-8. From `Workshop Home`, click `Review evidence` and confirm `Urgent Actions (Blocked or Overdue)` appears.
-9. Run `PSPF: Open Item Detail` and select a sample Requirement. Confirm linked evidence, actions with urgency, risks, ISM mappings, inbound Directions, relationships, and version context.
-10. Run `PSPF: Open Direction Detail` and confirm Direction reference, response state, source authority, issue date, and outbound relationships.
-11. Optional: use `Workshop Home` or the command palette to create one Requirement, Evidence, Action, and Risk using the add-on test data above.
-12. From `Workshop Home`, click `Validate`.
-13. Run `PSPF: Verify Integrity`.
-14. From `Workshop Home`, click `Integrity scan` and confirm it invokes `PSPF: Run Integrity Scan` and passes.
-15. From `Workshop Home`, click `Snapshot`.
-16. From `Workshop Home`, click `Copy brief` and paste the brief into a scratch note to confirm it is readable and includes Directions.
-17. From `Workshop Home`, click `Export`.
-18. Run `PSPF: Show Writer Lock` and confirm the current window is writable or, if another Extension Host owns the lock, that the workspace is clearly read-only.
-19. Run `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
-20. Open `packages/explorer/dist/index.html` and select the latest debug `bundle.json`.
-21. Click `Copy posture brief` in Explorer and paste it into a scratch note.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.5.1`, `Schema 1.3.0`, and `API 1.3.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.5.1` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
+4. From `Workshop Home`, click `Load sample`.
+5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions.
+6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.
+7. Optional spot check: open one Requirement item detail and one Direction detail only if the dashboard or queue looks suspicious.
+8. From `Workshop Home`, click `Validate`, `Integrity scan` (`PSPF: Run Integrity Scan`), `Snapshot`, `Copy brief`, and `Export` in that order. Confirm each completes and the copied brief is readable when pasted into a scratch note.
+9. Open `packages/explorer/dist/index.html`, select the latest debug `bundle.json` from `Bundle Tools` if a remembered bundle does not restore, and confirm the portable assurance masthead, `OFFICIAL: Sensitive · TLP:AMBER+STRICT` banner, and `Bundle baseline` / `Local changes` / `Export to Workshop` mode strip are visible.
+10. Use the full-width `Explorer Search` under the posture brief to find one Requirement, confirm the same search narrows the `Local Changes` list, select that Requirement, change its status, add one evidence reference, one Action, and one Risk, then refresh the browser. Confirm the latest bundle restores automatically and the local changes are still visible as `local`.
+11. Click `Export local JSON`, then import that Explorer local JSON from Workshop with `Plan, review, apply`. Confirm a read-only plan appears before `Apply Import`, apply it, then use `Undo Import` and confirm the undo notification is clear.
+12. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
 
-## Expected Explorer Behaviour
+## Expected Manual Signals
 
-- Bundle Validation shows PASS for versions, collection contract, counts, hashes, posture counts, and redaction checks.
-- Explorer visibly shows `PSPF v1.4.0`, `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
-- Explorer shows `Local Authoring`, `Export local JSON`, `Reset local data`, and an `IndexedDB` storage status.
-- In Explorer Local Authoring, use `Find Requirement` to narrow the Requirement list, select one Requirement, change its status in the selected-Requirement workspace, reload the same bundle, and confirm the edited status remains marked as `local` while the baseline status remains visible.
-- Click `Export local JSON` and confirm the downloaded bundle uses `generator.mode = "local-authoring"` and keeps `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
-- Add one local evidence reference for the same Requirement, export local JSON again, and confirm the bundle includes a new `evidence` record plus a `supported-by` `link` with `sourceProduct = "explorer"`.
-- Add one local Action for the same Requirement, export local JSON again, and confirm the bundle includes a new `action` record plus an `addressed-by` `link` with `sourceProduct = "explorer"`.
-- Add one local Risk for the same Requirement, export local JSON again, and confirm the bundle includes a new `risk` record plus an `exposed-by` `link` with `sourceProduct = "explorer"`.
-- If you load a refreshed bundle from the same workspace where the baseline status differs from the saved local overlay, confirm Local Authoring shows a local status conflict.
-- Click `Reset local data`, confirm reset, reload the bundle, and confirm the edited Requirement returns to the bundle status.
-- Posture Brief shows the sample workspace counts and Direction summary.
-- Compliance Status shows a donut with the met percentage and a table alternative.
-- Domain Posture shows domain-level posture bars and a table alternative.
-- Needs Attention lists requirements that are not met or need evidence review.
-- Explorer section navigation links move cleanly between overview, validation, record lists, and relationships.
-- Requirements shows `Validate governance reporting workflow`, the `Governance` domain label, and evidence/action/risk link counts.
-- Evidence shows `Governance committee terms of reference` and the linked requirement title.
-- Actions shows `Confirm next governance review date` and the linked requirement title.
-- Actions shows Action Impact where applicable, including Direction uplift and urgency.
-- Risks shows `Governance review evidence may become stale` and the linked requirement title.
-- Directions shows the published baseline Home Affairs Directions plus the sample Directions and response states.
-- Relationships Board shows links from the requirement to evidence, action, and risk using readable titles rather than raw IDs.
-- The internal summary does not appear in Explorer or exported publication JSON.
-- The copied posture brief includes counts and action/risk summary, but excludes internal summaries and restricted personal fields.
-- The copied posture brief includes domain summary and groups open actions/risks by linked requirement.
-- The Workshop and Explorer copied posture briefs use the same sections and exclude the internal summary.
-- The Workshop dashboard shows workspace ready status, validation hints, Direction chips, Action Impact top-5, latest activity, and the same core counts as the exported bundle.
-- Workshop Home is available from the Activity Bar and offers one-click access to the dashboard, evidence review queue, validation, integrity scan, snapshot, export, and posture brief copy.
-- Workshop Home exposes `PSPF: Import Explorer Local JSON` in the view title for Explorer local-authoring exports; importing one or more Explorer local JSON bundles shows progress, then a notification summarising created, updated, and unchanged records with `Show Details` opening the Core output summary.
-- The PSPF status bar item shows the active product version and exposes schema, bundle, and API context in its tooltip without sensitive record values.
-- The evidence review queue separates missing evidence, freshness review, and unlinked evidence.
-- The evidence review queue includes Urgent Actions for blocked or overdue actions.
+- Workshop feels like the decision surface: load, validate, inspect, snapshot, export, import, and undo are discoverable from Workshop/Home commands.
+- Explorer feels like the portable review surface: warmer masthead, sensitivity banner, source/version chips, full-width Explorer Search, Local Changes, and browser-local trust markers are immediately visible.
+- Bundle validation and bundle file loading are available as lower-priority diagnostics, not prominent day-to-day review sections.
+- Local Changes does not feel stuck: Explorer Search narrows the list, selecting an item updates the workspace, refresh restores the latest bundle, and local values remain labelled `local`.
+- The Explorer-to-Workshop import path is understandable: `Plan, review, apply` shows what will change before writing, `Apply Import` is explicit, summary details are available, and `Undo Import` is easy to find.
+- Copied posture briefs from Workshop and Explorer are readable enough for email or Teams.
 
 ## Automated Baseline
 
-Run:
+The following automated gates now cover the detailed checks that used to be manual: schema/hash validation, exact sample counts, redaction/default-deny, personal-data exclusion, Explorer section navigation, Explorer Search, table readability, Local Changes persistence, refresh restore, local evidence/Action/Risk materialisation, Explorer-to-Workshop import, undo planning coverage, writer lock, backup/restore, and accessibility.
+
+For a quick spine check, run:
 
 ```sh
 npx pnpm@10.10.0 run e2e:v1.0
@@ -120,7 +75,7 @@ Expected outputs:
 - Passing Explorer accessibility scan with zero serious or critical axe-core findings.
 - Passing Explorer publication smoke check with visible version context, no validation failures, and a copyable posture brief payload.
 
-Run the broader readiness command with:
+For release confidence, run:
 
 ```sh
 npx pnpm@10.10.0 run release:readiness
@@ -128,24 +83,20 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.4.0-readiness-report.md`.
-- An Explorer local-authoring smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
+- A readiness report at `.tmp/release-readiness/v1.5.1-readiness-report.md`.
+- An Explorer Local Changes smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
-- Manual operator validation of the v1.4 Explorer local Risk and conflict-display path is the next step.
+- Manual operator validation should focus on the v1.5.1 Explorer Local Changes feel, visual identity, plan-apply review, and undo clarity.
 
 ## Pass Criteria
 
-- The manual Extension Host flow completes without intervention.
-- `validate:debug-workspace` passes.
-- Explorer renders the latest bundle and its validation panel passes.
-- The generated report matches the visible Explorer counts and titles.
-- Full-replace import round-trip succeeds on the automated fixture.
-- Explorer-to-Workshop import smoke succeeds on a real Explorer local-authoring export.
-- Writer-lock, backup/restore, schema, and personal-data gates pass.
-- Accessibility gate passes with zero serious or critical findings.
-- Restricted personal fields and internal summaries are absent from publication output.
+- The 12-step manual operator flow completes without intervention.
+- Workshop clearly presents the decision surface and Explorer clearly presents the portable review surface.
+- Explorer Local Changes survives refresh and exports successfully.
+- Workshop plan-review-apply and undo are clear enough to use without reading implementation docs.
+- `validate:debug-workspace` and `release:readiness` pass when run for the same build.
 
 ## Feedback Capture
 
@@ -153,6 +104,6 @@ Record:
 
 - Any prompt wording that caused hesitation.
 - Any command order that felt surprising.
-- Any Explorer validation failure or unclear label.
-- Any mismatch between the report, Explorer, and the operator's expectation.
+- Any Explorer identity, Local Changes, or import-review label that felt unclear.
+- Any mismatch between Workshop, Explorer, and the operator's expectation.
 - The next action needed before another validation session.

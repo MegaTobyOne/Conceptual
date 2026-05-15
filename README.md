@@ -2,9 +2,9 @@
 
 PSPF is the Australian Government's Protective Security Policy Framework, administered by the Department of Home Affairs. This product helps Australian entities assess and report against PSPF requirements and the ASD Essential Eight, locally and offline.
 
-This repository currently implements the v1.4 initial assurance user-testing slice: PSPF Core, PSPF Workshop, PSPF Explorer publication mode, Explorer browser-local Requirement status overlays, Explorer browser-local evidence references, Explorer browser-local Actions, Explorer browser-local Risks, and local status conflict display. Shop, Pub, editable posture, chart image export, plan-apply imports, tags, saved views, and compliance-history export controls remain deferred.
+This repository currently implements the v1.5.1 initial assurance user-testing slice: PSPF Core, PSPF Workshop, PSPF Explorer publication mode, Explorer browser-local Requirement status overlays, Explorer browser-local evidence references, Explorer browser-local Actions, Explorer browser-local Risks, local status conflict display, plan/review/apply import with last-import undo, browser-refresh bundle restore, and the first Explorer-specific identity pass. Shop, Pub, editable posture, chart image export, tags, saved views, and compliance-history export controls remain deferred.
 
-Current user-facing improvements include sample workspace loading, Direction and ISM mapping review, Action Impact summaries, compact Workshop edit tabs, AU-formatted due dates, save-and-close edit actions, and a wider Explorer publication view with collapsible sections.
+Current user-facing improvements include sample workspace loading, Direction and ISM mapping review, Action Impact summaries, compact Workshop edit tabs, AU-formatted due dates, save-and-close edit actions, and a warmer Explorer portable assurance view with collapsible sections.
 
 ## Local Setup
 
@@ -48,7 +48,7 @@ For a clean manual run, close the Extension Host and run `npx pnpm@10.10.0 run d
 
 Open `packages/explorer/dist/index.html` in a browser and select the exported `debug-workspace/.pspf/exchange/exports/export-*/bundle.json` file. Explorer should show a posture brief, donut with its status table directly underneath, collapsible record sections, top navigation that opens a target section, a `Close All` control, AU-formatted Action due dates, compact unresolved ISM IDs, and readable Relationships columns.
 
-For v1.4 local-authoring validation, open `Local Authoring`, change one Requirement status, add one evidence reference, one Action, and one Risk for the same Requirement, reload the same bundle to confirm the local work persists, export local JSON, import it through Core, review the records in Workshop, and then reset local data. The exported JSON remains the standard master bundle format with `generator.mode` set to `local-authoring`.
+For v1.5.1 local-change validation, open `Local Changes`, change one Requirement status, add one evidence reference, one Action, and one Risk for the same Requirement, refresh Explorer to confirm the latest bundle and local work restore automatically, export local JSON, import it through Core with `Plan, review, apply`, review the records in Workshop, test `Undo Import`, and then reset local data. The exported JSON remains the standard master bundle format with `generator.mode` set to `local-authoring`.
 
 ## Headless v0.1 E2E
 
@@ -91,7 +91,7 @@ The command finds the latest `debug-workspace/.pspf/exchange/exports/export-*/bu
 - `pnpm run validate:export -- <export-directory|bundle.json>` validates a specific export path, including manifest/collection schema validation.
 - `pnpm run check:accessibility` scans Explorer with Playwright and axe-core and fails on serious or critical findings.
 - `pnpm run check:explorer-publication` builds Explorer and checks validation, section navigation, collapsed panels, `Close All`, AU Action dates, compact ISM IDs, wide layout usage, and readable table columns.
-- `pnpm run check:explorer-local-authoring` builds Explorer and checks IndexedDB status persistence, local evidence references, local Actions, local Risks, local-vs-bundle display, local conflict display, local JSON export, reset, and personal-data exclusion.
+- `pnpm run check:explorer-local-authoring` builds Explorer and checks IndexedDB status persistence, remembered-bundle refresh restore, local evidence references, local Actions, local Risks, local-vs-bundle display, local conflict display, local JSON export, reset, and personal-data exclusion.
 - `pnpm run check:explorer-to-workshop-import` builds Explorer, exports local-authoring JSON, imports it through Core, and checks Workshop-visible local status, evidence, Actions, and links.
 - `pnpm run check:writer-lock` confirms a simulated second writer blocks writes.
 - `pnpm run check:backup-restore` restores a copied `.pspf` workspace and verifies integrity plus Core validation.
@@ -109,11 +109,12 @@ Run:
 npx pnpm@10.10.0 run release:readiness
 ```
 
-This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.4.0-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.
+This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.5.1-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.
 
 ## Planning Notes
 
-- v1.4 validates Explorer local Risks, local status conflict display, and the Explorer-to-Workshop round trip.
-- v1.5 is the likely home for `plan-apply`, conflict classification, review pane, and per-import undo.
-- v1.6 or later can pick up tags, saved views, and compliance-history export controls after local authoring has settled.
+- v1.4 validated Explorer local Risks, local status conflict display, and the Explorer-to-Workshop round trip.
+- v1.5 validates `plan-apply`, conflict classification, explicit apply confirmation, and last-import undo.
+- v1.5.1 records the Workshop/Explorer product boundary, restores the latest Explorer bundle after refresh, and gives Explorer a warmer portable-assurance visual identity.
+- v1.6 or later can pick up richer graphical review panes, tags, saved views, and compliance-history export controls after local authoring has settled.
 - Posture editing remains out of scope unless deliberately reopened.

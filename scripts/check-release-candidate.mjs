@@ -7,8 +7,8 @@ const root = process.cwd();
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const expectedVersion = packageJson.version;
 const expectedAxes = "1.3.0";
-const isV1Release = /^1\.(0|1|2|3|4)\.\d+$/.test(expectedVersion);
-const isV11OrLaterRelease = /^1\.(1|2|3|4)\.\d+$/.test(expectedVersion);
+const isV1Release = /^1\.(0|1|2|3|4|5)\.\d+$/.test(expectedVersion);
+const isV11OrLaterRelease = /^1\.(1|2|3|4|5)\.\d+$/.test(expectedVersion);
 const packagePaths = [
   "package.json",
   "packages/brief-renderer/package.json",
@@ -30,7 +30,7 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), "schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), "bundleVersion should stay 1.3.0");
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), "apiVersion should stay 1.3.0");
 
-const e2eScript = /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -45,6 +45,8 @@ for (const requiredPath of [
   "adr/0032-v1-2-explorer-local-evidence-references.md",
   "adr/0033-v1-3-explorer-local-actions.md",
   "adr/0034-v1-4-explorer-local-risks-and-conflicts.md",
+  "adr/0035-v1-5-plan-apply-import-and-undo.md",
+  "adr/0036-v1-5-1-explorer-workshop-product-boundary-and-identity.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -106,6 +108,19 @@ if (/^1\.4\.\d+$/.test(expectedVersion)) {
   }
   assert.equal(typeof packageJson.scripts["e2e:v1.4"], "string", "root package should define e2e:v1.4");
   assert.equal(packageJson.scripts["e2e:v1.4"].includes("e2e:v1.3"), true, "e2e:v1.4 should include v1.3 round-trip gates");
+}
+
+if (/^1\.5\.\d+$/.test(expectedVersion)) {
+  const v15Adr = await readFile(join(root, "adr/0035-v1-5-plan-apply-import-and-undo.md"), "utf8");
+  for (const requiredText of ["v1.5", "plan-apply", "read-only", "Apply Import", "Undo", "1.3.0", "manual operator validation was clean"]) {
+    assert.equal(v15Adr.includes(requiredText), true, `v1.5 ADR should mention ${requiredText}`);
+  }
+  const v151Adr = await readFile(join(root, "adr/0036-v1-5-1-explorer-workshop-product-boundary-and-identity.md"), "utf8");
+  for (const requiredText of ["v1.5.1", "Local Changes", "system of record", "portable assurance view", "1.3.0"]) {
+    assert.equal(v151Adr.includes(requiredText), true, `v1.5.1 ADR should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["e2e:v1.5"], "string", "root package should define e2e:v1.5");
+  assert.equal(packageJson.scripts["e2e:v1.5"].includes("e2e:v1.4"), true, "e2e:v1.5 should include v1.4 gates");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

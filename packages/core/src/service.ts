@@ -58,7 +58,9 @@ export interface CoreService {
   readonly runIntegrityScan: () => Promise<IntegrityScanReport>;
   readonly createSnapshot: () => Promise<V01Entity>;
   readonly exportBundle: () => Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }>;
+  readonly planImportBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
   readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
+  readonly undoLastImport: () => Promise<ImportUndoResult>;
   readonly getWriterLock: () => Promise<WriterLockState>;
   readonly upsertEntity: (entity: V01Entity) => Promise<V01Entity>;
   readonly upsertEntities: (entities: readonly V01Entity[]) => Promise<readonly V01Entity[]>;
@@ -81,7 +83,9 @@ export interface CoreWriteApi {
 
 export interface CoreExchangeApi {
   readonly exportBundle: () => Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }>;
+  readonly planImportBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
   readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
+  readonly undoLastImport: () => Promise<ImportUndoResult>;
 }
 
 export interface CoreIntegrityApi {
@@ -89,7 +93,7 @@ export interface CoreIntegrityApi {
   readonly runIntegrityScan: () => Promise<IntegrityScanReport>;
 }
 
-export type ImportMode = "additive-merge" | "full-replace";
+export type ImportMode = "additive-merge" | "full-replace" | "plan-apply";
 
 export interface ImportTypeSummary {
   readonly total: number;
@@ -107,13 +111,22 @@ export interface ImportSummary {
   readonly written: number;
   readonly byType: Record<string, ImportTypeSummary>;
   readonly examples: readonly string[];
+  readonly conflicts: readonly string[];
 }
 
 export interface ImportResult {
   readonly imported: number;
   readonly mode: ImportMode;
   readonly bundlePath: string;
+  readonly importId: string;
   readonly summary: ImportSummary;
+}
+
+export interface ImportUndoResult {
+  readonly undone: boolean;
+  readonly restored: number;
+  readonly importId?: string;
+  readonly message: string;
 }
 
 export interface WriterLockState {
@@ -175,7 +188,9 @@ export function createCoreWriteApi(workspaceRoot: string): CoreWriteApi {
 export function createCoreExchangeApi(workspaceRoot: string): CoreExchangeApi {
   return {
     exportBundle: () => serialiseWorkspaceOperation(workspaceRoot, () => exportBundle(workspaceRoot)),
-    importBundle: (bundlePath, mode) => serialiseWorkspaceOperation(workspaceRoot, () => importBundle(workspaceRoot, bundlePath, mode))
+    planImportBundle: (bundlePath, mode) => serialiseWorkspaceOperation(workspaceRoot, () => planImportBundle(workspaceRoot, bundlePath, mode)),
+    importBundle: (bundlePath, mode) => serialiseWorkspaceOperation(workspaceRoot, () => importBundle(workspaceRoot, bundlePath, mode)),
+    undoLastImport: () => serialiseWorkspaceOperation(workspaceRoot, () => undoLastImport(workspaceRoot))
   };
 }
 
@@ -470,20 +485,10 @@ async function exportBundle(workspaceRoot: string): Promise<{ exportDirectory: s
 async function importBundle(workspaceRoot: string, bundlePath: string, mode: ImportMode): Promise<ImportResult> {
   const paths = await ensureInitialised(workspaceRoot);
   await assertWritable(paths);
-  const bundle = JSON.parse(await readFile(bundlePath, "utf8")) as { readonly collections?: Partial<BundleCollections> };
-  let entities = flattenImportEntities(bundle.collections ?? {});
-  if (mode === "full-replace") {
-    entities = await includeExistingReferencedSourceControls(workspaceRoot, entities);
-  }
+  const importId = `import-${crypto.randomUUID()}`;
+  const { writeSet, summary } = await buildImportPlan(workspaceRoot, bundlePath, mode);
+  const entities = writeSet;
   const existingEntities = await listEntities(workspaceRoot);
-  const validationEntities = mode === "additive-merge" ? [...existingEntities, ...entities] : entities;
-  validateImportedMappings(validationEntities);
-  const incomingEntities = entities;
-  if (mode === "additive-merge") {
-    entities = additiveMergeWriteSet(entities, existingEntities);
-  }
-  const summary = summariseImportChanges(incomingEntities, existingEntities, entities);
-
   if (mode === "full-replace") {
     await writeJson(join(paths.imports, `pre-full-replace-${new Date().toISOString().replace(/[:.]/g, "-")}.json`), {
       generatedAt: nowIso(),
@@ -491,13 +496,42 @@ async function importBundle(workspaceRoot: string, bundlePath: string, mode: Imp
       entities: existingEntities
     });
     await runSql(paths.db, "DELETE FROM entities;");
+  } else if (entities.length > 0) {
+    await writeJson(join(paths.imports, `pre-${importId}.json`), {
+      generatedAt: nowIso(),
+      importId,
+      mode,
+      bundlePath,
+      reason: "pre import undo point",
+      entities: existingEntities
+    });
   }
 
   for (const entity of entities) {
     await upsertEntity(workspaceRoot, entity);
   }
-  await recordOperation(paths, "import", "success", `${mode}:${bundlePath}`);
-  return { imported: entities.length, mode, bundlePath, summary };
+  await recordOperation(paths, "import", "success", `${mode}:${importId}:${bundlePath}`);
+  return { imported: entities.length, mode, bundlePath, importId, summary };
+}
+
+async function planImportBundle(workspaceRoot: string, bundlePath: string, mode: ImportMode): Promise<ImportResult> {
+  await ensureInitialised(workspaceRoot);
+  const importId = `plan-${crypto.randomUUID()}`;
+  const plan = await buildImportPlan(workspaceRoot, bundlePath, mode);
+  return { imported: plan.writeSet.length, mode, bundlePath, importId, summary: plan.summary };
+}
+
+async function buildImportPlan(workspaceRoot: string, bundlePath: string, mode: ImportMode): Promise<{ incomingEntities: readonly V01Entity[]; writeSet: readonly V01Entity[]; summary: ImportSummary }> {
+  const bundle = JSON.parse(await readFile(bundlePath, "utf8")) as { readonly collections?: Partial<BundleCollections> };
+  let incomingEntities = flattenImportEntities(bundle.collections ?? {});
+  if (mode === "full-replace") {
+    incomingEntities = await includeExistingReferencedSourceControls(workspaceRoot, incomingEntities);
+  }
+  const existingEntities = await listEntities(workspaceRoot);
+  const validationEntities = mode === "additive-merge" || mode === "plan-apply" ? [...existingEntities, ...incomingEntities] : incomingEntities;
+  validateImportedMappings(validationEntities);
+  const writeSet = mode === "additive-merge" || mode === "plan-apply" ? additiveMergeWriteSet(incomingEntities, existingEntities) : incomingEntities;
+  return { incomingEntities, writeSet, summary: summariseImportChanges(incomingEntities, existingEntities, writeSet) };
 }
 
 function summariseImportChanges(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[], writeSet: readonly V01Entity[]): ImportSummary {
@@ -505,6 +539,7 @@ function summariseImportChanges(incomingEntities: readonly V01Entity[], existing
   const writtenIds = new Set(writeSet.map((entity) => entity.id));
   const byType: Record<string, ImportTypeSummary> = {};
   const examples: string[] = [];
+  const conflicts: string[] = [];
   let created = 0;
   let updated = 0;
   let unchanged = 0;
@@ -528,7 +563,9 @@ function summariseImportChanges(incomingEntities: readonly V01Entity[], existing
     } else if (written) {
       updated += 1;
       typeSummary.updated += 1;
-      pushImportExample(examples, describeEntityUpdate(existing, incoming));
+      const updateDescription = describeEntityUpdate(existing, incoming);
+      pushImportExample(examples, updateDescription);
+      pushImportExample(conflicts, updateDescription);
     } else {
       unchanged += 1;
       typeSummary.unchanged += 1;
@@ -536,7 +573,35 @@ function summariseImportChanges(incomingEntities: readonly V01Entity[], existing
     byType[incoming.entityType] = typeSummary;
   }
 
-  return { total: incomingEntities.length, created, updated, unchanged, written: writeSet.length, byType, examples };
+  return { total: incomingEntities.length, created, updated, unchanged, written: writeSet.length, byType, examples, conflicts };
+}
+
+async function undoLastImport(workspaceRoot: string): Promise<ImportUndoResult> {
+  const paths = await ensureInitialised(workspaceRoot);
+  await assertWritable(paths);
+  const operations = await readOperations(paths);
+  const lastImport = operations.find((operation) => operation.operation_type === "import" && operation.status === "success" && (operation.detail.startsWith("additive-merge:import-") || operation.detail.startsWith("plan-apply:import-")));
+  if (!lastImport) {
+    return { undone: false, restored: 0, message: "No additive or plan-apply import is available to undo." };
+  }
+  const [, importId] = lastImport.detail.split(":");
+  if (!importId) {
+    return { undone: false, restored: 0, message: "The last import record is missing its import id." };
+  }
+  const snapshotPath = join(paths.imports, `pre-${importId}.json`);
+  if (!existsSync(snapshotPath)) {
+    return { undone: false, restored: 0, importId, message: "The undo snapshot for the last import is no longer available." };
+  }
+  const snapshot = JSON.parse(await readFile(snapshotPath, "utf8")) as { readonly entities?: readonly V01Entity[] };
+  const entities = snapshot.entities || [];
+  await runSql(paths.db, ["DELETE FROM entities;", ...entities.map(upsertEntitySql)].join("\n"));
+  await recordOperation(paths, "import-undo", "success", importId);
+  return { undone: true, restored: entities.length, importId, message: `Undid ${importId}; restored ${entities.length} record(s).` };
+}
+
+async function readOperations(paths: WorkspacePaths): Promise<readonly { operation_type: string; status: string; detail: string; created_at: string }[]> {
+  const output = await runSql(paths.db, "SELECT operation_type, status, detail, created_at FROM operations ORDER BY created_at DESC;", ["-json"]);
+  return output.trim() === "" ? [] : JSON.parse(output) as readonly { operation_type: string; status: string; detail: string; created_at: string }[];
 }
 
 function pushImportExample(examples: string[], example: string): void {

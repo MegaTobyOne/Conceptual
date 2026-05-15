@@ -156,6 +156,27 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deferred-scope gate**: v1.4 introduces no new entity type, collection, schema directory, compatibility-axis bump, `plan-apply`, tags, saved views, compliance-history export controls, editable posture, Shop, or Pub.
 8. **Regression gate**: `e2e:v1.4`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.5 release gates (plan-apply import and undo, per ADR 0035)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.5.0`; schema, bundle, and API axes remain `1.3.0`.
+2. **Plan gate**: Core can build a read-only `plan-apply` import plan that validates the bundle, classifies created/updated/unchanged records, and makes no writes.
+3. **Review gate**: VS Code import UI exposes `Plan, review, apply` and requires explicit `Apply Import` confirmation before writing records.
+4. **Conflict summary gate**: import summaries include per-type counts, examples, and conflict/update examples for changed records.
+5. **Apply gate**: confirmed `plan-apply` imports write the same Explorer local-authoring records as additive merge without changing schema axes.
+6. **Undo gate**: additive and plan-applied imports create a pre-import undo snapshot, and `PSPF: Undo Last Import` restores the previous records.
+7. **Deferred-scope gate**: v1.5 introduces no new entity type, collection, schema directory, compatibility-axis bump, editable posture, tags, saved views, compliance-history export controls, Shop, or Pub.
+8. **Regression gate**: `e2e:v1.5`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.5.1 patch gates (Explorer product boundary and identity, per ADR 0036)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.5.1`; schema, bundle, and API axes remain `1.3.0`.
+2. **Decision gate**: ADR 0036 records Workshop as the system of record and Explorer as the portable review, briefing, lightweight annotation, and round-trip suggestion surface.
+3. **Identity gate**: Explorer renders a portable assurance masthead, sensitivity/browser-local trust markers, and the `Bundle baseline` / `Local changes` / `Export to Workshop` mode strip.
+4. **Copy gate**: the visible Explorer local-editing section is named `Local Changes`; the bundle exchange mode remains `local-authoring` for compatibility.
+5. **Refresh gate**: Explorer remembers the latest loaded bundle in browser-local `IndexedDB`, restores it after refresh, and does not retain older bundle history.
+6. **Deferred-scope gate**: v1.5.1 introduces no new entity type, collection, schema directory, compatibility-axis bump, editable posture, tags, saved views, compliance-history export controls, Shop, or Pub.
+7. **Regression gate**: `e2e:v1.5`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

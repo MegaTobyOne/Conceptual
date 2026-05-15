@@ -15,9 +15,13 @@ const html = `<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PSPF Explorer</title>
   <style>
-    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; background: #111113; color: #f4f4f5; }
-    header { background: #18181b; color: #fafafa; border-bottom: 1px solid #3f3f46; padding: 12px 20px; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --bg: #141311; --surface: #1d1b17; --surface-strong: #25221d; --surface-soft: #201e1a; --border: #454037; --border-soft: #36322b; --text: #f7f2e8; --muted: #c5bcad; --accent: #0f766e; --accent-strong: #14b8a6; --accent-soft: #123f3b; --amber: #a16207; --amber-soft: #3d2c13; }
+    body { margin: 0; background: radial-gradient(circle at top left, rgba(20, 184, 166, 0.09), transparent 28rem), var(--bg); color: var(--text); }
+    header { background: linear-gradient(135deg, #242017 0%, #182c29 100%); color: var(--text); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+    .product-mark { display: grid; gap: 2px; }
+    .product-mark strong { font-size: 22px; letter-spacing: 0; }
+    .product-mark span { color: #d7d0c2; font-size: 13px; }
+    .header-trust { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; }
     main { width: min(1680px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0; }
     button, input { font: inherit; }
     button { background: #0f766e; color: #f0fdfa; border: 1px solid #14b8a6; border-radius: 6px; padding: 8px 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
@@ -30,11 +34,23 @@ const html = `<!doctype html>
     input:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
     a { color: #bae6fd; }
     a:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; border-radius: 4px; }
-    .banner { background: #3f2f11; border-bottom: 1px solid #d97706; color: #fde68a; padding: 8px 20px; font-weight: 600; }
-    .panel { background: #18181b; border: 1px solid #3f3f46; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
-    .section-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: rgba(17, 17, 19, 0.92); border: 1px solid #3f3f46; border-radius: 6px; padding: 8px; margin: 0 0 16px; backdrop-filter: blur(10px); }
-    .section-nav a, .section-nav button { color: #e4e4e7; text-decoration: none; border: 1px solid #3f3f46; background: #202024; border-radius: 6px; padding: 6px 10px; font-size: 14px; white-space: nowrap; font-weight: 600; }
-    .section-nav a:hover, .section-nav button:hover { border-color: #38bdf8; background: #27272a; }
+    .banner { background: var(--amber-soft); border-bottom: 1px solid var(--amber); color: #fde68a; padding: 8px 24px; font-weight: 600; }
+    .mode-strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: rgba(29, 27, 23, 0.94); border-bottom: 1px solid var(--border-soft); padding: 8px 24px; }
+    .mode-step { border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; color: #e8dfcf; background: var(--surface-soft); font-size: 13px; font-weight: 700; }
+    .mode-step.baseline { border-color: #8b7d65; background: #2a251d; color: #f3ead8; }
+    .mode-step.local { border-color: var(--accent-strong); background: var(--accent-soft); color: #ccfbf1; }
+    .mode-step.export { border-color: #3f3f46; background: #202024; color: #d4d4d8; }
+    .panel { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 6px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset; }
+    .snapshot-panel { border-color: rgba(20, 184, 166, 0.45); background: linear-gradient(180deg, rgba(18, 63, 59, 0.24), var(--surface)); }
+    .section-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: rgba(20, 19, 17, 0.92); border: 1px solid var(--border-soft); border-radius: 6px; padding: 8px; margin: 0 0 16px; backdrop-filter: blur(10px); }
+    .section-nav a, .section-nav button { color: #e8dfcf; text-decoration: none; border: 1px solid var(--border-soft); background: var(--surface-soft); border-radius: 6px; padding: 6px 10px; font-size: 14px; white-space: nowrap; font-weight: 600; }
+    .section-nav a:hover, .section-nav button:hover { border-color: var(--accent-strong); background: var(--surface-strong); }
+    .search-panel { display: grid; grid-template-columns: 1fr; gap: 10px; border-color: rgba(20, 184, 166, 0.32); background: linear-gradient(180deg, rgba(18, 63, 59, 0.14), var(--surface)); }
+    .search-panel h2 { margin: 0; }
+    .search-panel p { margin: 0; }
+    .explorer-search { display: grid; grid-template-columns: 1fr; gap: 6px; }
+    .explorer-search input { box-sizing: border-box; width: 100%; background: #151411; border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 10px 12px; }
+    .explorer-search-status { font-size: 12px; color: var(--muted); }
     details.panel { padding: 0; }
     details.panel > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; cursor: pointer; }
     details.panel > summary::-webkit-details-marker { display: none; }
@@ -44,20 +60,20 @@ const html = `<!doctype html>
     details.panel[open] > summary::after { content: "Close"; }
     .section-body { padding: 16px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-    .metric { border: 1px solid #3f3f46; border-radius: 6px; padding: 12px; background: #202024; }
+    .metric { border: 1px solid var(--border-soft); border-radius: 6px; padding: 12px; background: var(--surface-strong); }
     .metric strong { display: block; font-size: 28px; }
     .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
     .toolbar > * { min-width: 0; }
     .toolbar input, .toolbar select { max-width: 100%; }
     .local-authoring-grid { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
-    .local-picker { border: 1px solid #3f3f46; border-radius: 6px; background: #202024; padding: 12px; position: sticky; top: 64px; }
-    .local-picker input { box-sizing: border-box; width: 100%; background: #111113; border: 1px solid #52525b; border-radius: 6px; color: #f4f4f5; padding: 8px; }
+    .local-picker { border: 1px solid rgba(20, 184, 166, 0.35); border-radius: 6px; background: var(--surface-soft); padding: 12px; position: sticky; top: 64px; }
+    .local-picker input { box-sizing: border-box; width: 100%; background: #151411; border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 8px; }
     .local-requirement-list { display: grid; gap: 6px; max-height: min(54vh, 34rem); overflow: auto; margin-top: 10px; padding-right: 2px; }
-    .local-requirement-option { width: 100%; display: grid; gap: 4px; text-align: left; background: #18181b; border-color: #3f3f46; color: #f4f4f5; white-space: normal; font-weight: 600; }
-    .local-requirement-option[aria-pressed="true"] { border-color: #14b8a6; background: #134e4a; }
+    .local-requirement-option { width: 100%; display: grid; gap: 4px; text-align: left; background: var(--surface); border-color: var(--border-soft); color: var(--text); white-space: normal; font-weight: 600; }
+    .local-requirement-option[aria-pressed="true"] { border-color: var(--accent-strong); background: var(--accent-soft); }
     .local-requirement-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: #d4d4d8; font-size: 12px; font-weight: 500; }
     .local-workspace { display: grid; gap: 14px; min-width: 0; }
-    .local-card { border: 1px solid #3f3f46; border-radius: 6px; padding: 12px; background: #202024; }
+    .local-card { border: 1px solid var(--border-soft); border-radius: 6px; padding: 12px; background: var(--surface-soft); }
     .local-card h3 { margin-top: 0; }
     .local-card select, .local-card input { background: #111113; border: 1px solid #52525b; border-radius: 6px; color: #f4f4f5; padding: 6px 8px; }
     .local-card .toolbar { align-items: end; }
@@ -65,14 +81,16 @@ const html = `<!doctype html>
     #local-evidence-title, #local-evidence-reference, #local-action-title, #local-action-due-date, #local-risk-title { width: min(20rem, 100%); }
     #local-action-requirement, #local-risk-requirement { width: min(30rem, 100%); }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
-    .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; line-height: 1.4; white-space: nowrap; }
-    .local-badge { border-color: #14b8a6; color: #ccfbf1; background: #134e4a; }
-    .baseline-badge { border-color: #52525b; }
+    .version-pill { border: 1px solid var(--border-soft); border-radius: 999px; padding: 3px 8px; color: #d7d0c2; background: var(--surface-soft); font-size: 12px; line-height: 1.4; white-space: nowrap; }
+    .trust-pill { border-color: rgba(20, 184, 166, 0.5); color: #ccfbf1; background: var(--accent-soft); }
+    .sensitive-pill { border-color: var(--amber); color: #fde68a; background: var(--amber-soft); }
+    .local-badge { border-color: var(--accent-strong); color: #ccfbf1; background: var(--accent-soft); }
+    .baseline-badge { border-color: var(--border); }
     .overview-grid { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 16px; align-items: start; }
     .overview-grid > *, .bar-row > *, .panel, .panel-lite { min-width: 0; }
     .donut-wrap { display: grid; place-items: center; gap: 8px; }
     .donut { width: 210px; height: 210px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(#22c55e 0 var(--met), #f59e0b var(--met) var(--partial), #f87171 var(--partial) var(--not-met), #71717a var(--not-met) 100%); }
-    .donut-centre { width: 126px; height: 126px; border-radius: 50%; background: #18181b; display: grid; place-items: center; text-align: center; border: 1px solid #3f3f46; }
+    .donut-centre { width: 126px; height: 126px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; text-align: center; border: 1px solid var(--border-soft); }
     .donut-centre strong { display: block; font-size: 30px; }
     .legend { display: grid; gap: 6px; font-size: 13px; }
     .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--swatch); }
@@ -85,7 +103,7 @@ const html = `<!doctype html>
     .check.fail { background: #7f1d1d; color: #fee2e2; }
     .table-wrap { width: 100%; overflow-x: auto; margin-top: 8px; }
     table { width: 100%; min-width: min(760px, 100%); border-collapse: collapse; table-layout: auto; }
-    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #3f3f46; vertical-align: top; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
     th { font-size: 13px; color: #d4d4d8; }
     td { overflow-wrap: anywhere; }
     th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="from"], td[data-field="from"], th[data-field="to"], td[data-field="to"], th[data-field="target"], td[data-field="target"], th[data-field="explanation"], td[data-field="explanation"] { min-width: 18rem; max-width: 34rem; }
@@ -101,21 +119,13 @@ const html = `<!doctype html>
   </style>
 </head>
 <body>
-  <header role="banner"><strong>PSPF Explorer</strong><span>Publication + local authoring phase 1 · v${PSPF_SLICE_VERSION}</span></header>
-  <div class="banner" role="status">OFFICIAL: Sensitive</div>
+  <header role="banner"><div class="product-mark"><strong>PSPF Explorer</strong><span>Portable assurance view · v${PSPF_SLICE_VERSION}</span></div><div class="header-trust"><span class="version-pill trust-pill">Remembered locally</span><span class="version-pill sensitive-pill">OFFICIAL: Sensitive</span><span class="version-pill">Schema ${VERSION_AXES.schemaVersion}</span><span class="version-pill">API ${VERSION_AXES.apiVersion}</span></div></header>
+  <div class="banner" role="status">OFFICIAL: Sensitive · TLP:AMBER+STRICT · Browser-local data stays on this device</div>
+  <div class="mode-strip" aria-label="Explorer mode"><span class="mode-step baseline">Bundle baseline</span><span class="mode-step local">Local changes</span><span class="mode-step export">Export to Workshop</span></div>
   <main>
-    <section class="panel" aria-labelledby="bundle-heading">
-      <h1>Published PSPF bundle</h1>
-      <div class="version-strip" aria-label="PSPF version context"><span class="version-pill">PSPF v${PSPF_SLICE_VERSION}</span><span class="version-pill">Schema ${VERSION_AXES.schemaVersion}</span><span class="version-pill">Bundle ${VERSION_AXES.bundleVersion}</span><span class="version-pill">API ${VERSION_AXES.apiVersion}</span></div>
-      <h2 id="bundle-heading" class="visually-hidden">Bundle input</h2>
-      <p id="bundle-help" class="muted">Select the exported <code>bundle.json</code>. You can also select <code>data/manifest.json</code> with matching collection JSON files.</p>
-      <label for="bundle-files">Bundle JSON files</label>
-      <input id="bundle-files" type="file" multiple accept="application/json,.json" aria-describedby="bundle-help">
-    </section>
     <nav class="section-nav" aria-label="Explorer sections" hidden>
       <a href="#summary">Overview</a>
-      <a href="#validation">Validation</a>
-      <a href="#local-authoring">Local Authoring</a>
+      <a href="#local-authoring">Local Changes</a>
       <a href="#requirements">Requirements</a>
       <a href="#evidence">Evidence</a>
       <a href="#actions">Actions</a>
@@ -125,10 +135,22 @@ const html = `<!doctype html>
       <a href="#source-controls">ISM Source Controls</a>
       <a href="#ism-coverage">ISM Coverage</a>
       <a href="#links">Relationships</a>
+      <a href="#validation">Bundle Validation</a>
+      <a href="#bundle-tools">Bundle Tools</a>
       <button type="button" id="close-all-sections">Close All</button>
     </nav>
     <section id="summary" class="panel" aria-live="polite" hidden></section>
-    <details id="validation" class="panel" aria-live="polite" hidden></details>
+    <section id="explorer-search-panel" class="panel search-panel" aria-labelledby="explorer-search-heading" hidden>
+      <div>
+        <h2 id="explorer-search-heading">Explorer Search</h2>
+        <p class="muted">Search record tables and the Local Changes Requirement list.</p>
+      </div>
+      <div class="explorer-search">
+        <label for="explorer-search">Search records</label>
+        <input id="explorer-search" type="search" placeholder="Search records and Local Changes" autocomplete="off">
+        <span id="explorer-search-status" class="explorer-search-status" role="status">Search loaded records</span>
+      </div>
+    </section>
     <details id="local-authoring" class="panel" aria-live="polite" hidden></details>
     <details id="requirements" class="panel" hidden></details>
     <details id="evidence" class="panel" hidden></details>
@@ -139,6 +161,17 @@ const html = `<!doctype html>
     <details id="source-controls" class="panel" hidden></details>
     <details id="ism-coverage" class="panel" hidden></details>
     <details id="links" class="panel" hidden></details>
+    <details id="validation" class="panel" aria-live="polite" hidden></details>
+    <details id="bundle-tools" class="panel snapshot-panel" open>
+      <summary><h2>Bundle Tools</h2></summary>
+      <div class="section-body">
+        <p class="muted">For loading a different export or checking test diagnostics. Explorer remembers the latest bundle locally for day-to-day review.</p>
+        <div class="version-strip" aria-label="PSPF version context"><span class="version-pill">PSPF v${PSPF_SLICE_VERSION}</span><span class="version-pill">Schema ${VERSION_AXES.schemaVersion}</span><span class="version-pill">Bundle ${VERSION_AXES.bundleVersion}</span><span class="version-pill">API ${VERSION_AXES.apiVersion}</span></div>
+        <p id="bundle-help" class="muted">Select the exported <code>bundle.json</code>. You can also select <code>data/manifest.json</code> with matching collection JSON files.</p>
+        <label for="bundle-files">Bundle JSON files</label>
+        <input id="bundle-files" type="file" multiple accept="application/json,.json" aria-describedby="bundle-help">
+      </div>
+    </details>
     <p class="footer">PSPF source: protectivesecurity.gov.au · Essential Eight source: cyber.gov.au · ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0</p>
   </main>
   <script src="./brief-renderer.js"></script>
@@ -150,6 +183,10 @@ const html = `<!doctype html>
 const app = `const input = document.querySelector("#bundle-files");
 const summary = document.querySelector("#summary");
 const sectionNav = document.querySelector(".section-nav");
+const explorerSearchPanel = document.querySelector("#explorer-search-panel");
+const explorerSearchInput = document.querySelector("#explorer-search");
+const explorerSearchStatus = document.querySelector("#explorer-search-status");
+const bundleToolsSection = document.querySelector("#bundle-tools");
 const validationSection = document.querySelector("#validation");
 const localAuthoringSection = document.querySelector("#local-authoring");
 const requirementsSection = document.querySelector("#requirements");
@@ -172,11 +209,15 @@ let currentLocalActions = [];
 let currentLocalRisks = [];
 let currentLocalRequirementId;
 let currentLocalRequirementFilter = "";
+let currentLocalRequirements = [];
+let currentExplorerSearch = "";
 const localDbName = "pspf-explorer-local-v1";
 const localStoreName = "requirement-status-overlays";
 const localEvidenceStoreName = "requirement-evidence-references";
 const localActionStoreName = "requirement-actions";
 const localRiskStoreName = "requirement-risks";
+const rememberedBundleStoreName = "remembered-bundles";
+const rememberedBundleKey = "latest";
 const assessmentStatuses = ["not-started", "in-progress", "met", "partially-met", "not-met", "not-applicable", "under-review"];
 const actionStatuses = ["todo", "in-progress", "blocked", "done", "cancelled"];
 const riskStatuses = ["open", "monitored", "closed"];
@@ -196,6 +237,13 @@ sectionNav.addEventListener("click", (event) => {
   if (target instanceof HTMLDetailsElement) {
     target.open = true;
   }
+});
+
+explorerSearchInput?.addEventListener("input", (event) => {
+  currentExplorerSearch = String(event.currentTarget?.value || "");
+  currentLocalRequirementFilter = currentExplorerSearch;
+  renderLocalAuthoringSection();
+  applyExplorerSearch();
 });
 
 input.addEventListener("change", async () => {
@@ -227,10 +275,13 @@ input.addEventListener("change", async () => {
   await render(manifest, collections, collectionTexts);
 });
 
+restoreRememberedBundle();
+
 async function render(manifest, incomingCollections, collectionTexts = undefined) {
   currentManifest = manifest;
   currentBaselineCollections = cloneCollections(incomingCollections || {});
   currentBundleKey = bundleStorageKey(manifest);
+  await saveRememberedBundle(manifest, currentBaselineCollections);
   currentLocalOverlays = await loadLocalRequirementStatuses(currentBundleKey);
   currentLocalEvidenceReferences = await loadLocalEvidenceReferences(currentBundleKey);
   currentLocalActions = await loadLocalActions(currentBundleKey);
@@ -252,6 +303,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
     risks: relationshipSummary.risksByRequirement.get(requirement.id) || 0,
     statusSource: currentLocalOverlays.has(requirement.id) ? "Local" : "From bundle"
   }));
+  currentLocalRequirements = requirements;
   const evidence = (collections.evidence || []).map((item) => ({
     ...item,
     requirements: titleList(relationshipSummary.requirementsByEvidence.get(item.id), requirementsById)
@@ -309,6 +361,10 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   }));
   sectionNav.hidden = false;
   summary.hidden = false;
+  explorerSearchPanel.hidden = false;
+  if (bundleToolsSection instanceof HTMLDetailsElement) {
+    bundleToolsSection.open = false;
+  }
   summary.innerHTML = '<h2>Posture Brief</h2>' +
     '<p><strong>' + escapeHtml(posture.title || "PSPF posture") + '</strong></p>' +
     versionStrip(manifest) +
@@ -330,8 +386,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderExplorerSection(validationSection, "Bundle Validation", validationTable(validation));
 
   localAuthoringSection.hidden = false;
-  renderExplorerSection(localAuthoringSection, "Local Authoring", localAuthoringPanel(requirements));
-  bindLocalAuthoringControls();
+  renderLocalAuthoringSection();
 
   requirementsSection.hidden = false;
   renderExplorerSection(requirementsSection, "Requirements", table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "evidence", "actions", "risks"]));
@@ -366,6 +421,57 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
 
   linksSection.hidden = false;
   renderExplorerSection(linksSection, "Relationships Board", table(relationships, ["title", "relationship", "from", "to"]));
+
+  applyExplorerSearch();
+}
+
+function applyExplorerSearch() {
+  if (explorerSearchInput instanceof HTMLInputElement && explorerSearchInput.value !== currentExplorerSearch) {
+    explorerSearchInput.value = currentExplorerSearch;
+  }
+  if (currentLocalRequirementFilter !== currentExplorerSearch) {
+    currentLocalRequirementFilter = currentExplorerSearch;
+    renderLocalAuthoringSection();
+  }
+  const query = normaliseSearchText(currentExplorerSearch);
+  const searchableSections = Array.from(document.querySelectorAll("details.panel")).filter((section) => section !== localAuthoringSection && section !== validationSection);
+  let visibleRows = 0;
+  let totalRows = 0;
+  for (const section of searchableSections) {
+    const rows = Array.from(section.querySelectorAll("tbody tr"));
+    let sectionMatches = false;
+    for (const row of rows) {
+      totalRows += 1;
+      const matches = !query || normaliseSearchText(row.textContent).includes(query);
+      row.hidden = !matches;
+      if (matches) {
+        visibleRows += 1;
+        sectionMatches = true;
+      }
+    }
+    const empty = section.querySelector(".explorer-search-empty");
+    if (empty) {
+      empty.remove();
+    }
+    if (query && rows.length > 0 && !sectionMatches) {
+      section.querySelector(".section-body")?.insertAdjacentHTML("beforeend", '<p class="muted explorer-search-empty">No matching rows in this section.</p>');
+    }
+    if (query && sectionMatches && section instanceof HTMLDetailsElement) {
+      section.open = true;
+    }
+  }
+  const localMatches = matchingLocalRequirements(currentLocalRequirements).length;
+  if (query && localMatches > 0 && localAuthoringSection instanceof HTMLDetailsElement) {
+    localAuthoringSection.open = true;
+  }
+  if (!explorerSearchStatus) {
+    return;
+  }
+  explorerSearchStatus.textContent = query ? visibleRows + " of " + totalRows + " rows match · " + localMatches + " Local Changes requirement(s)" : "Search loaded records";
+}
+
+function normaliseSearchText(value) {
+  return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 function renderExplorerSection(section, heading, body, open = false) {
@@ -374,12 +480,18 @@ function renderExplorerSection(section, heading, body, open = false) {
   section.open = shouldOpen;
 }
 
+function renderLocalAuthoringSection() {
+  renderExplorerSection(localAuthoringSection, "Local Changes", localAuthoringPanel(currentLocalRequirements));
+  bindLocalAuthoringControls();
+}
+
 function versionStrip(manifest) {
   return '<div class="version-strip" aria-label="Loaded version context">' +
     '<span class="version-pill">PSPF v${PSPF_SLICE_VERSION}</span>' +
     '<span class="version-pill">Schema ' + escapeHtml(manifest.schemaVersion || "missing") + '</span>' +
     '<span class="version-pill">Bundle ' + escapeHtml(manifest.bundleVersion || "missing") + '</span>' +
     '<span class="version-pill">API ' + escapeHtml(manifest.apiVersion || "missing") + '</span>' +
+    '<span class="version-pill trust-pill">remembered in this browser</span>' +
     '</div>';
 }
 
@@ -497,8 +609,7 @@ function localAuthoringPanel(requirements) {
     '<p class="muted">Local status conflicts: ' + conflictCount + '</p>' +
     '<div class="local-authoring-grid">' +
       '<aside class="local-picker" aria-label="Requirement picker">' +
-        '<label for="local-requirement-filter">Find Requirement</label>' +
-        '<input id="local-requirement-filter" type="search" placeholder="Search title, ID, status, or domain" autocomplete="off" value="' + escapeHtml(currentLocalRequirementFilter) + '">' +
+        '<p class="muted">Use Explorer Search above to narrow this list by title, ID, status, or domain.</p>' +
         '<div class="local-requirement-list" id="local-requirement-list">' + localRequirementButtons(requirements, selectedRequirement?.id) + '</div>' +
         '<p id="local-requirement-empty" class="muted"' + (matchingLocalRequirements(requirements).length === 0 ? '' : ' hidden') + '>No matching Requirements.</p>' +
       '</aside>' +
@@ -557,16 +668,8 @@ function bindLocalAuthoringControls() {
   localAuthoringSection.querySelectorAll(".local-requirement-option").forEach((button) => {
     button.addEventListener("click", async () => {
       currentLocalRequirementId = button.dataset.requirementId;
-      await render(currentManifest, currentBaselineCollections);
+      renderLocalAuthoringSection();
     });
-  });
-  localAuthoringSection.querySelector("#local-requirement-filter")?.addEventListener("input", async (event) => {
-    currentLocalRequirementFilter = String(event.target?.value || "");
-    const nextRequirementId = filterLocalRequirementList(currentLocalRequirementFilter);
-    if (nextRequirementId !== undefined && nextRequirementId !== currentLocalRequirementId) {
-      currentLocalRequirementId = nextRequirementId || undefined;
-      await render(currentManifest, currentBaselineCollections);
-    }
   });
   localAuthoringSection.querySelector("#export-local-bundle")?.addEventListener("click", async () => {
     const bundle = await exportLocalAuthoringBundle();
@@ -647,27 +750,6 @@ function localRequirementButtons(requirements, selectedRequirementId) {
       '<span class="local-requirement-meta">' + badges.map((badge) => '<span class="version-pill' + (badge === "local status" ? " local-badge" : "") + '">' + escapeHtml(badge) + '</span>').join("") + '</span>' +
     '</button>';
   }).join("");
-}
-
-function filterLocalRequirementList(query) {
-  const needle = query.trim().toLowerCase();
-  let firstVisibleRequirementId;
-  let currentVisible = false;
-  localAuthoringSection.querySelectorAll(".local-requirement-option").forEach((button) => {
-    const visible = needle.length === 0 || String(button.dataset.search || "").includes(needle);
-    button.hidden = !visible;
-    if (visible && !firstVisibleRequirementId) {
-      firstVisibleRequirementId = button.dataset.requirementId;
-    }
-    if (visible && button.dataset.requirementId === currentLocalRequirementId) {
-      currentVisible = true;
-    }
-  });
-  const empty = localAuthoringSection.querySelector("#local-requirement-empty");
-  if (empty) {
-    empty.hidden = Boolean(firstVisibleRequirementId);
-  }
-  return currentVisible ? undefined : firstVisibleRequirementId || "";
 }
 
 function localRequirementSearchText(requirement) {
@@ -1103,7 +1185,7 @@ function cloneCollections(collections) {
 
 function openLocalDb() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(localDbName, 4);
+    const request = indexedDB.open(localDbName, 5);
     request.addEventListener("upgradeneeded", () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(localStoreName)) {
@@ -1122,9 +1204,51 @@ function openLocalDb() {
         const store = db.createObjectStore(localRiskStoreName, { keyPath: "key" });
         store.createIndex("bundleKey", "bundleKey", { unique: false });
       }
+      if (!db.objectStoreNames.contains(rememberedBundleStoreName)) {
+        db.createObjectStore(rememberedBundleStoreName, { keyPath: "key" });
+      }
     });
     request.addEventListener("success", () => resolve(request.result));
     request.addEventListener("error", () => reject(request.error));
+  });
+}
+
+async function restoreRememberedBundle() {
+  try {
+    const rememberedBundle = await loadRememberedBundle();
+    if (!rememberedBundle) {
+      return;
+    }
+    await render(rememberedBundle.manifest, rememberedBundle.collections || {});
+  } catch (error) {
+    console.error("Unable to restore remembered Explorer bundle", error);
+  }
+}
+
+async function loadRememberedBundle() {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(rememberedBundleStoreName, "readonly");
+    const request = transaction.objectStore(rememberedBundleStoreName).get(rememberedBundleKey);
+    request.addEventListener("success", () => resolve(request.result));
+    request.addEventListener("error", () => reject(request.error));
+    transaction.addEventListener("complete", () => db.close());
+  });
+}
+
+async function saveRememberedBundle(manifest, collections) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(rememberedBundleStoreName, "readwrite");
+    transaction.objectStore(rememberedBundleStoreName).put({
+      key: rememberedBundleKey,
+      savedAt: new Date().toISOString(),
+      bundleKey: bundleStorageKey(manifest),
+      manifest: cloneCollections(manifest),
+      collections: cloneCollections(collections)
+    });
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
   });
 }
 
