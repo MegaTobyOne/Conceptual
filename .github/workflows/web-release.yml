@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - develop
-    tags:
-      - 'explorer/*'
   workflow_dispatch:
     inputs:
       target:
@@ -21,12 +19,16 @@ permissions:
   contents: read
 
 concurrency:
-  group: web-release-${{ github.ref }}-${{ inputs.target || 'auto' }}
+  group: web-release-${{ inputs.target || (github.ref == 'refs/heads/develop' && 'test') || github.ref }}
   cancel-in-progress: false
 
 defaults:
   run:
     shell: bash
+
+env:
+  PNPM_VERSION: 10.10.0
+  NODE_VERSION: 22.15.0
 
 jobs:
   build:
@@ -34,43 +36,82 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_id: ${{ steps.release.outputs.release_id }}
+      target: ${{ steps.target.outputs.target }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Resolve deploy target
+        id: target
+        run: |
+          set -euo pipefail
+          if [[ -n "${{ inputs.target }}" ]]; then
+            echo "target=${{ inputs.target }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
+            echo "target=test" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unsupported trigger: ${GITHUB_REF}" >&2
+            exit 1
+          fi
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22.15.0'
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-
 
       - name: Install dependencies
-        run: npx pnpm@10.10.0 install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
-      - name: Verify production tag is on main
-        if: startsWith(github.ref, 'refs/tags/explorer/')
-        run: |
-          set -euo pipefail
-          git fetch origin main --depth=1
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Cache Playwright browsers
+        if: steps.target.outputs.target == 'production'
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright browser
+        if: steps.target.outputs.target == 'production' && steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps
+        if: steps.target.outputs.target == 'production' && steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       - name: Build staged web release
-        run: npx pnpm@10.10.0 run build:web-release
+        run: pnpm run build:web-release
 
       - name: Deployment safety
-        run: npx pnpm@10.10.0 run check:deployment-safety
+        run: pnpm run check:deployment-safety
 
       - name: Personal-data gate
-        run: npx pnpm@10.10.0 run check:personal-data
+        run: pnpm run check:personal-data
 
-      - name: Install Playwright browser for release readiness
-        if: startsWith(github.ref, 'refs/tags/explorer/') || (inputs.target == 'production' && github.ref == 'refs/heads/main')
-        run: npx pnpm@10.10.0 exec playwright install --with-deps chromium
-
-      - name: Release readiness on production tags
-        if: startsWith(github.ref, 'refs/tags/explorer/') || (inputs.target == 'production' && github.ref == 'refs/heads/main')
-        run: npx pnpm@10.10.0 run release:readiness
+      - name: Release readiness
+        if: steps.target.outputs.target == 'production'
+        run: pnpm run release:readiness
 
       - name: Set release id
         id: release
@@ -87,12 +128,15 @@ jobs:
   deploy-test:
     name: Deploy test web
     needs: build
-    if: github.ref == 'refs/heads/develop' || inputs.target == 'test'
+    if: needs.build.outputs.target == 'test'
     runs-on: [self-hosted, macOS, mechastopheles]
     environment:
       name: test-web
       url: ${{ vars.SITE_URL }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download web artefact
         uses: actions/download-artifact@v4
         with:
@@ -100,64 +144,29 @@ jobs:
           path: web-release
 
       - name: Deploy to VentraIP test
-        env:
-          SSH_KEY: ${{ secrets.VENTRAIP_DEPLOY_KEY_TEST }}
-          SSH_PASSPHRASE: ${{ secrets.VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST }}
-          SSH_USER: ${{ vars.VENTRAIP_SSH_USER }}
-          SSH_HOST: ${{ vars.VENTRAIP_SSH_HOST }}
-          APP_DIR: ${{ vars.VENTRAIP_APP_DIR }}
-          DOCROOT: ${{ vars.VENTRAIP_DOCROOT }}
-          SITE_URL: ${{ vars.SITE_URL }}
-          RELEASE_ID: ${{ needs.build.outputs.release_id }}
-        run: |
-          set -euo pipefail
-          SSH_HOST="${SSH_HOST:-s04le.syd7.hostingplatform.net.au}"
-          : "${SSH_KEY:?VENTRAIP_DEPLOY_KEY_TEST is required}"
-          : "${SSH_USER:?VENTRAIP_SSH_USER variable is required}"
-          : "${APP_DIR:?VENTRAIP_APP_DIR variable is required}"
-          : "${DOCROOT:?VENTRAIP_DOCROOT variable is required}"
-          : "${SITE_URL:?SITE_URL variable is required}"
-          mkdir -p ~/.ssh
-          SSH_KEY_PATH="$HOME/.ssh/ventraip_deploy_key"
-          printf '%s\n' "$SSH_KEY" > "$SSH_KEY_PATH"
-          chmod 600 "$SSH_KEY_PATH"
-          eval "$(ssh-agent -s)"
-          trap 'ssh-agent -k >/dev/null' EXIT
-          if [[ -n "${SSH_PASSPHRASE:-}" ]]; then
-            ASKPASS_SCRIPT="$(mktemp)"
-            printf '#!/bin/sh\nprintf %%s "$VENTRAIP_SSH_PASSPHRASE"\n' > "$ASKPASS_SCRIPT"
-            chmod 700 "$ASKPASS_SCRIPT"
-            VENTRAIP_SSH_PASSPHRASE="$SSH_PASSPHRASE" SSH_ASKPASS="$ASKPASS_SCRIPT" SSH_ASKPASS_REQUIRE=force DISPLAY=none ssh-add "$SSH_KEY_PATH" </dev/null
-            rm -f "$ASKPASS_SCRIPT"
-          else
-            ssh-add "$SSH_KEY_PATH" </dev/null
-          fi
-          ssh-keyscan -p 2683 "$SSH_HOST" >> ~/.ssh/known_hosts
-          SSH_OPTS="-i $SSH_KEY_PATH -o BatchMode=yes -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -p 2683"
-          REMOTE_HOME="$(ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" 'printf %s "$HOME"')"
-          case "$APP_DIR" in
-            '~') APP_DIR="$REMOTE_HOME" ;;
-            '~/'*) APP_DIR="$REMOTE_HOME/${APP_DIR#~/}" ;;
-          esac
-          case "$DOCROOT" in
-            '~') DOCROOT="$REMOTE_HOME" ;;
-            '~/'*) DOCROOT="$REMOTE_HOME/${DOCROOT#~/}" ;;
-          esac
-          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "mkdir -p \"$APP_DIR/releases/$RELEASE_ID\" \"$DOCROOT\""
-          rsync -az --delete -e "ssh $SSH_OPTS" web-release/ "$SSH_USER@$SSH_HOST:$APP_DIR/releases/$RELEASE_ID/"
-          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "set -e; cd \"$APP_DIR\"; ln -sfn \"releases/$RELEASE_ID\" current; rsync -a --delete current/ \"$DOCROOT\"/; find \"$DOCROOT\" -type d -exec chmod 755 {} \; ; find \"$DOCROOT\" -type f -exec chmod 644 {} \;"
-          curl --fail --silent --show-error --location "$SITE_URL" >/dev/null
-          curl --fail --silent --show-error --location "$SITE_URL/explorer/" >/dev/null
+        uses: ./.github/actions/ventraip-deploy
+        with:
+          ssh_key: ${{ secrets.VENTRAIP_DEPLOY_KEY_TEST }}
+          ssh_passphrase: ${{ secrets.VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST }}
+          ssh_user: ${{ vars.VENTRAIP_SSH_USER }}
+          ssh_host: ${{ vars.VENTRAIP_SSH_HOST }}
+          app_dir: ${{ vars.VENTRAIP_APP_DIR }}
+          docroot: ${{ vars.VENTRAIP_DOCROOT }}
+          site_url: ${{ vars.SITE_URL }}
+          release_id: ${{ needs.build.outputs.release_id }}
 
   deploy-production:
     name: Deploy production web
     needs: build
-    if: startsWith(github.ref, 'refs/tags/explorer/') || (inputs.target == 'production' && github.ref == 'refs/heads/main')
+    if: needs.build.outputs.target == 'production'
     runs-on: [self-hosted, macOS, mechastopheles]
     environment:
       name: production-web
       url: ${{ vars.SITE_URL }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download web artefact
         uses: actions/download-artifact@v4
         with:
@@ -165,51 +174,13 @@ jobs:
           path: web-release
 
       - name: Deploy to VentraIP production
-        env:
-          SSH_KEY: ${{ secrets.VENTRAIP_DEPLOY_KEY_PROD }}
-          SSH_PASSPHRASE: ${{ secrets.VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD }}
-          SSH_USER: ${{ vars.VENTRAIP_SSH_USER }}
-          SSH_HOST: ${{ vars.VENTRAIP_SSH_HOST }}
-          APP_DIR: ${{ vars.VENTRAIP_APP_DIR }}
-          DOCROOT: ${{ vars.VENTRAIP_DOCROOT }}
-          SITE_URL: ${{ vars.SITE_URL }}
-          RELEASE_ID: ${{ needs.build.outputs.release_id }}
-        run: |
-          set -euo pipefail
-          SSH_HOST="${SSH_HOST:-s04le.syd7.hostingplatform.net.au}"
-          : "${SSH_KEY:?VENTRAIP_DEPLOY_KEY_PROD is required}"
-          : "${SSH_USER:?VENTRAIP_SSH_USER variable is required}"
-          : "${APP_DIR:?VENTRAIP_APP_DIR variable is required}"
-          : "${DOCROOT:?VENTRAIP_DOCROOT variable is required}"
-          : "${SITE_URL:?SITE_URL variable is required}"
-          mkdir -p ~/.ssh
-          SSH_KEY_PATH="$HOME/.ssh/ventraip_deploy_key"
-          printf '%s\n' "$SSH_KEY" > "$SSH_KEY_PATH"
-          chmod 600 "$SSH_KEY_PATH"
-          eval "$(ssh-agent -s)"
-          trap 'ssh-agent -k >/dev/null' EXIT
-          if [[ -n "${SSH_PASSPHRASE:-}" ]]; then
-            ASKPASS_SCRIPT="$(mktemp)"
-            printf '#!/bin/sh\nprintf %%s "$VENTRAIP_SSH_PASSPHRASE"\n' > "$ASKPASS_SCRIPT"
-            chmod 700 "$ASKPASS_SCRIPT"
-            VENTRAIP_SSH_PASSPHRASE="$SSH_PASSPHRASE" SSH_ASKPASS="$ASKPASS_SCRIPT" SSH_ASKPASS_REQUIRE=force DISPLAY=none ssh-add "$SSH_KEY_PATH" </dev/null
-            rm -f "$ASKPASS_SCRIPT"
-          else
-            ssh-add "$SSH_KEY_PATH" </dev/null
-          fi
-          ssh-keyscan -p 2683 "$SSH_HOST" >> ~/.ssh/known_hosts
-          SSH_OPTS="-i $SSH_KEY_PATH -o BatchMode=yes -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -p 2683"
-          REMOTE_HOME="$(ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" 'printf %s "$HOME"')"
-          case "$APP_DIR" in
-            '~') APP_DIR="$REMOTE_HOME" ;;
-            '~/'*) APP_DIR="$REMOTE_HOME/${APP_DIR#~/}" ;;
-          esac
-          case "$DOCROOT" in
-            '~') DOCROOT="$REMOTE_HOME" ;;
-            '~/'*) DOCROOT="$REMOTE_HOME/${DOCROOT#~/}" ;;
-          esac
-          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "mkdir -p \"$APP_DIR/releases/$RELEASE_ID\" \"$DOCROOT\""
-          rsync -az --delete -e "ssh $SSH_OPTS" web-release/ "$SSH_USER@$SSH_HOST:$APP_DIR/releases/$RELEASE_ID/"
-          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "set -e; cd \"$APP_DIR\"; ln -sfn \"releases/$RELEASE_ID\" current; rsync -a --delete current/ \"$DOCROOT\"/; find \"$DOCROOT\" -type d -exec chmod 755 {} \; ; find \"$DOCROOT\" -type f -exec chmod 644 {} \;"
-          curl --fail --silent --show-error --location "$SITE_URL" >/dev/null
-          curl --fail --silent --show-error --location "$SITE_URL/explorer/" >/dev/null
+        uses: ./.github/actions/ventraip-deploy
+        with:
+          ssh_key: ${{ secrets.VENTRAIP_DEPLOY_KEY_PROD }}
+          ssh_passphrase: ${{ secrets.VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD }}
+          ssh_user: ${{ vars.VENTRAIP_SSH_USER }}
+          ssh_host: ${{ vars.VENTRAIP_SSH_HOST }}
+          app_dir: ${{ vars.VENTRAIP_APP_DIR }}
+          docroot: ${{ vars.VENTRAIP_DOCROOT }}
+          site_url: ${{ vars.SITE_URL }}
+          release_id: ${{ needs.build.outputs.release_id }}
