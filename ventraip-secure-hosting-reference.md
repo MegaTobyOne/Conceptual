@@ -195,12 +195,12 @@ GitHub environment variables required by `.github/workflows/web-release.yml`:
 | `test-web` | `SITE_URL` | `https://test.tobyharvey.online` |
 | `test-web` | `VENTRAIP_SSH_USER` | VentraIP SSH username |
 | `test-web` | `VENTRAIP_SSH_HOST` | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
-| `test-web` | `VENTRAIP_APP_DIR` | Suggested: `~/apps/pspf-web-test` |
+| `test-web` | `VENTRAIP_APP_DIR` | Suggested: `/home/<ssh-user>/apps/pspf-web-test` |
 | `test-web` | `VENTRAIP_DOCROOT` | cPanel document root for `test.tobyharvey.online` |
 | `production-web` | `SITE_URL` | `https://tobyharvey.online` |
 | `production-web` | `VENTRAIP_SSH_USER` | VentraIP SSH username |
 | `production-web` | `VENTRAIP_SSH_HOST` | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
-| `production-web` | `VENTRAIP_APP_DIR` | Suggested: `~/apps/pspf-web-prod` |
+| `production-web` | `VENTRAIP_APP_DIR` | Suggested: `/home/<ssh-user>/apps/pspf-web-prod` |
 | `production-web` | `VENTRAIP_DOCROOT` | cPanel document root for `tobyharvey.online` |
 
 ## VS Code Marketplace deployment path

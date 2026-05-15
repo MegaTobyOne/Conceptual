@@ -33,6 +33,16 @@ Still out of scope for v1.6.0:
 
 Optional clean run: close the Extension Host and run `npx pnpm@10.10.0 run debug:reset` from the repository root before relaunching.
 
+Before validating VentraIP web deployment, start the self-hosted runner from the dedicated macOS runner account:
+
+```sh
+su - pspf-runner
+cd github-runner
+./run.sh
+```
+
+Confirm GitHub shows runner `pspf-runner` online with labels `self-hosted`, `macOS`, and `mechastopheles` before triggering `web-release`.
+
 1. Launch `Run PSPF Core + Workshop`.
 2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.6.0`, `Schema 1.3.0`, and `API 1.3.0`.
 3. Confirm the VS Code status bar shows `PSPF v1.6.0` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.
