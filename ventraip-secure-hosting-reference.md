@@ -17,7 +17,7 @@ This design is intended for small static sites and single-page apps hosted on a 
 | Marketplace publisher | `tobyharvey` |
 | Marketplace token secret | `VSCE_TOKEN` (held in `marketplace` environment, manual approval) |
 | Open VSX | Not used in v1.0 |
-| Deploy runner | Self-hosted macOS runner labelled `mechastopheles` |
+| Deploy runner | Self-hosted macOS runner named `pspf-runner`, labelled `mechastopheles` |
 
 ## PSPF fit assessment
 
@@ -39,7 +39,7 @@ Do not publish:
 
 The preferred pattern is to keep source control and CI/CD outside the hosting account, then deploy only built artifacts to VentraIP over SSH or SFTP.[cite:5][cite:14] VentraIP supports SSH and SFTP access with IP allowlisting through VIPcontrol, uses SSH port 2683, and supports Git repositories in cPanel.[cite:5][cite:2][cite:14]
 
-Because VentraIP requires SSH/SFTP source IP allowlisting and GitHub-hosted Actions use a large changing set of outbound ranges, PSPF uses a dedicated self-hosted macOS GitHub Actions runner for the final deploy hop. The runner is labelled `mechastopheles` and is used only after the web artefact has been built and safety-checked. See `pspf-self-hosted-runner-hardening-runbook.md`.
+Because VentraIP requires SSH/SFTP source IP allowlisting and GitHub-hosted Actions use a large changing set of outbound ranges, PSPF uses a dedicated self-hosted macOS GitHub Actions runner for the final deploy hop. The runner is named `pspf-runner`, labelled `mechastopheles`, and used only after the web artefact has been built and safety-checked. See `pspf-self-hosted-runner-hardening-runbook.md`.
 
 | Layer | Recommended role |
 |---|---|

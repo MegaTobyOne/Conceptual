@@ -55,7 +55,7 @@ For a single maintainer working in VS Code on macOS with GitHub Pro, polyrepo co
 - **GitHub Actions minutes**: GitHub Pro allowance covers the v0.1 CI footprint comfortably; macOS runners are reserved for benchmarks that need Apple Silicon parity.
 - **Static web host**: Explorer and the public landing page are published from `web-release.yml` to VentraIP cPanel (see ADR 0038). GitHub Pages is not used.
 - **Approval environments**: `production-web` (VentraIP production) and `marketplace` (VS Code Marketplace) require manual reviewer approval before any job that holds production secrets can run. `test-web` deploys automatically from `develop` after CI gates pass.
-- **Self-hosted deploy runner**: VentraIP SSH allowlisting requires the final web deploy jobs to run on a dedicated macOS self-hosted runner labelled `mechastopheles`. Build, test, safety, and release-readiness jobs remain on GitHub-hosted runners. See `pspf-self-hosted-runner-hardening-runbook.md`.
+- **Self-hosted deploy runner**: VentraIP SSH allowlisting requires the final web deploy jobs to run on a dedicated macOS self-hosted runner named `pspf-runner` and labelled `mechastopheles`. Build, test, safety, and release-readiness jobs remain on GitHub-hosted runners. See `pspf-self-hosted-runner-hardening-runbook.md`.
 - **Releases**: each VSIX is uploaded as a release asset; release notes are generated from PR labels.
 
 ## Branching and change model

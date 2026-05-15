@@ -4,7 +4,7 @@
 
 Run the VentraIP deployment step from a controlled macOS host with a stable allowlisted IP, without turning the maintainer workstation into a general CI execution surface.
 
-This runbook applies to the `mechastopheles` self-hosted GitHub Actions runner used by `.github/workflows/web-release.yml`.
+This runbook applies to the self-hosted GitHub Actions runner named `pspf-runner`, labelled `mechastopheles`, and used by `.github/workflows/web-release.yml`.
 
 ## Design Decision
 
@@ -39,7 +39,7 @@ For PSPF, the mitigation is architectural:
 
 ## macOS Host Baseline
 
-Use a dedicated macOS user account for the runner, for example `pspf-runner`.
+Use the dedicated macOS user account `pspf-runner` for the runner.
 
 Recommended account controls:
 
@@ -66,6 +66,8 @@ self-hosted
 macOS
 mechastopheles
 ```
+
+Use `pspf-runner` as the GitHub runner name. The workflow does not target the runner name directly; it targets the `mechastopheles` label.
 
 Runner configuration requirements:
 
