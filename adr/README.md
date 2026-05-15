@@ -49,6 +49,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0034 | v1.4 Explorer local Risks and conflict display | accepted |
 | 0035 | v1.5 plan-apply import and undo | accepted |
 | 0036 | v1.5.1 Explorer and Workshop product boundary and Explorer identity | accepted |
+| 0037 | v1.6 Workshop import review and identity | accepted |
 
 ## Template
 

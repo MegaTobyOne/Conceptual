@@ -58,6 +58,8 @@ const html = `<!doctype html>
     details.panel > summary::after { content: "Open"; border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; white-space: nowrap; }
     details.panel[open] > summary { border-bottom: 1px solid #3f3f46; }
     details.panel[open] > summary::after { content: "Close"; }
+    .back-to-top { position: fixed; right: clamp(16px, 2vw, 28px); bottom: 18px; z-index: 3; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+    .back-to-top[hidden] { display: none; }
     .section-body { padding: 16px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
     .metric { border: 1px solid var(--border-soft); border-radius: 6px; padding: 12px; background: var(--surface-strong); }
@@ -67,13 +69,18 @@ const html = `<!doctype html>
     .toolbar input, .toolbar select { max-width: 100%; }
     .local-authoring-grid { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
     .local-picker { border: 1px solid rgba(20, 184, 166, 0.35); border-radius: 6px; background: var(--surface-soft); padding: 12px; position: sticky; top: 64px; }
+    .local-picker.filtered { border-color: var(--accent-strong); box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.22); }
     .local-picker input { box-sizing: border-box; width: 100%; background: #151411; border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 8px; }
-    .local-requirement-list { display: grid; gap: 6px; max-height: min(54vh, 34rem); overflow: auto; margin-top: 10px; padding-right: 2px; }
-    .local-requirement-option { width: 100%; display: grid; gap: 4px; text-align: left; background: var(--surface); border-color: var(--border-soft); color: var(--text); white-space: normal; font-weight: 600; }
+    .local-filter-status { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; border: 1px solid rgba(20, 184, 166, 0.32); border-radius: 6px; background: rgba(18, 63, 59, 0.22); color: #ccfbf1; font-size: 12px; line-height: 1.4; padding: 8px; margin-top: 10px; }
+    .local-filter-status button { padding: 4px 8px; font-size: 12px; }
+    .local-requirement-list { display: grid; gap: 4px; max-height: min(72vh, 48rem); overflow: auto; margin-top: 10px; padding-right: 2px; }
+    .local-requirement-option { width: 100%; display: grid; gap: 3px; text-align: left; background: var(--surface); border-color: var(--border-soft); color: var(--text); white-space: normal; font-size: 13px; line-height: 1.35; font-weight: 600; padding: 7px 9px; }
+    .local-requirement-option > span:first-child { overflow-wrap: anywhere; }
     .local-requirement-option[aria-pressed="true"] { border-color: var(--accent-strong); background: var(--accent-soft); }
-    .local-requirement-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: #d4d4d8; font-size: 12px; font-weight: 500; }
+    .local-requirement-option.search-pinned { border-style: dashed; }
+    .local-requirement-meta { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; color: #d4d4d8; font-size: 11px; font-weight: 500; }
     .local-workspace { display: grid; gap: 14px; min-width: 0; }
-    .local-card { border: 1px solid var(--border-soft); border-radius: 6px; padding: 12px; background: var(--surface-soft); }
+    .local-card { box-sizing: border-box; min-width: 0; max-width: 100%; border: 1px solid var(--border-soft); border-radius: 6px; padding: 12px; background: var(--surface-soft); }
     .local-card h3 { margin-top: 0; }
     .local-card select, .local-card input { background: #111113; border: 1px solid #52525b; border-radius: 6px; color: #f4f4f5; padding: 6px 8px; }
     .local-card .toolbar { align-items: end; }
@@ -174,6 +181,7 @@ const html = `<!doctype html>
     </details>
     <p class="footer">PSPF source: protectivesecurity.gov.au · Essential Eight source: cyber.gov.au · ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0</p>
   </main>
+  <button type="button" id="back-to-top" class="back-to-top secondary" aria-label="Back to top navigation and search" hidden>Top</button>
   <script src="./brief-renderer.js"></script>
   <script src="./app.js"></script>
 </body>
@@ -186,6 +194,7 @@ const sectionNav = document.querySelector(".section-nav");
 const explorerSearchPanel = document.querySelector("#explorer-search-panel");
 const explorerSearchInput = document.querySelector("#explorer-search");
 const explorerSearchStatus = document.querySelector("#explorer-search-status");
+const backToTopButton = document.querySelector("#back-to-top");
 const bundleToolsSection = document.querySelector("#bundle-tools");
 const validationSection = document.querySelector("#validation");
 const localAuthoringSection = document.querySelector("#local-authoring");
@@ -211,6 +220,7 @@ let currentLocalRequirementId;
 let currentLocalRequirementFilter = "";
 let currentLocalRequirements = [];
 let currentExplorerSearch = "";
+let shouldSnapLocalSelectionToSearch = false;
 const localDbName = "pspf-explorer-local-v1";
 const localStoreName = "requirement-status-overlays";
 const localEvidenceStoreName = "requirement-evidence-references";
@@ -221,6 +231,24 @@ const rememberedBundleKey = "latest";
 const assessmentStatuses = ["not-started", "in-progress", "met", "partially-met", "not-met", "not-applicable", "under-review"];
 const actionStatuses = ["todo", "in-progress", "blocked", "done", "cancelled"];
 const riskStatuses = ["open", "monitored", "closed"];
+
+backToTopButton?.addEventListener("click", () => {
+  const target = explorerSearchPanel.hidden ? document.body : explorerSearchPanel;
+  target.scrollIntoView({ block: "start" });
+  explorerSearchInput?.focus({ preventScroll: true });
+});
+
+window.addEventListener("scroll", () => {
+  updateBackToTopVisibility();
+}, { passive: true });
+
+function updateBackToTopVisibility() {
+  if (!backToTopButton) {
+    return;
+  }
+  const searchBottom = explorerSearchPanel.hidden ? 480 : explorerSearchPanel.offsetTop + explorerSearchPanel.offsetHeight - 80;
+  backToTopButton.hidden = sectionNav.hidden || window.scrollY < searchBottom;
+}
 
 sectionNav.addEventListener("click", (event) => {
   if (event.target instanceof HTMLElement && event.target.closest("#close-all-sections")) {
@@ -242,6 +270,7 @@ sectionNav.addEventListener("click", (event) => {
 explorerSearchInput?.addEventListener("input", (event) => {
   currentExplorerSearch = String(event.currentTarget?.value || "");
   currentLocalRequirementFilter = currentExplorerSearch;
+  shouldSnapLocalSelectionToSearch = true;
   renderLocalAuthoringSection();
   applyExplorerSearch();
 });
@@ -362,6 +391,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   sectionNav.hidden = false;
   summary.hidden = false;
   explorerSearchPanel.hidden = false;
+  updateBackToTopVisibility();
   if (bundleToolsSection instanceof HTMLDetailsElement) {
     bundleToolsSection.open = false;
   }
@@ -580,6 +610,10 @@ async function validateBundle(manifest, collections, collectionTexts) {
 
 function localAuthoringPanel(requirements) {
   const selectedRequirement = selectedLocalRequirement(requirements);
+  const matchedRequirements = matchingLocalRequirements(requirements);
+  const filterText = currentLocalRequirementFilter.trim();
+  const isFiltered = filterText.length > 0;
+  const selectedPinned = Boolean(selectedRequirement && isFiltered && !matchedRequirements.some((requirement) => requirement.id === selectedRequirement.id));
   const selectedBaseline = baselineRequirement(selectedRequirement?.id);
   const selectedOverlay = selectedRequirement ? currentLocalOverlays.get(selectedRequirement.id) : undefined;
   const selectedConflict = selectedOverlay && selectedBaseline && selectedOverlay.baselineStatus !== selectedBaseline.assessmentStatus;
@@ -608,10 +642,11 @@ function localAuthoringPanel(requirements) {
     '<p class="muted">Local status overlays: ' + localCount + '</p>' +
     '<p class="muted">Local status conflicts: ' + conflictCount + '</p>' +
     '<div class="local-authoring-grid">' +
-      '<aside class="local-picker" aria-label="Requirement picker">' +
+      '<aside class="local-picker' + (isFiltered ? ' filtered' : '') + '" aria-label="Requirement picker">' +
         '<p class="muted">Use Explorer Search above to narrow this list by title, ID, status, or domain.</p>' +
+        (isFiltered ? '<div class="local-filter-status" role="status"><span>Showing ' + matchedRequirements.length + ' of ' + requirements.length + ' Requirements for <strong>' + escapeHtml(filterText) + '</strong>' + (selectedPinned ? ' · selected item pinned' : '') + '</span><button type="button" class="secondary" id="local-clear-search">Clear search</button></div>' : '') +
         '<div class="local-requirement-list" id="local-requirement-list">' + localRequirementButtons(requirements, selectedRequirement?.id) + '</div>' +
-        '<p id="local-requirement-empty" class="muted"' + (matchingLocalRequirements(requirements).length === 0 ? '' : ' hidden') + '>No matching Requirements.</p>' +
+        '<p id="local-requirement-empty" class="muted"' + (matchedRequirements.length === 0 ? '' : ' hidden') + '>No matching Requirements.</p>' +
       '</aside>' +
       '<div class="local-workspace">' +
         '<section class="local-card" aria-labelledby="local-selected-heading">' +
@@ -619,6 +654,19 @@ function localAuthoringPanel(requirements) {
           '<p><strong>' + escapeHtml(selectedRequirement?.title || "No Requirement selected") + '</strong></p>' +
           '<p class="muted">Baseline: ' + escapeHtml(label(selectedBaseline?.assessmentStatus || selectedRequirement?.assessmentStatus || "not-started")) + ' · Local: ' + escapeHtml(label(selectedRequirement?.assessmentStatus || "not-started")) + (selectedConflict ? ' · <span class="check fail">Baseline changed</span>' : '') + '</p>' +
           (selectedRequirement ? '<div class="toolbar"><label for="local-selected-status">Status</label>' + statusSelect(selectedRequirement.id, selectedRequirement.assessmentStatus, "local-selected-status") + '</div>' : '') +
+        '</section>' +
+        '<section class="local-card" aria-labelledby="local-linked-heading">' +
+          '<h3 id="local-linked-heading">Linked Context</h3>' +
+          '<p class="muted">Existing bundle records and local additions linked to this Requirement.</p>' +
+          '<div class="toolbar">' +
+            '<button type="button" class="secondary" data-open-section="evidence">Open Evidence</button>' +
+            '<button type="button" class="secondary" data-open-section="actions">Open Actions</button>' +
+            '<button type="button" class="secondary" data-open-section="risks">Open Risks</button>' +
+            '<button type="button" class="secondary" data-open-section="links">Open Relationships</button>' +
+          '</div>' +
+          '<h4>Evidence</h4>' + table(linkedEvidenceRows(selectedRequirement?.id), ["title", "freshness", "reference", "source", "open"]) +
+          '<h4>Actions</h4>' + table(linkedActionRows(selectedRequirement?.id), ["title", "status", "dueDate", "source", "open"]) +
+          '<h4>Risks</h4>' + table(linkedRiskRows(selectedRequirement?.id), ["title", "status", "likelihood", "impact", "source", "open"]) +
         '</section>' +
         '<section class="local-card" aria-labelledby="local-evidence-heading">' +
           '<h3 id="local-evidence-heading">Add Evidence Reference</h3>' +
@@ -671,6 +719,16 @@ function bindLocalAuthoringControls() {
       renderLocalAuthoringSection();
     });
   });
+  localAuthoringSection.querySelector("#local-clear-search")?.addEventListener("click", () => {
+    currentExplorerSearch = "";
+    currentLocalRequirementFilter = "";
+    if (explorerSearchInput instanceof HTMLInputElement) {
+      explorerSearchInput.value = "";
+    }
+    renderLocalAuthoringSection();
+    applyExplorerSearch();
+    explorerSearchInput?.focus();
+  });
   localAuthoringSection.querySelector("#export-local-bundle")?.addEventListener("click", async () => {
     const bundle = await exportLocalAuthoringBundle();
     downloadJson("pspf-explorer-local-authoring-bundle.json", bundle);
@@ -680,6 +738,15 @@ function bindLocalAuthoringControls() {
       await resetLocalData(currentBundleKey);
       await render(currentManifest, currentBaselineCollections);
     }
+  });
+  localAuthoringSection.querySelectorAll("button[data-open-section]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = document.querySelector("#" + button.dataset.openSection);
+      if (target instanceof HTMLDetailsElement) {
+        target.open = true;
+        target.scrollIntoView({ block: "start" });
+      }
+    });
   });
   localAuthoringSection.querySelector("#add-local-evidence")?.addEventListener("click", async () => {
     const requirementId = currentLocalRequirementId;
@@ -702,7 +769,23 @@ function bindLocalAuthoringControls() {
     const impact = Number(localAuthoringSection.querySelector("#local-risk-impact")?.value || 3);
     await addLocalRisk(requirementId, title, status, likelihood, impact);
   });
+  snapSelectedLocalRequirementIntoView();
   updateStorageStatus();
+}
+
+function snapSelectedLocalRequirementIntoView() {
+  const list = localAuthoringSection.querySelector("#local-requirement-list");
+  const selected = localAuthoringSection.querySelector('.local-requirement-option[aria-pressed="true"]');
+  if (!(list instanceof HTMLElement) || !(selected instanceof HTMLElement)) {
+    return;
+  }
+  const selectedTop = selected.offsetTop - list.offsetTop;
+  const selectedBottom = selectedTop + selected.offsetHeight;
+  if (selectedTop < list.scrollTop) {
+    list.scrollTop = selectedTop;
+  } else if (selectedBottom > list.scrollTop + list.clientHeight) {
+    list.scrollTop = selectedBottom - list.clientHeight;
+  }
 }
 
 function requirementSelect(requirements, id = "local-evidence-requirement") {
@@ -712,7 +795,13 @@ function requirementSelect(requirements, id = "local-evidence-requirement") {
 
 function selectedLocalRequirement(requirements) {
   const matches = matchingLocalRequirements(requirements);
+  const currentSelection = requirements.find((requirement) => requirement.id === currentLocalRequirementId);
+  if (currentSelection && (!shouldSnapLocalSelectionToSearch || matches.some((requirement) => requirement.id === currentSelection.id) || matches.length === 0)) {
+    shouldSnapLocalSelectionToSearch = false;
+    return currentSelection;
+  }
   if (!matches.length) {
+    shouldSnapLocalSelectionToSearch = false;
     currentLocalRequirementId = undefined;
     return undefined;
   }
@@ -721,6 +810,7 @@ function selectedLocalRequirement(requirements) {
     selected = matches.find((requirement) => currentLocalOverlays.has(requirement.id)) || matches[0];
     currentLocalRequirementId = selected.id;
   }
+  shouldSnapLocalSelectionToSearch = false;
   return selected;
 }
 
@@ -744,8 +834,13 @@ function localRequirementButtons(requirements, selectedRequirementId) {
     if (conflict) {
       badges.push("conflict");
     }
+    const selected = requirement.id === selectedRequirementId;
     const matchesFilter = matchingLocalRequirements([requirement]).length > 0;
-    return '<button type="button" class="local-requirement-option" data-requirement-id="' + escapeHtml(requirement.id) + '" data-search="' + escapeHtml(localRequirementSearchText(requirement)) + '" aria-pressed="' + (requirement.id === selectedRequirementId ? "true" : "false") + '"' + (matchesFilter ? '' : ' hidden') + '>' +
+    const pinned = selected && currentLocalRequirementFilter.trim() && !matchesFilter;
+    if (pinned) {
+      badges.push("selected");
+    }
+    return '<button type="button" class="local-requirement-option' + (pinned ? ' search-pinned' : '') + '" data-requirement-id="' + escapeHtml(requirement.id) + '" data-search="' + escapeHtml(localRequirementSearchText(requirement)) + '" aria-pressed="' + (selected ? "true" : "false") + '"' + (matchesFilter || pinned ? '' : ' hidden') + '>' +
       '<span>' + escapeHtml(requirement.title) + '</span>' +
       '<span class="local-requirement-meta">' + badges.map((badge) => '<span class="version-pill' + (badge === "local status" ? " local-badge" : "") + '">' + escapeHtml(badge) + '</span>').join("") + '</span>' +
     '</button>';
@@ -781,6 +876,16 @@ function localEvidenceRows(requirementId) {
   }));
 }
 
+function linkedEvidenceRows(requirementId) {
+  return linkedRecordsForRequirement(requirementId, "supported-by", "evidence", "evidence").map((item) => ({
+    title: item.record.title,
+    freshness: label(item.record.freshness || "unknown"),
+    reference: item.record.reference || "Not recorded",
+    source: sourceBadge(item.record),
+    open: openSectionButton("evidence", "Open")
+  }));
+}
+
 function localActionRows(requirementId) {
   const requirementsById = new Map((currentBaselineCollections?.requirements || []).map((requirement) => [requirement.id, requirement]));
   return currentLocalActions.filter((action) => !requirementId || action.requirementId === requirementId).map((action) => ({
@@ -789,6 +894,16 @@ function localActionRows(requirementId) {
     status: label(action.status),
     dueDate: action.dueDate ? formatShortDate(action.dueDate) || action.dueDate : "Not recorded",
     source: '<span class="version-pill local-badge">local</span>'
+  }));
+}
+
+function linkedActionRows(requirementId) {
+  return linkedRecordsForRequirement(requirementId, "addressed-by", "action", "actions").map((item) => ({
+    title: item.record.title,
+    status: label(item.record.status || "not recorded"),
+    dueDate: item.record.dueDate ? formatShortDate(item.record.dueDate) || item.record.dueDate : "Not recorded",
+    source: sourceBadge(item.record),
+    open: openSectionButton("actions", "Open")
   }));
 }
 
@@ -802,6 +917,36 @@ function localRiskRows(requirementId) {
     impact: risk.impact,
     source: '<span class="version-pill local-badge">local</span>'
   }));
+}
+
+function linkedRiskRows(requirementId) {
+  return linkedRecordsForRequirement(requirementId, "exposed-by", "risk", "risks").map((item) => ({
+    title: item.record.title,
+    status: label(item.record.status || "not recorded"),
+    likelihood: item.record.likelihood || "Not recorded",
+    impact: item.record.impact || "Not recorded",
+    source: sourceBadge(item.record),
+    open: openSectionButton("risks", "Open")
+  }));
+}
+
+function linkedRecordsForRequirement(requirementId, linkType, toType, collectionName) {
+  if (!requirementId || !currentCollections) {
+    return [];
+  }
+  const recordsById = new Map((currentCollections[collectionName] || []).map((record) => [record.id, record]));
+  return (currentCollections.links || [])
+    .filter((link) => link.fromId === requirementId && link.fromType === "requirement" && link.linkType === linkType && link.toType === toType)
+    .map((link) => ({ link, record: recordsById.get(link.toId) }))
+    .filter((item) => item.record);
+}
+
+function sourceBadge(record) {
+  return record.sourceProduct === "explorer" ? '<span class="version-pill local-badge">local</span>' : '<span class="version-pill baseline-badge">from bundle</span>';
+}
+
+function openSectionButton(sectionId, labelText) {
+  return '<button type="button" class="secondary" data-open-section="' + escapeHtml(sectionId) + '">' + escapeHtml(labelText) + '</button>';
 }
 
 function statusSelect(requirementId, selected, id) {
@@ -1592,7 +1737,7 @@ function tableValue(value, key) {
   if (value === undefined || value === null || value === "") {
     return '<span class="empty-value">Not recorded</span>';
   }
-  if (key === "local" || key === "source") {
+  if (key === "local" || key === "source" || key === "open") {
     return String(value);
   }
   if (value === 0) {

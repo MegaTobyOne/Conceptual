@@ -358,6 +358,8 @@ Explorer is the most outward-facing product. It should be readable by users who 
 
 Per ADR 0036, Explorer is the portable review, briefing, lightweight annotation, and round-trip suggestion surface. Workshop remains the system of record and decision surface for canonical authoring, validation, import review, merge/undo history, and audit-friendly decisions. Explorer local edits are browser-local proposed changes until Workshop accepts them through import.
 
+Per ADR 0037, Workshop has its own identity variation as the system of record. Workshop surfaces should use a cooler assurance-working treatment, clear `System of record` copy, visible `OFFICIAL: Sensitive` banners, and explicit decision controls when accepting Explorer local JSON into the canonical workspace. The Workshop import review surface is the primary place to inspect created, updated, unchanged, and write counts before applying an Explorer local JSON import.
+
 ### Explorer visual behaviour
 
 Explorer should feel more editorial and more presentational than the extensions:

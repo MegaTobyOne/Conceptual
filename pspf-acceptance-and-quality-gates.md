@@ -177,6 +177,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **Deferred-scope gate**: v1.5.1 introduces no new entity type, collection, schema directory, compatibility-axis bump, editable posture, tags, saved views, compliance-history export controls, Shop, or Pub.
 7. **Regression gate**: `e2e:v1.5`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.6 release gates (Workshop import review and identity, per ADR 0037)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.6.0`; schema, bundle, and API axes remain `1.3.0`.
+2. **Import review surface gate**: `Plan, review, apply` opens a `PSPF Workshop Import Review` webview before writing Explorer local JSON records.
+3. **Review content gate**: the review surface shows created, updated, unchanged, and write counts, per-entity-type counts, and update/conflict examples.
+4. **Decision gate**: the review surface exposes explicit `Apply Import`, `Show Details`, and `Cancel` actions; writes happen only after `Apply Import`.
+5. **Undo gate**: plan-applied imports continue to create a pre-import undo snapshot and `Undo Import` restores the previous records.
+6. **Workshop identity gate**: Workshop Home and shared Workshop webview panels present Workshop as the `System of record` and decision surface, visually distinct from Explorer's portable assurance view.
+7. **Deferred-scope gate**: v1.6 introduces no new entity type, collection, schema directory, compatibility-axis bump, editable posture, tags, saved views, compliance-history export controls, Shop, or Pub.
+8. **Regression gate**: `e2e:v1.6`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

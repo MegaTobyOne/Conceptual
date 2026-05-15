@@ -6,13 +6,13 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Status: v1.5.1 Explorer product-boundary and visual identity patch implemented for test. v1.5 plan-apply import and undo implemented for test; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
+**Status: v1.6 Workshop import review and identity build implemented for test. v1.5.1 Explorer product-boundary and visual identity patch implemented; v1.5 plan-apply import and undo implemented; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
 
 - pnpm workspaces with `@pspf/contracts`, `@pspf/brief-renderer`, `pspf-core`, `pspf-workshop`, and the Explorer static SPA.
 - Core: workspace bootstrap, SQLite system of record at `.pspf/core/pspf-core.db`, snapshot, integrity check, master-bundle export with manifest hashes, master-bundle import (`full-replace` with pre-replace rollback and `additive-merge`), writer lock, three version axes.
-- Workshop: Requirement, Evidence, Action, Risk authoring; Assessment Dashboard, Evidence Review Queue, Item Detail, Copy Posture Brief webview commands; ISM source-control browsing; Requirement to ISM control mapping with confidence, review metadata, and drift visibility.
+- Workshop: Requirement, Evidence, Action, Risk authoring; Assessment Dashboard, Evidence Review Queue, Item Detail, Copy Posture Brief webview commands; ISM source-control browsing; Requirement to ISM control mapping with confidence, review metadata, drift visibility, system-of-record identity, and Explorer local JSON import review.
 - Explorer: static SPA, bundle load with AJV validation, posture brief view with copy-to-clipboard, compliance donut, Relationships Board read-only, ISM source controls, ISM coverage, mapping quality, drift status, OFFICIAL: Sensitive + TLP:AMBER+STRICT banner, active version context, v1.1 browser-local Requirement status overlays, v1.2 browser-local evidence references, v1.3 browser-local Actions, v1.4 browser-local Risks plus local status conflict display, v1.5.1 latest-bundle refresh restore, and a warmer portable-assurance visual identity.
 - Shared `@pspf/brief-renderer` package backs both Workshop and Explorer so the posture brief cannot diverge.
 - ISM integration phases 1–3 are implemented for the current seeded source-library slice; see [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md), [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md), [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md), and [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
@@ -30,6 +30,7 @@ The validated spine from the original readiness sequence is fully landed and has
 - v1.4 is governed by [adr/0034-v1-4-explorer-local-risks-and-conflicts.md](adr/0034-v1-4-explorer-local-risks-and-conflicts.md). Explorer persists local Risks in `IndexedDB`, materialises them as existing `risk` and `exposed-by` `link` records, shows informational local status conflicts against refreshed bundle baselines, and exports them in the same local-authoring master bundle. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.4.0`.
 - v1.5 is governed by [adr/0035-v1-5-plan-apply-import-and-undo.md](adr/0035-v1-5-plan-apply-import-and-undo.md). Core/Workshop adds `plan-apply` import with read-only planning, explicit apply confirmation, conflict/update examples, and last-import undo for additive and plan-applied imports. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.5.0`.
 - v1.5.1 is governed by [adr/0036-v1-5-1-explorer-workshop-product-boundary-and-identity.md](adr/0036-v1-5-1-explorer-workshop-product-boundary-and-identity.md). It records Workshop as the system of record and Explorer as the portable review, briefing, lightweight annotation, and round-trip suggestion surface; Explorer gets the first visible identity pass and default latest-bundle refresh restore. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.5.1`.
+- v1.6 is governed by [adr/0037-v1-6-workshop-import-review-and-identity.md](adr/0037-v1-6-workshop-import-review-and-identity.md). It adds a proper `PSPF Workshop Import Review` webview for Explorer local JSON plan-apply imports and gives Workshop its system-of-record visual identity. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.6.0`.
 - v1.0 scope is governed by [adr/0022-v1-0-scope.md](adr/0022-v1-0-scope.md): Core + Workshop + Explorer publication mode plus the v0.5 surface; Shop, Pub, Explorer local authoring, chart export, plan-apply, editable posture, and third-party accessibility audit are deferred past v1.0; performance reference is a current MacBook Air.
 
 The core product decisions remain stable:
@@ -43,9 +44,9 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is expected to be green at 17/17 for v1.5.1:
+`npx pnpm@10.10.0 run release:readiness` is expected to be green at 17/17 for v1.6.0:
 
-1. Spine workflow (headless `e2e:v1.5`).
+1. Spine workflow (headless `e2e:v1.6`).
 2. Schema-policy.
 3. Personal-data exclusion.
 4. AU-English lint.
@@ -105,8 +106,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.5.1, including Explorer Local Changes, refresh restore, identity markers, Explorer local JSON plan-apply, and undo.
+The next sequence is manual validation of v1.6.0, including Explorer Local Changes, refresh restore, Workshop/Explorer identity markers, Workshop import review for Explorer local JSON, plan-apply, and undo.
 
 ## Review conclusion
 
-The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Explorer local status overlays, Explorer local evidence references, Explorer local Actions, Explorer local Risks, local status conflict display, plan-apply import, last-import undo, latest-bundle refresh restore, and Explorer identity boundary are implemented end-to-end for v1.5.1 test. Manual validation has been clean to date through the v1.4 local-authoring path; v1.5.1 awaits operator validation.
+The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Explorer local status overlays, Explorer local evidence references, Explorer local Actions, Explorer local Risks, local status conflict display, Workshop import review, plan-apply import, last-import undo, latest-bundle refresh restore, and Workshop/Explorer identity boundary are implemented end-to-end for v1.6.0 test. Manual validation has been clean to date through the v1.4 local-authoring path; v1.6.0 awaits operator validation.

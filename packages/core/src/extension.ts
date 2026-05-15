@@ -131,17 +131,8 @@ async function importBundlesFromPicker(
       const plans = await Promise.all(bundlePaths.map((bundlePath) => getService().planImportBundle(bundlePath, "plan-apply")));
       writeImportSummary(output, plans);
       const planSummary = combineImportSummaries(plans);
-      const reviewAction = await vscode.window.showWarningMessage(
-        `Apply Explorer import plan? ${plans.length} file(s), ${planSummary.created} created, ${planSummary.updated} updated, ${planSummary.unchanged} unchanged.`,
-        { modal: true, detail: planDetail(plans) },
-        "Apply Import",
-        "Show Details"
-      );
-      if (reviewAction === "Show Details") {
-        output.show(true);
-        return plans.length === 1 ? plans[0] : plans;
-      }
-      if (reviewAction !== "Apply Import") {
+      const reviewAction = await openImportReviewSurface(output, plans, planSummary);
+      if (reviewAction !== "apply") {
         return undefined;
       }
       const results = await vscode.window.withProgress(
@@ -214,6 +205,163 @@ function planDetail(results: readonly ImportResult[]): string {
   ]).join("\n");
 }
 
+function openImportReviewSurface(
+  output: vscode.OutputChannel,
+  plans: readonly ImportResult[],
+  planSummary: { readonly created: number; readonly updated: number; readonly unchanged: number }
+): Promise<"apply" | "cancel"> {
+  const panel = vscode.window.createWebviewPanel(
+    "pspfWorkshopImportReview",
+    "PSPF Workshop Import Review",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  panel.webview.html = importReviewHtml(plans, planSummary);
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (action: "apply" | "cancel") => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      resolve(action);
+      panel.dispose();
+    };
+
+    const messageSubscription = panel.webview.onDidReceiveMessage((message: { readonly command?: string }) => {
+      if (message.command === "applyImport") {
+        finish("apply");
+        return;
+      }
+      if (message.command === "showDetails") {
+        output.show(true);
+        return;
+      }
+      if (message.command === "cancelImport") {
+        finish("cancel");
+      }
+    });
+    const disposeSubscription = panel.onDidDispose(() => finish("cancel"));
+    panel.onDidDispose(() => {
+      messageSubscription.dispose();
+      disposeSubscription.dispose();
+    });
+  });
+}
+
+function importReviewHtml(
+  plans: readonly ImportResult[],
+  planSummary: { readonly created: number; readonly updated: number; readonly unchanged: number }
+): string {
+  const fileCount = plans.length;
+  const written = plans.reduce((total, plan) => total + plan.summary.written, 0);
+  return `<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PSPF Workshop Import Review</title>
+  <style>
+    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --bg: #111113; --surface: #18181b; --surface-strong: #202024; --border: #3f3f46; --text: #f4f4f5; --muted: #a1a1aa; --accent: #2563eb; --accent-soft: #172554; --amber: #d97706; --amber-soft: #3f2f11; }
+    body { margin: 0; color: var(--text); background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28rem), var(--bg); }
+    header { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 18px 24px; background: linear-gradient(135deg, #172554 0%, #18181b 70%); border-bottom: 1px solid var(--border); }
+    header strong { display: block; font-size: 22px; }
+    header span { color: #dbeafe; font-size: 13px; }
+    main { width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0; }
+    section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+    h1, h2, h3 { margin-top: 0; }
+    .banner { background: var(--amber-soft); border-bottom: 1px solid var(--amber); color: #fde68a; padding: 8px 24px; font-weight: 700; }
+    .mode-strip, .version-strip, .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .mode-step, .pill { border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; background: var(--surface-strong); color: #d4d4d8; font-size: 12px; font-weight: 700; }
+    .mode-step.active, .pill.action { border-color: #60a5fa; background: var(--accent-soft); color: #dbeafe; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .metric { background: var(--surface-strong); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+    .metric span { display: block; color: var(--muted); font-size: 12px; }
+    .metric strong { display: block; font-size: 28px; margin-top: 4px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; min-width: min(760px, 100%); border-collapse: collapse; }
+    th, td { border-bottom: 1px solid var(--border); padding: 8px; text-align: left; vertical-align: top; }
+    th { color: #d4d4d8; font-size: 13px; }
+    td { overflow-wrap: anywhere; }
+    ul { margin: 8px 0 0; padding-left: 20px; }
+    button { border: 1px solid #60a5fa; border-radius: 6px; background: #1d4ed8; color: #eff6ff; padding: 8px 12px; font: inherit; font-weight: 700; cursor: pointer; }
+    button.secondary { border-color: #52525b; background: #27272a; color: #f4f4f5; }
+    button.danger { border-color: #f59e0b; background: #3f2f11; color: #fde68a; }
+    button:hover { filter: brightness(1.12); }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header><div><strong>PSPF Workshop</strong><span>System of record import review</span></div><div class="version-strip"><span class="pill action">Plan, review, apply</span><span class="pill">Explorer local JSON</span></div></header>
+  <div class="banner">OFFICIAL: Sensitive · Review every Explorer local change before writing to Workshop</div>
+  <main>
+    <section>
+      <h1>Import Review</h1>
+      <p class="muted">This is a read-only plan. Nothing is written until you choose Apply Import.</p>
+      <div class="mode-strip"><span class="mode-step active">Review plan</span><span class="mode-step">Apply to Workshop</span><span class="mode-step">Undo available after apply</span></div>
+      <div class="grid">
+        ${metric("Files", fileCount)}
+        ${metric("Created", planSummary.created)}
+        ${metric("Updated", planSummary.updated)}
+        ${metric("Unchanged", planSummary.unchanged)}
+        ${metric("Will write", written)}
+      </div>
+      <div class="toolbar" style="margin-top: 14px;">
+        <button type="button" data-command="applyImport">Apply Import</button>
+        <button type="button" class="secondary" data-command="showDetails">Show Details</button>
+        <button type="button" class="danger" data-command="cancelImport">Cancel</button>
+      </div>
+    </section>
+    ${plans.map(importPlanCard).join("")}
+  </main>
+  <script>
+    const vscode = acquireVsCodeApi();
+    document.addEventListener("click", (event) => {
+      const button = event.target instanceof HTMLElement ? event.target.closest("button[data-command]") : null;
+      if (button) {
+        vscode.postMessage({ command: button.dataset.command });
+      }
+    });
+  </script>
+</body>
+</html>`;
+}
+
+function metric(label: string, value: number): string {
+  return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${value}</strong></div>`;
+}
+
+function importPlanCard(plan: ImportResult): string {
+  const byTypeRows = Object.entries(plan.summary.byType)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([entityType, summary]) => `<tr><td>${escapeHtml(entityType)}</td><td>${summary.created}</td><td>${summary.updated}</td><td>${summary.unchanged}</td><td>${summary.written}</td></tr>`)
+    .join("");
+  const conflictItems = plan.summary.conflicts.length > 0
+    ? plan.summary.conflicts.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
+    : '<li><span class="muted">No updates or conflicts in this file.</span></li>';
+  const exampleItems = plan.summary.examples.length > 0
+    ? plan.summary.examples.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
+    : '<li><span class="muted">No example changes.</span></li>';
+  return `<section>
+    <h2>${escapeHtml(basename(plan.bundlePath))}</h2>
+    <p class="muted">${escapeHtml(plan.bundlePath)}</p>
+    <div class="grid">
+      ${metric("Incoming", plan.summary.total)}
+      ${metric("Created", plan.summary.created)}
+      ${metric("Updated", plan.summary.updated)}
+      ${metric("Unchanged", plan.summary.unchanged)}
+      ${metric("Will write", plan.summary.written)}
+    </div>
+    <h3>Record Types</h3>
+    <div class="table-wrap"><table><thead><tr><th>Type</th><th>Created</th><th>Updated</th><th>Unchanged</th><th>Will write</th></tr></thead><tbody>${byTypeRows}</tbody></table></div>
+    <h3>Updates To Review</h3>
+    <ul>${conflictItems}</ul>
+    <h3>Examples</h3>
+    <ul>${exampleItems}</ul>
+  </section>`;
+}
+
 function combineImportSummaries(results: readonly ImportResult[]): { created: number; updated: number; unchanged: number } {
   return results.reduce(
     (total, result) => ({
@@ -239,6 +387,15 @@ function writeImportSummary(output: vscode.OutputChannel, results: readonly Impo
       }
     }
   }
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export function deactivate(): void {

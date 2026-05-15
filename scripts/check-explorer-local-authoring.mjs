@@ -31,6 +31,7 @@ try {
     const requirement = bundle.collections.requirements.find((item) => item.assessmentStatus !== "met") || bundle.collections.requirements[0];
     const finderTargetRequirement = bundle.collections.requirements.find((item) => item.id !== requirement.id) || requirement;
     assert.ok(requirement, "fixture should include at least one requirement");
+    addBaselineLinkedContext(bundle, requirement.id);
 
     await page.evaluate(async (value) => {
         await globalThis.pspfExplorerRender(value.manifest, value.collections || {});
@@ -47,13 +48,23 @@ try {
     const finderExactMatch = await page.evaluate((expectedId) => ({
         filteredVisible: Array.from(document.querySelectorAll(".local-requirement-option")).filter((button) => !button.hidden).length,
         retainedQuery: document.querySelector("#explorer-search")?.value === expectedId,
+        filterBannerVisible: document.querySelector(".local-filter-status")?.textContent?.includes("Showing"),
         statusText: document.querySelector("#explorer-search-status")?.textContent || ""
     }), finderTargetRequirement.id);
     await page.locator("#explorer-search").fill("zzz-no-match-pspf");
-    await page.waitForFunction(() => document.querySelector('[aria-labelledby="local-selected-heading"]')?.textContent?.includes("No Requirement selected"));
+    await page.waitForFunction((title) => document.querySelector('[aria-labelledby="local-selected-heading"]')?.textContent?.includes(title), finderTargetRequirement.title);
     const finderNoMatch = await page.evaluate(() => ({
         filteredVisible: Array.from(document.querySelectorAll(".local-requirement-option")).filter((button) => !button.hidden).length,
-        emptyVisible: !document.querySelector("#local-requirement-empty")?.hidden
+        emptyVisible: !document.querySelector("#local-requirement-empty")?.hidden,
+        pinnedVisible: document.querySelector(".local-requirement-option.search-pinned")?.textContent?.includes("selected"),
+        selectedStillOpen: document.querySelector('[aria-labelledby="local-selected-heading"]')?.textContent?.includes("No Requirement selected") === false
+    }));
+    await page.locator("#local-clear-search").click();
+    await page.waitForFunction((expectedRows) => document.querySelector("#explorer-search")?.value === "" && document.querySelectorAll(".local-requirement-option:not([hidden])").length === expectedRows, initialVisibleRequirements);
+    const localClearSearch = await page.evaluate(() => ({
+        queryCleared: document.querySelector("#explorer-search")?.value === "",
+        bannerCleared: document.querySelector(".local-filter-status") === null,
+        selectedPinnedCleared: document.querySelector(".local-requirement-option.search-pinned") === null
     }));
     await page.locator("#explorer-search").fill("");
     await page.waitForFunction(() => document.querySelectorAll(".local-requirement-option:not([hidden])").length > 1);
@@ -62,6 +73,16 @@ try {
     const clickSelection = await page.evaluate((expectedId) => ({
         selectedId: document.querySelector('.local-requirement-option[aria-pressed="true"]')?.dataset.requirementId
     }), requirement.id);
+    const baselineLinkedContext = await page.evaluate(() => ({
+        hasContext: document.querySelector("#local-authoring")?.textContent?.includes("Linked Context"),
+        evidenceVisible: document.querySelector("#local-authoring")?.textContent?.includes("Baseline linked evidence"),
+        actionVisible: document.querySelector("#local-authoring")?.textContent?.includes("Baseline linked action"),
+        riskVisible: document.querySelector("#local-authoring")?.textContent?.includes("Baseline linked risk"),
+        openButtonCount: document.querySelectorAll('#local-authoring button[data-open-section]').length
+    }));
+    await page.locator('#local-authoring button[data-open-section="evidence"]').first().click();
+    await page.waitForFunction(() => document.querySelector("#evidence")?.open === true);
+    const linkedContextOpenButton = await page.locator("#evidence").evaluate((section) => section instanceof HTMLDetailsElement && section.open);
 
     await page.evaluate(async ({ requirementId }) => {
         await globalThis.pspfExplorerSetLocalRequirementStatus(requirementId, "met");
@@ -193,10 +214,17 @@ try {
         check("Local Requirement picker visible", pickerVisible, "picker"),
         check("Explorer Search visible", explorerSearchVisible, "search"),
         check("Local inline finder removed", localInlineFinderCount === 0, `${localInlineFinderCount} inline finder(s)`),
-        check("Explorer Search narrows Local Changes list", finderExactMatch.filteredVisible > 0 && finderExactMatch.filteredVisible < initialVisibleRequirements, `${finderExactMatch.filteredVisible}/${initialVisibleRequirements}`),
+        check("Explorer Search narrows Local Changes list", finderExactMatch.filteredVisible > 0 && finderExactMatch.filteredVisible < initialVisibleRequirements && finderExactMatch.filterBannerVisible, `${finderExactMatch.filteredVisible}/${initialVisibleRequirements}`),
         check("Explorer Search moves Local Changes workspace", finderExactMatch.filteredVisible === 1 && finderExactMatch.retainedQuery && finderExactMatch.statusText.includes("Local Changes"), `visible=${finderExactMatch.filteredVisible}`),
-        check("Explorer Search shows Local Changes no-match state", finderNoMatch.filteredVisible === 0 && finderNoMatch.emptyVisible, `visible=${finderNoMatch.filteredVisible}`),
+        check("Explorer Search pins selected Local Changes item outside results", finderNoMatch.filteredVisible === 1 && finderNoMatch.emptyVisible && finderNoMatch.pinnedVisible && finderNoMatch.selectedStillOpen, `visible=${finderNoMatch.filteredVisible}`),
+        check("Local Changes clear search restores picker", localClearSearch.queryCleared && localClearSearch.bannerCleared && localClearSearch.selectedPinnedCleared, JSON.stringify(localClearSearch)),
         check("Local Requirement click selects workspace", clickSelection.selectedId === requirement.id, clickSelection.selectedId || "missing"),
+        check("Linked Context visible", baselineLinkedContext.hasContext, "context card"),
+        check("Linked Context shows baseline evidence", baselineLinkedContext.evidenceVisible, "baseline evidence"),
+        check("Linked Context shows baseline action", baselineLinkedContext.actionVisible, "baseline action"),
+        check("Linked Context shows baseline risk", baselineLinkedContext.riskVisible, "baseline risk"),
+        check("Linked Context exposes Open buttons", baselineLinkedContext.openButtonCount >= 4, `${baselineLinkedContext.openButtonCount} button(s)`),
+        check("Linked Context Open button opens full section", linkedContextOpenButton, "evidence section"),
         check("Storage status visible", storageStatusText?.includes("IndexedDB"), storageStatusText || "missing"),
         check("Local Changes stays open after status save", localAuthoringOpenAfterStatusSave, "section focus"),
         check("Local Changes stays open after evidence save", localAuthoringOpenAfterEvidenceSave, "section focus"),
@@ -277,4 +305,79 @@ function readFileSyncText(path) {
 
 function check(name, ok, detail) {
     return { name, ok: Boolean(ok), detail };
+}
+
+function addBaselineLinkedContext(bundle, requirementId) {
+    const timestamp = new Date().toISOString();
+    bundle.collections.evidence = [
+        ...(bundle.collections.evidence || []),
+        {
+            id: "EVD-00000000-0000-4000-8000-00000000A101",
+            entityType: "evidence",
+            schemaVersion: VERSION_AXES.schemaVersion,
+            title: "Baseline linked evidence",
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            sourceProduct: "workshop",
+            recordStatus: "active",
+            evidenceType: "document",
+            reference: "records/baseline-linked-evidence.pdf",
+            freshness: "current"
+        }
+    ];
+    bundle.collections.actions = [
+        ...(bundle.collections.actions || []),
+        {
+            id: "ACT-00000000-0000-4000-8000-00000000A101",
+            entityType: "action",
+            schemaVersion: VERSION_AXES.schemaVersion,
+            title: "Baseline linked action",
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            sourceProduct: "workshop",
+            recordStatus: "active",
+            status: "todo",
+            dueDate: "2026-06-30"
+        }
+    ];
+    bundle.collections.risks = [
+        ...(bundle.collections.risks || []),
+        {
+            id: "RSK-00000000-0000-4000-8000-00000000A101",
+            entityType: "risk",
+            schemaVersion: VERSION_AXES.schemaVersion,
+            title: "Baseline linked risk",
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            sourceProduct: "workshop",
+            recordStatus: "active",
+            status: "open",
+            likelihood: 3,
+            impact: 4
+        }
+    ];
+    bundle.collections.links = [
+        ...(bundle.collections.links || []),
+        baselineLink("LNK-00000000-0000-4000-8000-00000000A101", "Baseline evidence supports requirement", requirementId, "EVD-00000000-0000-4000-8000-00000000A101", "evidence", "supported-by", timestamp),
+        baselineLink("LNK-00000000-0000-4000-8000-00000000A102", "Baseline action addresses requirement", requirementId, "ACT-00000000-0000-4000-8000-00000000A101", "action", "addressed-by", timestamp),
+        baselineLink("LNK-00000000-0000-4000-8000-00000000A103", "Baseline risk exposes requirement", requirementId, "RSK-00000000-0000-4000-8000-00000000A101", "risk", "exposed-by", timestamp)
+    ];
+}
+
+function baselineLink(id, title, requirementId, targetId, targetType, linkType, timestamp) {
+    return {
+        id,
+        entityType: "link",
+        schemaVersion: VERSION_AXES.schemaVersion,
+        title,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        sourceProduct: "workshop",
+        recordStatus: "active",
+        linkType,
+        fromId: requirementId,
+        fromType: "requirement",
+        toId: targetId,
+        toType: targetType
+    };
 }

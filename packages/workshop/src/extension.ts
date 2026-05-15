@@ -211,7 +211,8 @@ async function continueNextTask(): Promise<void> {
 
 function renderHomeView(model: WorkshopHomeModel): string {
   return homeShellHtml("Workshop Home", `
-    <section>
+    <section class="hero-section">
+      <p class="eyebrow">System of record</p>
       <h2>Workspace</h2>
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))}</p>
       ${versionStrip()}
@@ -275,10 +276,16 @@ function homeShellHtml(title: string, body: string): string {
   <meta charset="utf-8">
   <title>${escapeHtml(title)}</title>
   <style>
-    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; color: var(--vscode-foreground); background: var(--vscode-sideBar-background); }
+    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --workshop-blue: #2563eb; --workshop-blue-soft: rgba(37, 99, 235, 0.18); --workshop-amber: #d97706; }
+    body { margin: 0; color: var(--vscode-foreground); background: radial-gradient(circle at top left, var(--workshop-blue-soft), transparent 18rem), var(--vscode-sideBar-background); }
+    header { display: grid; gap: 2px; padding: 12px; border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border); background: linear-gradient(135deg, rgba(37, 99, 235, 0.24), rgba(24, 24, 27, 0.92)); }
+    header strong { font-size: 16px; }
+    header span { color: var(--vscode-descriptionForeground); font-size: 12px; }
+    .sensitivity { background: rgba(217, 119, 6, 0.18); border-bottom: 1px solid var(--workshop-amber); color: #fde68a; padding: 7px 12px; font-size: 12px; font-weight: 700; }
     main { padding: 12px; }
     section { border: 1px solid var(--vscode-sideBarSectionHeader-border); border-radius: 6px; padding: 10px; margin-bottom: 10px; background: var(--vscode-editor-background); }
+    .hero-section { border-color: rgba(37, 99, 235, 0.45); background: linear-gradient(180deg, rgba(37, 99, 235, 0.13), var(--vscode-editor-background)); }
+    .eyebrow { margin: 0 0 6px; color: #bfdbfe; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
     h2 { font-size: 13px; line-height: 1.3; margin: 0 0 8px; text-transform: uppercase; }
     .muted { color: var(--vscode-descriptionForeground); font-size: 12px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; }
@@ -297,6 +304,8 @@ function homeShellHtml(title: string, body: string): string {
   </style>
 </head>
 <body>
+  <header><strong>PSPF Workshop</strong><span>System of record · v${PSPF_SLICE_VERSION}</span></header>
+  <div class="sensitivity">OFFICIAL: Sensitive · Local workspace writes stay in Workshop</div>
   <main>${body}</main>
   <script>
     const vscode = acquireVsCodeApi();
@@ -1230,21 +1239,23 @@ function shellHtml(title: string, body: string): string {
   <meta charset="utf-8">
   <title>${escapeHtml(title)}</title>
   <style>
-    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; color: #f4f4f5; background: #111113; }
-    header { background: #18181b; color: #fafafa; border-bottom: 1px solid #3f3f46; padding: 12px 20px; }
+    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --bg: #111113; --surface: #18181b; --surface-strong: #202024; --border: #3f3f46; --text: #f4f4f5; --muted: #a1a1aa; --workshop-blue: #2563eb; --workshop-blue-soft: #172554; --amber: #d97706; --amber-soft: #3f2f11; }
+    body { margin: 0; color: var(--text); background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28rem), var(--bg); }
+    header { background: linear-gradient(135deg, var(--workshop-blue-soft) 0%, var(--surface) 72%); color: #fafafa; border-bottom: 1px solid var(--border); padding: 14px 20px; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    header strong { display: block; font-size: 22px; }
+    header span { color: #dbeafe; font-size: 13px; }
     main { max-width: 920px; margin: 0 auto; padding: 20px; }
-    section { background: #18181b; border: 1px solid #3f3f46; border-radius: 6px; padding: 14px; margin-bottom: 14px; }
+    section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-bottom: 14px; }
     h1 { margin-bottom: 6px; }
     h2 { font-size: 18px; margin-top: 0; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-    .metric { border: 1px solid #3f3f46; border-radius: 6px; padding: 10px; background: #202024; }
-    .metric span { color: #a1a1aa; display: block; font-size: 13px; }
+    .metric { border: 1px solid var(--border); border-radius: 6px; padding: 10px; background: var(--surface-strong); }
+    .metric span { color: var(--muted); display: block; font-size: 13px; }
     .metric strong { display: block; font-size: 26px; margin-top: 4px; }
     .table-wrap { width: 100%; overflow-x: auto; margin-top: 8px; }
     table { width: 100%; min-width: min(760px, 100%); border-collapse: collapse; table-layout: auto; }
-    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #3f3f46; vertical-align: top; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
     td { overflow-wrap: anywhere; }
     th { color: #d4d4d8; }
     th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"], th[data-field="target"], td[data-field="target"] { min-width: 18rem; max-width: 34rem; }
@@ -1253,24 +1264,24 @@ function shellHtml(title: string, body: string): string {
     th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="freshness"], td[data-field="freshness"] { white-space: nowrap; width: 1%; }
     th[data-field="open"], td[data-field="open"] { white-space: nowrap; width: 1%; }
     button, input, select, textarea { font: inherit; }
-    button { border: 1px solid #52525b; border-radius: 4px; background: #27272a; color: #fafafa; padding: 5px 9px; cursor: pointer; }
-    button:hover { background: #3f3f46; }
+    button { border: 1px solid #60a5fa; border-radius: 4px; background: #1d4ed8; color: #eff6ff; padding: 5px 9px; cursor: pointer; }
+    button:hover { background: #2563eb; }
     .form-grid { display: grid; gap: 12px; max-width: 620px; }
     label { display: grid; gap: 5px; color: #d4d4d8; }
     input, select, textarea { box-sizing: border-box; width: 100%; border: 1px solid #52525b; border-radius: 4px; background: #09090b; color: #fafafa; padding: 8px; }
     textarea { resize: vertical; min-height: 88px; }
     input[readonly] { color: #d4d4d8; background: #18181b; }
     .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
-    .banner { background: #3f2f11; border-bottom: 1px solid #d97706; color: #fde68a; padding: 8px 20px; font-weight: 600; }
-    .muted { color: #a1a1aa; }
+    .banner { background: var(--amber-soft); border-bottom: 1px solid var(--amber); color: #fde68a; padding: 8px 20px; font-weight: 600; }
+    .muted { color: var(--muted); }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .version-pill { border: 1px solid #3f3f46; border-radius: 999px; padding: 3px 8px; color: #d4d4d8; background: #202024; font-size: 12px; white-space: nowrap; line-height: 1.4; }
     @media (max-width: 720px) { main { padding: 16px; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"] { min-width: 16rem; } }
   </style>
 </head>
 <body>
-  <header><strong>PSPF Workshop</strong><span>v${PSPF_SLICE_VERSION}</span></header>
-  <div class="banner">OFFICIAL: Sensitive</div>
+  <header><strong>PSPF Workshop</strong><span>System of record · v${PSPF_SLICE_VERSION}</span></header>
+  <div class="banner">OFFICIAL: Sensitive · Workshop is the decision surface</div>
   <main>
     ${body}
   </main>

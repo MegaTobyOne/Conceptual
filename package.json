@@ -1,6 +1,6 @@
 {
     "name": "pspf",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "private": true,
     "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
     "packageManager": "pnpm@10.10.0",
@@ -45,11 +45,12 @@
         "e2e:v1.3": "pnpm run e2e:v1.2 && pnpm run check:explorer-to-workshop-import",
         "e2e:v1.4": "pnpm run e2e:v1.3",
         "e2e:v1.5": "pnpm run e2e:v1.4",
+        "e2e:v1.6": "pnpm run e2e:v1.5 && pnpm run check:explorer-to-workshop-import",
         "validate:export": "pnpm build && node scripts/validate-export.mjs",
         "validate:debug-workspace": "pnpm build && node scripts/validate-debug-workspace.mjs && node scripts/check-personal-data-exclusion.mjs",
         "lint": "pnpm lint:au",
         "lint:au": "node scripts/lint-au-english.mjs",
-        "release:readiness": "pnpm e2e:v1.5 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
+        "release:readiness": "pnpm e2e:v1.6 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
         "test": "pnpm build && pnpm -r --if-present test",
         "typecheck": "tsc -b tsconfig.json"
     },

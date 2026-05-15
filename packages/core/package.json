@@ -2,7 +2,7 @@
     "name": "pspf-core",
     "displayName": "PSPF Core",
     "description": "Local PSPF system of record, workspace bootstrap, validation, snapshots, and export operations.",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "private": true,
     "type": "module",
     "publisher": "pspf",
