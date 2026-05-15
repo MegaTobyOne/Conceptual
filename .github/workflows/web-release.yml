@@ -1,0 +1,211 @@
+name: Web release
+
+on:
+  push:
+    branches:
+      - develop
+    tags:
+      - 'explorer/*'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deploy target
+        required: true
+        default: test
+        type: choice
+        options:
+          - test
+          - production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-release-${{ github.ref }}-${{ inputs.target || 'auto' }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build web artefact
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.release.outputs.release_id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.15.0'
+
+      - name: Install dependencies
+        run: npx pnpm@10.10.0 install --frozen-lockfile
+
+      - name: Verify production tag is on main
+        if: startsWith(github.ref, 'refs/tags/explorer/')
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: Build staged web release
+        run: npx pnpm@10.10.0 run build:web-release
+
+      - name: Deployment safety
+        run: npx pnpm@10.10.0 run check:deployment-safety
+
+      - name: Personal-data gate
+        run: npx pnpm@10.10.0 run check:personal-data
+
+      - name: Release readiness on production tags
+        if: startsWith(github.ref, 'refs/tags/explorer/') || (inputs.target == 'production' && github.ref == 'refs/heads/main')
+        run: npx pnpm@10.10.0 run release:readiness
+
+      - name: Set release id
+        id: release
+        run: echo "release_id=$(date -u +%Y%m%d-%H%M%S)-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload web artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pspf-web-release-${{ steps.release.outputs.release_id }}
+          path: .tmp/web-release
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy-test:
+    name: Deploy test web
+    needs: build
+    if: github.ref == 'refs/heads/develop' || inputs.target == 'test'
+    runs-on: [self-hosted, macOS, mechastopheles]
+    environment:
+      name: test-web
+      url: ${{ vars.SITE_URL }}
+    steps:
+      - name: Download web artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: pspf-web-release-${{ needs.build.outputs.release_id }}
+          path: web-release
+
+      - name: Deploy to VentraIP test
+        env:
+          SSH_KEY: ${{ secrets.VENTRAIP_DEPLOY_KEY_TEST }}
+          SSH_PASSPHRASE: ${{ secrets.VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST }}
+          SSH_USER: ${{ vars.VENTRAIP_SSH_USER }}
+          SSH_HOST: ${{ vars.VENTRAIP_SSH_HOST }}
+          APP_DIR: ${{ vars.VENTRAIP_APP_DIR }}
+          DOCROOT: ${{ vars.VENTRAIP_DOCROOT }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          RELEASE_ID: ${{ needs.build.outputs.release_id }}
+        run: |
+          set -euo pipefail
+          SSH_HOST="${SSH_HOST:-s04le.syd7.hostingplatform.net.au}"
+          : "${SSH_KEY:?VENTRAIP_DEPLOY_KEY_TEST is required}"
+          : "${SSH_USER:?VENTRAIP_SSH_USER variable is required}"
+          : "${APP_DIR:?VENTRAIP_APP_DIR variable is required}"
+          : "${DOCROOT:?VENTRAIP_DOCROOT variable is required}"
+          : "${SITE_URL:?SITE_URL variable is required}"
+          mkdir -p ~/.ssh
+          SSH_KEY_PATH="$HOME/.ssh/ventraip_deploy_key"
+          printf '%s\n' "$SSH_KEY" > "$SSH_KEY_PATH"
+          chmod 600 "$SSH_KEY_PATH"
+          eval "$(ssh-agent -s)"
+          trap 'ssh-agent -k >/dev/null' EXIT
+          if [[ -n "${SSH_PASSPHRASE:-}" ]]; then
+            ASKPASS_SCRIPT="$(mktemp)"
+            printf '#!/bin/sh\nprintf %%s "$VENTRAIP_SSH_PASSPHRASE"\n' > "$ASKPASS_SCRIPT"
+            chmod 700 "$ASKPASS_SCRIPT"
+            VENTRAIP_SSH_PASSPHRASE="$SSH_PASSPHRASE" SSH_ASKPASS="$ASKPASS_SCRIPT" SSH_ASKPASS_REQUIRE=force DISPLAY=none ssh-add "$SSH_KEY_PATH" </dev/null
+            rm -f "$ASKPASS_SCRIPT"
+          else
+            ssh-add "$SSH_KEY_PATH" </dev/null
+          fi
+          ssh-keyscan -p 2683 "$SSH_HOST" >> ~/.ssh/known_hosts
+          SSH_OPTS="-i $SSH_KEY_PATH -o BatchMode=yes -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -p 2683"
+          REMOTE_HOME="$(ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" 'printf %s "$HOME"')"
+          case "$APP_DIR" in
+            '~') APP_DIR="$REMOTE_HOME" ;;
+            '~/'*) APP_DIR="$REMOTE_HOME/${APP_DIR#~/}" ;;
+          esac
+          case "$DOCROOT" in
+            '~') DOCROOT="$REMOTE_HOME" ;;
+            '~/'*) DOCROOT="$REMOTE_HOME/${DOCROOT#~/}" ;;
+          esac
+          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "mkdir -p \"$APP_DIR/releases/$RELEASE_ID\" \"$DOCROOT\""
+          rsync -az --delete -e "ssh $SSH_OPTS" web-release/ "$SSH_USER@$SSH_HOST:$APP_DIR/releases/$RELEASE_ID/"
+          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "set -e; cd \"$APP_DIR\"; ln -sfn \"releases/$RELEASE_ID\" current; rsync -a --delete current/ \"$DOCROOT\"/; find \"$DOCROOT\" -type d -exec chmod 755 {} \; ; find \"$DOCROOT\" -type f -exec chmod 644 {} \;"
+          curl --fail --silent --show-error --location "$SITE_URL" >/dev/null
+          curl --fail --silent --show-error --location "$SITE_URL/explorer/" >/dev/null
+
+  deploy-production:
+    name: Deploy production web
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/explorer/') || (inputs.target == 'production' && github.ref == 'refs/heads/main')
+    runs-on: [self-hosted, macOS, mechastopheles]
+    environment:
+      name: production-web
+      url: ${{ vars.SITE_URL }}
+    steps:
+      - name: Download web artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: pspf-web-release-${{ needs.build.outputs.release_id }}
+          path: web-release
+
+      - name: Deploy to VentraIP production
+        env:
+          SSH_KEY: ${{ secrets.VENTRAIP_DEPLOY_KEY_PROD }}
+          SSH_PASSPHRASE: ${{ secrets.VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD }}
+          SSH_USER: ${{ vars.VENTRAIP_SSH_USER }}
+          SSH_HOST: ${{ vars.VENTRAIP_SSH_HOST }}
+          APP_DIR: ${{ vars.VENTRAIP_APP_DIR }}
+          DOCROOT: ${{ vars.VENTRAIP_DOCROOT }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          RELEASE_ID: ${{ needs.build.outputs.release_id }}
+        run: |
+          set -euo pipefail
+          SSH_HOST="${SSH_HOST:-s04le.syd7.hostingplatform.net.au}"
+          : "${SSH_KEY:?VENTRAIP_DEPLOY_KEY_PROD is required}"
+          : "${SSH_USER:?VENTRAIP_SSH_USER variable is required}"
+          : "${APP_DIR:?VENTRAIP_APP_DIR variable is required}"
+          : "${DOCROOT:?VENTRAIP_DOCROOT variable is required}"
+          : "${SITE_URL:?SITE_URL variable is required}"
+          mkdir -p ~/.ssh
+          SSH_KEY_PATH="$HOME/.ssh/ventraip_deploy_key"
+          printf '%s\n' "$SSH_KEY" > "$SSH_KEY_PATH"
+          chmod 600 "$SSH_KEY_PATH"
+          eval "$(ssh-agent -s)"
+          trap 'ssh-agent -k >/dev/null' EXIT
+          if [[ -n "${SSH_PASSPHRASE:-}" ]]; then
+            ASKPASS_SCRIPT="$(mktemp)"
+            printf '#!/bin/sh\nprintf %%s "$VENTRAIP_SSH_PASSPHRASE"\n' > "$ASKPASS_SCRIPT"
+            chmod 700 "$ASKPASS_SCRIPT"
+            VENTRAIP_SSH_PASSPHRASE="$SSH_PASSPHRASE" SSH_ASKPASS="$ASKPASS_SCRIPT" SSH_ASKPASS_REQUIRE=force DISPLAY=none ssh-add "$SSH_KEY_PATH" </dev/null
+            rm -f "$ASKPASS_SCRIPT"
+          else
+            ssh-add "$SSH_KEY_PATH" </dev/null
+          fi
+          ssh-keyscan -p 2683 "$SSH_HOST" >> ~/.ssh/known_hosts
+          SSH_OPTS="-i $SSH_KEY_PATH -o BatchMode=yes -o IdentitiesOnly=yes -o PreferredAuthentications=publickey -o PasswordAuthentication=no -p 2683"
+          REMOTE_HOME="$(ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" 'printf %s "$HOME"')"
+          case "$APP_DIR" in
+            '~') APP_DIR="$REMOTE_HOME" ;;
+            '~/'*) APP_DIR="$REMOTE_HOME/${APP_DIR#~/}" ;;
+          esac
+          case "$DOCROOT" in
+            '~') DOCROOT="$REMOTE_HOME" ;;
+            '~/'*) DOCROOT="$REMOTE_HOME/${DOCROOT#~/}" ;;
+          esac
+          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "mkdir -p \"$APP_DIR/releases/$RELEASE_ID\" \"$DOCROOT\""
+          rsync -az --delete -e "ssh $SSH_OPTS" web-release/ "$SSH_USER@$SSH_HOST:$APP_DIR/releases/$RELEASE_ID/"
+          ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "set -e; cd \"$APP_DIR\"; ln -sfn \"releases/$RELEASE_ID\" current; rsync -a --delete current/ \"$DOCROOT\"/; find \"$DOCROOT\" -type d -exec chmod 755 {} \; ; find \"$DOCROOT\" -type f -exec chmod 644 {} \;"
+          curl --fail --silent --show-error --location "$SITE_URL" >/dev/null
+          curl --fail --silent --show-error --location "$SITE_URL/explorer/" >/dev/null

@@ -21,9 +21,14 @@ PSPF Core, Workshop, Shop, and Pub MUST NOT store any secret in `.pspf/config/`,
 
 ## Secret classes
 
-1. Marketplace publishing tokens.
-2. Optional Open VSX publishing tokens.
-3. Service credentials used by CI integrations.
+1. `VSCE_TOKEN` for VS Code Marketplace publishing under publisher `tobyharvey`, held only on the `marketplace` GitHub Actions environment.
+2. `VENTRAIP_DEPLOY_KEY_TEST` for automatic test web deploys to `test.tobyharvey.online`, held only on the `test-web` GitHub Actions environment.
+3. `VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST` for unlocking the test VentraIP deploy key, held only on the `test-web` GitHub Actions environment.
+4. `VENTRAIP_DEPLOY_KEY_PROD` for production web deploys to `tobyharvey.online`, held only on the `production-web` GitHub Actions environment.
+5. `VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD` for unlocking the production VentraIP deploy key, held only on the `production-web` GitHub Actions environment.
+6. `GITHUB_TOKEN` for standard workflow operations.
+
+Open VSX is not configured for v1.0. If adopted later, add a separate approval environment and `OVSX_TOKEN` rotation entry before enabling the publish step.
 
 ## Rotation policy
 
@@ -35,7 +40,7 @@ PSPF Core, Workshop, Shop, and Pub MUST NOT store any secret in `.pspf/config/`,
 ## Standard rotation procedure
 
 1. Create new credential/token in provider console.
-2. Update repository or organisation secret in GitHub Actions.
+2. Update the matching GitHub Actions environment secret (`marketplace`, `test-web`, or `production-web`).
 3. Run dry-run workflow to verify access.
 4. Revoke old credential.
 5. Record rotation event in security log.

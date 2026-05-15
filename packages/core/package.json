@@ -5,7 +5,13 @@
     "version": "1.6.0",
     "private": true,
     "type": "module",
-    "publisher": "pspf",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MegaTobyOne/Conceptual.git",
+        "directory": "packages/core"
+    },
+    "publisher": "tobyharvey",
     "engines": {
         "vscode": "^1.100.0"
     },
