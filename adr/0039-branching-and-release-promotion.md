@@ -24,13 +24,13 @@ Use a three-level promotion model:
 - Feature branches are named by intent, for example `feature/web-release-workflow`, `fix/deploy-smoke-check`, `docs/marketplace-runbook`, or `hotfix/web-rollback`.
 - Normal changes merge by PR into `develop` after CI passes.
 - Release candidates merge from `develop` into `main` by PR after `release:readiness` passes.
-- Release tags are cut only from `main`.
+- Release tags are cut only from `main`. Prefer the `Explorer production tag` workflow for Explorer web releases so the tag is created only after release-readiness checks pass on `main`.
 
 ### Deployment mapping
 
 - Push to `develop`: automatic deploy to `test.tobyharvey.online` through the `test-web` environment.
 - Push or PR to `develop`/`main`: CI only.
-- Tag `explorer/<version>` from `main`: production web deploy to `tobyharvey.online`, requiring `production-web` approval.
+- Tag `explorer/<version>` from `main`: production web deploy to `tobyharvey.online`, requiring `production-web` approval. For normal production web releases, manually run the `Explorer production tag` workflow on `main` with the package version; that workflow creates the tag and the existing `Web release` workflow deploys it.
 - Tag `core/<version>` from `main`: Core Marketplace publish, requiring `marketplace` approval.
 - Tag `workshop/<version>` from `main`: Workshop Marketplace publish, requiring `marketplace` approval.
 
