@@ -12,7 +12,7 @@ const publicationRoots = [
     join(root, "debug-workspace/.pspf/exchange/exports"),
     join(root, ".tmp/e2e-v0.1-workspace/.pspf/exchange/exports")
 ];
-const staticRoots = [join(root, "packages/explorer/dist")];
+const staticRoots = [join(root, "packages/explorer/dist"), join(root, ".tmp/web-release")];
 const forbiddenStaticFilePatterns = [
     /(^|\/)\.env(?:\.|$)/i,
     /(^|\/).*\.(?:db|sqlite|sqlite3|pem|key|p12|pfx|vsix|zip)$/i,

@@ -2,13 +2,13 @@
 
 ## Overview
 
-This specification defines the development model, repository strategy, CI/CD pipelines, release approach, maintenance process, and agent opportunities for the PSPF ecosystem. It is written to support a local-first VS Code extension platform, a standalone Explorer web application published to GitHub Pages, and an ongoing maintenance model that uses GitHub Copilot as a core development aid rather than as an autonomous authority.
+This specification defines the development model, repository strategy, CI/CD pipelines, release approach, maintenance process, and agent opportunities for the PSPF ecosystem. It is written to support a local-first VS Code extension platform, a standalone Explorer web application published to VentraIP cPanel (see ADR 0038), and an ongoing maintenance model that uses GitHub Copilot as a core development aid rather than as an autonomous authority.
 
 The delivery model needs to support four realities at once:
 
 - Each PSPF product (Core, Workshop, Shop, Pub) ships as its **own** signed VSIX from a **single GitHub repository** (ADR 0007 + ADR 0013).
 - All four extensions share a common platform contract (schema, SDK, API discipline) published as in-repo workspace packages.
-- Explorer is a static web application and deploys cleanly to GitHub Pages through GitHub Actions.
+- Explorer is a static web application and deploys cleanly to VentraIP cPanel through GitHub Actions over SSH.
 - AI assistance is useful across coding, review, migration, and documentation, but must remain bounded by tests, contracts, and explicit human approval.
 
 The development environment assumed by this spec is **VS Code on macOS** with a personal **GitHub Pro** subscription. Linux and Windows are supported by CI; the local dev loop is documented for macOS first.
@@ -20,14 +20,14 @@ The pipeline should follow these principles:
 1. **One platform contract, multiple products** — shared schema, SDK, and API discipline across products.
 2. **Local-first confidence** — no build or deployment choice should undermine the local-first security and runtime posture of Core.
 3. **Automation for repeatability, not for blind trust** — tests, packaging, docs, and releases should be automated; architecture and assurance decisions should remain deliberate.
-4. **Static Explorer delivery** — Explorer should stay simple to deploy, inspect, and roll back through GitHub Pages.
+4. **Static Explorer delivery** — Explorer should stay simple to deploy, inspect, and roll back through release-directory swaps on the static host.
 5. **Compatibility must be explicit** — schema, API, and extension versions must be tracked and validated.
 
 ## Repo strategy
 
 ### Repo model (ADR 0013)
 
-The ecosystem lives in a **single private GitHub repository** named `pspf` on the maintainer's GitHub Pro account. Each PSPF product is a workspace package; each VSIX-producing package still releases independently (ADR 0007). The earlier polyrepo proposal (`pspf-contracts` + `pspf-core` + `pspf-workshop` + `pspf-shop` + `pspf-pub` + `pspf-explorer`) is **retired**.
+The ecosystem lives in a **single private GitHub repository** at `https://github.com/MegaTobyOne/Conceptual.git` on the maintainer's GitHub account. Each PSPF product is a workspace package; each VSIX-producing package still releases independently (ADR 0007). The earlier polyrepo proposal (`pspf-contracts` + `pspf-core` + `pspf-workshop` + `pspf-shop` + `pspf-pub` + `pspf-explorer`) is **retired**.
 
 | Path | Contents | Releases as |
 |---|---|---|
@@ -36,7 +36,7 @@ The ecosystem lives in a **single private GitHub repository** named `pspf` on th
 | `packages/workshop/` | Workshop extension (authoring) | `workshop/<version>` tag → signed VSIX |
 | `packages/shop/` | Shop extension (suppliers/contracts; v0.2+) | `shop/<version>` tag → signed VSIX |
 | `packages/pub/` | Pub extension (people/roles; v0.2+) | `pub/<version>` tag → signed VSIX |
-| `packages/explorer/` | Explorer SPA + Pages pipeline | `explorer/<version>` tag → GitHub Pages deploy |
+| `packages/explorer/` | Explorer SPA + static-host pipeline | `explorer/<version>` tag → VentraIP production deploy |
 | `docs/` | Specs, ADRs, runbooks, glossary, onboarding | Lives with the code |
 | `schemas/explorer-bundle/<schemaVersion>/` | Per-version bundle JSON Schemas | Served same-origin from the Explorer site (E23) |
 
@@ -47,26 +47,29 @@ For a single maintainer working in VS Code on macOS with GitHub Pro, polyrepo co
 ### Repo settings (GitHub Pro features used)
 
 - **Visibility**: private during v0.1; revisited at v1.0.
-- **Branch protection** on `main`: required PR review, required status checks, linear history, signed commits encouraged.
+- **Branch protection** on `develop` and `main`: required PR review, required status checks, linear history, signed commits encouraged. `develop` is the integration and automatic test-deploy branch; `main` is release-only.
 - **Secret scanning with push protection** (default for GitHub Pro accounts).
 - **Dependabot** for npm/pnpm and GitHub Actions.
 - **CodeQL** code scanning on JavaScript/TypeScript.
 - **Required status checks**: lint, typecheck, unit tests, contract tests, fixture round-trips, schema-policy gate, personal-data-exclusion gate, AU-English lint, accessibility floor smoke.
 - **GitHub Actions minutes**: GitHub Pro allowance covers the v0.1 CI footprint comfortably; macOS runners are reserved for benchmarks that need Apple Silicon parity.
-- **GitHub Pages**: Explorer publishes from the `explorer-release.yml` workflow under the `github-pages` environment.
+- **Static web host**: Explorer and the public landing page are published from `web-release.yml` to VentraIP cPanel (see ADR 0038). GitHub Pages is not used.
+- **Approval environments**: `production-web` (VentraIP production) and `marketplace` (VS Code Marketplace) require manual reviewer approval before any job that holds production secrets can run. `test-web` deploys automatically from `develop` after CI gates pass.
+- **Self-hosted deploy runner**: VentraIP SSH allowlisting requires the final web deploy jobs to run on a dedicated macOS self-hosted runner named `pspf-runner` and labelled `mechastopheles`. Build, test, safety, and release-readiness jobs remain on GitHub-hosted runners. See `pspf-self-hosted-runner-hardening-runbook.md`.
 - **Releases**: each VSIX is uploaded as a release asset; release notes are generated from PR labels.
 
 ## Branching and change model
 
 ### Branch strategy
 
-Use a simple branch model:
+Use the promotion model in ADR 0039:
 
-- `main` — releasable default branch.
-- short-lived feature branches.
-- release tags for Marketplace and Explorer deployments.
+- short-lived feature branches for day-to-day work,
+- `develop` as the integration branch and automatic test-deploy source,
+- `main` as the protected release branch,
+- release tags cut only from `main` for Marketplace and Explorer production deployments.
 
-Avoid long-lived divergent branches unless a schema or migration program requires one.
+Do not work directly on `main`. Normal changes merge feature branches into `develop` by PR, then promote `develop` to `main` by release-candidate PR. Hotfixes branch from `main`, release from `main`, then merge back into `develop`.
 
 ### Pull request discipline
 
@@ -224,7 +227,7 @@ Explorer should support:
 
 - local dev server,
 - production static build,
-- GitHub Pages base path handling if needed,
+- static-site base path handling for serving Explorer under `/explorer`,
 - JSON fixture loading,
 - and static export verification before deployment.
 
@@ -289,7 +292,7 @@ All workflow files live in `.github/workflows/` at the repo root. Each is scoped
 
 | Workflow | Trigger | Purpose |
 |---|---|---|
-| `ci.yml` | PR, push to main | lint, typecheck, build, unit tests, contract tests across all packages affected by the diff |
+| `ci.yml` | PR, push to `develop` or `main` | lint, typecheck, build, unit tests, contract tests across all packages affected by the diff |
 | `accessibility.yml` | PR touching `packages/explorer/**` | `axe-core` per primary route on the standard fixture |
 | `schema-publish.yml` | PR touching `schemas/**` | hash-match validator vs served schema; remote `$ref` lint; per-version directory check (E23) |
 | `personal-data-gate.yml` | every PR | exporter run against personal-data fixture; fail-closed assertion (N6, S7) |
@@ -299,12 +302,12 @@ All workflow files live in `.github/workflows/` at the repo root. Each is scoped
 | `workshop-release.yml` | tag `workshop/<v>` | as above for Workshop |
 | `shop-release.yml` | tag `shop/<v>` | as above for Shop (v0.2+) |
 | `pub-release.yml` | tag `pub/<v>` | as above for Pub (v0.2+) |
-| `explorer-release.yml` | tag `explorer/<v>` or push to main | build static site, deploy to Pages under `github-pages` environment |
+| `web-release.yml` | tag `explorer/<v>` from `main` (production) or push to `develop` (test) | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment |
 | `nightly-bench.yml` | nightly | full performance benchmarks against reference machine fixture |
 
 ### Marketplace publishing
 
-VS Code extensions publish through `vsce` invoked from GitHub Actions, with the `VSCE_TOKEN` stored as a repository secret. Optional Open VSX publishing uses `OVSX_TOKEN`.
+VS Code extensions publish through `vsce` invoked from GitHub Actions, with the `VSCE_TOKEN` stored as an environment-scoped secret on the `marketplace` environment. The v1.0 Marketplace publisher is `tobyharvey`. Open VSX is not used for v1.0 and should be added later only through a separate decision and environment-scoped `OVSX_TOKEN`.
 
 Release pattern:
 - package the `.vsix` in CI from the relevant `packages/<name>/`,
@@ -313,7 +316,7 @@ Release pattern:
 - generate release notes from PR labels.
 - run a post-publish smoke check in a clean VS Code profile before announcing the release.
 
-Marketplace and web deployment are separate channels. `VSCE_TOKEN` and optional `OVSX_TOKEN` are used only by extension release workflows; VentraIP SSH keys are used only by static web deployment workflows.
+Marketplace and web deployment are separate channels. `VSCE_TOKEN` is used only by extension release workflows; VentraIP SSH keys are used only by static web deployment workflows.
 
 ## Shop and Pub CI/CD
 
@@ -332,9 +335,7 @@ If Core API compatibility changes, affected package compatibility suites should 
 
 ### Deployment model
 
-Explorer should build as a static site and deploy through GitHub Actions. GitHub Pages remains the reference deployment target, and VentraIP cPanel hosting is an acceptable static-host alternative when the same release gates, redaction gates, and rollback discipline are used. GitHub Pages custom workflows require the correct permissions, Pages deployment actions, and an explicit environment for deployment. VentraIP workflows use SSH/SFTP deployment to separate test and production document roots.
-
-The primary domain is production. A test subdomain, such as `test.<primary-domain>` or `preview.<primary-domain>`, receives new Explorer builds first so schema, data, headers, and browser behaviour can be validated before production promotion.
+Explorer and the public landing page (`pspf-ecosystem.html` at site root, Explorer SPA under `/explorer`) build as a static bundle and deploy through GitHub Actions to VentraIP cPanel over SSH on port 2683. GitHub Pages is not used. Per ADR 0038, the first production host is `tobyharvey.online` and the test host is `test.tobyharvey.online`. The fallback SSH/SFTP hostname for VentraIP is `s04le.syd7.hostingplatform.net.au`. Test deploys are automatic from `develop`; production deploys require a release tag from `main` and manual approval on the `production-web` environment.
 
 ### Explorer workflows
 
@@ -343,25 +344,26 @@ Explorer uses the repo-level workflows listed above. Product-specific Explorer j
 | Workflow | Trigger | Purpose |
 |---|---|---|
 | `ci.yml` | PR, push | lint, typecheck, test, build when `packages/explorer/**` changes |
-| `preview.yml` | PR | optional preview artefact or Pages preview strategy |
-| `explorer-release.yml` | push to main or release tag | build and deploy to GitHub Pages |
+| `preview.yml` | PR | optional preview artefact or test-subdomain preview strategy |
+| `web-release.yml` | push to `develop` (test) or release tag from `main` (production) | build static bundle and deploy to VentraIP test or production document root |
 | `bundle-verify.yml` | PR touching schema/import/export | validate JSON bundle compatibility |
 | `deployment-safety.yml` | PR, push, release tag | run `pnpm run check:deployment-safety` before any static deployment or Marketplace release |
 
-### Pages deployment requirements
+### VentraIP deployment requirements
 
-The Pages workflow should:
+The web release workflow should:
 
-- build the static site,
-- upload the build artefact,
-- deploy with `pages: write` and `id-token: write` permissions,
-- use the `github-pages` environment,
-- and surface the deployed URL as workflow output.
+- build `pspf-ecosystem.html` plus the Explorer SPA into a single static tree, with the SPA mounted under `/explorer`,
+- run `pnpm run check:deployment-safety` and `pnpm run check:personal-data`,
+- authenticate over SSH on port 2683 using `VENTRAIP_DEPLOY_KEY_TEST` or `VENTRAIP_DEPLOY_KEY_PROD` depending on environment,
+- upload to a timestamped release directory and update the `current` symlink,
+- run a `curl` smoke check against the deployed URL,
+- and surface the deployed URL and release identifier as workflow output.
 
 ### Explorer release practice
 
 Explorer should keep deployments reversible and legible:
-- one build per commit to main or release tag,
+- one test build per commit to `develop` and one production build per release tag,
 - visible build artefacts,
 - version displayed in the app footer or about screen,
 - and schema/export bundle version displayed where relevant.
@@ -538,7 +540,18 @@ Purpose:
 Purpose:
 - check whether exported bundle fields expected by Explorer are present,
 - detect broken narrative summaries,
-- and flag stale UI copy or field mismatches before Pages deployment.
+- and flag stale UI copy or field mismatches before web deployment.
+
+### 7. Release, test, and deploy agent
+
+Purpose:
+- enforce ADR 0039 branch promotion rules before release work starts,
+- confirm `develop` test deploy readiness and `main` release-tag readiness,
+- run or verify `release:readiness`, web staging, deployment safety, and VSIX dry packaging,
+- check that GitHub environment approvals and secrets are scoped correctly,
+- and produce a concise human-action list before production or Marketplace approval.
+
+This agent is useful here because release work crosses branch policy, cPanel deployment, Marketplace packaging, redaction gates, and rollback. It should assist and verify; it must not approve production or Marketplace release jobs.
 
 ## Where not to use agents
 
@@ -561,18 +574,18 @@ Across all workflows:
 
 - use reusable workflow fragments where sensible,
 - pin action versions,
-- store Marketplace and Pages credentials as repository secrets,
+- store Marketplace and VentraIP credentials as repository secrets, scoped to the `marketplace`, `production-web`, and `test-web` environments,
 - and keep environments explicit for release and deploy jobs.
 
 ### Recommended secrets
 
 | Secret | Repo | Purpose |
 |---|---|---|
-| `VSCE_TOKEN` | `pspf` | VS Code Marketplace publishing for Core, Workshop, Shop, Pub |
-| `OVSX_TOKEN` | `pspf` (optional) | Open VSX publishing if desired |
-| `GITHUB_TOKEN` | `pspf` | standard workflow operations |
+| `VSCE_TOKEN` | `Conceptual` / `marketplace` environment | VS Code Marketplace publishing for Core and Workshop under publisher `tobyharvey` |
+| `OVSX_TOKEN` | not configured for v1.0 | Reserved for a future Open VSX decision |
+| `GITHUB_TOKEN` | `Conceptual` | standard workflow operations |
 
-Explorer Pages deployment can usually rely on GitHub’s built-in Pages permissions model rather than custom long-lived deploy secrets when using the official workflow pattern.
+Web deployment uses environment-scoped `VENTRAIP_DEPLOY_KEY_TEST` and `VENTRAIP_DEPLOY_KEY_PROD` SSH private keys, each authorised against a separate cPanel deploy key for the matching document root. Production deploys require manual reviewer approval on the `production-web` environment.
 
 ## Release and rollback
 
@@ -580,20 +593,22 @@ Explorer Pages deployment can usually rely on GitHub’s built-in Pages permissi
 
 Suggested release flow:
 
-1. merge to `main`,
-2. validate CI green,
-3. create release tag,
-4. package artefacts,
-5. publish extension or deploy Explorer,
-6. publish release notes,
-7. verify smoke checks post-release.
+1. merge feature branches to `develop`,
+2. validate CI and the automatic test deploy are green,
+3. open a release-candidate PR from `develop` to `main`,
+4. run `release:readiness`,
+5. merge to `main`,
+6. create the relevant release tag from `main`,
+7. approve and run the production web or Marketplace job,
+8. publish release notes,
+9. verify smoke checks post-release.
 
 ### Rollback
 
 Maintain simple rollback paths:
 
 - previous `.vsix` artefacts retained for extension rollback,
-- previous Explorer build artefact or Pages release reference,
+- previous Explorer build artefact or VentraIP release directory reference,
 - and previous schema snapshot or migration backup for local data recovery.
 
 ## Runbooks
@@ -603,7 +618,7 @@ Create runbooks for:
 - local bootstrap,
 - extension packaging,
 - Marketplace publish,
-- Explorer Pages deploy,
+- Explorer static deploy to VentraIP,
 - broken schema migration recovery,
 - fixture refresh,
 - release rollback,
@@ -617,12 +632,12 @@ For v0.1 (per ADR 0014), the minimum useful CI footprint is:
 - `personal-data-gate.yml` and `au-english-lint.yml` on every PR.
 - `schema-publish.yml` on PRs that touch `schemas/**`.
 - `accessibility.yml` on PRs that touch `packages/explorer/**`.
-- `core-release.yml`, `workshop-release.yml`, `explorer-release.yml` on their respective release tags.
+- `core-release.yml`, `workshop-release.yml`, `web-release.yml` on their respective release tags.
 
 Shop, Pub, and the nightly bench are added in v0.2.
 
 ## Specification summary
 
-The delivery model is **one private GitHub repository** (`pspf`, on a personal GitHub Pro account) housing every PSPF product as a workspace package, with each VSIX-producing package releasing independently via per-package release tags. Explorer deploys as a static site to GitHub Pages from the same repo. CI/CD enforces linting, AU-English spelling, tests, schema/API compatibility, personal-data exclusion, accessibility floor, packaging, and controlled release automation.
+The delivery model is **one private GitHub repository** (`https://github.com/MegaTobyOne/Conceptual.git`) housing every PSPF product as a workspace package, with each VSIX-producing package releasing independently via per-package release tags. Explorer deploys as a static site to VentraIP cPanel from the same repo (see ADR 0038). CI/CD enforces linting, AU-English spelling, tests, schema/API compatibility, personal-data exclusion, accessibility floor, packaging, and controlled release automation.
 
-GitHub Copilot is used as a bounded development and review assistant, supported by strong fixtures, in-tree contract tests, and PR discipline. The most useful early agent investments are schema-impact analysis, fixture/migration support, PR review, documentation sync, release notes, and Explorer bundle integrity checking.
+GitHub Copilot is used as a bounded development and review assistant, supported by strong fixtures, in-tree contract tests, and PR discipline. The most useful early agent investments are schema-impact analysis, fixture/migration support, PR review, documentation sync, release notes, Explorer bundle integrity checking, and release/test/deploy verification.

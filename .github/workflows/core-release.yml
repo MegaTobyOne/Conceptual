@@ -1,0 +1,69 @@
+name: Core Marketplace release
+
+on:
+  push:
+    tags:
+      - 'core/*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: core-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Package and publish Core
+    runs-on: ubuntu-latest
+    environment: marketplace
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.15.0'
+
+      - name: Install dependencies
+        run: npx pnpm@10.10.0 install --frozen-lockfile
+
+      - name: Verify release tag is on main
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: Release readiness
+        run: npx pnpm@10.10.0 run release:readiness
+
+      - name: Package shape
+        run: npx pnpm@10.10.0 run package:check
+
+      - name: Bundle extension runtime
+        run: npx pnpm@10.10.0 run bundle:extensions
+
+      - name: Create VSIX output directory
+        run: mkdir -p .tmp/vsix
+
+      - name: Package VSIX
+        working-directory: packages/core
+        run: npx --yes @vscode/vsce@3.7.1 package --no-dependencies --allow-missing-repository --skip-license --out ../../.tmp/vsix/pspf-core-${GITHUB_REF_NAME#core/}.vsix
+
+      - name: Attach VSIX to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .tmp/vsix/*.vsix
+          generate_release_notes: true
+
+      - name: Publish to VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        working-directory: packages/core
+        run: npx --yes @vscode/vsce@3.7.1 publish --packagePath ../../.tmp/vsix/pspf-core-${GITHUB_REF_NAME#core/}.vsix --pat "$VSCE_PAT"

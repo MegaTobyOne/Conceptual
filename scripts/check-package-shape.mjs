@@ -21,7 +21,7 @@ const extensionPackages = [
   {
     name: "Workshop",
     directory: "packages/workshop",
-    dependency: "pspf.pspf-core",
+    dependency: "tobyharvey.pspf-core",
     expectedCommands: [
       "pspf.workshop.openWelcome",
       "pspf.workshop.openHome",
@@ -46,8 +46,11 @@ const extensionPackages = [
 for (const extensionPackage of extensionPackages) {
   const packagePath = join(root, extensionPackage.directory, "package.json");
   const manifest = JSON.parse(await readFile(packagePath, "utf8"));
-  assert.equal(manifest.private, true, `${extensionPackage.name} package remains private for rehearsal only`);
-  assert.equal(manifest.publisher, "pspf", `${extensionPackage.name} publisher metadata is present`);
+  assert.equal(manifest.private, true, `${extensionPackage.name} remains blocked from npm publishing; Marketplace publishing uses vsce`);
+  assert.equal(manifest.license, "MIT", `${extensionPackage.name} package declares the MIT licence`);
+  assert.equal(manifest.repository?.url, "git+https://github.com/MegaTobyOne/Conceptual.git", `${extensionPackage.name} package declares the repository URL`);
+  assert.equal(manifest.repository?.directory, extensionPackage.directory, `${extensionPackage.name} package repository directory is accurate`);
+  assert.equal(manifest.publisher, "tobyharvey", `${extensionPackage.name} publisher metadata matches the v1.0 Marketplace publisher`);
   assert.equal(manifest.main, "./dist/extension.js", `${extensionPackage.name} main points at built extension output`);
   await access(join(root, extensionPackage.directory, "dist", "extension.js"));
   const commands = new Set((manifest.contributes?.commands ?? []).map((command) => command.command));
@@ -63,4 +66,4 @@ for (const extensionPackage of extensionPackages) {
   }
 }
 
-console.log("ok Core and Workshop extension package shapes match ADR 0007 rehearsal expectations");
+console.log("ok Core and Workshop extension package shapes match the Marketplace deployment baseline");
