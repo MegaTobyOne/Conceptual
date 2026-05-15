@@ -160,14 +160,30 @@ Not allowed on the self-hosted runner:
 4. Install it as a launchd service for that user.
 5. Confirm the runner appears as online in GitHub.
 6. Allowlist the Mac public IP in VentraIP.
-7. Test SSH from the runner user:
+7. Prefer absolute VentraIP paths in GitHub environment variables, for example `/home/<ssh-user>/apps/pspf-web-test`. The workflow normalises `~/...` against the remote account home, but absolute paths are easier to diagnose.
+8. If the runner is not installed as a launchd service, start it manually from the dedicated runner account before validation:
+
+   ```sh
+   su - pspf-runner
+   cd github-runner
+   ./run.sh
+   ```
+
+9. Test SSH from the runner user:
 
    ```sh
    ssh -p 2683 <ventra-user>@s04le.syd7.hostingplatform.net.au
    ```
 
-8. Trigger a manual `web-release` deployment to `test`.
-9. Confirm `https://test.tobyharvey.online/` and `https://test.tobyharvey.online/explorer/` load.
+10. Confirm the test hostname resolves and has HTTPS enabled:
+
+   ```sh
+   dig +short test.tobyharvey.online A
+   curl -I https://test.tobyharvey.online/
+   ```
+
+11. Trigger a manual `web-release` deployment to `test`.
+12. Confirm `https://test.tobyharvey.online/` and `https://test.tobyharvey.online/explorer/` load.
 
 ## Incident Response
 

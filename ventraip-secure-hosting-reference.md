@@ -60,6 +60,15 @@ Two web environments are used:
 
 Test must use a separate document root and a separate deploy key (`VENTRAIP_DEPLOY_KEY_TEST`) so a failed preview deployment cannot overwrite production. Release directories are kept separate, for example `~/apps/pspf-web-test` and `~/apps/pspf-web-prod`.
 
+Before enabling automatic test deployment, create the `test.tobyharvey.online` subdomain in VentraIP/cPanel and confirm DNS resolves from outside the hosting account:
+
+```sh
+dig +short test.tobyharvey.online A
+curl -I https://test.tobyharvey.online/
+```
+
+If `dig` returns no address, GitHub Actions will deploy successfully to the filesystem but fail the public verification step with `Could not resolve host`. If HTTPS fails after DNS resolves, enable SSL for the subdomain in cPanel before treating the test environment as ready.
+
 ## Secure baseline
 
 Create one subdomain per app or site so each deployment has a separate document root and clearer operational boundaries.[cite:14] Enable SSL on every hostname and keep the account focused on hosting rather than mixing in unrelated workloads where possible.[cite:7][cite:10]
