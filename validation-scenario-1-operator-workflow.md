@@ -43,6 +43,15 @@ cd github-runner
 
 Confirm GitHub shows runner `pspf-runner` online with labels `self-hosted`, `macOS`, and `mechastopheles` before triggering `web-release`.
 
+Before rerunning `web-release`, confirm the test hostname exists and resolves:
+
+```sh
+dig +short test.tobyharvey.online A
+curl -I https://test.tobyharvey.online/
+```
+
+If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
+
 1. Launch `Run PSPF Core + Workshop`.
 2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.6.0`, `Schema 1.3.0`, and `API 1.3.0`.
 3. Confirm the VS Code status bar shows `PSPF v1.6.0` and its tooltip includes `Schema 1.3.0`, `Bundle 1.3.0`, and `API 1.3.0`.

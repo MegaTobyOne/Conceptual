@@ -23,8 +23,10 @@ PSPF Core, Workshop, Shop, and Pub MUST NOT store any secret in `.pspf/config/`,
 
 1. `VSCE_TOKEN` for VS Code Marketplace publishing under publisher `tobyharvey`, held only on the `marketplace` GitHub Actions environment.
 2. `VENTRAIP_DEPLOY_KEY_TEST` for automatic test web deploys to `test.tobyharvey.online`, held only on the `test-web` GitHub Actions environment.
-3. `VENTRAIP_DEPLOY_KEY_PROD` for production web deploys to `tobyharvey.online`, held only on the `production-web` GitHub Actions environment.
-4. `GITHUB_TOKEN` for standard workflow operations.
+3. `VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST` for unlocking the test VentraIP deploy key, held only on the `test-web` GitHub Actions environment.
+4. `VENTRAIP_DEPLOY_KEY_PROD` for production web deploys to `tobyharvey.online`, held only on the `production-web` GitHub Actions environment.
+5. `VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD` for unlocking the production VentraIP deploy key, held only on the `production-web` GitHub Actions environment.
+6. `GITHUB_TOKEN` for standard workflow operations.
 
 Open VSX is not configured for v1.0. If adopted later, add a separate approval environment and `OVSX_TOKEN` rotation entry before enabling the publish step.
 

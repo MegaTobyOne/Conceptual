@@ -115,7 +115,9 @@ Keep the existing environment split:
 | Environment | Secret | Purpose |
 |---|---|---|
 | `test-web` | `VENTRAIP_DEPLOY_KEY_TEST` | Test SSH deploy key |
+| `test-web` | `VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST` | Passphrase for the test SSH deploy key |
 | `production-web` | `VENTRAIP_DEPLOY_KEY_PROD` | Production SSH deploy key |
+| `production-web` | `VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD` | Passphrase for the production SSH deploy key |
 
 Required environment variables remain:
 
@@ -126,6 +128,8 @@ Required environment variables remain:
 - `VENTRAIP_DOCROOT`.
 
 Production must require manual reviewer approval. Test may deploy automatically from `develop`.
+
+The workflow unlocks passphrase-protected VentraIP deploy keys with `ssh-agent` and runs SSH in batch/public-key-only mode. A deploy job must never wait for an interactive password prompt.
 
 ## Workflow Rules
 
@@ -171,8 +175,15 @@ Not allowed on the self-hosted runner:
    ssh -p 2683 <ventra-user>@s04le.syd7.hostingplatform.net.au
    ```
 
-10. Trigger a manual `web-release` deployment to `test`.
-11. Confirm `https://test.tobyharvey.online/` and `https://test.tobyharvey.online/explorer/` load.
+10. Confirm the test hostname resolves and has HTTPS enabled:
+
+   ```sh
+   dig +short test.tobyharvey.online A
+   curl -I https://test.tobyharvey.online/
+   ```
+
+11. Trigger a manual `web-release` deployment to `test`.
+12. Confirm `https://test.tobyharvey.online/` and `https://test.tobyharvey.online/explorer/` load.
 
 ## Incident Response
 
