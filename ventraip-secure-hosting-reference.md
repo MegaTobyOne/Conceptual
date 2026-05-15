@@ -1,6 +1,22 @@
 # VentraIP secure hosting reference design
 
-This design is intended for small static sites and single-page apps hosted on a VentraIP cPanel account, with builds performed externally and deployments pushed into a tightly controlled runtime environment.[cite:5][cite:14] For PSPF, this pattern is approved only for the static Explorer web surface, public documentation, and explicitly validated publication bundles; Core and Workshop remain local-first VS Code extensions and are not hosted on VentraIP.
+This design is intended for small static sites and single-page apps hosted on a VentraIP cPanel account, with builds performed externally and deployments pushed into a tightly controlled runtime environment.[cite:5][cite:14] For PSPF, this pattern is the **sole approved production static host** per ADR 0038: VentraIP serves the public landing page (`pspf-ecosystem.html`) at the site root and the Explorer publication-mode SPA under `/explorer`. Core and Workshop remain local-first VS Code extensions and are not hosted on VentraIP. GitHub Pages is not used.
+
+## Pinned values for v1.0
+
+| Setting | Value |
+|---|---|
+| Production host | `tobyharvey.online` |
+| Test host | `test.tobyharvey.online` |
+| Fallback SSH/SFTP hostname | `s04le.syd7.hostingplatform.net.au` |
+| SSH port | `2683` |
+| Production deploy key secret | `VENTRAIP_DEPLOY_KEY_PROD` (held in `production-web` environment) |
+| Test deploy key secret | `VENTRAIP_DEPLOY_KEY_TEST` (held in `test-web` environment) |
+| Production approval | Manual reviewer approval required on `production-web` |
+| Test approval | Automatic from `develop` after CI gates pass |
+| Marketplace publisher | `tobyharvey` |
+| Marketplace token secret | `VSCE_TOKEN` (held in `marketplace` environment, manual approval) |
+| Open VSX | Not used in v1.0 |
 
 ## PSPF fit assessment
 
@@ -32,14 +48,14 @@ The preferred pattern is to keep source control and CI/CD outside the hosting ac
 
 ## Environment model
 
-Use two web environments from the start:
+Two web environments are used:
 
 | Environment | Hostname | Purpose | Promotion rule |
 |---|---|---|---|
-| Test | `test.<primary-domain>` or `preview.<primary-domain>` | Validate new Explorer builds, schemas, headers, and sample bundles before release. | Deploy from `main` or release-candidate tags after CI passes. |
-| Production | `<primary-domain>` or `explorer.<primary-domain>` | Stable Explorer shell and public documentation for users. | Promote only from a signed-off release tag after test verification. |
+| Test | `test.tobyharvey.online` | Validate new Explorer builds, schemas, headers, and sample bundles before release. | Automatic deploy from `develop` after CI gates pass. |
+| Production | `tobyharvey.online` | Public landing page at root and Explorer SPA under `/explorer`. | Manual reviewer approval on the `production-web` GitHub Actions environment; only from a signed-off release tag. |
 
-The primary domain is production. Test must use a separate document root and deploy key so a failed preview deployment cannot overwrite production. If the same cPanel account is used, keep the release directories separate, for example `~/apps/pspf-explorer-test` and `~/apps/pspf-explorer-prod`.
+Test must use a separate document root and a separate deploy key (`VENTRAIP_DEPLOY_KEY_TEST`) so a failed preview deployment cannot overwrite production. Release directories are kept separate, for example `~/apps/pspf-web-test` and `~/apps/pspf-web-prod`.
 
 ## Secure baseline
 
@@ -97,7 +113,7 @@ name: Deploy static site to VentraIP
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
 
 jobs:
   deploy:
@@ -167,13 +183,28 @@ Recommended secret handling:
 - No repository write access from the hosting account.[cite:14]
 - No build secrets stored on the VentraIP filesystem unless the app genuinely needs runtime secrets.[cite:14]
 - Separate production and non-production targets if more than one environment is required.[cite:14]
-- Separate Marketplace publishing credentials from VentraIP deployment credentials. `VSCE_TOKEN` and optional `OVSX_TOKEN` are release secrets only and must never be copied to the hosting account.
+- Separate Marketplace publishing credentials from VentraIP deployment credentials. `VSCE_TOKEN` is a `marketplace` environment secret only and must never be copied to the hosting account. Open VSX is not configured for v1.0.
+
+GitHub environment variables required by `.github/workflows/web-release.yml`:
+
+| Environment | Variable | Value |
+|---|---|---|
+| `test-web` | `SITE_URL` | `https://test.tobyharvey.online` |
+| `test-web` | `VENTRAIP_SSH_USER` | VentraIP SSH username |
+| `test-web` | `VENTRAIP_SSH_HOST` | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
+| `test-web` | `VENTRAIP_APP_DIR` | Suggested: `~/apps/pspf-web-test` |
+| `test-web` | `VENTRAIP_DOCROOT` | cPanel document root for `test.tobyharvey.online` |
+| `production-web` | `SITE_URL` | `https://tobyharvey.online` |
+| `production-web` | `VENTRAIP_SSH_USER` | VentraIP SSH username |
+| `production-web` | `VENTRAIP_SSH_HOST` | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
+| `production-web` | `VENTRAIP_APP_DIR` | Suggested: `~/apps/pspf-web-prod` |
+| `production-web` | `VENTRAIP_DOCROOT` | cPanel document root for `tobyharvey.online` |
 
 ## VS Code Marketplace deployment path
 
 Core and Workshop are published as VS Code extensions, not hosted on VentraIP. The end-to-end release path is:
 
-1. Merge to `main` only after CI, redaction, schema, AU-English, package-shape, and deployment-safety checks pass.
+1. Merge feature work to `develop` only after CI, redaction, schema, AU-English, package-shape, and deployment-safety checks pass; merge `develop` to `main` only for release candidates.
 2. Create a signed-off release tag for each extension, such as `core/<version>` or `workshop/<version>`.
 3. GitHub Actions packages the relevant extension directory as a VSIX using `vsce`.
 4. The workflow attaches the VSIX to the GitHub release for rollback and audit.

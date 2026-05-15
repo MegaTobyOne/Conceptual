@@ -50,6 +50,8 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0035 | v1.5 plan-apply import and undo | accepted |
 | 0036 | v1.5.1 Explorer and Workshop product boundary and Explorer identity | accepted |
 | 0037 | v1.6 Workshop import review and identity | accepted |
+| 0038 | v1.0 first deployment baseline (VentraIP, tobyharvey.online, Marketplace publisher `tobyharvey`) | accepted |
+| 0039 | Branching and release promotion | accepted |
 
 ## Template
 

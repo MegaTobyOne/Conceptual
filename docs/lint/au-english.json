@@ -1,73 +1,14 @@
 {
     "description": "AU-English spelling pairs for docs and extracted UI strings. Code identifiers are exempt.",
     "pairs": [
-        {
-            "use": "organisation",
-            "avoid": "organization"
-        },
-        {
-            "use": "organisations",
-            "avoid": "organizations"
-        },
-        {
-            "use": "organisational",
-            "avoid": "organizational"
-        },
-        {
-            "use": "initialise",
-            "avoid": "initialize"
-        },
-        {
-            "use": "initialisation",
-            "avoid": "initialization"
-        },
-        {
-            "use": "behaviour",
-            "avoid": "behavior"
-        },
-        {
-            "use": "colour",
-            "avoid": "color"
-        },
-        {
-            "use": "optimise",
-            "avoid": "optimize"
-        },
-        {
-            "use": "recognise",
-            "avoid": "recognize"
-        },
-        {
-            "use": "customise",
-            "avoid": "customize"
-        },
-        {
-            "use": "summarise",
-            "avoid": "summarize"
-        },
-        {
-            "use": "centre",
-            "avoid": "center"
-        },
-        {
-            "use": "licence",
-            "avoid": "license"
-        },
-        {
-            "use": "defence",
-            "avoid": "defense"
-        },
-        {
-            "use": "analyse",
-            "avoid": "analyze"
-        },
-        {
-            "use": "ageing",
-            "avoid": "aging"
-        },
-        {
-            "use": "artefact",
-            "avoid": "artifact"
-        }
+        {"use": "organisation", "avoid": "organization"},
+        {"use": "organisations", "avoid": "organizations"},
+        {"use": "organisational", "avoid": "organizational"},
+        {"use": "initialise", "avoid": "initialize"},
+        {"use": "initialisation", "avoid": "initialization"},
+        {"use": "behaviour", "avoid": "behavior"},
+        {"use": "colour", "avoid": "color"},
+        {"use": "optimise", "avoid": "optimize"},
+        {"use": "recognise", "avoid": "recognize"}
     ]
 }

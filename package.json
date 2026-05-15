@@ -3,6 +3,11 @@
     "version": "1.6.0",
     "private": true,
     "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MegaTobyOne/Conceptual.git"
+    },
     "packageManager": "pnpm@10.10.0",
     "engines": {
         "node": ">=22.15.0",
@@ -10,6 +15,8 @@
     },
     "scripts": {
         "build": "pnpm -r --if-present build",
+        "build:web-release": "pnpm build && node scripts/build-web-release.mjs",
+        "bundle:extensions": "pnpm build && pnpm exec esbuild packages/core/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/core/dist/extension.js && pnpm exec esbuild packages/workshop/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/workshop/dist/extension.js",
         "check:accessibility": "pnpm build && node scripts/check-accessibility.mjs",
         "check:backup-restore": "pnpm build && node scripts/backup-restore-dry-run.mjs",
         "check:brief-redaction": "pnpm build && node scripts/check-brief-redaction.mjs",
@@ -59,6 +66,7 @@
         "@types/node": "^22.15.17",
         "@types/vscode": "^1.100.0",
         "ajv": "^8.20.0",
+        "esbuild": "0.25.5",
         "playwright": "^1.59.1",
         "typescript": "^5.8.3"
     }

@@ -1,0 +1,11 @@
+src/**
+tsconfig.json
+tsconfig.tsbuildinfo
+dist/**/*.d.ts
+dist/**/*.d.ts.map
+dist/**/*.test.js
+dist/workshop-ui.js
+*.vsix
+node_modules/**
+node_modules/.cache/**
+node_modules/.pnpm/**
