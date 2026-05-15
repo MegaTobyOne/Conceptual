@@ -71,6 +71,8 @@ Use the promotion model in ADR 0039:
 
 Do not work directly on `main`. Normal changes merge feature branches into `develop` by PR, then promote `develop` to `main` by release-candidate PR. Hotfixes branch from `main`, release from `main`, then merge back into `develop`.
 
+Explorer production tags should be created through the `Explorer production tag` GitHub Actions workflow rather than by hand. The workflow must be dispatched from `main`, verifies the requested version matches `package.json`, runs `release:readiness`, creates `explorer/<version>`, and lets the existing `web-release.yml` tag trigger perform the approved production deploy.
+
 ### Pull request discipline
 
 Every change should land through a pull request, even for solo development. This creates a stable review point, a reproducible audit trail, and a natural place for Copilot review, automated checks, and release notes generation.
