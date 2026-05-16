@@ -9,10 +9,10 @@
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>PSPF Ecosystem</title>
   <meta name="description"
-    content="A public guide to an Australian PSPF-focused tool ecosystem: Core, Workshop, and Explorer publication mode for initial assurance user testing, with Shop and Pub deferred. Independent, not affiliated with any Australian Government entity." />
+    content="A public guide to an Australian PSPF-focused tool ecosystem: Core and Workshop as VS Code extensions, plus an Explorer publication view. Independent, not affiliated with any Australian Government entity." />
   <meta property="og:title" content="PSPF Ecosystem" />
   <meta property="og:description"
-    content="A public guide to an Australian PSPF-focused tool ecosystem. The current slice centres on Core, Workshop, and Explorer publication mode. Independent and experimental." />
+    content="A public guide to an Australian PSPF-focused tool ecosystem. Core and Workshop are published as VS Code extensions; Explorer is a static publication view. Independent project." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="robots" content="index,follow" />
@@ -456,6 +456,38 @@
       white-space: nowrap;
     }
 
+    .tool-tag.is-live {
+      background: var(--color-primary-highlight);
+      color: var(--color-primary-hover);
+    }
+
+    [data-theme="dark"] .tool-tag.is-live {
+      color: var(--color-text);
+    }
+
+    .tool-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+
+    .tool-meta span {
+      font-size: var(--text-xs);
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius-full);
+      background: var(--color-surface-offset);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border-subtle);
+      white-space: nowrap;
+    }
+
+    .tool-meta code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85em;
+      color: var(--color-text);
+    }
+
     .tool-link {
       display: inline-flex;
       align-items: center;
@@ -463,6 +495,20 @@
       margin-top: var(--space-4);
       color: var(--color-primary);
       font-weight: 600;
+    }
+
+    .tool-link.is-install {
+      padding: 0.45rem 0.85rem;
+      border: 1px solid var(--color-primary);
+      border-radius: var(--radius-full);
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .tool-link.is-install:hover,
+    .tool-link.is-install:focus-visible {
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+      outline: none;
     }
 
     .simple-list {
@@ -545,16 +591,69 @@
     }
 
     .project-notice {
+      position: relative;
       border: 1px solid var(--color-border);
       border-left: 4px solid var(--color-warning);
       background: var(--color-surface-2);
       padding: var(--space-4) var(--space-5);
+      padding-right: calc(var(--space-5) + 1.75rem);
       border-radius: var(--radius-md);
       margin-bottom: var(--space-4);
     }
 
     .project-notice p+p {
       margin-top: var(--space-2);
+    }
+
+    .project-notice[hidden] {
+      display: none;
+    }
+
+    .notice-dismiss {
+      position: absolute;
+      top: var(--space-2);
+      right: var(--space-2);
+      width: 1.75rem;
+      height: 1.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      color: var(--color-text-muted);
+      border: 1px solid transparent;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+
+    .notice-dismiss:hover,
+    .notice-dismiss:focus-visible {
+      background: var(--color-surface-dynamic);
+      color: var(--color-text);
+      border-color: var(--color-border);
+      outline: none;
+    }
+
+    .notice-restore {
+      margin-top: var(--space-2);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+
+    .notice-restore button {
+      background: transparent;
+      border: none;
+      color: var(--color-primary);
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+      text-decoration: underline;
+    }
+
+    .notice-restore[hidden] {
+      display: none;
     }
 
     .footer-disclaimer {
@@ -650,19 +749,20 @@
 
   <main id="main">
     <div class="container notice-wrap">
-      <aside class="project-notice" role="note" aria-label="Independent project notice">
+      <aside class="project-notice" role="note" aria-label="Independent project notice" data-project-notice>
+        <button type="button" class="notice-dismiss" data-notice-dismiss aria-label="Hide this notice">×</button>
         <p><strong>Independent project.</strong> This is a self-managed productivity project. It is <strong>not
             affiliated with, endorsed by, or operated by</strong> the Department of Home Affairs, the Attorney-General's
           Department, or any other Australian Government entity. The Protective Security Policy Framework remains the
           authoritative source for Australian Government protective security policy.</p>
-        <p><strong>Initial assurance testing slice.</strong> The current working slice is intentionally focused: Core,
-          Workshop, and Explorer publication mode. Shop, Pub, Explorer local authoring, forecasting, editable posture,
-          and chart image export are deferred.</p>
-        <p><strong>Hosting.</strong> This page is currently hosted on a non-Australian content delivery network. Do not
-          enter information classified above OFFICIAL: Sensitive into any tool reachable from this site, and do not
-          assume Australian data residency for any data this page or its linked tools may collect. We intend to re-host
-          on an Australian-resident host in due course.</p>
+        <p><strong>Handling reminder.</strong> Do not enter information classified above <strong>OFFICIAL:
+            Sensitive</strong>
+          into any tool reachable from this site. Treat the tools as decision-support, not as a system of record for
+          security-classified material.</p>
       </aside>
+      <p class="notice-restore" data-notice-restore hidden>
+        Project notice hidden. <button type="button" data-notice-restore-button>Show again</button>
+      </p>
     </div>
 
     <section class="hero" id="top">
@@ -762,80 +862,112 @@
           <article class="tool-card">
             <div class="tool-top">
               <h3>Core</h3>
-              <span class="tool-tag">v0.1</span>
+              <span class="tool-tag is-live">v1.6.0 · live</span>
             </div>
-            <p>Core is the local system of record. It manages the canonical entity and link model, validation, writer
-              lock, snapshots, bundle import/export, and operational health.</p>
+            <div class="tool-meta">
+              <span>VS Code extension</span>
+              <span><code>tobyharvey.pspf-core</code></span>
+              <span>Local-only</span>
+            </div>
+            <p>Core is the local system of record. It runs entirely inside VS Code, holds the structured workspace in a
+              local SQLite database, and enforces a single-writer lock so only one editing session touches the data at
+              a time.</p>
             <ul class="simple-list">
-              <li>Stores the structured PSPF workspace.</li>
-              <li>Runs validation, backup, restore and integrity checks.</li>
-              <li>Exports the bundle consumed by Explorer.</li>
+              <li>Owns the canonical entity and link model (Requirements, Evidence, Actions, Risks, Directions, ISM
+                mappings).</li>
+              <li>Runs schema-policy validation, snapshots, backup, restore and integrity checks.</li>
+              <li>Exports the curated manifest-led JSON bundle that Explorer consumes.</li>
+              <li>Required dependency for Workshop — install Core first.</li>
             </ul>
-            <a class="tool-link" href="#links">Add Core link →</a>
+            <a class="tool-link is-install"
+              href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core" target="_blank"
+              rel="noopener noreferrer">Install from VS Code Marketplace →</a>
           </article>
 
           <article class="tool-card">
             <div class="tool-top">
               <h3>Workshop</h3>
-              <span class="tool-tag">v0.1</span>
+              <span class="tool-tag is-live">v1.6.0 · live</span>
             </div>
-            <p>Workshop is the day-to-day authoring surface. It helps users work with Requirements, Evidence, Actions,
-              Risks, Directions, ISM mappings, evidence review, and posture brief preparation inside VS Code.</p>
-            <ul class="simple-list">
-              <li>Organises work by requirement and linked objects.</li>
-              <li>Highlights stale evidence, gaps and follow-up actions.</li>
-              <li>Uses compact edit tab titles, AU-formatted dates and save-and-close actions.</li>
-              <li>Supports reporting preparation before export.</li>
-            </ul>
-            <a class="tool-link" href="#links">Add Workshop link →</a>
-          </article>
-
-          <article class="tool-card">
-            <div class="tool-top">
-              <h3>Shop</h3>
-              <span class="tool-tag">v0.2+</span>
+            <div class="tool-meta">
+              <span>VS Code extension</span>
+              <span><code>tobyharvey.pspf-workshop</code></span>
+              <span>Depends on Core</span>
             </div>
-            <p>Shop covers supplier, contract, and spend workflows. It is designed to surface commercial obligations and
-              link them to the controls and risks they affect, but is deferred beyond v0.1.</p>
+            <p>Workshop is the day-to-day authoring surface inside VS Code. It opens screen-based views for each entity
+              type, talks to Core through a typed contract, and provides save-and-close editing flows that respect the
+              writer lock.</p>
             <ul class="simple-list">
-              <li>Tracks suppliers, contracts and spend items.</li>
-              <li>Links commercial records to requirements and risks.</li>
-              <li>Supports obligation reporting.</li>
+              <li>Screens for Requirements, Evidence, Actions, Risks, Directions and ISM mappings.</li>
+              <li>Item-detail webview panels with compact edit tab titles and AU-formatted dates.</li>
+              <li>Highlights stale evidence, gaps and follow-up actions for the current assessment loop.</li>
+              <li>Triggers the export that produces the Explorer bundle.</li>
             </ul>
-            <a class="tool-link" href="#links">Add Shop link →</a>
-          </article>
-
-          <article class="tool-card">
-            <div class="tool-top">
-              <h3>Pub</h3>
-              <span class="tool-tag">v0.2+</span>
-            </div>
-            <p>Pub covers people, role, and assignment workflows. It is designed to keep personal data inside the
-              workspace and out of published bundles, but is deferred beyond v0.1.</p>
-            <ul class="simple-list">
-              <li>Records people, teams and roles.</li>
-              <li>Maps assignments to actions, requirements and risks.</li>
-              <li>Keeps personal data inside the workspace and out of bundles.</li>
-            </ul>
-            <a class="tool-link" href="#links">Add Pub link →</a>
+            <a class="tool-link is-install"
+              href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop" target="_blank"
+              rel="noopener noreferrer">Install from VS Code Marketplace →</a>
           </article>
 
           <article class="tool-card">
             <div class="tool-top">
               <h3>Explorer</h3>
-              <span class="tool-tag">v0.1 publication</span>
+              <span class="tool-tag is-live">publication mode</span>
             </div>
-            <p>Explorer is the simple, portable web interface. It reads a curated bundle, shows posture and readiness,
-              and lets reviewers copy a shareable brief without installing VS Code.</p>
+            <div class="tool-meta">
+              <span>Static web view</span>
+              <span>Reads JSON bundle</span>
+              <span>Read-only</span>
+            </div>
+            <p>Explorer is a portable, static web interface that reads a curated bundle exported by Core and renders it
+              for review. It needs no install — reviewers open it in a browser to see posture without touching the
+              source workspace.</p>
             <ul class="simple-list">
-              <li>Presents posture, gaps, Directions, Action Impact and ISM coverage visually.</li>
-              <li>Uses collapsible sections, a Close All control, wide reading space and readable relationship columns.
-              </li>
-              <li>Shows short AU dates and compact unresolved IDs in published tables.</li>
-              <li>Shows OFFICIAL: Sensitive and TLP:AMBER+STRICT handling cues.</li>
-              <li>Browser-local authoring and round-trip export are deferred.</li>
+              <li>Posture donut, compact status table and collapsible sections with a Close All control.</li>
+              <li>Action Impact, ISM coverage and readable relationship tables.</li>
+              <li>Short AU dates, compact unresolved IDs, and OFFICIAL: Sensitive / TLP:AMBER+STRICT handling cues.</li>
+              <li>Copyable posture brief for handing to reviewers.</li>
+              <li>Browser-local authoring and round-trip export remain deferred to a later version.</li>
             </ul>
-            <a class="tool-link" href="#links">Open Explorer →</a>
+            <a class="tool-link" href="#links">Jump to Explorer link →</a>
+          </article>
+
+          <article class="tool-card">
+            <div class="tool-top">
+              <h3>Shop</h3>
+              <span class="tool-tag">v0.2+ · planned</span>
+            </div>
+            <div class="tool-meta">
+              <span>Planned VS Code extension</span>
+              <span>Deferred</span>
+            </div>
+            <p>Shop will cover supplier, contract and spend workflows, linking commercial obligations to the controls
+              and risks they affect. It is deferred until the Core, Workshop and Explorer spine is stable in real
+              use.</p>
+            <ul class="simple-list">
+              <li>Tracks suppliers, contracts and spend items.</li>
+              <li>Links commercial records to requirements and risks.</li>
+              <li>Supports obligation reporting.</li>
+            </ul>
+            <span class="tool-link link-disabled" aria-disabled="true">Not yet released</span>
+          </article>
+
+          <article class="tool-card">
+            <div class="tool-top">
+              <h3>Pub</h3>
+              <span class="tool-tag">v0.2+ · planned</span>
+            </div>
+            <div class="tool-meta">
+              <span>Planned VS Code extension</span>
+              <span>Deferred</span>
+            </div>
+            <p>Pub will cover people, role and assignment workflows, keeping personal data inside the workspace and out
+              of published bundles. It is deferred until the spine is stable.</p>
+            <ul class="simple-list">
+              <li>Records people, teams and roles.</li>
+              <li>Maps assignments to actions, requirements and risks.</li>
+              <li>Keeps personal data inside the workspace and out of bundles.</li>
+            </ul>
+            <span class="tool-link link-disabled" aria-disabled="true">Not yet released</span>
           </article>
         </div>
       </div>
@@ -920,38 +1052,41 @@
           </article>
 
           <article class="source-card">
-            <span class="mini-label">v0.1 local tool</span>
+            <span class="mini-label">VS Code extension · v1.6.0</span>
             <h3>Core</h3>
-            <p>Public URL to be published. This will point to the Core extension page or official documentation.</p>
-            <span class="tool-link link-disabled" aria-disabled="true">Core URL coming soon</span>
+            <p>Local system of record. Install Core first; Workshop depends on it.</p>
+            <a class="tool-link" href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core"
+              target="_blank" rel="noopener noreferrer">Open Marketplace listing →</a>
           </article>
 
           <article class="source-card">
-            <span class="mini-label">v0.1 local tool</span>
+            <span class="mini-label">VS Code extension · v1.6.0</span>
             <h3>Workshop</h3>
-            <p>Public URL to be published. This will point to the Workshop extension page or official documentation.</p>
-            <span class="tool-link link-disabled" aria-disabled="true">Workshop URL coming soon</span>
+            <p>Day-to-day authoring surface inside VS Code. Requires Core.</p>
+            <a class="tool-link" href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop"
+              target="_blank" rel="noopener noreferrer">Open Marketplace listing →</a>
           </article>
 
           <article class="source-card">
-            <span class="mini-label">Deferred local tool</span>
+            <span class="mini-label">Planned extension</span>
             <h3>Shop</h3>
             <p>Deferred to v0.2+. Public URL to be published when the Shop extension exists.</p>
             <span class="tool-link link-disabled" aria-disabled="true">Shop deferred to v0.2+</span>
           </article>
 
           <article class="source-card">
-            <span class="mini-label">Deferred local tool</span>
+            <span class="mini-label">Planned extension</span>
             <h3>Pub</h3>
             <p>Deferred to v0.2+. Public URL to be published when the Pub extension exists.</p>
             <span class="tool-link link-disabled" aria-disabled="true">Pub deferred to v0.2+</span>
           </article>
 
           <article class="source-card">
-            <span class="mini-label">v0.1 published view</span>
+            <span class="mini-label">Published view</span>
             <h3>Explorer</h3>
-            <p>Public URL to be published. This will point to the Explorer publication-mode site when released; the
-              local build already opens from <code>packages/explorer/dist/index.html</code>.</p>
+            <p>Public URL to be published. The local build already opens from
+              <code>packages/explorer/dist/index.html</code> after a Core export.
+            </p>
             <span class="tool-link link-disabled" aria-disabled="true">Explorer URL coming soon</span>
           </article>
 
@@ -987,8 +1122,8 @@
         Eight terminology, then use the local tools and Explorer to apply that model in practice.</p>
       <p class="muted footer-disclaimer"><strong>Independent project.</strong> Not affiliated with, endorsed by, or
         operated by the Department of Home Affairs, the Attorney-General's Department, or any other Australian
-        Government entity. Experimental software; not for compliance assertions. Hosting may be outside Australia until
-        re-hosted.</p>
+        Government entity. Do not enter information classified above OFFICIAL: Sensitive into any tool reachable from
+        this site.</p>
     </div>
   </footer>
 
@@ -1010,6 +1145,33 @@
         root.setAttribute('data-theme', mode);
         localStorage.setItem('pspf-theme', mode);
         updateLabel();
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      var notice = document.querySelector('[data-project-notice]');
+      var restore = document.querySelector('[data-notice-restore]');
+      var dismiss = document.querySelector('[data-notice-dismiss]');
+      var restoreBtn = document.querySelector('[data-notice-restore-button]');
+      if (!notice || !restore || !dismiss || !restoreBtn) return;
+      var KEY = 'pspf-notice-hidden';
+      function apply(hidden) {
+        notice.hidden = hidden;
+        restore.hidden = !hidden;
+      }
+      try {
+        apply(localStorage.getItem(KEY) === '1');
+      } catch (e) {
+        // Storage unavailable; leave defaults.
+      }
+      dismiss.addEventListener('click', function () {
+        apply(true);
+        try { localStorage.setItem(KEY, '1'); } catch (e) { /* ignore */ }
+      });
+      restoreBtn.addEventListener('click', function () {
+        apply(false);
+        try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
       });
     })();
   </script>
