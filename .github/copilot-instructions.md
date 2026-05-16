@@ -6,6 +6,7 @@ This repository implements the PSPF v0.1 working slice for initial Australian Go
 
 - Read `adr/0014-v0-1-thin-slice.md` before scope decisions. v0.1 is Core, Workshop, and Explorer publication mode only.
 - Read `pspf-acceptance-and-quality-gates.md` before claiming a slice is done.
+- Read `pspf-developer-pipeline-spec.md` before branch, promotion, release, or deployment work; follow its standing branch, test, and deploy flow.
 - Use `pspf-spec-consistency-index.md` to find the owner spec for a topic instead of guessing.
 - The docs have not yet been mechanically moved into `docs/`; current authoritative specs still live at the repo root and `adr/`.
 

@@ -22,6 +22,8 @@ pnpm run release:readiness
 
 The implementation plan is governed by `adr/0014-v0-1-thin-slice.md` and the release gates in `pspf-acceptance-and-quality-gates.md`.
 
+The standing branch, test, and deploy flow is documented in `pspf-developer-pipeline-spec.md` under `Standing branch, test, and deploy flow`. Use it before each change, release-candidate promotion, production release, and hotfix.
+
 The first manual user-validation path is captured in `validation-scenario-1-operator-workflow.md`.
 
 ## Debug Slice
