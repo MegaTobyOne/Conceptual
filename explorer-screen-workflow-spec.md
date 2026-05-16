@@ -142,7 +142,7 @@ Explorer should use a small, stable top-level navigation set.
 10. Reporting
 11. Data / About
 
-Tags are a filter affordance on Requirements (and on the Relationships Board) per [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md); tag management is reached from Workshop. Saved views remain deferred to a later slice; until they ship, operators can bookmark URL filter state.
+Tags are a filter affordance on Requirements (and on the Relationships Board) per [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md); tag management is reached from Workshop. Saved views are the v1.8 durable filter surface per [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md); v1.8 limits them to Requirements filters.
 
 ### Secondary navigation behaviour
 
@@ -229,6 +229,7 @@ The top header should include:
 - linked risk severity
 - tag (multi-select; `any` / `all` toggle; URL `tags=...&tagsMode=any|all`; see ADR 0041 and `pspf-invariants.md` § T4)
 - text search
+- saved view (v1.8; named Requirements filter snapshot; see ADR 0042)
 
 **Interactions:**
 - row click opens Requirement Detail

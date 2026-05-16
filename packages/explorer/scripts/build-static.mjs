@@ -1505,10 +1505,22 @@ async function restoreRememberedBundle() {
     if (!rememberedBundle) {
       return;
     }
+    if (!isCompatibleRememberedBundle(rememberedBundle.manifest)) {
+      await deleteRememberedBundle();
+      console.warn("Skipped remembered Explorer bundle from an earlier PSPF version");
+      return;
+    }
     await render(rememberedBundle.manifest, rememberedBundle.collections || {});
   } catch (error) {
     console.error("Unable to restore remembered Explorer bundle", error);
   }
+}
+
+function isCompatibleRememberedBundle(manifest) {
+  return manifest?.schemaVersion === "${VERSION_AXES.schemaVersion}" &&
+    manifest?.bundleVersion === "${VERSION_AXES.bundleVersion}" &&
+    manifest?.apiVersion === "${VERSION_AXES.apiVersion}" &&
+    manifest?.generator?.productVersion === "${PSPF_SLICE_VERSION}";
 }
 
 async function loadRememberedBundle() {
@@ -1533,6 +1545,16 @@ async function saveRememberedBundle(manifest, collections) {
       manifest: cloneCollections(manifest),
       collections: cloneCollections(collections)
     });
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
+  });
+}
+
+async function deleteRememberedBundle() {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(rememberedBundleStoreName, "readwrite");
+    transaction.objectStore(rememberedBundleStoreName).delete(rememberedBundleKey);
     transaction.addEventListener("complete", () => { db.close(); resolve(); });
     transaction.addEventListener("error", () => reject(transaction.error));
   });
