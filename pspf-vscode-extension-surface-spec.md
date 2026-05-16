@@ -220,6 +220,10 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 | `pspf.workshop.revealInTree` | Workshop: Reveal in Navigator | editor/title/context |
 | `pspf.workshop.prepareReportPack` | Workshop: Prepare Report Pack | palette, view title |
 | `pspf.workshop.exportBundle` | Workshop: Export Explorer Bundle | palette |
+| `pspf.workshop.manageTags` | Workshop: Manage Tags | palette, Requirements view title |
+| `pspf.workshop.applyTag` | Workshop: Apply Tag to Requirement | item context (Requirement), Requirement Detail tag rail |
+| `pspf.workshop.removeTag` | Workshop: Remove Tag from Requirement | item context (Requirement tag chip) |
+| `pspf.workshop.filterRequirementsByTag` | Workshop: Filter Requirements by Tag | palette, Requirements view title |
 
 ### Shop commands
 

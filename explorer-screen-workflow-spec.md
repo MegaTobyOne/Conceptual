@@ -142,7 +142,7 @@ Explorer should use a small, stable top-level navigation set.
 10. Reporting
 11. Data / About
 
-Tags and Saved views are not primary destinations; they appear as filter affordances on Requirements (and other list screens where useful) plus a small "My views" management surface accessible from the user menu or Data / About.
+Tags are a filter affordance on Requirements (and on the Relationships Board) per [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md); tag management is reached from Workshop. Saved views remain deferred to a later slice; until they ship, operators can bookmark URL filter state.
 
 ### Secondary navigation behaviour
 
@@ -227,6 +227,7 @@ The top header should include:
 - evidence coverage
 - linked action state
 - linked risk severity
+- tag (multi-select; `any` / `all` toggle; URL `tags=...&tagsMode=any|all`; see ADR 0041 and `pspf-invariants.md` § T4)
 - text search
 
 **Interactions:**

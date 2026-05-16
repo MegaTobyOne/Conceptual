@@ -68,6 +68,7 @@ Workshop should feel **practical, task-oriented, and progressively revealing**. 
 | Actions | remediation work and due items | Tree View |
 | Risks | linked risk posture | Tree View |
 | Directions | authoritative Directions and response state | Tree View / filtered Requirements mode |
+| Tags | operator-applied classifications applied to Requirements (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) | Tag manager WebviewPanel; chips and picker on Requirement Detail; filter on Requirements navigator |
 | Summary | current workspace posture and readiness | WebviewView |
 | Item detail | rich editable/readable detail for selected record | editor/webview panel |
 | Report prep | reporting pack preview and export prep | WebviewPanel |
@@ -509,9 +510,9 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 - command palette.
 
 **Flow:**
-1. Search, browse, or filter to a requirement or requirement group.
-2. Open Requirement Detail and review statement, implementation guidance, source authority, current assessment, rationale, linked evidence, linked actions, linked risks, Directions, and history.
-3. Update `assessmentStatus`, `effectiveness`, `evidenceStatus`, `reportingReadiness`, and rationale as needed.
+1. Search, browse, or filter to a requirement or requirement group. The Requirements navigator filter bar offers domain, status, and tag (multi-select, `any` / `all` toggle); selecting tags narrows the tree to requirements that carry the chosen tags.
+2. Open Requirement Detail and review statement, implementation guidance, source authority, current assessment, rationale, linked evidence, linked actions, linked risks, Directions, applied tags, and history.
+3. Update `assessmentStatus`, `effectiveness`, `evidenceStatus`, `reportingReadiness`, and rationale as needed. Apply or remove tags using the tag rail (chips with a picker; pickers offer existing tags and a `Create new tag…` affordance that opens the tag manager).
 4. Link existing evidence or create new evidence from the detail screen.
 5. Run validation for the requirement.
 6. Summary, Requirements, Evidence, Actions, and Risks views refresh from Core events.

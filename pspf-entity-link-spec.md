@@ -683,16 +683,27 @@ Represents an automation or reminder rule.
 
 ### Tag
 
-Represents a reusable classification label.
+Represents a reusable classification label that an operator applies to entities to mark interest, focus, or grouping. Tags are workspace-shared data: they are owned by the workspace, included in snapshots and master-bundle exports, and round-trip through Explorer publication and local-authoring modes. See [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md).
+
+In v1.7 the only taggable entity type is `requirement`. Tags are applied through first-class `link` records with `linkType = "tagged-with"` and `(fromType, toType) = (requirement, tag)`. Tagging other entity types is a separate ADR.
 
 #### Fields
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | string | `TAG-*` |
-| `name` | string | tag label |
-| `tagType` | string | classification, theme, export-scope, custom |
-| `status` | string | active, inactive |
+| `entityType` | string | `tag` |
+| `label` | string | canonical unique key; 1..40 chars; case- and whitespace-insensitive uniqueness per E20 |
+| `title` | string | display label shown in chips and pickers; 1..60 chars; defaults to `label` |
+| `description` | string | optional free-text note; 0..1000 chars; publication `sensitive` (default-deny) |
+| `colour` | string | required; one of `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `grey` |
+| `emoji` | string | optional single grapheme cluster rendered before the title |
+| `recordStatus` | string | active, archived, inactive, deleted; pickers MUST exclude `archived` |
+
+#### Limits
+
+- Tags per workspace: 64 hard cap, 32 soft warning. See `pspf-invariants.md` § T3.
+- Tags applied per requirement: 16 hard cap.
 
 ### Source control
 
@@ -826,7 +837,7 @@ Links are described by a short, **shared verb-phrase `linkType`** drawn from a c
 
 ### Closed `linkType` vocabulary
 
-`in`, `has`, `supported-by`, `addressed-by`, `exposed-by`, `owned-by`, `reviewed-by`, `cited-by`, `supports`, `treated-by`, `associated-with`, `sourced-from`, `included-in`, `assigned-via`, `blocked-by`, `related-to`, `funds`, `member-of`, `holds`, `targets`, `generates`, `includes`.
+`in`, `has`, `supported-by`, `addressed-by`, `exposed-by`, `owned-by`, `reviewed-by`, `cited-by`, `supports`, `treated-by`, `associated-with`, `sourced-from`, `included-in`, `assigned-via`, `blocked-by`, `related-to`, `funds`, `member-of`, `holds`, `targets`, `generates`, `includes`, `tagged-with`.
 
 Any `linkType` value not in this set MUST be rejected by Core and by the bundle validator.
 
@@ -920,6 +931,14 @@ This table is authoritative. CI validates that every link in every fixture match
 | snapshot | generates | report-pack | report derived from snapshot |
 | report-pack | includes | evidence | evidence included in pack |
 | report-pack | includes | action | action included in pack |
+
+#### Tags
+
+| fromType | linkType | toType | Meaning |
+|---|---|---|---|
+| requirement | tagged-with | tag | operator-applied classification on a requirement |
+
+In v1.7 this is the only permitted `(fromType, toType)` pair for `tagged-with`. See `pspf-invariants.md` § T2.
 
 ## Link rules
 
