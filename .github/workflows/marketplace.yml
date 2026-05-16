@@ -1,0 +1,254 @@
+name: Marketplace release
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which extension(s) to publish
+        required: true
+        default: core
+        type: choice
+        options:
+          - core
+          - workshop
+          - both
+      dry_run:
+        description: Package + upload artefact only; skip vsce publish, GitHub release, and tag
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: marketplace-${{ inputs.target }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PNPM_VERSION: 10.10.0
+  NODE_VERSION: 22.15.0
+
+jobs:
+  build:
+    name: Build VSIX artefacts
+    runs-on: ubuntu-latest
+    outputs:
+      publish_core: ${{ steps.targets.outputs.publish_core }}
+      publish_workshop: ${{ steps.targets.outputs.publish_workshop }}
+      core_version: ${{ steps.versions.outputs.core_version }}
+      workshop_version: ${{ steps.versions.outputs.workshop_version }}
+      dry_run: ${{ steps.targets.outputs.dry_run }}
+    steps:
+      - name: Refuse non-main dispatch
+        if: github.ref != 'refs/heads/main' && inputs.dry_run != true
+        run: |
+          echo "Marketplace publish must be dispatched from main (got ${GITHUB_REF}). Re-run with dry_run=true to validate from another branch." >&2
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve targets
+        id: targets
+        run: |
+          set -euo pipefail
+          target="${{ inputs.target }}"
+          dry="${{ inputs.dry_run }}"
+          publish_core=false
+          publish_workshop=false
+          case "$target" in
+            core) publish_core=true ;;
+            workshop) publish_workshop=true ;;
+            both) publish_core=true; publish_workshop=true ;;
+            *) echo "Unknown target: $target" >&2; exit 1 ;;
+          esac
+          {
+            echo "publish_core=$publish_core"
+            echo "publish_workshop=$publish_workshop"
+            echo "dry_run=$dry"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - name: Release readiness
+        run: pnpm run release:readiness
+
+      - name: Package shape
+        run: pnpm run package:check
+
+      - name: Bundle extension runtime
+        run: pnpm run bundle:extensions
+
+      - name: Read package versions
+        id: versions
+        run: |
+          set -euo pipefail
+          core_version=$(jq -r '.version' packages/core/package.json)
+          workshop_version=$(jq -r '.version' packages/workshop/package.json)
+          echo "core_version=$core_version" >> "$GITHUB_OUTPUT"
+          echo "workshop_version=$workshop_version" >> "$GITHUB_OUTPUT"
+
+      - name: Create VSIX output directory
+        run: mkdir -p .tmp/vsix
+
+      - name: Package Core VSIX
+        if: steps.targets.outputs.publish_core == 'true'
+        working-directory: packages/core
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 package \
+            --no-dependencies \
+            --allow-missing-repository \
+            --skip-license \
+            --out "../../.tmp/vsix/pspf-core-${{ steps.versions.outputs.core_version }}.vsix"
+
+      - name: Package Workshop VSIX
+        if: steps.targets.outputs.publish_workshop == 'true'
+        working-directory: packages/workshop
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 package \
+            --no-dependencies \
+            --allow-missing-repository \
+            --skip-license \
+            --out "../../.tmp/vsix/pspf-workshop-${{ steps.versions.outputs.workshop_version }}.vsix"
+
+      - name: Upload VSIX artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pspf-marketplace-vsix
+          path: .tmp/vsix
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-core:
+    name: Publish Core to Marketplace
+    needs: build
+    if: needs.build.outputs.publish_core == 'true'
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download VSIX artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: pspf-marketplace-vsix
+          path: .tmp/vsix
+
+      - name: Dry-run summary
+        if: needs.build.outputs.dry_run == 'true'
+        run: |
+          echo "Dry run: skipping vsce publish, GitHub release, and tag for Core."
+          ls -l .tmp/vsix
+
+      - name: Publish to VS Code Marketplace
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 publish \
+            --packagePath ".tmp/vsix/pspf-core-${{ needs.build.outputs.core_version }}.vsix" \
+            --pat "$VSCE_PAT"
+
+      - name: Tag and GitHub release
+        if: needs.build.outputs.dry_run != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: core/${{ needs.build.outputs.core_version }}
+          name: Core ${{ needs.build.outputs.core_version }}
+          target_commitish: ${{ github.sha }}
+          files: .tmp/vsix/pspf-core-${{ needs.build.outputs.core_version }}.vsix
+          generate_release_notes: true
+
+  publish-workshop:
+    name: Publish Workshop to Marketplace
+    needs: build
+    if: needs.build.outputs.publish_workshop == 'true'
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download VSIX artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: pspf-marketplace-vsix
+          path: .tmp/vsix
+
+      - name: Dry-run summary
+        if: needs.build.outputs.dry_run == 'true'
+        run: |
+          echo "Dry run: skipping vsce publish, GitHub release, and tag for Workshop."
+          ls -l .tmp/vsix
+
+      - name: Publish to VS Code Marketplace
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 publish \
+            --packagePath ".tmp/vsix/pspf-workshop-${{ needs.build.outputs.workshop_version }}.vsix" \
+            --pat "$VSCE_PAT"
+
+      - name: Tag and GitHub release
+        if: needs.build.outputs.dry_run != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: workshop/${{ needs.build.outputs.workshop_version }}
+          name: Workshop ${{ needs.build.outputs.workshop_version }}
+          target_commitish: ${{ github.sha }}
+          files: .tmp/vsix/pspf-workshop-${{ needs.build.outputs.workshop_version }}.vsix
+          generate_release_notes: true

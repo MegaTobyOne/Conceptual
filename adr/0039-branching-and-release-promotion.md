@@ -30,9 +30,8 @@ Use a three-level promotion model:
 
 - Push to `develop`: automatic deploy to `test.tobyharvey.online` through the `test-web` environment.
 - Push or PR to `develop`/`main`: CI only.
-- Tag `explorer/<version>` from `main`: production web deploy to `tobyharvey.online`, requiring `production-web` approval. For normal production web releases, manually run the `Explorer production tag` workflow on `main` with the package version; that workflow creates the tag and the existing `Web release` workflow deploys it.
-- Tag `core/<version>` from `main`: Core Marketplace publish, requiring `marketplace` approval.
-- Tag `workshop/<version>` from `main`: Workshop Marketplace publish, requiring `marketplace` approval.
+- Production web deploy to `tobyharvey.online`: dispatch `Web release` from `main` with `target=production`, gated by `production-web` approval. (The historical `explorer/<version>` tag trigger has been retired; tags are now created as receipts after a successful deploy.)
+- Marketplace publish (Core, Workshop, or both): dispatch `Marketplace release` from `main` with `target=core|workshop|both`, gated by `marketplace` approval. On success the workflow creates `core/<version>` and/or `workshop/<version>` tags and GitHub releases as receipts. A `dry_run` input lets you validate the pipeline without publishing.
 
 ### Hotfix flow
 
