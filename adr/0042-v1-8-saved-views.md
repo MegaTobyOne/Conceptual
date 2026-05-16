@@ -1,6 +1,6 @@
 # 0042 - v1.8 Saved views
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-05-16
 - Supersedes: none
 - Superseded by: none

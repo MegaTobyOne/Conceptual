@@ -115,8 +115,7 @@ Use this index before changing any architecture, schema, API, workflow, or pipel
 
 ## Near-Term Planning Notes
 
-- **v1.7.0 validation build**: Requirement tags, `tagged-with` links, by-tag export indexes, Workshop tag management, Explorer tag filters, import collision handling, and tag redaction gates.
-- **v1.8 candidate**: saved views for Explorer Requirements filters, with Requirements-only scope and local-authoring round trip.
+- **v1.8.0 validation build**: Requirement tags, `tagged-with` links, by-tag export indexes, Workshop tag management, Explorer tag filters, saved views for Explorer Requirements filters, import collision handling, and tag/saved-view redaction gates.
 - **Later candidates**: richer graphical import review, compliance-history export controls, tag hierarchies, and tagging non-Requirement entities after saved views are validated.
 - Keep posture editing deferred unless scope is deliberately reopened.
 

@@ -1,0 +1,84 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.4.0/collections/links.schema.json",
+    "title": "PSPF Explorer Links Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "linkType",
+            "fromId",
+            "fromType",
+            "toId",
+            "toType"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^LNK-"
+            },
+            "entityType": {
+                "const": "link"
+            },
+            "schemaVersion": {
+                "const": "1.5.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "linkType": {
+                "type": "string",
+                "minLength": 1
+            },
+            "fromId": {
+                "type": "string",
+                "minLength": 1
+            },
+            "fromType": {
+                "type": "string",
+                "minLength": 1
+            },
+            "toId": {
+                "type": "string",
+                "minLength": 1
+            },
+            "toType": {
+                "type": "string",
+                "minLength": 1
+            }
+        }
+    }
+}
