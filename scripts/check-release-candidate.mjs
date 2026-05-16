@@ -6,9 +6,9 @@ import { join } from "node:path";
 const root = process.cwd();
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const expectedVersion = packageJson.version;
-const expectedAxes = /^1\.7\.\d+$/.test(expectedVersion) ? "1.4.0" : "1.3.0";
-const isV1Release = /^1\.(0|1|2|3|4|5|6|7)\.\d+$/.test(expectedVersion);
-const isV11OrLaterRelease = /^1\.(1|2|3|4|5|6|7)\.\d+$/.test(expectedVersion);
+const expectedAxes = /^1\.8\.\d+$/.test(expectedVersion) ? "1.5.0" : /^1\.7\.\d+$/.test(expectedVersion) ? "1.4.0" : "1.3.0";
+const isV1Release = /^1\.(0|1|2|3|4|5|6|7|8)\.\d+$/.test(expectedVersion);
+const isV11OrLaterRelease = /^1\.(1|2|3|4|5|6|7|8)\.\d+$/.test(expectedVersion);
 const packagePaths = [
   "package.json",
   "packages/brief-renderer/package.json",
@@ -31,7 +31,7 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), `schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleVersion should be ${expectedAxes}`);
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
-const e2eScript = /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -50,6 +50,7 @@ for (const requiredPath of [
   "adr/0036-v1-5-1-explorer-workshop-product-boundary-and-identity.md",
   "adr/0037-v1-6-workshop-import-review-and-identity.md",
   "adr/0041-v1-7-tags-and-filters-foundation.md",
+  "adr/0042-v1-8-saved-views.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -161,6 +162,25 @@ if (/^1\.7\.\d+$/.test(expectedVersion)) {
   assert.equal(typeof packageJson.scripts["e2e:v1.7"], "string", "root package should define e2e:v1.7");
   assert.equal(packageJson.scripts["e2e:v1.7"].includes("e2e:v1.6"), true, "e2e:v1.7 should include v1.6 gates");
   assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.7"), true, "release:readiness should run e2e:v1.7");
+}
+
+if (/^1\.8\.\d+$/.test(expectedVersion)) {
+  const v18Adr = await readFile(join(root, "adr/0042-v1-8-saved-views.md"), "utf8");
+  for (const requiredText of ["v1.8", "Saved views", "saved-view", "saved-views", "SVW", "1.5.0", "filters.query"]) {
+    assert.equal(v18Adr.includes(requiredText), true, `v1.8 ADR should mention ${requiredText}`);
+  }
+  const contracts = await readFile(join(root, "packages/contracts/src/index.ts"), "utf8");
+  for (const requiredText of ["SavedViewEntity", "normaliseSavedViewName", "SAVED_VIEW_REQUIREMENT_COLUMNS", "saved-view", "SVW"]) {
+    assert.equal(contracts.includes(requiredText), true, `Contracts saved-view foundation should mention ${requiredText}`);
+  }
+  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  for (const requiredText of ["Saved views", "saveCurrentRequirementsView", "applySavedView", "requirement-saved-views", "saved-views"]) {
+    assert.equal(explorer.includes(requiredText), true, `Explorer saved-view surface should mention ${requiredText}`);
+  }
+  assert.equal(existsSync(join(root, "schemas/explorer-bundle/1.5.0/collections/saved-views.schema.json")), true, "v1.8 saved-view schema should exist");
+  assert.equal(typeof packageJson.scripts["e2e:v1.8"], "string", "root package should define e2e:v1.8");
+  assert.equal(packageJson.scripts["e2e:v1.8"].includes("e2e:v1.7"), true, "e2e:v1.8 should include v1.7 gates");
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.8"), true, "release:readiness should run e2e:v1.8");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

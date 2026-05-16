@@ -220,21 +220,26 @@ let currentLocalOverlays = new Map();
 let currentLocalEvidenceReferences = [];
 let currentLocalActions = [];
 let currentLocalRisks = [];
+let currentSavedViews = [];
+let activeSavedViewId = "";
 let currentLocalRequirementId;
 let currentLocalRequirementFilter = "";
 let currentLocalRequirements = [];
 let currentExplorerSearch = "";
 let currentTagFilterIds = new Set();
 let currentTagFilterMode = "any";
+let currentRequirementStatusFilter = new Set();
 let shouldSnapLocalSelectionToSearch = false;
 const localDbName = "pspf-explorer-local-v1";
 const localStoreName = "requirement-status-overlays";
 const localEvidenceStoreName = "requirement-evidence-references";
 const localActionStoreName = "requirement-actions";
 const localRiskStoreName = "requirement-risks";
+const localSavedViewStoreName = "requirement-saved-views";
 const rememberedBundleStoreName = "remembered-bundles";
 const rememberedBundleKey = "latest";
 const tagFilterSessionKey = "pspf:explorer:tag-filter";
+const requirementFilterSessionKey = "pspf:explorer:requirements-filter";
 const assessmentStatuses = ["not-started", "in-progress", "met", "partially-met", "not-met", "not-applicable", "under-review"];
 const actionStatuses = ["todo", "in-progress", "blocked", "done", "cancelled"];
 const riskStatuses = ["open", "monitored", "closed"];
@@ -277,6 +282,8 @@ sectionNav.addEventListener("click", (event) => {
 explorerSearchInput?.addEventListener("input", (event) => {
   currentExplorerSearch = String(event.currentTarget?.value || "");
   currentLocalRequirementFilter = currentExplorerSearch;
+  activeSavedViewId = "";
+  persistRequirementFilterState();
   shouldSnapLocalSelectionToSearch = true;
   renderLocalAuthoringSection();
   applyExplorerSearch();
@@ -315,6 +322,7 @@ restoreRememberedBundle();
 
 async function render(manifest, incomingCollections, collectionTexts = undefined) {
   loadTagFilterState();
+  loadRequirementFilterState();
   currentManifest = manifest;
   currentBaselineCollections = cloneCollections(incomingCollections || {});
   currentBundleKey = bundleStorageKey(manifest);
@@ -323,7 +331,8 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   currentLocalEvidenceReferences = await loadLocalEvidenceReferences(currentBundleKey);
   currentLocalActions = await loadLocalActions(currentBundleKey);
   currentLocalRisks = await loadLocalRisks(currentBundleKey);
-  const collections = applyLocalEdits(currentBaselineCollections, currentLocalOverlays, currentLocalEvidenceReferences, currentLocalActions, currentLocalRisks);
+  currentSavedViews = await loadSavedViews(currentBundleKey);
+  const collections = applyLocalEdits(currentBaselineCollections, currentLocalOverlays, currentLocalEvidenceReferences, currentLocalActions, currentLocalRisks, currentSavedViews);
   currentCollections = collections;
   const posture = collections.posture && collections.posture[0] ? collections.posture[0] : {};
   const validation = await validateBundle(manifest, currentBaselineCollections, collectionTexts);
@@ -341,6 +350,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
     risks: relationshipSummary.risksByRequirement.get(requirement.id) || 0,
     tags: tagModel.labelsByRequirement.get(requirement.id) || "",
     tagIds: tagModel.idsByRequirement.get(requirement.id) || [],
+    assessmentStatusRaw: requirement.assessmentStatus,
     statusSource: currentLocalOverlays.has(requirement.id) ? "Local" : "From bundle"
   }));
   currentLocalRequirements = requirements;
@@ -431,7 +441,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderLocalAuthoringSection();
 
   requirementsSection.hidden = false;
-  renderExplorerSection(requirementsSection, "Requirements", tagFilterPanel(tagModel) + table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "tags", "evidence", "actions", "risks"]));
+  renderExplorerSection(requirementsSection, "Requirements", savedViewsPanel() + requirementStatusFilterPanel() + tagFilterPanel(tagModel) + table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "tags", "evidence", "actions", "risks"]));
 
   evidenceSection.hidden = false;
   renderExplorerSection(evidenceSection, "Evidence", table(evidence, ["title", "evidenceType", "freshness", "requirements", "reference"]));
@@ -465,7 +475,10 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderExplorerSection(linksSection, "Relationships Board", tagFilterPanel(tagModel) + table(relationships, ["title", "relationship", "from", "to"]));
 
   bindTagFilterControls();
+  bindRequirementStatusFilterControls();
+  bindSavedViewControls();
   applyTagFilter();
+  applyRequirementStatusFilter();
   applyExplorerSearch();
 }
 
@@ -487,7 +500,8 @@ function applyExplorerSearch() {
     for (const row of rows) {
       totalRows += 1;
       const matchesTagFilter = row.dataset.tagFilterHidden !== "true";
-      const matches = matchesTagFilter && (!query || normaliseSearchText(row.textContent).includes(query));
+      const matchesStatusFilter = row.dataset.statusFilterHidden !== "true";
+      const matches = matchesTagFilter && matchesStatusFilter && (!query || normaliseSearchText(row.textContent).includes(query));
       row.hidden = !matches;
       if (matches) {
         visibleRows += 1;
@@ -516,7 +530,7 @@ function applyExplorerSearch() {
 }
 
 function normaliseSearchText(value) {
-  return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
+  return String(value || "").toLowerCase().replace(/\\s+/g, " ").trim();
 }
 
 function renderExplorerSection(section, heading, body, open = false) {
@@ -563,11 +577,249 @@ function tagFilterPanel(tagModel) {
   return '<div class="tag-filter" role="group" aria-label="Tag filter"><div class="toolbar"><strong>Tag filter</strong><select class="tag-filter-mode" aria-label="Tag filter mode"><option value="any"' + (currentTagFilterMode === "any" ? ' selected' : '') + '>Any selected tag</option><option value="all"' + (currentTagFilterMode === "all" ? ' selected' : '') + '>All selected tags</option></select><button type="button" class="secondary tag-filter-clear">Clear tags</button></div><div class="tag-filter-options">' + options + '</div></div>';
 }
 
+function savedViewsPanel() {
+  const activeSavedViews = currentSavedViews.filter((view) => view.recordStatus !== "archived" && view.recordStatus !== "deleted").sort((left, right) => String(left.name).localeCompare(String(right.name), "en-AU", { sensitivity: "base" }));
+  const options = ['<option value="">Saved views</option>'].concat(activeSavedViews.map((view) => '<option value="' + escapeHtml(view.id) + '"' + (view.id === activeSavedViewId ? ' selected' : '') + '>' + escapeHtml(view.name) + '</option>')).join("");
+  const active = activeSavedViews.find((view) => view.id === activeSavedViewId);
+  return '<div class="tag-filter saved-view-filter" role="group" aria-label="Saved views"><div class="toolbar"><strong>Saved views</strong><select id="saved-view-picker" aria-label="Saved views">' + options + '</select><button type="button" id="save-requirements-view">Save view</button><button type="button" class="secondary" id="rename-requirements-view"' + (active ? '' : ' disabled') + '>Rename</button><button type="button" class="secondary" id="archive-requirements-view"' + (active ? '' : ' disabled') + '>Archive</button><button type="button" class="secondary" id="clear-requirements-view">Clear active view</button></div><p class="muted" id="saved-view-status">' + escapeHtml(active ? 'Active view: ' + active.name + ' · ' + savedViewSummary(active) : activeSavedViews.length + ' saved view(s) available') + '</p></div>';
+}
+
+function requirementStatusFilterPanel() {
+  const options = assessmentStatuses.map((status) => '<label><input type="checkbox" class="requirement-status-filter-checkbox" value="' + escapeHtml(status) + '"' + (currentRequirementStatusFilter.has(status) ? ' checked' : '') + '> ' + escapeHtml(label(status)) + '</label>').join("");
+  return '<div class="tag-filter" role="group" aria-label="Requirement status filter"><div class="toolbar"><strong>Status filter</strong><button type="button" class="secondary requirement-status-filter-clear">Clear statuses</button></div><div class="tag-filter-options">' + options + '</div></div>';
+}
+
+function bindSavedViewControls() {
+  document.querySelector("#save-requirements-view")?.addEventListener("click", saveCurrentRequirementsView);
+  document.querySelector("#rename-requirements-view")?.addEventListener("click", renameActiveRequirementsView);
+  document.querySelector("#archive-requirements-view")?.addEventListener("click", archiveActiveRequirementsView);
+  document.querySelector("#clear-requirements-view")?.addEventListener("click", clearActiveRequirementsView);
+  document.querySelector("#saved-view-picker")?.addEventListener("change", async (event) => {
+    const view = currentSavedViews.find((item) => item.id === event.currentTarget.value);
+    if (view) {
+      await applySavedView(view.id);
+    }
+  });
+}
+
+function bindRequirementStatusFilterControls() {
+  document.querySelectorAll(".requirement-status-filter-checkbox").forEach((input) => {
+    input.addEventListener("change", () => {
+      currentRequirementStatusFilter = new Set(Array.from(document.querySelectorAll(".requirement-status-filter-checkbox:checked")).map((item) => item.value));
+      activeSavedViewId = "";
+      persistRequirementFilterState();
+      syncRequirementStatusFilterControls();
+      applyRequirementStatusFilter();
+      applyExplorerSearch();
+    });
+  });
+  document.querySelectorAll(".requirement-status-filter-clear").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentRequirementStatusFilter = new Set();
+      activeSavedViewId = "";
+      persistRequirementFilterState();
+      syncRequirementStatusFilterControls();
+      applyRequirementStatusFilter();
+      applyExplorerSearch();
+    });
+  });
+}
+
+function syncRequirementStatusFilterControls() {
+  document.querySelectorAll(".requirement-status-filter-checkbox").forEach((input) => {
+    input.checked = currentRequirementStatusFilter.has(input.value);
+  });
+}
+
+function applyRequirementStatusFilter() {
+  const selected = [...currentRequirementStatusFilter];
+  for (const row of document.querySelectorAll("#requirements tbody tr")) {
+    const status = String(row.dataset.assessmentStatus || "");
+    const matches = selected.length === 0 || selected.includes(status);
+    row.dataset.statusFilterHidden = matches ? "false" : "true";
+    row.hidden = !matches;
+  }
+}
+
+function loadRequirementFilterState() {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(requirementFilterSessionKey) || "null");
+    currentRequirementStatusFilter = new Set(Array.isArray(stored?.assessmentStatuses) ? stored.assessmentStatuses : []);
+    currentExplorerSearch = typeof stored?.query === "string" ? stored.query : currentExplorerSearch;
+    activeSavedViewId = typeof stored?.activeSavedViewId === "string" ? stored.activeSavedViewId : "";
+  } catch {
+    currentRequirementStatusFilter = new Set();
+    activeSavedViewId = "";
+  }
+}
+
+function persistRequirementFilterState() {
+  sessionStorage.setItem(requirementFilterSessionKey, JSON.stringify({
+    query: currentExplorerSearch,
+    assessmentStatuses: [...currentRequirementStatusFilter],
+    activeSavedViewId
+  }));
+}
+
+async function saveCurrentRequirementsView(nameOverride = undefined) {
+  const name = nameOverride === undefined ? prompt("Saved view name", suggestedSavedViewName()) : nameOverride;
+  const cleanName = normaliseSavedViewDisplayName(name);
+  if (!cleanName) {
+    return;
+  }
+  if (currentSavedViews.some((view) => view.recordStatus !== "deleted" && normaliseSavedViewName(view.name) === normaliseSavedViewName(cleanName))) {
+    alert("A saved view with that name already exists.");
+    return;
+  }
+  const timestamp = new Date().toISOString();
+  const id = "SVW-" + crypto.randomUUID();
+  const savedView = {
+    key: currentBundleKey + "::" + id,
+    bundleKey: currentBundleKey,
+    id,
+    entityType: "saved-view",
+    schemaVersion: "${VERSION_AXES.schemaVersion}",
+    title: cleanName,
+    name: cleanName,
+    scope: "requirements",
+    filters: currentSavedViewFilters(),
+    presentation: { sortKey: "title", sortDirection: "asc", visibleColumns: ["title", "assessmentStatus", "tags", "evidence", "actions", "risks"] },
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    sourceProduct: "explorer",
+    recordStatus: "active"
+  };
+  await saveSavedView(savedView);
+  activeSavedViewId = id;
+  persistRequirementFilterState();
+  await render(currentManifest, currentBaselineCollections);
+}
+
+async function applySavedView(savedViewId) {
+  const view = currentSavedViews.find((item) => item.id === savedViewId && item.recordStatus !== "archived" && item.recordStatus !== "deleted");
+  if (!view) {
+    return;
+  }
+  const filters = view.filters || {};
+  currentExplorerSearch = filters.query || "";
+  currentLocalRequirementFilter = currentExplorerSearch;
+  currentRequirementStatusFilter = new Set(Array.isArray(filters.assessmentStatuses) ? filters.assessmentStatuses : []);
+  currentTagFilterIds = new Set(Array.isArray(filters.tagIds) ? filters.tagIds.filter((id) => (currentCollections?.tags || []).some((tag) => tag.id === id && tag.recordStatus !== "deleted")) : []);
+  currentTagFilterMode = filters.tagsMode === "all" ? "all" : "any";
+  activeSavedViewId = view.id;
+  persistTagFilterState();
+  persistRequirementFilterState();
+  if (explorerSearchInput instanceof HTMLInputElement) {
+    explorerSearchInput.value = currentExplorerSearch;
+  }
+  syncTagFilterControls();
+  syncRequirementStatusFilterControls();
+  applyTagFilter();
+  applyRequirementStatusFilter();
+  applyExplorerSearch();
+  requirementsSection.open = true;
+}
+
+async function renameActiveRequirementsView() {
+  const view = currentSavedViews.find((item) => item.id === activeSavedViewId);
+  if (!view) {
+    return;
+  }
+  const name = prompt("Rename saved view", view.name);
+  const cleanName = normaliseSavedViewDisplayName(name);
+  if (!cleanName) {
+    return;
+  }
+  if (currentSavedViews.some((item) => item.id !== view.id && item.recordStatus !== "deleted" && normaliseSavedViewName(item.name) === normaliseSavedViewName(cleanName))) {
+    alert("A saved view with that name already exists.");
+    return;
+  }
+  await saveSavedView({ ...view, name: cleanName, title: cleanName, updatedAt: new Date().toISOString() });
+  await render(currentManifest, currentBaselineCollections);
+}
+
+async function archiveActiveRequirementsView() {
+  const view = currentSavedViews.find((item) => item.id === activeSavedViewId);
+  if (!view) {
+    return;
+  }
+  if (!confirm("Archive this saved view?")) {
+    return;
+  }
+  await saveSavedView({ ...view, recordStatus: "archived", updatedAt: new Date().toISOString() });
+  activeSavedViewId = "";
+  persistRequirementFilterState();
+  await render(currentManifest, currentBaselineCollections);
+}
+
+async function clearActiveRequirementsView() {
+  activeSavedViewId = "";
+  currentExplorerSearch = "";
+  currentLocalRequirementFilter = "";
+  currentRequirementStatusFilter = new Set();
+  currentTagFilterIds = new Set();
+  currentTagFilterMode = "any";
+  persistTagFilterState();
+  persistRequirementFilterState();
+  await render(currentManifest, currentBaselineCollections);
+}
+
+function currentSavedViewFilters() {
+  const filters = {};
+  const query = String(currentExplorerSearch || "").trim();
+  if (query) {
+    filters.query = query.slice(0, 120);
+  }
+  if (currentRequirementStatusFilter.size > 0) {
+    filters.assessmentStatuses = [...currentRequirementStatusFilter].filter((status) => assessmentStatuses.includes(status));
+  }
+  if (currentTagFilterIds.size > 0) {
+    filters.tagIds = [...currentTagFilterIds];
+    filters.tagsMode = currentTagFilterMode === "all" ? "all" : "any";
+  }
+  return filters;
+}
+
+function savedViewSummary(view) {
+  const filters = view.filters || {};
+  const parts = [];
+  if (filters.query) {
+    parts.push('Search: "' + filters.query + '"');
+  }
+  if ((filters.assessmentStatuses || []).length > 0) {
+    parts.push("Status: " + filters.assessmentStatuses.map(label).join(", "));
+  }
+  if ((filters.tagIds || []).length > 0) {
+    parts.push(filters.tagIds.length + " tag(s) " + label(filters.tagsMode || "any"));
+  }
+  return parts.length > 0 ? parts.join(" · ") : "No filters";
+}
+
+function suggestedSavedViewName() {
+  if (currentRequirementStatusFilter.size > 0) {
+    return [...currentRequirementStatusFilter].map(label).join(", ");
+  }
+  if (currentTagFilterIds.size > 0) {
+    return "Tagged requirements";
+  }
+  return currentExplorerSearch ? "Search: " + currentExplorerSearch.slice(0, 40) : "Requirements view";
+}
+
+function normaliseSavedViewDisplayName(value) {
+  return String(value || "").normalize("NFC").trim().replace(/\\s+/g, " ").slice(0, 60);
+}
+
+function normaliseSavedViewName(value) {
+  return normaliseSavedViewDisplayName(value).toLocaleLowerCase("en-AU");
+}
+
 function bindTagFilterControls() {
   document.querySelectorAll(".tag-filter-checkbox").forEach((input) => {
     input.addEventListener("change", () => {
       currentTagFilterIds = new Set(Array.from(document.querySelectorAll(".tag-filter-checkbox:checked")).map((item) => item.value));
+      activeSavedViewId = "";
       persistTagFilterState();
+      persistRequirementFilterState();
       syncTagFilterControls();
       applyTagFilter();
       applyExplorerSearch();
@@ -576,7 +828,9 @@ function bindTagFilterControls() {
   document.querySelectorAll(".tag-filter-mode").forEach((select) => {
     select.addEventListener("change", () => {
       currentTagFilterMode = select.value === "all" ? "all" : "any";
+      activeSavedViewId = "";
       persistTagFilterState();
+      persistRequirementFilterState();
       syncTagFilterControls();
       applyTagFilter();
       applyExplorerSearch();
@@ -586,7 +840,9 @@ function bindTagFilterControls() {
     button.addEventListener("click", () => {
       currentTagFilterIds = new Set();
       currentTagFilterMode = "any";
+      activeSavedViewId = "";
       persistTagFilterState();
+      persistRequirementFilterState();
       syncTagFilterControls();
       applyTagFilter();
       applyExplorerSearch();
@@ -705,7 +961,7 @@ async function writeClipboardText(value) {
 }
 
 async function validateBundle(manifest, collections, collectionTexts) {
-  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "directions", "posture"];
+  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "posture"];
   const checks = [
     check("Bundle version", manifest.bundleVersion === "${VERSION_AXES.bundleVersion}", manifest.bundleVersion || "missing"),
     check("Schema version", manifest.schemaVersion === "${VERSION_AXES.schemaVersion}", manifest.schemaVersion || "missing"),
@@ -863,6 +1119,8 @@ function bindLocalAuthoringControls() {
   localAuthoringSection.querySelector("#local-clear-search")?.addEventListener("click", () => {
     currentExplorerSearch = "";
     currentLocalRequirementFilter = "";
+    activeSavedViewId = "";
+    persistRequirementFilterState();
     if (explorerSearchInput instanceof HTMLInputElement) {
       explorerSearchInput.value = "";
     }
@@ -1133,7 +1391,7 @@ function localStatusConflicts() {
   return conflicts;
 }
 
-function applyLocalEdits(collections, overlays, evidenceReferences, localActions, localRisks) {
+function applyLocalEdits(collections, overlays, evidenceReferences, localActions, localRisks, savedViews) {
   const clone = cloneCollections(collections);
   clone.requirements = (clone.requirements || []).map((requirement) => {
     const overlay = overlays.get(requirement.id);
@@ -1174,6 +1432,11 @@ function applyLocalEdits(collections, overlays, evidenceReferences, localActions
       clone.links = [...(clone.links || []), materialised.link];
     }
   }
+  const savedViewEntities = (savedViews || []).filter((view) => view.recordStatus !== "archived" && view.recordStatus !== "deleted").map(materialiseSavedView);
+  clone["saved-views"] = [
+    ...(clone["saved-views"] || []).filter((view) => !savedViewEntities.some((localView) => localView.id === view.id)),
+    ...savedViewEntities
+  ];
   clone.posture = (clone.posture || []).map((posture) => ({
     ...posture,
     updatedAt: new Date().toISOString(),
@@ -1187,6 +1450,11 @@ function applyLocalEdits(collections, overlays, evidenceReferences, localActions
     directionCount: (clone.directions || []).length
   }));
   return clone;
+}
+
+function materialiseSavedView(record) {
+  const { key, bundleKey, ...entity } = record;
+  return entity;
 }
 
 async function addLocalRisk(requirementId, title, status, likelihood, impact) {
@@ -1380,7 +1648,7 @@ function materialiseLocalEvidenceReference(record) {
 async function exportLocalAuthoringBundle() {
   const collections = cloneCollections(currentCollections || {});
   const manifestCollections = [];
-  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "directions", "posture"]) {
+  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "posture"]) {
     const records = collections[collectionName] || [];
     const serialised = JSON.stringify(records, null, 2) + "\\n";
     manifestCollections.push({
@@ -1471,7 +1739,7 @@ function cloneCollections(collections) {
 
 function openLocalDb() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(localDbName, 5);
+    const request = indexedDB.open(localDbName, 6);
     request.addEventListener("upgradeneeded", () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(localStoreName)) {
@@ -1488,6 +1756,10 @@ function openLocalDb() {
       }
       if (!db.objectStoreNames.contains(localRiskStoreName)) {
         const store = db.createObjectStore(localRiskStoreName, { keyPath: "key" });
+        store.createIndex("bundleKey", "bundleKey", { unique: false });
+      }
+      if (!db.objectStoreNames.contains(localSavedViewStoreName)) {
+        const store = db.createObjectStore(localSavedViewStoreName, { keyPath: "key" });
         store.createIndex("bundleKey", "bundleKey", { unique: false });
       }
       if (!db.objectStoreNames.contains(rememberedBundleStoreName)) {
@@ -1578,6 +1850,29 @@ async function saveLocalRisk(record) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(localRiskStoreName, "readwrite");
     transaction.objectStore(localRiskStoreName).put(record);
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
+  });
+}
+
+async function loadSavedViews(bundleKey) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localSavedViewStoreName, "readonly");
+    const store = transaction.objectStore(localSavedViewStoreName);
+    const index = store.index("bundleKey");
+    const request = index.getAll(bundleKey);
+    request.addEventListener("success", () => resolve(request.result.sort((left, right) => left.name.localeCompare(right.name, "en-AU", { sensitivity: "base" }))));
+    request.addEventListener("error", () => reject(request.error));
+    transaction.addEventListener("complete", () => db.close());
+  });
+}
+
+async function saveSavedView(record) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localSavedViewStoreName, "readwrite");
+    transaction.objectStore(localSavedViewStoreName).put(record);
     transaction.addEventListener("complete", () => { db.close(); resolve(); });
     transaction.addEventListener("error", () => reject(transaction.error));
   });
@@ -1675,6 +1970,7 @@ async function resetLocalData(bundleKey) {
   await resetLocalEvidenceReferences(bundleKey);
   await resetLocalActions(bundleKey);
   await resetLocalRisks(bundleKey);
+  await resetSavedViews(bundleKey);
 }
 
 async function resetLocalActions(bundleKey) {
@@ -1683,6 +1979,10 @@ async function resetLocalActions(bundleKey) {
 
 async function resetLocalRisks(bundleKey) {
   await resetObjectStoreByBundleKey(localRiskStoreName, bundleKey);
+}
+
+async function resetSavedViews(bundleKey) {
+  await resetObjectStoreByBundleKey(localSavedViewStoreName, bundleKey);
 }
 
 async function resetObjectStoreByBundleKey(storeName, bundleKey) {
@@ -1901,6 +2201,9 @@ function tableRowAttributes(row) {
   if (Array.isArray(row.tagIds)) {
     attributes.push('data-tag-ids="' + escapeHtml(row.tagIds.join(",")) + '"');
   }
+  if (row.assessmentStatusRaw) {
+    attributes.push('data-assessment-status="' + escapeHtml(row.assessmentStatusRaw) + '"');
+  }
   return attributes.length ? " " + attributes.join(" ") : "";
 }
 
@@ -2031,6 +2334,10 @@ globalThis.pspfExplorerSetLocalRequirementStatus = setLocalRequirementStatus;
 globalThis.pspfExplorerAddLocalEvidenceReference = addLocalEvidenceReference;
 globalThis.pspfExplorerAddLocalAction = addLocalAction;
 globalThis.pspfExplorerAddLocalRisk = addLocalRisk;
+globalThis.pspfExplorerSaveCurrentRequirementsView = saveCurrentRequirementsView;
+globalThis.pspfExplorerSaveRequirementsView = saveCurrentRequirementsView;
+globalThis.pspfExplorerApplySavedView = applySavedView;
+globalThis.pspfExplorerSavedViews = () => currentSavedViews.map(materialiseSavedView);
 globalThis.pspfExplorerExportLocalBundle = exportLocalAuthoringBundle;
 globalThis.pspfExplorerResetLocalData = () => resetLocalData(currentBundleKey);
 `;

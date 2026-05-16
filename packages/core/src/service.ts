@@ -9,8 +9,18 @@ import {
   type EntityByCollection,
   DEFAULT_TAG_COLOUR,
   PSPF_SLICE_VERSION,
+  SAVED_VIEW_EVIDENCE_COVERAGE,
+  SAVED_VIEW_LIMITS,
+  SAVED_VIEW_REQUIREMENT_COLUMNS,
+  SAVED_VIEW_REQUIREMENT_SORT_KEYS,
+  SAVED_VIEW_SCOPES,
+  SAVED_VIEW_SORT_DIRECTIONS,
+  SAVED_VIEW_TAGS_MODES,
   TAG_COLOURS,
   TAG_LIMITS,
+  type ActionStatus,
+  type AssessmentStatus,
+  type RiskStatus,
   type V01Collection,
   type V01Entity,
   PSPF_DOMAINS,
@@ -18,7 +28,9 @@ import {
   V0_1_COLLECTIONS,
   enrichActionsWithImpact,
   isValidSingleGrapheme,
+  isValidSavedViewName,
   isValidTagLabel,
+  normaliseSavedViewName,
   normaliseTagLabel,
   nowIso,
   sanitiseEntityForPublication,
@@ -544,11 +556,14 @@ async function buildImportPlan(workspaceRoot: string, bundlePath: string, mode: 
   const existingEntities = await listEntities(workspaceRoot);
   const tagImportResult = mode === "additive-merge" || mode === "plan-apply" ? filterIncomingTagLabelCollisions(incomingEntities, existingEntities) : { entities: incomingEntities, conflicts: [] as string[] };
   incomingEntities = tagImportResult.entities;
+  const savedViewImportResult = mode === "additive-merge" || mode === "plan-apply" ? filterIncomingSavedViewNameCollisions(incomingEntities, existingEntities) : { entities: incomingEntities, conflicts: [] as string[] };
+  incomingEntities = savedViewImportResult.entities;
   const validationEntities = mode === "additive-merge" || mode === "plan-apply" ? [...existingEntities, ...incomingEntities] : incomingEntities;
   validateImportedMappings(validationEntities);
   validateTagRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
+  validateSavedViewRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   const writeSet = mode === "additive-merge" || mode === "plan-apply" ? additiveMergeWriteSet(incomingEntities, existingEntities) : incomingEntities;
-  return { incomingEntities, writeSet, summary: summariseImportChanges(incomingEntities, existingEntities, writeSet, tagImportResult.conflicts) };
+  return { incomingEntities, writeSet, summary: summariseImportChanges(incomingEntities, existingEntities, writeSet, [...tagImportResult.conflicts, ...savedViewImportResult.conflicts]) };
 }
 
 function summariseImportChanges(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[], writeSet: readonly V01Entity[], extraConflicts: readonly string[] = []): ImportSummary {
@@ -680,6 +695,7 @@ async function upsertEntity(workspaceRoot: string, entity: V01Entity): Promise<V
   const paths = await ensureInitialised(workspaceRoot, false);
   await assertWritable(paths);
   validateTagRules([entity], await readStoredEntities(paths));
+  validateSavedViewRules([entity], await readStoredEntities(paths));
   await runSql(paths.db, upsertEntitySql(entity));
   return entity;
 }
@@ -691,6 +707,7 @@ async function upsertEntities(workspaceRoot: string, entities: readonly V01Entit
     return entities;
   }
   validateTagRules(entities, await readStoredEntities(paths));
+  validateSavedViewRules(entities, await readStoredEntities(paths));
   await runSql(paths.db, ["BEGIN IMMEDIATE;", ...entities.map(upsertEntitySql), "COMMIT;"].join("\n"));
   return entities;
 }
@@ -746,6 +763,7 @@ function createEmptyCollections(): BundleCollections {
     snapshots: [],
     links: [],
     tags: [],
+    "saved-views": [],
     "source-controls": [],
     "requirement-control-mappings": [],
     directions: [],
@@ -827,6 +845,7 @@ function getCollectionCounts(collections: BundleCollections): Record<V01Collecti
     snapshots: collections.snapshots.length,
     links: collections.links.length,
     tags: collections.tags.length,
+    "saved-views": collections["saved-views"].length,
     "source-controls": collections["source-controls"].length,
     "requirement-control-mappings": collections["requirement-control-mappings"].length,
     directions: collections.directions.length,
@@ -907,6 +926,25 @@ function filterIncomingTagLabelCollisions(incomingEntities: readonly V01Entity[]
   };
 }
 
+function filterIncomingSavedViewNameCollisions(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): { readonly entities: V01Entity[]; readonly conflicts: string[] } {
+  const existingSavedViewsByName = new Map(existingEntities
+    .filter((entity): entity is EntityByCollection["saved-views"] => entity.entityType === "saved-view")
+    .map((savedView) => [normaliseSavedViewName(savedView.name), savedView]));
+  const conflicts: string[] = [];
+  const entities = incomingEntities.filter((entity) => {
+    if (entity.entityType !== "saved-view") {
+      return true;
+    }
+    const existing = existingSavedViewsByName.get(normaliseSavedViewName(entity.name));
+    if (existing && existing.id !== entity.id) {
+      conflicts.push(`Rejected saved view ${entity.id} ${entity.name}: name already exists on ${existing.id} ${existing.name}.`);
+      return false;
+    }
+    return true;
+  });
+  return { entities, conflicts };
+}
+
 function validateTagRules(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): void {
   const mergedById = new Map(existingEntities.map((entity) => [entity.id, entity]));
   for (const entity of incomingEntities) {
@@ -964,6 +1002,74 @@ function validateTagRules(incomingEntities: readonly V01Entity[], existingEntiti
   for (const [requirementId, tagIds] of tagLinksByRequirement) {
     if (new Set(tagIds).size > TAG_LIMITS.perRequirementHard) {
       throw new Error(`Tag limit exceeded: ${requirementId} has more than ${TAG_LIMITS.perRequirementHard} tags.`);
+    }
+  }
+}
+
+function validateSavedViewRules(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): void {
+  const mergedById = new Map(existingEntities.map((entity) => [entity.id, entity]));
+  for (const entity of incomingEntities) {
+    mergedById.set(entity.id, entity);
+  }
+  const merged = [...mergedById.values()];
+  const domainIds = new Set(merged.filter((entity) => entity.entityType === "domain" && entity.recordStatus !== "deleted").map((entity) => entity.id));
+  const namesByNormalisedValue = new Map<string, EntityByCollection["saved-views"]>();
+
+  for (const savedView of merged.filter((entity): entity is EntityByCollection["saved-views"] => entity.entityType === "saved-view" && entity.recordStatus !== "deleted")) {
+    if (!isValidSavedViewName(savedView.name)) {
+      throw new Error(`Invalid saved-view name for ${savedView.id}: use 1-${SAVED_VIEW_LIMITS.nameMaxLength} characters.`);
+    }
+    if (savedView.title !== savedView.name) {
+      throw new Error(`Invalid saved-view title for ${savedView.id}: title must mirror name.`);
+    }
+    const normalisedName = normaliseSavedViewName(savedView.name);
+    const existing = namesByNormalisedValue.get(normalisedName);
+    if (existing && existing.id !== savedView.id) {
+      throw new Error(`Duplicate saved-view name rejected: ${savedView.name} conflicts with ${existing.id}.`);
+    }
+    namesByNormalisedValue.set(normalisedName, savedView);
+
+    if (!SAVED_VIEW_SCOPES.includes(savedView.scope)) {
+      throw new Error(`Invalid saved-view scope for ${savedView.id}.`);
+    }
+    const filters = savedView.filters ?? {};
+    if ((filters.query ?? "").length > SAVED_VIEW_LIMITS.queryMaxLength) {
+      throw new Error(`Invalid saved-view query for ${savedView.id}: use at most ${SAVED_VIEW_LIMITS.queryMaxLength} characters.`);
+    }
+    for (const domainId of filters.domainIds ?? []) {
+      if (!domainIds.has(domainId)) {
+        throw new Error(`Invalid saved-view domain for ${savedView.id}: ${domainId} is not a known domain.`);
+      }
+    }
+    assertAllAllowed(filters.assessmentStatuses ?? [], ["not-started", "in-progress", "met", "partially-met", "not-met", "not-applicable", "under-review"] satisfies readonly AssessmentStatus[], `Invalid saved-view assessment status for ${savedView.id}`);
+    if (filters.tagsMode && !SAVED_VIEW_TAGS_MODES.includes(filters.tagsMode)) {
+      throw new Error(`Invalid saved-view tag mode for ${savedView.id}.`);
+    }
+    if (filters.evidenceCoverage && !SAVED_VIEW_EVIDENCE_COVERAGE.includes(filters.evidenceCoverage)) {
+      throw new Error(`Invalid saved-view evidence coverage for ${savedView.id}.`);
+    }
+    assertAllAllowed(filters.actionStates ?? [], ["todo", "in-progress", "blocked", "done", "cancelled"] satisfies readonly ActionStatus[], `Invalid saved-view action state for ${savedView.id}`);
+    assertAllAllowed(filters.riskStates ?? [], ["open", "monitored", "closed"] satisfies readonly RiskStatus[], `Invalid saved-view risk state for ${savedView.id}`);
+
+    const presentation = savedView.presentation ?? {};
+    if (presentation.sortKey && !SAVED_VIEW_REQUIREMENT_SORT_KEYS.includes(presentation.sortKey)) {
+      throw new Error(`Invalid saved-view sort key for ${savedView.id}.`);
+    }
+    if (presentation.sortDirection && !SAVED_VIEW_SORT_DIRECTIONS.includes(presentation.sortDirection)) {
+      throw new Error(`Invalid saved-view sort direction for ${savedView.id}.`);
+    }
+    const visibleColumns = presentation.visibleColumns ?? [];
+    if (visibleColumns.length > SAVED_VIEW_LIMITS.visibleColumnsHard) {
+      throw new Error(`Invalid saved-view columns for ${savedView.id}: too many visible columns.`);
+    }
+    assertAllAllowed(visibleColumns, SAVED_VIEW_REQUIREMENT_COLUMNS, `Invalid saved-view column for ${savedView.id}`);
+  }
+}
+
+function assertAllAllowed<T extends string>(values: readonly string[], allowedValues: readonly T[], message: string): void {
+  for (const value of values) {
+    if (!(allowedValues as readonly string[]).includes(value)) {
+      throw new Error(`${message}: ${value}.`);
     }
   }
 }

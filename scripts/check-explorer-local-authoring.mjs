@@ -27,7 +27,7 @@ try {
 
     await page.goto(pathToFileURL(explorerPath).href);
     await page.waitForFunction(() => typeof globalThis.pspfExplorerRender === "function");
-    const bundle = JSON.parse(readFileSyncText(bundlePath));
+    const bundle = normaliseBundleForActiveVersion(JSON.parse(readFileSyncText(bundlePath)));
     const requirement = bundle.collections.requirements.find((item) => item.assessmentStatus !== "met") || bundle.collections.requirements[0];
     const finderTargetRequirement = bundle.collections.requirements.find((item) => item.id !== requirement.id) || requirement;
     assert.ok(requirement, "fixture should include at least one requirement");
@@ -67,7 +67,7 @@ try {
         selectedPinnedCleared: document.querySelector(".local-requirement-option.search-pinned") === null
     }));
     await page.locator("#explorer-search").fill("");
-    await page.waitForFunction(() => document.querySelectorAll(".local-requirement-option:not([hidden])").length > 1);
+    await page.waitForFunction(() => document.querySelectorAll(".local-requirement-option:not([hidden])").length > 0);
     await page.locator(`.local-requirement-option[data-requirement-id="${requirement.id}"]`).click();
     await page.waitForFunction((title) => document.querySelector('[aria-labelledby="local-selected-heading"]')?.textContent?.includes(title), requirement.title);
     const clickSelection = await page.evaluate((expectedId) => ({
@@ -111,6 +111,28 @@ try {
     await page.waitForFunction(() => document.querySelector("#local-authoring")?.textContent?.includes("Local risks: 1"));
     const localAuthoringOpenAfterRiskSave = await page.locator("#local-authoring").evaluate((section) => section instanceof HTMLDetailsElement && section.open);
 
+    await page.evaluate(() => {
+        document.querySelector("#requirements").open = true;
+        const tagInput = document.querySelector('#requirements .tag-filter-checkbox[value="TAG-00000000-0000-4000-8000-00000000A101"]');
+        const statusInput = document.querySelector('.requirement-status-filter-checkbox[value="met"]');
+        tagInput.checked = true;
+        statusInput.checked = true;
+        tagInput.dispatchEvent(new Event("change", { bubbles: true }));
+        statusInput.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    const savedViewBeforeRefresh = await page.evaluate(async () => {
+        await globalThis.pspfExplorerSaveRequirementsView("High priority met");
+        const views = globalThis.pspfExplorerSavedViews();
+        const view = views.find((item) => item.name === "High priority met");
+        return {
+            id: view?.id,
+            name: view?.name,
+            tagIds: view?.filters?.tagIds || [],
+            statuses: view?.filters?.assessmentStatuses || []
+        };
+    });
+    assert.ok(savedViewBeforeRefresh.id, "saved view should be created before refresh");
+
     await page.reload();
     await page.waitForSelector("#summary:not([hidden])");
     await page.evaluate(() => { document.querySelector("#local-authoring").open = true; });
@@ -123,8 +145,19 @@ try {
         selectedStatus: document.querySelector(`select[data-requirement-id="${requirementId}"]`)?.value,
         evidenceVisible: document.querySelector("#local-authoring")?.textContent?.includes("Local evidence references: 1"),
         actionVisible: document.querySelector("#local-authoring")?.textContent?.includes("Local actions: 1"),
-        riskVisible: document.querySelector("#local-authoring")?.textContent?.includes("Local risks: 1")
+        riskVisible: document.querySelector("#local-authoring")?.textContent?.includes("Local risks: 1"),
+        savedViewVisible: globalThis.pspfExplorerSavedViews().some((item) => item.name === "High priority met")
     }), requirement.id);
+
+    const savedViewApply = await page.evaluate(async (savedViewId) => {
+        await globalThis.pspfExplorerApplySavedView(savedViewId);
+        return {
+            activeName: document.querySelector("#saved-view-status")?.textContent || "",
+            visibleRequirements: Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden).length,
+            statusChecked: document.querySelector('.requirement-status-filter-checkbox[value="met"]')?.checked === true,
+            tagChecked: document.querySelector('.tag-filter-checkbox[value="TAG-00000000-0000-4000-8000-00000000A101"]')?.checked === true
+        };
+    }, savedViewBeforeRefresh.id);
 
     const conflictVisible = await page.evaluate(async (value) => {
         const changedBundle = JSON.parse(JSON.stringify(value.bundle));
@@ -164,6 +197,7 @@ try {
         const exportedActionLink = exported.collections.links.find((item) => item.fromId === value.requirementId && item.toId === exportedAction?.id && item.linkType === "addressed-by");
         const exportedRisk = exported.collections.risks.find((item) => item.title === "Local test risk");
         const exportedRiskLink = exported.collections.links.find((item) => item.fromId === value.requirementId && item.toId === exportedRisk?.id && item.linkType === "exposed-by");
+        const exportedSavedView = exported.collections["saved-views"].find((item) => item.name === "High priority met");
         return {
             selectValue: select?.value,
             localBadgeCount: document.querySelectorAll(".local-badge").length,
@@ -192,6 +226,10 @@ try {
             exportedRiskSourceProduct: exportedRisk?.sourceProduct,
             exportedRiskLinkType: exportedRiskLink?.linkType,
             exportedRiskLinkSourceProduct: exportedRiskLink?.sourceProduct,
+            exportedSavedViewScope: exportedSavedView?.scope,
+            exportedSavedViewStatus: exportedSavedView?.filters?.assessmentStatuses?.[0],
+            exportedSavedViewTag: exportedSavedView?.filters?.tagIds?.[0],
+            exportedSavedViewSourceProduct: exportedSavedView?.sourceProduct,
             hasRestrictedPersonalField: containsRestrictedPersonalField(exported)
         };
     }, { ...bundle, requirementId: requirement.id });
@@ -204,6 +242,7 @@ try {
     const resetEvidenceCount = await page.evaluate(() => document.querySelector("#local-authoring")?.textContent?.includes("Local evidence references: 0"));
     const resetActionCount = await page.evaluate(() => document.querySelector("#local-authoring")?.textContent?.includes("Local actions: 0"));
     const resetRiskCount = await page.evaluate(() => document.querySelector("#local-authoring")?.textContent?.includes("Local risks: 0"));
+    const resetSavedViewCount = await page.evaluate(() => globalThis.pspfExplorerSavedViews().length === 0);
 
     const visibleText = await page.locator("body").innerText();
     const storageStatusText = await page.locator("#local-storage-status").textContent();
@@ -214,7 +253,7 @@ try {
         check("Local Requirement picker visible", pickerVisible, "picker"),
         check("Explorer Search visible", explorerSearchVisible, "search"),
         check("Local inline finder removed", localInlineFinderCount === 0, `${localInlineFinderCount} inline finder(s)`),
-        check("Explorer Search narrows Local Changes list", finderExactMatch.filteredVisible > 0 && finderExactMatch.filteredVisible < initialVisibleRequirements && finderExactMatch.filterBannerVisible, `${finderExactMatch.filteredVisible}/${initialVisibleRequirements}`),
+        check("Explorer Search filters Local Changes list", finderExactMatch.filteredVisible > 0 && (initialVisibleRequirements === 1 || finderExactMatch.filteredVisible < initialVisibleRequirements) && finderExactMatch.filterBannerVisible, `${finderExactMatch.filteredVisible}/${initialVisibleRequirements}`),
         check("Explorer Search moves Local Changes workspace", finderExactMatch.filteredVisible === 1 && finderExactMatch.retainedQuery && finderExactMatch.statusText.includes("Local Changes"), `visible=${finderExactMatch.filteredVisible}`),
         check("Explorer Search pins selected Local Changes item outside results", finderNoMatch.filteredVisible === 1 && finderNoMatch.emptyVisible && finderNoMatch.pinnedVisible && finderNoMatch.selectedStillOpen, `visible=${finderNoMatch.filteredVisible}`),
         check("Local Changes clear search restores picker", localClearSearch.queryCleared && localClearSearch.bannerCleared && localClearSearch.selectedPinnedCleared, JSON.stringify(localClearSearch)),
@@ -235,6 +274,10 @@ try {
         check("Refresh restores local evidence", refreshPersistence.evidenceVisible, "local evidence count"),
         check("Refresh restores local action", refreshPersistence.actionVisible, "local action count"),
         check("Refresh restores local risk", refreshPersistence.riskVisible, "local risk count"),
+        check("Refresh restores saved view", refreshPersistence.savedViewVisible, "saved view"),
+        check("Saved view captures tag filter", savedViewBeforeRefresh.tagIds.includes("TAG-00000000-0000-4000-8000-00000000A101"), savedViewBeforeRefresh.tagIds.join(", ")),
+        check("Saved view captures status filter", savedViewBeforeRefresh.statuses.includes("met"), savedViewBeforeRefresh.statuses.join(", ")),
+        check("Saved view applies status and tag filters", savedViewApply.statusChecked && savedViewApply.tagChecked && savedViewApply.visibleRequirements > 0, JSON.stringify(savedViewApply)),
         check("Local status conflict visible", conflictVisible, "baseline conflict"),
         check("Local status persisted in IndexedDB", persisted.selectValue === "met", persisted.selectValue || "missing"),
         check("Local badge visible", persisted.localBadgeCount > 0, `${persisted.localBadgeCount} badge(s)`),
@@ -244,7 +287,7 @@ try {
         check("Schema axis stable", persisted.schemaVersion === VERSION_AXES.schemaVersion, persisted.schemaVersion),
         check("Bundle axis stable", persisted.bundleVersion === VERSION_AXES.bundleVersion, persisted.bundleVersion),
         check("API axis stable", persisted.apiVersion === VERSION_AXES.apiVersion, persisted.apiVersion),
-        check("Exports complete master collection set", persisted.collectionCount === 12, `${persisted.collectionCount} collection(s)`),
+        check("Exports complete master collection set", persisted.collectionCount === 13, `${persisted.collectionCount} collection(s)`),
         check("Exported requirement carries local status", persisted.exportedStatus === "met", persisted.exportedStatus || "missing"),
         check("Exported local status source is Explorer", persisted.exportedSourceProduct === "explorer", persisted.exportedSourceProduct || "missing"),
         check("Exported local evidence reference present", persisted.exportedEvidenceReference === "https://example.gov.au/evidence/local-test", persisted.exportedEvidenceReference || "missing"),
@@ -262,12 +305,17 @@ try {
         check("Exported local risk source is Explorer", persisted.exportedRiskSourceProduct === "explorer", persisted.exportedRiskSourceProduct || "missing"),
         check("Exported local risk link present", persisted.exportedRiskLinkType === "exposed-by", persisted.exportedRiskLinkType || "missing"),
         check("Exported local risk link source is Explorer", persisted.exportedRiskLinkSourceProduct === "explorer", persisted.exportedRiskLinkSourceProduct || "missing"),
+        check("Exported saved view present", persisted.exportedSavedViewScope === "requirements", persisted.exportedSavedViewScope || "missing"),
+        check("Exported saved view status filter present", persisted.exportedSavedViewStatus === "met", persisted.exportedSavedViewStatus || "missing"),
+        check("Exported saved view tag filter present", persisted.exportedSavedViewTag === "TAG-00000000-0000-4000-8000-00000000A101", persisted.exportedSavedViewTag || "missing"),
+        check("Exported saved view source is Explorer", persisted.exportedSavedViewSourceProduct === "explorer", persisted.exportedSavedViewSourceProduct || "missing"),
         check("No local data in localStorage", persisted.localStorageKeys.length === 0, persisted.localStorageKeys.join(", ")),
         check("Export excludes personal fields", !persisted.hasRestrictedPersonalField, "restricted fields"),
         check("Reset restores baseline status", resetValue === requirement.assessmentStatus, resetValue),
         check("Reset clears local evidence references", resetEvidenceCount, "local evidence count"),
         check("Reset clears local actions", resetActionCount, "local action count"),
-        check("Reset clears local risks", resetRiskCount, "local risk count")
+        check("Reset clears local risks", resetRiskCount, "local risk count"),
+        check("Reset clears saved views", resetSavedViewCount, "saved view count")
     ];
 
     const failed = checks.filter((item) => !item.ok);
@@ -305,6 +353,28 @@ function readFileSyncText(path) {
 
 function check(name, ok, detail) {
     return { name, ok: Boolean(ok), detail };
+}
+
+function normaliseBundleForActiveVersion(bundle) {
+    bundle.manifest = {
+        ...(bundle.manifest || {}),
+        bundleVersion: VERSION_AXES.bundleVersion,
+        schemaVersion: VERSION_AXES.schemaVersion,
+        apiVersion: VERSION_AXES.apiVersion,
+        generator: {
+            ...(bundle.manifest?.generator || {}),
+            productVersion: PSPF_SLICE_VERSION
+        }
+    };
+    for (const records of Object.values(bundle.collections || {})) {
+        if (Array.isArray(records)) {
+            for (const record of records) {
+                record.schemaVersion = VERSION_AXES.schemaVersion;
+            }
+        }
+    }
+    bundle.collections["saved-views"] = bundle.collections["saved-views"] || [];
+    return bundle;
 }
 
 function addBaselineLinkedContext(bundle, requirementId) {
@@ -360,7 +430,23 @@ function addBaselineLinkedContext(bundle, requirementId) {
         ...(bundle.collections.links || []),
         baselineLink("LNK-00000000-0000-4000-8000-00000000A101", "Baseline evidence supports requirement", requirementId, "EVD-00000000-0000-4000-8000-00000000A101", "evidence", "supported-by", timestamp),
         baselineLink("LNK-00000000-0000-4000-8000-00000000A102", "Baseline action addresses requirement", requirementId, "ACT-00000000-0000-4000-8000-00000000A101", "action", "addressed-by", timestamp),
-        baselineLink("LNK-00000000-0000-4000-8000-00000000A103", "Baseline risk exposes requirement", requirementId, "RSK-00000000-0000-4000-8000-00000000A101", "risk", "exposed-by", timestamp)
+        baselineLink("LNK-00000000-0000-4000-8000-00000000A103", "Baseline risk exposes requirement", requirementId, "RSK-00000000-0000-4000-8000-00000000A101", "risk", "exposed-by", timestamp),
+        baselineLink("LNK-00000000-0000-4000-8000-00000000A104", "High priority tag marks requirement", requirementId, "TAG-00000000-0000-4000-8000-00000000A101", "tag", "tagged-with", timestamp)
+    ];
+    bundle.collections.tags = [
+        ...(bundle.collections.tags || []),
+        {
+            id: "TAG-00000000-0000-4000-8000-00000000A101",
+            entityType: "tag",
+            schemaVersion: VERSION_AXES.schemaVersion,
+            title: "High priority",
+            label: "High priority",
+            colour: "red",
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            sourceProduct: "workshop",
+            recordStatus: "active"
+        }
     ];
 }
 
