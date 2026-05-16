@@ -202,6 +202,19 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 10. **Deferred-scope gate**: v1.7 does not add saved views, per-user/private tags, tag hierarchies, tag-driven posture brief sections, or tagging of Actions/Risks/Directions/Evidence.
 11. **Regression gate**: `e2e:v1.7`, `check:gates`, `check:brief-redaction`, `check:explorer-publication`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.8 release gates (Saved views, per ADR 0042)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.8.0`; schema, bundle, and API axes are `1.5.0`; `schemas/explorer-bundle/1.5.0/` is published and immutable after release.
+2. **Contract gate**: `SavedViewEntity`, `saved-view`, `saved-views`, `SVW`, saved-view filter enums, presentation enums, and publication policies match ADR 0042 and invariants E19/E20/E22.
+3. **Explorer save/apply gate**: Explorer Requirements can save the current filter state as a named saved view, apply it later, rename it, archive it, clear the active view, and restore saved views after refresh.
+4. **Session boundary gate**: transient list state remains in `sessionStorage`; saving a view copies only the ADR 0042 allowed subset into IndexedDB and local-authoring exports. Applying a saved view updates active URL/session state rather than mutating Requirements or Tags.
+5. **Round-trip gate**: E2E creates a tag, applies a tag/status filter, saves a view, refreshes Explorer, reapplies the view, exports local JSON, imports through Core/Workshop, and verifies the saved view survives intact.
+6. **Validation gate**: duplicate `SavedView.name` values are hard-rejected case- and whitespace-insensitively on write and import; invalid domain IDs, invalid enum values, unknown column IDs, and missing required fields reject with actionable diagnostics.
+7. **Import review gate**: saved-view creates, updates, unchanged rows, and name collisions appear in Workshop import review under plan-apply with per-type counts and examples.
+8. **Redaction gate**: every saved-view field declares a publication policy; the implementation explicitly resolves ADR 0042's `filters.query` publication decision before coding.
+9. **Deferred-scope gate**: v1.8 does not add saved views outside Requirements, team/private saved views, default-start views, tag hierarchies, tagging non-Requirement entities, tag-driven posture brief sections, compliance-history export controls, editable posture, Shop, Pub, or chart image export.
+10. **Regression gate**: `e2e:v1.8`, `check:gates`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

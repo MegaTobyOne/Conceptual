@@ -1239,6 +1239,7 @@ function isEditableWorkshopEntity(entity: V01Entity): entity is EditableWorkshop
 async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: readonly V01Entity[]): Promise<void> {
   let currentEntity = entity;
   const panel = vscode.window.createWebviewPanel("pspfEntityDetail", shortWorkshopPanelTitle(currentEntity), vscode.ViewColumn.One, { enableScripts: true });
+  wireWorkshopPanelMessages(panel);
   panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
     if (!["saveEntity", "saveAndCloseEntity"].includes(message.command ?? "") || message.entityType !== currentEntity.entityType || message.entityId !== currentEntity.id) {
       return;
@@ -1588,11 +1589,15 @@ function renderMappingEditor(mapping: RequirementControlMappingEntity, allEntiti
 }
 
 function editorShell(entity: EditableWorkshopEntity, heading: string, fieldsHtml: string, note?: string): string {
+  const contextualActions = entity.entityType === "requirement"
+    ? `<button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(entity.id)}">Apply tag</button>`
+    : "";
   return `
     <section>
       <h1>${escapeHtml(entity.title ?? entity.id)}</h1>
       <p class="muted">${escapeHtml(label(entity.entityType))} · ${escapeHtml(entity.id)}</p>
       ${versionStrip()}
+      ${contextualActions ? `<div class="form-actions">${contextualActions}</div>` : ""}
     </section>
     <section>
       <h2>${escapeHtml(heading)}</h2>
