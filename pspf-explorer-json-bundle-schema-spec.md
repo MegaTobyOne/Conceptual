@@ -193,6 +193,8 @@ The first file loaded by Explorer is `manifest.json`. It describes the bundle, a
 | `collections/suppliers.json` | supplier entities |
 | `collections/report-packs.json` | report pack entities |
 | `collections/snapshots.json` | immutable snapshot entities |
+| `collections/tags.json` | operator-applied classification labels (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) |
+| `indexes/by-tag.json` | derived requirement-id lists per tag for fast filter rendering |
 | `indexes/*.json` | denormalised read models |
 | `schemas/*.json` | published validation schemas |
 

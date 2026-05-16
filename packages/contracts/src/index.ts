@@ -64,7 +64,8 @@ export const LINK_TYPES = [
   "holds",
   "targets",
   "generates",
-  "includes"
+  "includes",
+  "tagged-with"
 ] as const;
 
 export type LinkType = (typeof LINK_TYPES)[number];
@@ -176,9 +177,35 @@ export interface SnapshotEntity extends EntityEnvelope {
   readonly snapshotType: "checkpoint" | "reporting" | "backup" | "pre-migration";
 }
 
+export const TAG_COLOURS = [
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "teal",
+  "blue",
+  "purple",
+  "grey"
+] as const;
+
+export type TagColour = (typeof TAG_COLOURS)[number];
+
+export const TAG_LIMITS = {
+  perWorkspaceHard: 64,
+  perWorkspaceSoftWarning: 32,
+  perRequirementHard: 16,
+  labelMaxLength: 40,
+  titleMaxLength: 60,
+  descriptionMaxLength: 1000
+} as const;
+
 export interface TagEntity extends EntityEnvelope {
   readonly entityType: "tag";
+  readonly label: string;
   readonly title: string;
+  readonly colour: TagColour;
+  readonly description?: string;
+  readonly emoji?: string;
 }
 
 export interface SourceControlExternalRef {
@@ -333,7 +360,10 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   },
   {
     entityType: "tag",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus")
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "label", "colour", "emoji"),
+      { field: "description", publication: "sensitive" }
+    ]
   },
   {
     entityType: "source-control",
