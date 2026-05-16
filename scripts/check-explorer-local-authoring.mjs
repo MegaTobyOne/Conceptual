@@ -28,6 +28,30 @@ try {
     await page.goto(pathToFileURL(explorerPath).href);
     await page.waitForFunction(() => typeof globalThis.pspfExplorerRender === "function");
     const bundle = normaliseBundleForActiveVersion(JSON.parse(readFileSyncText(bundlePath)));
+    await page.evaluate(async (value) => {
+        const db = await new Promise((resolve, reject) => {
+            const request = indexedDB.open("pspf-explorer-local-v1", 6);
+            request.addEventListener("success", () => resolve(request.result));
+            request.addEventListener("error", () => reject(request.error));
+        });
+        await new Promise((resolve, reject) => {
+            const transaction = db.transaction("remembered-bundles", "readwrite");
+            transaction.objectStore("remembered-bundles").put({
+                key: "latest",
+                savedAt: new Date().toISOString(),
+                manifest: { ...value.manifest, schemaVersion: "0.0.0", bundleVersion: "0.0.0", apiVersion: "0.0.0" },
+                collections: value.collections || {}
+            });
+            transaction.addEventListener("complete", () => { db.close(); resolve(undefined); });
+            transaction.addEventListener("error", () => reject(transaction.error));
+        });
+    }, bundle);
+    await page.reload();
+    await page.waitForFunction(() => typeof globalThis.pspfExplorerRender === "function" && document.body.innerText.includes("Reload your PSPF JSON"));
+    const staleSchemaNotice = await page.evaluate(() => ({
+        visible: !document.querySelector("#summary")?.hidden,
+        text: document.querySelector("#summary")?.textContent || ""
+    }));
     const requirement = bundle.collections.requirements.find((item) => item.assessmentStatus !== "met") || bundle.collections.requirements[0];
     const finderTargetRequirement = bundle.collections.requirements.find((item) => item.id !== requirement.id) || requirement;
     assert.ok(requirement, "fixture should include at least one requirement");
@@ -133,6 +157,20 @@ try {
     });
     assert.ok(savedViewBeforeRefresh.id, "saved view should be created before refresh");
 
+    const relationshipSavedViewBeforeRefresh = await page.evaluate(async () => {
+        document.querySelector("#links").open = true;
+        await globalThis.pspfExplorerSaveRelationshipsView("Tagged relationships");
+        const views = globalThis.pspfExplorerSavedViews();
+        const view = views.find((item) => item.name === "Tagged relationships");
+        return {
+            id: view?.id,
+            scope: view?.scope,
+            tagIds: view?.filters?.tagIds || [],
+            columns: view?.presentation?.visibleColumns || []
+        };
+    });
+    assert.ok(relationshipSavedViewBeforeRefresh.id, "relationship saved view should be created before refresh");
+
     await page.reload();
     await page.waitForSelector("#summary:not([hidden])");
     await page.evaluate(() => { document.querySelector("#local-authoring").open = true; });
@@ -158,6 +196,15 @@ try {
             tagChecked: document.querySelector('.tag-filter-checkbox[value="TAG-00000000-0000-4000-8000-00000000A101"]')?.checked === true
         };
     }, savedViewBeforeRefresh.id);
+
+    const relationshipSavedViewApply = await page.evaluate(async (savedViewId) => {
+        await globalThis.pspfExplorerApplyRelationshipsSavedView(savedViewId);
+        return {
+            linksOpen: document.querySelector("#links")?.open === true,
+            tagChecked: document.querySelector('.tag-filter-checkbox[value="TAG-00000000-0000-4000-8000-00000000A101"]')?.checked === true,
+            visibleRelationships: Array.from(document.querySelectorAll("#links tbody tr")).filter((row) => !row.hidden).length
+        };
+    }, relationshipSavedViewBeforeRefresh.id);
 
     const conflictVisible = await page.evaluate(async (value) => {
         const changedBundle = JSON.parse(JSON.stringify(value.bundle));
@@ -249,6 +296,7 @@ try {
     const checks = [
         check("No page errors", pageErrors.length === 0, pageErrors.join("; ")),
         check("No console errors", consoleErrors.length === 0, consoleErrors.join("; ")),
+        check("Stale schema notice asks for JSON reload", staleSchemaNotice.visible && staleSchemaNotice.text.includes("Reload your PSPF JSON") && staleSchemaNotice.text.includes("Select your latest"), staleSchemaNotice.text),
         check("Local Changes section visible", visibleText.includes("Local Changes"), "section"),
         check("Local Requirement picker visible", pickerVisible, "picker"),
         check("Explorer Search visible", explorerSearchVisible, "search"),
@@ -278,6 +326,10 @@ try {
         check("Saved view captures tag filter", savedViewBeforeRefresh.tagIds.includes("TAG-00000000-0000-4000-8000-00000000A101"), savedViewBeforeRefresh.tagIds.join(", ")),
         check("Saved view captures status filter", savedViewBeforeRefresh.statuses.includes("met"), savedViewBeforeRefresh.statuses.join(", ")),
         check("Saved view applies status and tag filters", savedViewApply.statusChecked && savedViewApply.tagChecked && savedViewApply.visibleRequirements > 0, JSON.stringify(savedViewApply)),
+        check("Relationship saved view has Explorer scope", relationshipSavedViewBeforeRefresh.scope === "explorer-relationships", relationshipSavedViewBeforeRefresh.scope || "missing"),
+        check("Relationship saved view captures tag filter", relationshipSavedViewBeforeRefresh.tagIds.includes("TAG-00000000-0000-4000-8000-00000000A101"), relationshipSavedViewBeforeRefresh.tagIds.join(", ")),
+        check("Relationship saved view captures board columns", relationshipSavedViewBeforeRefresh.columns.includes("relationship") && relationshipSavedViewBeforeRefresh.columns.includes("from"), relationshipSavedViewBeforeRefresh.columns.join(", ")),
+        check("Relationship saved view applies tag filter", relationshipSavedViewApply.linksOpen && relationshipSavedViewApply.tagChecked && relationshipSavedViewApply.visibleRelationships > 0, JSON.stringify(relationshipSavedViewApply)),
         check("Local status conflict visible", conflictVisible, "baseline conflict"),
         check("Local status persisted in IndexedDB", persisted.selectValue === "met", persisted.selectValue || "missing"),
         check("Local badge visible", persisted.localBadgeCount > 0, `${persisted.localBadgeCount} badge(s)`),
@@ -305,7 +357,7 @@ try {
         check("Exported local risk source is Explorer", persisted.exportedRiskSourceProduct === "explorer", persisted.exportedRiskSourceProduct || "missing"),
         check("Exported local risk link present", persisted.exportedRiskLinkType === "exposed-by", persisted.exportedRiskLinkType || "missing"),
         check("Exported local risk link source is Explorer", persisted.exportedRiskLinkSourceProduct === "explorer", persisted.exportedRiskLinkSourceProduct || "missing"),
-        check("Exported saved view present", persisted.exportedSavedViewScope === "requirements", persisted.exportedSavedViewScope || "missing"),
+        check("Exported saved view present", persisted.exportedSavedViewScope === "explorer-requirements", persisted.exportedSavedViewScope || "missing"),
         check("Exported saved view status filter present", persisted.exportedSavedViewStatus === "met", persisted.exportedSavedViewStatus || "missing"),
         check("Exported saved view tag filter present", persisted.exportedSavedViewTag === "TAG-00000000-0000-4000-8000-00000000A101", persisted.exportedSavedViewTag || "missing"),
         check("Exported saved view source is Explorer", persisted.exportedSavedViewSourceProduct === "explorer", persisted.exportedSavedViewSourceProduct || "missing"),

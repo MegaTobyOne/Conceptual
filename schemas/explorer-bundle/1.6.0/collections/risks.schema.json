@@ -1,0 +1,79 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.4.0/collections/risks.schema.json",
+    "title": "PSPF Explorer Risks Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "status",
+            "likelihood",
+            "impact"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^RSK-"
+            },
+            "entityType": {
+                "const": "risk"
+            },
+            "schemaVersion": {
+                "const": "1.6.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "status": {
+                "enum": [
+                    "open",
+                    "monitored",
+                    "closed"
+                ]
+            },
+            "likelihood": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+            },
+            "impact": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+            }
+        }
+    }
+}

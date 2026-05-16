@@ -194,7 +194,7 @@ The first file loaded by Explorer is `manifest.json`. It describes the bundle, a
 | `collections/report-packs.json` | report pack entities |
 | `collections/snapshots.json` | immutable snapshot entities |
 | `collections/tags.json` | operator-applied classification labels (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) |
-| `collections/saved-views.json` | named Explorer Requirements filter snapshots (see [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md)) |
+| `collections/saved-views.json` | named user convenience filter snapshots for supported Explorer and Workshop scopes (see [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md) and [adr/0043-v1-9-saved-view-expansion.md](adr/0043-v1-9-saved-view-expansion.md)) |
 | `indexes/by-tag.json` | derived requirement-id lists per tag for fast filter rendering |
 | `indexes/*.json` | denormalised read models |
 | `schemas/*.json` | published validation schemas |
@@ -205,7 +205,7 @@ Workforce data is **never** included in bundles. There is no `personnel.json` co
 
 ```json
 {
-  "schemaVersion": "1.5.0",
+  "schemaVersion": "1.6.0",
   "generatedAt": "2026-05-16T00:00:00.000Z",
   "tags": [
     {

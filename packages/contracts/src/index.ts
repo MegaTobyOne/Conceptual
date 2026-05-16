@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.5.0",
-  bundleVersion: "1.5.0",
-  apiVersion: "1.5.0"
+  schemaVersion: "1.6.0",
+  bundleVersion: "1.6.0",
+  apiVersion: "1.6.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.8.0" as const;
+export const PSPF_SLICE_VERSION = "1.9.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -235,7 +235,7 @@ export function isValidSingleGrapheme(value: string): boolean {
   return Array.from(segmenter.segment(value)).length === 1;
 }
 
-export const SAVED_VIEW_SCOPES = ["requirements"] as const;
+export const SAVED_VIEW_SCOPES = ["requirements", "explorer-requirements", "explorer-relationships", "workshop-dashboard", "workshop-evidence-review", "workshop-requirements"] as const;
 export type SavedViewScope = (typeof SAVED_VIEW_SCOPES)[number];
 
 export const SAVED_VIEW_TAGS_MODES = ["any", "all"] as const;
@@ -249,6 +249,12 @@ export type SavedViewSortDirection = (typeof SAVED_VIEW_SORT_DIRECTIONS)[number]
 
 export const SAVED_VIEW_REQUIREMENT_COLUMNS = ["id", "title", "domainId", "assessmentStatus", "tags", "evidence", "actions", "risks"] as const;
 export type SavedViewRequirementColumn = (typeof SAVED_VIEW_REQUIREMENT_COLUMNS)[number];
+
+export const SAVED_VIEW_RELATIONSHIP_COLUMNS = ["title", "relationship", "from", "to", "tags"] as const;
+export type SavedViewRelationshipColumn = (typeof SAVED_VIEW_RELATIONSHIP_COLUMNS)[number];
+
+export const SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS = ["priority", "requirement", "hint", "domain", "requirements", "evidenceGaps", "inProgress", "met", "notMet", "title", "status", "urgency", "total"] as const;
+export type SavedViewWorkshopDashboardColumn = (typeof SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS)[number];
 
 export const SAVED_VIEW_REQUIREMENT_SORT_KEYS = ["title", "domainId", "assessmentStatus", "updatedAt"] as const;
 export type SavedViewRequirementSortKey = (typeof SAVED_VIEW_REQUIREMENT_SORT_KEYS)[number];
@@ -273,7 +279,7 @@ export interface SavedViewFilters {
 export interface SavedViewPresentation {
   readonly sortKey?: SavedViewRequirementSortKey;
   readonly sortDirection?: SavedViewSortDirection;
-  readonly visibleColumns?: readonly SavedViewRequirementColumn[];
+  readonly visibleColumns?: readonly (SavedViewRequirementColumn | SavedViewRelationshipColumn | SavedViewWorkshopDashboardColumn)[];
 }
 
 export interface SavedViewEntity extends EntityEnvelope {

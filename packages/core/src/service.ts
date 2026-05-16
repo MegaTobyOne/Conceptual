@@ -12,10 +12,12 @@ import {
   SAVED_VIEW_EVIDENCE_COVERAGE,
   SAVED_VIEW_LIMITS,
   SAVED_VIEW_REQUIREMENT_COLUMNS,
+  SAVED_VIEW_RELATIONSHIP_COLUMNS,
   SAVED_VIEW_REQUIREMENT_SORT_KEYS,
   SAVED_VIEW_SCOPES,
   SAVED_VIEW_SORT_DIRECTIONS,
   SAVED_VIEW_TAGS_MODES,
+  SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS,
   TAG_COLOURS,
   TAG_LIMITS,
   type ActionStatus,
@@ -929,13 +931,13 @@ function filterIncomingTagLabelCollisions(incomingEntities: readonly V01Entity[]
 function filterIncomingSavedViewNameCollisions(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): { readonly entities: V01Entity[]; readonly conflicts: string[] } {
   const existingSavedViewsByName = new Map(existingEntities
     .filter((entity): entity is EntityByCollection["saved-views"] => entity.entityType === "saved-view")
-    .map((savedView) => [normaliseSavedViewName(savedView.name), savedView]));
+    .map((savedView) => [savedViewScopeNameKey(savedView.scope, savedView.name), savedView]));
   const conflicts: string[] = [];
   const entities = incomingEntities.filter((entity) => {
     if (entity.entityType !== "saved-view") {
       return true;
     }
-    const existing = existingSavedViewsByName.get(normaliseSavedViewName(entity.name));
+    const existing = existingSavedViewsByName.get(savedViewScopeNameKey(entity.scope, entity.name));
     if (existing && existing.id !== entity.id) {
       conflicts.push(`Rejected saved view ${entity.id} ${entity.name}: name already exists on ${existing.id} ${existing.name}.`);
       return false;
@@ -1022,7 +1024,7 @@ function validateSavedViewRules(incomingEntities: readonly V01Entity[], existing
     if (savedView.title !== savedView.name) {
       throw new Error(`Invalid saved-view title for ${savedView.id}: title must mirror name.`);
     }
-    const normalisedName = normaliseSavedViewName(savedView.name);
+    const normalisedName = savedViewScopeNameKey(savedView.scope, savedView.name);
     const existing = namesByNormalisedValue.get(normalisedName);
     if (existing && existing.id !== savedView.id) {
       throw new Error(`Duplicate saved-view name rejected: ${savedView.name} conflicts with ${existing.id}.`);
@@ -1062,8 +1064,12 @@ function validateSavedViewRules(incomingEntities: readonly V01Entity[], existing
     if (visibleColumns.length > SAVED_VIEW_LIMITS.visibleColumnsHard) {
       throw new Error(`Invalid saved-view columns for ${savedView.id}: too many visible columns.`);
     }
-    assertAllAllowed(visibleColumns, SAVED_VIEW_REQUIREMENT_COLUMNS, `Invalid saved-view column for ${savedView.id}`);
+    assertAllAllowed(visibleColumns, [...SAVED_VIEW_REQUIREMENT_COLUMNS, ...SAVED_VIEW_RELATIONSHIP_COLUMNS, ...SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS], `Invalid saved-view column for ${savedView.id}`);
   }
+}
+
+function savedViewScopeNameKey(scope: string, name: string): string {
+  return `${scope}::${normaliseSavedViewName(name)}`;
 }
 
 function assertAllAllowed<T extends string>(values: readonly string[], allowedValues: readonly T[], message: string): void {

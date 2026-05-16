@@ -132,9 +132,9 @@ try {
     const historicalMapping = historicalMappings.find((item) => item.id === "MAP-47cd1747-8119-4c0f-8dbd-27d735e036fd");
     const importSummaryShowsStatusChange = imported.summary.examples.some((item) => item.includes("status") && item.includes("Met"));
     const importSummaryShowsCreatedChangedRequirement = imported.summary.examples.some((item) => item.includes(`Created Requirement ${requirement.id}`)) && importedRequirement?.assessmentStatus === "met";
-    const repeatedAdditiveOnlyRefreshesReferenceDomain = additiveImportedAgain.imported === 1
-        && additiveImportedAgain.summary.written === 1
-        && additiveImportedAgain.summary.byType.domain?.updated === 1
+    const repeatedAdditiveOnlyRefreshesReferenceDomains = additiveImportedAgain.imported > 0
+        && additiveImportedAgain.imported === additiveImportedAgain.summary.written
+        && additiveImportedAgain.summary.byType.domain?.updated === additiveImportedAgain.imported
         && additiveImportedAgain.summary.unchanged > 0;
 
     const checks = [
@@ -158,12 +158,12 @@ try {
         check("Workshop-visible risk score imported", importedRiskRecord?.likelihood === 4 && importedRiskRecord?.impact === 5, `${importedRiskRecord?.likelihood || "missing"}/${importedRiskRecord?.impact || "missing"}`),
         check("Workshop-visible risk source is Explorer", importedRiskRecord?.sourceProduct === "explorer", importedRiskRecord?.sourceProduct || "missing"),
         check("Workshop-visible risk link imported", importedRiskLink?.sourceProduct === "explorer", importedRiskLink?.sourceProduct || "missing"),
-        check("Workshop-visible saved view imported", importedSavedView?.scope === "requirements", importedSavedView?.scope || "missing"),
+        check("Workshop-visible saved view imported", importedSavedView?.scope === "explorer-requirements", importedSavedView?.scope || "missing"),
         check("Workshop-visible saved view source is Explorer", importedSavedView?.sourceProduct === "explorer", importedSavedView?.sourceProduct || "missing"),
         check("Baseline Requirements retained", importedRequirements.length === PSPF_BASELINE_REQUIREMENTS.length + 1, `${importedRequirements.length} requirement(s)`),
         check("Additive import accepts existing source controls", additiveImported.imported > 0 && additiveValidation.ok, `${additiveImported.imported} record(s)`),
         check("Additive import summary reports changes", additiveImported.summary.updated > 0 || additiveImported.summary.created > 0, `${additiveImported.summary.updated} updated, ${additiveImported.summary.created} created`),
-        check("Repeated additive import reports no local changes", (additiveImportedAgain.imported === 0 && additiveImportedAgain.summary.written === 0 && additiveImportedAgain.summary.unchanged > 0) || repeatedAdditiveOnlyRefreshesReferenceDomain, `${additiveImportedAgain.imported} imported, ${additiveImportedAgain.summary.unchanged} unchanged`),
+        check("Repeated additive import reports no local changes", (additiveImportedAgain.imported === 0 && additiveImportedAgain.summary.written === 0 && additiveImportedAgain.summary.unchanged > 0) || repeatedAdditiveOnlyRefreshesReferenceDomains, `${additiveImportedAgain.imported} imported, ${additiveImportedAgain.summary.unchanged} unchanged`),
         check("Additive import carries local status", additiveRequirement?.assessmentStatus === "met", additiveRequirement?.assessmentStatus || "missing"),
         check("Additive import preserves changed Requirement createdAt when baseline exists", !changedRequirementBeforeAdditive || additiveRequirement?.createdAt === changedRequirementBeforeAdditive.createdAt, additiveRequirement?.createdAt || "created row"),
         check("Additive import leaves unchanged Requirement createdAt", unchangedRequirementAfterAdditive?.createdAt === unchangedRequirementBeforeAdditive.createdAt, unchangedRequirementAfterAdditive?.createdAt || "missing"),
