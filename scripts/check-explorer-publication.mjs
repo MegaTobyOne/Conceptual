@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 import { PSPF_SLICE_VERSION, VERSION_AXES } from "../packages/contracts/dist/index.js";
@@ -28,6 +28,9 @@ try {
   await page.goto(pathToFileURL(explorerPath).href);
   await page.waitForFunction(() => typeof globalThis.pspfExplorerRender === "function");
   const bundle = JSON.parse(await readFileSyncText(bundlePath));
+  const dataDirectory = join(dirname(bundlePath), "data");
+  const byTagPath = join(dataDirectory, "indexes", "by-tag.json");
+  const byTagIndex = existsSync(byTagPath) ? JSON.parse(readFileSyncText(byTagPath)) : undefined;
   await page.evaluate(async (value) => {
     await globalThis.pspfExplorerRender(value.manifest, value.collections || {});
   }, bundle);
@@ -182,6 +185,10 @@ try {
     check("Manual ISM source IDs render compactly", syntheticExplorerValues.manualCoverageControlId === "SRC-ABCD", syntheticExplorerValues.manualCoverageControlId || "missing"),
     check("Generated brief includes classification", typeof brief === "string" && brief.includes("OFFICIAL: Sensitive"), "classification"),
     check("Generated brief excludes sensitive summary", typeof brief === "string" && !brief.includes("Internal assessment working note"), "summary redaction"),
+    check("Generated brief excludes sensitive tag description", typeof brief === "string" && !brief.includes("Sensitive tag purpose note"), "tag redaction"),
+    check("Tag collection exported", Array.isArray(bundle.collections?.tags), `${bundle.collections?.tags?.length ?? "missing"} tag(s)`),
+    check("By-tag index exported", Boolean(byTagIndex && Array.isArray(byTagIndex.tags)), byTagPath),
+    check("By-tag index excludes sensitive tag description", byTagIndex ? !JSON.stringify(byTagIndex).includes("Sensitive tag purpose note") : false, "default deny"),
     check("Readable requirement title rendered", requirementsText.includes("Validate governance reporting workflow"), "requirement title"),
     check("Readable relationship target rendered", visibleText.includes("Governance committee terms of reference"), "evidence title"),
     ...desktopLayoutChecks,

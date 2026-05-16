@@ -20,6 +20,7 @@ const checks = [
   check("Markdown includes evidence basis", markdown.includes("## Evidence Basis")),
   check("Markdown includes linked action", markdown.includes("Confirm next governance review date")),
   check("Markdown excludes sensitive requirement summary", !markdown.includes("Internal assessment working note")),
+  check("Markdown excludes sensitive tag description", !markdown.includes("Sensitive tag purpose note")),
   check("Markdown excludes restricted personal field names", !markdown.includes("person.name") && !markdown.includes("person.email") && !markdown.includes("assignment.personId")),
   check("Browser renderer matches package renderer", browserMarkdown === markdown),
   check("Plain text remains readable", stripMarkdown(markdown).includes("PSPF Posture Brief") && stripMarkdown(markdown).includes("Open Actions"))
@@ -77,6 +78,18 @@ function createFixture() {
     },
     "workshop"
   );
+  const tag = withEnvelope(
+    "tag",
+    {
+      entityType: "tag",
+      title: "Security uplift",
+      label: "security uplift",
+      colour: "grey",
+      description: "Sensitive tag purpose note that must not be exported.",
+      emoji: ""
+    },
+    "workshop"
+  );
 
   return {
     generatedAt: "2026-05-11T00:00:00.000Z",
@@ -84,10 +97,12 @@ function createFixture() {
     evidence: [evidence],
     actions: [action],
     risks: [risk],
+    tags: [tag],
     links: [
       withEnvelope("link", { entityType: "link", title: "supported", linkType: "supported-by", fromId: requirement.id, fromType: "requirement", toId: evidence.id, toType: "evidence" }, "workshop"),
       withEnvelope("link", { entityType: "link", title: "addressed", linkType: "addressed-by", fromId: requirement.id, fromType: "requirement", toId: action.id, toType: "action" }, "workshop"),
-      withEnvelope("link", { entityType: "link", title: "exposed", linkType: "exposed-by", fromId: requirement.id, fromType: "requirement", toId: risk.id, toType: "risk" }, "workshop")
+      withEnvelope("link", { entityType: "link", title: "exposed", linkType: "exposed-by", fromId: requirement.id, fromType: "requirement", toId: risk.id, toType: "risk" }, "workshop"),
+      withEnvelope("link", { entityType: "link", title: "tagged", linkType: "tagged-with", fromId: requirement.id, fromType: "requirement", toId: tag.id, toType: "tag" }, "workshop")
     ],
     domains: PSPF_DOMAINS,
     sourceLabel: "Gate fixture",

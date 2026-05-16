@@ -67,6 +67,10 @@ const html = `<!doctype html>
     .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
     .toolbar > * { min-width: 0; }
     .toolbar input, .toolbar select { max-width: 100%; }
+    .tag-filter { display: grid; gap: 8px; border: 1px solid rgba(20, 184, 166, 0.32); border-radius: 6px; padding: 10px; margin: 0 0 12px; background: rgba(18, 63, 59, 0.16); }
+    .tag-filter-options { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .tag-filter label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-soft); border-radius: 999px; padding: 4px 9px; background: var(--surface-soft); }
+    .tag-filter input[type="checkbox"] { width: auto; }
     .local-authoring-grid { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
     .local-picker { border: 1px solid rgba(20, 184, 166, 0.35); border-radius: 6px; background: var(--surface-soft); padding: 12px; position: sticky; top: 64px; }
     .local-picker.filtered { border-color: var(--accent-strong); box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.22); }
@@ -220,6 +224,8 @@ let currentLocalRequirementId;
 let currentLocalRequirementFilter = "";
 let currentLocalRequirements = [];
 let currentExplorerSearch = "";
+let currentTagFilterIds = new Set();
+let currentTagFilterMode = "any";
 let shouldSnapLocalSelectionToSearch = false;
 const localDbName = "pspf-explorer-local-v1";
 const localStoreName = "requirement-status-overlays";
@@ -228,6 +234,7 @@ const localActionStoreName = "requirement-actions";
 const localRiskStoreName = "requirement-risks";
 const rememberedBundleStoreName = "remembered-bundles";
 const rememberedBundleKey = "latest";
+const tagFilterSessionKey = "pspf:explorer:tag-filter";
 const assessmentStatuses = ["not-started", "in-progress", "met", "partially-met", "not-met", "not-applicable", "under-review"];
 const actionStatuses = ["todo", "in-progress", "blocked", "done", "cancelled"];
 const riskStatuses = ["open", "monitored", "closed"];
@@ -307,6 +314,7 @@ input.addEventListener("change", async () => {
 restoreRememberedBundle();
 
 async function render(manifest, incomingCollections, collectionTexts = undefined) {
+  loadTagFilterState();
   currentManifest = manifest;
   currentBaselineCollections = cloneCollections(incomingCollections || {});
   currentBundleKey = bundleStorageKey(manifest);
@@ -321,6 +329,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   const validation = await validateBundle(manifest, currentBaselineCollections, collectionTexts);
   const domainsById = new Map((collections.domains || []).map((domain) => [domain.id, domain.title]));
   const relationshipSummary = summariseRelationships(collections.links || []);
+  const tagModel = buildTagModel(collections);
   const requirementsById = new Map((collections.requirements || []).map((requirement) => [requirement.id, requirement]));
   const sourceControlsById = new Map((collections["source-controls"] || []).map((sourceControl) => [sourceControl.id, sourceControl]));
   const entitiesById = entityTitleMap(collections);
@@ -330,6 +339,8 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
     evidence: relationshipSummary.evidenceByRequirement.get(requirement.id) || 0,
     actions: relationshipSummary.actionsByRequirement.get(requirement.id) || 0,
     risks: relationshipSummary.risksByRequirement.get(requirement.id) || 0,
+    tags: tagModel.labelsByRequirement.get(requirement.id) || "",
+    tagIds: tagModel.idsByRequirement.get(requirement.id) || [],
     statusSource: currentLocalOverlays.has(requirement.id) ? "Local" : "From bundle"
   }));
   currentLocalRequirements = requirements;
@@ -386,7 +397,8 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
     title: link.title,
     relationship: label(link.linkType),
     from: entitiesById.get(link.fromId) || label(link.fromType),
-    to: entitiesById.get(link.toId) || label(link.toType)
+    to: entitiesById.get(link.toId) || label(link.toType),
+    tagIds: tagIdsForRelationship(link, tagModel)
   }));
   sectionNav.hidden = false;
   summary.hidden = false;
@@ -419,7 +431,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderLocalAuthoringSection();
 
   requirementsSection.hidden = false;
-  renderExplorerSection(requirementsSection, "Requirements", table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "evidence", "actions", "risks"]));
+  renderExplorerSection(requirementsSection, "Requirements", tagFilterPanel(tagModel) + table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "tags", "evidence", "actions", "risks"]));
 
   evidenceSection.hidden = false;
   renderExplorerSection(evidenceSection, "Evidence", table(evidence, ["title", "evidenceType", "freshness", "requirements", "reference"]));
@@ -450,8 +462,10 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderExplorerSection(ismCoverageSection, "ISM Coverage", table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"]));
 
   linksSection.hidden = false;
-  renderExplorerSection(linksSection, "Relationships Board", table(relationships, ["title", "relationship", "from", "to"]));
+  renderExplorerSection(linksSection, "Relationships Board", tagFilterPanel(tagModel) + table(relationships, ["title", "relationship", "from", "to"]));
 
+  bindTagFilterControls();
+  applyTagFilter();
   applyExplorerSearch();
 }
 
@@ -472,7 +486,8 @@ function applyExplorerSearch() {
     let sectionMatches = false;
     for (const row of rows) {
       totalRows += 1;
-      const matches = !query || normaliseSearchText(row.textContent).includes(query);
+      const matchesTagFilter = row.dataset.tagFilterHidden !== "true";
+      const matches = matchesTagFilter && (!query || normaliseSearchText(row.textContent).includes(query));
       row.hidden = !matches;
       if (matches) {
         visibleRows += 1;
@@ -508,6 +523,132 @@ function renderExplorerSection(section, heading, body, open = false) {
   const shouldOpen = section.open || open;
   section.innerHTML = '<summary><h2>' + escapeHtml(heading) + '</h2></summary><div class="section-body">' + body + '</div>';
   section.open = shouldOpen;
+}
+
+function buildTagModel(collections) {
+  const tagsById = new Map((collections.tags || []).filter((tag) => tag.recordStatus !== "deleted").map((tag) => [tag.id, tag]));
+  const idsByRequirement = new Map();
+  for (const link of collections.links || []) {
+    if (link.recordStatus === "deleted" || link.linkType !== "tagged-with" || link.fromType !== "requirement" || link.toType !== "tag") {
+      continue;
+    }
+    if (!tagsById.has(link.toId)) {
+      continue;
+    }
+    idsByRequirement.set(link.fromId, [...(idsByRequirement.get(link.fromId) || []), link.toId]);
+  }
+  const labelsByRequirement = new Map();
+  for (const [requirementId, tagIds] of idsByRequirement) {
+    labelsByRequirement.set(requirementId, tagIds.map((id) => tagLabel(tagsById.get(id))).join(", "));
+  }
+  const tags = [...tagsById.values()].filter((tag) => tag.recordStatus !== "archived").sort((left, right) => String(left.title).localeCompare(String(right.title), "en-AU", { sensitivity: "base" }) || String(left.id).localeCompare(String(right.id)));
+  return { tagsById, idsByRequirement, labelsByRequirement, tags };
+}
+
+function tagIdsForRelationship(link, tagModel) {
+  if (link.fromType === "requirement") {
+    return tagModel.idsByRequirement.get(link.fromId) || [];
+  }
+  if (link.toType === "requirement") {
+    return tagModel.idsByRequirement.get(link.toId) || [];
+  }
+  return [];
+}
+
+function tagFilterPanel(tagModel) {
+  if (tagModel.tags.length === 0) {
+    return '<p class="muted">No active tags in this bundle.</p>';
+  }
+  const options = tagModel.tags.map((tag) => '<label><input type="checkbox" class="tag-filter-checkbox" value="' + escapeHtml(tag.id) + '"' + (currentTagFilterIds.has(tag.id) ? ' checked' : '') + '> ' + escapeHtml(tagLabel(tag)) + '</label>').join("");
+  return '<div class="tag-filter" role="group" aria-label="Tag filter"><div class="toolbar"><strong>Tag filter</strong><select class="tag-filter-mode" aria-label="Tag filter mode"><option value="any"' + (currentTagFilterMode === "any" ? ' selected' : '') + '>Any selected tag</option><option value="all"' + (currentTagFilterMode === "all" ? ' selected' : '') + '>All selected tags</option></select><button type="button" class="secondary tag-filter-clear">Clear tags</button></div><div class="tag-filter-options">' + options + '</div></div>';
+}
+
+function bindTagFilterControls() {
+  document.querySelectorAll(".tag-filter-checkbox").forEach((input) => {
+    input.addEventListener("change", () => {
+      currentTagFilterIds = new Set(Array.from(document.querySelectorAll(".tag-filter-checkbox:checked")).map((item) => item.value));
+      persistTagFilterState();
+      syncTagFilterControls();
+      applyTagFilter();
+      applyExplorerSearch();
+    });
+  });
+  document.querySelectorAll(".tag-filter-mode").forEach((select) => {
+    select.addEventListener("change", () => {
+      currentTagFilterMode = select.value === "all" ? "all" : "any";
+      persistTagFilterState();
+      syncTagFilterControls();
+      applyTagFilter();
+      applyExplorerSearch();
+    });
+  });
+  document.querySelectorAll(".tag-filter-clear").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentTagFilterIds = new Set();
+      currentTagFilterMode = "any";
+      persistTagFilterState();
+      syncTagFilterControls();
+      applyTagFilter();
+      applyExplorerSearch();
+    });
+  });
+}
+
+function syncTagFilterControls() {
+  document.querySelectorAll(".tag-filter-checkbox").forEach((input) => {
+    input.checked = currentTagFilterIds.has(input.value);
+  });
+  document.querySelectorAll(".tag-filter-mode").forEach((select) => {
+    select.value = currentTagFilterMode;
+  });
+}
+
+function applyTagFilter() {
+  const selected = [...currentTagFilterIds];
+  for (const row of document.querySelectorAll("#requirements tbody tr, #links tbody tr")) {
+    const rowTags = String(row.dataset.tagIds || "").split(",").filter(Boolean);
+    const matches = selected.length === 0 || (currentTagFilterMode === "all" ? selected.every((id) => rowTags.includes(id)) : selected.some((id) => rowTags.includes(id)));
+    row.dataset.tagFilterHidden = matches ? "false" : "true";
+    row.hidden = !matches;
+  }
+}
+
+function loadTagFilterState() {
+  const params = new URLSearchParams(window.location.search);
+  const urlTags = (params.get("tags") || "").split(",").filter(Boolean);
+  const urlMode = params.get("tagsMode");
+  if (urlTags.length > 0) {
+    currentTagFilterIds = new Set(urlTags);
+    currentTagFilterMode = urlMode === "all" ? "all" : "any";
+    return;
+  }
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(tagFilterSessionKey) || "null");
+    currentTagFilterIds = new Set(Array.isArray(stored?.tags) ? stored.tags : []);
+    currentTagFilterMode = stored?.tagsMode === "all" ? "all" : "any";
+  } catch {
+    currentTagFilterIds = new Set();
+    currentTagFilterMode = "any";
+  }
+}
+
+function persistTagFilterState() {
+  const tags = [...currentTagFilterIds];
+  sessionStorage.setItem(tagFilterSessionKey, JSON.stringify({ tags, tagsMode: currentTagFilterMode }));
+  const params = new URLSearchParams(window.location.search);
+  if (tags.length === 0) {
+    params.delete("tags");
+    params.delete("tagsMode");
+  } else {
+    params.set("tags", tags.join(","));
+    params.set("tagsMode", currentTagFilterMode);
+  }
+  const query = params.toString();
+  history.replaceState(null, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
+}
+
+function tagLabel(tag) {
+  return (tag?.emoji ? tag.emoji + " " : "") + (tag?.title || tag?.label || "Unknown tag");
 }
 
 function renderLocalAuthoringSection() {
@@ -1729,8 +1870,16 @@ function table(rows, keys) {
 
 function tableHtml(rows, keys) {
   const header = keys.map((key) => '<th data-field="' + escapeHtml(key) + '">' + escapeHtml(label(key)) + '</th>').join("");
-  const body = rows.map((row) => '<tr>' + keys.map((key) => '<td data-field="' + escapeHtml(key) + '">' + tableValue(row[key], key) + '</td>').join("") + '</tr>').join("");
+  const body = rows.map((row) => '<tr' + tableRowAttributes(row) + '>' + keys.map((key) => '<td data-field="' + escapeHtml(key) + '">' + tableValue(row[key], key) + '</td>').join("") + '</tr>').join("");
   return '<div class="table-wrap" tabindex="0" aria-label="Scrollable data table"><table><thead><tr>' + header + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+}
+
+function tableRowAttributes(row) {
+  const attributes = [];
+  if (Array.isArray(row.tagIds)) {
+    attributes.push('data-tag-ids="' + escapeHtml(row.tagIds.join(",")) + '"');
+  }
+  return attributes.length ? " " + attributes.join(" ") : "";
 }
 
 function tableValue(value, key) {

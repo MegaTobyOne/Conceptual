@@ -1,0 +1,116 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.4.0/collections/actions.schema.json",
+    "title": "PSPF Explorer Actions Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^ACT-"
+            },
+            "entityType": {
+                "const": "action"
+            },
+            "schemaVersion": {
+                "const": "1.4.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "status": {
+                "enum": [
+                    "todo",
+                    "in-progress",
+                    "blocked",
+                    "done",
+                    "cancelled"
+                ]
+            },
+            "dueDate": {
+                "type": "string"
+            },
+            "impact": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "postureUplift",
+                    "evidenceUplift",
+                    "riskReduction",
+                    "urgency",
+                    "explanation"
+                ],
+                "properties": {
+                    "postureUplift": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "evidenceUplift": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "riskReduction": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "directionUplift": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "urgency": {
+                        "enum": [
+                            "normal",
+                            "due-soon",
+                            "overdue",
+                            "blocked"
+                        ]
+                    },
+                    "explanation": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
