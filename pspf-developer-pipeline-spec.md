@@ -67,11 +67,14 @@ Use the promotion model in ADR 0039:
 - short-lived feature branches for day-to-day work,
 - `develop` as the integration branch and automatic test-deploy source,
 - `main` as the protected release branch,
-- release tags cut only from `main` for Marketplace and Explorer production deployments.
+- release tags act as **receipts** created by the release workflows themselves after a successful Marketplace publish or Explorer production deploy; they are not the trigger.
 
 Do not work directly on `main`. Normal changes merge feature branches into `develop` by PR, then promote `develop` to `main` by release-candidate PR. Hotfixes branch from `main`, release from `main`, then merge back into `develop`.
 
-Explorer production tags should be created through the `Explorer production tag` GitHub Actions workflow rather than by hand. The workflow must be dispatched from `main`, verifies the requested version matches `package.json`, runs `release:readiness`, creates `explorer/<version>`, and lets the existing `web-release.yml` tag trigger perform the approved production deploy.
+Production releases are driven by `workflow_dispatch` from `main`, not by hand-cut tags:
+
+- **Marketplace**: run `Marketplace release` with `target=core|workshop|both`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates `core/<version>` and/or `workshop/<version>` tags and GitHub releases as receipts. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection.
+- **Explorer web**: run `Web release` with `target=production`. The workflow gates on the `production-web` environment and deploys to `tobyharvey.online` through the VentraIP composite action. Test deploys to `test.tobyharvey.online` still run automatically on push to `develop`.
 
 ### Pull request discipline
 
@@ -300,8 +303,7 @@ All workflow files live in `.github/workflows/` at the repo root. Each is scoped
 | `personal-data-gate.yml` | every PR | exporter run against personal-data fixture; fail-closed assertion (N6, S7) |
 | `deployment-safety.yml` | every PR and release/deploy tag | static deployment and publication-bundle safety scan; blocks hosted sensitive/restricted fields, personal data, secrets, and workspace/runtime artefacts |
 | `au-english-lint.yml` | every PR | scan `docs/**` and extracted UI strings against the spelling allowlist |
-| `core-release.yml` | tag `core/<v>` | package `packages/core` as signed VSIX, attach to GitHub release, publish to Marketplace |
-| `workshop-release.yml` | tag `workshop/<v>` | as above for Workshop |
+| `marketplace.yml` | `workflow_dispatch` from `main` with `target=core\|workshop\|both` and optional `dry_run` | build once, package selected VSIX(es), gate on `marketplace` environment approval, publish via `vsce`, then create `core/<v>` and/or `workshop/<v>` tags and GitHub releases as receipts |
 | `shop-release.yml` | tag `shop/<v>` | as above for Shop (v0.2+) |
 | `pub-release.yml` | tag `pub/<v>` | as above for Pub (v0.2+) |
 | `web-release.yml` | tag `explorer/<v>` from `main` (production) or push to `develop` (test) | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment |
