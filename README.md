@@ -2,9 +2,9 @@
 
 PSPF is the Australian Government's Protective Security Policy Framework, administered by the Department of Home Affairs. This product helps Australian entities assess and report against PSPF requirements and the ASD Essential Eight, locally and offline.
 
-This repository currently implements the v1.7.0 initial assurance user-testing slice: PSPF Core, PSPF Workshop, PSPF Explorer publication mode, workspace tags for Requirements, Explorer tag filtering, Explorer browser-local Requirement status overlays, Explorer browser-local evidence references, Explorer browser-local Actions, Explorer browser-local Risks, local status conflict display, Workshop import review for Explorer local JSON, plan/review/apply import with last-import undo, browser-refresh bundle restore, and distinct Workshop/Explorer identity passes. Shop, Pub, editable posture, chart image export, saved views, per-user/private tags, tag hierarchies, tagging non-Requirement entities, and compliance-history export controls remain deferred.
+This repository currently implements the v1.8.0 initial assurance user-testing slice: PSPF Core, PSPF Workshop, PSPF Explorer publication mode, workspace tags for Requirements, Explorer tag filtering, Explorer Requirements saved views, Explorer browser-local Requirement status overlays, Explorer browser-local evidence references, Explorer browser-local Actions, Explorer browser-local Risks, local status conflict display, Workshop import review for Explorer local JSON, plan/review/apply import with last-import undo, browser-refresh bundle restore, and distinct Workshop/Explorer identity passes. Shop, Pub, editable posture, chart image export, per-user/private tags, tag hierarchies, tagging non-Requirement entities, saved views outside Requirements, and compliance-history export controls remain deferred.
 
-Current user-facing improvements include sample workspace loading, Direction and ISM mapping review, Action Impact summaries, compact Workshop edit tabs, AU-formatted due dates, save-and-close edit actions, Tag Manager and Requirement tag rails, a cooler Workshop system-of-record identity, a proper Workshop import review surface, and a warmer Explorer portable assurance view with collapsible sections and tag filters.
+Current user-facing improvements include sample workspace loading, Direction and ISM mapping review, Action Impact summaries, compact Workshop edit tabs, AU-formatted due dates, save-and-close edit actions, Tag Manager and Requirement tag rails, Explorer Requirements saved views, a cooler Workshop system-of-record identity, a proper Workshop import review surface, and a warmer Explorer portable assurance view with collapsible sections and tag filters.
 
 ## Local Setup
 
@@ -48,7 +48,7 @@ For a clean manual run, close the Extension Host and run `npx pnpm@10.10.0 run d
 
 Open `packages/explorer/dist/index.html` in a browser and select the exported `debug-workspace/.pspf/exchange/exports/export-*/bundle.json` file. Explorer should show a posture brief, donut with its status table directly underneath, collapsible record sections, top navigation that opens a target section, a `Close All` control, AU-formatted Action due dates, compact unresolved ISM IDs, and readable Relationships columns.
 
-For v1.7.0 validation, create or apply a Requirement tag in Workshop, confirm it appears in Requirement Detail and `PSPF: Manage Tags`, export to Explorer, and confirm the Requirements and Relationships Board tag filters update the URL/session state. Then open `Local Changes`, change one Requirement status, add one evidence reference, one Action, and one Risk for the same Requirement, refresh Explorer to confirm the latest bundle and local work restore automatically, export local JSON, import it through Core with `Plan, review, apply`, review the `PSPF Workshop Import Review` surface, apply the import, review the records in Workshop, test `Undo Import`, and then reset local data. The exported JSON remains the standard master bundle format with `generator.mode` set to `local-authoring`.
+For v1.8.0 validation, create or apply a Requirement tag in Workshop, confirm it appears in Requirement Detail and `PSPF: Manage Tags`, export to Explorer, and confirm the Requirements and Relationships Board tag filters update the URL/session state. In Explorer Requirements, compose Search, status, and tag filters, save the view, reload the browser, apply the saved view, then export local JSON and confirm the bundle includes `saved-views`. Then open `Local Changes`, change one Requirement status, add one evidence reference, one Action, and one Risk for the same Requirement, refresh Explorer to confirm the latest bundle and local work restore automatically, import the local JSON through Core with `Plan, review, apply`, review the `PSPF Workshop Import Review` surface, apply the import, review the records in Workshop, test `Undo Import`, and then reset local data. The exported JSON remains the standard master bundle format with `generator.mode` set to `local-authoring`.
 
 ## Headless v0.1 E2E
 
@@ -91,8 +91,8 @@ The command finds the latest `debug-workspace/.pspf/exchange/exports/export-*/bu
 - `pnpm run validate:export -- <export-directory|bundle.json>` validates a specific export path, including manifest/collection schema validation.
 - `pnpm run check:accessibility` scans Explorer with Playwright and axe-core and fails on serious or critical findings.
 - `pnpm run check:explorer-publication` builds Explorer and checks validation, section navigation, collapsed panels, `Close All`, AU Action dates, compact ISM IDs, wide layout usage, and readable table columns.
-- `pnpm run check:explorer-local-authoring` builds Explorer and checks IndexedDB status persistence, remembered-bundle refresh restore, local evidence references, local Actions, local Risks, local-vs-bundle display, local conflict display, local JSON export, reset, and personal-data exclusion.
-- `pnpm run check:explorer-to-workshop-import` builds Explorer, exports local-authoring JSON, imports it through Core, and checks Workshop-visible local status, evidence, Actions, and links.
+- `pnpm run check:explorer-local-authoring` builds Explorer and checks IndexedDB status persistence, saved-view persistence/application/export, remembered-bundle refresh restore, local evidence references, local Actions, local Risks, local-vs-bundle display, local conflict display, local JSON export, reset, and personal-data exclusion.
+- `pnpm run check:explorer-to-workshop-import` builds Explorer, exports local-authoring JSON, imports it through Core, and checks Workshop-visible local status, evidence, Actions, Risks, saved views, and links.
 - `pnpm run check:writer-lock` confirms a simulated second writer blocks writes.
 - `pnpm run check:backup-restore` restores a copied `.pspf` workspace and verifies integrity plus Core validation.
 - `pnpm run check:schema-coverage` confirms every v0.1 Explorer collection has a Draft 07 schema file and validates the standard fixture with AJV.
@@ -109,7 +109,7 @@ Run:
 npx pnpm@10.10.0 run release:readiness
 ```
 
-This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.7.0-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.
+This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.8.0-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.
 
 ## Planning Notes
 
@@ -117,5 +117,6 @@ This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/releas
 - v1.5 validates `plan-apply`, conflict classification, explicit apply confirmation, and last-import undo.
 - v1.5.1 records the Workshop/Explorer product boundary, restores the latest Explorer bundle after refresh, and gives Explorer a warmer portable-assurance visual identity.
 - v1.6 adds the proper Workshop import review surface for Explorer local JSON and gives Workshop its system-of-record identity treatment.
-- v1.7 adds first-class workspace tags for Requirements, `tagged-with` links, default-deny tag publication policy, by-tag export indexes, Workshop tag management, and Explorer tag filtering. Saved views and compliance-history export controls remain deferred.
+- v1.7 adds first-class workspace tags for Requirements, `tagged-with` links, default-deny tag publication policy, by-tag export indexes, Workshop tag management, and Explorer tag filtering.
+- v1.8 adds durable Explorer Requirements saved views, persisted in browser-local storage and round-tripped through local-authoring bundles as `saved-view` records in `saved-views`. Saved views outside Requirements and compliance-history export controls remain deferred.
 - Posture editing remains out of scope unless deliberately reopened.

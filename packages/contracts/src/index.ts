@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.4.0",
-  bundleVersion: "1.4.0",
-  apiVersion: "1.4.0"
+  schemaVersion: "1.5.0",
+  bundleVersion: "1.5.0",
+  apiVersion: "1.5.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.7.0" as const;
+export const PSPF_SLICE_VERSION = "1.8.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -17,6 +17,7 @@ export const V0_1_ENTITY_TYPES = [
   "snapshot",
   "link",
   "tag",
+  "saved-view",
   "source-control",
   "requirement-control-mapping",
   "direction",
@@ -34,6 +35,7 @@ export const V0_1_COLLECTIONS = [
   "snapshots",
   "links",
   "tags",
+  "saved-views",
   "source-controls",
   "requirement-control-mappings",
   "directions",
@@ -233,6 +235,65 @@ export function isValidSingleGrapheme(value: string): boolean {
   return Array.from(segmenter.segment(value)).length === 1;
 }
 
+export const SAVED_VIEW_SCOPES = ["requirements"] as const;
+export type SavedViewScope = (typeof SAVED_VIEW_SCOPES)[number];
+
+export const SAVED_VIEW_TAGS_MODES = ["any", "all"] as const;
+export type SavedViewTagsMode = (typeof SAVED_VIEW_TAGS_MODES)[number];
+
+export const SAVED_VIEW_EVIDENCE_COVERAGE = ["any", "missing", "linked"] as const;
+export type SavedViewEvidenceCoverage = (typeof SAVED_VIEW_EVIDENCE_COVERAGE)[number];
+
+export const SAVED_VIEW_SORT_DIRECTIONS = ["asc", "desc"] as const;
+export type SavedViewSortDirection = (typeof SAVED_VIEW_SORT_DIRECTIONS)[number];
+
+export const SAVED_VIEW_REQUIREMENT_COLUMNS = ["id", "title", "domainId", "assessmentStatus", "tags", "evidence", "actions", "risks"] as const;
+export type SavedViewRequirementColumn = (typeof SAVED_VIEW_REQUIREMENT_COLUMNS)[number];
+
+export const SAVED_VIEW_REQUIREMENT_SORT_KEYS = ["title", "domainId", "assessmentStatus", "updatedAt"] as const;
+export type SavedViewRequirementSortKey = (typeof SAVED_VIEW_REQUIREMENT_SORT_KEYS)[number];
+
+export const SAVED_VIEW_LIMITS = {
+  nameMaxLength: 60,
+  queryMaxLength: 120,
+  visibleColumnsHard: 12
+} as const;
+
+export interface SavedViewFilters {
+  readonly query?: string;
+  readonly domainIds?: readonly string[];
+  readonly assessmentStatuses?: readonly AssessmentStatus[];
+  readonly tagIds?: readonly string[];
+  readonly tagsMode?: SavedViewTagsMode;
+  readonly evidenceCoverage?: SavedViewEvidenceCoverage;
+  readonly actionStates?: readonly ActionStatus[];
+  readonly riskStates?: readonly RiskStatus[];
+}
+
+export interface SavedViewPresentation {
+  readonly sortKey?: SavedViewRequirementSortKey;
+  readonly sortDirection?: SavedViewSortDirection;
+  readonly visibleColumns?: readonly SavedViewRequirementColumn[];
+}
+
+export interface SavedViewEntity extends EntityEnvelope {
+  readonly entityType: "saved-view";
+  readonly title: string;
+  readonly name: string;
+  readonly scope: SavedViewScope;
+  readonly filters: SavedViewFilters;
+  readonly presentation?: SavedViewPresentation;
+}
+
+export function normaliseSavedViewName(value: string): string {
+  return value.normalize("NFC").trim().replace(/\s+/g, " ").toLocaleLowerCase("en-AU");
+}
+
+export function isValidSavedViewName(value: string): boolean {
+  const normalised = value.normalize("NFC").trim().replace(/\s+/g, " ");
+  return normalised.length >= 1 && normalised.length <= SAVED_VIEW_LIMITS.nameMaxLength;
+}
+
 export interface SourceControlExternalRef {
   readonly scheme: "ism-control-id" | "oscal-uuid" | string;
   readonly value: string;
@@ -313,6 +374,7 @@ export type V01Entity =
   | LinkEntity
   | SnapshotEntity
   | TagEntity
+  | SavedViewEntity
   | SourceControlEntity
   | RequirementControlMappingEntity
   | DirectionEntity
@@ -327,6 +389,7 @@ export type EntityByCollection = {
   snapshots: SnapshotEntity;
   links: LinkEntity;
   tags: TagEntity;
+  "saved-views": SavedViewEntity;
   "source-controls": SourceControlEntity;
   "requirement-control-mappings": RequirementControlMappingEntity;
   directions: DirectionEntity;
@@ -389,6 +452,10 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
       ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "label", "colour", "emoji"),
       { field: "description", publication: "sensitive" }
     ]
+  },
+  {
+    entityType: "saved-view",
+    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "name", "scope", "filters", "presentation")
   },
   {
     entityType: "source-control",
@@ -486,6 +553,7 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   snapshot: "snapshots",
   link: "links",
   tag: "tags",
+  "saved-view": "saved-views",
   "source-control": "source-controls",
   "requirement-control-mapping": "requirement-control-mappings",
   direction: "directions",
@@ -501,6 +569,7 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   snapshot: "SNP",
   link: "LNK",
   tag: "TAG",
+  "saved-view": "SVW",
   "source-control": "SRC",
   "requirement-control-mapping": "MAP",
   direction: "DIR",
