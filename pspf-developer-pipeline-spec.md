@@ -71,6 +71,51 @@ Use the promotion model in ADR 0039:
 
 Do not work directly on `main`. Normal changes merge feature branches into `develop` by PR, then promote `develop` to `main` by release-candidate PR. Hotfixes branch from `main`, release from `main`, then merge back into `develop`.
 
+### Standing branch, test, and deploy flow
+
+Every change and promotion should follow this flow unless an ADR or incident runbook explicitly overrides it.
+
+```mermaid
+flowchart TD
+	start([Start change]) --> sync[Fetch and confirm clean working tree]
+	sync --> branch[Create short-lived feature branch from develop]
+	branch --> implement[Implement scoped change with docs and tests]
+	implement --> local[Run focused local checks]
+	local --> pr[Open PR to develop]
+	pr --> ci[CI: lint, typecheck, build, tests, gates]
+	ci --> review[Human review and Copilot review]
+	review --> mergeDevelop[Merge PR to develop]
+	mergeDevelop --> testDeploy[Test web deploy from develop]
+	testDeploy --> readiness[Run release readiness and manual validation]
+	readiness --> rc[Open release-candidate PR: develop to main]
+	rc --> mainCi[CI and release-candidate gates]
+	mainCi --> mergeMain[Merge release-candidate PR to main]
+	mergeMain --> production{Release channel}
+	production --> explorer[Explorer production web release from main]
+	production --> marketplace[Marketplace release from main]
+	explorer --> approval[Manual production-web approval]
+	marketplace --> marketplaceApproval[Manual marketplace approval]
+	approval --> receiptTags[Workflow creates release receipts and tags]
+	marketplaceApproval --> receiptTags
+	receiptTags --> backMerge[Fast-forward or merge main back into develop]
+	backMerge --> done([Ready for next change])
+
+	mainHotfix([Production hotfix]) --> hotfix[Branch from main]
+	hotfix --> hotfixChecks[Implement fix and run focused checks]
+	hotfixChecks --> hotfixPr[PR to main]
+	hotfixPr --> hotfixRelease[Release from main]
+	hotfixRelease --> backMerge
+```
+
+The standing instruction is:
+
+1. **Before starting work**: fetch from `origin`, confirm the working tree is clean or intentionally dirty, and branch from current `develop` unless the work is a production hotfix.
+2. **Before opening a PR to `develop`**: run the narrowest relevant checks first, then broaden to `npx pnpm@10.10.0 lint`, `npx pnpm@10.10.0 typecheck`, and the relevant e2e or smoke command for the touched slice.
+3. **Before promoting `develop` to `main`**: run `npx pnpm@10.10.0 run release:readiness`, complete the manual validation scenario for the target version, and check that version axes, schemas, public docs, and release notes agree.
+4. **After merging to `main`**: release through the approved workflow from `main`; do not hand-cut release tags before the workflow succeeds.
+5. **After a production release or hotfix**: compare `origin/develop...origin/main`; if `main` is ahead only by release merge metadata, fast-forward or merge `main` back into `develop` so the next feature branch starts from the full release history.
+6. **If a branch comparison is confusing**: compare remote refs after `git fetch --prune origin`, not stale local refs, and check `git diff --stat origin/develop..origin/main` before deciding whether there is content drift.
+
 Production releases are driven by `workflow_dispatch` from `main`, not by hand-cut tags:
 
 - **Marketplace**: run `Marketplace release` with `target=core|workshop|both`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates `core/<version>` and/or `workshop/<version>` tags and GitHub releases as receipts. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection.
