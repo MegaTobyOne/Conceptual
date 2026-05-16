@@ -6,9 +6,9 @@ import { join } from "node:path";
 const root = process.cwd();
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const expectedVersion = packageJson.version;
-const expectedAxes = "1.3.0";
-const isV1Release = /^1\.(0|1|2|3|4|5|6)\.\d+$/.test(expectedVersion);
-const isV11OrLaterRelease = /^1\.(1|2|3|4|5|6)\.\d+$/.test(expectedVersion);
+const expectedAxes = /^1\.7\.\d+$/.test(expectedVersion) ? "1.4.0" : "1.3.0";
+const isV1Release = /^1\.(0|1|2|3|4|5|6|7)\.\d+$/.test(expectedVersion);
+const isV11OrLaterRelease = /^1\.(1|2|3|4|5|6|7)\.\d+$/.test(expectedVersion);
 const packagePaths = [
   "package.json",
   "packages/brief-renderer/package.json",
@@ -16,6 +16,7 @@ const packagePaths = [
   "packages/core/package.json",
   "packages/explorer/package.json",
   "packages/ism-source-library/package.json",
+  "packages/reference-data/package.json",
   "packages/workshop/package.json"
 ];
 
@@ -26,11 +27,11 @@ for (const packagePath of packagePaths) {
 
 const contracts = await readFile(join(root, "packages/contracts/src/index.ts"), "utf8");
 assert.match(contracts, new RegExp(`PSPF_SLICE_VERSION = "${expectedVersion.replaceAll(".", "\\.")}"`), `PSPF_SLICE_VERSION should be ${expectedVersion}`);
-assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), "schemaVersion should stay 1.3.0");
-assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), "bundleVersion should stay 1.3.0");
-assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), "apiVersion should stay 1.3.0");
+assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), `schemaVersion should be ${expectedAxes}`);
+assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleVersion should be ${expectedAxes}`);
+assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
-const e2eScript = /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -48,6 +49,7 @@ for (const requiredPath of [
   "adr/0035-v1-5-plan-apply-import-and-undo.md",
   "adr/0036-v1-5-1-explorer-workshop-product-boundary-and-identity.md",
   "adr/0037-v1-6-workshop-import-review-and-identity.md",
+  "adr/0041-v1-7-tags-and-filters-foundation.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -57,7 +59,7 @@ for (const requiredPath of [
 }
 
 const scenario = await readFile(join(root, "validation-scenario-1-operator-workflow.md"), "utf8");
-for (const requiredText of [`PSPF v${expectedVersion}`, "Schema 1.3.0", "Bundle 1.3.0", "Workshop Home", "status bar", "PSPF: Load Sample Workspace", "PSPF: Run Integrity Scan", "Directions", "Action Impact"]) {
+for (const requiredText of [`PSPF v${expectedVersion}`, `Schema ${expectedAxes}`, `Bundle ${expectedAxes}`, "Workshop Home", "status bar", "PSPF: Load Sample Workspace", "PSPF: Run Integrity Scan", "Directions", "Action Impact"]) {
   assert.equal(scenario.includes(requiredText), true, `validation scenario should mention ${requiredText}`);
 }
 
@@ -141,6 +143,24 @@ if (/^1\.6\.\d+$/.test(expectedVersion)) {
   assert.equal(packageJson.scripts["e2e:v1.6"].includes("e2e:v1.5"), true, "e2e:v1.6 should include v1.5 gates");
   assert.equal(packageJson.scripts["e2e:v1.6"].includes("check:explorer-to-workshop-import"), true, "e2e:v1.6 should include Explorer-to-Workshop import gate");
   assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.6"), true, "release:readiness should run e2e:v1.6");
+}
+
+if (/^1\.7\.\d+$/.test(expectedVersion)) {
+  const v17Adr = await readFile(join(root, "adr/0041-v1-7-tags-and-filters-foundation.md"), "utf8");
+  for (const requiredText of ["v1.7", "tagged-with", "1.4.0", "indexes/by-tag.json", "Tag.description", "Requirements"]) {
+    assert.equal(v17Adr.includes(requiredText), true, `v1.7 ADR should mention ${requiredText}`);
+  }
+  const contracts = await readFile(join(root, "packages/contracts/src/index.ts"), "utf8");
+  for (const requiredText of ["DEFAULT_TAG_COLOUR", "TAG_LIMITS", "normaliseTagLabel", "tagged-with"]) {
+    assert.equal(contracts.includes(requiredText), true, `Contracts tag foundation should mention ${requiredText}`);
+  }
+  const workshopExtension = await readFile(join(root, "packages/workshop/src/extension.ts"), "utf8");
+  for (const requiredText of ["pspf.workshop.manageTags", "pspf.workshop.applyTag", "pspf.workshop.removeTag", "pspf.workshop.filterRequirementsByTag"]) {
+    assert.equal(workshopExtension.includes(requiredText), true, `Workshop tag command should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["e2e:v1.7"], "string", "root package should define e2e:v1.7");
+  assert.equal(packageJson.scripts["e2e:v1.7"].includes("e2e:v1.6"), true, "e2e:v1.7 should include v1.6 gates");
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.7"), true, "release:readiness should run e2e:v1.7");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

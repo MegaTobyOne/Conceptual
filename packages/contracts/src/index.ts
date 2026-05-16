@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.3.0",
-  bundleVersion: "1.3.0",
-  apiVersion: "1.3.0"
+  schemaVersion: "1.4.0",
+  bundleVersion: "1.4.0",
+  apiVersion: "1.4.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.6.0" as const;
+export const PSPF_SLICE_VERSION = "1.7.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -190,6 +190,11 @@ export const TAG_COLOURS = [
 
 export type TagColour = (typeof TAG_COLOURS)[number];
 
+export const DEFAULT_TAG_COLOUR: TagColour = "grey";
+
+export const TAG_LABEL_ALLOWED_PATTERN = "^[\\p{L}\\p{N} '\\-]+$";
+const TAG_LABEL_ALLOWED_REGEXP = new RegExp(TAG_LABEL_ALLOWED_PATTERN, "u");
+
 export const TAG_LIMITS = {
   perWorkspaceHard: 64,
   perWorkspaceSoftWarning: 32,
@@ -206,6 +211,26 @@ export interface TagEntity extends EntityEnvelope {
   readonly colour: TagColour;
   readonly description?: string;
   readonly emoji?: string;
+}
+
+export function normaliseTagLabel(value: string): string {
+  return value.normalize("NFC").trim().replace(/\s+/g, " ").toLocaleLowerCase("en-AU");
+}
+
+export function isValidTagLabel(value: string): boolean {
+  const normalised = value.normalize("NFC").trim().replace(/\s+/g, " ");
+  return normalised.length >= 1 && normalised.length <= TAG_LIMITS.labelMaxLength && TAG_LABEL_ALLOWED_REGEXP.test(normalised);
+}
+
+export function isValidSingleGrapheme(value: string): boolean {
+  if (!value) {
+    return true;
+  }
+  if (!("Segmenter" in Intl)) {
+    return false;
+  }
+  const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+  return Array.from(segmenter.segment(value)).length === 1;
 }
 
 export interface SourceControlExternalRef {

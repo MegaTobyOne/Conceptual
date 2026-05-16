@@ -2,7 +2,7 @@
     "name": "pspf-workshop",
     "displayName": "PSPF Workshop",
     "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "private": true,
     "type": "module",
     "license": "MIT",
@@ -108,6 +108,22 @@
                 "title": "PSPF: Open Direction Detail"
             },
             {
+                "command": "pspf.workshop.manageTags",
+                "title": "PSPF: Manage Tags"
+            },
+            {
+                "command": "pspf.workshop.applyTag",
+                "title": "PSPF: Apply Tag to Requirement"
+            },
+            {
+                "command": "pspf.workshop.removeTag",
+                "title": "PSPF: Remove Tag from Requirement"
+            },
+            {
+                "command": "pspf.workshop.filterRequirementsByTag",
+                "title": "PSPF: Filter Requirements by Tag"
+            },
+            {
                 "command": "pspf.workshop.copyPostureBrief",
                 "title": "PSPF: Copy Posture Brief"
             }
@@ -123,6 +139,11 @@
                     "command": "pspf.workshop.loadSampleWorkspace",
                     "when": "view == pspfWorkshop.homeView",
                     "group": "navigation@2"
+                },
+                {
+                    "command": "pspf.workshop.manageTags",
+                    "when": "view == pspfWorkshop.homeView",
+                    "group": "navigation@3"
                 }
             ]
         }

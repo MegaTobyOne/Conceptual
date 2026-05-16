@@ -56,6 +56,14 @@ Adopt a **Tags and filters foundation** as the v1.7 slice. The slice has two par
 
 Tags MUST NOT carry person, assignment, or assessment data. Tags are classifications only.
 
+#### Field normalisation and defaults
+
+- `label` is NFC-normalised, trimmed, and collapsed to single spaces before validation and duplicate comparison. The allowed character set is Unicode letters (`\p{L}`), Unicode digits (`\p{N}`), spaces, hyphen (`-`), and apostrophe (`'`).
+- New tag forms pre-select `grey` as the default `colour`; the operator may choose another closed-set token before saving.
+- `emoji` validation uses the platform `Intl.Segmenter` grapheme segmentation API where available. If a runtime lacks `Intl.Segmenter`, the field is disabled rather than accepted with weaker validation.
+- Tag pickers and chip lists sort by `title` case-insensitively, then by `id` for deterministic ties. Archived tags are hidden from pickers.
+- The pre-v1.7 stub fields `name` and `tagType` are retired, not aliased. No production migration is required; any import containing those fields is rejected as an unknown-field schema violation.
+
 ### Tagged-with link records
 
 A requirement is tagged with a tag by writing a `link` record with:
@@ -65,6 +73,35 @@ A requirement is tagged with a tag by writing a `link` record with:
 - `toType = "tag"`, `toId = TAG-…`
 
 The link record uses the existing canonical `link` envelope and follows existing link rules. Removing a tag from a requirement deletes the link record; the tag itself is unaffected. Archiving a tag does not cascade-delete its links; the link records remain so a snapshot taken before the archive still resolves. Pickers MUST exclude `recordStatus = "archived"` tags.
+
+Workshop exposes archive, not hard-delete, for tags in v1.7. Hard deletion is reserved for internal tombstone handling only: imports, migrations, and debug repair tooling may write `recordStatus = "deleted"`, but normal UI flows MUST NOT orphan existing `tagged-with` links.
+
+When an imported tag has a `label` that collides with an existing local tag after the E20 normalisation rule but carries a different `id`, the import planner MUST keep the local tag by default, drop the incoming tag row, and surface the row in the conflict/rejected list with a link to the existing tag. The importer MUST NOT silently create a second tag by changing the label.
+
+Snapshots include the tag rows and `tagged-with` links that are active at snapshot creation time. A later archive of the tag does not rewrite the snapshot.
+
+### Derived by-tag index
+
+Master bundles MAY include `indexes/by-tag.json` to support fast Explorer tag-chip rendering. When present, it MUST use this shape:
+
+```json
+{
+	"schemaVersion": "1.4.0",
+	"generatedAt": "2026-05-16T00:00:00.000Z",
+	"tags": [
+		{
+			"tagId": "TAG-00000000-0000-7000-8000-000000000001",
+			"label": "security uplift",
+			"title": "Security uplift",
+			"colour": "grey",
+			"emoji": "",
+			"requirementIds": ["REQ-00000000-0000-7000-8000-000000000001"]
+		}
+	]
+}
+```
+
+`tags` is sorted by `title` case-insensitively, then `tagId`. Each `requirementIds` array is sorted by requirement display order where available, otherwise lexicographically by `id`. `description` MUST NOT appear in this index.
 
 ### Limits
 

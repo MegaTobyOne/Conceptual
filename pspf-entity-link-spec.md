@@ -693,17 +693,19 @@ In v1.7 the only taggable entity type is `requirement`. Tags are applied through
 |---|---|---|
 | `id` | string | `TAG-*` |
 | `entityType` | string | `tag` |
-| `label` | string | canonical unique key; 1..40 chars; case- and whitespace-insensitive uniqueness per E20 |
+| `label` | string | canonical unique key; 1..40 chars; NFC-normalised; allowed characters are Unicode letters, Unicode digits, spaces, hyphen, and apostrophe; case- and whitespace-insensitive uniqueness per E20 |
 | `title` | string | display label shown in chips and pickers; 1..60 chars; defaults to `label` |
 | `description` | string | optional free-text note; 0..1000 chars; publication `sensitive` (default-deny) |
-| `colour` | string | required; one of `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `grey` |
-| `emoji` | string | optional single grapheme cluster rendered before the title |
+| `colour` | string | required; one of `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `grey`; creation default is `grey` |
+| `emoji` | string | optional single grapheme cluster rendered before the title; validated with `Intl.Segmenter` where available |
 | `recordStatus` | string | active, archived, inactive, deleted; pickers MUST exclude `archived` |
 
 #### Limits
 
 - Tags per workspace: 64 hard cap, 32 soft warning. See `pspf-invariants.md` § T3.
 - Tags applied per requirement: 16 hard cap.
+- Workshop v1.7 exposes archive, not hard-delete. Archiving a tag preserves existing `tagged-with` links and historical snapshots.
+- Tag pickers and chip lists sort by `title` case-insensitively, then `id`.
 
 ### Source control
 

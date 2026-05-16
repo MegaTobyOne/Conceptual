@@ -7,13 +7,19 @@ import {
   COLLECTION_BY_ENTITY_TYPE,
   type BundleCollections,
   type EntityByCollection,
+  DEFAULT_TAG_COLOUR,
   PSPF_SLICE_VERSION,
+  TAG_COLOURS,
+  TAG_LIMITS,
   type V01Collection,
   type V01Entity,
   PSPF_DOMAINS,
   VERSION_AXES,
   V0_1_COLLECTIONS,
   enrichActionsWithImpact,
+  isValidSingleGrapheme,
+  isValidTagLabel,
+  normaliseTagLabel,
   nowIso,
   sanitiseEntityForPublication,
   withEnvelope
@@ -443,6 +449,9 @@ async function exportBundle(workspaceRoot: string): Promise<{ exportDirectory: s
   const statusSummary = buildStatusSummary(collections);
   const statusSummaryJson = `${JSON.stringify(statusSummary, null, 2)}\n`;
   await writeFile(join(indexesDirectory, "status-summary.json"), statusSummaryJson, "utf8");
+  const byTag = buildByTagIndex(collections);
+  const byTagJson = `${JSON.stringify(byTag, null, 2)}\n`;
+  await writeFile(join(indexesDirectory, "by-tag.json"), byTagJson, "utf8");
 
   const manifest = {
     $schema: "./schemas/manifest.schema.json",
@@ -472,6 +481,11 @@ async function exportBundle(workspaceRoot: string): Promise<{ exportDirectory: s
         name: "status-summary",
         path: "./indexes/status-summary.json",
         hash: { alg: "SHA-256", value: sha256(statusSummaryJson) }
+      },
+      {
+        name: "by-tag",
+        path: "./indexes/by-tag.json",
+        hash: { alg: "SHA-256", value: sha256(byTagJson) }
       }
     ]
   };
@@ -507,8 +521,8 @@ async function importBundle(workspaceRoot: string, bundlePath: string, mode: Imp
     });
   }
 
-  for (const entity of entities) {
-    await upsertEntity(workspaceRoot, entity);
+  if (entities.length > 0) {
+    await runSql(paths.db, ["BEGIN IMMEDIATE;", ...entities.map(upsertEntitySql), "COMMIT;"].join("\n"));
   }
   await recordOperation(paths, "import", "success", `${mode}:${importId}:${bundlePath}`);
   return { imported: entities.length, mode, bundlePath, importId, summary };
@@ -528,18 +542,21 @@ async function buildImportPlan(workspaceRoot: string, bundlePath: string, mode: 
     incomingEntities = await includeExistingReferencedSourceControls(workspaceRoot, incomingEntities);
   }
   const existingEntities = await listEntities(workspaceRoot);
+  const tagImportResult = mode === "additive-merge" || mode === "plan-apply" ? filterIncomingTagLabelCollisions(incomingEntities, existingEntities) : { entities: incomingEntities, conflicts: [] as string[] };
+  incomingEntities = tagImportResult.entities;
   const validationEntities = mode === "additive-merge" || mode === "plan-apply" ? [...existingEntities, ...incomingEntities] : incomingEntities;
   validateImportedMappings(validationEntities);
+  validateTagRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   const writeSet = mode === "additive-merge" || mode === "plan-apply" ? additiveMergeWriteSet(incomingEntities, existingEntities) : incomingEntities;
-  return { incomingEntities, writeSet, summary: summariseImportChanges(incomingEntities, existingEntities, writeSet) };
+  return { incomingEntities, writeSet, summary: summariseImportChanges(incomingEntities, existingEntities, writeSet, tagImportResult.conflicts) };
 }
 
-function summariseImportChanges(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[], writeSet: readonly V01Entity[]): ImportSummary {
+function summariseImportChanges(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[], writeSet: readonly V01Entity[], extraConflicts: readonly string[] = []): ImportSummary {
   const existingById = new Map(existingEntities.map((entity) => [entity.id, entity]));
   const writtenIds = new Set(writeSet.map((entity) => entity.id));
   const byType: Record<string, ImportTypeSummary> = {};
   const examples: string[] = [];
-  const conflicts: string[] = [];
+  const conflicts: string[] = [...extraConflicts];
   let created = 0;
   let updated = 0;
   let unchanged = 0;
@@ -662,6 +679,7 @@ function canonicalEntityJson(entity: V01Entity): string {
 async function upsertEntity(workspaceRoot: string, entity: V01Entity): Promise<V01Entity> {
   const paths = await ensureInitialised(workspaceRoot, false);
   await assertWritable(paths);
+  validateTagRules([entity], await readStoredEntities(paths));
   await runSql(paths.db, upsertEntitySql(entity));
   return entity;
 }
@@ -672,6 +690,7 @@ async function upsertEntities(workspaceRoot: string, entities: readonly V01Entit
   if (entities.length === 0) {
     return entities;
   }
+  validateTagRules(entities, await readStoredEntities(paths));
   await runSql(paths.db, ["BEGIN IMMEDIATE;", ...entities.map(upsertEntitySql), "COMMIT;"].join("\n"));
   return entities;
 }
@@ -692,6 +711,10 @@ async function getWriterLock(workspaceRoot: string): Promise<WriterLockState> {
 
 async function listEntities(workspaceRoot: string, entityType?: V01Entity["entityType"]): Promise<V01Entity[]> {
   const paths = await ensureInitialised(workspaceRoot);
+  return readStoredEntities(paths, entityType);
+}
+
+async function readStoredEntities(paths: WorkspacePaths, entityType?: V01Entity["entityType"]): Promise<V01Entity[]> {
   const where = entityType ? ` WHERE entity_type = '${sqlEscape(entityType)}'` : "";
   const output = await runSql(paths.db, `SELECT payload FROM entities${where} ORDER BY created_at ASC;`, ["-json"]);
   const rows = output.trim() === "" ? [] : JSON.parse(output) as readonly { payload: string }[];
@@ -767,6 +790,9 @@ function pushEntity<Collection extends V01Collection>(
   collectionName: Collection,
   entity: V01Entity
 ): void {
+  if (entity.recordStatus === "deleted") {
+    return;
+  }
   (collections[collectionName] as EntityByCollection[Collection][]).push(entity as EntityByCollection[Collection]);
 }
 
@@ -818,6 +844,128 @@ function buildStatusSummary(collections: BundleCollections): Record<string, unkn
     sourceControls: countBy(collections["source-controls"], (sourceControl) => sourceControl.profileTags[0] ?? "unprofiled"),
     requirementControlMappings: countBy(collections["requirement-control-mappings"], (mapping) => mapping.coverageQualifier)
   };
+}
+
+function buildByTagIndex(collections: BundleCollections): Record<string, unknown> {
+  const requirementsById = new Map(collections.requirements.map((requirement, index) => [requirement.id, { requirement, index }]));
+  const requirementIdsByTag = new Map<string, string[]>();
+  for (const link of collections.links) {
+    if (link.linkType === "tagged-with" && link.fromType === "requirement" && link.toType === "tag") {
+      if (!requirementsById.has(link.fromId)) {
+        continue;
+      }
+      requirementIdsByTag.set(link.toId, [...(requirementIdsByTag.get(link.toId) ?? []), link.fromId]);
+    }
+  }
+
+  const tags = collections.tags
+    .filter((tag) => tag.recordStatus !== "deleted")
+    .map((tag) => ({
+      tagId: tag.id,
+      label: tag.label,
+      title: tag.title,
+      colour: tag.colour,
+      emoji: tag.emoji ?? "",
+      requirementIds: [...new Set(requirementIdsByTag.get(tag.id) ?? [])].sort((left, right) => {
+        const leftIndex = requirementsById.get(left)?.index;
+        const rightIndex = requirementsById.get(right)?.index;
+        if (leftIndex !== undefined && rightIndex !== undefined) {
+          return leftIndex - rightIndex;
+        }
+        return left.localeCompare(right);
+      })
+    }))
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }) || left.tagId.localeCompare(right.tagId));
+
+  return { schemaVersion: VERSION_AXES.schemaVersion, generatedAt: nowIso(), tags };
+}
+
+function filterIncomingTagLabelCollisions(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): { readonly entities: V01Entity[]; readonly conflicts: string[] } {
+  const existingTagsByLabel = new Map(existingEntities
+    .filter((entity): entity is EntityByCollection["tags"] => entity.entityType === "tag")
+    .map((tag) => [normaliseTagLabel(tag.label), tag]));
+  const rejectedTagIds = new Set<string>();
+  const conflicts: string[] = [];
+  const filteredTags = incomingEntities.filter((entity) => {
+    if (entity.entityType !== "tag") {
+      return true;
+    }
+    const existing = existingTagsByLabel.get(normaliseTagLabel(entity.label));
+    if (existing && existing.id !== entity.id) {
+      rejectedTagIds.add(entity.id);
+      conflicts.push(`Rejected tag ${entity.id} ${entity.title}: label already exists on ${existing.id} ${existing.title}.`);
+      return false;
+    }
+    return true;
+  });
+  if (rejectedTagIds.size === 0) {
+    return { entities: filteredTags, conflicts };
+  }
+  return {
+    conflicts,
+    entities: filteredTags.filter((entity) => !(entity.entityType === "link" && entity.linkType === "tagged-with" && rejectedTagIds.has(entity.toId)))
+  };
+}
+
+function validateTagRules(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): void {
+  const mergedById = new Map(existingEntities.map((entity) => [entity.id, entity]));
+  for (const entity of incomingEntities) {
+    mergedById.set(entity.id, entity);
+  }
+  const merged = [...mergedById.values()];
+
+  const tags = merged.filter((entity): entity is EntityByCollection["tags"] => entity.entityType === "tag" && entity.recordStatus !== "deleted");
+  if (tags.length > TAG_LIMITS.perWorkspaceHard) {
+    throw new Error(`Tag limit exceeded: maximum ${TAG_LIMITS.perWorkspaceHard} tags per workspace.`);
+  }
+
+  const labelsByNormalisedValue = new Map<string, EntityByCollection["tags"]>();
+  for (const tag of tags) {
+    if (!isValidTagLabel(tag.label)) {
+      throw new Error(`Invalid tag label for ${tag.id}: use 1-${TAG_LIMITS.labelMaxLength} letters, digits, spaces, hyphens, or apostrophes.`);
+    }
+    if (!tag.title || tag.title.length > TAG_LIMITS.titleMaxLength) {
+      throw new Error(`Invalid tag title for ${tag.id}: use 1-${TAG_LIMITS.titleMaxLength} characters.`);
+    }
+    if ((tag.description ?? "").length > TAG_LIMITS.descriptionMaxLength) {
+      throw new Error(`Invalid tag description for ${tag.id}: use at most ${TAG_LIMITS.descriptionMaxLength} characters.`);
+    }
+    if (!TAG_COLOURS.includes(tag.colour ?? DEFAULT_TAG_COLOUR)) {
+      throw new Error(`Invalid tag colour for ${tag.id}.`);
+    }
+    if (!isValidSingleGrapheme(tag.emoji ?? "")) {
+      throw new Error(`Invalid tag emoji for ${tag.id}: use a single grapheme cluster.`);
+    }
+    const normalisedLabel = normaliseTagLabel(tag.label);
+    const existing = labelsByNormalisedValue.get(normalisedLabel);
+    if (existing && existing.id !== tag.id) {
+      throw new Error(`Duplicate tag label rejected: ${tag.label} conflicts with ${existing.id}.`);
+    }
+    labelsByNormalisedValue.set(normalisedLabel, tag);
+  }
+
+  const entityIds = new Set(merged.map((entity) => entity.id));
+  const tagLinksByRequirement = new Map<string, string[]>();
+  for (const entity of merged) {
+    if (entity.entityType !== "link" || entity.recordStatus === "deleted") {
+      continue;
+    }
+    if (entity.linkType === "tagged-with") {
+      if (entity.fromType !== "requirement" || entity.toType !== "tag") {
+        throw new Error(`Invalid tagged-with link ${entity.id}: only requirement -> tag is permitted in v1.7.`);
+      }
+      if (!entityIds.has(entity.fromId) || !entityIds.has(entity.toId)) {
+        throw new Error(`Invalid tagged-with link ${entity.id}: endpoint is missing.`);
+      }
+      tagLinksByRequirement.set(entity.fromId, [...(tagLinksByRequirement.get(entity.fromId) ?? []), entity.toId]);
+    }
+  }
+
+  for (const [requirementId, tagIds] of tagLinksByRequirement) {
+    if (new Set(tagIds).size > TAG_LIMITS.perRequirementHard) {
+      throw new Error(`Tag limit exceeded: ${requirementId} has more than ${TAG_LIMITS.perRequirementHard} tags.`);
+    }
+  }
 }
 
 function validateImportedMappings(entities: readonly V01Entity[]): void {
