@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { rm } from "node:fs/promises";
+import { readFile, rm } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { createCoreService } from "../packages/core/dist/service.js";
 import { PSPF_DOMAINS, withEnvelope } from "../packages/contracts/dist/index.js";
@@ -58,6 +58,33 @@ await service.upsertEntity(withEnvelope(
     fromType: "requirement",
     toId: evidence.id,
     toType: "evidence"
+  },
+  "workshop"
+));
+
+const tag = withEnvelope(
+  "tag",
+  {
+    entityType: "tag",
+    title: "Security uplift",
+    label: "security uplift",
+    colour: "grey",
+    description: "Sensitive tag purpose note that must not be exported.",
+    emoji: ""
+  },
+  "workshop"
+);
+await service.upsertEntity(tag);
+await service.upsertEntity(withEnvelope(
+  "link",
+  {
+    entityType: "link",
+    title: `${requirement.title} tagged with ${tag.title}`,
+    linkType: "tagged-with",
+    fromId: requirement.id,
+    fromType: "requirement",
+    toId: tag.id,
+    toType: "tag"
   },
   "workshop"
 ));
@@ -178,7 +205,8 @@ assert.equal(validation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length +
 assert.equal(validation.counts.evidence, 1);
 assert.equal(validation.counts.actions, 1);
 assert.equal(validation.counts.risks, 1);
-assert.equal(validation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 4);
+assert.equal(validation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 5);
+assert.equal(validation.counts.tags, 1);
 assert.equal(validation.counts.snapshots, 1);
 assert.equal(validation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(validation.counts["requirement-control-mappings"], 1);
@@ -193,7 +221,8 @@ assert.equal(report.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length + 1);
 assert.equal(report.counts.evidence, 1);
 assert.equal(report.counts.actions, 1);
 assert.equal(report.counts.risks, 1);
-assert.equal(report.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 4);
+assert.equal(report.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 5);
+assert.equal(report.counts.tags, 1);
 assert.equal(report.counts.snapshots, 1);
 assert.equal(report.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(report.counts["requirement-control-mappings"], 1);
@@ -201,6 +230,11 @@ assert.equal(report.counts.directions, PSPF_BASELINE_DIRECTIONS.length + 1);
 assert.equal(report.mappingRedaction.ok, true, report.mappingRedaction.detail);
 assert.equal(report.mappingQuality.checks.every((check) => check.ok), true, JSON.stringify(report.mappingQuality.checks));
 assert.equal(report.ismDrift.affectedMappings.length, 1);
+const byTag = JSON.parse(await readFile(join(exported.exportDirectory, "data", "indexes", "by-tag.json"), "utf8"));
+assert.equal(byTag.tags.length, 1);
+assert.equal(byTag.tags[0].tagId, tag.id);
+assert.deepEqual(byTag.tags[0].requirementIds, [requirement.id]);
+assert.equal(JSON.stringify(byTag).includes("Sensitive tag purpose note"), false);
 const reportPaths = await writeValidationReport(report, join(workspaceRoot, ".pspf", "reports"));
 
 const importService = createCoreService(importWorkspaceRoot);
@@ -216,7 +250,8 @@ assert.equal(importValidation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.le
 assert.equal(importValidation.counts.evidence, 1);
 assert.equal(importValidation.counts.actions, 1);
 assert.equal(importValidation.counts.risks, 1);
-assert.equal(importValidation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 4);
+assert.equal(importValidation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 5);
+assert.equal(importValidation.counts.tags, 1);
 assert.equal(importValidation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(importValidation.counts["requirement-control-mappings"], 1);
 assert.equal(importValidation.counts.directions, PSPF_BASELINE_DIRECTIONS.length + 1);
@@ -224,8 +259,15 @@ const importedMappings = await importService.listEntities("requirement-control-m
 assert.equal(importedMappings[0].confidence, "medium");
 assert.equal(importedMappings[0].lastReviewedAt, "2026-05-10T00:00:00.000Z");
 assert.equal(importedMappings[0].reviewBy, "Cyber assurance lead");
+const importedTags = await importService.listEntities("tag");
+assert.equal(importedTags[0].label, "security uplift");
+assert.equal(importedTags[0].description, undefined);
+const importedTagLinks = (await importService.listEntities("link")).filter((entity) => entity.linkType === "tagged-with");
+assert.equal(importedTagLinks.length, 1);
+assert.equal(importedTagLinks[0].fromId, requirement.id);
+assert.equal(importedTagLinks[0].toId, importedTags[0].id);
 
-console.log("ok e2e workspace initialised, authored, mapped to ISM, snapshotted, exported, and verified");
+console.log("ok e2e workspace initialised, authored, tagged, mapped to ISM, snapshotted, exported, imported, and verified");
 console.log(`workspace: ${relative(root, workspaceRoot)}`);
 console.log(`import workspace: ${relative(root, importWorkspaceRoot)}`);
 console.log(`bundle: ${relative(root, bundlePath)}`);

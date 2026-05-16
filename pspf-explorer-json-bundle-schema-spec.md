@@ -193,10 +193,33 @@ The first file loaded by Explorer is `manifest.json`. It describes the bundle, a
 | `collections/suppliers.json` | supplier entities |
 | `collections/report-packs.json` | report pack entities |
 | `collections/snapshots.json` | immutable snapshot entities |
+| `collections/tags.json` | operator-applied classification labels (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) |
+| `indexes/by-tag.json` | derived requirement-id lists per tag for fast filter rendering |
 | `indexes/*.json` | denormalised read models |
 | `schemas/*.json` | published validation schemas |
 
 Workforce data is **never** included in bundles. There is no `personnel.json` collection. See `pspf-threat-model.md` T11 and the Personal data exclusion rule above.
+
+`indexes/by-tag.json`, when present, MUST use this shape:
+
+```json
+{
+  "schemaVersion": "1.4.0",
+  "generatedAt": "2026-05-16T00:00:00.000Z",
+  "tags": [
+    {
+      "tagId": "TAG-00000000-0000-7000-8000-000000000001",
+      "label": "security uplift",
+      "title": "Security uplift",
+      "colour": "grey",
+      "emoji": "",
+      "requirementIds": ["REQ-00000000-0000-7000-8000-000000000001"]
+    }
+  ]
+}
+```
+
+The index is derived from `collections/tags.json` and `collections/links.json`; consumers MUST treat the source collections as authoritative if the index is absent. The `tags` array is sorted by `title` case-insensitively, then `tagId`; each `requirementIds` array is sorted by requirement display order where available, otherwise lexicographically by `id`. `Tag.description` MUST NOT appear in the index.
 
 ## Entity serialisation rules
 
@@ -478,6 +501,8 @@ Per ADR 0009, every bundle declares an `intent` at the top level that tells the 
 | `plan-apply` | Validate. Materialise a plan classifying each row as **add**, **update**, or **skip** (with reasons). Surface the plan to the user. Apply only the rows the user confirms. Validation alone makes no writes. |
 
 Explorer-authored bundles default to `intent: additive-merge` for share scenarios, `intent: full-replace` for full-backup restore, and `intent: plan-apply` for risk/action work import. The publication flow uses `intent: full-replace` against the read-baseline store.
+
+For `collections/tags.json`, duplicate detection uses the E20 `Tag.label` normalisation rule as well as `id`. If an incoming tag label collides with an existing local tag but the `id` differs, the importer keeps the local tag by default, drops the incoming tag row, and surfaces the row in the conflict/rejected list with a link to the existing tag. It MUST NOT silently create a renamed duplicate tag.
 
 ### Per-collection options
 

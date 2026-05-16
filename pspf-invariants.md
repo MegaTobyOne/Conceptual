@@ -50,7 +50,7 @@ The exporter must fail closed on any such field, regardless of redaction profile
 ### V1 — Link types
 Link types are simple verb phrases shared across the model. The valid set, and which `(fromType, toType)` pairs each accepts, is defined exhaustively in `pspf-entity-link-spec.md`. The full list:
 
-`in`, `has`, `supported-by`, `addressed-by`, `exposed-by`, `owned-by`, `reviewed-by`, `cited-by`, `supports`, `treated-by`, `associated-with`, `sourced-from`, `included-in`, `assigned-via`, `blocked-by`, `related-to`, `funds`, `member-of`, `holds`, `targets`, `generates`, `includes`.
+`in`, `has`, `supported-by`, `addressed-by`, `exposed-by`, `owned-by`, `reviewed-by`, `cited-by`, `supports`, `treated-by`, `associated-with`, `sourced-from`, `included-in`, `assigned-via`, `blocked-by`, `related-to`, `funds`, `member-of`, `holds`, `targets`, `generates`, `includes`, `tagged-with`.
 
 The previous compound names (`requirement-supported-by-evidence` etc.) are retired and MUST NOT appear in code, fixtures, or specs.
 
@@ -248,6 +248,28 @@ Every primary Explorer chart MUST provide a text/table alternative and support c
 ### E30 — Shop forecast explanations
 
 Every Shop spend forecast and savings-opportunity ranking MUST include forecast period, planned spend, expected savings, net benefit where comparable, confidence, linked requirement/action/risk IDs where available, and at least one assumption or explanation string. Forecasts MUST distinguish committed spend from proposed spend and expected savings from realised savings. CI: fixture test seeds suppliers, contracts, spend items, actions, requirements, and risks, then asserts forecast totals, net benefit, payback, confidence, and explanations are deterministic and traceable.
+
+## Tag invariants
+
+These invariants codify the Tags and filters foundation introduced by [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md). The owning specification is `pspf-entity-link-spec.md` § Tag.
+
+### T1 — Tag entity shape
+`Tag` entities MUST carry `label` (string, 1..40 chars), `title` (string, 1..60 chars), and `colour` (one of the closed set `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `grey`; default `grey` on creation). Optional fields: `description` (0..1000 chars, publication `sensitive`) and `emoji` (single grapheme cluster, publication `public`). `label` is NFC-normalised, trimmed, collapsed to single spaces, and limited to Unicode letters (`\p{L}`), Unicode digits (`\p{N}`), spaces, hyphen (`-`), and apostrophe (`'`). `label` uniqueness is hard-rejected per E20 (case- and whitespace-insensitive). CI: type-level test plus runtime acceptance test enumerating the colour set, default colour, length bounds, label character rules, grapheme validation, and duplicate-label rejection.
+
+### T2 — Taggable entity types (v1.7)
+In v1.7 the only permitted `(fromType, toType)` pair for the `tagged-with` link is `(requirement, tag)`. Tagging other entity types is a separate ADR. CI: unit test asserts the link validator rejects every other `(fromType, toType)` pair when `linkType = "tagged-with"`.
+
+### T3 — Tag limits
+Core MUST enforce, at write time and on import:
+- max tags per workspace: 64 (hard); soft warning at 32;
+- max tags applied per requirement: 16 (hard).
+Exceeding a hard limit is a write rejection with an actionable error code. CI: unit test seeds 65 tags and asserts the 65th is rejected; seeds 17 `tagged-with` links on one requirement and asserts the 17th is rejected.
+
+### T4 — Tag filter URL contract
+Wherever tag filtering is offered (Workshop Requirements navigator, Explorer Requirements screen, Explorer Relationships Board), the active tag filter MUST be reflected in the URL or workspace state as `tags=TAG-...,TAG-...&tagsMode=any|all`. The default mode is `any`. The filter is multi-select, composes with all other filters using `AND`, and in Explorer is persisted in `sessionStorage` only (E22). CI: per-route Playwright assertion that the URL reflects the selected tag set and mode and that reloading restores the same filter; integration test asserts no tag-filter write touches IndexedDB or the bundle serialiser.
+
+### T5 — Tag import, archive, and derived-index rules
+Workshop v1.7 exposes archive, not hard-delete, for tags. Archiving a tag hides it from pickers but MUST NOT cascade-delete existing `tagged-with` links or rewrite snapshots. Imported tags whose normalised `label` collides with an existing tag but whose `id` differs are rejected/kept-local by default and surfaced in the import plan; the importer MUST NOT silently create a renamed duplicate. `indexes/by-tag.json`, when present in a bundle, MUST contain only public tag fields and sorted requirement-id lists; `Tag.description` MUST NOT appear. CI: import-plan test for colliding tag labels; bundle publication test asserts `description` is absent from `indexes/by-tag.json` and archived-tag snapshots still resolve.
 
 ## Consistency invariants
 

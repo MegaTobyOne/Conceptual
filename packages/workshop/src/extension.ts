@@ -1,8 +1,11 @@
 import * as vscode from "vscode";
 import { renderPostureBriefMarkdown } from "@pspf/brief-renderer";
 import {
+  DEFAULT_TAG_COLOUR,
   PSPF_SLICE_VERSION,
   PSPF_DOMAINS,
+  TAG_COLOURS,
+  TAG_LIMITS,
   VERSION_AXES,
   type ActionEntity,
   type ActionStatus,
@@ -20,7 +23,12 @@ import {
   type RiskEntity,
   type RiskStatus,
   type SourceControlEntity,
+  type TagColour,
+  type TagEntity,
   type V01Entity,
+  isValidSingleGrapheme,
+  isValidTagLabel,
+  normaliseTagLabel,
   withEnvelope
 } from "@pspf/contracts";
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
@@ -57,6 +65,10 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.registerDirection", registerDirection),
     vscode.commands.registerCommand("pspf.workshop.updateDirectionResponse", updateDirectionResponse),
     vscode.commands.registerCommand("pspf.workshop.openDirectionDetail", openDirectionDetail),
+    vscode.commands.registerCommand("pspf.workshop.manageTags", manageTags),
+    vscode.commands.registerCommand("pspf.workshop.applyTag", applyTag),
+    vscode.commands.registerCommand("pspf.workshop.removeTag", removeTag),
+    vscode.commands.registerCommand("pspf.workshop.filterRequirementsByTag", filterRequirementsByTag),
     vscode.commands.registerCommand("pspf.workshop.copyPostureBrief", copyPostureBrief)
   );
 }
@@ -142,6 +154,9 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.registerDirection",
       "pspf.workshop.updateDirectionResponse",
       "pspf.workshop.openDirectionDetail",
+      "pspf.workshop.manageTags",
+      "pspf.workshop.applyTag",
+      "pspf.workshop.filterRequirementsByTag",
       "pspf.workshop.copyPostureBrief"
     ]);
 
@@ -247,6 +262,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.createAction", "Action")}
         ${homeButton("pspf.workshop.createRisk", "Risk")}
         ${homeButton("pspf.workshop.registerDirection", "Direction")}
+        ${homeButton("pspf.workshop.manageTags", "Tag")}
       </div>
     </section>
     <section>
@@ -1122,6 +1138,18 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     likelihood: risk.likelihood,
     impact: risk.impact
   }));
+  const tagsById = new Map(allEntities.filter((entity): entity is TagEntity => entity.entityType === "tag" && entity.recordStatus !== "deleted").map((tag) => [tag.id, tag]));
+  const tagRows = outboundLinks
+    .filter((link) => link.recordStatus !== "deleted" && link.linkType === "tagged-with" && link.toType === "tag")
+    .map((link) => tagsById.get(link.toId))
+    .filter((tag): tag is TagEntity => Boolean(tag))
+    .sort(compareTags)
+    .map((tag) => ({
+      title: tagChipLabel(tag),
+      colour: label(tag.colour),
+      status: label(tag.recordStatus),
+      action: `<button type="button" data-command="removeTag" data-requirement-id="${escapeHtml(requirement.id)}" data-tag-id="${escapeHtml(tag.id)}">Remove</button>`
+    }));
   const directionsById = new Map(allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction").map((entity) => [entity.id, entity]));
   const directionRows = inboundLinks
     .filter((link) => link.fromType === "direction")
@@ -1173,8 +1201,9 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
       <p>Assessment status: ${escapeHtml(label(requirement.assessmentStatus))}</p>
       <p>Domain: ${escapeHtml(domainName(requirement.domainId))}</p>
       ${versionStrip()}
-      <div class="form-actions"><button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Edit</button></div>
+      <div class="form-actions"><button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Edit</button><button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(requirement.id)}">Apply tag</button></div>
     </section>
+    ${recordTable("Tags", tagRows, ["title", "colour", "status", "action"])}
     ${recordTable("Directions Targeting This Requirement", directionRows, ["reference", "title", "responseState", "sourceAuthority"])}
     ${recordTable("Evidence", evidenceRows, ["title", "evidenceType", "freshness", "reference"])}
     ${recordTable("Actions", actionRows, ["title", "status", "urgency", "dueDate"])}
@@ -1210,6 +1239,7 @@ function isEditableWorkshopEntity(entity: V01Entity): entity is EditableWorkshop
 async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: readonly V01Entity[]): Promise<void> {
   let currentEntity = entity;
   const panel = vscode.window.createWebviewPanel("pspfEntityDetail", shortWorkshopPanelTitle(currentEntity), vscode.ViewColumn.One, { enableScripts: true });
+  wireWorkshopPanelMessages(panel);
   panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
     if (!["saveEntity", "saveAndCloseEntity"].includes(message.command ?? "") || message.entityType !== currentEntity.entityType || message.entityId !== currentEntity.id) {
       return;
@@ -1296,6 +1326,9 @@ function shellHtml(title: string, body: string): string {
       if (command === 'openEntity') {
         vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
       }
+      if (command === 'createTag' || command === 'editTag' || command === 'archiveTag' || command === 'applyTag' || command === 'removeTag') {
+        vscode.postMessage({ command, tagId: button.getAttribute('data-tag-id'), requirementId: button.getAttribute('data-requirement-id') });
+      }
       if (command === 'saveEntity' || command === 'saveAndCloseEntity') {
         const form = button.closest('form');
         if (!form) {
@@ -1320,9 +1353,15 @@ function shellHtml(title: string, body: string): string {
 }
 
 function wireWorkshopPanelMessages(panel: vscode.WebviewPanel): void {
-  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string }) => {
+  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string; readonly requirementId?: string; readonly tagId?: string }) => {
     if (message.command === "openEntity" && message.entityType && message.entityId) {
       await openItemDetailForEntity(message.entityType, message.entityId);
+    }
+    if (message.command === "applyTag" && message.requirementId) {
+      await applyTag(message.requirementId);
+    }
+    if (message.command === "removeTag" && message.requirementId && message.tagId) {
+      await removeTag(message.requirementId, message.tagId);
     }
   });
 }
@@ -1550,11 +1589,15 @@ function renderMappingEditor(mapping: RequirementControlMappingEntity, allEntiti
 }
 
 function editorShell(entity: EditableWorkshopEntity, heading: string, fieldsHtml: string, note?: string): string {
+  const contextualActions = entity.entityType === "requirement"
+    ? `<button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(entity.id)}">Apply tag</button>`
+    : "";
   return `
     <section>
       <h1>${escapeHtml(entity.title ?? entity.id)}</h1>
       <p class="muted">${escapeHtml(label(entity.entityType))} · ${escapeHtml(entity.id)}</p>
       ${versionStrip()}
+      ${contextualActions ? `<div class="form-actions">${contextualActions}</div>` : ""}
     </section>
     <section>
       <h2>${escapeHtml(heading)}</h2>
@@ -1630,6 +1673,292 @@ function isMappingConfidence(value: string | undefined): value is MappingConfide
 
 function isScore(value: number): boolean {
   return Number.isInteger(value) && value >= 1 && value <= 5;
+}
+
+async function manageTags(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel("pspfTagManager", "PSPF Tag Manager", vscode.ViewColumn.One, { enableScripts: true });
+  const refresh = async () => {
+    const allEntities = await listAllEntities();
+    const tags = sortTags(allEntities.filter((entity): entity is TagEntity => entity.entityType === "tag" && entity.recordStatus !== "deleted"));
+    const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.linkType === "tagged-with");
+    panel.webview.html = renderTagManager(tags, links);
+  };
+  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly tagId?: string }) => {
+    if (message.command === "createTag") {
+      await createOrEditTag();
+      await refresh();
+    }
+    if (message.command === "editTag" && message.tagId) {
+      const tag = (await listTags(true)).find((item) => item.id === message.tagId);
+      if (tag) {
+        await createOrEditTag(tag);
+        await refresh();
+      }
+    }
+    if (message.command === "archiveTag" && message.tagId) {
+      const tag = (await listTags(true)).find((item) => item.id === message.tagId);
+      if (tag) {
+        await vscode.commands.executeCommand("pspf.core.upsertEntity", { ...tag, recordStatus: "archived", updatedAt: new Date().toISOString() } satisfies TagEntity);
+        await refresh();
+      }
+    }
+  });
+  await refresh();
+}
+
+function renderTagManager(tags: readonly TagEntity[], links: readonly LinkEntity[]): string {
+  const linkCounts = new Map<string, number>();
+  for (const link of links) {
+    if (link.toType === "tag") {
+      linkCounts.set(link.toId, (linkCounts.get(link.toId) ?? 0) + 1);
+    }
+  }
+  const rows = tags.map((tag) => ({
+    title: tagChipLabel(tag),
+    label: tag.label,
+    colour: label(tag.colour),
+    status: label(tag.recordStatus),
+    requirements: linkCounts.get(tag.id) ?? 0,
+    action: `<button type="button" data-command="editTag" data-tag-id="${escapeHtml(tag.id)}">Edit</button> ${tag.recordStatus === "archived" ? "" : `<button type="button" data-command="archiveTag" data-tag-id="${escapeHtml(tag.id)}">Archive</button>`}`
+  }));
+  return shellHtml("PSPF Tag Manager", `
+    <section>
+      <h1>Tag Manager</h1>
+      <p class="muted">Workspace-shared classifications for Requirements. Archived tags stay on historical links but are hidden from pickers.</p>
+      ${versionStrip()}
+      <div class="form-actions"><button type="button" data-command="createTag">Create tag</button></div>
+    </section>
+    ${recordTable("Tags", rows, ["title", "label", "colour", "status", "requirements", "action"])}
+  `);
+}
+
+async function applyTag(requirementId?: string): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const requirement = requirementId
+    ? allEntities.find((entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.id === requirementId)
+    : await pickRequirement();
+  if (!requirement) {
+    return;
+  }
+
+  let tags = await listTags(false);
+  if (tags.length === 0) {
+    const created = await createOrEditTag();
+    if (!created) {
+      return;
+    }
+    tags = [created];
+  }
+
+  const picked = await vscode.window.showQuickPick(
+    [
+      { label: "$(add) Create new tag...", description: "Create then apply", create: true as const },
+      ...tags.map((tag) => ({ label: tagChipLabel(tag), description: label(tag.colour), detail: tag.label, tag }))
+    ],
+    { title: `Apply tag to ${requirement.title}`, ignoreFocusOut: true }
+  );
+  if (!picked) {
+    return;
+  }
+  const tag = "create" in picked ? await createOrEditTag() : picked.tag;
+  if (!tag) {
+    return;
+  }
+
+  const links = (await listAllEntities()).filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted");
+  const existing = links.find((link) => link.linkType === "tagged-with" && link.fromId === requirement.id && link.toId === tag.id);
+  if (existing) {
+    await vscode.window.showInformationMessage(`${tag.title} is already applied to ${requirement.title}.`);
+    return;
+  }
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${requirement.title} tagged with ${tag.title}`,
+      linkType: "tagged-with",
+      fromId: requirement.id,
+      fromType: "requirement",
+      toId: tag.id,
+      toType: "tag"
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
+  await rememberRequirement(requirement);
+  await vscode.window.showInformationMessage(`Applied ${tag.title} to ${requirement.title}.`);
+}
+
+async function removeTag(requirementId?: string, tagId?: string): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const requirement = requirementId
+    ? allEntities.find((entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.id === requirementId)
+    : await pickRequirement();
+  if (!requirement) {
+    return;
+  }
+  const tagLinks = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.linkType === "tagged-with" && entity.fromId === requirement.id);
+  if (tagLinks.length === 0) {
+    await vscode.window.showWarningMessage("No tags are applied to this Requirement.");
+    return;
+  }
+  const tagsById = new Map(allEntities.filter((entity): entity is TagEntity => entity.entityType === "tag").map((tag) => [tag.id, tag]));
+  const link = tagId
+    ? tagLinks.find((item) => item.toId === tagId)
+    : (await vscode.window.showQuickPick(
+      tagLinks.map((item) => ({ label: tagChipLabel(tagsById.get(item.toId)), description: tagsById.get(item.toId)?.label ?? item.toId, link: item })),
+      { title: `Remove tag from ${requirement.title}`, ignoreFocusOut: true }
+    ))?.link;
+  if (!link) {
+    return;
+  }
+  const tag = tagsById.get(link.toId);
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", { ...link, recordStatus: "deleted", updatedAt: new Date().toISOString() } satisfies LinkEntity);
+  await vscode.window.showInformationMessage(`Removed ${tag?.title ?? "tag"} from ${requirement.title}.`);
+}
+
+async function filterRequirementsByTag(): Promise<void> {
+  await ensureCoreReady();
+  const tags = await listTags(false);
+  if (tags.length === 0) {
+    await vscode.window.showWarningMessage("No active tags exist yet. Run PSPF: Manage Tags first.");
+    return;
+  }
+  const pickedTags = await vscode.window.showQuickPick(
+    tags.map((tag) => ({ label: tagChipLabel(tag), description: label(tag.colour), tag })),
+    { title: "Filter Requirements by Tag", canPickMany: true, ignoreFocusOut: true }
+  );
+  if (!pickedTags || pickedTags.length === 0) {
+    return;
+  }
+  const mode = await vscode.window.showQuickPick(
+    [
+      { label: "Any selected tag", value: "any" as const },
+      { label: "All selected tags", value: "all" as const }
+    ],
+    { title: "Tag filter mode", ignoreFocusOut: true }
+  );
+  if (!mode) {
+    return;
+  }
+  const allEntities = await listAllEntities();
+  const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+  const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.linkType === "tagged-with");
+  const selectedTagIds = new Set(pickedTags.map((item) => item.tag.id));
+  const matchingRequirements = requirements.filter((requirement) => {
+    const requirementTagIds = new Set(links.filter((link) => link.fromId === requirement.id).map((link) => link.toId));
+    return mode.value === "all"
+      ? [...selectedTagIds].every((id) => requirementTagIds.has(id))
+      : [...selectedTagIds].some((id) => requirementTagIds.has(id));
+  });
+  if (matchingRequirements.length === 0) {
+    await vscode.window.showInformationMessage("No Requirements match that tag filter.");
+    return;
+  }
+  const pickedRequirement = await vscode.window.showQuickPick(
+    matchingRequirements.map((requirement) => ({ label: requirement.title, description: `${domainName(requirement.domainId)} · ${label(requirement.assessmentStatus)}`, requirement })),
+    { title: `${matchingRequirements.length} Requirement(s) match`, ignoreFocusOut: true }
+  );
+  if (pickedRequirement) {
+    await openItemDetailForRequirement(pickedRequirement.requirement);
+  }
+}
+
+async function createOrEditTag(existing?: TagEntity): Promise<TagEntity | undefined> {
+  const tags = await listTags(true);
+  if (!existing && tags.length >= TAG_LIMITS.perWorkspaceHard) {
+    await vscode.window.showErrorMessage(`Tag limit reached: maximum ${TAG_LIMITS.perWorkspaceHard} tags per workspace.`);
+    return undefined;
+  }
+  if (!existing && tags.length >= TAG_LIMITS.perWorkspaceSoftWarning) {
+    await vscode.window.showWarningMessage(`This workspace has ${tags.length} tags. Consider archiving tags that are no longer active.`);
+  }
+  const labelInput = await vscode.window.showInputBox({
+    title: existing ? "Edit Tag" : "Create Tag",
+    prompt: "Tag label",
+    value: existing?.label ?? "",
+    ignoreFocusOut: true,
+    validateInput: (value) => validateTagLabelInput(value, tags, existing?.id)
+  });
+  if (!labelInput) {
+    return undefined;
+  }
+  const tagLabel = normaliseTagLabel(labelInput);
+  const title = await vscode.window.showInputBox({
+    title: existing ? "Edit Tag" : "Create Tag",
+    prompt: "Display title",
+    value: existing?.title ?? labelInput.trim(),
+    ignoreFocusOut: true,
+    validateInput: (value) => value.trim().length === 0 || value.trim().length > TAG_LIMITS.titleMaxLength ? `Use 1-${TAG_LIMITS.titleMaxLength} characters.` : undefined
+  });
+  if (!title) {
+    return undefined;
+  }
+  const colour = await vscode.window.showQuickPick(
+    TAG_COLOURS.map((value) => ({ label: label(value), value, picked: value === (existing?.colour ?? DEFAULT_TAG_COLOUR) })),
+    { title: "Select Tag Colour", ignoreFocusOut: true }
+  );
+  if (!colour) {
+    return undefined;
+  }
+  const emoji = await vscode.window.showInputBox({
+    title: existing ? "Edit Tag" : "Create Tag",
+    prompt: "Optional emoji, one character. Press Enter to skip.",
+    value: existing?.emoji ?? "",
+    ignoreFocusOut: true,
+    validateInput: (value) => isValidSingleGrapheme(value.trim()) ? undefined : "Use a single emoji or leave this blank."
+  });
+  if (emoji === undefined) {
+    return undefined;
+  }
+  const description = await vscode.window.showInputBox({
+    title: existing ? "Edit Tag" : "Create Tag",
+    prompt: "Optional sensitive description, not published by default.",
+    value: existing?.description ?? "",
+    ignoreFocusOut: true,
+    validateInput: (value) => value.length > TAG_LIMITS.descriptionMaxLength ? `Use at most ${TAG_LIMITS.descriptionMaxLength} characters.` : undefined
+  });
+  if (description === undefined) {
+    return undefined;
+  }
+  const tag: TagEntity = existing
+    ? { ...existing, label: tagLabel, title: title.trim(), colour: colour.value as TagColour, emoji: trimOptional(emoji), description: trimOptional(description), updatedAt: new Date().toISOString() }
+    : withEnvelope("tag", { entityType: "tag", label: tagLabel, title: title.trim(), colour: colour.value as TagColour, emoji: trimOptional(emoji), description: trimOptional(description) }, "workshop");
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", tag);
+  await vscode.window.showInformationMessage(`${existing ? "Updated" : "Created"} tag: ${tag.title}.`);
+  return tag;
+}
+
+function validateTagLabelInput(value: string, tags: readonly TagEntity[], currentId?: string): string | undefined {
+  if (!isValidTagLabel(value)) {
+    return `Use 1-${TAG_LIMITS.labelMaxLength} letters, digits, spaces, hyphens, or apostrophes.`;
+  }
+  const normalised = normaliseTagLabel(value);
+  const duplicate = tags.find((tag) => tag.id !== currentId && normaliseTagLabel(tag.label) === normalised);
+  return duplicate ? `This label already exists on ${duplicate.title}.` : undefined;
+}
+
+async function listTags(includeArchived: boolean): Promise<TagEntity[]> {
+  const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "tag");
+  return sortTags((entities ?? []).filter((entity): entity is TagEntity => entity.entityType === "tag" && entity.recordStatus !== "deleted" && (includeArchived || entity.recordStatus !== "archived")));
+}
+
+function sortTags(tags: readonly TagEntity[]): TagEntity[] {
+  return [...tags].sort(compareTags);
+}
+
+function compareTags(left: TagEntity, right: TagEntity): number {
+  return left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }) || left.id.localeCompare(right.id);
+}
+
+function tagChipLabel(tag: TagEntity | undefined): string {
+  if (!tag) {
+    return "Unknown tag";
+  }
+  return `${tag.emoji ? `${tag.emoji} ` : ""}${tag.title}`;
 }
 
 async function copyPostureBrief(): Promise<void> {
@@ -1824,6 +2153,9 @@ function tableOpenCell(record: object): string {
 
 function tableCell(record: object, field: string): string {
   const value = String(readRecordField(record, field) ?? "");
+  if (field === "action") {
+    return `<td data-field="${escapeHtml(field)}">${value}</td>`;
+  }
   if (field === "explanation") {
     const fullValue = String(readRecordField(record, "explanationFull") ?? value);
     return `<td data-field="${escapeHtml(field)}" title="${escapeHtml(fullValue)}"><span class="cell-compact">${escapeHtml(value)}</span></td>`;

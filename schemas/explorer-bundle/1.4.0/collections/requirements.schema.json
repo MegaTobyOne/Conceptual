@@ -1,0 +1,76 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.4.0/collections/requirements.schema.json",
+    "title": "PSPF Explorer Requirements Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "domainId",
+            "assessmentStatus"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^REQ-"
+            },
+            "entityType": {
+                "const": "requirement"
+            },
+            "schemaVersion": {
+                "const": "1.4.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "domainId": {
+                "type": "string",
+                "pattern": "^DOM-"
+            },
+            "assessmentStatus": {
+                "enum": [
+                    "not-started",
+                    "in-progress",
+                    "met",
+                    "partially-met",
+                    "not-met",
+                    "not-applicable",
+                    "under-review"
+                ]
+            }
+        }
+    }
+}
