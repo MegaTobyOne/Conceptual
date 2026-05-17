@@ -237,6 +237,50 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deferred-scope gate**: v1.10 does not add Explorer-authored Change Records, diff views, change-record tagging, plan baselines, Shop, Pub, editable posture, or chart image export.
 8. **Regression gate**: `build`, `typecheck`, `lint`, `check:gates`, `validate:debug-workspace`, and `release:readiness` pass.
 
+### v1.11 release gates (Explorer change story, per ADR 0045)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.11.0`; schema, bundle, and API axes remain `1.7.0`; no `schemas/explorer-bundle/1.8.0/` directory is introduced.
+2. **Explorer local proposal gate**: Explorer persists local Change Record proposals in `IndexedDB`, scoped to the loaded bundle key, and restores them with the same remembered-bundle flow as status overlays, evidence references, Actions, Risks, and saved views.
+3. **Materialisation gate**: each local proposal exports as an existing `change-record` entity plus a `changes` link from that Change Record to the affected Requirement, Action, Risk, Direction, Tag, or Saved View, both with `sourceProduct = "explorer"`.
+4. **Export consistency gate**: Explorer local-authoring export includes `collections/change-records.json` in the manifest, updates `posture.changeRecordCount`, and keeps `generator.product = "pspf-explorer"` and `generator.mode = "local-authoring"`.
+5. **Workshop round-trip gate**: a real Explorer local-authoring export imports through Core plan-apply; Workshop import review counts the proposed Change Records and `changes` links, Apply Import writes them, Undo Import removes them, and affected Requirement edit screens show the imported changes without reopening stale state.
+6. **Brief and Overview gate**: Explorer Overview and the shared posture brief include a significant-change summary using public Change Record fields and affected-record titles.
+7. **Redaction gate**: Explorer local proposals and posture briefs do not expose `reason`, `impactSummary`, or `decisionOwnerRef` in default publication or copy output; `decisionOwnerRef` remains Workshop-only.
+8. **Reset/storage gate**: reset local data clears local Change Record proposals together with other Explorer local-authoring data; local proposals are not written to `localStorage`.
+9. **Deferred-scope gate**: v1.11 does not add before/after diff views, automatic field-level history, change-record tagging, approvals, plan baselines, compliance-history export controls, editable posture, Shop, Pub, chart image export, or a separate PSPF Plan product.
+10. **Regression gate**: `e2e:v1.11`, `check:gates`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.12 release gates (Planning lens, per ADR 0046)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.12.0`; schema, bundle, and API axes remain `1.7.0`; no new schema directory is introduced.
+2. **Workshop saved-view gate**: Workshop Saved Views can create, rename, archive, and apply `workshop-dashboard` and `workshop-evidence-review` scopes as planning filters over existing Requirement, Evidence, Action, Risk, and Change Record data.
+3. **Dashboard planning gate**: applying a Dashboard saved view opens a planning dashboard slice with filtered Requirements, open Actions, open Risks, and recent Change Records.
+4. **Evidence planning gate**: applying an Evidence Review saved view opens a filtered evidence review slice with missing-evidence and linked-evidence-needing-review lists.
+5. **Explorer Plan Lens gate**: Explorer renders a read-only `Plan Lens` section with open Actions, open Risks, active/proposed Change Records, Directions needing attention, and a compact Overview planning count.
+6. **No-new-model gate**: v1.12 does not add plan-baseline snapshots, milestone entities, resource entities, budget entities, approval workflows, or a PSPF Plan package.
+7. **Regression gate**: `e2e:v1.12`, `check:gates`, `check:explorer-publication`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.13 release gates (Release assurance, per ADR 0047)
+
+1. **Dry-run visibility gate**: Marketplace workflow run names and job summaries include the selected target and `dry_run` value.
+2. **Dry-run non-publication gate**: when `dry_run=true`, Core and Workshop publish jobs state that `vsce publish`, GitHub release creation, and receipt-tag creation were skipped.
+3. **Real-publish verification gate**: when `dry_run=false`, each published extension verifies the expected public Marketplace version through the Gallery API before the release is announced.
+4. **Receipt-tag gate**: receipt tags remain post-publish artefacts only; a green dry run must not create `core/<version>` or `workshop/<version>` tags.
+5. **Status-documentation gate**: README, ecosystem page, and release guidance distinguish repository slice version, packaged VSIX version, Marketplace-listed extension version, and Explorer web publication state.
+6. **No-new-model gate**: v1.13 does not add product entities, bundle collections, schema directories, Open VSX publishing, Shop, Pub, editable posture, plan baselines, or compliance-history export controls.
+7. **Regression gate**: `e2e:v1.13`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.14 release gates (Compliance history export controls, per ADR 0048)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.14.0`; schema, bundle, and API axes remain `1.7.0`; no new schema directory is introduced.
+2. **Export toggle gate**: Explorer Local Changes exposes an `Include compliance history` toggle near `Export local JSON`; it defaults on and is visibly scoped to the next export.
+3. **History-included gate**: when the toggle is on, Explorer local-authoring export includes the existing `compliance-events` collection and manifest entry when local compliance events are present.
+4. **History-excluded gate**: when the toggle is off, Explorer local-authoring export omits `compliance-events` from both `collections` and `manifest.collections` while preserving current-state Requirements and assessment entries.
+5. **Import tolerance gate**: Core/Workshop import accepts local-authoring bundles that intentionally omit `compliance-events`.
+6. **Privacy/redaction gate**: personal-data exclusion and default-deny publication gates still pass for both history-included and history-excluded exports.
+7. **Deferred-scope gate**: v1.14 does not add local history pruning, age-based retention filters, automatic retention windows, signed audit attestations, before/after diff views, change-record tagging, editable posture, Shop, Pub, chart image export, plan baselines, Open VSX publishing, or a separate release channel.
+8. **Regression gate**: `e2e:v1.14`, `check:gates`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.
