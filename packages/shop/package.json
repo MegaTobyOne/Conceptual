@@ -2,7 +2,7 @@
     "name": "pspf-shop",
     "displayName": "PSPF Shop",
     "description": "PSPF commercial planning surface for suppliers, contracts, spend items, and spend forecast review.",
-    "version": "1.16.0",
+    "version": "1.17.0",
     "private": true,
     "type": "module",
     "license": "MIT",
@@ -17,6 +17,9 @@
     },
     "categories": [
         "Other"
+    ],
+    "extensionDependencies": [
+        "tobyharvey.pspf-core"
     ],
     "main": "./dist/extension.js",
     "contributes": {
@@ -64,6 +67,10 @@
                 "title": "PSPF: Load Shop Sample"
             },
             {
+                "command": "pspf.shop.importLocalStore",
+                "title": "PSPF: Import Shop Local JSON"
+            },
+            {
                 "command": "pspf.shop.newSupplier",
                 "title": "PSPF: New Supplier"
             },
@@ -78,6 +85,22 @@
             {
                 "command": "pspf.shop.openForecast",
                 "title": "PSPF: Open Shop Forecast"
+            },
+            {
+                "command": "pspf.shop.editSupplier",
+                "title": "PSPF: Edit Supplier"
+            },
+            {
+                "command": "pspf.shop.editContract",
+                "title": "PSPF: Edit Contract"
+            },
+            {
+                "command": "pspf.shop.editSpendItem",
+                "title": "PSPF: Edit Spend Item"
+            },
+            {
+                "command": "pspf.shop.deleteRecord",
+                "title": "PSPF: Delete Shop Record"
             }
         ],
         "menus": {
@@ -101,6 +124,18 @@
                     "command": "pspf.shop.loadSample",
                     "when": "view =~ /^pspfShop\\./",
                     "group": "navigation@2"
+                },
+                {
+                    "command": "pspf.shop.importLocalStore",
+                    "when": "view =~ /^pspfShop\\./",
+                    "group": "navigation@3"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "pspf.shop.deleteRecord",
+                    "when": "view =~ /^pspfShop\\./ && viewItem == pspfShopRecord",
+                    "group": "inline@1"
                 }
             ]
         }

@@ -1,13 +1,16 @@
 import * as vscode from "vscode";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import {
     PSPF_SLICE_VERSION,
+    VERSION_AXES,
     type ContractEntity,
     type MoneyAmount,
     type SpendItemEntity,
-    type SupplierEntity
+    type SupplierEntity,
+    type V01Entity,
+    sanitiseEntityForPublication
 } from "@pspf/contracts";
 
 const SHOP_STORE_VERSION = "1.0.0";
@@ -30,9 +33,9 @@ interface ShopStore {
     readonly spendItems: readonly SpendItemRecord[];
 }
 
-type SupplierRecord = Pick<SupplierEntity, "id" | "name" | "supplierType" | "status" | "criticality" | "primaryContact" | "notes">;
-type ContractRecord = Pick<ContractEntity, "id" | "supplierId" | "title" | "contractRef" | "status" | "startsAt" | "endsAt" | "value" | "serviceSummary">;
-type SpendItemRecord = Pick<SpendItemEntity, "id" | "title" | "spendType" | "status" | "amount" | "financialYear" | "forecastStartAt" | "forecastEndAt" | "forecastCost" | "expectedSavings" | "savingsType" | "paybackPeriodMonths" | "confidence" | "assumptions" | "notes">;
+type SupplierRecord = SupplierEntity;
+type ContractRecord = ContractEntity;
+type SpendItemRecord = SpendItemEntity;
 
 interface ForecastYear {
     readonly financialYear: string;
@@ -72,9 +75,14 @@ export function activate(context: vscode.ExtensionContext): void {
         statusItem,
         vscode.commands.registerCommand("pspf.shop.openHome", openHome),
         vscode.commands.registerCommand("pspf.shop.loadSample", loadSample),
+        vscode.commands.registerCommand("pspf.shop.importLocalStore", importLocalStore),
         vscode.commands.registerCommand("pspf.shop.newSupplier", newSupplier),
         vscode.commands.registerCommand("pspf.shop.newContract", newContract),
         vscode.commands.registerCommand("pspf.shop.newSpendItem", newSpendItem),
+        vscode.commands.registerCommand("pspf.shop.editSupplier", editSupplier),
+        vscode.commands.registerCommand("pspf.shop.editContract", editContract),
+        vscode.commands.registerCommand("pspf.shop.editSpendItem", editSpendItem),
+        vscode.commands.registerCommand("pspf.shop.deleteRecord", deleteRecord),
         vscode.commands.registerCommand("pspf.shop.openForecast", openForecast)
     );
 
@@ -132,7 +140,9 @@ async function newSupplier(): Promise<void> {
     const notes = await promptOptionalText("Notes");
 
     const supplier: SupplierRecord = {
+        ...newCommercialEnvelope("supplier"),
         id: createShopId("SUP"),
+        entityType: "supplier",
         name,
         supplierType,
         status,
@@ -142,9 +152,45 @@ async function newSupplier(): Promise<void> {
     };
 
     const store = await loadStore();
-    await saveStore({ ...store, suppliers: [...store.suppliers, supplier] });
+    await upsertShopEntities([supplier]);
+    shopStore = { ...store, suppliers: [...store.suppliers, supplier] };
     await refreshViews();
     vscode.window.showInformationMessage(`Added supplier ${supplier.name}.`);
+}
+
+async function editSupplier(supplier: SupplierRecord): Promise<void> {
+    const name = await promptText("Supplier name", supplier.name);
+    if (!name) {
+        return;
+    }
+    const supplierType = await promptPick("Supplier type", SUPPLIER_TYPES, supplier.supplierType);
+    if (!supplierType) {
+        return;
+    }
+    const status = await promptPick("Supplier status", SUPPLIER_STATUSES, supplier.status);
+    if (!status) {
+        return;
+    }
+    const criticality = await promptPick("Criticality", CRITICALITIES, supplier.criticality);
+    if (!criticality) {
+        return;
+    }
+    const primaryContact = await promptOptionalText("Primary contact or role", supplier.primaryContact);
+    const notes = await promptOptionalText("Notes", supplier.notes);
+    const updated: SupplierRecord = {
+        ...supplier,
+        name,
+        supplierType,
+        status,
+        criticality,
+        updatedAt: new Date().toISOString(),
+        ...(primaryContact ? { primaryContact } : { primaryContact: undefined }),
+        ...(notes ? { notes } : { notes: undefined })
+    };
+    await upsertShopEntities([updated]);
+    shopStore = undefined;
+    await refreshViews();
+    vscode.window.showInformationMessage(`Updated supplier ${updated.name}.`);
 }
 
 async function newContract(): Promise<void> {
@@ -173,7 +219,9 @@ async function newContract(): Promise<void> {
     const serviceSummary = await promptOptionalText("Service summary");
 
     const contract: ContractRecord = {
+        ...newCommercialEnvelope("contract"),
         id: createShopId("CTR"),
+        entityType: "contract",
         supplierId: supplier.id,
         title,
         status,
@@ -184,9 +232,47 @@ async function newContract(): Promise<void> {
         ...(serviceSummary ? { serviceSummary } : {})
     };
 
-    await saveStore({ ...store, contracts: [...store.contracts, contract] });
+    await upsertShopEntities([contract]);
+    shopStore = { ...store, contracts: [...store.contracts, contract] };
     await refreshViews();
     vscode.window.showInformationMessage(`Added contract ${contract.title}.`);
+}
+
+async function editContract(contract: ContractRecord): Promise<void> {
+    const store = await loadStore();
+    const supplier = await promptSupplier(store.suppliers, contract.supplierId);
+    if (!supplier) {
+        return;
+    }
+    const title = await promptText("Contract title", contract.title);
+    if (!title) {
+        return;
+    }
+    const status = await promptPick("Contract status", CONTRACT_STATUSES, contract.status);
+    if (!status) {
+        return;
+    }
+    const contractRef = await promptOptionalText("Contract reference", contract.contractRef);
+    const startsAt = await promptOptionalDate("Start date (YYYY-MM-DD)", contract.startsAt);
+    const endsAt = await promptOptionalDate("End date (YYYY-MM-DD)", contract.endsAt);
+    const valueAmount = await promptOptionalNumber("Contract value (AUD)", contract.value?.amount);
+    const serviceSummary = await promptOptionalText("Service summary", contract.serviceSummary);
+    const updated: ContractRecord = {
+        ...contract,
+        supplierId: supplier.id,
+        title,
+        status,
+        updatedAt: new Date().toISOString(),
+        ...(contractRef ? { contractRef } : { contractRef: undefined }),
+        ...(startsAt ? { startsAt } : { startsAt: undefined }),
+        ...(endsAt ? { endsAt } : { endsAt: undefined }),
+        ...(valueAmount === undefined ? { value: undefined } : { value: { amount: valueAmount, currency: "AUD" } }),
+        ...(serviceSummary ? { serviceSummary } : { serviceSummary: undefined })
+    };
+    await upsertShopEntities([updated]);
+    shopStore = undefined;
+    await refreshViews();
+    vscode.window.showInformationMessage(`Updated contract ${updated.title}.`);
 }
 
 async function newSpendItem(): Promise<void> {
@@ -221,7 +307,9 @@ async function newSpendItem(): Promise<void> {
     const notes = await promptOptionalText("Notes");
 
     const spendItem: SpendItemRecord = {
+        ...newCommercialEnvelope("spend-item"),
         id: createShopId("SPD"),
+        entityType: "spend-item",
         title,
         spendType,
         status,
@@ -239,9 +327,76 @@ async function newSpendItem(): Promise<void> {
     };
 
     const store = await loadStore();
-    await saveStore({ ...store, spendItems: [...store.spendItems, spendItem] });
+    await upsertShopEntities([spendItem]);
+    shopStore = { ...store, spendItems: [...store.spendItems, spendItem] };
     await refreshViews();
     vscode.window.showInformationMessage(`Added spend item ${spendItem.title}.`);
+}
+
+async function editSpendItem(spendItem: SpendItemRecord): Promise<void> {
+    const title = await promptText("Spend item title", spendItem.title);
+    if (!title) {
+        return;
+    }
+    const spendType = await promptPick("Spend type", SPEND_TYPES, spendItem.spendType);
+    if (!spendType) {
+        return;
+    }
+    const status = await promptPick("Spend status", SPEND_STATUSES, spendItem.status);
+    if (!status) {
+        return;
+    }
+    const amount = await promptRequiredNumber("Amount (AUD)", spendItem.amount.amount);
+    if (amount === undefined) {
+        return;
+    }
+    const financialYear = await promptFinancialYear(spendItem.financialYear);
+    if (!financialYear) {
+        return;
+    }
+    const forecastStartAt = await promptOptionalDate("Forecast start date (YYYY-MM-DD)", spendItem.forecastStartAt);
+    const forecastEndAt = await promptOptionalDate("Forecast end date (YYYY-MM-DD)", spendItem.forecastEndAt);
+    const forecastCost = await promptOptionalNumber("Forecast cost (AUD)", spendItem.forecastCost?.amount);
+    const expectedSavings = await promptOptionalNumber("Expected savings (AUD)", spendItem.expectedSavings?.amount);
+    const savingsType = expectedSavings === undefined ? undefined : await promptPick("Savings type", SAVINGS_TYPES, spendItem.savingsType ?? "efficiency");
+    const paybackPeriodMonths = await promptOptionalNumber("Payback period months", spendItem.paybackPeriodMonths);
+    const confidence = await promptPick("Confidence", CONFIDENCE_LEVELS, spendItem.confidence ?? "medium");
+    const assumptions = await promptOptionalText("Assumptions", spendItem.assumptions);
+    const notes = await promptOptionalText("Notes", spendItem.notes);
+    const updated: SpendItemRecord = {
+        ...spendItem,
+        title,
+        spendType,
+        status,
+        amount: moneyAmount(amount),
+        financialYear,
+        updatedAt: new Date().toISOString(),
+        ...(forecastStartAt ? { forecastStartAt } : { forecastStartAt: undefined }),
+        ...(forecastEndAt ? { forecastEndAt } : { forecastEndAt: undefined }),
+        ...(forecastCost === undefined ? { forecastCost: undefined } : { forecastCost: moneyAmount(forecastCost) }),
+        ...(expectedSavings === undefined ? { expectedSavings: undefined } : { expectedSavings: moneyAmount(expectedSavings) }),
+        ...(savingsType ? { savingsType } : { savingsType: undefined }),
+        ...(paybackPeriodMonths === undefined ? { paybackPeriodMonths: undefined } : { paybackPeriodMonths }),
+        ...(confidence ? { confidence } : { confidence: undefined }),
+        ...(assumptions ? { assumptions } : { assumptions: undefined }),
+        ...(notes ? { notes } : { notes: undefined })
+    };
+    await upsertShopEntities([updated]);
+    shopStore = undefined;
+    await refreshViews();
+    vscode.window.showInformationMessage(`Updated spend item ${updated.title}.`);
+}
+
+async function deleteRecord(entity: SupplierRecord | ContractRecord | SpendItemRecord): Promise<void> {
+    const label = entity.entityType === "supplier" ? entity.name : entity.title;
+    const answer = await vscode.window.showWarningMessage(`Delete ${label} from Core-backed Shop records?`, "Delete", "Cancel");
+    if (answer !== "Delete") {
+        return;
+    }
+    await upsertShopEntities([{ ...entity, recordStatus: "deleted", updatedAt: new Date().toISOString() }]);
+    shopStore = undefined;
+    await refreshViews();
+    vscode.window.showInformationMessage(`Deleted ${label}.`);
 }
 
 async function refreshViews(): Promise<void> {
@@ -258,43 +413,98 @@ async function loadStore(): Promise<ShopStore> {
         return shopStore;
     }
 
+    shopStore = await loadCoreStore();
+    return shopStore;
+}
+
+async function loadLocalStore(): Promise<ShopStore> {
     const filePath = getShopStoreFilePath();
     if (!filePath) {
-        shopStore = emptyStore();
-        return shopStore;
+        return emptyStore();
     }
 
     try {
         const text = await readFile(filePath, "utf8");
-        shopStore = normaliseStore(JSON.parse(text));
+        return normaliseStore(JSON.parse(text));
     } catch (error) {
         if (isNotFoundError(error)) {
-            shopStore = emptyStore();
-            return shopStore;
+            return emptyStore();
         }
         throw error;
     }
-    return shopStore;
 }
 
-async function saveStore(nextStore: ShopStore): Promise<void> {
-    const filePath = getShopStoreFilePath();
-    if (!filePath) {
-        vscode.window.showWarningMessage("Open a workspace folder before saving PSPF Shop data.");
+async function loadCoreStore(): Promise<ShopStore> {
+    const [suppliers, contracts, spendItems] = await Promise.all([
+        vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "supplier"),
+        vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "contract"),
+        vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "spend-item")
+    ]);
+
+    return {
+        shopStoreVersion: SHOP_STORE_VERSION,
+        updatedAt: new Date().toISOString(),
+        suppliers: suppliers.filter(isActiveEntity).filter(isSupplierEntity),
+        contracts: contracts.filter(isActiveEntity).filter(isContractEntity),
+        spendItems: spendItems.filter(isActiveEntity).filter(isSpendItemEntity)
+    };
+}
+
+async function importLocalStore(): Promise<void> {
+    const localStore = await loadLocalStore();
+    const localEntities = [...localStore.suppliers, ...localStore.contracts, ...localStore.spendItems];
+    if (localEntities.length === 0) {
+        vscode.window.showInformationMessage("No local Shop JSON records found to import.");
         return;
     }
 
-    const store: ShopStore = {
-        ...nextStore,
+    const coreStore = await loadCoreStore();
+    const coreIds = new Set([...coreStore.suppliers, ...coreStore.contracts, ...coreStore.spendItems].map((entity) => entity.id));
+    const duplicateCount = localEntities.filter((entity) => coreIds.has(entity.id)).length;
+    const message = duplicateCount > 0
+        ? `Import ${localEntities.length} local Shop records into Core? ${duplicateCount} existing Core records with the same IDs will be updated.`
+        : `Import ${localEntities.length} local Shop records into Core?`;
+    const answer = await vscode.window.showWarningMessage(message, "Import into Core", "Cancel");
+    if (answer !== "Import into Core") {
+        return;
+    }
+
+    await upsertShopEntities(localEntities);
+    shopStore = undefined;
+    await refreshViews();
+    vscode.window.showInformationMessage(`Imported ${localEntities.length} Shop records into Core.`);
+}
+
+async function saveStore(nextStore: ShopStore): Promise<void> {
+    await replaceCoreStore(nextStore);
+}
+
+async function upsertShopEntities(entities: readonly (SupplierRecord | ContractRecord | SpendItemRecord)[]): Promise<void> {
+    if (entities.length === 0) {
+        return;
+    }
+    await vscode.commands.executeCommand("pspf.core.upsertEntities", entities);
+}
+
+async function replaceCoreStore(nextStore: ShopStore): Promise<void> {
+    const current = await loadCoreStore();
+    const timestamp = new Date().toISOString();
+    const nextEntities: Array<SupplierRecord | ContractRecord | SpendItemRecord> = [...nextStore.suppliers, ...nextStore.contracts, ...nextStore.spendItems];
+    const deletedEntities = [...current.suppliers, ...current.contracts, ...current.spendItems]
+        .filter((currentEntity) => !nextEntities.some((nextEntity) => nextEntity.id === currentEntity.id))
+        .map((entity) => ({ ...entity, recordStatus: "deleted", updatedAt: timestamp }) satisfies SupplierRecord | ContractRecord | SpendItemRecord);
+    const activeSuppliers = nextStore.suppliers.map((entity) => ({ ...entity, recordStatus: "active", updatedAt: timestamp }) satisfies SupplierRecord);
+    const activeContracts = nextStore.contracts.map((entity) => ({ ...entity, recordStatus: "active", updatedAt: timestamp }) satisfies ContractRecord);
+    const activeSpendItems = nextStore.spendItems.map((entity) => ({ ...entity, recordStatus: "active", updatedAt: timestamp }) satisfies SpendItemRecord);
+    const activeEntities: Array<SupplierRecord | ContractRecord | SpendItemRecord> = [...activeSuppliers, ...activeContracts, ...activeSpendItems];
+    await upsertShopEntities([...deletedEntities, ...activeEntities]);
+    shopStore = {
         shopStoreVersion: SHOP_STORE_VERSION,
-        updatedAt: new Date().toISOString()
+        updatedAt: timestamp,
+        suppliers: activeSuppliers,
+        contracts: activeContracts,
+        spendItems: activeSpendItems
     };
-    const directory = dirname(filePath);
-    await mkdir(directory, { recursive: true });
-    const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
-    await writeFile(tempPath, `${JSON.stringify(store, null, 2)}\n`, "utf8");
-    await rename(tempPath, filePath);
-    shopStore = store;
 }
 
 function getShopStoreFilePath(): string | undefined {
@@ -337,7 +547,9 @@ function normaliseSupplierRecord(value: unknown): SupplierRecord | undefined {
         return undefined;
     }
     return {
+        ...normaliseCommercialEnvelope(value, "supplier"),
         id: value.id,
+        entityType: "supplier",
         name: value.name,
         supplierType,
         status,
@@ -356,7 +568,9 @@ function normaliseContractRecord(value: unknown): ContractRecord | undefined {
         return undefined;
     }
     return {
+        ...normaliseCommercialEnvelope(value, "contract"),
         id: value.id,
+        entityType: "contract",
         supplierId: value.supplierId,
         title: value.title,
         status,
@@ -382,7 +596,9 @@ function normaliseSpendItemRecord(value: unknown): SpendItemRecord | undefined {
     const expectedSavings = normaliseMoneyAmount(value.expectedSavings);
     const savingsType = mapSavingsType(value.savingsType);
     return {
+        ...normaliseCommercialEnvelope(value, "spend-item"),
         id: value.id,
+        entityType: "spend-item",
         title: value.title,
         spendType,
         status,
@@ -489,6 +705,46 @@ function isNotFoundError(error: unknown): boolean {
     return isRecord(error) && error.code === "ENOENT";
 }
 
+function isActiveEntity(entity: V01Entity): boolean {
+    return entity.recordStatus !== "deleted";
+}
+
+function isSupplierEntity(entity: V01Entity): entity is SupplierRecord {
+    return entity.entityType === "supplier";
+}
+
+function isContractEntity(entity: V01Entity): entity is ContractRecord {
+    return entity.entityType === "contract";
+}
+
+function isSpendItemEntity(entity: V01Entity): entity is SpendItemRecord {
+    return entity.entityType === "spend-item";
+}
+
+function newCommercialEnvelope(entityType: "supplier" | "contract" | "spend-item"): Pick<SupplierRecord | ContractRecord | SpendItemRecord, "entityType" | "schemaVersion" | "createdAt" | "updatedAt" | "sourceProduct" | "recordStatus"> {
+    const timestamp = new Date().toISOString();
+    return {
+        entityType,
+        schemaVersion: VERSION_AXES.schemaVersion,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        sourceProduct: "shop",
+        recordStatus: "active"
+    };
+}
+
+function normaliseCommercialEnvelope(value: Record<string, unknown>, entityType: "supplier" | "contract" | "spend-item"): Pick<SupplierRecord | ContractRecord | SpendItemRecord, "entityType" | "schemaVersion" | "createdAt" | "updatedAt" | "sourceProduct" | "recordStatus"> {
+    const timestamp = new Date().toISOString();
+    return {
+        entityType,
+        schemaVersion: typeof value.schemaVersion === "string" ? value.schemaVersion : VERSION_AXES.schemaVersion,
+        createdAt: typeof value.createdAt === "string" ? value.createdAt : timestamp,
+        updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : timestamp,
+        sourceProduct: "shop",
+        recordStatus: value.recordStatus === "archived" || value.recordStatus === "inactive" || value.recordStatus === "deleted" ? value.recordStatus : "active"
+    };
+}
+
 function createShopId(prefix: "SUP" | "CTR" | "SPD"): string {
     return `${prefix}-${randomUUID()}`;
 }
@@ -496,12 +752,15 @@ function createShopId(prefix: "SUP" | "CTR" | "SPD"): string {
 function buildSampleStore(): ShopStore {
     const supplierId = "SUP-00000000-0000-4000-8000-000000000901";
     const contractId = "CTR-00000000-0000-4000-8000-000000000901";
+    const timestamp = new Date().toISOString();
     return {
         shopStoreVersion: SHOP_STORE_VERSION,
         updatedAt: new Date().toISOString(),
         suppliers: [
             {
+                ...sampleCommercialEnvelope("supplier", timestamp),
                 id: supplierId,
+                entityType: "supplier",
                 name: "Secure Cloud Services",
                 supplierType: "managed-service",
                 status: "active",
@@ -512,7 +771,9 @@ function buildSampleStore(): ShopStore {
         ],
         contracts: [
             {
+                ...sampleCommercialEnvelope("contract", timestamp),
                 id: contractId,
+                entityType: "contract",
                 supplierId,
                 title: "Managed security monitoring",
                 contractRef: "SHOP-SAMPLE-001",
@@ -528,7 +789,9 @@ function buildSampleStore(): ShopStore {
         ],
         spendItems: [
             {
+                ...sampleCommercialEnvelope("spend-item", timestamp),
                 id: "SPD-00000000-0000-4000-8000-000000000901",
+                entityType: "spend-item",
                 title: "Security monitoring renewal",
                 spendType: "opex",
                 status: "proposed",
@@ -545,7 +808,9 @@ function buildSampleStore(): ShopStore {
                 notes: "Used to validate first Shop forecast rendering."
             },
             {
+                ...sampleCommercialEnvelope("spend-item", timestamp),
                 id: "SPD-00000000-0000-4000-8000-000000000902",
+                entityType: "spend-item",
                 title: "Evidence automation pilot",
                 spendType: "capex",
                 status: "proposed",
@@ -561,14 +826,25 @@ function buildSampleStore(): ShopStore {
     };
 }
 
-async function promptText(prompt: string): Promise<string | undefined> {
-    const value = await vscode.window.showInputBox({ prompt, ignoreFocusOut: true, validateInput: validateRequiredText });
-    return cleanText(value);
+function sampleCommercialEnvelope(entityType: "supplier" | "contract" | "spend-item", timestamp: string): Pick<SupplierRecord | ContractRecord | SpendItemRecord, "entityType" | "schemaVersion" | "createdAt" | "updatedAt" | "sourceProduct" | "recordStatus"> {
+    return {
+        entityType,
+        schemaVersion: VERSION_AXES.schemaVersion,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        sourceProduct: "shop",
+        recordStatus: "active"
+    };
 }
 
-async function promptOptionalText(prompt: string): Promise<string | undefined> {
-    const value = await vscode.window.showInputBox({ prompt, ignoreFocusOut: true });
-    return cleanText(value);
+async function promptText(prompt: string, value?: string): Promise<string | undefined> {
+    const input = await vscode.window.showInputBox({ prompt, value, ignoreFocusOut: true, validateInput: validateRequiredText });
+    return cleanText(input);
+}
+
+async function promptOptionalText(prompt: string, value?: string): Promise<string | undefined> {
+    const input = await vscode.window.showInputBox({ prompt, value, ignoreFocusOut: true });
+    return cleanText(input);
 }
 
 async function promptPick<const Value extends string>(placeHolder: string, values: readonly Value[], preferred?: Value): Promise<Value | undefined> {
@@ -582,39 +858,42 @@ async function promptPick<const Value extends string>(placeHolder: string, value
     return selected?.value;
 }
 
-async function promptSupplier(suppliers: readonly SupplierRecord[]): Promise<SupplierRecord | undefined> {
-    const selected = await vscode.window.showQuickPick(
-        suppliers.map((supplier) => ({ label: supplier.name, description: formatToken(supplier.criticality), supplier })),
-        { placeHolder: "Supplier", ignoreFocusOut: true, canPickMany: false }
-    );
+async function promptSupplier(suppliers: readonly SupplierRecord[], selectedSupplierId?: string): Promise<SupplierRecord | undefined> {
+    const picks = suppliers.map((supplier) => ({ label: supplier.name, description: formatToken(supplier.criticality), supplier }));
+    const selected = await vscode.window.showQuickPick(picks, {
+        placeHolder: "Supplier",
+        ignoreFocusOut: true,
+        canPickMany: false,
+        ...(selectedSupplierId ? { activeItem: picks.find((pick) => pick.supplier.id === selectedSupplierId) } : {})
+    });
     return selected?.supplier;
 }
 
-async function promptOptionalDate(prompt: string): Promise<string | undefined> {
-    const value = await vscode.window.showInputBox({ prompt, ignoreFocusOut: true, validateInput: validateOptionalDate });
-    return cleanText(value);
+async function promptOptionalDate(prompt: string, value?: string): Promise<string | undefined> {
+    const input = await vscode.window.showInputBox({ prompt, value, ignoreFocusOut: true, validateInput: validateOptionalDate });
+    return cleanText(input);
 }
 
-async function promptFinancialYear(): Promise<string | undefined> {
+async function promptFinancialYear(value?: string): Promise<string | undefined> {
     const currentYear = new Date().getFullYear();
-    const defaultValue = `${currentYear}-${String((currentYear + 1) % 100).padStart(2, "0")}`;
-    const value = await vscode.window.showInputBox({
+    const defaultValue = value ?? `${currentYear}-${String((currentYear + 1) % 100).padStart(2, "0")}`;
+    const input = await vscode.window.showInputBox({
         prompt: "Financial year (YYYY-YY)",
         value: defaultValue,
         ignoreFocusOut: true,
         validateInput: validateFinancialYear
     });
-    return cleanText(value);
+    return cleanText(input);
 }
 
-async function promptRequiredNumber(prompt: string): Promise<number | undefined> {
-    const value = await vscode.window.showInputBox({ prompt, ignoreFocusOut: true, validateInput: validateRequiredNumber });
-    return parseOptionalNumber(value);
+async function promptRequiredNumber(prompt: string, value?: number): Promise<number | undefined> {
+    const input = await vscode.window.showInputBox({ prompt, value: value?.toString(), ignoreFocusOut: true, validateInput: validateRequiredNumber });
+    return parseOptionalNumber(input);
 }
 
-async function promptOptionalNumber(prompt: string): Promise<number | undefined> {
-    const value = await vscode.window.showInputBox({ prompt, ignoreFocusOut: true, validateInput: validateOptionalNumber });
-    return parseOptionalNumber(value);
+async function promptOptionalNumber(prompt: string, value?: number): Promise<number | undefined> {
+    const input = await vscode.window.showInputBox({ prompt, value: value?.toString(), ignoreFocusOut: true, validateInput: validateOptionalNumber });
+    return parseOptionalNumber(input);
 }
 
 function validateRequiredText(value: string): string | undefined {
@@ -677,10 +956,12 @@ class SupplierTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
         if (store.suppliers.length === 0) {
             return [new ShopTreeItem("No suppliers yet", "Use New Supplier or Load Shop Sample", "info")];
         }
-        return store.suppliers.map((supplier) => new ShopTreeItem(
+        return store.suppliers.map((supplier) => new EntityTreeItem(
             supplier.name,
             `${formatToken(supplier.supplierType)} - ${formatToken(supplier.status)} - ${formatToken(supplier.criticality)}`,
-            "supplier"
+            "supplier",
+            "pspf.shop.editSupplier",
+            supplier
         ));
     }
 }
@@ -705,7 +986,7 @@ class ContractTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
         return store.contracts.map((contract) => {
             const supplier = store.suppliers.find((candidate) => candidate.id === contract.supplierId);
             const value = contract.value ? ` - ${formatCurrency(contract.value.amount, contract.value.currency)}` : "";
-            return new ShopTreeItem(contract.title, `${supplier?.name ?? "Unknown supplier"} - ${formatToken(contract.status)}${value}`, "contract");
+            return new EntityTreeItem(contract.title, `${supplier?.name ?? "Unknown supplier"} - ${formatToken(contract.status)}${value}`, "contract", "pspf.shop.editContract", contract);
         });
     }
 }
@@ -727,10 +1008,12 @@ class SpendTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
         if (store.spendItems.length === 0) {
             return [new ShopTreeItem("No spend items yet", "Use New Spend Item or Load Shop Sample", "info")];
         }
-        return store.spendItems.map((item) => new ShopTreeItem(
+        return store.spendItems.map((item) => new EntityTreeItem(
             item.title,
             `${item.financialYear} - ${formatToken(item.status)} - ${formatCurrency(item.amount.amount, item.amount.currency)}`,
-            "spend"
+            "spend",
+            "pspf.shop.editSpendItem",
+            item
         ));
     }
 }
@@ -750,7 +1033,8 @@ class WelcomeTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
     getChildren(): ShopTreeItem[] {
         return [
             new CommandTreeItem("Open Shop", "Focus the Shop activity views", "pspf.shop.openHome", "home"),
-            new CommandTreeItem("Load sample", "Replace local Shop data with sample records", "pspf.shop.loadSample", "sample"),
+            new CommandTreeItem("Load sample", "Replace Core-backed Shop data with sample records", "pspf.shop.loadSample", "sample"),
+            new CommandTreeItem("Import local JSON", "Import .pspf/shop/shop.json records into Core", "pspf.shop.importLocalStore", "sample"),
             new CommandTreeItem("New supplier", "Capture a supplier", "pspf.shop.newSupplier", "supplier"),
             new CommandTreeItem("New contract", "Capture a supplier contract", "pspf.shop.newContract", "contract"),
             new CommandTreeItem("New spend item", "Capture planned or forecast spend", "pspf.shop.newSpendItem", "spend")
@@ -771,6 +1055,14 @@ class CommandTreeItem extends ShopTreeItem {
     constructor(label: string, description: string, commandId: string, iconName: "contract" | "home" | "sample" | "spend" | "supplier") {
         super(label, description, iconName);
         this.command = { command: commandId, title: label };
+    }
+}
+
+class EntityTreeItem extends ShopTreeItem {
+    constructor(label: string, description: string, iconName: "contract" | "spend" | "supplier", editCommand: string, entity: SupplierRecord | ContractRecord | SpendItemRecord) {
+        super(label, description, iconName);
+        this.command = { command: editCommand, title: "Edit", arguments: [entity] };
+        this.contextValue = "pspfShopRecord";
     }
 }
 
@@ -824,6 +1116,7 @@ function deriveForecast(spendItems: readonly SpendItemRecord[]): ForecastYear[] 
 }
 
 function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[]): string {
+    const publicationStatus = getPublicationStatus(store);
     const rows = forecast.length === 0
         ? "<tr><td colspan=\"6\">No spend items yet.</td></tr>"
         : forecast.map((year) => `
@@ -854,11 +1147,12 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[])
 </head>
 <body>
   <h1>Shop Forecast</h1>
-  <p>Derived from local Shop spend items. Nothing is published to Core, Workshop, Explorer, snapshots, or export bundles.</p>
+    <p>Derived from Core-backed Shop spend items. Commercial fields use the canonical publication policy before reaching snapshots or export bundles.</p>
   <div class="summary">
     <span class="pill">${store.suppliers.length} suppliers</span>
     <span class="pill">${store.contracts.length} contracts</span>
     <span class="pill">${store.spendItems.length} spend items</span>
+        <span class="pill">${publicationStatus}</span>
   </div>
   <table>
     <thead>
@@ -868,6 +1162,19 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[])
   </table>
 </body>
 </html>`;
+}
+
+function getPublicationStatus(store: ShopStore): string {
+    const entities = [...store.suppliers, ...store.contracts, ...store.spendItems];
+    const blocked = entities.filter((entity) => {
+        try {
+            sanitiseEntityForPublication(entity);
+            return false;
+        } catch {
+            return true;
+        }
+    }).length;
+    return blocked === 0 ? "Publishable with redaction" : `${blocked} records need redaction review`;
 }
 
 function formatToken(value: string): string {

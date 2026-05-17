@@ -292,9 +292,9 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deferred-scope gate**: v1.16 does not add Shop-to-Workshop linking UI, editable Explorer commercial views, CSV/procurement import, finance reconciliation, realised-vs-expected savings tracking, chart/PDF export, Pub integration, approvals, multi-user commercial plans, or Marketplace publication of Shop.
 8. **Regression gate**: `e2e:v1.16`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
-### v1.17 candidate gates (Shop Core-backed authoring, planned)
+### v1.17 release gates (Shop Core-backed authoring, per ADR 0052)
 
-1. **ADR gate**: a new ADR records the Shop Core-backed authoring decision before implementation starts.
+1. **ADR gate**: ADR 0052 records the Shop Core-backed authoring decision before implementation starts.
 2. **Core-backed store gate**: Shop creates, edits, lists, and deletes supplier, contract, and spend-item records through Core APIs rather than treating `.pspf/shop/shop.json` as the active system of record.
 3. **Compatibility import gate**: operators can explicitly import or sync existing v1.15/v1.16 `.pspf/shop/shop.json` records into Core-backed commercial collections without silently overwriting canonical Core data.
 4. **Validation status gate**: Shop shows commercial record validation and publishability status using the canonical contracts and publication policy.
