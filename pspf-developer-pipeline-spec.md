@@ -237,7 +237,7 @@ Use the following baseline for the maintainer environment:
 - VS Code Stable plus the official Extension Test Host flow for extension debugging.
 - Node.js LTS pinned in `.node-version` and enforced by CI.
 - pnpm pinned in `packageManager` and activated via Corepack.
-- SQLite CLI installed locally for ad hoc inspection of `.pspf/core/pspf-core.db` and WAL/SHM behaviour.
+- SQLite CLI installed locally only when doing ad hoc inspection of `.pspf/core/pspf-core.db` or running the backup/restore runbook from the command line. Normal extension runtime storage uses bundled sql.js.
 - GitHub CLI (`gh`) installed for release tagging, workflow inspection, and issue/PR triage.
 - Playwright browsers installed through `pnpm exec playwright install --with-deps` only where needed; avoid global browser state.
 - A repo-local `.vscode/extensions.json` recommending ESLint, Playwright Test, GitHub Actions, GitHub Pull Requests, Markdown linting, and GitHub Copilot.
@@ -252,7 +252,7 @@ Add a root `doctor` script in v0.1 that checks:
 
 - Node and pnpm versions,
 - VS Code engine compatibility declared by each extension package,
-- SQLite availability and WAL support,
+- bundled sql.js runtime availability,
 - Playwright browser installation if Explorer tests are enabled,
 - GitHub CLI authentication for release tasks,
 - required repo secrets names are documented (without printing values),

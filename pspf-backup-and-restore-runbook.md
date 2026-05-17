@@ -41,7 +41,7 @@ This runbook assumes the PSPF workspace uses a structure similar to:
          snapshots/
 ```
 
-The exact filenames can vary, but the critical restore unit is the SQLite database plus any adjacent PSPF configuration and metadata required for Core to reopen the workspace correctly.
+The exact filenames can vary, but the critical restore unit is the SQLite database plus any adjacent PSPF configuration and metadata required for Core to reopen the workspace correctly. PSPF Core bundles its runtime SQLite engine for normal extension use; the external `sqlite3` CLI is required only for the command-line backup, restore, and inspection steps in this runbook.
 
 ## Roles and ownership
 
@@ -135,7 +135,7 @@ Use this only when VS Code is closed or the PSPF extensions are fully inactive.
 
 #### Important: WAL and SHM files are part of the database
 
-Core runs SQLite in WAL mode (`journal_mode=WAL`). When the database is open or has uncheckpointed changes, the live database state is split across three files:
+If a workspace was last written by a SQLite engine using WAL mode (`journal_mode=WAL`), the live database state can be split across three files:
 
 - `pspf-core.db` — main database file
 - `pspf-core.db-wal` — write-ahead log

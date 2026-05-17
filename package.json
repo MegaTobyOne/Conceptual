@@ -16,14 +16,16 @@
     "scripts": {
         "build": "pnpm -r --if-present build",
         "build:web-release": "pnpm build && node scripts/build-web-release.mjs",
-        "bundle:extensions": "pnpm build && pnpm exec esbuild packages/core/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/core/dist/extension.js && pnpm exec esbuild packages/workshop/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/workshop/dist/extension.js",
+        "bench:storage": "node scripts/bench-sqlite-engines.mjs",
+        "bundle:extensions": "pnpm build && pnpm exec esbuild packages/core/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --banner:js='import { createRequire as __pspfCreateRequire } from \"node:module\"; import { fileURLToPath as __pspfFileURLToPath } from \"node:url\"; import { dirname as __pspfDirname } from \"node:path\"; const require = __pspfCreateRequire(import.meta.url); const __filename = __pspfFileURLToPath(import.meta.url); const __dirname = __pspfDirname(__filename);' --outfile=packages/core/dist/extension.js && cp node_modules/sql.js/dist/sql-wasm.wasm packages/core/dist/sql-wasm.wasm && pnpm exec esbuild packages/workshop/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/workshop/dist/extension.js",
         "check:accessibility": "pnpm build && node scripts/check-accessibility.mjs",
         "check:backup-restore": "pnpm build && node scripts/backup-restore-dry-run.mjs",
+        "check:core-storage-runtime": "pnpm build && node scripts/check-core-sqljs-runtime.mjs",
         "check:brief-redaction": "pnpm build && node scripts/check-brief-redaction.mjs",
         "check:explorer-publication": "pnpm build && node scripts/check-explorer-publication.mjs",
         "check:explorer-local-authoring": "pnpm build && node scripts/check-explorer-local-authoring.mjs",
         "check:explorer-to-workshop-import": "pnpm build && node scripts/check-explorer-to-workshop-import.mjs",
-        "check:gates": "pnpm build && node scripts/check-reference-data-baseline.mjs && node scripts/check-schema-policy.mjs && node scripts/check-schema-coverage.mjs && node scripts/check-personal-data-exclusion.mjs && node scripts/check-deployment-safety.mjs && node scripts/check-brief-redaction.mjs && node scripts/check-ism-drift.mjs && node scripts/check-explorer-publication.mjs && node scripts/check-explorer-local-authoring.mjs && node scripts/check-explorer-to-workshop-import.mjs && node scripts/check-writer-lock.mjs && node scripts/check-integrity-scan.mjs && node scripts/check-sample-workspace.mjs && node scripts/check-package-shape.mjs && node scripts/backup-restore-dry-run.mjs && node scripts/check-accessibility.mjs",
+        "check:gates": "pnpm build && node scripts/check-reference-data-baseline.mjs && node scripts/check-schema-policy.mjs && node scripts/check-schema-coverage.mjs && node scripts/check-personal-data-exclusion.mjs && node scripts/check-deployment-safety.mjs && node scripts/check-brief-redaction.mjs && node scripts/check-ism-drift.mjs && node scripts/check-explorer-publication.mjs && node scripts/check-explorer-local-authoring.mjs && node scripts/check-explorer-to-workshop-import.mjs && node scripts/check-writer-lock.mjs && node scripts/check-integrity-scan.mjs && node scripts/check-sample-workspace.mjs && node scripts/check-package-shape.mjs && node scripts/check-core-sqljs-runtime.mjs && node scripts/backup-restore-dry-run.mjs && node scripts/check-accessibility.mjs",
         "check:deployment-safety": "pnpm build && node scripts/check-deployment-safety.mjs",
         "check:integrity-scan": "pnpm build && node scripts/check-integrity-scan.mjs",
         "check:ism-drift": "pnpm build && node scripts/check-ism-drift.mjs",
@@ -31,7 +33,7 @@
         "check:personal-data": "pnpm build && node scripts/check-personal-data-exclusion.mjs",
         "check:release-candidate": "pnpm build && node scripts/check-release-candidate.mjs",
         "check:reference-data-baseline": "node scripts/check-reference-data-baseline.mjs",
-        "package:check": "pnpm build && node scripts/check-package-shape.mjs",
+        "package:check": "pnpm build && node scripts/check-package-shape.mjs && node scripts/check-core-sqljs-runtime.mjs",
         "check:schema-coverage": "pnpm build && node scripts/check-schema-coverage.mjs",
         "check:schema-policy": "pnpm build && node scripts/check-schema-policy.mjs",
         "check:writer-lock": "pnpm build && node scripts/check-writer-lock.mjs",
@@ -76,6 +78,7 @@
         "ajv": "^8.20.0",
         "esbuild": "0.25.5",
         "playwright": "^1.59.1",
+        "sql.js": "^1.14.1",
         "typescript": "^5.8.3"
     }
 }

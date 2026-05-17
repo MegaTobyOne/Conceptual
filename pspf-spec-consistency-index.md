@@ -47,7 +47,7 @@ Use this index before changing any architecture, schema, API, workflow, or pipel
 
 1. Canonical datastore path is `.pspf/core/pspf-core.db`.
 2. Canonical config directory is `.pspf/config/` with `workspace.json`, `products.json`, and `policies.json`.
-3. SQLite uses `journal_mode=WAL`, `synchronous=NORMAL`, `busy_timeout=5000`; writes are serialised through Core's API queue.
+3. Core stores data in `.pspf/core/pspf-core.db` using bundled sql.js; writes are serialised through Core's API queue and persisted as a standard SQLite database file.
 4. **Five products**: Core, Workshop, Shop, Pub, Explorer (ADR 0001). Earlier names `Hearth`/`Trail`/`Lookout`/`Skylight` are retired.
 5. **Four separate VS Code extensions**: `pspf-core`, `pspf-workshop`, `pspf-shop`, `pspf-pub` (ADR 0007). No bundled platform VSIX.
 6. **Explorer is dual-mode**: publication consumer **and** browser-local authoring surface (ADR 0004). Local edits in `IndexedDB`; export to JSON; round-trip back to Core.
