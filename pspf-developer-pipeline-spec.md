@@ -352,6 +352,7 @@ All workflow files live in `.github/workflows/` at the repo root. Each is scoped
 | `shop-release.yml` | tag `shop/<v>` | as above for Shop (v0.2+) |
 | `pub-release.yml` | tag `pub/<v>` | as above for Pub (v0.2+) |
 | `web-release.yml` | tag `explorer/<v>` from `main` (production) or push to `develop` (test) | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment |
+| `sync-develop.yml` | push to `main`, or `workflow_dispatch` | keep `develop` aligned with `main` after a release merge: opens or updates a `main → develop` sync pull request whenever `main` has commits not yet on `develop` |
 | `nightly-bench.yml` | nightly | full performance benchmarks against reference machine fixture |
 
 ### Marketplace publishing
