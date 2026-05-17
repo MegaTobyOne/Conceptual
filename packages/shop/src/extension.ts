@@ -2,18 +2,24 @@ import * as vscode from "vscode";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { PSPF_SLICE_VERSION } from "@pspf/contracts";
+import {
+    PSPF_SLICE_VERSION,
+    type ContractEntity,
+    type MoneyAmount,
+    type SpendItemEntity,
+    type SupplierEntity
+} from "@pspf/contracts";
 
 const SHOP_STORE_VERSION = "1.0.0";
 const SHOP_STORE_PATH = [".pspf", "shop", "shop.json"] as const;
 
-const SUPPLIER_TYPES = ["managed-service", "software", "hardware", "consulting", "telecommunications", "facilities", "other"] as const;
-const SUPPLIER_STATUSES = ["prospective", "active", "inactive", "archived"] as const;
+const SUPPLIER_TYPES = ["software", "service", "advisory", "managed-service", "other"] as const;
+const SUPPLIER_STATUSES = ["active", "inactive", "proposed"] as const;
 const CRITICALITIES = ["low", "medium", "high", "critical"] as const;
-const CONTRACT_STATUSES = ["draft", "active", "expired", "terminated", "archived"] as const;
-const SPEND_TYPES = ["baseline", "forecast", "saving", "avoidance", "investment"] as const;
-const SPEND_STATUSES = ["planned", "approved", "committed", "realised", "cancelled"] as const;
-const SAVINGS_TYPES = ["cost-reduction", "cost-avoidance", "risk-reduction", "service-improvement"] as const;
+const CONTRACT_STATUSES = ["draft", "active", "expired", "terminated"] as const;
+const SPEND_TYPES = ["capex", "opex", "uplift", "licence", "service"] as const;
+const SPEND_STATUSES = ["proposed", "approved", "committed", "spent", "cancelled"] as const;
+const SAVINGS_TYPES = ["avoided-cost", "efficiency", "consolidation", "risk-reduction", "contract-optimisation", "other"] as const;
 const CONFIDENCE_LEVELS = ["low", "medium", "high"] as const;
 
 interface ShopStore {
@@ -24,59 +30,9 @@ interface ShopStore {
     readonly spendItems: readonly SpendItemRecord[];
 }
 
-type SupplierType = (typeof SUPPLIER_TYPES)[number];
-type SupplierStatus = (typeof SUPPLIER_STATUSES)[number];
-type Criticality = (typeof CRITICALITIES)[number];
-type ContractStatus = (typeof CONTRACT_STATUSES)[number];
-type SpendType = (typeof SPEND_TYPES)[number];
-type SpendStatus = (typeof SPEND_STATUSES)[number];
-type SavingsType = (typeof SAVINGS_TYPES)[number];
-type ConfidenceLevel = (typeof CONFIDENCE_LEVELS)[number];
-
-interface SupplierRecord {
-    readonly id: string;
-    readonly name: string;
-    readonly supplierType: SupplierType;
-    readonly status: SupplierStatus;
-    readonly criticality: Criticality;
-    readonly primaryContact?: string;
-    readonly notes?: string;
-}
-
-interface ContractRecord {
-    readonly id: string;
-    readonly supplierId: string;
-    readonly title: string;
-    readonly contractRef?: string;
-    readonly status: ContractStatus;
-    readonly startsAt?: string;
-    readonly endsAt?: string;
-    readonly value?: MoneyValue;
-    readonly serviceSummary?: string;
-}
-
-interface SpendItemRecord {
-    readonly id: string;
-    readonly title: string;
-    readonly spendType: SpendType;
-    readonly status: SpendStatus;
-    readonly amount: number;
-    readonly financialYear: string;
-    readonly forecastStartAt?: string;
-    readonly forecastEndAt?: string;
-    readonly forecastCost?: number;
-    readonly expectedSavings?: number;
-    readonly savingsType?: SavingsType;
-    readonly paybackPeriodMonths?: number;
-    readonly confidence?: ConfidenceLevel;
-    readonly assumptions?: string;
-    readonly notes?: string;
-}
-
-interface MoneyValue {
-    readonly amount: number;
-    readonly currency: string;
-}
+type SupplierRecord = Pick<SupplierEntity, "id" | "name" | "supplierType" | "status" | "criticality" | "primaryContact" | "notes">;
+type ContractRecord = Pick<ContractEntity, "id" | "supplierId" | "title" | "contractRef" | "status" | "startsAt" | "endsAt" | "value" | "serviceSummary">;
+type SpendItemRecord = Pick<SpendItemEntity, "id" | "title" | "spendType" | "status" | "amount" | "financialYear" | "forecastStartAt" | "forecastEndAt" | "forecastCost" | "expectedSavings" | "savingsType" | "paybackPeriodMonths" | "confidence" | "assumptions" | "notes">;
 
 interface ForecastYear {
     readonly financialYear: string;
@@ -238,11 +194,11 @@ async function newSpendItem(): Promise<void> {
     if (!title) {
         return;
     }
-    const spendType = await promptPick("Spend type", SPEND_TYPES, "forecast");
+    const spendType = await promptPick("Spend type", SPEND_TYPES, "uplift");
     if (!spendType) {
         return;
     }
-    const status = await promptPick("Spend status", SPEND_STATUSES, "planned");
+    const status = await promptPick("Spend status", SPEND_STATUSES, "proposed");
     if (!status) {
         return;
     }
@@ -258,7 +214,7 @@ async function newSpendItem(): Promise<void> {
     const forecastEndAt = await promptOptionalDate("Forecast end date (YYYY-MM-DD)");
     const forecastCost = await promptOptionalNumber("Forecast cost (AUD)");
     const expectedSavings = await promptOptionalNumber("Expected savings (AUD)");
-    const savingsType = expectedSavings === undefined ? undefined : await promptPick("Savings type", SAVINGS_TYPES, "cost-reduction");
+    const savingsType = expectedSavings === undefined ? undefined : await promptPick("Savings type", SAVINGS_TYPES, "efficiency");
     const paybackPeriodMonths = await promptOptionalNumber("Payback period months");
     const confidence = await promptPick("Confidence", CONFIDENCE_LEVELS, "medium");
     const assumptions = await promptOptionalText("Assumptions");
@@ -269,12 +225,12 @@ async function newSpendItem(): Promise<void> {
         title,
         spendType,
         status,
-        amount,
+        amount: moneyAmount(amount),
         financialYear,
         ...(forecastStartAt ? { forecastStartAt } : {}),
         ...(forecastEndAt ? { forecastEndAt } : {}),
-        ...(forecastCost === undefined ? {} : { forecastCost }),
-        ...(expectedSavings === undefined ? {} : { expectedSavings }),
+        ...(forecastCost === undefined ? {} : { forecastCost: moneyAmount(forecastCost) }),
+        ...(expectedSavings === undefined ? {} : { expectedSavings: moneyAmount(expectedSavings) }),
         ...(savingsType ? { savingsType } : {}),
         ...(paybackPeriodMonths === undefined ? {} : { paybackPeriodMonths }),
         ...(confidence ? { confidence } : {}),
@@ -364,37 +320,161 @@ function normaliseStore(value: unknown): ShopStore {
     return {
         shopStoreVersion: typeof source.shopStoreVersion === "string" ? source.shopStoreVersion : SHOP_STORE_VERSION,
         updatedAt: typeof source.updatedAt === "string" ? source.updatedAt : new Date().toISOString(),
-        suppliers: Array.isArray(source.suppliers) ? source.suppliers.filter(isSupplierRecord) : [],
-        contracts: Array.isArray(source.contracts) ? source.contracts.filter(isContractRecord) : [],
-        spendItems: Array.isArray(source.spendItems) ? source.spendItems.filter(isSpendItemRecord) : []
+        suppliers: Array.isArray(source.suppliers) ? source.suppliers.map(normaliseSupplierRecord).filter(isDefined) : [],
+        contracts: Array.isArray(source.contracts) ? source.contracts.map(normaliseContractRecord).filter(isDefined) : [],
+        spendItems: Array.isArray(source.spendItems) ? source.spendItems.map(normaliseSpendItemRecord).filter(isDefined) : []
     };
 }
 
-function isSupplierRecord(value: unknown): value is SupplierRecord {
-    return isRecord(value)
-        && typeof value.id === "string"
-        && typeof value.name === "string"
-        && isIncluded(SUPPLIER_TYPES, value.supplierType)
-        && isIncluded(SUPPLIER_STATUSES, value.status)
-        && isIncluded(CRITICALITIES, value.criticality);
+function normaliseSupplierRecord(value: unknown): SupplierRecord | undefined {
+    if (!isRecord(value) || typeof value.id !== "string" || typeof value.name !== "string") {
+        return undefined;
+    }
+    const supplierType = mapSupplierType(value.supplierType);
+    const status = mapSupplierStatus(value.status);
+    const criticality = isIncluded(CRITICALITIES, value.criticality) ? value.criticality : undefined;
+    if (!supplierType || !status || !criticality) {
+        return undefined;
+    }
+    return {
+        id: value.id,
+        name: value.name,
+        supplierType,
+        status,
+        criticality,
+        ...(typeof value.primaryContact === "string" ? { primaryContact: value.primaryContact } : {}),
+        ...(typeof value.notes === "string" ? { notes: value.notes } : {})
+    };
 }
 
-function isContractRecord(value: unknown): value is ContractRecord {
-    return isRecord(value)
-        && typeof value.id === "string"
-        && typeof value.supplierId === "string"
-        && typeof value.title === "string"
-        && isIncluded(CONTRACT_STATUSES, value.status);
+function normaliseContractRecord(value: unknown): ContractRecord | undefined {
+    if (!isRecord(value) || typeof value.id !== "string" || typeof value.supplierId !== "string" || typeof value.title !== "string") {
+        return undefined;
+    }
+    const status = mapContractStatus(value.status);
+    if (!status) {
+        return undefined;
+    }
+    return {
+        id: value.id,
+        supplierId: value.supplierId,
+        title: value.title,
+        status,
+        ...(typeof value.contractRef === "string" ? { contractRef: value.contractRef } : {}),
+        ...(typeof value.startsAt === "string" ? { startsAt: value.startsAt } : {}),
+        ...(typeof value.endsAt === "string" ? { endsAt: value.endsAt } : {}),
+        ...(normaliseMoneyAmount(value.value) ? { value: normaliseMoneyAmount(value.value) } : {}),
+        ...(typeof value.serviceSummary === "string" ? { serviceSummary: value.serviceSummary } : {})
+    };
 }
 
-function isSpendItemRecord(value: unknown): value is SpendItemRecord {
-    return isRecord(value)
-        && typeof value.id === "string"
-        && typeof value.title === "string"
-        && isIncluded(SPEND_TYPES, value.spendType)
-        && isIncluded(SPEND_STATUSES, value.status)
-        && typeof value.amount === "number"
-        && typeof value.financialYear === "string";
+function normaliseSpendItemRecord(value: unknown): SpendItemRecord | undefined {
+    if (!isRecord(value) || typeof value.id !== "string" || typeof value.title !== "string" || typeof value.financialYear !== "string") {
+        return undefined;
+    }
+    const spendType = mapSpendType(value.spendType);
+    const status = mapSpendStatus(value.status);
+    const amount = normaliseMoneyAmount(value.amount);
+    if (!spendType || !status || !amount) {
+        return undefined;
+    }
+    const forecastCost = normaliseMoneyAmount(value.forecastCost);
+    const expectedSavings = normaliseMoneyAmount(value.expectedSavings);
+    const savingsType = mapSavingsType(value.savingsType);
+    return {
+        id: value.id,
+        title: value.title,
+        spendType,
+        status,
+        amount,
+        financialYear: value.financialYear,
+        ...(typeof value.forecastStartAt === "string" ? { forecastStartAt: value.forecastStartAt } : {}),
+        ...(typeof value.forecastEndAt === "string" ? { forecastEndAt: value.forecastEndAt } : {}),
+        ...(forecastCost ? { forecastCost } : {}),
+        ...(expectedSavings ? { expectedSavings } : {}),
+        ...(savingsType ? { savingsType } : {}),
+        ...(typeof value.paybackPeriodMonths === "number" ? { paybackPeriodMonths: value.paybackPeriodMonths } : {}),
+        ...(isIncluded(CONFIDENCE_LEVELS, value.confidence) ? { confidence: value.confidence } : {}),
+        ...(typeof value.assumptions === "string" ? { assumptions: value.assumptions } : {}),
+        ...(typeof value.notes === "string" ? { notes: value.notes } : {})
+    };
+}
+
+function normaliseMoneyAmount(value: unknown): MoneyAmount | undefined {
+    if (typeof value === "number" && Number.isFinite(value)) {
+        return moneyAmount(value);
+    }
+    if (!isRecord(value) || typeof value.amount !== "number" || !Number.isFinite(value.amount)) {
+        return undefined;
+    }
+    return {
+        amount: value.amount,
+        currency: typeof value.currency === "string" && value.currency ? value.currency : "AUD"
+    };
+}
+
+function mapSupplierType(value: unknown): SupplierRecord["supplierType"] | undefined {
+    if (isIncluded(SUPPLIER_TYPES, value)) {
+        return value;
+    }
+    if (value === "hardware" || value === "telecommunications" || value === "facilities") {
+        return "service";
+    }
+    if (value === "consulting") {
+        return "advisory";
+    }
+    return undefined;
+}
+
+function mapSupplierStatus(value: unknown): SupplierRecord["status"] | undefined {
+    if (isIncluded(SUPPLIER_STATUSES, value)) {
+        return value;
+    }
+    return value === "prospective" ? "proposed" : undefined;
+}
+
+function mapContractStatus(value: unknown): ContractRecord["status"] | undefined {
+    if (isIncluded(CONTRACT_STATUSES, value)) {
+        return value;
+    }
+    return value === "archived" ? "terminated" : undefined;
+}
+
+function mapSpendType(value: unknown): SpendItemRecord["spendType"] | undefined {
+    if (isIncluded(SPEND_TYPES, value)) {
+        return value;
+    }
+    if (value === "baseline" || value === "forecast") {
+        return "opex";
+    }
+    if (value === "saving" || value === "avoidance") {
+        return "uplift";
+    }
+    return value === "investment" ? "capex" : undefined;
+}
+
+function mapSpendStatus(value: unknown): SpendItemRecord["status"] | undefined {
+    if (isIncluded(SPEND_STATUSES, value)) {
+        return value;
+    }
+    if (value === "planned") {
+        return "proposed";
+    }
+    return value === "realised" ? "spent" : undefined;
+}
+
+function mapSavingsType(value: unknown): SpendItemRecord["savingsType"] | undefined {
+    if (isIncluded(SAVINGS_TYPES, value)) {
+        return value;
+    }
+    if (value === "cost-reduction" || value === "service-improvement") {
+        return "efficiency";
+    }
+    return value === "cost-avoidance" ? "avoided-cost" : undefined;
+}
+
+function isDefined<Value>(value: Value | undefined): value is Value {
+    return value !== undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -450,15 +530,15 @@ function buildSampleStore(): ShopStore {
             {
                 id: "SPD-00000000-0000-4000-8000-000000000901",
                 title: "Security monitoring renewal",
-                spendType: "forecast",
-                status: "planned",
-                amount: 240000,
+                spendType: "opex",
+                status: "proposed",
+                amount: moneyAmount(240000),
                 financialYear: "2026-27",
                 forecastStartAt: "2026-07-01",
                 forecastEndAt: "2027-06-30",
-                forecastCost: 252000,
-                expectedSavings: 15000,
-                savingsType: "cost-avoidance",
+                forecastCost: moneyAmount(252000),
+                expectedSavings: moneyAmount(15000),
+                savingsType: "avoided-cost",
                 paybackPeriodMonths: 12,
                 confidence: "medium",
                 assumptions: "Sample assumptions are local only.",
@@ -467,13 +547,13 @@ function buildSampleStore(): ShopStore {
             {
                 id: "SPD-00000000-0000-4000-8000-000000000902",
                 title: "Evidence automation pilot",
-                spendType: "investment",
-                status: "planned",
-                amount: 80000,
+                spendType: "capex",
+                status: "proposed",
+                amount: moneyAmount(80000),
                 financialYear: "2026-27",
-                forecastCost: 80000,
-                expectedSavings: 25000,
-                savingsType: "service-improvement",
+                forecastCost: moneyAmount(80000),
+                expectedSavings: moneyAmount(25000),
+                savingsType: "efficiency",
                 paybackPeriodMonths: 18,
                 confidence: "low"
             }
@@ -649,7 +729,7 @@ class SpendTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
         }
         return store.spendItems.map((item) => new ShopTreeItem(
             item.title,
-            `${item.financialYear} - ${formatToken(item.status)} - ${formatCurrency(item.amount)}`,
+            `${item.financialYear} - ${formatToken(item.status)} - ${formatCurrency(item.amount.amount, item.amount.currency)}`,
             "spend"
         ));
     }
@@ -728,9 +808,9 @@ function deriveForecast(spendItems: readonly SpendItemRecord[]): ForecastYear[] 
             netForecast: 0,
             itemCount: 0
         };
-        const plannedSpend = existing.plannedSpend + item.amount;
-        const forecastCost = existing.forecastCost + (item.forecastCost ?? item.amount);
-        const expectedSavings = existing.expectedSavings + (item.expectedSavings ?? 0);
+        const plannedSpend = existing.plannedSpend + item.amount.amount;
+        const forecastCost = existing.forecastCost + (item.forecastCost?.amount ?? item.amount.amount);
+        const expectedSavings = existing.expectedSavings + (item.expectedSavings?.amount ?? 0);
         byYear.set(item.financialYear, {
             financialYear: item.financialYear,
             plannedSpend,
@@ -796,6 +876,10 @@ function formatToken(value: string): string {
 
 function formatCurrency(value: number, currency = "AUD"): string {
     return new Intl.NumberFormat("en-AU", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+}
+
+function moneyAmount(amount: number, currency = "AUD"): MoneyAmount {
+    return { amount, currency };
 }
 
 function iconFor(iconName: "contract" | "home" | "info" | "sample" | "spend" | "supplier"): string {

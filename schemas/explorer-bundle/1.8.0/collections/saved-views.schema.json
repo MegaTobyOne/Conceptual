@@ -1,0 +1,208 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.8.0/collections/saved-views.schema.json",
+    "title": "PSPF Explorer Saved Views Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "name",
+            "scope",
+            "filters"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^SVW-"
+            },
+            "entityType": {
+                "const": "saved-view"
+            },
+            "schemaVersion": {
+                "const": "1.8.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+            },
+            "scope": {
+                "enum": [
+                    "requirements",
+                    "explorer-requirements",
+                    "explorer-relationships",
+                    "workshop-dashboard",
+                    "workshop-evidence-review",
+                    "workshop-requirements"
+                ]
+            },
+            "filters": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 120
+                    },
+                    "domainIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^DOM-"
+                        },
+                        "uniqueItems": true
+                    },
+                    "assessmentStatuses": {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "not-started",
+                                "in-progress",
+                                "met",
+                                "partially-met",
+                                "not-met",
+                                "not-applicable",
+                                "under-review"
+                            ]
+                        },
+                        "uniqueItems": true
+                    },
+                    "tagIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^TAG-"
+                        },
+                        "uniqueItems": true
+                    },
+                    "tagsMode": {
+                        "enum": [
+                            "any",
+                            "all"
+                        ]
+                    },
+                    "evidenceCoverage": {
+                        "enum": [
+                            "any",
+                            "missing",
+                            "linked"
+                        ]
+                    },
+                    "actionStates": {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "todo",
+                                "in-progress",
+                                "blocked",
+                                "done",
+                                "cancelled"
+                            ]
+                        },
+                        "uniqueItems": true
+                    },
+                    "riskStates": {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "open",
+                                "monitored",
+                                "closed"
+                            ]
+                        },
+                        "uniqueItems": true
+                    }
+                }
+            },
+            "presentation": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "sortKey": {
+                        "enum": [
+                            "title",
+                            "domainId",
+                            "assessmentStatus",
+                            "updatedAt"
+                        ]
+                    },
+                    "sortDirection": {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ]
+                    },
+                    "visibleColumns": {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "id",
+                                "title",
+                                "domainId",
+                                "assessmentStatus",
+                                "tags",
+                                "evidence",
+                                "actions",
+                                "risks",
+                                "relationship",
+                                "from",
+                                "to",
+                                "priority",
+                                "requirement",
+                                "hint",
+                                "domain",
+                                "requirements",
+                                "evidenceGaps",
+                                "inProgress",
+                                "met",
+                                "notMet",
+                                "status",
+                                "urgency",
+                                "total"
+                            ]
+                        },
+                        "uniqueItems": true,
+                        "maxItems": 12
+                    }
+                }
+            }
+        }
+    }
+}

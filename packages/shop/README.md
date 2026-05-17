@@ -2,6 +2,8 @@
 
 PSPF Shop is the commercial planning surface for suppliers, contracts, spend items, and derived spend forecast review.
 
-ADR 0050 reopens the earlier Shop deferral for a standalone first slice. In v1.15, Shop stores data in `.pspf/shop/shop.json` inside the active workspace and does not publish Shop content into Core, Workshop, Explorer, snapshots, export bundles, logs, or telemetry.
+ADR 0050 reopened the earlier Shop deferral for a standalone first slice. ADR 0051 promotes supplier, contract, and spend-item records into the canonical contracts model and Explorer bundle schema while keeping Shop's editable store at `.pspf/shop/shop.json` for the extension user experience.
 
-This package intentionally keeps supplier, contract, and spend-item records local to the extension until a later slice promotes them into the canonical contracts, Core storage engine, and Explorer bundle schema.
+The extension keeps a compatibility read path for v1.15 local records and normalises them into the v1.16 canonical local store shape.
+
+The next planned slice is Core-backed Shop authoring: read/write commercial records through Core, provide an explicit sync/import path from the local Shop JSON store, and surface validation/publishability status without adding procurement import or finance reconciliation.

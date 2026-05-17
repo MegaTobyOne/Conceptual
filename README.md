@@ -1,134 +1,49 @@
 # PSPF
 
-PSPF is the Australian Government's Protective Security Policy Framework, administered by the Department of Home Affairs. This product helps Australian entities assess and report against PSPF requirements and the ASD Essential Eight, locally and offline.
+Local-first tooling for Australian Government PSPF assurance work.
 
-This repository currently implements the v1.14.0 initial assurance user-testing slice: PSPF Core, PSPF Workshop, PSPF Explorer publication mode, workspace tags for Requirements, Explorer tag filtering, Explorer Requirements and Relationships saved views, Workshop Requirement, Dashboard, and Evidence Review saved views, Workshop-authored Change Records, Explorer's read-only "Why This Changed" view, Explorer Plan Lens, Explorer browser-local Requirement status overlays, Explorer browser-local evidence references, Explorer browser-local Actions, Explorer browser-local Risks, Explorer compliance-history export controls, local status conflict display, Workshop import review for Explorer local JSON, plan/review/apply import with last-import undo, browser-refresh bundle restore with schema-change reload guidance, distinct Workshop/Explorer identity passes, and Marketplace release-assurance checks. Shop, Pub, editable posture, chart image export, per-user/private tags, tag hierarchies, tagging non-Requirement entities beyond Requirements, Explorer-authored Change Records, and plan baselines remain deferred.
+The repository currently ships PSPF v1.16.0 with Core, Workshop, Shop, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.8.0`.
 
-Current release status: the repository and packaged VSIX artefacts are at v1.14.0 after local validation. The public VS Code Marketplace listings for `tobyharvey.pspf-core` and `tobyharvey.pspf-workshop` are v1.10.0 until the `Marketplace release` workflow is rerun from `main` with `dry_run=false` and the `marketplace` environment approval is completed. Dry-run Marketplace runs are deliberately green package-only validations; they do not publish, create receipt tags, or create GitHub releases.
+## Products
 
-Current user-facing improvements include sample workspace loading, Direction and ISM mapping review, Action Impact summaries, compact Workshop edit tabs, AU-formatted due dates, save-and-close edit actions, Tag Manager and Requirement tag rails, Workshop Saved Views, Workshop Change Records, Explorer Requirements and Relationship views, Explorer "Why This Changed", a visible Explorer reload notice when remembered JSON is from an older schema, a cooler Workshop system-of-record identity, a proper Workshop import review surface, and a warmer Explorer portable assurance view with collapsible sections and tag filters.
+- Core stores the workspace system of record in `.pspf/core/pspf-core.db`.
+- Workshop is the operator authoring and review surface.
+- Shop is the commercial planning surface for suppliers, contracts, spend items, and explainable forecasts.
+- Explorer opens published master bundles and supports browser-local review/authoring round trips.
+- Pub remains deferred.
 
-## Local Setup
+## Setup
 
 ```sh
 corepack enable
 pnpm install
-pnpm doctor
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm run e2e:v0.1
-pnpm run check:gates
-pnpm run release:readiness
+npx pnpm@10.10.0 run doctor
 ```
 
-The implementation plan is governed by `adr/0014-v0-1-thin-slice.md` and the release gates in `pspf-acceptance-and-quality-gates.md`.
-
-The standing branch, test, and deploy flow is documented in `pspf-developer-pipeline-spec.md` under `Standing branch, test, and deploy flow`. Use it before each change, release-candidate promotion, production release, and hotfix.
-
-The first manual user-validation path is captured in `validation-scenario-1-operator-workflow.md`.
-
-## Debug Slice
-
-Use the VS Code launch configuration `Run PSPF Core + Workshop` to open `debug-workspace/` in an Extension Host. The first validation scenario is:
-
-The debug workspace opts into `pspf.core.initialiseOnActivation`, so `.pspf/` is prepared when the Extension Host starts. The manual `PSPF: Initialise PSPF Workspace` command is still available and idempotent, but you should not need it for the debug launch. For the quickest validation path, use `PSPF: Load Sample Workspace` from Workshop Home before opening the dashboard or Explorer export.
-
-For a clean manual run, close the Extension Host and run `npx pnpm@10.10.0 run debug:reset` from the repository root before relaunching.
-
-1. `PSPF: Load Sample Workspace`
-2. `PSPF: Open Assessment Dashboard`
-3. `PSPF: Open Evidence Review Queue`
-4. `PSPF: Open Item Detail`
-5. `PSPF: Open Direction Detail`
-6. Optional: create or edit a Requirement, Evidence, Action, Risk, Direction, or ISM mapping.
-7. `PSPF: Copy Posture Brief`
-8. `PSPF: Validate Workspace`
-9. `PSPF: Verify Integrity`
-10. `PSPF: Run Integrity Scan`
-11. `PSPF: Create Snapshot`
-12. `PSPF: Export Master Bundle`
-13. `PSPF: Show Writer Lock`
-
-Open `packages/explorer/dist/index.html` in a browser and select the exported `debug-workspace/.pspf/exchange/exports/export-*/bundle.json` file. Explorer should show a posture brief, donut with its status table directly underneath, collapsible record sections, top navigation that opens a target section, a `Close All` control, AU-formatted Action due dates, compact unresolved ISM IDs, and readable Relationships columns.
-
-For v1.9.0 validation, create or apply a Requirement tag in Workshop, confirm it appears in Requirement Detail and `PSPF: Manage Tags`, create a Workshop Saved View, export to Explorer, and confirm the Requirements and Relationships Board tag filters update the URL/session state. In Explorer Requirements and Relationships, compose Search/status/tag filters where available, save views, reload the browser, apply the saved views, then export local JSON and confirm the bundle includes `saved-views`. If Explorer was previously remembering an older schema bundle, confirm it asks you to reload your PSPF JSON instead of showing an empty review surface. Then open `Local Changes`, change one Requirement status, add one evidence reference, one Action, and one Risk for the same Requirement, refresh Explorer to confirm the latest bundle and local work restore automatically, import the local JSON through Core with `Plan, review, apply`, review the `PSPF Workshop Import Review` surface, apply the import, review the records in Workshop, test `Undo Import`, and then reset local data. The exported JSON remains the standard master bundle format with `generator.mode` set to `local-authoring`.
-
-## Headless v0.1 E2E
-
-Run the automated v0.1 path with:
+## Common Checks
 
 ```sh
-npx pnpm@10.10.0 run e2e:v0.1
+npx pnpm@10.10.0 build
+npx pnpm@10.10.0 typecheck
+npx pnpm@10.10.0 test
+npx pnpm@10.10.0 release:readiness
 ```
 
-The script creates `.tmp/e2e-v0.1-workspace`, initialises Core, authors one requirement with evidence, action, risk, and links, creates a snapshot, exports a master bundle, validates the manifest and collections against Draft 07 schemas, verifies manifest hashes, and checks that sensitive working notes are not published.
+`release:readiness` runs the v1.16 gate chain and writes `.tmp/release-readiness/v1.16.0-readiness-report.md`.
 
-It also imports the exported master bundle into `.tmp/e2e-v0.1-import-workspace` using full-replace mode and validates the restored counts.
+## Manual Validation
 
-The command prints the generated `bundle.json` path. Open `packages/explorer/dist/index.html`, select that bundle, and check that Explorer shows:
+Use the VS Code launch configurations for Core, Workshop, Shop, and the combined debug workspace. The main manual scenario is [validation-scenario-1-operator-workflow.md](validation-scenario-1-operator-workflow.md).
 
-- Posture Brief counts: 1 requirement, 1 evidence item, 1 action, and 1 risk.
-- Requirements: `Validate governance reporting workflow`.
-- Evidence: `Governance committee terms of reference`.
-- Actions: `Confirm next governance review date`.
-- Risks: `Governance review evidence may become stale`.
-- Relationships Board: three links from the requirement to evidence, action, and risk.
-- Explorer navigation: collapsed record sections that open from the top buttons and collapse via `Close All`.
-- Actions: due dates displayed in short AU format.
+Open Explorer from [packages/explorer/dist/index.html](packages/explorer/dist/index.html) and load a generated `bundle.json` from `debug-workspace/.pspf/exchange/exports/`.
 
-## Manual Debug Validation
+## Governing Docs
 
-After running the Extension Host flow and exporting a master bundle, validate the latest debug export with:
+- Scope and release gates: [pspf-acceptance-and-quality-gates.md](pspf-acceptance-and-quality-gates.md)
+- Spec ownership: [pspf-spec-consistency-index.md](pspf-spec-consistency-index.md)
+- Pipeline and release flow: [pspf-developer-pipeline-spec.md](pspf-developer-pipeline-spec.md)
+- ADR index: [adr/README.md](adr/README.md)
 
-```sh
-npx pnpm@10.10.0 run validate:debug-workspace
-```
+## Next Slice
 
-The command finds the latest `debug-workspace/.pspf/exchange/exports/export-*/bundle.json`, verifies the export integrity and personal-data exclusion gates, and writes a report under `debug-workspace/.pspf/reports/`.
-
-## Current Hardening Checks
-
-- `pnpm test` builds the workspace and runs the contracts publication-policy tests.
-- `pnpm run e2e:v0.1` runs the first complete automated Core to Explorer bundle validation path.
-- `pnpm run validate:debug-workspace` validates the latest bundle produced by manual Extension Host testing.
-- `pnpm run validate:export -- <export-directory|bundle.json>` validates a specific export path, including manifest/collection schema validation.
-- `pnpm run check:accessibility` scans Explorer with Playwright and axe-core and fails on serious or critical findings.
-- `pnpm run check:explorer-publication` builds Explorer and checks validation, section navigation, collapsed panels, `Close All`, AU Action dates, compact ISM IDs, wide layout usage, and readable table columns.
-- `pnpm run check:explorer-local-authoring` builds Explorer and checks IndexedDB status persistence, saved-view persistence/application/export, remembered-bundle refresh restore, local evidence references, local Actions, local Risks, compliance-history export include/exclude controls, local-vs-bundle display, local conflict display, local JSON export, reset, and personal-data exclusion.
-- `pnpm run check:explorer-to-workshop-import` builds Explorer, exports local-authoring JSON, imports it through Core, and checks Workshop-visible local status, evidence, Actions, Risks, saved views, and links.
-- `pnpm run check:writer-lock` confirms a simulated second writer blocks writes.
-- `pnpm run check:backup-restore` restores a copied `.pspf` workspace and verifies integrity plus Core validation.
-- `pnpm run check:schema-coverage` confirms every v0.1 Explorer collection has a Draft 07 schema file and validates the standard fixture with AJV.
-- `pnpm run check:schema-policy` confirms every v0.1 entity type has explicit publication metadata and the standard fixture sanitises cleanly.
-- `pnpm run check:personal-data` confirms published fixtures and debug exports do not contain `Person.name`, `Person.email`, or `Assignment.personId`.
-- `pnpm run check:gates` runs schema-policy, schema-validation coverage, and personal-data gates together.
-- `pnpm run debug:reset` removes `debug-workspace/.pspf` for a clean manual validation run. It is intentionally limited to the debug workspace.
-
-## Release Readiness
-
-Run:
-
-```sh
-npx pnpm@10.10.0 run release:readiness
-```
-
-This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.14.0-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.
-
-Marketplace releases are dispatch-driven from `main`. Use `Marketplace release` with `target=core|workshop|both`; leave `dry_run=true` for package-only validation, or set `dry_run=false` for a real publish after approval. The workflow run name and job summary show the dry-run state explicitly, real publishes verify the public Marketplace Gallery version, and receipt tags are checked after GitHub release creation.
-
-## Planning Notes
-
-- v1.4 validated Explorer local Risks, local status conflict display, and the Explorer-to-Workshop round trip.
-- v1.5 validates `plan-apply`, conflict classification, explicit apply confirmation, and last-import undo.
-- v1.5.1 records the Workshop/Explorer product boundary, restores the latest Explorer bundle after refresh, and gives Explorer a warmer portable-assurance visual identity.
-- v1.6 adds the proper Workshop import review surface for Explorer local JSON and gives Workshop its system-of-record identity treatment.
-- v1.7 adds first-class workspace tags for Requirements, `tagged-with` links, default-deny tag publication policy, by-tag export indexes, Workshop tag management, and Explorer tag filtering.
-- v1.8 adds durable Explorer Requirements saved views, persisted in browser-local storage and round-tripped through local-authoring bundles as `saved-view` records in `saved-views`.
-- v1.9 expands saved views to Explorer Relationships and Workshop Requirement views, keeps saved views as optional user convenience records, and adds Explorer reload guidance when remembered browser JSON is from an older schema.
-- v1.10 adds Workshop Change Records, the `changes` link, Core and bundle support for `change-records`, and Explorer's read-only `Why This Changed` view.
-- v1.11 adds the Explorer change story: local-authoring proposal of Change Records using the existing v1.10 schema, local export/import review round trip through Workshop, and significant-change summaries in Explorer Overview and the posture brief. No schema-axis bump was introduced.
-- v1.12 adds a planning lens through existing surfaces: Workshop Dashboard and Evidence Review saved-view scopes, plus Explorer's read-only Plan Lens over open Actions, Risks, Directions, and Change Records. It keeps schema, bundle, and API axes at 1.7.0.
-- v1.13 adds release-assurance hardening: clearer Marketplace dry-run signalling, public Marketplace version verification after real publishes, receipt-tag checks, and documentation that separates repository version from published extension version.
-- v1.14 adds compliance-history export controls: Explorer Local Changes has an `Include compliance history` export toggle, default on, and can omit `compliance-events` from local-authoring exports without a schema-axis bump.
-- Posture editing remains out of scope unless deliberately reopened.
+The next planned Shop slice is v1.17: make Shop authoring Core-backed, add explicit sync/import from the existing local Shop JSON store, and keep procurement import, finance reconciliation, approvals, Pub integration, and Marketplace publication deferred.

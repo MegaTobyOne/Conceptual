@@ -63,6 +63,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0048 | v1.14 Compliance history export controls | accepted |
 | 0049 | Core storage engine: bundled sql.js | accepted |
 | 0050 | v1.15 Shop commercial planning foundation | accepted |
+| 0051 | v1.16 Shop canonical commercial entities | accepted |
 
 ## Template
 

@@ -779,6 +779,9 @@ function createEmptyCollections(): BundleCollections {
     "requirement-control-mappings": [],
     directions: [],
     "change-records": [],
+    suppliers: [],
+    contracts: [],
+    "spend-items": [],
     posture: []
   };
 }
@@ -844,7 +847,10 @@ function buildPosture(collections: BundleCollections, paths: WorkspacePaths): En
     sourceControlCount: collections["source-controls"].length,
     requirementControlMappingCount: collections["requirement-control-mappings"].length,
     directionCount: collections.directions.length,
-    changeRecordCount: collections["change-records"].length
+    changeRecordCount: collections["change-records"].length,
+    supplierCount: collections.suppliers.length,
+    contractCount: collections.contracts.length,
+    spendItemCount: collections["spend-items"].length
   };
 }
 
@@ -863,6 +869,9 @@ function getCollectionCounts(collections: BundleCollections): Record<V01Collecti
     "requirement-control-mappings": collections["requirement-control-mappings"].length,
     directions: collections.directions.length,
     "change-records": collections["change-records"].length,
+    suppliers: collections.suppliers.length,
+    contracts: collections.contracts.length,
+    "spend-items": collections["spend-items"].length,
     posture: collections.posture.length
   };
 }
@@ -875,7 +884,10 @@ function buildStatusSummary(collections: BundleCollections): Record<string, unkn
     actions: countBy(collections.actions, (action) => action.status),
     risks: countBy(collections.risks, (risk) => risk.status),
     sourceControls: countBy(collections["source-controls"], (sourceControl) => sourceControl.profileTags[0] ?? "unprofiled"),
-    requirementControlMappings: countBy(collections["requirement-control-mappings"], (mapping) => mapping.coverageQualifier)
+    requirementControlMappings: countBy(collections["requirement-control-mappings"], (mapping) => mapping.coverageQualifier),
+    suppliers: countBy(collections.suppliers, (supplier) => supplier.status),
+    contracts: countBy(collections.contracts, (contract) => contract.status),
+    spendItems: countBy(collections["spend-items"], (spendItem) => spendItem.status)
   };
 }
 
@@ -1329,6 +1341,7 @@ async function openSqlDatabase(SQL: SqlJsStatic, dbPath: string): Promise<SqlJsD
 
 async function persistSqlDatabase(db: SqlJsDatabase, dbPath: string): Promise<void> {
   const tmpPath = `${dbPath}.tmp-${process.pid}-${Date.now()}`;
+  await mkdir(dirname(dbPath), { recursive: true });
   await writeFile(tmpPath, Buffer.from(db.export()));
   await rename(tmpPath, dbPath);
 }
