@@ -22,12 +22,16 @@ import {
   type RequirementControlMappingEntity,
   type RiskEntity,
   type RiskStatus,
+  SAVED_VIEW_LIMITS,
+  type SavedViewEntity,
   type SourceControlEntity,
   type TagColour,
   type TagEntity,
   type V01Entity,
   isValidSingleGrapheme,
+  isValidSavedViewName,
   isValidTagLabel,
+  normaliseSavedViewName,
   normaliseTagLabel,
   withEnvelope
 } from "@pspf/contracts";
@@ -66,6 +70,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.updateDirectionResponse", updateDirectionResponse),
     vscode.commands.registerCommand("pspf.workshop.openDirectionDetail", openDirectionDetail),
     vscode.commands.registerCommand("pspf.workshop.manageTags", manageTags),
+    vscode.commands.registerCommand("pspf.workshop.manageSavedViews", manageSavedViews),
     vscode.commands.registerCommand("pspf.workshop.applyTag", applyTag),
     vscode.commands.registerCommand("pspf.workshop.removeTag", removeTag),
     vscode.commands.registerCommand("pspf.workshop.filterRequirementsByTag", filterRequirementsByTag),
@@ -155,6 +160,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.updateDirectionResponse",
       "pspf.workshop.openDirectionDetail",
       "pspf.workshop.manageTags",
+      "pspf.workshop.manageSavedViews",
       "pspf.workshop.applyTag",
       "pspf.workshop.filterRequirementsByTag",
       "pspf.workshop.copyPostureBrief"
@@ -252,6 +258,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.home.continue", "Continue next task", "Open the highest-priority review surface")}
         ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
+        ${homeButton("pspf.workshop.manageSavedViews", "Saved views", "Save and reopen Workshop Requirement filters")}
       </div>
     </section>
     <section>
@@ -263,6 +270,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.createRisk", "Risk")}
         ${homeButton("pspf.workshop.registerDirection", "Direction")}
         ${homeButton("pspf.workshop.manageTags", "Tag")}
+        ${homeButton("pspf.workshop.manageSavedViews", "Saved view")}
       </div>
     </section>
     <section>
@@ -1375,6 +1383,9 @@ function shellHtml(title: string, body: string): string {
       if (command === 'createTag' || command === 'editTag' || command === 'archiveTag' || command === 'applyTag' || command === 'removeTag') {
         vscode.postMessage({ command, tagId: button.getAttribute('data-tag-id'), requirementId: button.getAttribute('data-requirement-id') });
       }
+      if (command === 'createSavedView' || command === 'applySavedView' || command === 'editSavedView' || command === 'archiveSavedView') {
+        vscode.postMessage({ command, savedViewId: button.getAttribute('data-saved-view-id') });
+      }
       if (command === 'saveEntity' || command === 'saveAndCloseEntity') {
         const form = button.closest('form');
         if (!form) {
@@ -1399,7 +1410,7 @@ function shellHtml(title: string, body: string): string {
 }
 
 function wireWorkshopPanelMessages(panel: vscode.WebviewPanel): void {
-  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string; readonly requirementId?: string; readonly tagId?: string }) => {
+  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string; readonly requirementId?: string; readonly tagId?: string; readonly savedViewId?: string }) => {
     if (message.command === "openEntity" && message.entityType && message.entityId) {
       await openItemDetailForEntity(message.entityType, message.entityId);
     }
@@ -1408,6 +1419,12 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel): void {
     }
     if (message.command === "removeTag" && message.requirementId && message.tagId) {
       await removeTag(message.requirementId, message.tagId);
+    }
+    if (message.command === "applySavedView" && message.savedViewId) {
+      const savedView = (await listSavedViews(true)).find((item) => item.id === message.savedViewId);
+      if (savedView) {
+        await openWorkshopRequirementsView(savedView);
+      }
     }
   });
 }
@@ -1913,6 +1930,197 @@ async function filterRequirementsByTag(): Promise<void> {
   }
 }
 
+async function manageSavedViews(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel("pspfSavedViewManager", "PSPF Saved Views", vscode.ViewColumn.One, { enableScripts: true });
+  const refresh = async () => {
+    panel.webview.html = renderSavedViewManager(await listSavedViews(true));
+  };
+  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly savedViewId?: string }) => {
+    if (message.command === "createSavedView") {
+      await createOrEditWorkshopSavedView();
+      await refresh();
+    }
+    if (message.command === "editSavedView" && message.savedViewId) {
+      const savedView = (await listSavedViews(true)).find((item) => item.id === message.savedViewId);
+      if (savedView) {
+        await createOrEditWorkshopSavedView(savedView);
+        await refresh();
+      }
+    }
+    if (message.command === "archiveSavedView" && message.savedViewId) {
+      const savedView = (await listSavedViews(true)).find((item) => item.id === message.savedViewId);
+      if (savedView) {
+        await vscode.commands.executeCommand("pspf.core.upsertEntity", { ...savedView, recordStatus: "archived", updatedAt: new Date().toISOString() } satisfies SavedViewEntity);
+        await refresh();
+      }
+    }
+    if (message.command === "applySavedView" && message.savedViewId) {
+      const savedView = (await listSavedViews(false)).find((item) => item.id === message.savedViewId);
+      if (savedView) {
+        await openWorkshopRequirementsView(savedView);
+      }
+    }
+  });
+  await refresh();
+}
+
+function renderSavedViewManager(savedViews: readonly SavedViewEntity[]): string {
+  const rows = savedViews.filter((view) => view.scope.startsWith("workshop-")).map((view) => ({
+    name: view.name,
+    scope: label(view.scope),
+    filters: savedViewFilterSummary(view),
+    status: label(view.recordStatus),
+    action: `<button type="button" data-command="applySavedView" data-saved-view-id="${escapeHtml(view.id)}">Apply</button> <button type="button" data-command="editSavedView" data-saved-view-id="${escapeHtml(view.id)}">Rename</button> ${view.recordStatus === "archived" ? "" : `<button type="button" data-command="archiveSavedView" data-saved-view-id="${escapeHtml(view.id)}">Archive</button>`}`
+  }));
+  return shellHtml("PSPF Saved Views", `
+    <section>
+      <h1>Saved Views</h1>
+      <p class="muted">Workshop-owned Requirement views are convenience filters. They export in bundles but other tools may ignore them.</p>
+      ${versionStrip()}
+      <div class="form-actions"><button type="button" data-command="createSavedView">Create Workshop view</button></div>
+    </section>
+    ${recordTable("Workshop Saved Views", rows, ["name", "scope", "filters", "status", "action"])}
+  `);
+}
+
+async function createOrEditWorkshopSavedView(existing?: SavedViewEntity): Promise<SavedViewEntity | undefined> {
+  const scope = existing?.scope ?? "workshop-requirements";
+  const savedViews = await listSavedViews(true);
+  const name = await vscode.window.showInputBox({
+    title: existing ? "Rename Saved View" : "Create Saved View",
+    prompt: "Saved view name",
+    value: existing?.name ?? "Workshop Requirements view",
+    ignoreFocusOut: true,
+    validateInput: (value) => validateSavedViewNameInput(value, savedViews, existing?.id, scope)
+  });
+  if (!name) {
+    return undefined;
+  }
+  const cleanName = name.normalize("NFC").trim().replace(/\s+/g, " ");
+  if (existing) {
+    const renamed = { ...existing, title: cleanName, name: cleanName, updatedAt: new Date().toISOString() } satisfies SavedViewEntity;
+    await vscode.commands.executeCommand("pspf.core.upsertEntity", renamed);
+    await vscode.window.showInformationMessage(`Updated saved view: ${renamed.name}.`);
+    return renamed;
+  }
+
+  const query = await vscode.window.showInputBox({
+    title: "Create Saved View",
+    prompt: "Optional Requirement search text. Press Enter to skip.",
+    ignoreFocusOut: true,
+    validateInput: (value) => value.length > SAVED_VIEW_LIMITS.queryMaxLength ? `Use at most ${SAVED_VIEW_LIMITS.queryMaxLength} characters.` : undefined
+  });
+  if (query === undefined) {
+    return undefined;
+  }
+  const statuses = await vscode.window.showQuickPick(
+    assessmentStatusItems,
+    { title: "Optional assessment statuses", canPickMany: true, ignoreFocusOut: true }
+  );
+  if (statuses === undefined) {
+    return undefined;
+  }
+  const tags = await vscode.window.showQuickPick(
+    (await listTags(false)).map((tag) => ({ label: tagChipLabel(tag), description: label(tag.colour), tag })),
+    { title: "Optional tags", canPickMany: true, ignoreFocusOut: true }
+  );
+  if (tags === undefined) {
+    return undefined;
+  }
+  const mode = tags.length > 1 ? await vscode.window.showQuickPick(
+    [{ label: "Any selected tag", value: "any" as const }, { label: "All selected tags", value: "all" as const }],
+    { title: "Tag filter mode", ignoreFocusOut: true }
+  ) : undefined;
+  if (tags.length > 1 && !mode) {
+    return undefined;
+  }
+  const savedView = withEnvelope("saved-view", {
+    entityType: "saved-view",
+    title: cleanName,
+    name: cleanName,
+    scope,
+    filters: {
+      query: trimOptional(query),
+      assessmentStatuses: statuses.map((item) => item.value),
+      tagIds: tags.map((item) => item.tag.id),
+      tagsMode: mode?.value ?? "any"
+    },
+    presentation: { sortKey: "title", sortDirection: "asc", visibleColumns: ["title", "domainId", "assessmentStatus", "tags"] }
+  }, "workshop") satisfies SavedViewEntity;
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", savedView);
+  await vscode.window.showInformationMessage(`Created saved view: ${savedView.name}.`);
+  return savedView;
+}
+
+async function openWorkshopRequirementsView(savedView: SavedViewEntity): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+  const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.linkType === "tagged-with");
+  const tagsById = new Map(allEntities.filter((entity): entity is TagEntity => entity.entityType === "tag").map((tag) => [tag.id, tag]));
+  const matchingRequirements = requirements.filter((requirement) => savedViewMatchesRequirement(savedView, requirement, links));
+  const rows = matchingRequirements.map((requirement) => ({
+    openEntityType: "requirement",
+    openEntityId: requirement.id,
+    title: requirement.title,
+    domain: domainName(requirement.domainId),
+    status: label(requirement.assessmentStatus),
+    tags: links.filter((link) => link.fromId === requirement.id).map((link) => tagChipLabel(tagsById.get(link.toId))).join(", ") || "None"
+  }));
+  const panel = vscode.window.createWebviewPanel("pspfWorkshopSavedView", shortWorkshopPanelTitle({ entityType: "saved-view", title: savedView.name } as V01Entity), vscode.ViewColumn.One, { enableScripts: true });
+  wireWorkshopPanelMessages(panel);
+  panel.webview.html = shellHtml(savedView.name, `
+    <section>
+      <h1>${escapeHtml(savedView.name)}</h1>
+      <p class="muted">${escapeHtml(savedViewFilterSummary(savedView))} · ${matchingRequirements.length} of ${requirements.length} Requirements</p>
+      ${versionStrip()}
+    </section>
+    ${recordTable("Matching Requirements", rows, ["title", "domain", "status", "tags"])}
+  `);
+}
+
+function savedViewMatchesRequirement(savedView: SavedViewEntity, requirement: RequirementEntity, links: readonly LinkEntity[]): boolean {
+  const filters = savedView.filters;
+  const query = filters.query?.trim().toLocaleLowerCase("en-AU");
+  if (query && !`${requirement.title} ${requirement.summary ?? ""}`.toLocaleLowerCase("en-AU").includes(query)) {
+    return false;
+  }
+  if ((filters.assessmentStatuses ?? []).length > 0 && !filters.assessmentStatuses?.includes(requirement.assessmentStatus)) {
+    return false;
+  }
+  const tagIds = filters.tagIds ?? [];
+  if (tagIds.length > 0) {
+    const requirementTagIds = new Set(links.filter((link) => link.fromId === requirement.id).map((link) => link.toId));
+    return filters.tagsMode === "all" ? tagIds.every((id) => requirementTagIds.has(id)) : tagIds.some((id) => requirementTagIds.has(id));
+  }
+  return true;
+}
+
+function savedViewFilterSummary(savedView: SavedViewEntity): string {
+  const filters = savedView.filters;
+  const parts = [];
+  if (filters.query) {
+    parts.push(`Search: "${filters.query}"`);
+  }
+  if ((filters.assessmentStatuses ?? []).length > 0) {
+    parts.push(`Status: ${filters.assessmentStatuses?.map(label).join(", ")}`);
+  }
+  if ((filters.tagIds ?? []).length > 0) {
+    parts.push(`${filters.tagIds?.length} tag(s) ${label(filters.tagsMode ?? "any")}`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : "No filters";
+}
+
+function validateSavedViewNameInput(value: string, savedViews: readonly SavedViewEntity[], currentId: string | undefined, scope: SavedViewEntity["scope"]): string | undefined {
+  if (!isValidSavedViewName(value)) {
+    return `Use 1-${SAVED_VIEW_LIMITS.nameMaxLength} characters.`;
+  }
+  const normalised = normaliseSavedViewName(value);
+  const duplicate = savedViews.find((view) => view.id !== currentId && view.scope === scope && view.recordStatus !== "deleted" && normaliseSavedViewName(view.name) === normalised);
+  return duplicate ? `This saved-view name already exists in ${label(scope)}.` : undefined;
+}
+
 async function createOrEditTag(existing?: TagEntity): Promise<TagEntity | undefined> {
   const tags = await listTags(true);
   if (!existing && tags.length >= TAG_LIMITS.perWorkspaceHard) {
@@ -1990,6 +2198,13 @@ function validateTagLabelInput(value: string, tags: readonly TagEntity[], curren
 async function listTags(includeArchived: boolean): Promise<TagEntity[]> {
   const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "tag");
   return sortTags((entities ?? []).filter((entity): entity is TagEntity => entity.entityType === "tag" && entity.recordStatus !== "deleted" && (includeArchived || entity.recordStatus !== "archived")));
+}
+
+async function listSavedViews(includeArchived: boolean): Promise<SavedViewEntity[]> {
+  const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "saved-view");
+  return (entities ?? [])
+    .filter((entity): entity is SavedViewEntity => entity.entityType === "saved-view" && entity.recordStatus !== "deleted" && (includeArchived || entity.recordStatus !== "archived"))
+    .sort((left, right) => left.scope.localeCompare(right.scope, "en-AU") || left.name.localeCompare(right.name, "en-AU", { sensitivity: "base" }));
 }
 
 function sortTags(tags: readonly TagEntity[]): TagEntity[] {

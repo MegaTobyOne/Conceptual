@@ -55,6 +55,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0040 | Dispatch-driven release workflows (web and marketplace) | accepted |
 | 0041 | v1.7 Tags and filters foundation | accepted |
 | 0042 | v1.8 Saved views | accepted |
+| 0043 | v1.9 saved-view expansion | accepted |
 
 ## Template
 

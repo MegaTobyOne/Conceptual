@@ -6,14 +6,14 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Status: v1.8 saved views build implemented for test. v1.7 tags and filters foundation build implemented; v1.6 Workshop import review and identity build implemented; v1.5.1 Explorer product-boundary and visual identity patch implemented; v1.5 plan-apply import and undo implemented; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
+**Status: v1.9 saved-view expansion build implemented for test. v1.8 saved views build implemented; v1.7 tags and filters foundation build implemented; v1.6 Workshop import review and identity build implemented; v1.5.1 Explorer product-boundary and visual identity patch implemented; v1.5 plan-apply import and undo implemented; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
 
 - pnpm workspaces with `@pspf/contracts`, `@pspf/brief-renderer`, `pspf-core`, `pspf-workshop`, and the Explorer static SPA.
 - Core: workspace bootstrap, SQLite system of record at `.pspf/core/pspf-core.db`, snapshot, integrity check, master-bundle export with manifest hashes, master-bundle import (`full-replace` with pre-replace rollback and `additive-merge`), writer lock, three version axes.
 - Workshop: Requirement, Evidence, Action, Risk authoring; Assessment Dashboard, Evidence Review Queue, Item Detail, Copy Posture Brief webview commands; ISM source-control browsing; Requirement to ISM control mapping with confidence, review metadata, drift visibility, first-class Requirement tags, system-of-record identity, and Explorer local JSON import review.
-- Explorer: static SPA, bundle load with AJV validation, posture brief view with copy-to-clipboard, compliance donut, Relationships Board read-only, Requirement and Relationships tag filters, Requirements saved views, ISM source controls, ISM coverage, mapping quality, drift status, OFFICIAL: Sensitive + TLP:AMBER+STRICT banner, active version context, v1.1 browser-local Requirement status overlays, v1.2 browser-local evidence references, v1.3 browser-local Actions, v1.4 browser-local Risks plus local status conflict display, v1.5.1 latest-bundle refresh restore, and a warmer portable-assurance visual identity.
+- Explorer: static SPA, bundle load with AJV validation, posture brief view with copy-to-clipboard, compliance donut, Relationships Board read-only, Requirement and Relationships tag filters, Requirements and Relationships saved views, schema-change reload guidance for remembered bundles, ISM source controls, ISM coverage, mapping quality, drift status, OFFICIAL: Sensitive + TLP:AMBER+STRICT banner, active version context, v1.1 browser-local Requirement status overlays, v1.2 browser-local evidence references, v1.3 browser-local Actions, v1.4 browser-local Risks plus local status conflict display, v1.5.1 latest-bundle refresh restore, and a warmer portable-assurance visual identity.
 - Shared `@pspf/brief-renderer` package backs both Workshop and Explorer so the posture brief cannot diverge.
 - ISM integration phases 1–3 are implemented for the current seeded source-library slice; see [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md), [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md), [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md), and [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
 - v0.4 is governed by [adr/0021-v0-4-readiness-and-ui-resilience.md](adr/0021-v0-4-readiness-and-ui-resilience.md). It hardens Explorer/Workshop table readability and readiness documentation without changing the schema, bundle, or API axes from `1.2.0`.
@@ -33,6 +33,7 @@ The validated spine from the original readiness sequence is fully landed and has
 - v1.6 is governed by [adr/0037-v1-6-workshop-import-review-and-identity.md](adr/0037-v1-6-workshop-import-review-and-identity.md). It adds a proper `PSPF Workshop Import Review` webview for Explorer local JSON plan-apply imports and gives Workshop its system-of-record visual identity. Schema, bundle, and API axes stay at `1.3.0`; product version bumps to `1.6.0`.
 - v1.7 is governed by [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md). It adds first-class workspace tags for Requirements, `tagged-with` links, by-tag export indexes, Workshop tag management, and Explorer tag filters. Schema, bundle, and API axes bump together to `1.4.0`; product version bumps to `1.7.0`.
 - v1.8 is governed by [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md). It adds Requirements-only Explorer saved views as `saved-view` records in `saved-views`, persisted in IndexedDB and round-tripped through local-authoring exports/imports. Schema, bundle, and API axes bump together to `1.5.0`; product version bumps to `1.8.0`.
+- v1.9 is governed by [adr/0043-v1-9-saved-view-expansion.md](adr/0043-v1-9-saved-view-expansion.md). It expands saved views to Explorer Relationships and Workshop Requirement views, keeps saved views as optional user convenience records, makes names unique within scope, and adds Explorer reload guidance when remembered browser JSON is from an older schema. Schema, bundle, and API axes bump together to `1.6.0`; product version bumps to `1.9.0`.
 - v1.0 scope is governed by [adr/0022-v1-0-scope.md](adr/0022-v1-0-scope.md): Core + Workshop + Explorer publication mode plus the v0.5 surface; Shop, Pub, Explorer local authoring, chart export, plan-apply, editable posture, and third-party accessibility audit are deferred past v1.0; performance reference is a current MacBook Air.
 
 The core product decisions remain stable:
@@ -46,13 +47,13 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.8.0:
+`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.9.0:
 
-1. Spine workflow (headless `e2e:v1.8`).
+1. Spine workflow (headless `e2e:v1.9`).
 2. Schema-policy.
 3. Personal-data exclusion.
 4. AU-English lint.
-5. Per-version schema publication (`schemas/explorer-bundle/1.5.0/`).
+5. Per-version schema publication (`schemas/explorer-bundle/1.6.0/`).
 6. Writer lock.
 7. Integrity scan.
 8. Sample workspace.

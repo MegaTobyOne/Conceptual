@@ -2,7 +2,7 @@
     "name": "pspf-workshop",
     "displayName": "PSPF Workshop",
     "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-    "version": "1.8.0",
+    "version": "1.9.0",
     "private": true,
     "type": "module",
     "license": "MIT",
@@ -112,6 +112,10 @@
                 "title": "PSPF: Manage Tags"
             },
             {
+                "command": "pspf.workshop.manageSavedViews",
+                "title": "PSPF: Manage Saved Views"
+            },
+            {
                 "command": "pspf.workshop.applyTag",
                 "title": "PSPF: Apply Tag to Requirement"
             },
@@ -144,6 +148,11 @@
                     "command": "pspf.workshop.manageTags",
                     "when": "view == pspfWorkshop.homeView",
                     "group": "navigation@3"
+                },
+                {
+                    "command": "pspf.workshop.manageSavedViews",
+                    "when": "view == pspfWorkshop.homeView",
+                    "group": "navigation@4"
                 }
             ]
         }
