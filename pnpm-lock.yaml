@@ -80,6 +80,12 @@ importers:
         specifier: workspace:*
         version: link:../contracts
 
+  packages/shop:
+    dependencies:
+      '@pspf/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
   packages/workshop:
     dependencies:
       '@pspf/brief-renderer':

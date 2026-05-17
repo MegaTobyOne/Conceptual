@@ -14,6 +14,34 @@
             "outFiles": [
                 "${workspaceFolder}/packages/*/dist/**/*.js"
             ]
+        },
+        {
+            "name": "Run PSPF Shop",
+            "type": "extensionHost",
+            "request": "launch",
+            "preLaunchTask": "pnpm: build",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/shop",
+                "${workspaceFolder}/debug-workspace"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/packages/*/dist/**/*.js"
+            ]
+        },
+        {
+            "name": "Run PSPF Core + Workshop + Shop",
+            "type": "extensionHost",
+            "request": "launch",
+            "preLaunchTask": "pnpm: build",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/core",
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/workshop",
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/shop",
+                "${workspaceFolder}/debug-workspace"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/packages/*/dist/**/*.js"
+            ]
         }
     ]
 }

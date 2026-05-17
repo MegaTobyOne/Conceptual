@@ -1,0 +1,115 @@
+{
+    "name": "pspf-shop",
+    "displayName": "PSPF Shop",
+    "description": "PSPF commercial planning surface for suppliers, contracts, spend items, and spend forecast review.",
+    "version": "1.15.0",
+    "private": true,
+    "type": "module",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MegaTobyOne/Conceptual.git",
+        "directory": "packages/shop"
+    },
+    "publisher": "tobyharvey",
+    "engines": {
+        "vscode": "^1.100.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "pspfShop",
+                    "title": "PSPF Shop",
+                    "icon": "resources/shop.svg"
+                }
+            ]
+        },
+        "views": {
+            "pspfShop": [
+                {
+                    "id": "pspfShop.suppliersView",
+                    "name": "Suppliers"
+                },
+                {
+                    "id": "pspfShop.contractsView",
+                    "name": "Contracts"
+                },
+                {
+                    "id": "pspfShop.spendView",
+                    "name": "Spend"
+                },
+                {
+                    "type": "webview",
+                    "id": "pspfShop.forecastView",
+                    "name": "Forecast"
+                },
+                {
+                    "id": "pspfShop.welcomeView",
+                    "name": "Welcome"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "pspf.shop.openHome",
+                "title": "PSPF: Open Shop"
+            },
+            {
+                "command": "pspf.shop.loadSample",
+                "title": "PSPF: Load Shop Sample"
+            },
+            {
+                "command": "pspf.shop.newSupplier",
+                "title": "PSPF: New Supplier"
+            },
+            {
+                "command": "pspf.shop.newContract",
+                "title": "PSPF: New Contract"
+            },
+            {
+                "command": "pspf.shop.newSpendItem",
+                "title": "PSPF: New Spend Item"
+            },
+            {
+                "command": "pspf.shop.openForecast",
+                "title": "PSPF: Open Shop Forecast"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "pspf.shop.newSupplier",
+                    "when": "view == pspfShop.suppliersView",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "pspf.shop.newContract",
+                    "when": "view == pspfShop.contractsView",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "pspf.shop.newSpendItem",
+                    "when": "view == pspfShop.spendView",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "pspf.shop.loadSample",
+                    "when": "view =~ /^pspfShop\\./",
+                    "group": "navigation@2"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
+        "test": "node --test dist/**/*.test.js"
+    },
+    "dependencies": {
+        "@pspf/contracts": "workspace:*"
+    }
+}

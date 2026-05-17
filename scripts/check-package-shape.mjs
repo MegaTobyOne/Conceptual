@@ -40,6 +40,18 @@ const extensionPackages = [
       "pspf.workshop.openDirectionDetail",
       "pspf.workshop.copyPostureBrief"
     ]
+  },
+  {
+    name: "Shop",
+    directory: "packages/shop",
+    expectedCommands: [
+      "pspf.shop.openHome",
+      "pspf.shop.loadSample",
+      "pspf.shop.newSupplier",
+      "pspf.shop.newContract",
+      "pspf.shop.newSpendItem",
+      "pspf.shop.openForecast"
+    ]
   }
 ];
 
@@ -61,9 +73,16 @@ for (const extensionPackage of extensionPackages) {
     assert.equal(manifest.contributes?.viewsContainers?.activitybar?.some((container) => container.id === "pspfWorkshop"), true, "Workshop contributes an Activity Bar container");
     assert.equal(manifest.contributes?.views?.pspfWorkshop?.some((view) => view.id === "pspfWorkshop.homeView" && view.type === "webview"), true, "Workshop contributes the Home webview view");
   }
+  if (extensionPackage.name === "Shop") {
+    assert.equal(manifest.contributes?.viewsContainers?.activitybar?.some((container) => container.id === "pspfShop"), true, "Shop contributes an Activity Bar container");
+    assert.equal(manifest.contributes?.views?.pspfShop?.some((view) => view.id === "pspfShop.forecastView" && view.type === "webview"), true, "Shop contributes the Forecast webview view");
+    assert.equal(manifest.contributes?.views?.pspfShop?.some((view) => view.id === "pspfShop.suppliersView"), true, "Shop contributes the Suppliers tree view");
+    assert.equal(manifest.contributes?.views?.pspfShop?.some((view) => view.id === "pspfShop.contractsView"), true, "Shop contributes the Contracts tree view");
+    assert.equal(manifest.contributes?.views?.pspfShop?.some((view) => view.id === "pspfShop.spendView"), true, "Shop contributes the Spend tree view");
+  }
   if (extensionPackage.dependency) {
     assert.equal(manifest.extensionDependencies?.includes(extensionPackage.dependency), true, `${extensionPackage.name} declares Core extension dependency`);
   }
 }
 
-console.log("ok Core and Workshop extension package shapes match the Marketplace deployment baseline");
+console.log("ok Core, Workshop, and Shop extension package shapes match the Marketplace deployment baseline");

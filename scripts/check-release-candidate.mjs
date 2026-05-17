@@ -18,7 +18,8 @@ const axesByMinorVersion = new Map([
   [11, "1.7.0"],
   [12, "1.7.0"],
   [13, "1.7.0"],
-  [14, "1.7.0"]
+  [14, "1.7.0"],
+  [15, "1.7.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -31,6 +32,7 @@ const packagePaths = [
   "packages/explorer/package.json",
   "packages/ism-source-library/package.json",
   "packages/reference-data/package.json",
+  "packages/shop/package.json",
   "packages/workshop/package.json"
 ];
 
@@ -71,6 +73,7 @@ for (const requiredPath of [
   "adr/0046-v1-12-planning-lens.md",
   "adr/0047-v1-13-release-assurance.md",
   "adr/0048-v1-14-compliance-history-export-controls.md",
+  "adr/0050-v1-15-shop-commercial-planning-foundation.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -84,7 +87,8 @@ for (const requiredText of [`PSPF v${expectedVersion}`, `Schema ${expectedAxes}`
   assert.equal(scenario.includes(requiredText), true, `validation scenario should mention ${requiredText}`);
 }
 
-for (const deferredPackage of ["packages/shop/README.md", "packages/pub/README.md"]) {
+const deferredPackages = minorVersion >= 15 ? ["packages/pub/README.md"] : ["packages/shop/README.md", "packages/pub/README.md"];
+for (const deferredPackage of deferredPackages) {
   const text = await readFile(join(root, deferredPackage), "utf8");
   assert.match(text, /deferred/i, `${deferredPackage} should remain a deferral note for ${expectedVersion}`);
 }
@@ -307,6 +311,22 @@ if (/^1\.14\.\d+$/.test(expectedVersion)) {
   assert.equal(packageJson.scripts["e2e:v1.14"].includes("check:explorer-local-authoring"), true, "e2e:v1.14 should include Explorer local-authoring gate");
   assert.equal(packageJson.scripts["e2e:v1.14"].includes("check:explorer-to-workshop-import"), true, "e2e:v1.14 should include Explorer-to-Workshop import gate");
   assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.14"), true, "release:readiness should run e2e:v1.14");
+}
+
+if (/^1\.15\.\d+$/.test(expectedVersion)) {
+  const v115Adr = await readFile(join(root, "adr/0050-v1-15-shop-commercial-planning-foundation.md"), "utf8");
+  for (const requiredText of ["v1.15", "Shop commercial planning foundation", "workspace-local JSON storage", "pspfShop", "tobyharvey.pspf-shop", "1.7.0"]) {
+    assert.equal(v115Adr.includes(requiredText), true, `v1.15 ADR should mention ${requiredText}`);
+  }
+  const shopPackage = await readFile(join(root, "packages/shop/package.json"), "utf8");
+  for (const requiredText of ["pspfShop.suppliersView", "pspfShop.contractsView", "pspfShop.spendView", "pspfShop.forecastView", "pspf.shop.newSupplier", "pspf.shop.newContract", "pspf.shop.newSpendItem"]) {
+    assert.equal(shopPackage.includes(requiredText), true, `Shop extension package should mention ${requiredText}`);
+  }
+  const shopExtension = await readFile(join(root, "packages/shop/src/extension.ts"), "utf8");
+  for (const requiredText of ["SHOP_STORE_VERSION", ".pspf", "shop.json", "deriveForecast", "supplier", "contract", "spendItems"]) {
+    assert.equal(shopExtension.includes(requiredText), true, `Shop extension runtime should mention ${requiredText}`);
+  }
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.14"), true, "release:readiness should continue to run e2e:v1.14 for standalone Shop foundation");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);
