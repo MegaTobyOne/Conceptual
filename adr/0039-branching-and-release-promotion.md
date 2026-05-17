@@ -33,6 +33,16 @@ Use a three-level promotion model:
 - Production web deploy to `tobyharvey.online`: dispatch `Web release` from `main` with `target=production`, gated by `production-web` approval. (The historical `explorer/<version>` tag trigger has been retired; tags are now created as receipts after a successful deploy.)
 - Marketplace publish (Core, Workshop, or both): dispatch `Marketplace release` from `main` with `target=core|workshop|both`, gated by `marketplace` approval. On success the workflow creates `core/<version>` and/or `workshop/<version>` tags and GitHub releases as receipts. A `dry_run` input lets you validate the pipeline without publishing.
 
+### Keeping `develop` aligned with `main`
+
+After every push to `main` (release merges, hotfixes, or sync PRs) the `Sync develop with main` workflow runs automatically:
+
+- If `main` has commits not yet on `develop`, the workflow opens or updates a `main → develop` pull request. Merge that PR to bring the release commits back into `develop`; resolve any conflicts locally if GitHub cannot auto-merge.
+- If `develop` already contains everything on `main`, the workflow exits with a no-op message.
+- The workflow can also be triggered manually via `workflow_dispatch` from the Actions tab.
+
+This removes the manual `git merge main` step from the hotfix and release flows; the only action required is reviewing and merging the sync PR when one is opened.
+
 ### Hotfix flow
 
 For urgent production defects:
