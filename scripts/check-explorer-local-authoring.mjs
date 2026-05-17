@@ -56,6 +56,7 @@ try {
     const finderTargetRequirement = bundle.collections.requirements.find((item) => item.id !== requirement.id) || requirement;
     assert.ok(requirement, "fixture should include at least one requirement");
     addBaselineLinkedContext(bundle, requirement.id);
+    addLocalComplianceHistoryFixture(bundle, requirement.id);
 
     await page.evaluate(async (value) => {
         await globalThis.pspfExplorerRender(value.manifest, value.collections || {});
@@ -236,7 +237,16 @@ try {
 
         await globalThis.pspfExplorerRender(value.manifest, value.collections || {});
         const select = document.querySelector(`select[data-requirement-id="${value.requirementId}"]`);
+        const toggle = document.querySelector("#include-compliance-history");
+        const toggleInitiallyChecked = toggle instanceof HTMLInputElement && toggle.checked;
         const exported = await globalThis.pspfExplorerExportLocalBundle();
+        await globalThis.pspfExplorerSetIncludeComplianceHistory(false);
+        if (toggle instanceof HTMLInputElement) {
+            toggle.checked = false;
+            toggle.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        const exportedWithoutHistory = await globalThis.pspfExplorerExportLocalBundle();
+        await globalThis.pspfExplorerSetIncludeComplianceHistory(true);
         const exportedRequirement = exported.collections.requirements.find((item) => item.id === value.requirementId);
         const exportedEvidence = exported.collections.evidence.find((item) => item.title === "Local test evidence");
         const exportedLink = exported.collections.links.find((item) => item.fromId === value.requirementId && item.toId === exportedEvidence?.id && item.linkType === "supported-by");
@@ -277,6 +287,12 @@ try {
             exportedSavedViewStatus: exportedSavedView?.filters?.assessmentStatuses?.[0],
             exportedSavedViewTag: exportedSavedView?.filters?.tagIds?.[0],
             exportedSavedViewSourceProduct: exportedSavedView?.sourceProduct,
+            complianceHistoryToggleDefault: toggleInitiallyChecked,
+            complianceHistoryIncluded: Array.isArray(exported.collections["compliance-events"]),
+            complianceHistoryManifestEntry: exported.manifest.collections.some((collection) => collection.name === "compliance-events"),
+            complianceHistoryCount: exported.collections["compliance-events"]?.length || 0,
+            complianceHistoryExcluded: !Object.prototype.hasOwnProperty.call(exportedWithoutHistory.collections, "compliance-events"),
+            complianceHistoryManifestExcluded: !exportedWithoutHistory.manifest.collections.some((collection) => collection.name === "compliance-events"),
             hasRestrictedPersonalField: containsRestrictedPersonalField(exported)
         };
     }, { ...bundle, requirementId: requirement.id });
@@ -339,7 +355,10 @@ try {
         check("Schema axis stable", persisted.schemaVersion === VERSION_AXES.schemaVersion, persisted.schemaVersion),
         check("Bundle axis stable", persisted.bundleVersion === VERSION_AXES.bundleVersion, persisted.bundleVersion),
         check("API axis stable", persisted.apiVersion === VERSION_AXES.apiVersion, persisted.apiVersion),
-        check("Exports complete master collection set", persisted.collectionCount === 13, `${persisted.collectionCount} collection(s)`),
+        check("Exports complete master collection set", persisted.collectionCount === 14, `${persisted.collectionCount} collection(s)`),
+        check("Compliance history toggle defaults on", persisted.complianceHistoryToggleDefault, "toggle"),
+        check("Compliance history included by default", persisted.complianceHistoryIncluded && persisted.complianceHistoryManifestEntry && persisted.complianceHistoryCount === 1, `${persisted.complianceHistoryCount} event(s)`),
+        check("Compliance history can be excluded", persisted.complianceHistoryExcluded && persisted.complianceHistoryManifestExcluded, "excluded export"),
         check("Exported requirement carries local status", persisted.exportedStatus === "met", persisted.exportedStatus || "missing"),
         check("Exported local status source is Explorer", persisted.exportedSourceProduct === "explorer", persisted.exportedSourceProduct || "missing"),
         check("Exported local evidence reference present", persisted.exportedEvidenceReference === "https://example.gov.au/evidence/local-test", persisted.exportedEvidenceReference || "missing"),
@@ -498,6 +517,26 @@ function addBaselineLinkedContext(bundle, requirementId) {
             updatedAt: timestamp,
             sourceProduct: "workshop",
             recordStatus: "active"
+        }
+    ];
+}
+
+function addLocalComplianceHistoryFixture(bundle, requirementId) {
+    const timestamp = new Date().toISOString();
+    bundle.collections["compliance-events"] = [
+        {
+            id: "CME-00000000-0000-4000-8000-00000000A101",
+            entityType: "compliance-event",
+            schemaVersion: VERSION_AXES.schemaVersion,
+            title: "Local status changed",
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            sourceProduct: "explorer",
+            recordStatus: "active",
+            requirementId,
+            fromStatus: "not-started",
+            toStatus: "met",
+            changedAt: timestamp
         }
     ];
 }

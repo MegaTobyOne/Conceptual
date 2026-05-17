@@ -239,6 +239,7 @@ let currentTagFilterIds = new Set();
 let currentTagFilterMode = "any";
 let currentRequirementStatusFilter = new Set();
 let shouldSnapLocalSelectionToSearch = false;
+let includeComplianceHistoryInExport = true;
 const localDbName = "pspf-explorer-local-v1";
 const localStoreName = "requirement-status-overlays";
 const localEvidenceStoreName = "requirement-evidence-references";
@@ -1166,10 +1167,12 @@ function localAuthoringPanel(requirements) {
     };
   });
   return '<div class="toolbar">' +
+    '<label class="version-pill" for="include-compliance-history"><input id="include-compliance-history" type="checkbox"' + (includeComplianceHistoryInExport ? ' checked' : '') + '> Include compliance history</label>' +
     '<button type="button" id="export-local-bundle">Export local JSON</button>' +
     '<button type="button" class="secondary" id="reset-local-data">Reset local data</button>' +
     '<span id="local-storage-status" class="muted" role="status">IndexedDB checking storage...</span>' +
     '</div>' +
+    '<p class="muted">Compliance history is included in this export by default. Turn it off to send current assessment state without the local status-change event trail.</p>' +
     '<p class="muted">Local status overlays: ' + localCount + '</p>' +
     '<p class="muted">Local status conflicts: ' + conflictCount + '</p>' +
     '<div class="local-authoring-grid">' +
@@ -1261,6 +1264,9 @@ function bindLocalAuthoringControls() {
     renderLocalAuthoringSection();
     applyExplorerSearch();
     explorerSearchInput?.focus();
+  });
+  localAuthoringSection.querySelector("#include-compliance-history")?.addEventListener("change", (event) => {
+    includeComplianceHistoryInExport = event.target instanceof HTMLInputElement ? event.target.checked : true;
   });
   localAuthoringSection.querySelector("#export-local-bundle")?.addEventListener("click", async () => {
     const bundle = await exportLocalAuthoringBundle();
@@ -1782,7 +1788,14 @@ function materialiseLocalEvidenceReference(record) {
 async function exportLocalAuthoringBundle() {
   const collections = cloneCollections(currentCollections || {});
   const manifestCollections = [];
-  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "posture"]) {
+  if (!includeComplianceHistoryInExport) {
+    delete collections["compliance-events"];
+  }
+  const exportCollectionNames = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "posture"];
+  if (includeComplianceHistoryInExport && Array.isArray(collections["compliance-events"])) {
+    exportCollectionNames.push("compliance-events");
+  }
+  for (const collectionName of exportCollectionNames) {
     const records = collections[collectionName] || [];
     const serialised = JSON.stringify(records, null, 2) + "\\n";
     manifestCollections.push({
@@ -2607,6 +2620,7 @@ globalThis.pspfExplorerApplySavedView = applySavedView;
 globalThis.pspfExplorerApplyRelationshipsSavedView = applyRelationshipsSavedView;
 globalThis.pspfExplorerSavedViews = () => currentSavedViews.map(materialiseSavedView);
 globalThis.pspfExplorerExportLocalBundle = exportLocalAuthoringBundle;
+globalThis.pspfExplorerSetIncludeComplianceHistory = (value) => { includeComplianceHistoryInExport = Boolean(value); };
 globalThis.pspfExplorerResetLocalData = () => resetLocalData(currentBundleKey);
 `;
 

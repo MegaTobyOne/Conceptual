@@ -66,6 +66,17 @@ runs:
           echo "Source directory $SOURCE_DIR not found" >&2
           exit 1
         fi
+        for required_path in index.html explorer/index.html schemas/explorer-bundle; do
+          if [[ ! -e "$SOURCE_DIR/$required_path" ]]; then
+            echo "Source directory $SOURCE_DIR is missing required web artefact: $required_path" >&2
+            find "$SOURCE_DIR" -maxdepth 3 -print >&2
+            exit 1
+          fi
+        done
+        if [[ -z "$(find "$SOURCE_DIR" -type f -print -quit)" ]]; then
+          echo "Source directory $SOURCE_DIR contains no files; refusing to deploy an empty release." >&2
+          exit 1
+        fi
         mkdir -p ~/.ssh
         SSH_KEY_PATH="$HOME/.ssh/ventraip_deploy_key"
         printf '%s\n' "$SSH_KEY" > "$SSH_KEY_PATH"
@@ -98,7 +109,9 @@ runs:
         esac
         ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "mkdir -p \"$APP_DIR/releases/$RELEASE_ID\" \"$DOCROOT\""
         rsync -az --delete -e "ssh $SSH_OPTS" "$SOURCE_DIR/" "$SSH_USER@$SSH_HOST:$APP_DIR/releases/$RELEASE_ID/"
+        ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "test -f \"$APP_DIR/releases/$RELEASE_ID/index.html\" && test -f \"$APP_DIR/releases/$RELEASE_ID/explorer/index.html\" && test -d \"$APP_DIR/releases/$RELEASE_ID/schemas/explorer-bundle\""
         ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "set -e; cd \"$APP_DIR\"; ln -sfn \"releases/$RELEASE_ID\" current; rsync -a --delete current/ \"$DOCROOT\"/; find \"$DOCROOT\" -type d -exec chmod 755 {} \; ; find \"$DOCROOT\" -type f -exec chmod 644 {} \;"
+        ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "test -f \"$DOCROOT/index.html\" && test -f \"$DOCROOT/explorer/index.html\" && test -d \"$DOCROOT/schemas/explorer-bundle\""
         curl --fail --silent --show-error --location --max-time 30 "$SITE_URL" >/dev/null
         curl --fail --silent --show-error --location --max-time 30 "$SITE_URL/explorer/" >/dev/null
         echo "Deployed release $RELEASE_ID to $SITE_URL"

@@ -270,6 +270,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **No-new-model gate**: v1.13 does not add product entities, bundle collections, schema directories, Open VSX publishing, Shop, Pub, editable posture, plan baselines, or compliance-history export controls.
 7. **Regression gate**: `e2e:v1.13`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.14 release gates (Compliance history export controls, per ADR 0048)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.14.0`; schema, bundle, and API axes remain `1.7.0`; no new schema directory is introduced.
+2. **Export toggle gate**: Explorer Local Changes exposes an `Include compliance history` toggle near `Export local JSON`; it defaults on and is visibly scoped to the next export.
+3. **History-included gate**: when the toggle is on, Explorer local-authoring export includes the existing `compliance-events` collection and manifest entry when local compliance events are present.
+4. **History-excluded gate**: when the toggle is off, Explorer local-authoring export omits `compliance-events` from both `collections` and `manifest.collections` while preserving current-state Requirements and assessment entries.
+5. **Import tolerance gate**: Core/Workshop import accepts local-authoring bundles that intentionally omit `compliance-events`.
+6. **Privacy/redaction gate**: personal-data exclusion and default-deny publication gates still pass for both history-included and history-excluded exports.
+7. **Deferred-scope gate**: v1.14 does not add local history pruning, age-based retention filters, automatic retention windows, signed audit attestations, before/after diff views, change-record tagging, editable posture, Shop, Pub, chart image export, plan baselines, Open VSX publishing, or a separate release channel.
+8. **Regression gate**: `e2e:v1.14`, `check:gates`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

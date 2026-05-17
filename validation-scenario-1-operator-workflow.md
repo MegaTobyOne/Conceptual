@@ -1,8 +1,8 @@
-# Validation Scenario 1: v1.13.0 Release Assurance Testing Workflow
+# Validation Scenario 1: v1.14.0 Compliance-History Export Testing Workflow
 
 ## Purpose
 
-Validate that a PSPF/security operator can complete the current initial assurance workflow without developer assistance: open Workshop, load the sample assurance scenario, record a significant change, create and apply tags, create Workshop saved views including planning scopes, export to Explorer, review Explorer "Why This Changed" and Plan Lens, filter Requirements and Relationships by tag/status/search, save and apply Explorer saved views, review Explorer Local Changes, confirm Explorer-to-Workshop import/undo behaviour, and distinguish Marketplace dry-run release validation from actual publication.
+Validate that a PSPF/security operator can complete the current initial assurance workflow without developer assistance: open Workshop, load the sample assurance scenario, record a significant change, create and apply tags, create Workshop saved views including planning scopes, export to Explorer, review Explorer "Why This Changed" and Plan Lens, filter Requirements and Relationships by tag/status/search, save and apply Explorer saved views, review Explorer Local Changes, confirm compliance-history export controls, confirm Explorer-to-Workshop import/undo behaviour, and distinguish Marketplace dry-run release validation from actual publication.
 
 ## Persona
 
@@ -16,7 +16,7 @@ Manual focus:
 - Workshop dashboard orientation: Directions, Action Impact, evidence queue, and version context.
 - Workshop Change Records list, significant-change authoring, and Change Record edit surface.
 - Workshop Tag Manager, Requirement Detail tag rail, and Requirement tag filtering.
-- Explorer visual identity, publication load, "Why This Changed", full-width Explorer Search, Local Changes, refresh restore, and local JSON export.
+- Explorer visual identity, publication load, "Why This Changed", full-width Explorer Search, Local Changes, refresh restore, compliance-history export controls, and local JSON export.
 - Explorer Requirements and Relationships Board tag filtering with `any` / `all` mode and URL/session state.
 - Explorer Requirements and Relationships saved views, including save, apply, rename/archive visibility, refresh persistence, and local-authoring export/import.
 - Workshop Saved Views manager and Workshop-owned Requirement, Dashboard, and Evidence Review views.
@@ -27,9 +27,9 @@ Manual focus:
 
 Automated coverage handles detailed counts, redaction/default-deny, schema validation, accessibility, writer lock, backup/restore, personal-data exclusion, and import/export round trips. Do not repeat those manually unless a visible behaviour looks wrong.
 
-Still out of scope for v1.13.0:
+Still out of scope for v1.14.0:
 
-- Shop, Pub, editable posture, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, Explorer-authored Change Records, change-record diff views, change-record tagging, plan baselines, milestone/resource/budget entities, compliance-history export controls, a separate PSPF Plan product, and third-party accessibility audit.
+- Shop, Pub, editable posture, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, Explorer-authored Change Records, change-record diff views, change-record tagging, local history pruning, automatic retention windows, plan baselines, milestone/resource/budget entities, a separate PSPF Plan product, and third-party accessibility audit.
 
 ## Test Data
 
@@ -61,8 +61,8 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.13.0`, `Schema 1.7.0`, and `API 1.7.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.13.0` and its tooltip includes `Schema 1.7.0`, `Bundle 1.7.0`, and `API 1.7.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.14.0`, `Schema 1.7.0`, and `API 1.7.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.14.0` and its tooltip includes `Schema 1.7.0`, `Bundle 1.7.0`, and `API 1.7.0`.
 4. From `Workshop Home`, click `Load sample`.
 5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.
@@ -83,9 +83,9 @@ If `dig` returns no address or `curl` reports `Could not resolve host`, create o
 21. In Relationships, keep the `Security uplift` tag filter active, save the current Relationship view as `Security relationships`, clear tags, apply the saved view, and confirm the Relationships Board reopens with the tag filter restored.
 22. If the deployed Explorer has just moved schema version, refresh it before selecting a bundle and confirm it shows `Reload your PSPF JSON` rather than an empty review surface. Select the latest bundle and confirm normal rendering resumes.
 23. Use the full-width `Explorer Search` under the posture brief to find one Requirement, confirm the same search narrows the `Local Changes` list, select that Requirement, and confirm `Linked Context` shows existing linked Evidence, Actions, Risks, and tagged context plus Open buttons to the full sections. Change its status, add one evidence reference, one Action, and one Risk, then refresh the browser. Confirm the latest bundle restores automatically and the local changes and saved views are still visible as `local` / saved local state.
-24. Click `Export local JSON`, confirm the exported bundle includes `collections.saved-views`, then import that Explorer local JSON from Workshop with `Plan, review, apply`. Confirm `PSPF Workshop Import Review` opens as a read-only surface with created, updated, unchanged, write, per-type, and update-example detail before `Apply Import`; apply it, then use `Undo Import` and confirm the undo notification is clear.
+24. In `Local Changes`, confirm `Include compliance history` is on by default. Click `Export local JSON` and confirm the exported bundle includes `collections.saved-views`; if the bundle contains local compliance events, confirm it also includes `collections.compliance-events` and a `manifest.collections` entry for `compliance-events`. Turn `Include compliance history` off, export again, and confirm `compliance-events` is omitted from both `collections` and `manifest.collections` while the current Requirement status/evidence/Action/Risk edits remain present. Import that history-excluded Explorer local JSON from Workshop with `Plan, review, apply`. Confirm `PSPF Workshop Import Review` opens as a read-only surface with created, updated, unchanged, write, per-type, and update-example detail before `Apply Import`; apply it, then use `Undo Import` and confirm the undo notification is clear.
 25. In GitHub Actions, open or run a Marketplace release dry run from `main` with `target=both` and `dry_run=true`. Confirm the run name includes `target=both / dry_run=true`, the dispatch summary says publication is skipped, both publish jobs show dry-run summaries, and `Publish to VS Code Marketplace`, `Verify Marketplace version`, `Tag and GitHub release`, and `Verify receipt tag` are skipped.
-26. Confirm the dry run created no `core/1.13.0` or `workshop/1.13.0` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
+26. Confirm the dry run created no `core/1.14.0` or `workshop/1.14.0` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
 27. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
 
 ## Expected Manual Signals
@@ -111,7 +111,7 @@ The following automated gates now cover the detailed checks that used to be manu
 For a quick spine check, run:
 
 ```sh
-npx pnpm@10.10.0 run e2e:v1.13
+npx pnpm@10.10.0 run e2e:v1.14
 ```
 
 Expected outputs:
@@ -132,12 +132,12 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.13.0-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.14.0-readiness-report.md`.
 - An Explorer Local Changes smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
-- Manual operator validation should focus on the v1.13.0 release-assurance path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
+- Manual operator validation should focus on the v1.14.0 compliance-history export path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
 
 ## Pass Criteria
 
@@ -158,5 +158,6 @@ Record:
 - Any tag label, picker, chip, saved-view, or filter behaviour that felt unclear.
 - Any planning lens row, label, or scope that felt too heavy or too thin for a 12-month cyber plan discussion.
 - Any Marketplace release wording that still made a dry run look like a real publication.
+- Any concern about whether compliance-history export should be included by default, excluded by default, or made more prominent before v1.14 implementation.
 - Any mismatch between Workshop, Explorer, and the operator's expectation.
 - The next action needed before another validation session.

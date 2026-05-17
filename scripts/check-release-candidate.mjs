@@ -17,7 +17,8 @@ const axesByMinorVersion = new Map([
   [10, "1.7.0"],
   [11, "1.7.0"],
   [12, "1.7.0"],
-  [13, "1.7.0"]
+  [13, "1.7.0"],
+  [14, "1.7.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -44,7 +45,7 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), `schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleVersion should be ${expectedAxes}`);
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
-const e2eScript = minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = minorVersion >= 14 ? "e2e:v1.14" : minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -69,6 +70,7 @@ for (const requiredPath of [
   "adr/0045-v1-11-explorer-change-story.md",
   "adr/0046-v1-12-planning-lens.md",
   "adr/0047-v1-13-release-assurance.md",
+  "adr/0048-v1-14-compliance-history-export-controls.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -281,6 +283,30 @@ if (/^1\.13\.\d+$/.test(expectedVersion)) {
   assert.equal(typeof packageJson.scripts["e2e:v1.13"], "string", "root package should define e2e:v1.13");
   assert.equal(packageJson.scripts["e2e:v1.13"].includes("e2e:v1.12"), true, "e2e:v1.13 should include v1.12 gates");
   assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.13"), true, "release:readiness should run e2e:v1.13");
+}
+
+if (/^1\.14\.\d+$/.test(expectedVersion)) {
+  const v114Adr = await readFile(join(root, "adr/0048-v1-14-compliance-history-export-controls.md"), "utf8");
+  for (const requiredText of ["v1.14", "Compliance history export controls", "Include compliance history", "compliance-events", "1.7.0"]) {
+    assert.equal(v114Adr.includes(requiredText), true, `v1.14 ADR should mention ${requiredText}`);
+  }
+  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  for (const requiredText of ["include-compliance-history", "Include compliance history", "includeComplianceHistoryInExport", "compliance-events", "pspfExplorerSetIncludeComplianceHistory"]) {
+    assert.equal(explorer.includes(requiredText), true, `Explorer v1.14 compliance-history export surface should mention ${requiredText}`);
+  }
+  const localAuthoringCheck = await readFile(join(root, "scripts/check-explorer-local-authoring.mjs"), "utf8");
+  for (const requiredText of ["Compliance history toggle defaults on", "Compliance history included by default", "Compliance history can be excluded", "compliance-events"]) {
+    assert.equal(localAuthoringCheck.includes(requiredText), true, `Explorer local-authoring v1.14 check should mention ${requiredText}`);
+  }
+  const deployAction = await readFile(join(root, ".github/actions/ventraip-deploy/action.yml"), "utf8");
+  for (const requiredText of ["explorer/index.html", "schemas/explorer-bundle", "refusing to deploy an empty release", "$DOCROOT/explorer/index.html"]) {
+    assert.equal(deployAction.includes(requiredText), true, `VentraIP deploy guard should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["e2e:v1.14"], "string", "root package should define e2e:v1.14");
+  assert.equal(packageJson.scripts["e2e:v1.14"].includes("e2e:v1.13"), true, "e2e:v1.14 should include v1.13 gates");
+  assert.equal(packageJson.scripts["e2e:v1.14"].includes("check:explorer-local-authoring"), true, "e2e:v1.14 should include Explorer local-authoring gate");
+  assert.equal(packageJson.scripts["e2e:v1.14"].includes("check:explorer-to-workshop-import"), true, "e2e:v1.14 should include Explorer-to-Workshop import gate");
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.14"), true, "release:readiness should run e2e:v1.14");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);
