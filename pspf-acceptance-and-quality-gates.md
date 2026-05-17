@@ -226,6 +226,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deferred-scope gate**: v1.9 does not add private/team ownership, default-start views, compliance-history export controls, tag hierarchies, tagging non-Requirement entities, editable posture, Shop, Pub, or chart image export.
 8. **Regression gate**: `e2e:v1.9`, `check:gates`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.10 release gates (Change-record foundation, per ADR 0044)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.10.0`; schema, bundle, and API axes are `1.7.0`; `schemas/explorer-bundle/1.7.0/` is published and immutable after release.
+2. **Contract gate**: `ChangeRecordEntity` uses the `CHG` prefix, exports through `change-records`, and every field has an explicit publication policy.
+3. **Link gate**: `changes` links are first-class `link` records from `change-record` to `requirement`, `action`, `risk`, `direction`, `tag`, or `saved-view`; invalid endpoints or pairs are rejected on write and import.
+4. **Workshop authoring gate**: Workshop can record a significant change, link it to an affected record, list Change Records, and edit public/sensitive/restricted fields through the item editor.
+5. **Explorer publication gate**: Explorer renders a read-only "Why This Changed" view using public Change Record fields and affected `changes` links.
+6. **Redaction gate**: `reason` and `impactSummary` are redacted from publication by default; `decisionOwnerRef` is restricted and never exported.
+7. **Deferred-scope gate**: v1.10 does not add Explorer-authored Change Records, diff views, change-record tagging, plan baselines, Shop, Pub, editable posture, or chart image export.
+8. **Regression gate**: `build`, `typecheck`, `lint`, `check:gates`, `validate:debug-workspace`, and `release:readiness` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

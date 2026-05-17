@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.6.0",
-  bundleVersion: "1.6.0",
-  apiVersion: "1.6.0"
+  schemaVersion: "1.7.0",
+  bundleVersion: "1.7.0",
+  apiVersion: "1.7.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.9.0" as const;
+export const PSPF_SLICE_VERSION = "1.10.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -21,6 +21,7 @@ export const V0_1_ENTITY_TYPES = [
   "source-control",
   "requirement-control-mapping",
   "direction",
+  "change-record",
   "posture"
 ] as const;
 
@@ -39,6 +40,7 @@ export const V0_1_COLLECTIONS = [
   "source-controls",
   "requirement-control-mappings",
   "directions",
+  "change-records",
   "posture"
 ] as const;
 
@@ -67,7 +69,8 @@ export const LINK_TYPES = [
   "targets",
   "generates",
   "includes",
-  "tagged-with"
+  "tagged-with",
+  "changes"
 ] as const;
 
 export type LinkType = (typeof LINK_TYPES)[number];
@@ -358,6 +361,7 @@ export interface PostureEntity extends EntityEnvelope {
   readonly sourceControlCount?: number;
   readonly requirementControlMappingCount?: number;
   readonly directionCount?: number;
+  readonly changeRecordCount?: number;
 }
 
 export type DirectionResponseState = "not-set" | "yes" | "no" | "risk-managed";
@@ -369,6 +373,34 @@ export interface DirectionEntity extends EntityEnvelope {
   readonly issuedAt?: string;
   readonly sourceAuthority?: string;
   readonly responseState: DirectionResponseState;
+}
+
+export const CHANGE_RECORD_TYPES = ["priority", "direction", "scope", "timeline", "dependency", "risk-response", "posture", "other"] as const;
+export type ChangeRecordType = (typeof CHANGE_RECORD_TYPES)[number];
+
+export const CHANGE_RECORD_STATUSES = ["proposed", "active", "resolved", "absorbed", "withdrawn"] as const;
+export type ChangeRecordStatus = (typeof CHANGE_RECORD_STATUSES)[number];
+
+export const CHANGE_RECORD_PERSISTENCE = ["temporary", "persistent"] as const;
+export type ChangeRecordPersistence = (typeof CHANGE_RECORD_PERSISTENCE)[number];
+
+export const CHANGE_RECORD_SOURCES = ["executive-direction", "risk-event", "compliance-event", "operational", "external-trigger", "other"] as const;
+export type ChangeRecordSource = (typeof CHANGE_RECORD_SOURCES)[number];
+
+export interface ChangeRecordEntity extends EntityEnvelope {
+  readonly entityType: "change-record";
+  readonly title: string;
+  readonly summary: string;
+  readonly reason?: string;
+  readonly impactSummary?: string;
+  readonly changeType: ChangeRecordType;
+  readonly status: ChangeRecordStatus;
+  readonly persistence: ChangeRecordPersistence;
+  readonly source: ChangeRecordSource;
+  readonly raisedAt: string;
+  readonly effectiveAt?: string;
+  readonly reviewDueAt?: string;
+  readonly decisionOwnerRef?: string;
 }
 
 export type V01Entity =
@@ -384,6 +416,7 @@ export type V01Entity =
   | SourceControlEntity
   | RequirementControlMappingEntity
   | DirectionEntity
+  | ChangeRecordEntity
   | PostureEntity;
 
 export type EntityByCollection = {
@@ -399,6 +432,7 @@ export type EntityByCollection = {
   "source-controls": SourceControlEntity;
   "requirement-control-mappings": RequirementControlMappingEntity;
   directions: DirectionEntity;
+  "change-records": ChangeRecordEntity;
   posture: PostureEntity;
 };
 
@@ -482,8 +516,17 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
     fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "reference", "issuedAt", "sourceAuthority", "responseState")
   },
   {
+    entityType: "change-record",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "summary", "changeType", "status", "persistence", "source", "raisedAt", "effectiveAt", "reviewDueAt"),
+      { field: "reason", publication: "sensitive" },
+      { field: "impactSummary", publication: "sensitive" },
+      { field: "decisionOwnerRef", publication: "restricted" }
+    ]
+  },
+  {
     entityType: "posture",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount", "directionCount")
+    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount", "directionCount", "changeRecordCount")
   }
 ] as const;
 
@@ -563,6 +606,7 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   "source-control": "source-controls",
   "requirement-control-mapping": "requirement-control-mappings",
   direction: "directions",
+  "change-record": "change-records",
   posture: "posture"
 };
 
@@ -579,6 +623,7 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   "source-control": "SRC",
   "requirement-control-mapping": "MAP",
   direction: "DIR",
+  "change-record": "CHG",
   posture: "POSTURE"
 };
 

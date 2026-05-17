@@ -195,6 +195,7 @@ The first file loaded by Explorer is `manifest.json`. It describes the bundle, a
 | `collections/snapshots.json` | immutable snapshot entities |
 | `collections/tags.json` | operator-applied classification labels (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) |
 | `collections/saved-views.json` | named user convenience filter snapshots for supported Explorer and Workshop scopes (see [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md) and [adr/0043-v1-9-saved-view-expansion.md](adr/0043-v1-9-saved-view-expansion.md)) |
+| `collections/change-records.json` | published public change-record summaries for the Explorer "Why This Changed" view; sensitive reason, impact, and decision-owner fields are excluded (see [adr/0044-v1-10-change-records.md](adr/0044-v1-10-change-records.md)) |
 | `indexes/by-tag.json` | derived requirement-id lists per tag for fast filter rendering |
 | `indexes/*.json` | denormalised read models |
 | `schemas/*.json` | published validation schemas |

@@ -6,9 +6,19 @@ import { join } from "node:path";
 const root = process.cwd();
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const expectedVersion = packageJson.version;
-const expectedAxes = /^1\.9\.\d+$/.test(expectedVersion) ? "1.6.0" : /^1\.8\.\d+$/.test(expectedVersion) ? "1.5.0" : /^1\.7\.\d+$/.test(expectedVersion) ? "1.4.0" : "1.3.0";
-const isV1Release = /^1\.(0|1|2|3|4|5|6|7|8|9)\.\d+$/.test(expectedVersion);
-const isV11OrLaterRelease = /^1\.(1|2|3|4|5|6|7|8|9)\.\d+$/.test(expectedVersion);
+const versionMatch = expectedVersion.match(/^(\d+)\.(\d+)\.(\d+)$/);
+assert.ok(versionMatch, `root package version should be semver, got ${expectedVersion}`);
+const majorVersion = Number(versionMatch[1]);
+const minorVersion = Number(versionMatch[2]);
+const axesByMinorVersion = new Map([
+  [7, "1.4.0"],
+  [8, "1.5.0"],
+  [9, "1.6.0"],
+  [10, "1.7.0"]
+]);
+const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
+const isV1Release = majorVersion === 1;
+const isV11OrLaterRelease = isV1Release && minorVersion >= 1;
 const packagePaths = [
   "package.json",
   "packages/brief-renderer/package.json",
@@ -31,7 +41,7 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), `schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleVersion should be ${expectedAxes}`);
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
-const e2eScript = /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -52,6 +62,7 @@ for (const requiredPath of [
   "adr/0041-v1-7-tags-and-filters-foundation.md",
   "adr/0042-v1-8-saved-views.md",
   "adr/0043-v1-9-saved-view-expansion.md",
+  "adr/0044-v1-10-change-records.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -205,6 +216,29 @@ if (/^1\.9\.\d+$/.test(expectedVersion)) {
   assert.equal(typeof packageJson.scripts["e2e:v1.9"], "string", "root package should define e2e:v1.9");
   assert.equal(packageJson.scripts["e2e:v1.9"].includes("e2e:v1.8"), true, "e2e:v1.9 should include v1.8 gates");
   assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.9"), true, "release:readiness should run e2e:v1.9");
+}
+
+if (/^1\.10\.\d+$/.test(expectedVersion)) {
+  const v110Adr = await readFile(join(root, "adr/0044-v1-10-change-records.md"), "utf8");
+  for (const requiredText of ["v1.10", "Change Record", "change-record", "change-records", "CHG", "changes", "1.7.0"]) {
+    assert.equal(v110Adr.includes(requiredText), true, `v1.10 ADR should mention ${requiredText}`);
+  }
+  const contracts = await readFile(join(root, "packages/contracts/src/index.ts"), "utf8");
+  for (const requiredText of ["ChangeRecordEntity", "CHANGE_RECORD_TYPES", "change-record", "change-records", "CHG", "changes", "decisionOwnerRef"]) {
+    assert.equal(contracts.includes(requiredText), true, `Contracts v1.10 change-record foundation should mention ${requiredText}`);
+  }
+  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  for (const requiredText of ["Why This Changed", "change-records", "Change reasons excluded", "Change decision owner excluded"]) {
+    assert.equal(explorer.includes(requiredText), true, `Explorer v1.10 change-record surface should mention ${requiredText}`);
+  }
+  const workshopExtension = await readFile(join(root, "packages/workshop/src/extension.ts"), "utf8");
+  for (const requiredText of ["pspf.workshop.openChangeRecords", "pspf.workshop.recordSignificantChange", "Change Records", "Record Significant Change"]) {
+    assert.equal(workshopExtension.includes(requiredText), true, `Workshop v1.10 change-record surface should mention ${requiredText}`);
+  }
+  assert.equal(existsSync(join(root, "schemas/explorer-bundle/1.7.0/collections/change-records.schema.json")), true, "v1.10 change-record schema should exist");
+  assert.equal(typeof packageJson.scripts["e2e:v1.10"], "string", "root package should define e2e:v1.10");
+  assert.equal(packageJson.scripts["e2e:v1.10"].includes("e2e:v1.9"), true, "e2e:v1.10 should include v1.9 gates");
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.10"), true, "release:readiness should run e2e:v1.10");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

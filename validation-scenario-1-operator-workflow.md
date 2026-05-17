@@ -1,8 +1,8 @@
-# Validation Scenario 1: v1.9.0 Saved Views Testing Workflow
+# Validation Scenario 1: v1.10.0 Change Records Testing Workflow
 
 ## Purpose
 
-Validate that a PSPF/security operator can complete the current initial assurance workflow without developer assistance: open Workshop, load the sample assurance scenario, create and apply tags, create a Workshop saved view, export to Explorer, filter Requirements and Relationships by tag/status/search, save and apply Explorer saved views, review Explorer Local Changes, and confirm Explorer-to-Workshop import/undo behaviour.
+Validate that a PSPF/security operator can complete the current initial assurance workflow without developer assistance: open Workshop, load the sample assurance scenario, record a significant change, create and apply tags, create a Workshop saved view, export to Explorer, review Explorer "Why This Changed", filter Requirements and Relationships by tag/status/search, save and apply Explorer saved views, review Explorer Local Changes, and confirm Explorer-to-Workshop import/undo behaviour.
 
 ## Persona
 
@@ -14,8 +14,9 @@ Manual focus:
 
 - Workshop launch, Activity Bar access, status bar version context, and sample workspace loading.
 - Workshop dashboard orientation: Directions, Action Impact, evidence queue, and version context.
+- Workshop Change Records list, significant-change authoring, and Change Record edit surface.
 - Workshop Tag Manager, Requirement Detail tag rail, and Requirement tag filtering.
-- Explorer visual identity, publication load, full-width Explorer Search, Local Changes, refresh restore, and local JSON export.
+- Explorer visual identity, publication load, "Why This Changed", full-width Explorer Search, Local Changes, refresh restore, and local JSON export.
 - Explorer Requirements and Relationships Board tag filtering with `any` / `all` mode and URL/session state.
 - Explorer Requirements and Relationships saved views, including save, apply, rename/archive visibility, refresh persistence, and local-authoring export/import.
 - Workshop Saved Views manager and Workshop-owned Requirement views.
@@ -24,9 +25,9 @@ Manual focus:
 
 Automated coverage handles detailed counts, redaction/default-deny, schema validation, accessibility, writer lock, backup/restore, personal-data exclusion, and import/export round trips. Do not repeat those manually unless a visible behaviour looks wrong.
 
-Still out of scope for v1.9.0:
+Still out of scope for v1.10.0:
 
-- Shop, Pub, editable posture, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, tagging Actions/Risks/Directions/Evidence, compliance-history export controls, and third-party accessibility audit.
+- Shop, Pub, editable posture, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, Explorer-authored Change Records, change-record diff views, change-record tagging, plan baselines, compliance-history export controls, and third-party accessibility audit.
 
 ## Test Data
 
@@ -58,25 +59,28 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.9.0`, `Schema 1.6.0`, and `API 1.6.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.9.0` and its tooltip includes `Schema 1.6.0`, `Bundle 1.6.0`, and `API 1.6.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.10.0`, `Schema 1.7.0`, and `API 1.7.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.10.0` and its tooltip includes `Schema 1.7.0`, `Bundle 1.7.0`, and `API 1.7.0`.
 4. From `Workshop Home`, click `Load sample`.
 5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.
-7. Open one Requirement item detail, click `Apply tag`, create a `Security uplift` tag if needed, and confirm the tag appears in the `Tags` rail. Run `PSPF: Manage Tags` and confirm the Tag Manager shows the tag, colour, status, and Requirement count.
-8. Run `PSPF: Add Evidence`, create `Approved Authentication policy`, choose `Browse by domain`, select Governance, Security Risk, and Technology, then select at least two Governance, one Security Risk, and two Technology Requirements. Confirm the completion message summarises the affected domains and one Evidence record is linked to multiple Requirements.
-9. Run `PSPF: Create Action`, create one cross-cutting action, choose `Browse by assessment status`, select at least one non-final status, then select two or more Requirements. Confirm one Action record is linked to multiple Requirements.
-10. Run `PSPF: Create Risk`, create one cross-cutting risk, choose `All Requirements` or `Browse by domain`, then select two or more Requirements. Confirm one Risk record is linked to multiple Requirements.
-11. Run `PSPF: Filter Requirements by Tag`, select `Security uplift`, choose `Any selected tag`, and confirm the matching Requirement opens cleanly. Then run `PSPF: Manage Saved Views`, create a Workshop Requirements view using `Security uplift` or a short search term, and confirm the Saved Views panel refreshes immediately with the new row. Apply it and confirm the filtered Requirements list opens with the expected rows.
-12. From `Workshop Home`, click `Validate`, `Integrity scan` (`PSPF: Run Integrity Scan`), `Snapshot`, `Copy brief`, and `Export` in that order. Confirm each completes and the copied brief is readable when pasted into a scratch note.
-13. Open `packages/explorer/dist/index.html`, select the latest debug `bundle.json` from `Bundle Tools` if a remembered bundle does not restore, and confirm the portable assurance masthead, `OFFICIAL: Sensitive · TLP:AMBER+STRICT` banner, and `Bundle baseline` / `Local changes` / `Export to Workshop` mode strip are visible.
-14. On the Requirements section, select the `Security uplift` tag filter and confirm the URL includes `tags=` and `tagsMode=any`. Switch to `All selected tags`, reload the page, and confirm the tag filter is restored from the URL/session state. Check the Relationships Board uses the same tag filter.
-15. In Requirements, combine `Explorer Search`, a Requirement status filter, and the `Security uplift` tag filter. Save the current Requirements view as `Security uplift focus`, clear the filters, apply the saved view, and confirm the search/status/tag controls and visible rows return without reopening Explorer. Rename the view, archive it, and confirm each change redraws the controls immediately.
-16. In Relationships, keep the `Security uplift` tag filter active, save the current Relationship view as `Security relationships`, clear tags, apply the saved view, and confirm the Relationships Board reopens with the tag filter restored.
-17. If the deployed Explorer has just moved schema version, refresh it before selecting a bundle and confirm it shows `Reload your PSPF JSON` rather than an empty review surface. Select the latest bundle and confirm normal rendering resumes.
-18. Use the full-width `Explorer Search` under the posture brief to find one Requirement, confirm the same search narrows the `Local Changes` list, select that Requirement, and confirm `Linked Context` shows existing linked Evidence, Actions, Risks, and tagged context plus Open buttons to the full sections. Change its status, add one evidence reference, one Action, and one Risk, then refresh the browser. Confirm the latest bundle restores automatically and the local changes and saved views are still visible as `local` / saved local state.
-19. Click `Export local JSON`, confirm the exported bundle includes `collections.saved-views`, then import that Explorer local JSON from Workshop with `Plan, review, apply`. Confirm `PSPF Workshop Import Review` opens as a read-only surface with created, updated, unchanged, write, per-type, and update-example detail before `Apply Import`; apply it, then use `Undo Import` and confirm the undo notification is clear.
-20. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
+7. Open one Requirement item detail, click `Record significant change`, create a Change Record with a short public summary and optional sensitive reason/impact notes, then run `PSPF: Open Change Records` and confirm the row shows status, type, persistence, source, raised date, affected Requirement, and summary.
+8. Open the Change Record row, edit the public summary or status, save, reopen `PSPF: Open Change Records`, and confirm the update is visible.
+9. Open one Requirement item detail, click `Apply tag`, create a `Security uplift` tag if needed, and confirm the tag appears in the `Tags` rail. Run `PSPF: Manage Tags` and confirm the Tag Manager shows the tag, colour, status, and Requirement count.
+10. Run `PSPF: Add Evidence`, create `Approved Authentication policy`, choose `Browse by domain`, select Governance, Security Risk, and Technology, then select at least two Governance, one Security Risk, and two Technology Requirements. Confirm the completion message summarises the affected domains and one Evidence record is linked to multiple Requirements.
+11. Run `PSPF: Create Action`, create one cross-cutting action, choose `Browse by assessment status`, select at least one non-final status, then select two or more Requirements. Confirm one Action record is linked to multiple Requirements.
+12. Run `PSPF: Create Risk`, create one cross-cutting risk, choose `All Requirements` or `Browse by domain`, then select two or more Requirements. Confirm one Risk record is linked to multiple Requirements.
+13. Run `PSPF: Filter Requirements by Tag`, select `Security uplift`, choose `Any selected tag`, and confirm the matching Requirement opens cleanly. Then run `PSPF: Manage Saved Views`, create a Workshop Requirements view using `Security uplift` or a short search term, and confirm the Saved Views panel refreshes immediately with the new row. Apply it and confirm the filtered Requirements list opens with the expected rows.
+14. From `Workshop Home`, click `Validate`, `Integrity scan` (`PSPF: Run Integrity Scan`), `Snapshot`, `Copy brief`, and `Export` in that order. Confirm each completes and the copied brief is readable when pasted into a scratch note.
+15. Open `packages/explorer/dist/index.html`, select the latest debug `bundle.json` from `Bundle Tools` if a remembered bundle does not restore, and confirm the portable assurance masthead, `OFFICIAL: Sensitive · TLP:AMBER+STRICT` banner, and `Bundle baseline` / `Local changes` / `Export to Workshop` mode strip are visible.
+16. Open `Why This Changed` and confirm the Change Record appears with affected Requirement context, public summary, and no sensitive reason, impact summary, or decision-owner reference.
+17. On the Requirements section, select the `Security uplift` tag filter and confirm the URL includes `tags=` and `tagsMode=any`. Switch to `All selected tags`, reload the page, and confirm the tag filter is restored from the URL/session state. Check the Relationships Board uses the same tag filter.
+18. In Requirements, combine `Explorer Search`, a Requirement status filter, and the `Security uplift` tag filter. Save the current Requirements view as `Security uplift focus`, clear the filters, apply the saved view, and confirm the search/status/tag controls and visible rows return without reopening Explorer. Rename the view, archive it, and confirm each change redraws the controls immediately.
+19. In Relationships, keep the `Security uplift` tag filter active, save the current Relationship view as `Security relationships`, clear tags, apply the saved view, and confirm the Relationships Board reopens with the tag filter restored.
+20. If the deployed Explorer has just moved schema version, refresh it before selecting a bundle and confirm it shows `Reload your PSPF JSON` rather than an empty review surface. Select the latest bundle and confirm normal rendering resumes.
+21. Use the full-width `Explorer Search` under the posture brief to find one Requirement, confirm the same search narrows the `Local Changes` list, select that Requirement, and confirm `Linked Context` shows existing linked Evidence, Actions, Risks, and tagged context plus Open buttons to the full sections. Change its status, add one evidence reference, one Action, and one Risk, then refresh the browser. Confirm the latest bundle restores automatically and the local changes and saved views are still visible as `local` / saved local state.
+22. Click `Export local JSON`, confirm the exported bundle includes `collections.saved-views`, then import that Explorer local JSON from Workshop with `Plan, review, apply`. Confirm `PSPF Workshop Import Review` opens as a read-only surface with created, updated, unchanged, write, per-type, and update-example detail before `Apply Import`; apply it, then use `Undo Import` and confirm the undo notification is clear.
+23. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
 
 ## Expected Manual Signals
 
@@ -99,7 +103,7 @@ The following automated gates now cover the detailed checks that used to be manu
 For a quick spine check, run:
 
 ```sh
-npx pnpm@10.10.0 run e2e:v1.9
+npx pnpm@10.10.0 run e2e:v1.10
 ```
 
 Expected outputs:
@@ -120,16 +124,16 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.9.0-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.10.0-readiness-report.md`.
 - An Explorer Local Changes smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
-- Manual operator validation should focus on the v1.9.0 saved-view flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
+- Manual operator validation should focus on the v1.10.0 Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
 
 ## Pass Criteria
 
-- The 20-step manual operator flow completes without intervention.
+- The 23-step manual operator flow completes without intervention.
 - Workshop clearly presents the decision surface and Explorer clearly presents the portable review surface.
 - Explorer Local Changes survives refresh and exports successfully.
 - Tags survive snapshot/export/import, `Tag.description` stays out of copied briefs and published indexes, saved views survive Explorer refresh/export/import, and tag/saved-view filters are understandable without reading docs.

@@ -784,6 +784,28 @@ Directions differ from Requirements in two ways:
 
 Directions should be linkable to affected requirements, domains, evidence, actions, and risks. Products should surface them in the same assessment and evidence-review flows as requirements, while keeping the response-state terminology distinct.
 
+### Change Record
+
+Represents a significant change captured by Workshop so later readers can understand why a Requirement, Action, Risk, Direction, Tag, or Saved View changed. Change Records are authored in Workshop, exported through Core, and rendered read-only in Explorer publication mode.
+
+#### Change Record fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | `CHG-*` canonical ID |
+| `title` | string | concise operator-facing title |
+| `summary` | string | public explanation safe for Explorer publication |
+| `reason` | string | sensitive reason, redacted by default |
+| `impactSummary` | string | sensitive impact note, redacted by default |
+| `changeType` | string | priority, direction, scope, timeline, dependency, risk-response, posture, other |
+| `status` | string | proposed, active, resolved, absorbed, withdrawn |
+| `persistence` | string | temporary or persistent |
+| `source` | string | executive-direction, risk-event, compliance-event, operational, external-trigger, other |
+| `raisedAt` | string | timestamp the change was raised |
+| `effectiveAt` | string/null | optional timestamp the change takes effect |
+| `reviewDueAt` | string/null | optional review timestamp |
+| `decisionOwnerRef` | string | restricted decision-owner reference, never exported |
+
 ## Link specification
 
 ### Why links are first-class
@@ -839,7 +861,7 @@ Links are described by a short, **shared verb-phrase `linkType`** drawn from a c
 
 ### Closed `linkType` vocabulary
 
-`in`, `has`, `supported-by`, `addressed-by`, `exposed-by`, `owned-by`, `reviewed-by`, `cited-by`, `supports`, `treated-by`, `associated-with`, `sourced-from`, `included-in`, `assigned-via`, `blocked-by`, `related-to`, `funds`, `member-of`, `holds`, `targets`, `generates`, `includes`, `tagged-with`.
+`in`, `has`, `supported-by`, `addressed-by`, `exposed-by`, `owned-by`, `reviewed-by`, `cited-by`, `supports`, `treated-by`, `associated-with`, `sourced-from`, `included-in`, `assigned-via`, `blocked-by`, `related-to`, `funds`, `member-of`, `holds`, `targets`, `generates`, `includes`, `tagged-with`, `changes`.
 
 Any `linkType` value not in this set MUST be rejected by Core and by the bundle validator.
 
@@ -941,6 +963,19 @@ This table is authoritative. CI validates that every link in every fixture match
 | requirement | tagged-with | tag | operator-applied classification on a requirement |
 
 In v1.7 this is the only permitted `(fromType, toType)` pair for `tagged-with`. See `pspf-invariants.md` § T2.
+
+#### Change Records
+
+| fromType | linkType | toType | Meaning |
+|---|---|---|---|
+| change-record | changes | requirement | change explains why a requirement changed |
+| change-record | changes | action | change explains why an action changed |
+| change-record | changes | risk | change explains why a risk changed |
+| change-record | changes | direction | change explains why a Direction response or treatment changed |
+| change-record | changes | tag | change explains why a tag is relevant |
+| change-record | changes | saved-view | change explains why a saved view matters |
+
+In v1.10 these are the only permitted `(fromType, toType)` pairs for `changes`. Tombstoned endpoints may remain linked so historical explanations survive erasure or archive workflows.
 
 ## Link rules
 
