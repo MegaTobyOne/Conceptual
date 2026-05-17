@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.7.0",
-  bundleVersion: "1.7.0",
-  apiVersion: "1.7.0"
+  schemaVersion: "1.8.0",
+  bundleVersion: "1.8.0",
+  apiVersion: "1.8.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.14.0" as const;
+export const PSPF_SLICE_VERSION = "1.17.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -22,6 +22,9 @@ export const V0_1_ENTITY_TYPES = [
   "requirement-control-mapping",
   "direction",
   "change-record",
+  "supplier",
+  "contract",
+  "spend-item",
   "posture"
 ] as const;
 
@@ -41,6 +44,9 @@ export const V0_1_COLLECTIONS = [
   "requirement-control-mappings",
   "directions",
   "change-records",
+  "suppliers",
+  "contracts",
+  "spend-items",
   "posture"
 ] as const;
 
@@ -77,7 +83,7 @@ export type LinkType = (typeof LINK_TYPES)[number];
 
 export type PublicationPolicy = "public" | "internal" | "sensitive" | "restricted";
 
-export type SourceProduct = "core" | "workshop" | "explorer";
+export type SourceProduct = "core" | "workshop" | "explorer" | "shop";
 
 export type RecordStatus = "active" | "archived" | "inactive" | "deleted";
 
@@ -362,6 +368,9 @@ export interface PostureEntity extends EntityEnvelope {
   readonly requirementControlMappingCount?: number;
   readonly directionCount?: number;
   readonly changeRecordCount?: number;
+  readonly supplierCount?: number;
+  readonly contractCount?: number;
+  readonly spendItemCount?: number;
 }
 
 export type DirectionResponseState = "not-set" | "yes" | "no" | "risk-managed";
@@ -403,6 +412,62 @@ export interface ChangeRecordEntity extends EntityEnvelope {
   readonly decisionOwnerRef?: string;
 }
 
+export type SupplierType = "software" | "service" | "advisory" | "managed-service" | "other";
+export type SupplierStatus = "active" | "inactive" | "proposed";
+export type SupplierCriticality = "low" | "medium" | "high" | "critical";
+
+export interface SupplierEntity extends EntityEnvelope {
+  readonly entityType: "supplier";
+  readonly name: string;
+  readonly supplierType: SupplierType;
+  readonly status: SupplierStatus;
+  readonly criticality: SupplierCriticality;
+  readonly primaryContact?: string;
+  readonly notes?: string;
+}
+
+export type ContractStatus = "draft" | "active" | "expired" | "terminated";
+
+export interface MoneyAmount {
+  readonly amount: number;
+  readonly currency: "AUD" | string;
+}
+
+export interface ContractEntity extends EntityEnvelope {
+  readonly entityType: "contract";
+  readonly supplierId: string;
+  readonly title: string;
+  readonly contractRef?: string;
+  readonly status: ContractStatus;
+  readonly startsAt?: string;
+  readonly endsAt?: string;
+  readonly value?: MoneyAmount;
+  readonly serviceSummary?: string;
+}
+
+export type SpendType = "capex" | "opex" | "uplift" | "licence" | "service";
+export type SpendStatus = "proposed" | "approved" | "committed" | "spent" | "cancelled";
+export type SavingsType = "avoided-cost" | "efficiency" | "consolidation" | "risk-reduction" | "contract-optimisation" | "other";
+export type ForecastConfidence = "low" | "medium" | "high";
+
+export interface SpendItemEntity extends EntityEnvelope {
+  readonly entityType: "spend-item";
+  readonly title: string;
+  readonly spendType: SpendType;
+  readonly status: SpendStatus;
+  readonly amount: MoneyAmount;
+  readonly financialYear: string;
+  readonly forecastStartAt?: string;
+  readonly forecastEndAt?: string;
+  readonly forecastCost?: MoneyAmount;
+  readonly expectedSavings?: MoneyAmount;
+  readonly savingsType?: SavingsType;
+  readonly paybackPeriodMonths?: number;
+  readonly confidence?: ForecastConfidence;
+  readonly assumptions?: string;
+  readonly notes?: string;
+}
+
 export type V01Entity =
   | DomainEntity
   | RequirementEntity
@@ -417,6 +482,9 @@ export type V01Entity =
   | RequirementControlMappingEntity
   | DirectionEntity
   | ChangeRecordEntity
+  | SupplierEntity
+  | ContractEntity
+  | SpendItemEntity
   | PostureEntity;
 
 export type EntityByCollection = {
@@ -433,6 +501,9 @@ export type EntityByCollection = {
   "requirement-control-mappings": RequirementControlMappingEntity;
   directions: DirectionEntity;
   "change-records": ChangeRecordEntity;
+  suppliers: SupplierEntity;
+  contracts: ContractEntity;
+  "spend-items": SpendItemEntity;
   posture: PostureEntity;
 };
 
@@ -525,8 +596,39 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
     ]
   },
   {
+    entityType: "supplier",
+    fields: [
+      ...internalFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "supplierType", "status", "criticality"),
+      { field: "name", publication: "sensitive" },
+      { field: "primaryContact", publication: "restricted" },
+      { field: "notes", publication: "sensitive" }
+    ]
+  },
+  {
+    entityType: "contract",
+    fields: [
+      ...internalFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "supplierId", "status", "startsAt", "endsAt"),
+      { field: "contractRef", publication: "sensitive" },
+      { field: "value", publication: "sensitive" },
+      { field: "serviceSummary", publication: "sensitive" }
+    ]
+  },
+  {
+    entityType: "spend-item",
+    fields: [
+      ...internalFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "spendType", "status", "financialYear", "savingsType", "paybackPeriodMonths", "confidence"),
+      { field: "amount", publication: "sensitive" },
+      { field: "forecastStartAt", publication: "sensitive" },
+      { field: "forecastEndAt", publication: "sensitive" },
+      { field: "forecastCost", publication: "sensitive" },
+      { field: "expectedSavings", publication: "sensitive" },
+      { field: "assumptions", publication: "sensitive" },
+      { field: "notes", publication: "sensitive" }
+    ]
+  },
+  {
     entityType: "posture",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount", "directionCount", "changeRecordCount")
+    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount", "directionCount", "changeRecordCount", "supplierCount", "contractCount", "spendItemCount")
   }
 ] as const;
 
@@ -607,6 +709,9 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   "requirement-control-mapping": "requirement-control-mappings",
   direction: "directions",
   "change-record": "change-records",
+  supplier: "suppliers",
+  contract: "contracts",
+  "spend-item": "spend-items",
   posture: "posture"
 };
 
@@ -624,6 +729,9 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   "requirement-control-mapping": "MAP",
   direction: "DIR",
   "change-record": "CHG",
+  supplier: "SUP",
+  contract: "CTR",
+  "spend-item": "SPD",
   posture: "POSTURE"
 };
 

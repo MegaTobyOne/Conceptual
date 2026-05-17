@@ -1,4 +1,4 @@
-# Validation Scenario 1: v1.14.0 Compliance-History Export Testing Workflow
+# Validation Scenario 1: v1.17.0 Shop Core-Backed Workflow
 
 ## Purpose
 
@@ -27,9 +27,9 @@ Manual focus:
 
 Automated coverage handles detailed counts, redaction/default-deny, schema validation, accessibility, writer lock, backup/restore, personal-data exclusion, and import/export round trips. Do not repeat those manually unless a visible behaviour looks wrong.
 
-Still out of scope for v1.14.0:
+Still out of scope for v1.17.0:
 
-- Shop, Pub, editable posture, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, Explorer-authored Change Records, change-record diff views, change-record tagging, local history pruning, automatic retention windows, plan baselines, milestone/resource/budget entities, a separate PSPF Plan product, and third-party accessibility audit.
+- Pub, editable posture, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, Explorer-authored Change Records, change-record diff views, change-record tagging, local history pruning, automatic retention windows, plan baselines, milestone/resource/budget entities, a separate PSPF Plan product, procurement import, finance reconciliation, approvals, Marketplace publication of Shop, and third-party accessibility audit.
 
 ## Test Data
 
@@ -61,8 +61,8 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.14.0`, `Schema 1.7.0`, and `API 1.7.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.14.0` and its tooltip includes `Schema 1.7.0`, `Bundle 1.7.0`, and `API 1.7.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.17.0`, `Schema 1.8.0`, and `API 1.8.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.17.0` and its tooltip includes `Schema 1.8.0`, `Bundle 1.8.0`, and `API 1.8.0`.
 4. From `Workshop Home`, click `Load sample`.
 5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.
@@ -132,12 +132,12 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.14.0-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.17.0-readiness-report.md`.
 - An Explorer Local Changes smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
-- Manual operator validation should focus on the v1.14.0 compliance-history export path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
+- Manual operator validation should focus on the v1.17.0 Shop Core-backed path, compliance-history export path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
 
 ## Pass Criteria
 

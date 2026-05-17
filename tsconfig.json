@@ -24,6 +24,9 @@
             "path": "./packages/workshop"
         },
         {
+            "path": "./packages/shop"
+        },
+        {
             "path": "./packages/explorer"
         }
     ]

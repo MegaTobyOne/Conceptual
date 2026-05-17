@@ -1092,7 +1092,7 @@ async function writeClipboardText(value) {
 }
 
 async function validateBundle(manifest, collections, collectionTexts) {
-  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "posture"];
+  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "suppliers", "contracts", "spend-items", "posture"];
   const checks = [
     check("Bundle version", manifest.bundleVersion === "${VERSION_AXES.bundleVersion}", manifest.bundleVersion || "missing"),
     check("Schema version", manifest.schemaVersion === "${VERSION_AXES.schemaVersion}", manifest.schemaVersion || "missing"),
@@ -1120,10 +1120,18 @@ async function validateBundle(manifest, collections, collectionTexts) {
   checks.push(check("Posture ISM controls", posture.sourceControlCount === (collections["source-controls"] || []).length, String(posture.sourceControlCount || 0)));
   checks.push(check("Posture ISM mappings", posture.requirementControlMappingCount === (collections["requirement-control-mappings"] || []).length, String(posture.requirementControlMappingCount || 0)));
   checks.push(check("Posture change records", posture.changeRecordCount === (collections["change-records"] || []).length, String(posture.changeRecordCount || 0)));
+  checks.push(check("Posture suppliers", posture.supplierCount === (collections.suppliers || []).length, String(posture.supplierCount || 0)));
+  checks.push(check("Posture contracts", posture.contractCount === (collections.contracts || []).length, String(posture.contractCount || 0)));
+  checks.push(check("Posture spend items", posture.spendItemCount === (collections["spend-items"] || []).length, String(posture.spendItemCount || 0)));
   checks.push(check("Mapping rationale excluded", !containsPath(collections["requirement-control-mappings"] || [], ["rationale"]), "default deny"));
   checks.push(check("Change reasons excluded", !containsPath(collections["change-records"] || [], ["reason"]), "default deny"));
   checks.push(check("Change impact notes excluded", !containsPath(collections["change-records"] || [], ["impactSummary"]), "default deny"));
   checks.push(check("Change decision owner excluded", !containsPath(collections["change-records"] || [], ["decisionOwnerRef"]), "default deny"));
+  checks.push(check("Supplier contact excluded", !containsPath(collections.suppliers || [], ["primaryContact"]), "restricted"));
+  checks.push(check("Supplier notes excluded", !containsPath(collections.suppliers || [], ["notes"]), "default deny"));
+  checks.push(check("Contract values excluded", !containsPath(collections.contracts || [], ["value"]), "default deny"));
+  checks.push(check("Spend amounts excluded", !containsPath(collections["spend-items"] || [], ["amount"]), "default deny"));
+  checks.push(check("Spend assumptions excluded", !containsPath(collections["spend-items"] || [], ["assumptions"]), "default deny"));
   const mappings = collections["requirement-control-mappings"] || [];
   const validConfidence = new Set(["low", "medium", "high"]);
   checks.push(check("Mapping confidence present", mappings.every((mapping) => validConfidence.has(mapping.confidence)), mappings.length + " mapping(s)"));
