@@ -208,8 +208,7 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 | `pspf.workshop.openRequirement` | Workshop: Open Requirement | tree item, context |
 | `pspf.workshop.openHome` | Workshop: Open Home | activity bar, status bar, command palette |
 | `pspf.workshop.newRequirement` | Workshop: New Requirement | palette, view title |
-| `pspf.workshop.newEvidence` | Workshop: New Evidence | palette, view title |
-| `pspf.workshop.linkEvidence` | Workshop: Link Evidence | item context, editor title |
+| `pspf.workshop.attachEvidence` | Workshop: Add Evidence | palette, Workshop Home, Requirement Detail |
 | `pspf.workshop.newAction` | Workshop: New Action | palette, view title |
 | `pspf.workshop.newDirection` | Workshop: New Direction | palette, view title |
 | `pspf.workshop.reviewEvidence` | Workshop: Review Evidence | palette, view title |

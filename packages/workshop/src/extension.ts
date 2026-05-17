@@ -100,7 +100,11 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.options = { enableScripts: true };
     webviewView.webview.html = homeShellHtml("Loading", `<section><p class="muted">Loading PSPF Workshop Home...</p></section>`);
     webviewView.webview.onDidReceiveMessage((message: { readonly command?: string }) => {
-      void this.handleMessage(message.command);
+      void this.handleMessage(message.command).catch(async (error: unknown) => {
+        const detail = error instanceof Error ? error.message : String(error);
+        await vscode.window.showErrorMessage(`PSPF Workshop action failed: ${detail}`);
+        await this.refresh();
+      });
     });
     void this.refresh();
   }
@@ -395,6 +399,7 @@ async function loadSampleWorkspace(): Promise<void> {
   const sourceControls = await listSourceControls();
   const entities = buildSampleWorkspaceEntities({ sourceControls });
   await vscode.commands.executeCommand("pspf.core.upsertEntities", entities);
+  await refreshWorkshopSurfaces();
   const action = await vscode.window.showInformationMessage(`PSPF sample workspace loaded: ${entities.length} record(s).`, "Open Welcome", "Open Dashboard");
   if (action === "Open Welcome") {
     await openWelcome();
@@ -451,6 +456,7 @@ async function createRequirement(): Promise<void> {
   );
 
   await vscode.commands.executeCommand("pspf.core.upsertEntity", requirement);
+  await refreshWorkshopSurfaces();
   await rememberRequirement(requirement);
   const action = await vscode.window.showInformationMessage(`Requirement created: ${requirement.title}`, "Open Item Detail");
   if (action === "Open Item Detail") {
@@ -460,13 +466,8 @@ async function createRequirement(): Promise<void> {
 
 async function attachEvidence(): Promise<void> {
   await ensureCoreReady();
-  const requirement = await pickRequirement();
-  if (!requirement) {
-    return;
-  }
-
   const title = await vscode.window.showInputBox({
-    title: "Attach Evidence",
+    title: "Add Evidence",
     prompt: "Evidence title",
     ignoreFocusOut: true,
     validateInput: (value) => value.trim().length === 0 ? "Enter an evidence title." : undefined
@@ -484,7 +485,7 @@ async function attachEvidence(): Promise<void> {
   }
 
   const reference = await vscode.window.showInputBox({
-    title: "Attach Evidence",
+    title: "Add Evidence",
     prompt: "File path, URL, or short reference",
     ignoreFocusOut: true,
     validateInput: (value) => value.trim().length === 0 ? "Enter an evidence reference." : undefined
@@ -501,6 +502,11 @@ async function attachEvidence(): Promise<void> {
     return;
   }
 
+  const requirements = await pickRequirementsForLinkedItem("evidence");
+  if (requirements.length === 0) {
+    return;
+  }
+
   const evidence = withEnvelope(
     "evidence",
     {
@@ -512,7 +518,7 @@ async function attachEvidence(): Promise<void> {
     },
     "workshop"
   );
-  const link = withEnvelope(
+  const links = requirements.map((requirement) => withEnvelope(
     "link",
     {
       entityType: "link",
@@ -524,18 +530,13 @@ async function attachEvidence(): Promise<void> {
       toType: "evidence"
     },
     "workshop"
-  );
+  ));
 
-  await upsertLinkedEntity(evidence, link, requirement);
+  await upsertEntityWithRequirementLinks(evidence, links, requirements);
 }
 
 async function createAction(): Promise<void> {
   await ensureCoreReady();
-  const requirement = await pickRequirement();
-  if (!requirement) {
-    return;
-  }
-
   const title = await vscode.window.showInputBox({
     title: "Create Action",
     prompt: "Action title",
@@ -563,6 +564,11 @@ async function createAction(): Promise<void> {
     return;
   }
 
+  const requirements = await pickRequirementsForLinkedItem("action");
+  if (requirements.length === 0) {
+    return;
+  }
+
   const action = withEnvelope(
     "action",
     {
@@ -573,7 +579,7 @@ async function createAction(): Promise<void> {
     },
     "workshop"
   );
-  const link = withEnvelope(
+  const links = requirements.map((requirement) => withEnvelope(
     "link",
     {
       entityType: "link",
@@ -585,18 +591,13 @@ async function createAction(): Promise<void> {
       toType: "action"
     },
     "workshop"
-  );
+  ));
 
-  await upsertLinkedEntity(action, link, requirement);
+  await upsertEntityWithRequirementLinks(action, links, requirements);
 }
 
 async function createRisk(): Promise<void> {
   await ensureCoreReady();
-  const requirement = await pickRequirement();
-  if (!requirement) {
-    return;
-  }
-
   const title = await vscode.window.showInputBox({
     title: "Create Risk",
     prompt: "Risk title",
@@ -625,6 +626,11 @@ async function createRisk(): Promise<void> {
     return;
   }
 
+  const requirements = await pickRequirementsForLinkedItem("risk");
+  if (requirements.length === 0) {
+    return;
+  }
+
   const risk = withEnvelope(
     "risk",
     {
@@ -636,7 +642,7 @@ async function createRisk(): Promise<void> {
     },
     "workshop"
   );
-  const link = withEnvelope(
+  const links = requirements.map((requirement) => withEnvelope(
     "link",
     {
       entityType: "link",
@@ -648,9 +654,9 @@ async function createRisk(): Promise<void> {
       toType: "risk"
     },
     "workshop"
-  );
+  ));
 
-  await upsertLinkedEntity(risk, link, requirement);
+  await upsertEntityWithRequirementLinks(risk, links, requirements);
 }
 
 async function upsertLinkedEntity(entity: V01Entity, link: LinkEntity, requirement: RequirementEntity): Promise<void> {
@@ -668,6 +674,31 @@ async function upsertLinkedEntity(entity: V01Entity, link: LinkEntity, requireme
   const action = await vscode.window.showInformationMessage(message, "Open Item Detail");
   if (action === "Open Item Detail") {
     await openItemDetailForRequirement(requirement);
+  }
+}
+
+async function upsertEntityWithRequirementLinks(entity: EvidenceEntity | ActionEntity | RiskEntity, links: LinkEntity[], requirements: RequirementEntity[]): Promise<void> {
+  const firstRequirement = requirements[0];
+  if (!firstRequirement) {
+    return;
+  }
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", [entity, ...links]);
+  const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities");
+  const allEntities = entities ?? [];
+  const entityExists = allEntities.some((candidate) => candidate.id === entity.id && candidate.entityType === entity.entityType);
+  const missingLinkCount = links.filter((link) => !allEntities.some((candidate) => candidate.id === link.id && candidate.entityType === "link")).length;
+  if (!entityExists || missingLinkCount > 0) {
+    throw new Error(`Could not confirm ${label(entity.entityType)} links were created. Run PSPF: Validate Workspace and try again.`);
+  }
+
+  await refreshWorkshopSurfaces();
+  await rememberRequirement(firstRequirement);
+  const summary = summariseRequirementDomains(requirements);
+  const message = `${label(entity.entityType)} linked to ${requirements.length} requirement${requirements.length === 1 ? "" : "s"}: ${summary}`;
+  const action = await vscode.window.showInformationMessage(message, "Open First Requirement");
+  if (action === "Open First Requirement") {
+    await openItemDetailForRequirement(firstRequirement);
   }
 }
 
@@ -949,6 +980,7 @@ async function createRequirementControlMapping(): Promise<void> {
   );
 
   await vscode.commands.executeCommand("pspf.core.upsertEntity", mapping);
+  await refreshWorkshopSurfaces();
   await rememberRequirement(requirement);
   const action = await vscode.window.showInformationMessage(`Mapped ${requirement.title} to ${sourceControl.controlId}.`, "Open Item Detail");
   if (action === "Open Item Detail") {
@@ -1029,6 +1061,7 @@ async function registerDirection(): Promise<void> {
     ));
   }
   await vscode.commands.executeCommand("pspf.core.upsertEntities", entities);
+  await refreshWorkshopSurfaces();
   await vscode.window.showInformationMessage(`Direction registered: ${direction.reference} ${direction.title}`);
 }
 
@@ -1064,6 +1097,7 @@ async function updateDirectionResponse(): Promise<void> {
     updatedAt: new Date().toISOString()
   };
   await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+  await refreshWorkshopSurfaces();
   await vscode.window.showInformationMessage(`Direction ${updated.reference} response set to ${label(updated.responseState)}.`);
 }
 
@@ -1268,6 +1302,7 @@ async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: rea
       return;
     }
     await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+    await refreshWorkshopSurfaces();
     currentEntity = updated;
     panel.title = shortWorkshopPanelTitle(updated);
     if (message.command === "saveAndCloseEntity") {
@@ -1750,12 +1785,14 @@ async function manageTags(): Promise<void> {
   panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly tagId?: string }) => {
     if (message.command === "createTag") {
       await createOrEditTag();
+      await refreshWorkshopSurfaces();
       await refresh();
     }
     if (message.command === "editTag" && message.tagId) {
       const tag = (await listTags(true)).find((item) => item.id === message.tagId);
       if (tag) {
         await createOrEditTag(tag);
+        await refreshWorkshopSurfaces();
         await refresh();
       }
     }
@@ -1763,6 +1800,7 @@ async function manageTags(): Promise<void> {
       const tag = (await listTags(true)).find((item) => item.id === message.tagId);
       if (tag) {
         await vscode.commands.executeCommand("pspf.core.upsertEntity", { ...tag, recordStatus: "archived", updatedAt: new Date().toISOString() } satisfies TagEntity);
+        await refreshWorkshopSurfaces();
         await refresh();
       }
     }
@@ -1850,6 +1888,7 @@ async function applyTag(requirementId?: string): Promise<void> {
     "workshop"
   );
   await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
+  await refreshWorkshopSurfaces();
   await rememberRequirement(requirement);
   await vscode.window.showInformationMessage(`Applied ${tag.title} to ${requirement.title}.`);
 }
@@ -1880,6 +1919,7 @@ async function removeTag(requirementId?: string, tagId?: string): Promise<void> 
   }
   const tag = tagsById.get(link.toId);
   await vscode.commands.executeCommand("pspf.core.upsertEntity", { ...link, recordStatus: "deleted", updatedAt: new Date().toISOString() } satisfies LinkEntity);
+  await refreshWorkshopSurfaces();
   await vscode.window.showInformationMessage(`Removed ${tag?.title ?? "tag"} from ${requirement.title}.`);
 }
 
@@ -1939,12 +1979,14 @@ async function manageSavedViews(): Promise<void> {
   panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly savedViewId?: string }) => {
     if (message.command === "createSavedView") {
       await createOrEditWorkshopSavedView();
+      await refreshWorkshopSurfaces();
       await refresh();
     }
     if (message.command === "editSavedView" && message.savedViewId) {
       const savedView = (await listSavedViews(true)).find((item) => item.id === message.savedViewId);
       if (savedView) {
         await createOrEditWorkshopSavedView(savedView);
+        await refreshWorkshopSurfaces();
         await refresh();
       }
     }
@@ -1952,6 +1994,7 @@ async function manageSavedViews(): Promise<void> {
       const savedView = (await listSavedViews(true)).find((item) => item.id === message.savedViewId);
       if (savedView) {
         await vscode.commands.executeCommand("pspf.core.upsertEntity", { ...savedView, recordStatus: "archived", updatedAt: new Date().toISOString() } satisfies SavedViewEntity);
+        await refreshWorkshopSurfaces();
         await refresh();
       }
     }
@@ -2001,6 +2044,7 @@ async function createOrEditWorkshopSavedView(existing?: SavedViewEntity): Promis
   if (existing) {
     const renamed = { ...existing, title: cleanName, name: cleanName, updatedAt: new Date().toISOString() } satisfies SavedViewEntity;
     await vscode.commands.executeCommand("pspf.core.upsertEntity", renamed);
+    await refreshWorkshopSurfaces();
     await vscode.window.showInformationMessage(`Updated saved view: ${renamed.name}.`);
     return renamed;
   }
@@ -2049,6 +2093,7 @@ async function createOrEditWorkshopSavedView(existing?: SavedViewEntity): Promis
     presentation: { sortKey: "title", sortDirection: "asc", visibleColumns: ["title", "domainId", "assessmentStatus", "tags"] }
   }, "workshop") satisfies SavedViewEntity;
   await vscode.commands.executeCommand("pspf.core.upsertEntity", savedView);
+  await refreshWorkshopSurfaces();
   await vscode.window.showInformationMessage(`Created saved view: ${savedView.name}.`);
   return savedView;
 }
@@ -2256,6 +2301,10 @@ async function ensureCoreReady(): Promise<void> {
   await vscode.commands.executeCommand("pspf.core.ensureWorkspaceReady");
 }
 
+async function refreshWorkshopSurfaces(): Promise<void> {
+  await homeViewProvider?.refresh();
+}
+
 async function pickRequirement(): Promise<RequirementEntity | undefined> {
   await ensureCoreReady();
   const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "requirement");
@@ -2286,6 +2335,109 @@ async function pickRequirement(): Promise<RequirementEntity | undefined> {
     await rememberRequirement(picked.requirement);
   }
   return picked?.requirement;
+}
+
+async function pickRequirementsForLinkedItem(itemType: "evidence" | "action" | "risk"): Promise<RequirementEntity[]> {
+  const requirements = await listRequirements();
+  if (requirements.length === 0) {
+    await vscode.window.showWarningMessage(`Create a Requirement before adding ${label(itemType)}.`);
+    return [];
+  }
+
+  const browseMode = await vscode.window.showQuickPick(
+    [
+      { label: "All Requirements", description: "Search and select across every Requirement", value: "all" },
+      { label: "Browse by domain", description: "Choose one or more PSPF domains first", value: "domain" },
+      { label: "Browse by assessment status", description: "Choose one or more status values first", value: "status" },
+      { label: "Requirements missing evidence", description: "Only Requirements without linked evidence", value: "missing-evidence" }
+    ],
+    { title: "Choose Requirement Set", placeHolder: `Narrow the list before linking ${label(itemType).toLowerCase()}`, ignoreFocusOut: true }
+  );
+  if (!browseMode) {
+    return [];
+  }
+
+  let candidates = requirements;
+  if (browseMode.value === "domain") {
+    const pickedDomains = await vscode.window.showQuickPick(
+      PSPF_DOMAINS.map((domain) => ({ label: domain.title, description: domain.id, domainId: domain.id })),
+      { title: "Select Domains", placeHolder: "Choose one or more domains", canPickMany: true, ignoreFocusOut: true }
+    );
+    if (!pickedDomains || pickedDomains.length === 0) {
+      return [];
+    }
+    const domainIds = new Set(pickedDomains.map((domain) => domain.domainId));
+    candidates = requirements.filter((requirement) => domainIds.has(requirement.domainId));
+  }
+  if (browseMode.value === "status") {
+    const statuses = [...new Set(requirements.map((requirement) => requirement.assessmentStatus))].sort((left, right) => label(left).localeCompare(label(right)));
+    const pickedStatuses = await vscode.window.showQuickPick(
+      statuses.map((status) => ({ label: label(status), description: status, status })),
+      { title: "Select Assessment Statuses", placeHolder: "Choose one or more statuses", canPickMany: true, ignoreFocusOut: true }
+    );
+    if (!pickedStatuses || pickedStatuses.length === 0) {
+      return [];
+    }
+    const selectedStatuses = new Set(pickedStatuses.map((status) => status.status));
+    candidates = requirements.filter((requirement) => selectedStatuses.has(requirement.assessmentStatus));
+  }
+  if (browseMode.value === "missing-evidence") {
+    const entities = await listAllEntities();
+    const supportedRequirementIds = new Set(entities
+      .filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.linkType === "supported-by" && entity.fromType === "requirement" && entity.toType === "evidence")
+      .map((link) => link.fromId));
+    candidates = requirements.filter((requirement) => !supportedRequirementIds.has(requirement.id));
+  }
+
+  if (candidates.length === 0) {
+    await vscode.window.showInformationMessage(`No Requirements match that ${label(itemType).toLowerCase()} filter.`);
+    return [];
+  }
+
+  const recentRequirementId = getRecentRequirementId();
+  const pickedRequirements = await vscode.window.showQuickPick(
+    candidates
+      .sort(compareRequirementsForPicker)
+      .map((requirement) => {
+        const domain = PSPF_DOMAINS.find((item) => item.id === requirement.domainId);
+        const isRecent = requirement.id === recentRequirementId;
+        return {
+          label: requirement.title,
+          description: `${isRecent ? "Recent · " : ""}${domain?.title ?? requirement.domainId} · ${label(requirement.assessmentStatus)}`,
+          detail: requirement.id,
+          picked: isRecent,
+          requirement
+        };
+      }),
+    { title: `Link ${label(itemType)} to Requirements`, placeHolder: `Select every Requirement this ${label(itemType).toLowerCase()} applies to`, canPickMany: true, ignoreFocusOut: true }
+  );
+  return pickedRequirements?.map((item) => item.requirement) ?? [];
+}
+
+async function listRequirements(): Promise<RequirementEntity[]> {
+  const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "requirement");
+  return (entities ?? []).filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+}
+
+function compareRequirementsForPicker(left: RequirementEntity, right: RequirementEntity): number {
+  const leftDomain = PSPF_DOMAINS.findIndex((domain) => domain.id === left.domainId);
+  const rightDomain = PSPF_DOMAINS.findIndex((domain) => domain.id === right.domainId);
+  if (leftDomain !== rightDomain) {
+    return leftDomain - rightDomain;
+  }
+  return left.title.localeCompare(right.title);
+}
+
+function summariseRequirementDomains(requirements: RequirementEntity[]): string {
+  const counts = new Map<string, number>();
+  for (const requirement of requirements) {
+    const domainTitle = PSPF_DOMAINS.find((domain) => domain.id === requirement.domainId)?.title ?? requirement.domainId;
+    counts.set(domainTitle, (counts.get(domainTitle) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([domain, count]) => `${count} ${domain}`)
+    .join(", ");
 }
 
 async function pickOptionalRequirement(prompt: string): Promise<RequirementEntity | undefined> {

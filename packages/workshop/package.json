@@ -65,7 +65,7 @@
             },
             {
                 "command": "pspf.workshop.attachEvidence",
-                "title": "PSPF: Attach Evidence to Requirement"
+                "title": "PSPF: Add Evidence"
             },
             {
                 "command": "pspf.workshop.createAction",
