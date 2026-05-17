@@ -11,10 +11,10 @@ A CI job (`invariants` check) should validate this document against every spec, 
 ## Naming invariants
 
 ### N1 — Entity type strings
-Entity type identifiers are **lower-case singular** wherever they appear as data values: `requirement`, `evidence`, `action`, `risk`, `snapshot`, `report-pack`, `domain`, `supplier`, `contract`, `spend-item`, `person`, `role`, `team`, `assignment`, `notification-rule`, `link`, `tag`, `source-control`, `requirement-control-mapping`, `direction`, `compliance-entry`, `compliance-event`, `work-log-entry`, `saved-view`, `posture`, `relationship`.
+Entity type identifiers are **lower-case singular** wherever they appear as data values: `requirement`, `evidence`, `action`, `risk`, `snapshot`, `report-pack`, `domain`, `supplier`, `contract`, `spend-item`, `person`, `role`, `team`, `assignment`, `notification-rule`, `link`, `tag`, `source-control`, `requirement-control-mapping`, `direction`, `change-record`, `compliance-entry`, `compliance-event`, `work-log-entry`, `saved-view`, `posture`, `relationship`.
 
 ### N2 — Collection names
-Collection identifiers in JSON bundles are the **lower-case plural** of the entity type, kebab-cased: `requirements`, `evidence`, `actions`, `risks`, `snapshots`, `report-packs`, `domains`, `suppliers`, `contracts`, `spend-items`, `roles`, `teams`, `assignments`, `notification-rules`, `links`, `tags`, `source-controls`, `requirement-control-mappings`, `directions`, `compliance-entries`, `compliance-events`, `work-log-entries`, `saved-views`, `relationships`. The `posture` collection is a singleton wrapper with a single item.
+Collection identifiers in JSON bundles are the **lower-case plural** of the entity type, kebab-cased: `requirements`, `evidence`, `actions`, `risks`, `snapshots`, `report-packs`, `domains`, `suppliers`, `contracts`, `spend-items`, `roles`, `teams`, `assignments`, `notification-rules`, `links`, `tags`, `source-controls`, `requirement-control-mappings`, `directions`, `change-records`, `compliance-entries`, `compliance-events`, `work-log-entries`, `saved-views`, `relationships`. The `posture` collection is a singleton wrapper with a single item.
 
 > Note: `evidence` is uncountable and serves as both singular type and collection name.
 > Note: `personnel` and `people` MUST NOT appear in published bundles. See N6 / R-PRIV.
@@ -22,7 +22,7 @@ Collection identifiers in JSON bundles are the **lower-case plural** of the enti
 ### N3 — ID prefixes
 ID prefixes are **upper-case three-letter** codes:
 
-`REQ`, `EVD`, `ACT`, `RSK`, `SNP`, `RPT`, `DOM`, `SUP`, `CTR`, `SPD`, `PER`, `ROL`, `TEM`, `ASM`, `NTF`, `LNK`, `TAG`, `SRC` (Source control), `MAP` (Requirement-control mapping), `DIR` (Direction), `CMP` (Compliance entry), `CME` (Compliance event), `WLE` (Work-log entry), `SVW` (Saved view), `REL` (Relationship). The Posture singleton uses the literal id `POSTURE`.
+`REQ`, `EVD`, `ACT`, `RSK`, `SNP`, `RPT`, `DOM`, `SUP`, `CTR`, `SPD`, `PER`, `ROL`, `TEM`, `ASM`, `NTF`, `LNK`, `TAG`, `SRC` (Source control), `MAP` (Requirement-control mapping), `DIR` (Direction), `CHG` (Change record), `CMP` (Compliance entry), `CME` (Compliance event), `WLE` (Work-log entry), `SVW` (Saved view), `REL` (Relationship). The Posture singleton uses the literal id `POSTURE`.
 
 ### N4 — ID format
 Canonical IDs are `<PREFIX>-<TOKEN>` where `<TOKEN>` is a UUIDv7 with the high time bits zeroed before serialisation in any artefact eligible for publication. See `pspf-entity-link-spec.md` for the byte-level rule. Display IDs (e.g. `R-123`) are presentation-only and never appear in API payloads, JSON bundles, or links.
@@ -50,7 +50,7 @@ The exporter must fail closed on any such field, regardless of redaction profile
 ### V1 — Link types
 Link types are simple verb phrases shared across the model. The valid set, and which `(fromType, toType)` pairs each accepts, is defined exhaustively in `pspf-entity-link-spec.md`. The full list:
 
-`in`, `has`, `supported-by`, `addressed-by`, `exposed-by`, `owned-by`, `reviewed-by`, `cited-by`, `supports`, `treated-by`, `associated-with`, `sourced-from`, `included-in`, `assigned-via`, `blocked-by`, `related-to`, `funds`, `member-of`, `holds`, `targets`, `generates`, `includes`, `tagged-with`.
+`in`, `has`, `supported-by`, `addressed-by`, `exposed-by`, `owned-by`, `reviewed-by`, `cited-by`, `supports`, `treated-by`, `associated-with`, `sourced-from`, `included-in`, `assigned-via`, `blocked-by`, `related-to`, `funds`, `member-of`, `holds`, `targets`, `generates`, `includes`, `tagged-with`, `changes`.
 
 The previous compound names (`requirement-supported-by-evidence` etc.) are retired and MUST NOT appear in code, fixtures, or specs.
 

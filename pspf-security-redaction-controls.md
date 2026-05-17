@@ -26,8 +26,11 @@ The following fields are `restricted` by definition:
 - `person.name`
 - `person.email`
 - `assignment.personId`
+- `change-record.decisionOwnerRef`
 
 These never appear in any bundle, snapshot, Explorer artefact, or external log, regardless of profile or override.
+
+For Change Records, `title`, `summary`, classification enums, and dates may be published. `reason` and `impactSummary` are `sensitive` and redacted from Explorer publication by default; `decisionOwnerRef` is `restricted` and never exported.
 
 ## Surface redaction rules (derived from the policy)
 

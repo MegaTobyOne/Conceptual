@@ -145,6 +145,7 @@ const html = `<!doctype html>
       <a href="#action-impact">Action Impact</a>
       <a href="#risks">Risks</a>
       <a href="#directions">Directions</a>
+      <a href="#change-records">Why This Changed</a>
       <a href="#source-controls">ISM Source Controls</a>
       <a href="#ism-coverage">ISM Coverage</a>
       <a href="#links">Relationships</a>
@@ -171,6 +172,7 @@ const html = `<!doctype html>
     <details id="action-impact" class="panel" hidden></details>
     <details id="risks" class="panel" hidden></details>
     <details id="directions" class="panel" hidden></details>
+    <details id="change-records" class="panel" hidden></details>
     <details id="source-controls" class="panel" hidden></details>
     <details id="ism-coverage" class="panel" hidden></details>
     <details id="links" class="panel" hidden></details>
@@ -210,6 +212,7 @@ const actionsSection = document.querySelector("#actions");
 const actionImpactSection = document.querySelector("#action-impact");
 const risksSection = document.querySelector("#risks");
 const directionsSection = document.querySelector("#directions");
+const changeRecordsSection = document.querySelector("#change-records");
 const sourceControlsSection = document.querySelector("#source-controls");
 const ismCoverageSection = document.querySelector("#ism-coverage");
 const linksSection = document.querySelector("#links");
@@ -467,6 +470,10 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   }));
   directionsSection.hidden = false;
   renderExplorerSection(directionsSection, "Directions", '<p class="muted">Authoritative Directions overlay PSPF Requirements; once registered they always apply.</p>' + table(directions, ["reference", "title", "responseState", "sourceAuthority", "issuedAt"]));
+
+  const changeRecords = changeRecordRows(collections, entitiesById);
+  changeRecordsSection.hidden = false;
+  renderExplorerSection(changeRecordsSection, "Why This Changed", '<p class="muted">Published Change Records explain significant changes without exposing sensitive reasons, impact notes, or decision-owner references.</p>' + table(changeRecords, ["title", "status", "changeType", "persistence", "source", "raisedAt", "affected", "summary"]));
 
   sourceControlsSection.hidden = false;
   renderExplorerSection(sourceControlsSection, "ISM Source Controls", '<p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0.</p>' + table(sourceControls, ["controlId", "title", "profiles", "release", "drift"]));
@@ -1077,7 +1084,7 @@ async function writeClipboardText(value) {
 }
 
 async function validateBundle(manifest, collections, collectionTexts) {
-  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "posture"];
+  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "posture"];
   const checks = [
     check("Bundle version", manifest.bundleVersion === "${VERSION_AXES.bundleVersion}", manifest.bundleVersion || "missing"),
     check("Schema version", manifest.schemaVersion === "${VERSION_AXES.schemaVersion}", manifest.schemaVersion || "missing"),
@@ -1104,7 +1111,11 @@ async function validateBundle(manifest, collections, collectionTexts) {
   checks.push(check("Posture risks", posture.riskCount === (collections.risks || []).length, String(posture.riskCount || 0)));
   checks.push(check("Posture ISM controls", posture.sourceControlCount === (collections["source-controls"] || []).length, String(posture.sourceControlCount || 0)));
   checks.push(check("Posture ISM mappings", posture.requirementControlMappingCount === (collections["requirement-control-mappings"] || []).length, String(posture.requirementControlMappingCount || 0)));
+  checks.push(check("Posture change records", posture.changeRecordCount === (collections["change-records"] || []).length, String(posture.changeRecordCount || 0)));
   checks.push(check("Mapping rationale excluded", !containsPath(collections["requirement-control-mappings"] || [], ["rationale"]), "default deny"));
+  checks.push(check("Change reasons excluded", !containsPath(collections["change-records"] || [], ["reason"]), "default deny"));
+  checks.push(check("Change impact notes excluded", !containsPath(collections["change-records"] || [], ["impactSummary"]), "default deny"));
+  checks.push(check("Change decision owner excluded", !containsPath(collections["change-records"] || [], ["decisionOwnerRef"]), "default deny"));
   const mappings = collections["requirement-control-mappings"] || [];
   const validConfidence = new Set(["low", "medium", "high"]);
   checks.push(check("Mapping confidence present", mappings.every((mapping) => validConfidence.has(mapping.confidence)), mappings.length + " mapping(s)"));
@@ -2206,12 +2217,35 @@ function actionImpactTable(collections) {
 
 function entityTitleMap(collections) {
   const entitiesById = new Map();
-  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "directions", "posture"]) {
+  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "posture"]) {
     for (const entity of collections[collectionName] || []) {
       entitiesById.set(entity.id, entity.title || label(entity.entityType));
     }
   }
   return entitiesById;
+}
+
+function changeRecordRows(collections, entitiesById) {
+  const targetsByChangeId = new Map();
+  for (const link of collections.links || []) {
+    if (link.recordStatus === "deleted" || link.linkType !== "changes" || link.fromType !== "change-record") {
+      continue;
+    }
+    append(targetsByChangeId, link.fromId, entitiesById.get(link.toId) || compactEntityId(link.toId));
+  }
+  return (collections["change-records"] || [])
+    .slice()
+    .sort((left, right) => String(right.raisedAt || "").localeCompare(String(left.raisedAt || "")))
+    .map((changeRecord) => ({
+      title: changeRecord.title,
+      status: label(changeRecord.status),
+      changeType: label(changeRecord.changeType),
+      persistence: label(changeRecord.persistence),
+      source: label(changeRecord.source),
+      raisedAt: changeRecord.raisedAt ? formatDate(changeRecord.raisedAt) : "Not recorded",
+      affected: (targetsByChangeId.get(changeRecord.id) || []).join("; ") || "Not linked",
+      summary: changeRecord.summary
+    }));
 }
 
 function overview(requirements, collections) {

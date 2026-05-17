@@ -444,9 +444,9 @@ After creation, open the item detail screen for richer edits.
 
 This uses progressive disclosure well: short creation first, deeper editing second.
 
-### Workflow W2 — Link evidence to requirement
+### Workflow W2 — Add evidence and link requirements
 
-**Goal:** reduce friction from requirement posture to supporting evidence.
+**Goal:** reduce friction from one real-world evidence artefact to every requirement it supports.
 
 **Entry points:**
 - requirement context menu,
@@ -454,17 +454,18 @@ This uses progressive disclosure well: short creation first, deeper editing seco
 - requirement detail screen.
 
 **Preferred flow:**
-1. User selects `Link Evidence` from a requirement.
-2. Quick Pick opens with existing evidence items, showing label, freshness, and short description.
-3. User can either choose an existing item or `Create new evidence`.
-4. After selection, link is created.
-5. Requirement detail and Evidence view refresh.
+1. User selects `Add Evidence` from Workshop Home, the command palette, or Requirement Detail.
+2. Workshop captures the evidence title, type, reference, and freshness once.
+3. Workshop asks how to browse Requirements: all Requirements, one-or-more domains, one-or-more assessment statuses, or Requirements missing evidence.
+4. A multi-select Requirement Quick Pick opens with domain and assessment status in each row; the recent Requirement is preselected when available.
+5. After selection, Workshop creates one Evidence record and one `supported-by` link for each selected Requirement.
+6. Requirement detail and Evidence view refresh, and the completion message summarises the affected domains.
 
-VS Code Quick Pick guidance explicitly supports offering a “create new” option when picking from a list, which suits this flow well.
+VS Code Quick Pick guidance explicitly supports multi-select and short pre-filtering steps, which suits this flow while keeping it lighter than a custom evidence wizard.
 
 ### Workflow W3 — Create action from gap
 
-**Goal:** turn a missing evidence or weak requirement into a concrete remediation action.
+**Goal:** turn a missing evidence or weak requirement pattern into one concrete remediation action linked to every affected requirement.
 
 **Entry points:**
 - requirement context menu,
@@ -472,10 +473,28 @@ VS Code Quick Pick guidance explicitly supports offering a “create new” opti
 - summary view “needs attention” card.
 
 **Flow:**
-1. Start from requirement or warning.
-2. Quick flow captures action title, owner, due bucket, priority.
-3. Action opens in detail screen for notes and relationship review.
-4. Requirement receives linked action badge.
+1. User selects `Create Action` from Workshop Home, the command palette, a requirement, or a warning.
+2. Workshop captures the action title, status, and due date once.
+3. Workshop uses the same Requirement browser as Evidence: all Requirements, one-or-more domains, one-or-more assessment statuses, or Requirements missing evidence.
+4. A multi-select Requirement Quick Pick opens with domain and assessment status in each row.
+5. After selection, Workshop creates one Action record and one `addressed-by` link for each selected Requirement.
+6. Requirement detail, dashboard, action impact, and evidence review surfaces refresh from Core state.
+
+### Workflow W3a — Create risk and link requirements
+
+**Goal:** record one risk once and show every requirement it affects.
+
+**Entry points:**
+- requirement context menu,
+- risk or assessment dashboard action,
+- command palette.
+
+**Flow:**
+1. User selects `Create Risk`.
+2. Workshop captures the risk title, status, likelihood, and impact once.
+3. Workshop uses the shared Requirement browser to select one or more affected Requirements.
+4. After selection, Workshop creates one Risk record and one `exposed-by` link for each selected Requirement.
+5. Requirement detail, dashboard, risk lists, and relationship views refresh from Core state.
 
 ### Workflow W4 — Review evidence currency and completeness
 

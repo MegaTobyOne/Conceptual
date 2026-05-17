@@ -2,9 +2,9 @@
 
 PSPF is the Australian Government's Protective Security Policy Framework, administered by the Department of Home Affairs. This product helps Australian entities assess and report against PSPF requirements and the ASD Essential Eight, locally and offline.
 
-This repository currently implements the v1.9.0 initial assurance user-testing slice: PSPF Core, PSPF Workshop, PSPF Explorer publication mode, workspace tags for Requirements, Explorer tag filtering, Explorer Requirements and Relationships saved views, Workshop Requirement saved views, Explorer browser-local Requirement status overlays, Explorer browser-local evidence references, Explorer browser-local Actions, Explorer browser-local Risks, local status conflict display, Workshop import review for Explorer local JSON, plan/review/apply import with last-import undo, browser-refresh bundle restore with schema-change reload guidance, and distinct Workshop/Explorer identity passes. Shop, Pub, editable posture, chart image export, per-user/private tags, tag hierarchies, tagging non-Requirement entities beyond Requirements, and compliance-history export controls remain deferred.
+This repository currently implements the v1.10.0 initial assurance user-testing slice: PSPF Core, PSPF Workshop, PSPF Explorer publication mode, workspace tags for Requirements, Explorer tag filtering, Explorer Requirements and Relationships saved views, Workshop Requirement saved views, Workshop-authored Change Records, Explorer's read-only "Why This Changed" view, Explorer browser-local Requirement status overlays, Explorer browser-local evidence references, Explorer browser-local Actions, Explorer browser-local Risks, local status conflict display, Workshop import review for Explorer local JSON, plan/review/apply import with last-import undo, browser-refresh bundle restore with schema-change reload guidance, and distinct Workshop/Explorer identity passes. Shop, Pub, editable posture, chart image export, per-user/private tags, tag hierarchies, tagging non-Requirement entities beyond Requirements, Explorer-authored Change Records, and compliance-history export controls remain deferred.
 
-Current user-facing improvements include sample workspace loading, Direction and ISM mapping review, Action Impact summaries, compact Workshop edit tabs, AU-formatted due dates, save-and-close edit actions, Tag Manager and Requirement tag rails, Workshop Saved Views, Explorer Requirements and Relationship views, a visible Explorer reload notice when remembered JSON is from an older schema, a cooler Workshop system-of-record identity, a proper Workshop import review surface, and a warmer Explorer portable assurance view with collapsible sections and tag filters.
+Current user-facing improvements include sample workspace loading, Direction and ISM mapping review, Action Impact summaries, compact Workshop edit tabs, AU-formatted due dates, save-and-close edit actions, Tag Manager and Requirement tag rails, Workshop Saved Views, Workshop Change Records, Explorer Requirements and Relationship views, Explorer "Why This Changed", a visible Explorer reload notice when remembered JSON is from an older schema, a cooler Workshop system-of-record identity, a proper Workshop import review surface, and a warmer Explorer portable assurance view with collapsible sections and tag filters.
 
 ## Local Setup
 
@@ -111,7 +111,7 @@ Run:
 npx pnpm@10.10.0 run release:readiness
 ```
 
-This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.9.0-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.
+This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/release-readiness/v1.10.0-readiness-report.md`. When the report shows all gates passing, continue manual operator validation using `validation-scenario-1-operator-workflow.md`.
 
 ## Planning Notes
 

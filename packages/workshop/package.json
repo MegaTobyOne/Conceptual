@@ -2,7 +2,7 @@
     "name": "pspf-workshop",
     "displayName": "PSPF Workshop",
     "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-    "version": "1.9.0",
+    "version": "1.10.0",
     "private": true,
     "type": "module",
     "license": "MIT",
@@ -65,7 +65,7 @@
             },
             {
                 "command": "pspf.workshop.attachEvidence",
-                "title": "PSPF: Attach Evidence to Requirement"
+                "title": "PSPF: Add Evidence"
             },
             {
                 "command": "pspf.workshop.createAction",
@@ -106,6 +106,14 @@
             {
                 "command": "pspf.workshop.openDirectionDetail",
                 "title": "PSPF: Open Direction Detail"
+            },
+            {
+                "command": "pspf.workshop.openChangeRecords",
+                "title": "PSPF: Open Change Records"
+            },
+            {
+                "command": "pspf.workshop.recordSignificantChange",
+                "title": "PSPF: Record Significant Change"
             },
             {
                 "command": "pspf.workshop.manageTags",
@@ -150,15 +158,20 @@
                     "group": "navigation@3"
                 },
                 {
-                    "command": "pspf.workshop.manageSavedViews",
+                    "command": "pspf.workshop.openChangeRecords",
                     "when": "view == pspfWorkshop.homeView",
                     "group": "navigation@4"
+                },
+                {
+                    "command": "pspf.workshop.manageSavedViews",
+                    "when": "view == pspfWorkshop.homeView",
+                    "group": "navigation@5"
                 }
             ]
         }
     },
     "scripts": {
-        "build": "tsc -p tsconfig.json",
+        "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
         "test": "node --test dist/**/*.test.js"
     },
     "dependencies": {

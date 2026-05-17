@@ -50,6 +50,10 @@ An external authority's control record carried in the product as a read-only ref
 
 A formal protective-security direction issued under the PSPF. Modelled as an entity in [pspf-entity-link-spec.md](pspf-entity-link-spec.md) (prefix `DIR`). Capitalised "Direction" in this product to distinguish it from generic English "direction". Deferred to v0.2 per [adr/0014-v0-1-thin-slice.md](adr/0014-v0-1-thin-slice.md); v0.1 records Directions as Tags + a free-text response note.
 
+### Change Record
+
+A Workshop-authored explanation of a significant change affecting a Requirement, Action, Risk, Direction, Tag, or Saved View. Modelled as `change-record` with the `CHG` prefix. Explorer publication shows the public summary in the "Why This Changed" view and excludes sensitive reasons, impact notes, and restricted decision-owner references.
+
 ### OFFICIAL: Sensitive
 
 The Australian Government information classification at which Explorer's default posture sits. Used literally in the banner. See [adr/0011-explorer-sensitive-labelling-only.md](adr/0011-explorer-sensitive-labelling-only.md).
