@@ -58,6 +58,8 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0043 | v1.9 saved-view expansion | accepted |
 | 0044 | v1.10 Workshop change-record foundation | accepted |
 | 0045 | v1.11 Explorer change story | proposed |
+| 0046 | v1.12 Planning lens | accepted |
+| 0047 | v1.13 Release assurance and Marketplace verification | proposed |
 
 ## Template
 

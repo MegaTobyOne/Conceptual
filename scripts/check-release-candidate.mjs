@@ -14,7 +14,9 @@ const axesByMinorVersion = new Map([
   [7, "1.4.0"],
   [8, "1.5.0"],
   [9, "1.6.0"],
-  [10, "1.7.0"]
+  [10, "1.7.0"],
+  [11, "1.7.0"],
+  [12, "1.7.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -41,7 +43,7 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), `schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleVersion should be ${expectedAxes}`);
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
-const e2eScript = minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -63,6 +65,8 @@ for (const requiredPath of [
   "adr/0042-v1-8-saved-views.md",
   "adr/0043-v1-9-saved-view-expansion.md",
   "adr/0044-v1-10-change-records.md",
+  "adr/0045-v1-11-explorer-change-story.md",
+  "adr/0046-v1-12-planning-lens.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -239,6 +243,24 @@ if (/^1\.10\.\d+$/.test(expectedVersion)) {
   assert.equal(typeof packageJson.scripts["e2e:v1.10"], "string", "root package should define e2e:v1.10");
   assert.equal(packageJson.scripts["e2e:v1.10"].includes("e2e:v1.9"), true, "e2e:v1.10 should include v1.9 gates");
   assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.10"), true, "release:readiness should run e2e:v1.10");
+}
+
+if (/^1\.12\.\d+$/.test(expectedVersion)) {
+  const v112Adr = await readFile(join(root, "adr/0046-v1-12-planning-lens.md"), "utf8");
+  for (const requiredText of ["v1.12", "Planning lens", "workshop-dashboard", "workshop-evidence-review", "Plan Lens", "1.7.0"]) {
+    assert.equal(v112Adr.includes(requiredText), true, `v1.12 ADR should mention ${requiredText}`);
+  }
+  const workshopExtension = await readFile(join(root, "packages/workshop/src/extension.ts"), "utf8");
+  for (const requiredText of ["Create Dashboard view", "Create Evidence Review view", "openWorkshopDashboardSavedView", "openWorkshopEvidenceReviewSavedView"]) {
+    assert.equal(workshopExtension.includes(requiredText), true, `Workshop v1.12 planning saved-view surface should mention ${requiredText}`);
+  }
+  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  for (const requiredText of ["Plan Lens", "planLensPanel", "planItemCount", "Planning lens over existing Actions"]) {
+    assert.equal(explorer.includes(requiredText), true, `Explorer v1.12 plan lens should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["e2e:v1.12"], "string", "root package should define e2e:v1.12");
+  assert.equal(packageJson.scripts["e2e:v1.12"].includes("e2e:v1.11"), true, "e2e:v1.12 should include v1.11 gates");
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.12"), true, "release:readiness should run e2e:v1.12");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

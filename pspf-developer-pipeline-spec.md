@@ -118,7 +118,7 @@ The standing instruction is:
 
 Production releases are driven by `workflow_dispatch` from `main`, not by hand-cut tags:
 
-- **Marketplace**: run `Marketplace release` with `target=core|workshop|both`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates `core/<version>` and/or `workshop/<version>` tags and GitHub releases as receipts. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection.
+- **Marketplace**: run `Marketplace release` with `target=core|workshop|both`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates `core/<version>` and/or `workshop/<version>` tags and GitHub releases as receipts. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection; dry-run state is shown in the workflow run name and job summaries so a green dry run is not treated as a published extension.
 - **Explorer web**: run `Web release` with `target=production`. The workflow gates on the `production-web` environment and deploys to `tobyharvey.online` through the VentraIP composite action. Test deploys to `test.tobyharvey.online` still run automatically on push to `develop`.
 
 ### Pull request discipline
@@ -348,7 +348,7 @@ All workflow files live in `.github/workflows/` at the repo root. Each is scoped
 | `personal-data-gate.yml` | every PR | exporter run against personal-data fixture; fail-closed assertion (N6, S7) |
 | `deployment-safety.yml` | every PR and release/deploy tag | static deployment and publication-bundle safety scan; blocks hosted sensitive/restricted fields, personal data, secrets, and workspace/runtime artefacts |
 | `au-english-lint.yml` | every PR | scan `docs/**` and extracted UI strings against the spelling allowlist |
-| `marketplace.yml` | `workflow_dispatch` from `main` with `target=core\|workshop\|both` and optional `dry_run` | build once, package selected VSIX(es), gate on `marketplace` environment approval, publish via `vsce`, then create `core/<v>` and/or `workshop/<v>` tags and GitHub releases as receipts |
+| `marketplace.yml` | `workflow_dispatch` from `main` with `target=core\|workshop\|both` and optional `dry_run` | build once, package selected VSIX(es), show explicit dry-run state, gate on `marketplace` environment approval, publish via `vsce` when `dry_run=false`, then create `core/<v>` and/or `workshop/<v>` tags and GitHub releases as receipts |
 | `shop-release.yml` | tag `shop/<v>` | as above for Shop (v0.2+) |
 | `pub-release.yml` | tag `pub/<v>` | as above for Pub (v0.2+) |
 | `web-release.yml` | tag `explorer/<v>` from `main` (production) or push to `develop` (test) | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment |

@@ -33,6 +33,7 @@ import {
   type RiskStatus,
   SAVED_VIEW_LIMITS,
   type SavedViewEntity,
+  type SavedViewScope,
   type SourceControlEntity,
   type TagColour,
   type TagEntity,
@@ -1613,7 +1614,7 @@ function shellHtml(title: string, body: string): string {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
       }
       if (command === 'createSavedView' || command === 'applySavedView' || command === 'editSavedView' || command === 'archiveSavedView') {
-        vscode.postMessage({ command, savedViewId: button.getAttribute('data-saved-view-id') });
+        vscode.postMessage({ command, savedViewId: button.getAttribute('data-saved-view-id'), savedViewScope: button.getAttribute('data-saved-view-scope') });
       }
       if (command === 'saveEntity' || command === 'saveAndCloseEntity') {
         const form = button.closest('form');
@@ -2357,9 +2358,9 @@ async function manageSavedViews(): Promise<void> {
   const refresh = async () => {
     panel.webview.html = renderSavedViewManager(await listSavedViews(true));
   };
-  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly savedViewId?: string }) => {
+  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly savedViewId?: string; readonly savedViewScope?: SavedViewScope }) => {
     if (message.command === "createSavedView") {
-      await createOrEditWorkshopSavedView();
+      await createOrEditWorkshopSavedView(message.savedViewScope);
       await refreshWorkshopSurfaces();
       await refresh();
     }
@@ -2382,7 +2383,7 @@ async function manageSavedViews(): Promise<void> {
     if (message.command === "applySavedView" && message.savedViewId) {
       const savedView = (await listSavedViews(false)).find((item) => item.id === message.savedViewId);
       if (savedView) {
-        await openWorkshopRequirementsView(savedView);
+        await openWorkshopSavedView(savedView);
       }
     }
   });
@@ -2400,30 +2401,35 @@ function renderSavedViewManager(savedViews: readonly SavedViewEntity[]): string 
   return shellHtml("PSPF Saved Views", `
     <section>
       <h1>Saved Views</h1>
-      <p class="muted">Workshop-owned Requirement views are convenience filters. They export in bundles but other tools may ignore them.</p>
+      <p class="muted">Workshop-owned views are convenience planning filters. They export in bundles but other tools may ignore them.</p>
       ${versionStrip()}
-      <div class="form-actions"><button type="button" data-command="createSavedView">Create Workshop view</button></div>
+      <div class="form-actions">
+        <button type="button" data-command="createSavedView" data-saved-view-scope="workshop-requirements">Create Requirements view</button>
+        <button type="button" data-command="createSavedView" data-saved-view-scope="workshop-dashboard">Create Dashboard view</button>
+        <button type="button" data-command="createSavedView" data-saved-view-scope="workshop-evidence-review">Create Evidence Review view</button>
+      </div>
     </section>
     ${recordTable("Workshop Saved Views", rows, ["name", "scope", "filters", "status", "action"])}
   `);
 }
 
-async function createOrEditWorkshopSavedView(existing?: SavedViewEntity): Promise<SavedViewEntity | undefined> {
-  const scope = existing?.scope ?? "workshop-requirements";
+async function createOrEditWorkshopSavedView(scopeOrExisting?: SavedViewScope | SavedViewEntity, existing?: SavedViewEntity): Promise<SavedViewEntity | undefined> {
+  const editing = typeof scopeOrExisting === "object" ? scopeOrExisting : existing;
+  const scope = editing?.scope ?? (typeof scopeOrExisting === "string" ? scopeOrExisting : "workshop-requirements");
   const savedViews = await listSavedViews(true);
   const name = await vscode.window.showInputBox({
-    title: existing ? "Rename Saved View" : "Create Saved View",
+    title: editing ? "Rename Saved View" : "Create Saved View",
     prompt: "Saved view name",
-    value: existing?.name ?? "Workshop Requirements view",
+    value: editing?.name ?? defaultSavedViewName(scope),
     ignoreFocusOut: true,
-    validateInput: (value) => validateSavedViewNameInput(value, savedViews, existing?.id, scope)
+    validateInput: (value) => validateSavedViewNameInput(value, savedViews, editing?.id, scope)
   });
   if (!name) {
     return undefined;
   }
   const cleanName = name.normalize("NFC").trim().replace(/\s+/g, " ");
-  if (existing) {
-    const renamed = { ...existing, title: cleanName, name: cleanName, updatedAt: new Date().toISOString() } satisfies SavedViewEntity;
+  if (editing) {
+    const renamed = { ...editing, title: cleanName, name: cleanName, updatedAt: new Date().toISOString() } satisfies SavedViewEntity;
     await vscode.commands.executeCommand("pspf.core.upsertEntity", renamed);
     await refreshWorkshopSurfaces();
     await vscode.window.showInformationMessage(`Updated saved view: ${renamed.name}.`);
@@ -2477,6 +2483,117 @@ async function createOrEditWorkshopSavedView(existing?: SavedViewEntity): Promis
   await refreshWorkshopSurfaces();
   await vscode.window.showInformationMessage(`Created saved view: ${savedView.name}.`);
   return savedView;
+}
+
+function defaultSavedViewName(scope: SavedViewScope): string {
+  if (scope === "workshop-dashboard") {
+    return "Planning dashboard view";
+  }
+  if (scope === "workshop-evidence-review") {
+    return "Evidence planning view";
+  }
+  return "Workshop Requirements view";
+}
+
+async function openWorkshopSavedView(savedView: SavedViewEntity): Promise<void> {
+  if (savedView.scope === "workshop-dashboard") {
+    await openWorkshopDashboardSavedView(savedView);
+    return;
+  }
+  if (savedView.scope === "workshop-evidence-review") {
+    await openWorkshopEvidenceReviewSavedView(savedView);
+    return;
+  }
+  await openWorkshopRequirementsView(savedView);
+}
+
+async function openWorkshopDashboardSavedView(savedView: SavedViewEntity): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const enrichedEntities = enrichActionsWithImpact(allEntities);
+  const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+  const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted");
+  const matchingRequirements = requirements.filter((requirement) => savedViewMatchesRequirement(savedView, requirement, links));
+  const matchingRequirementIds = new Set(matchingRequirements.map((requirement) => requirement.id));
+  const linkedActionIds = new Set(links.filter((link) => link.fromType === "requirement" && matchingRequirementIds.has(link.fromId) && link.toType === "action").map((link) => link.toId));
+  const linkedRiskIds = new Set(links.filter((link) => link.fromType === "requirement" && matchingRequirementIds.has(link.fromId) && link.toType === "risk").map((link) => link.toId));
+  const changeLinks = links.filter((link) => link.linkType === "changes" && matchingRequirementIds.has(link.toId));
+  const changeIds = new Set(changeLinks.map((link) => link.fromId));
+  const actionRows = enrichedEntities
+    .filter((entity): entity is ActionEntity => entity.entityType === "action" && linkedActionIds.has(entity.id) && !["done", "cancelled"].includes(entity.status))
+    .map((action) => ({
+      openEntityType: "action",
+      openEntityId: action.id,
+      title: action.title,
+      status: label(action.status),
+      urgency: action.impact ? label(action.impact.urgency) : "normal",
+      dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set"
+    }));
+  const riskRows = allEntities
+    .filter((entity): entity is RiskEntity => entity.entityType === "risk" && linkedRiskIds.has(entity.id) && entity.status !== "closed")
+    .sort((left, right) => right.likelihood * right.impact - left.likelihood * left.impact)
+    .map((risk) => ({ openEntityType: "risk", openEntityId: risk.id, title: risk.title, status: label(risk.status), likelihood: risk.likelihood, impact: risk.impact, severity: risk.likelihood * risk.impact }));
+  const changeRows = allEntities
+    .filter((entity): entity is ChangeRecordEntity => entity.entityType === "change-record" && changeIds.has(entity.id))
+    .sort((left, right) => right.raisedAt.localeCompare(left.raisedAt))
+    .map((changeRecord) => ({ openEntityType: "change-record", openEntityId: changeRecord.id, title: changeRecord.title, status: label(changeRecord.status), type: label(changeRecord.changeType), raised: formatDisplayDate(new Date(changeRecord.raisedAt)), summary: changeRecord.summary }));
+  const requirementRows = matchingRequirements.map((requirement) => ({ openEntityType: "requirement", openEntityId: requirement.id, title: requirement.title, domain: domainName(requirement.domainId), status: label(requirement.assessmentStatus) }));
+  const panel = vscode.window.createWebviewPanel("pspfWorkshopSavedView", shortWorkshopPanelTitle({ entityType: "saved-view", title: savedView.name } as V01Entity), vscode.ViewColumn.One, { enableScripts: true });
+  wireWorkshopPanelMessages(panel);
+  panel.webview.html = shellHtml(savedView.name, `
+    <section>
+      <h1>${escapeHtml(savedView.name)}</h1>
+      <p class="muted">Planning dashboard · ${escapeHtml(savedViewFilterSummary(savedView))} · ${matchingRequirements.length} of ${requirements.length} Requirements</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Requirements", matchingRequirements.length)}
+        ${metricCard("Open actions", actionRows.length)}
+        ${metricCard("Open risks", riskRows.length)}
+        ${metricCard("Change records", changeRows.length)}
+      </div>
+    </section>
+    ${recordTable("Planning Requirements", requirementRows, ["title", "domain", "status"])}
+    ${recordTable("Open Actions", actionRows, ["title", "status", "urgency", "dueDate"])}
+    ${recordTable("Open Risks", riskRows, ["title", "status", "likelihood", "impact", "severity"])}
+    ${recordTable("Recent Change Records", changeRows, ["title", "status", "type", "raised", "summary"])}
+  `);
+}
+
+async function openWorkshopEvidenceReviewSavedView(savedView: SavedViewEntity): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+  const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence");
+  const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted");
+  const matchingRequirements = requirements.filter((requirement) => savedViewMatchesRequirement(savedView, requirement, links));
+  const matchingRequirementIds = new Set(matchingRequirements.map((requirement) => requirement.id));
+  const evidenceById = new Map(evidence.map((item) => [item.id, item]));
+  const linkedEvidenceIds = new Set(links.filter((link) => link.linkType === "supported-by" && link.fromType === "requirement" && matchingRequirementIds.has(link.fromId) && link.toType === "evidence").map((link) => link.toId));
+  const evidenceRequirementIds = new Set(links.filter((link) => link.linkType === "supported-by" && link.fromType === "requirement" && matchingRequirementIds.has(link.fromId) && link.toType === "evidence").map((link) => link.fromId));
+  const missingEvidence = matchingRequirements
+    .filter((requirement) => !evidenceRequirementIds.has(requirement.id))
+    .map((requirement) => ({ openEntityType: "requirement", openEntityId: requirement.id, title: requirement.title, domain: domainName(requirement.domainId), status: label(requirement.assessmentStatus) }));
+  const evidenceRows = [...linkedEvidenceIds]
+    .map((evidenceId) => evidenceById.get(evidenceId))
+    .filter((item): item is EvidenceEntity => item !== undefined && item.freshness !== "current")
+    .map((item) => ({ openEntityType: "evidence", openEntityId: item.id, title: item.title, freshness: label(item.freshness), reference: item.reference }));
+  const panel = vscode.window.createWebviewPanel("pspfWorkshopSavedView", shortWorkshopPanelTitle({ entityType: "saved-view", title: savedView.name } as V01Entity), vscode.ViewColumn.One, { enableScripts: true });
+  wireWorkshopPanelMessages(panel);
+  panel.webview.html = shellHtml(savedView.name, `
+    <section>
+      <h1>${escapeHtml(savedView.name)}</h1>
+      <p class="muted">Evidence review planning · ${escapeHtml(savedViewFilterSummary(savedView))} · ${matchingRequirements.length} of ${requirements.length} Requirements</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Requirements", matchingRequirements.length)}
+        ${metricCard("Missing evidence", missingEvidence.length)}
+        ${metricCard("Needs review", evidenceRows.length)}
+        ${metricCard("Linked evidence", linkedEvidenceIds.size)}
+      </div>
+    </section>
+    ${recordTable("Requirements Missing Evidence", missingEvidence, ["title", "domain", "status"])}
+    ${recordTable("Linked Evidence Needing Review", evidenceRows, ["title", "freshness", "reference"])}
+  `);
 }
 
 async function openWorkshopRequirementsView(savedView: SavedViewEntity): Promise<void> {
