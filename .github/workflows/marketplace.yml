@@ -1,4 +1,5 @@
 name: Marketplace release
+run-name: Marketplace release / target=${{ inputs.target }} / dry_run=${{ inputs.dry_run }}
 
 on:
   workflow_dispatch:
@@ -74,6 +75,17 @@ jobs:
             echo "publish_workshop=$publish_workshop"
             echo "dry_run=$dry"
           } >> "$GITHUB_OUTPUT"
+          {
+            echo "## Marketplace release dispatch"
+            echo ""
+            echo "- Target: $target"
+            echo "- Dry run: $dry"
+            if [[ "$dry" == "true" ]]; then
+              echo "- Publication: skipped by design. This run will package VSIX artefacts only."
+            else
+              echo "- Publication: enabled after marketplace environment approval."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -190,6 +202,13 @@ jobs:
         run: |
           echo "Dry run: skipping vsce publish, GitHub release, and tag for Core."
           ls -l .tmp/vsix
+          {
+            echo "## Core Marketplace publication skipped"
+            echo ""
+            echo "This was a dry run. No Core extension was published, no GitHub release was created, and no core/${{ needs.build.outputs.core_version }} receipt tag was created."
+            echo ""
+            echo "To publish Core, rerun this workflow from main with target=core or target=both and dry_run=false, then approve the marketplace environment gate."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish to VS Code Marketplace
         if: needs.build.outputs.dry_run != 'true'
@@ -201,6 +220,20 @@ jobs:
             --packagePath ".tmp/vsix/pspf-core-${{ needs.build.outputs.core_version }}.vsix" \
             --pat "$VSCE_PAT"
 
+      - name: Verify Marketplace version
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          EXTENSION_ID: tobyharvey.pspf-core
+          EXPECTED_VERSION: ${{ needs.build.outputs.core_version }}
+        run: |
+          set -euo pipefail
+          node scripts/verify-marketplace-version.mjs
+          {
+            echo "## Core Marketplace version verified"
+            echo ""
+            echo "Marketplace Gallery reports $EXTENSION_ID@$EXPECTED_VERSION."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Tag and GitHub release
         if: needs.build.outputs.dry_run != 'true'
         uses: softprops/action-gh-release@v2
@@ -210,6 +243,17 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: .tmp/vsix/pspf-core-${{ needs.build.outputs.core_version }}.vsix
           generate_release_notes: true
+
+      - name: Verify receipt tag
+        if: needs.build.outputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          git ls-remote --exit-code origin "refs/tags/core/${{ needs.build.outputs.core_version }}"
+          {
+            echo "## Core receipt tag verified"
+            echo ""
+            echo "Found core/${{ needs.build.outputs.core_version }} on origin after Marketplace publication."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   publish-workshop:
     name: Publish Workshop to Marketplace
@@ -232,6 +276,13 @@ jobs:
         run: |
           echo "Dry run: skipping vsce publish, GitHub release, and tag for Workshop."
           ls -l .tmp/vsix
+          {
+            echo "## Workshop Marketplace publication skipped"
+            echo ""
+            echo "This was a dry run. No Workshop extension was published, no GitHub release was created, and no workshop/${{ needs.build.outputs.workshop_version }} receipt tag was created."
+            echo ""
+            echo "To publish Workshop, rerun this workflow from main with target=workshop or target=both and dry_run=false, then approve the marketplace environment gate."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish to VS Code Marketplace
         if: needs.build.outputs.dry_run != 'true'
@@ -243,6 +294,20 @@ jobs:
             --packagePath ".tmp/vsix/pspf-workshop-${{ needs.build.outputs.workshop_version }}.vsix" \
             --pat "$VSCE_PAT"
 
+      - name: Verify Marketplace version
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          EXTENSION_ID: tobyharvey.pspf-workshop
+          EXPECTED_VERSION: ${{ needs.build.outputs.workshop_version }}
+        run: |
+          set -euo pipefail
+          node scripts/verify-marketplace-version.mjs
+          {
+            echo "## Workshop Marketplace version verified"
+            echo ""
+            echo "Marketplace Gallery reports $EXTENSION_ID@$EXPECTED_VERSION."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Tag and GitHub release
         if: needs.build.outputs.dry_run != 'true'
         uses: softprops/action-gh-release@v2
@@ -252,3 +317,14 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: .tmp/vsix/pspf-workshop-${{ needs.build.outputs.workshop_version }}.vsix
           generate_release_notes: true
+
+      - name: Verify receipt tag
+        if: needs.build.outputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          git ls-remote --exit-code origin "refs/tags/workshop/${{ needs.build.outputs.workshop_version }}"
+          {
+            echo "## Workshop receipt tag verified"
+            echo ""
+            echo "Found workshop/${{ needs.build.outputs.workshop_version }} on origin after Marketplace publication."
+          } >> "$GITHUB_STEP_SUMMARY"

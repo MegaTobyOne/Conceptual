@@ -144,6 +144,7 @@ const html = `<!doctype html>
       <a href="#actions">Actions</a>
       <a href="#action-impact">Action Impact</a>
       <a href="#risks">Risks</a>
+      <a href="#plan-lens">Plan Lens</a>
       <a href="#directions">Directions</a>
       <a href="#change-records">Why This Changed</a>
       <a href="#source-controls">ISM Source Controls</a>
@@ -171,6 +172,7 @@ const html = `<!doctype html>
     <details id="actions" class="panel" hidden></details>
     <details id="action-impact" class="panel" hidden></details>
     <details id="risks" class="panel" hidden></details>
+    <details id="plan-lens" class="panel" hidden></details>
     <details id="directions" class="panel" hidden></details>
     <details id="change-records" class="panel" hidden></details>
     <details id="source-controls" class="panel" hidden></details>
@@ -211,6 +213,7 @@ const evidenceSection = document.querySelector("#evidence");
 const actionsSection = document.querySelector("#actions");
 const actionImpactSection = document.querySelector("#action-impact");
 const risksSection = document.querySelector("#risks");
+const planLensSection = document.querySelector("#plan-lens");
 const directionsSection = document.querySelector("#directions");
 const changeRecordsSection = document.querySelector("#change-records");
 const sourceControlsSection = document.querySelector("#source-controls");
@@ -236,6 +239,7 @@ let currentTagFilterIds = new Set();
 let currentTagFilterMode = "any";
 let currentRequirementStatusFilter = new Set();
 let shouldSnapLocalSelectionToSearch = false;
+let includeComplianceHistoryInExport = true;
 const localDbName = "pspf-explorer-local-v1";
 const localStoreName = "requirement-status-overlays";
 const localEvidenceStoreName = "requirement-evidence-references";
@@ -433,6 +437,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
       metric("Actions", (collections.actions || []).length) +
       metric("Risks", (collections.risks || []).length) +
       metric("Directions", (collections.directions || []).length) +
+      metric("Plan items", planItemCount(collections)) +
       metric("ISM controls", (collections["source-controls"] || []).length) +
       metric("ISM mappings", (collections["requirement-control-mappings"] || []).length) +
     '</div>' +
@@ -460,6 +465,9 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
 
   risksSection.hidden = false;
   renderExplorerSection(risksSection, "Risks", table(risks, ["title", "status", "likelihood", "impact", "requirements"]));
+
+  planLensSection.hidden = false;
+  renderExplorerSection(planLensSection, "Plan Lens", planLensPanel(collections, entitiesById));
 
   const directions = (collections.directions || []).map((direction) => ({
     reference: direction.reference,
@@ -1159,10 +1167,12 @@ function localAuthoringPanel(requirements) {
     };
   });
   return '<div class="toolbar">' +
+    '<label class="version-pill" for="include-compliance-history"><input id="include-compliance-history" type="checkbox"' + (includeComplianceHistoryInExport ? ' checked' : '') + '> Include compliance history</label>' +
     '<button type="button" id="export-local-bundle">Export local JSON</button>' +
     '<button type="button" class="secondary" id="reset-local-data">Reset local data</button>' +
     '<span id="local-storage-status" class="muted" role="status">IndexedDB checking storage...</span>' +
     '</div>' +
+    '<p class="muted">Compliance history is included in this export by default. Turn it off to send current assessment state without the local status-change event trail.</p>' +
     '<p class="muted">Local status overlays: ' + localCount + '</p>' +
     '<p class="muted">Local status conflicts: ' + conflictCount + '</p>' +
     '<div class="local-authoring-grid">' +
@@ -1254,6 +1264,9 @@ function bindLocalAuthoringControls() {
     renderLocalAuthoringSection();
     applyExplorerSearch();
     explorerSearchInput?.focus();
+  });
+  localAuthoringSection.querySelector("#include-compliance-history")?.addEventListener("change", (event) => {
+    includeComplianceHistoryInExport = event.target instanceof HTMLInputElement ? event.target.checked : true;
   });
   localAuthoringSection.querySelector("#export-local-bundle")?.addEventListener("click", async () => {
     const bundle = await exportLocalAuthoringBundle();
@@ -1775,7 +1788,14 @@ function materialiseLocalEvidenceReference(record) {
 async function exportLocalAuthoringBundle() {
   const collections = cloneCollections(currentCollections || {});
   const manifestCollections = [];
-  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "posture"]) {
+  if (!includeComplianceHistoryInExport) {
+    delete collections["compliance-events"];
+  }
+  const exportCollectionNames = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "posture"];
+  if (includeComplianceHistoryInExport && Array.isArray(collections["compliance-events"])) {
+    exportCollectionNames.push("compliance-events");
+  }
+  for (const collectionName of exportCollectionNames) {
     const records = collections[collectionName] || [];
     const serialised = JSON.stringify(records, null, 2) + "\\n";
     manifestCollections.push({
@@ -2248,6 +2268,104 @@ function changeRecordRows(collections, entitiesById) {
     }));
 }
 
+function planItemCount(collections) {
+  return (collections.actions || []).filter((action) => !["done", "cancelled"].includes(action.status)).length +
+    (collections.risks || []).filter((risk) => risk.status !== "closed").length +
+    (collections["change-records"] || []).filter((changeRecord) => ["active", "proposed"].includes(changeRecord.status)).length +
+    (collections.directions || []).filter((direction) => ["not-set", "no"].includes(direction.responseState)).length;
+}
+
+function planLensPanel(collections, entitiesById) {
+  const openActions = planActionRows(collections, entitiesById);
+  const openRisks = planRiskRows(collections, entitiesById);
+  const activeChanges = planChangeRows(collections, entitiesById);
+  const directionRows = (collections.directions || [])
+    .filter((direction) => ["not-set", "no"].includes(direction.responseState))
+    .map((direction) => ({ reference: direction.reference, title: direction.title, responseState: label(direction.responseState), sourceAuthority: direction.sourceAuthority || "Not recorded" }));
+  return '<p class="muted">Planning lens over existing Actions, Risks, Directions, and Change Records. This is a review view, not a separate Plan product.</p>' +
+    '<div class="grid">' +
+      metric("Open actions", openActions.length) +
+      metric("Open risks", openRisks.length) +
+      metric("Active changes", activeChanges.length) +
+      metric("Directions needing attention", directionRows.length) +
+    '</div>' +
+    '<h3>Action Plan</h3>' + table(openActions, ["title", "status", "urgency", "dueDate", "requirements"]) +
+    '<h3>Risk Constraints</h3>' + table(openRisks, ["title", "status", "severity", "requirements"]) +
+    '<h3>Significant Changes</h3>' + table(activeChanges, ["title", "status", "type", "persistence", "raisedAt", "affected", "summary"]) +
+    '<h3>Directions Needing Attention</h3>' + table(directionRows, ["reference", "title", "responseState", "sourceAuthority"]);
+}
+
+function planActionRows(collections, entitiesById) {
+  const requirementTitlesByActionId = targetTitlesByLink(collections, "addressed-by", "action", entitiesById);
+  return (collections.actions || [])
+    .filter((action) => !["done", "cancelled"].includes(action.status))
+    .map((action) => ({
+      title: action.title,
+      status: label(action.status),
+      urgency: action.impact ? label(action.impact.urgency || "normal") : planningUrgency(action),
+      urgencyRank: planningUrgencyRank(action),
+      dueDate: action.dueDate ? formatDate(action.dueDate) : "Not set",
+      requirements: (requirementTitlesByActionId.get(action.id) || []).join("; ") || "No linked Requirement"
+    }))
+    .sort((left, right) => right.urgencyRank - left.urgencyRank || String(left.dueDate).localeCompare(String(right.dueDate)) || left.title.localeCompare(right.title));
+}
+
+function planRiskRows(collections, entitiesById) {
+  const requirementTitlesByRiskId = targetTitlesByLink(collections, "exposed-by", "risk", entitiesById);
+  return (collections.risks || [])
+    .filter((risk) => risk.status !== "closed")
+    .map((risk) => ({
+      title: risk.title,
+      status: label(risk.status),
+      severity: risk.likelihood * risk.impact,
+      requirements: (requirementTitlesByRiskId.get(risk.id) || []).join("; ") || "No linked Requirement"
+    }))
+    .sort((left, right) => right.severity - left.severity || left.title.localeCompare(right.title));
+}
+
+function planChangeRows(collections, entitiesById) {
+  return changeRecordRows(collections, entitiesById)
+    .filter((changeRecord) => ["Active", "Proposed"].includes(changeRecord.status))
+    .map((changeRecord) => ({ ...changeRecord, type: changeRecord.changeType }));
+}
+
+function targetTitlesByLink(collections, linkType, targetType, entitiesById) {
+  const titlesByTargetId = new Map();
+  for (const link of collections.links || []) {
+    if (link.recordStatus === "deleted" || link.linkType !== linkType || link.toType !== targetType) {
+      continue;
+    }
+    append(titlesByTargetId, link.toId, entitiesById.get(link.fromId) || compactEntityId(link.fromId));
+  }
+  return titlesByTargetId;
+}
+
+function planningUrgency(action) {
+  if (action.status === "blocked") {
+    return "Blocked";
+  }
+  return planningUrgencyRank(action) >= 2 ? "Overdue" : planningUrgencyRank(action) === 1 ? "Due soon" : "Normal";
+}
+
+function planningUrgencyRank(action) {
+  if (action.status === "blocked") {
+    return 3;
+  }
+  if (!action.dueDate) {
+    return 0;
+  }
+  const due = new Date(action.dueDate);
+  if (Number.isNaN(due.getTime())) {
+    return 0;
+  }
+  const today = new Date();
+  const daysUntilDue = Math.ceil((due.getTime() - today.getTime()) / 86400000);
+  if (daysUntilDue < 0) {
+    return 2;
+  }
+  return daysUntilDue <= 7 ? 1 : 0;
+}
+
 function overview(requirements, collections) {
   const counts = statusCounts(requirements);
   const total = requirements.length;
@@ -2502,6 +2620,7 @@ globalThis.pspfExplorerApplySavedView = applySavedView;
 globalThis.pspfExplorerApplyRelationshipsSavedView = applyRelationshipsSavedView;
 globalThis.pspfExplorerSavedViews = () => currentSavedViews.map(materialiseSavedView);
 globalThis.pspfExplorerExportLocalBundle = exportLocalAuthoringBundle;
+globalThis.pspfExplorerSetIncludeComplianceHistory = (value) => { includeComplianceHistoryInExport = Boolean(value); };
 globalThis.pspfExplorerResetLocalData = () => resetLocalData(currentBundleKey);
 `;
 

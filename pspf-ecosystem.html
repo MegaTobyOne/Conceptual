@@ -781,11 +781,15 @@
         <aside class="hero-panel" aria-label="Ecosystem summary">
           <div class="stack">
             <span class="mini-label">At a glance</span>
-            <p class="kicker">The current slice proves the spine before the full ecosystem.</p>
+            <p class="kicker">The repository is at v1.14.0; Marketplace listings are still v1.10.0 pending a non-dry-run
+              publish.</p>
             <p>Core keeps the trusted local record. Workshop supports Requirements, Evidence, Actions, Risks,
-              Directions, ISM mappings, and save-and-close editing in VS Code. Explorer turns a curated bundle into a
-              wider, collapsible, read-only publication view with AU dates and a copyable posture brief. Shop and Pub
-              remain part of the design, but are deliberately deferred until the spine is reliable.</p>
+              Directions, ISM mappings, tags, saved views, Change Records, and planning lenses in VS Code. Explorer
+              turns a curated bundle into a wider publication view with AU dates, tag filters, saved views, local
+              annotations, "Why This Changed", Plan Lens, compliance-history export controls, release-assurance checks,
+              and a copyable posture brief. Shop
+              and Pub remain part of the
+              design, but are deliberately deferred until the spine is reliable.</p>
           </div>
           <ul class="flow-list" role="list">
             <li class="flow-item">
@@ -809,7 +813,7 @@
               <div>
                 <strong>Explore and explain</strong>
                 <p>Explorer turns the bundle into a publication-mode interface for posture, readiness, evidence
-                  freshness, Action Impact, ISM coverage, relationships, and shareable brief copy.</p>
+                  freshness, Action Impact, ISM coverage, relationships, planning focus, and shareable brief copy.</p>
               </div>
             </li>
           </ul>
@@ -843,8 +847,8 @@
               <span class="mini-label">Sharing</span>
               <h3>Explorer</h3>
               <p>Explorer consumes a curated JSON bundle and presents the information in a static interface with a
-                posture donut, compact status table, collapsible sections, AU dates, ISM coverage, and readable
-                relationship tables. Browser-local authoring is deferred.</p>
+                posture donut, compact status table, collapsible sections, AU dates, ISM coverage, readable
+                relationship tables, local annotations, saved views, and a read-only Plan Lens.</p>
             </article>
           </div>
         </div>
@@ -855,14 +859,17 @@
       <div class="container">
         <div class="section-head">
           <h2>Products in the ecosystem</h2>
-          <p>Each product has one main job. The current slice supports a practical validation path: load sample data,
-            review assessment posture, edit key records, export a bundle, and share an Explorer posture brief.</p>
+          <p>Each product has one main job. The current repository slice supports a practical validation path: load
+            sample data, review assessment posture, edit key records, create planning views, export a bundle, verify
+            release state, and share
+            an Explorer posture brief. The public Marketplace extension listings are still v1.10.0 until the next
+            approved non-dry-run publish.</p>
         </div>
         <div class="tool-grid">
           <article class="tool-card">
             <div class="tool-top">
               <h3>Core</h3>
-              <span class="tool-tag is-live">v1.6.0 · live</span>
+              <span class="tool-tag is-live">v1.10.0 · Marketplace live</span>
             </div>
             <div class="tool-meta">
               <span>VS Code extension</span>
@@ -877,6 +884,7 @@
                 mappings).</li>
               <li>Runs schema-policy validation, snapshots, backup, restore and integrity checks.</li>
               <li>Exports the curated manifest-led JSON bundle that Explorer consumes.</li>
+              <li>Repository package version is v1.14.0; Marketplace publication is pending a real release run.</li>
               <li>Required dependency for Workshop — install Core first.</li>
             </ul>
             <a class="tool-link is-install"
@@ -887,7 +895,7 @@
           <article class="tool-card">
             <div class="tool-top">
               <h3>Workshop</h3>
-              <span class="tool-tag is-live">v1.6.0 · live</span>
+              <span class="tool-tag is-live">v1.10.0 · Marketplace live</span>
             </div>
             <div class="tool-meta">
               <span>VS Code extension</span>
@@ -900,8 +908,10 @@
             <ul class="simple-list">
               <li>Screens for Requirements, Evidence, Actions, Risks, Directions and ISM mappings.</li>
               <li>Item-detail webview panels with compact edit tab titles and AU-formatted dates.</li>
-              <li>Highlights stale evidence, gaps and follow-up actions for the current assessment loop.</li>
+              <li>Highlights stale evidence, gaps, follow-up actions, tags, saved views, Change Records, and planning
+                lenses for the current assessment loop.</li>
               <li>Triggers the export that produces the Explorer bundle.</li>
+              <li>Repository package version is v1.14.0; Marketplace publication is pending a real release run.</li>
             </ul>
             <a class="tool-link is-install"
               href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop" target="_blank"
@@ -923,10 +933,12 @@
               source workspace.</p>
             <ul class="simple-list">
               <li>Posture donut, compact status table and collapsible sections with a Close All control.</li>
-              <li>Action Impact, ISM coverage and readable relationship tables.</li>
+              <li>Action Impact, ISM coverage, saved views, tag filters, Why This Changed, Plan Lens, and readable
+                relationship tables.</li>
               <li>Short AU dates, compact unresolved IDs, and OFFICIAL: Sensitive / TLP:AMBER+STRICT handling cues.</li>
               <li>Copyable posture brief for handing to reviewers.</li>
-              <li>Browser-local authoring and round-trip export remain deferred to a later version.</li>
+              <li>Browser-local status, evidence, Actions, Risks, saved views, and import-review round trip are
+                available in the repository build.</li>
             </ul>
             <a class="tool-link" href="#links">Jump to Explorer link →</a>
           </article>
@@ -977,7 +989,7 @@
       <div class="container">
         <div class="section-head">
           <h2>High-level instructions</h2>
-          <p>This is the simplest way to explain the v0.1 operating model to someone else. It is intentionally high
+          <p>This is the simplest way to explain the current operating model to someone else. It is intentionally high
             level so people can see the assessment spine before worrying about implementation detail.</p>
         </div>
         <div class="step-grid">
@@ -997,7 +1009,8 @@
             <span class="mini-label">Step 3</span>
             <h3>Share the picture</h3>
             <p>Export a bundle and publish it to Explorer so reviewers can see posture, evidence freshness, gaps,
-              Action Impact, ISM coverage, relationships, and the shareable brief from summary to detail.</p>
+              Action Impact, ISM coverage, relationships, planning focus, change context, and the shareable brief from
+              summary to detail.</p>
           </article>
         </div>
       </div>
@@ -1027,8 +1040,9 @@
             <span class="mini-label">Guardrails</span>
             <h3>Tests before trust</h3>
             <p>Current gates include AU-English lint, schema-policy checks, personal-data exclusion, accessibility
-              floor,
-              Explorer publication smoke tests, contract tests, fixture round-trips, and a single-writer lock test.</p>
+              floor, Explorer publication and local-authoring smoke tests, Marketplace dry-run signalling, public
+              version verification, receipt-tag checks, contract tests, fixture round-trips, and a single-writer lock
+              test.</p>
           </article>
         </div>
       </div>
@@ -1052,7 +1066,7 @@
           </article>
 
           <article class="source-card">
-            <span class="mini-label">VS Code extension · v1.6.0</span>
+            <span class="mini-label">VS Code extension · Marketplace v1.10.0</span>
             <h3>Core</h3>
             <p>Local system of record. Install Core first; Workshop depends on it.</p>
             <a class="tool-link" href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core"
@@ -1060,7 +1074,7 @@
           </article>
 
           <article class="source-card">
-            <span class="mini-label">VS Code extension · v1.6.0</span>
+            <span class="mini-label">VS Code extension · Marketplace v1.10.0</span>
             <h3>Workshop</h3>
             <p>Day-to-day authoring surface inside VS Code. Requires Core.</p>
             <a class="tool-link" href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop"
@@ -1102,8 +1116,9 @@
           <article class="source-card">
             <span class="mini-label">Implementation</span>
             <h3>Readiness review</h3>
-            <p>The current spec set is ready to scaffold v0.1, with guardrails around schema policy, personal-data
-              fixtures, writer lock, and AU-English lint.</p>
+            <p>The current repository slice is v1.14.0 with Explorer compliance-history export controls,
+              release-assurance hardening, public Marketplace version verification after real publishes, and receipt-tag
+              checks.</p>
             <span class="tool-link link-disabled" aria-disabled="true">Documentation URL coming soon</span>
           </article>
         </div>
@@ -1117,7 +1132,7 @@
     <div class="container footer-inner">
       <p class="kicker">This page connects the ecosystem.</p>
       <p>It is not the policy source and it is not the working system. Its role is to help people understand how the
-        v0.1 slice fits together, why the parts are separated, and where to go next.</p>
+        current slice fits together, why the parts are separated, and where to go next.</p>
       <p class="muted">Use the official PSPF site for authoritative policy and guidance, use cyber.gov.au for Essential
         Eight terminology, then use the local tools and Explorer to apply that model in practice.</p>
       <p class="muted footer-disclaimer"><strong>Independent project.</strong> Not affiliated with, endorsed by, or
