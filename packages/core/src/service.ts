@@ -1,8 +1,8 @@
-import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
@@ -44,9 +44,11 @@ import {
 } from "@pspf/contracts";
 import { ISM_SOURCE_CONTROLS } from "@pspf/ism-source-library";
 import { PSPF_BASELINE_DIRECTIONS, PSPF_BASELINE_DIRECTION_LINKS, PSPF_BASELINE_REQUIREMENTS } from "@pspf/reference-data";
+import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
 
 const SQLITE_BUSY_TIMEOUT_MS = 5000;
 const workspaceOperationQueues = new Map<string, Promise<void>>();
+let sqlJsPromise: Promise<SqlJsStatic> | undefined;
 
 export interface WorkspacePaths {
   readonly root: string;
@@ -1291,30 +1293,53 @@ async function writeJson(path: string, value: unknown): Promise<void> {
 }
 
 async function runSql(dbPath: string, sql: string, extraArgs: readonly string[] = []): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const child = spawn("sqlite3", ["-cmd", `.timeout ${SQLITE_BUSY_TIMEOUT_MS}`, ...extraArgs, dbPath], { stdio: ["pipe", "pipe", "pipe"] });
-    const stdoutChunks: Buffer[] = [];
-    const stderrChunks: Buffer[] = [];
+  const SQL = await getSqlJs();
+  const db = await openSqlDatabase(SQL, dbPath);
+  try {
+    const results = db.exec(sql);
+    if (sqlContainsWrite(sql)) {
+      await persistSqlDatabase(db, dbPath);
+    }
+    return extraArgs.includes("-json") ? sqlResultsToJson(results) : sqlResultsToText(results);
+  } finally {
+    db.close();
+  }
+}
 
-    child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
-    child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
-    child.on("error", reject);
-    child.on("close", (code) => {
-      const stdout = Buffer.concat(stdoutChunks).toString("utf8");
-      const stderr = Buffer.concat(stderrChunks).toString("utf8");
-      if (code !== 0) {
-        reject(new Error(stderr.trim() || `sqlite3 exited with code ${code ?? "unknown"}`));
-        return;
-      }
-      if (stderr.trim().length > 0) {
-        reject(new Error(stderr.trim()));
-        return;
-      }
-      resolve(stdout);
-    });
+function sqlContainsWrite(sql: string): boolean {
+  return /\b(?:BEGIN|COMMIT|CREATE|DELETE|DROP|INSERT|REPLACE|UPDATE|VACUUM)\b/i.test(sql);
+}
 
-    child.stdin.end(sql);
-  });
+async function getSqlJs(): Promise<SqlJsStatic> {
+  sqlJsPromise ??= initSqlJs({ locateFile: (file) => join(dirname(fileURLToPath(import.meta.url)), file) });
+  return sqlJsPromise;
+}
+
+async function openSqlDatabase(SQL: SqlJsStatic, dbPath: string): Promise<SqlJsDatabase> {
+  try {
+    const database = await readFile(dbPath);
+    return new SQL.Database(new Uint8Array(database));
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return new SQL.Database();
+    }
+    throw error;
+  }
+}
+
+async function persistSqlDatabase(db: SqlJsDatabase, dbPath: string): Promise<void> {
+  const tmpPath = `${dbPath}.tmp-${process.pid}-${Date.now()}`;
+  await writeFile(tmpPath, Buffer.from(db.export()));
+  await rename(tmpPath, dbPath);
+}
+
+function sqlResultsToJson(results: readonly SqlJsQueryResult[]): string {
+  const rows = results.flatMap((result) => result.values.map((values) => Object.fromEntries(result.columns.map((column, index) => [column, values[index]]))));
+  return rows.length === 0 ? "" : JSON.stringify(rows);
+}
+
+function sqlResultsToText(results: readonly SqlJsQueryResult[]): string {
+  return results.flatMap((result) => result.values.map((values) => values.join("|"))).join("\n");
 }
 
 function sqlEscape(value: string): string {

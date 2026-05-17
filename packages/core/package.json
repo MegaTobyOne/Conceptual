@@ -79,12 +79,13 @@
         ]
     },
     "scripts": {
-        "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
+        "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --banner:js='import { createRequire } from \"node:module\"; const require = createRequire(import.meta.url);' --outfile=dist/extension.js && cp ../../node_modules/sql.js/dist/sql-wasm.wasm dist/sql-wasm.wasm",
         "test": "node --test dist/**/*.test.js"
     },
     "dependencies": {
         "@pspf/contracts": "workspace:*",
         "@pspf/ism-source-library": "workspace:*",
-        "@pspf/reference-data": "workspace:*"
+        "@pspf/reference-data": "workspace:*",
+        "sql.js": "^1.14.1"
     }
 }
