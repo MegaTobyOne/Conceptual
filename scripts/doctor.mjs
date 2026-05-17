@@ -20,7 +20,6 @@ function commandVersion(command, args = ["--version"]) {
 
 check("Node.js", () => commandVersion("node"));
 check("pnpm", () => commandVersion("pnpm"));
-check("SQLite", () => commandVersion("sqlite3", ["--version"]));
 check("GitHub CLI", () => commandVersion("gh"));
 
 check("workspace files", () => {

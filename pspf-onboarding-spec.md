@@ -45,7 +45,7 @@ To avoid broad activation:
    1. Confirms Workspace Trust.
    2. Acquires the writer lock at `.pspf/core/locks/writer.lock`.
    3. Creates the `.pspf/` layout (see [pspf-core-architecture-spec.md](pspf-core-architecture-spec.md) § Workspace bootstrap).
-   4. Initialises the SQLite database in WAL mode.
+   4. Initialises the bundled SQLite database engine and writes the Core database file.
    5. Writes `workspace.json`, `products.json`, `policies.json` defaults.
    6. Records the active `schemaVersion`, `bundleVersion`, `apiVersion`.
 7. Core opens the **Health** view in the sidebar with a welcome state: trust confirmed, layout created, no data yet, one prominent next action — **"Create your first Requirement in Workshop"**.
