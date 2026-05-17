@@ -1,6 +1,6 @@
 # 0047 - v1.13 Release assurance and Marketplace verification
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-05-17
 
 ## Context
@@ -11,9 +11,9 @@ ADR 0040 already chose dispatch-driven Marketplace releases with `dry_run=true` 
 
 ## Decision
 
-v1.13 should be a release-assurance slice over the existing product set. It should not add product entities, bundle collections, or schema compatibility axes.
+v1.13 is a release-assurance slice over the existing product set. It does not add product entities, bundle collections, or schema compatibility axes.
 
-The planned release hardening is:
+The release hardening is:
 
 - make Marketplace workflow run names and job summaries state the selected target and `dry_run` value;
 - make dry-run publish jobs explicitly state that no Marketplace publication, receipt tag, or GitHub release was created;
@@ -24,9 +24,9 @@ The planned release hardening is:
 
 ## Version and schema impact
 
-- Proposed product version: `PSPF_SLICE_VERSION = "1.13.0"` when implemented.
-- `VERSION_AXES` should remain at `schemaVersion = bundleVersion = apiVersion = "1.7.0"` unless a separate product change requires otherwise.
-- No new schema directory is expected.
+- Product version: `PSPF_SLICE_VERSION = "1.13.0"`.
+- `VERSION_AXES` remains at `schemaVersion = bundleVersion = apiVersion = "1.7.0"`.
+- No new schema directory is introduced.
 
 ## Consequences
 

@@ -260,7 +260,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **No-new-model gate**: v1.12 does not add plan-baseline snapshots, milestone entities, resource entities, budget entities, approval workflows, or a PSPF Plan package.
 7. **Regression gate**: `e2e:v1.12`, `check:gates`, `check:explorer-publication`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
-### v1.13 planning gates (Release assurance, per ADR 0047 proposed)
+### v1.13 release gates (Release assurance, per ADR 0047)
 
 1. **Dry-run visibility gate**: Marketplace workflow run names and job summaries include the selected target and `dry_run` value.
 2. **Dry-run non-publication gate**: when `dry_run=true`, Core and Workshop publish jobs state that `vsce publish`, GitHub release creation, and receipt-tag creation were skipped.
@@ -268,6 +268,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **Receipt-tag gate**: receipt tags remain post-publish artefacts only; a green dry run must not create `core/<version>` or `workshop/<version>` tags.
 5. **Status-documentation gate**: README, ecosystem page, and release guidance distinguish repository slice version, packaged VSIX version, Marketplace-listed extension version, and Explorer web publication state.
 6. **No-new-model gate**: v1.13 does not add product entities, bundle collections, schema directories, Open VSX publishing, Shop, Pub, editable posture, plan baselines, or compliance-history export controls.
+7. **Regression gate**: `e2e:v1.13`, `check:gates`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 

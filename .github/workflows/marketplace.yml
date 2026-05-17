@@ -220,6 +220,20 @@ jobs:
             --packagePath ".tmp/vsix/pspf-core-${{ needs.build.outputs.core_version }}.vsix" \
             --pat "$VSCE_PAT"
 
+      - name: Verify Marketplace version
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          EXTENSION_ID: tobyharvey.pspf-core
+          EXPECTED_VERSION: ${{ needs.build.outputs.core_version }}
+        run: |
+          set -euo pipefail
+          node scripts/verify-marketplace-version.mjs
+          {
+            echo "## Core Marketplace version verified"
+            echo ""
+            echo "Marketplace Gallery reports $EXTENSION_ID@$EXPECTED_VERSION."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Tag and GitHub release
         if: needs.build.outputs.dry_run != 'true'
         uses: softprops/action-gh-release@v2
@@ -229,6 +243,17 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: .tmp/vsix/pspf-core-${{ needs.build.outputs.core_version }}.vsix
           generate_release_notes: true
+
+      - name: Verify receipt tag
+        if: needs.build.outputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          git ls-remote --exit-code origin "refs/tags/core/${{ needs.build.outputs.core_version }}"
+          {
+            echo "## Core receipt tag verified"
+            echo ""
+            echo "Found core/${{ needs.build.outputs.core_version }} on origin after Marketplace publication."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   publish-workshop:
     name: Publish Workshop to Marketplace
@@ -269,6 +294,20 @@ jobs:
             --packagePath ".tmp/vsix/pspf-workshop-${{ needs.build.outputs.workshop_version }}.vsix" \
             --pat "$VSCE_PAT"
 
+      - name: Verify Marketplace version
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          EXTENSION_ID: tobyharvey.pspf-workshop
+          EXPECTED_VERSION: ${{ needs.build.outputs.workshop_version }}
+        run: |
+          set -euo pipefail
+          node scripts/verify-marketplace-version.mjs
+          {
+            echo "## Workshop Marketplace version verified"
+            echo ""
+            echo "Marketplace Gallery reports $EXTENSION_ID@$EXPECTED_VERSION."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Tag and GitHub release
         if: needs.build.outputs.dry_run != 'true'
         uses: softprops/action-gh-release@v2
@@ -278,3 +317,14 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: .tmp/vsix/pspf-workshop-${{ needs.build.outputs.workshop_version }}.vsix
           generate_release_notes: true
+
+      - name: Verify receipt tag
+        if: needs.build.outputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          git ls-remote --exit-code origin "refs/tags/workshop/${{ needs.build.outputs.workshop_version }}"
+          {
+            echo "## Workshop receipt tag verified"
+            echo ""
+            echo "Found workshop/${{ needs.build.outputs.workshop_version }} on origin after Marketplace publication."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -781,12 +781,13 @@
         <aside class="hero-panel" aria-label="Ecosystem summary">
           <div class="stack">
             <span class="mini-label">At a glance</span>
-            <p class="kicker">The repository is at v1.12.0; Marketplace listings are still v1.6.0 pending a non-dry-run
+            <p class="kicker">The repository is at v1.13.0; Marketplace listings are still v1.6.0 pending a non-dry-run
               publish.</p>
             <p>Core keeps the trusted local record. Workshop supports Requirements, Evidence, Actions, Risks,
               Directions, ISM mappings, tags, saved views, Change Records, and planning lenses in VS Code. Explorer
               turns a curated bundle into a wider publication view with AU dates, tag filters, saved views, local
-              annotations, "Why This Changed", Plan Lens, and a copyable posture brief. Shop and Pub remain part of the
+              annotations, "Why This Changed", Plan Lens, release-assurance checks, and a copyable posture brief. Shop
+              and Pub remain part of the
               design, but are deliberately deferred until the spine is reliable.</p>
           </div>
           <ul class="flow-list" role="list">
@@ -858,7 +859,8 @@
         <div class="section-head">
           <h2>Products in the ecosystem</h2>
           <p>Each product has one main job. The current repository slice supports a practical validation path: load
-            sample data, review assessment posture, edit key records, create planning views, export a bundle, and share
+            sample data, review assessment posture, edit key records, create planning views, export a bundle, verify
+            release state, and share
             an Explorer posture brief. The public Marketplace extension listings are still v1.6.0 until the next
             approved non-dry-run publish.</p>
         </div>
@@ -881,7 +883,7 @@
                 mappings).</li>
               <li>Runs schema-policy validation, snapshots, backup, restore and integrity checks.</li>
               <li>Exports the curated manifest-led JSON bundle that Explorer consumes.</li>
-              <li>Repository package version is v1.12.0; Marketplace publication is pending a real release run.</li>
+              <li>Repository package version is v1.13.0; Marketplace publication is pending a real release run.</li>
               <li>Required dependency for Workshop — install Core first.</li>
             </ul>
             <a class="tool-link is-install"
@@ -908,7 +910,7 @@
               <li>Highlights stale evidence, gaps, follow-up actions, tags, saved views, Change Records, and planning
                 lenses for the current assessment loop.</li>
               <li>Triggers the export that produces the Explorer bundle.</li>
-              <li>Repository package version is v1.12.0; Marketplace publication is pending a real release run.</li>
+              <li>Repository package version is v1.13.0; Marketplace publication is pending a real release run.</li>
             </ul>
             <a class="tool-link is-install"
               href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop" target="_blank"
@@ -1037,8 +1039,9 @@
             <span class="mini-label">Guardrails</span>
             <h3>Tests before trust</h3>
             <p>Current gates include AU-English lint, schema-policy checks, personal-data exclusion, accessibility
-              floor, Explorer publication and local-authoring smoke tests, Marketplace dry-run signalling, contract
-              tests, fixture round-trips, and a single-writer lock test.</p>
+              floor, Explorer publication and local-authoring smoke tests, Marketplace dry-run signalling, public
+              version verification, receipt-tag checks, contract tests, fixture round-trips, and a single-writer lock
+              test.</p>
           </article>
         </div>
       </div>
@@ -1112,8 +1115,8 @@
           <article class="source-card">
             <span class="mini-label">Implementation</span>
             <h3>Readiness review</h3>
-            <p>The current repository slice is v1.12.0 with green e2e and release-candidate gates. v1.13 planning now
-              focuses on release assurance: dry-run clarity, public Marketplace version verification, and receipt-tag
+            <p>The current repository slice is v1.13.0 with release-assurance hardening: dry-run clarity, public
+              Marketplace version verification after real publishes, and receipt-tag
               checks.</p>
             <span class="tool-link link-disabled" aria-disabled="true">Documentation URL coming soon</span>
           </article>
