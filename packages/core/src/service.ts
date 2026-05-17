@@ -4,6 +4,10 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import {
+  CHANGE_RECORD_PERSISTENCE,
+  CHANGE_RECORD_SOURCES,
+  CHANGE_RECORD_STATUSES,
+  CHANGE_RECORD_TYPES,
   COLLECTION_BY_ENTITY_TYPE,
   type BundleCollections,
   type EntityByCollection,
@@ -12,10 +16,12 @@ import {
   SAVED_VIEW_EVIDENCE_COVERAGE,
   SAVED_VIEW_LIMITS,
   SAVED_VIEW_REQUIREMENT_COLUMNS,
+  SAVED_VIEW_RELATIONSHIP_COLUMNS,
   SAVED_VIEW_REQUIREMENT_SORT_KEYS,
   SAVED_VIEW_SCOPES,
   SAVED_VIEW_SORT_DIRECTIONS,
   SAVED_VIEW_TAGS_MODES,
+  SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS,
   TAG_COLOURS,
   TAG_LIMITS,
   type ActionStatus,
@@ -562,6 +568,7 @@ async function buildImportPlan(workspaceRoot: string, bundlePath: string, mode: 
   validateImportedMappings(validationEntities);
   validateTagRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   validateSavedViewRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
+  validateChangeRecordRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   const writeSet = mode === "additive-merge" || mode === "plan-apply" ? additiveMergeWriteSet(incomingEntities, existingEntities) : incomingEntities;
   return { incomingEntities, writeSet, summary: summariseImportChanges(incomingEntities, existingEntities, writeSet, [...tagImportResult.conflicts, ...savedViewImportResult.conflicts]) };
 }
@@ -696,6 +703,7 @@ async function upsertEntity(workspaceRoot: string, entity: V01Entity): Promise<V
   await assertWritable(paths);
   validateTagRules([entity], await readStoredEntities(paths));
   validateSavedViewRules([entity], await readStoredEntities(paths));
+  validateChangeRecordRules([entity], await readStoredEntities(paths));
   await runSql(paths.db, upsertEntitySql(entity));
   return entity;
 }
@@ -708,6 +716,7 @@ async function upsertEntities(workspaceRoot: string, entities: readonly V01Entit
   }
   validateTagRules(entities, await readStoredEntities(paths));
   validateSavedViewRules(entities, await readStoredEntities(paths));
+  validateChangeRecordRules(entities, await readStoredEntities(paths));
   await runSql(paths.db, ["BEGIN IMMEDIATE;", ...entities.map(upsertEntitySql), "COMMIT;"].join("\n"));
   return entities;
 }
@@ -767,6 +776,7 @@ function createEmptyCollections(): BundleCollections {
     "source-controls": [],
     "requirement-control-mappings": [],
     directions: [],
+    "change-records": [],
     posture: []
   };
 }
@@ -831,7 +841,8 @@ function buildPosture(collections: BundleCollections, paths: WorkspacePaths): En
     riskCount: collections.risks.length,
     sourceControlCount: collections["source-controls"].length,
     requirementControlMappingCount: collections["requirement-control-mappings"].length,
-    directionCount: collections.directions.length
+    directionCount: collections.directions.length,
+    changeRecordCount: collections["change-records"].length
   };
 }
 
@@ -849,6 +860,7 @@ function getCollectionCounts(collections: BundleCollections): Record<V01Collecti
     "source-controls": collections["source-controls"].length,
     "requirement-control-mappings": collections["requirement-control-mappings"].length,
     directions: collections.directions.length,
+    "change-records": collections["change-records"].length,
     posture: collections.posture.length
   };
 }
@@ -929,13 +941,13 @@ function filterIncomingTagLabelCollisions(incomingEntities: readonly V01Entity[]
 function filterIncomingSavedViewNameCollisions(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): { readonly entities: V01Entity[]; readonly conflicts: string[] } {
   const existingSavedViewsByName = new Map(existingEntities
     .filter((entity): entity is EntityByCollection["saved-views"] => entity.entityType === "saved-view")
-    .map((savedView) => [normaliseSavedViewName(savedView.name), savedView]));
+    .map((savedView) => [savedViewScopeNameKey(savedView.scope, savedView.name), savedView]));
   const conflicts: string[] = [];
   const entities = incomingEntities.filter((entity) => {
     if (entity.entityType !== "saved-view") {
       return true;
     }
-    const existing = existingSavedViewsByName.get(normaliseSavedViewName(entity.name));
+    const existing = existingSavedViewsByName.get(savedViewScopeNameKey(entity.scope, entity.name));
     if (existing && existing.id !== entity.id) {
       conflicts.push(`Rejected saved view ${entity.id} ${entity.name}: name already exists on ${existing.id} ${existing.name}.`);
       return false;
@@ -1022,7 +1034,7 @@ function validateSavedViewRules(incomingEntities: readonly V01Entity[], existing
     if (savedView.title !== savedView.name) {
       throw new Error(`Invalid saved-view title for ${savedView.id}: title must mirror name.`);
     }
-    const normalisedName = normaliseSavedViewName(savedView.name);
+    const normalisedName = savedViewScopeNameKey(savedView.scope, savedView.name);
     const existing = namesByNormalisedValue.get(normalisedName);
     if (existing && existing.id !== savedView.id) {
       throw new Error(`Duplicate saved-view name rejected: ${savedView.name} conflicts with ${existing.id}.`);
@@ -1062,7 +1074,48 @@ function validateSavedViewRules(incomingEntities: readonly V01Entity[], existing
     if (visibleColumns.length > SAVED_VIEW_LIMITS.visibleColumnsHard) {
       throw new Error(`Invalid saved-view columns for ${savedView.id}: too many visible columns.`);
     }
-    assertAllAllowed(visibleColumns, SAVED_VIEW_REQUIREMENT_COLUMNS, `Invalid saved-view column for ${savedView.id}`);
+    assertAllAllowed(visibleColumns, [...SAVED_VIEW_REQUIREMENT_COLUMNS, ...SAVED_VIEW_RELATIONSHIP_COLUMNS, ...SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS], `Invalid saved-view column for ${savedView.id}`);
+  }
+}
+
+function savedViewScopeNameKey(scope: string, name: string): string {
+  return `${scope}::${normaliseSavedViewName(name)}`;
+}
+
+function validateChangeRecordRules(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): void {
+  const mergedById = new Map(existingEntities.map((entity) => [entity.id, entity]));
+  for (const entity of incomingEntities) {
+    mergedById.set(entity.id, entity);
+  }
+  const merged = [...mergedById.values()];
+  const entityIds = new Set(merged.map((entity) => entity.id));
+  const permittedTargetTypes = new Set<V01Entity["entityType"]>(["requirement", "action", "risk", "direction", "tag", "saved-view"]);
+
+  for (const changeRecord of merged.filter((entity): entity is EntityByCollection["change-records"] => entity.entityType === "change-record" && entity.recordStatus !== "deleted")) {
+    if (!CHANGE_RECORD_TYPES.includes(changeRecord.changeType)) {
+      throw new Error(`Invalid change-record type for ${changeRecord.id}.`);
+    }
+    if (!CHANGE_RECORD_STATUSES.includes(changeRecord.status)) {
+      throw new Error(`Invalid change-record status for ${changeRecord.id}.`);
+    }
+    if (!CHANGE_RECORD_PERSISTENCE.includes(changeRecord.persistence)) {
+      throw new Error(`Invalid change-record persistence for ${changeRecord.id}.`);
+    }
+    if (!CHANGE_RECORD_SOURCES.includes(changeRecord.source)) {
+      throw new Error(`Invalid change-record source for ${changeRecord.id}.`);
+    }
+  }
+
+  for (const entity of merged) {
+    if (entity.entityType !== "link" || entity.recordStatus === "deleted" || entity.linkType !== "changes") {
+      continue;
+    }
+    if (entity.fromType !== "change-record" || !permittedTargetTypes.has(entity.toType)) {
+      throw new Error(`Invalid changes link ${entity.id}: only change-record -> requirement/action/risk/direction/tag/saved-view is permitted in v1.10.`);
+    }
+    if (!entityIds.has(entity.fromId) || !entityIds.has(entity.toId)) {
+      throw new Error(`Invalid changes link ${entity.id}: endpoint is missing.`);
+    }
   }
 }
 

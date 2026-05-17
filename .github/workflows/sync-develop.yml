@@ -1,0 +1,70 @@
+name: Sync develop with main
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: sync-develop
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine sync state
+        id: state
+        run: |
+          git fetch origin main develop
+          ahead=$(git rev-list --count origin/develop..origin/main)
+          behind=$(git rev-list --count origin/main..origin/develop)
+          echo "ahead=$ahead" >> "$GITHUB_OUTPUT"
+          echo "behind=$behind" >> "$GITHUB_OUTPUT"
+          echo "main is $ahead commit(s) ahead of develop, develop is $behind commit(s) ahead of main"
+
+      - name: Open or update sync pull request
+        if: steps.state.outputs.ahead != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          existing=$(gh pr list --head main --base develop --state open --json number --jq '.[0].number // empty')
+          title="chore: sync develop with main"
+          body=$(cat <<EOF
+          Automated sync after a push to \`main\`.
+
+          - \`main\` is **${{ steps.state.outputs.ahead }}** commit(s) ahead of \`develop\`.
+          - \`develop\` has **${{ steps.state.outputs.behind }}** commit(s) not yet on \`main\`.
+
+          Merge this PR to bring release commits from \`main\` back into \`develop\` so day-to-day work stays aligned with the release branch.
+
+          If GitHub cannot auto-merge, resolve locally:
+
+          \`\`\`
+          git fetch origin
+          git checkout develop
+          git merge origin/main
+          git push
+          \`\`\`
+          EOF
+          )
+          if [ -z "$existing" ]; then
+            gh pr create --base develop --head main --title "$title" --body "$body"
+          else
+            gh pr edit "$existing" --body "$body"
+            echo "Updated existing sync PR #$existing"
+          fi
+
+      - name: Report no-op
+        if: steps.state.outputs.ahead == '0'
+        run: echo "develop already contains all commits from main; nothing to sync."

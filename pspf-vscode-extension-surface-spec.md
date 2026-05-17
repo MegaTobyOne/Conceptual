@@ -208,8 +208,7 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 | `pspf.workshop.openRequirement` | Workshop: Open Requirement | tree item, context |
 | `pspf.workshop.openHome` | Workshop: Open Home | activity bar, status bar, command palette |
 | `pspf.workshop.newRequirement` | Workshop: New Requirement | palette, view title |
-| `pspf.workshop.newEvidence` | Workshop: New Evidence | palette, view title |
-| `pspf.workshop.linkEvidence` | Workshop: Link Evidence | item context, editor title |
+| `pspf.workshop.attachEvidence` | Workshop: Add Evidence | palette, Workshop Home, Requirement Detail |
 | `pspf.workshop.newAction` | Workshop: New Action | palette, view title |
 | `pspf.workshop.newDirection` | Workshop: New Direction | palette, view title |
 | `pspf.workshop.reviewEvidence` | Workshop: Review Evidence | palette, view title |
@@ -221,6 +220,7 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 | `pspf.workshop.prepareReportPack` | Workshop: Prepare Report Pack | palette, view title |
 | `pspf.workshop.exportBundle` | Workshop: Export Explorer Bundle | palette |
 | `pspf.workshop.manageTags` | Workshop: Manage Tags | palette, Requirements view title |
+| `pspf.workshop.manageSavedViews` | Workshop: Manage Saved Views | palette, Workshop Home view title |
 | `pspf.workshop.applyTag` | Workshop: Apply Tag to Requirement | item context (Requirement), Requirement Detail tag rail |
 | `pspf.workshop.removeTag` | Workshop: Remove Tag from Requirement | item context (Requirement tag chip) |
 | `pspf.workshop.filterRequirementsByTag` | Workshop: Filter Requirements by Tag | palette, Requirements view title |

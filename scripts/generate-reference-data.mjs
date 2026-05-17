@@ -135,7 +135,7 @@ const pspfReferenceDomains = domainDefinitions.map(({ family, domainId, title, s
 const pspfBaselineDomains = domainDefinitions.map((domain) => ({
     id: domain.domainId,
     entityType: "domain",
-    schemaVersion: "1.5.0",
+    schemaVersion: "1.6.0",
     title: domain.title,
     code: domain.code,
     sortOrder: domain.sortOrder,
@@ -145,7 +145,7 @@ const pspfBaselineDomains = domainDefinitions.map((domain) => ({
 const pspfBaselineRequirements = pspfReferences.map((requirement) => ({
     id: requirement.requirementId,
     entityType: "requirement",
-    schemaVersion: "1.5.0",
+    schemaVersion: "1.6.0",
     title: `PSPF ${String(requirement.requirementNumber).padStart(3, "0")} - ${requirement.statement}`,
     domainId: requirement.domainId,
     assessmentStatus: "not-started",
@@ -155,7 +155,7 @@ const pspfBaselineRequirements = pspfReferences.map((requirement) => ({
 const pspfBaselineDirections = currentPspfDirections.map((direction) => ({
     id: direction.id,
     entityType: "direction",
-    schemaVersion: "1.5.0",
+    schemaVersion: "1.6.0",
     title: direction.title,
     sourceProduct: "core",
     recordStatus: "active",
@@ -167,7 +167,7 @@ const pspfBaselineDirections = currentPspfDirections.map((direction) => ({
 const pspfBaselineDirectionLinks = currentPspfDirections.flatMap((direction) => direction.targetRequirementIds.map((requirementId) => ({
     id: `LNK-PSPF-DIRECTION-${direction.reference.replace("Direction ", "").replace("-", "")}-${requirementId.replace("REQ-PSPF-2025-", "REQ")}`,
     entityType: "link",
-    schemaVersion: "1.5.0",
+    schemaVersion: "1.6.0",
     title: `${direction.reference} is reflected in ${requirementId.replace("REQ-PSPF-2025-", "PSPF ")}`,
     sourceProduct: "core",
     recordStatus: "active",
@@ -313,7 +313,7 @@ async function extractIsmSourceControls(catalogPath) {
         return {
             id: `SRC-${stableUuid(controlId)}`,
             entityType: "source-control",
-            schemaVersion: "1.5.0",
+            schemaVersion: "1.6.0",
             title: String(control.title ?? controlId),
             sourceProduct: "core",
             recordStatus: "active",

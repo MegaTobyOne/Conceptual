@@ -95,6 +95,8 @@ const html = `<!doctype html>
     .version-pill { border: 1px solid var(--border-soft); border-radius: 999px; padding: 3px 8px; color: #d7d0c2; background: var(--surface-soft); font-size: 12px; line-height: 1.4; white-space: nowrap; }
     .trust-pill { border-color: rgba(20, 184, 166, 0.5); color: #ccfbf1; background: var(--accent-soft); }
     .sensitive-pill { border-color: var(--amber); color: #fde68a; background: var(--amber-soft); }
+    .notice-panel { border-color: #0ea5e9; background: rgba(14, 165, 233, 0.14); }
+    .notice-panel h2 { margin-top: 0; color: #e0f2fe; }
     .local-badge { border-color: var(--accent-strong); color: #ccfbf1; background: var(--accent-soft); }
     .baseline-badge { border-color: var(--border); }
     .overview-grid { display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 16px; align-items: start; }
@@ -143,6 +145,7 @@ const html = `<!doctype html>
       <a href="#action-impact">Action Impact</a>
       <a href="#risks">Risks</a>
       <a href="#directions">Directions</a>
+      <a href="#change-records">Why This Changed</a>
       <a href="#source-controls">ISM Source Controls</a>
       <a href="#ism-coverage">ISM Coverage</a>
       <a href="#links">Relationships</a>
@@ -169,6 +172,7 @@ const html = `<!doctype html>
     <details id="action-impact" class="panel" hidden></details>
     <details id="risks" class="panel" hidden></details>
     <details id="directions" class="panel" hidden></details>
+    <details id="change-records" class="panel" hidden></details>
     <details id="source-controls" class="panel" hidden></details>
     <details id="ism-coverage" class="panel" hidden></details>
     <details id="links" class="panel" hidden></details>
@@ -208,6 +212,7 @@ const actionsSection = document.querySelector("#actions");
 const actionImpactSection = document.querySelector("#action-impact");
 const risksSection = document.querySelector("#risks");
 const directionsSection = document.querySelector("#directions");
+const changeRecordsSection = document.querySelector("#change-records");
 const sourceControlsSection = document.querySelector("#source-controls");
 const ismCoverageSection = document.querySelector("#ism-coverage");
 const linksSection = document.querySelector("#links");
@@ -222,6 +227,7 @@ let currentLocalActions = [];
 let currentLocalRisks = [];
 let currentSavedViews = [];
 let activeSavedViewId = "";
+let activeRelationshipsSavedViewId = "";
 let currentLocalRequirementId;
 let currentLocalRequirementFilter = "";
 let currentLocalRequirements = [];
@@ -465,6 +471,10 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   directionsSection.hidden = false;
   renderExplorerSection(directionsSection, "Directions", '<p class="muted">Authoritative Directions overlay PSPF Requirements; once registered they always apply.</p>' + table(directions, ["reference", "title", "responseState", "sourceAuthority", "issuedAt"]));
 
+  const changeRecords = changeRecordRows(collections, entitiesById);
+  changeRecordsSection.hidden = false;
+  renderExplorerSection(changeRecordsSection, "Why This Changed", '<p class="muted">Published Change Records explain significant changes without exposing sensitive reasons, impact notes, or decision-owner references.</p>' + table(changeRecords, ["title", "status", "changeType", "persistence", "source", "raisedAt", "affected", "summary"]));
+
   sourceControlsSection.hidden = false;
   renderExplorerSection(sourceControlsSection, "ISM Source Controls", '<p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0.</p>' + table(sourceControls, ["controlId", "title", "profiles", "release", "drift"]));
 
@@ -472,11 +482,12 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderExplorerSection(ismCoverageSection, "ISM Coverage", table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"]));
 
   linksSection.hidden = false;
-  renderExplorerSection(linksSection, "Relationships Board", tagFilterPanel(tagModel) + table(relationships, ["title", "relationship", "from", "to"]));
+  renderExplorerSection(linksSection, "Relationships Board", relationshipSavedViewsPanel() + tagFilterPanel(tagModel) + table(relationships, ["title", "relationship", "from", "to"]));
 
   bindTagFilterControls();
   bindRequirementStatusFilterControls();
   bindSavedViewControls();
+  bindRelationshipSavedViewControls();
   applyTagFilter();
   applyRequirementStatusFilter();
   applyExplorerSearch();
@@ -578,10 +589,23 @@ function tagFilterPanel(tagModel) {
 }
 
 function savedViewsPanel() {
-  const activeSavedViews = currentSavedViews.filter((view) => view.recordStatus !== "archived" && view.recordStatus !== "deleted").sort((left, right) => String(left.name).localeCompare(String(right.name), "en-AU", { sensitivity: "base" }));
+  const activeSavedViews = savedViewsForScope("explorer-requirements");
   const options = ['<option value="">Saved views</option>'].concat(activeSavedViews.map((view) => '<option value="' + escapeHtml(view.id) + '"' + (view.id === activeSavedViewId ? ' selected' : '') + '>' + escapeHtml(view.name) + '</option>')).join("");
   const active = activeSavedViews.find((view) => view.id === activeSavedViewId);
   return '<div class="tag-filter saved-view-filter" role="group" aria-label="Saved views"><div class="toolbar"><strong>Saved views</strong><select id="saved-view-picker" aria-label="Saved views">' + options + '</select><button type="button" id="save-requirements-view">Save view</button><button type="button" class="secondary" id="rename-requirements-view"' + (active ? '' : ' disabled') + '>Rename</button><button type="button" class="secondary" id="archive-requirements-view"' + (active ? '' : ' disabled') + '>Archive</button><button type="button" class="secondary" id="clear-requirements-view">Clear active view</button></div><p class="muted" id="saved-view-status">' + escapeHtml(active ? 'Active view: ' + active.name + ' · ' + savedViewSummary(active) : activeSavedViews.length + ' saved view(s) available') + '</p></div>';
+}
+
+function relationshipSavedViewsPanel() {
+  const activeSavedViews = savedViewsForScope("explorer-relationships");
+  const options = ['<option value="">Saved views</option>'].concat(activeSavedViews.map((view) => '<option value="' + escapeHtml(view.id) + '"' + (view.id === activeRelationshipsSavedViewId ? ' selected' : '') + '>' + escapeHtml(view.name) + '</option>')).join("");
+  const active = activeSavedViews.find((view) => view.id === activeRelationshipsSavedViewId);
+  return '<div class="tag-filter saved-view-filter" role="group" aria-label="Relationship saved views"><div class="toolbar"><strong>Relationship views</strong><select id="relationship-saved-view-picker" aria-label="Relationship saved views">' + options + '</select><button type="button" id="save-relationships-view">Save view</button><button type="button" class="secondary" id="rename-relationships-view"' + (active ? '' : ' disabled') + '>Rename</button><button type="button" class="secondary" id="archive-relationships-view"' + (active ? '' : ' disabled') + '>Archive</button><button type="button" class="secondary" id="clear-relationships-view">Clear active view</button></div><p class="muted" id="relationship-saved-view-status">' + escapeHtml(active ? 'Active view: ' + active.name + ' · ' + savedViewSummary(active) : activeSavedViews.length + ' saved relationship view(s) available') + '</p></div>';
+}
+
+function savedViewsForScope(scope) {
+  return currentSavedViews
+    .filter((view) => view.recordStatus !== "archived" && view.recordStatus !== "deleted" && (view.scope === scope || scope === "explorer-requirements" && view.scope === "requirements"))
+    .sort((left, right) => String(left.name).localeCompare(String(right.name), "en-AU", { sensitivity: "base" }));
 }
 
 function requirementStatusFilterPanel() {
@@ -598,6 +622,19 @@ function bindSavedViewControls() {
     const view = currentSavedViews.find((item) => item.id === event.currentTarget.value);
     if (view) {
       await applySavedView(view.id);
+    }
+  });
+}
+
+function bindRelationshipSavedViewControls() {
+  document.querySelector("#save-relationships-view")?.addEventListener("click", saveCurrentRelationshipsView);
+  document.querySelector("#rename-relationships-view")?.addEventListener("click", renameActiveRelationshipsView);
+  document.querySelector("#archive-relationships-view")?.addEventListener("click", archiveActiveRelationshipsView);
+  document.querySelector("#clear-relationships-view")?.addEventListener("click", clearActiveRelationshipsView);
+  document.querySelector("#relationship-saved-view-picker")?.addEventListener("change", async (event) => {
+    const view = currentSavedViews.find((item) => item.id === event.currentTarget.value);
+    if (view) {
+      await applyRelationshipsSavedView(view.id);
     }
   });
 }
@@ -663,11 +700,20 @@ function persistRequirementFilterState() {
 
 async function saveCurrentRequirementsView(nameOverride = undefined) {
   const name = nameOverride === undefined ? prompt("Saved view name", suggestedSavedViewName()) : nameOverride;
+  await saveCurrentScopedView("explorer-requirements", name, "requirements");
+}
+
+async function saveCurrentRelationshipsView(nameOverride = undefined) {
+  const name = nameOverride === undefined ? prompt("Relationship view name", suggestedSavedViewName("Relationships view")) : nameOverride;
+  await saveCurrentScopedView("explorer-relationships", name, "relationships");
+}
+
+async function saveCurrentScopedView(scope, name, target) {
   const cleanName = normaliseSavedViewDisplayName(name);
   if (!cleanName) {
     return;
   }
-  if (currentSavedViews.some((view) => view.recordStatus !== "deleted" && normaliseSavedViewName(view.name) === normaliseSavedViewName(cleanName))) {
+  if (currentSavedViews.some((view) => view.recordStatus !== "deleted" && view.scope === scope && normaliseSavedViewName(view.name) === normaliseSavedViewName(cleanName))) {
     alert("A saved view with that name already exists.");
     return;
   }
@@ -681,16 +727,22 @@ async function saveCurrentRequirementsView(nameOverride = undefined) {
     schemaVersion: "${VERSION_AXES.schemaVersion}",
     title: cleanName,
     name: cleanName,
-    scope: "requirements",
+    scope,
     filters: currentSavedViewFilters(),
-    presentation: { sortKey: "title", sortDirection: "asc", visibleColumns: ["title", "assessmentStatus", "tags", "evidence", "actions", "risks"] },
+    presentation: target === "relationships"
+      ? { sortKey: "title", sortDirection: "asc", visibleColumns: ["title", "relationship", "from", "to", "tags"] }
+      : { sortKey: "title", sortDirection: "asc", visibleColumns: ["title", "assessmentStatus", "tags", "evidence", "actions", "risks"] },
     createdAt: timestamp,
     updatedAt: timestamp,
     sourceProduct: "explorer",
     recordStatus: "active"
   };
   await saveSavedView(savedView);
-  activeSavedViewId = id;
+  if (target === "relationships") {
+    activeRelationshipsSavedViewId = id;
+  } else {
+    activeSavedViewId = id;
+  }
   persistRequirementFilterState();
   await render(currentManifest, currentBaselineCollections);
 }
@@ -720,6 +772,35 @@ async function applySavedView(savedViewId) {
   requirementsSection.open = true;
 }
 
+async function applyRelationshipsSavedView(savedViewId) {
+  const view = currentSavedViews.find((item) => item.id === savedViewId && item.scope === "explorer-relationships" && item.recordStatus !== "archived" && item.recordStatus !== "deleted");
+  if (!view) {
+    return;
+  }
+  await applySavedViewFilters(view);
+  activeRelationshipsSavedViewId = view.id;
+  linksSection.open = true;
+}
+
+async function applySavedViewFilters(view) {
+  const filters = view.filters || {};
+  currentExplorerSearch = filters.query || "";
+  currentLocalRequirementFilter = currentExplorerSearch;
+  currentRequirementStatusFilter = new Set(Array.isArray(filters.assessmentStatuses) ? filters.assessmentStatuses : []);
+  currentTagFilterIds = new Set(Array.isArray(filters.tagIds) ? filters.tagIds.filter((id) => (currentCollections?.tags || []).some((tag) => tag.id === id && tag.recordStatus !== "deleted")) : []);
+  currentTagFilterMode = filters.tagsMode === "all" ? "all" : "any";
+  persistTagFilterState();
+  persistRequirementFilterState();
+  if (explorerSearchInput instanceof HTMLInputElement) {
+    explorerSearchInput.value = currentExplorerSearch;
+  }
+  syncTagFilterControls();
+  syncRequirementStatusFilterControls();
+  applyTagFilter();
+  applyRequirementStatusFilter();
+  applyExplorerSearch();
+}
+
 async function renameActiveRequirementsView() {
   const view = currentSavedViews.find((item) => item.id === activeSavedViewId);
   if (!view) {
@@ -730,11 +811,53 @@ async function renameActiveRequirementsView() {
   if (!cleanName) {
     return;
   }
-  if (currentSavedViews.some((item) => item.id !== view.id && item.recordStatus !== "deleted" && normaliseSavedViewName(item.name) === normaliseSavedViewName(cleanName))) {
+  if (currentSavedViews.some((item) => item.id !== view.id && item.recordStatus !== "deleted" && item.scope === view.scope && normaliseSavedViewName(item.name) === normaliseSavedViewName(cleanName))) {
     alert("A saved view with that name already exists.");
     return;
   }
   await saveSavedView({ ...view, name: cleanName, title: cleanName, updatedAt: new Date().toISOString() });
+  await render(currentManifest, currentBaselineCollections);
+}
+
+async function renameActiveRelationshipsView() {
+  const view = currentSavedViews.find((item) => item.id === activeRelationshipsSavedViewId);
+  if (!view) {
+    return;
+  }
+  const name = prompt("Rename relationship view", view.name);
+  const cleanName = normaliseSavedViewDisplayName(name);
+  if (!cleanName) {
+    return;
+  }
+  if (currentSavedViews.some((item) => item.id !== view.id && item.recordStatus !== "deleted" && item.scope === view.scope && normaliseSavedViewName(item.name) === normaliseSavedViewName(cleanName))) {
+    alert("A saved view with that name already exists.");
+    return;
+  }
+  await saveSavedView({ ...view, name: cleanName, title: cleanName, updatedAt: new Date().toISOString() });
+  await render(currentManifest, currentBaselineCollections);
+}
+
+async function archiveActiveRelationshipsView() {
+  const view = currentSavedViews.find((item) => item.id === activeRelationshipsSavedViewId);
+  if (!view) {
+    return;
+  }
+  if (!confirm("Archive this saved view?")) {
+    return;
+  }
+  await saveSavedView({ ...view, recordStatus: "archived", updatedAt: new Date().toISOString() });
+  activeRelationshipsSavedViewId = "";
+  await render(currentManifest, currentBaselineCollections);
+}
+
+async function clearActiveRelationshipsView() {
+  activeRelationshipsSavedViewId = "";
+  currentExplorerSearch = "";
+  currentLocalRequirementFilter = "";
+  currentTagFilterIds = new Set();
+  currentTagFilterMode = "any";
+  persistTagFilterState();
+  persistRequirementFilterState();
   await render(currentManifest, currentBaselineCollections);
 }
 
@@ -795,14 +918,14 @@ function savedViewSummary(view) {
   return parts.length > 0 ? parts.join(" · ") : "No filters";
 }
 
-function suggestedSavedViewName() {
+function suggestedSavedViewName(fallback = "Requirements view") {
   if (currentRequirementStatusFilter.size > 0) {
     return [...currentRequirementStatusFilter].map(label).join(", ");
   }
   if (currentTagFilterIds.size > 0) {
     return "Tagged requirements";
   }
-  return currentExplorerSearch ? "Search: " + currentExplorerSearch.slice(0, 40) : "Requirements view";
+  return currentExplorerSearch ? "Search: " + currentExplorerSearch.slice(0, 40) : fallback;
 }
 
 function normaliseSavedViewDisplayName(value) {
@@ -961,7 +1084,7 @@ async function writeClipboardText(value) {
 }
 
 async function validateBundle(manifest, collections, collectionTexts) {
-  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "posture"];
+  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "posture"];
   const checks = [
     check("Bundle version", manifest.bundleVersion === "${VERSION_AXES.bundleVersion}", manifest.bundleVersion || "missing"),
     check("Schema version", manifest.schemaVersion === "${VERSION_AXES.schemaVersion}", manifest.schemaVersion || "missing"),
@@ -988,7 +1111,11 @@ async function validateBundle(manifest, collections, collectionTexts) {
   checks.push(check("Posture risks", posture.riskCount === (collections.risks || []).length, String(posture.riskCount || 0)));
   checks.push(check("Posture ISM controls", posture.sourceControlCount === (collections["source-controls"] || []).length, String(posture.sourceControlCount || 0)));
   checks.push(check("Posture ISM mappings", posture.requirementControlMappingCount === (collections["requirement-control-mappings"] || []).length, String(posture.requirementControlMappingCount || 0)));
+  checks.push(check("Posture change records", posture.changeRecordCount === (collections["change-records"] || []).length, String(posture.changeRecordCount || 0)));
   checks.push(check("Mapping rationale excluded", !containsPath(collections["requirement-control-mappings"] || [], ["rationale"]), "default deny"));
+  checks.push(check("Change reasons excluded", !containsPath(collections["change-records"] || [], ["reason"]), "default deny"));
+  checks.push(check("Change impact notes excluded", !containsPath(collections["change-records"] || [], ["impactSummary"]), "default deny"));
+  checks.push(check("Change decision owner excluded", !containsPath(collections["change-records"] || [], ["decisionOwnerRef"]), "default deny"));
   const mappings = collections["requirement-control-mappings"] || [];
   const validConfidence = new Set(["low", "medium", "high"]);
   checks.push(check("Mapping confidence present", mappings.every((mapping) => validConfidence.has(mapping.confidence)), mappings.length + " mapping(s)"));
@@ -1779,6 +1906,7 @@ async function restoreRememberedBundle() {
     }
     if (!isCompatibleRememberedBundle(rememberedBundle.manifest)) {
       await deleteRememberedBundle();
+      showRememberedBundleSchemaNotice(rememberedBundle.manifest);
       console.warn("Skipped remembered Explorer bundle from an earlier PSPF version");
       return;
     }
@@ -1793,6 +1921,16 @@ function isCompatibleRememberedBundle(manifest) {
     manifest?.bundleVersion === "${VERSION_AXES.bundleVersion}" &&
     manifest?.apiVersion === "${VERSION_AXES.apiVersion}" &&
     manifest?.generator?.productVersion === "${PSPF_SLICE_VERSION}";
+}
+
+function showRememberedBundleSchemaNotice(manifest) {
+  summary.hidden = false;
+  summary.classList.add("notice-panel");
+  summary.innerHTML = '<h2>Reload your PSPF JSON</h2>' +
+    '<p>The remembered bundle in this browser uses Schema ' + escapeHtml(manifest?.schemaVersion || "unknown") +
+    ' and Bundle ' + escapeHtml(manifest?.bundleVersion || "unknown") +
+    '. This Explorer build expects Schema ${VERSION_AXES.schemaVersion} and Bundle ${VERSION_AXES.bundleVersion}.</p>' +
+    '<p class="muted">Select your latest <strong>bundle.json</strong>, or select <strong>manifest.json</strong> with its collection files, to continue. Browser-local edits are kept separately and will reconnect when the matching bundle is loaded.</p>';
 }
 
 async function loadRememberedBundle() {
@@ -2079,12 +2217,35 @@ function actionImpactTable(collections) {
 
 function entityTitleMap(collections) {
   const entitiesById = new Map();
-  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "source-controls", "requirement-control-mappings", "directions", "posture"]) {
+  for (const collectionName of ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "posture"]) {
     for (const entity of collections[collectionName] || []) {
       entitiesById.set(entity.id, entity.title || label(entity.entityType));
     }
   }
   return entitiesById;
+}
+
+function changeRecordRows(collections, entitiesById) {
+  const targetsByChangeId = new Map();
+  for (const link of collections.links || []) {
+    if (link.recordStatus === "deleted" || link.linkType !== "changes" || link.fromType !== "change-record") {
+      continue;
+    }
+    append(targetsByChangeId, link.fromId, entitiesById.get(link.toId) || compactEntityId(link.toId));
+  }
+  return (collections["change-records"] || [])
+    .slice()
+    .sort((left, right) => String(right.raisedAt || "").localeCompare(String(left.raisedAt || "")))
+    .map((changeRecord) => ({
+      title: changeRecord.title,
+      status: label(changeRecord.status),
+      changeType: label(changeRecord.changeType),
+      persistence: label(changeRecord.persistence),
+      source: label(changeRecord.source),
+      raisedAt: changeRecord.raisedAt ? formatDate(changeRecord.raisedAt) : "Not recorded",
+      affected: (targetsByChangeId.get(changeRecord.id) || []).join("; ") || "Not linked",
+      summary: changeRecord.summary
+    }));
 }
 
 function overview(requirements, collections) {
@@ -2336,7 +2497,9 @@ globalThis.pspfExplorerAddLocalAction = addLocalAction;
 globalThis.pspfExplorerAddLocalRisk = addLocalRisk;
 globalThis.pspfExplorerSaveCurrentRequirementsView = saveCurrentRequirementsView;
 globalThis.pspfExplorerSaveRequirementsView = saveCurrentRequirementsView;
+globalThis.pspfExplorerSaveRelationshipsView = saveCurrentRelationshipsView;
 globalThis.pspfExplorerApplySavedView = applySavedView;
+globalThis.pspfExplorerApplyRelationshipsSavedView = applyRelationshipsSavedView;
 globalThis.pspfExplorerSavedViews = () => currentSavedViews.map(materialiseSavedView);
 globalThis.pspfExplorerExportLocalBundle = exportLocalAuthoringBundle;
 globalThis.pspfExplorerResetLocalData = () => resetLocalData(currentBundleKey);

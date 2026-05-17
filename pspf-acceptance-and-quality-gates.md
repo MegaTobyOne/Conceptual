@@ -215,6 +215,28 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 9. **Deferred-scope gate**: v1.8 does not add saved views outside Requirements, team/private saved views, default-start views, tag hierarchies, tagging non-Requirement entities, tag-driven posture brief sections, compliance-history export controls, editable posture, Shop, Pub, or chart image export.
 10. **Regression gate**: `e2e:v1.8`, `check:gates`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.9 release gates (Saved-view expansion, per ADR 0043)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.9.0`; schema, bundle, and API axes are `1.6.0`; `schemas/explorer-bundle/1.6.0/` is published and immutable after release.
+2. **Contract gate**: `SavedViewEntity` supports legacy `requirements`, `explorer-requirements`, `explorer-relationships`, `workshop-requirements`, `workshop-dashboard`, and `workshop-evidence-review` scopes; duplicate saved-view names are rejected within scope rather than globally.
+3. **Explorer Relationship view gate**: Explorer Relationships Board can save, apply, rename, archive, and clear a saved view for supported search/tag filter state without capturing selected cards, expanded sections, scroll position, or transient visual state.
+4. **Workshop saved-view gate**: Workshop exposes a Saved Views manager that can create, rename, archive, and apply Workshop-owned Requirement views backed by `saved-view` records with `sourceProduct = "workshop"`.
+5. **Optional-consumer gate**: Workshop and Explorer may ignore unsupported saved-view scopes from imported bundles without blocking canonical assessment data import.
+6. **Schema-change notice gate**: Explorer does not silently blank when a remembered browser-local bundle is incompatible with the current schema/bundle/API/product version; it shows `Reload your PSPF JSON` and asks the user to select the latest bundle.
+7. **Deferred-scope gate**: v1.9 does not add private/team ownership, default-start views, compliance-history export controls, tag hierarchies, tagging non-Requirement entities, editable posture, Shop, Pub, or chart image export.
+8. **Regression gate**: `e2e:v1.9`, `check:gates`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.10 release gates (Change-record foundation, per ADR 0044)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.10.0`; schema, bundle, and API axes are `1.7.0`; `schemas/explorer-bundle/1.7.0/` is published and immutable after release.
+2. **Contract gate**: `ChangeRecordEntity` uses the `CHG` prefix, exports through `change-records`, and every field has an explicit publication policy.
+3. **Link gate**: `changes` links are first-class `link` records from `change-record` to `requirement`, `action`, `risk`, `direction`, `tag`, or `saved-view`; invalid endpoints or pairs are rejected on write and import.
+4. **Workshop authoring gate**: Workshop can record a significant change, link it to an affected record, list Change Records, and edit public/sensitive/restricted fields through the item editor.
+5. **Explorer publication gate**: Explorer renders a read-only "Why This Changed" view using public Change Record fields and affected `changes` links.
+6. **Redaction gate**: `reason` and `impactSummary` are redacted from publication by default; `decisionOwnerRef` is restricted and never exported.
+7. **Deferred-scope gate**: v1.10 does not add Explorer-authored Change Records, diff views, change-record tagging, plan baselines, Shop, Pub, editable posture, or chart image export.
+8. **Regression gate**: `build`, `typecheck`, `lint`, `check:gates`, `validate:debug-workspace`, and `release:readiness` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.
