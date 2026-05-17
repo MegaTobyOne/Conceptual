@@ -122,4 +122,6 @@ This runs e2e, gates, debug validation, AU-English lint, and writes `.tmp/releas
 - v1.7 adds first-class workspace tags for Requirements, `tagged-with` links, default-deny tag publication policy, by-tag export indexes, Workshop tag management, and Explorer tag filtering.
 - v1.8 adds durable Explorer Requirements saved views, persisted in browser-local storage and round-tripped through local-authoring bundles as `saved-view` records in `saved-views`.
 - v1.9 expands saved views to Explorer Relationships and Workshop Requirement views, keeps saved views as optional user convenience records, and adds Explorer reload guidance when remembered browser JSON is from an older schema.
+- v1.10 adds Workshop Change Records, the `changes` link, Core and bundle support for `change-records`, and Explorer's read-only `Why This Changed` view.
+- v1.11 is planned as the Explorer change story: local-authoring proposal of Change Records using the existing v1.10 schema, local export/import review round trip through Workshop, and significant-change summaries in Explorer Overview and the posture brief. No schema-axis bump is expected.
 - Posture editing remains out of scope unless deliberately reopened.
