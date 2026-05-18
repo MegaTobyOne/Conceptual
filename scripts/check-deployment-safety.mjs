@@ -13,6 +13,8 @@ const publicationRoots = [
     join(root, ".tmp/e2e-v0.1-workspace/.pspf/exchange/exports")
 ];
 const staticRoots = [join(root, "packages/explorer/dist"), join(root, ".tmp/web-release")];
+const webReleaseWorkflow = readFileSync(join(root, ".github/workflows/web-release.yml"), "utf8");
+const ventraipDeployAction = readFileSync(join(root, ".github/actions/ventraip-deploy/action.yml"), "utf8");
 const forbiddenStaticFilePatterns = [
     /(^|\/)\.env(?:\.|$)/i,
     /(^|\/).*\.(?:db|sqlite|sqlite3|pem|key|p12|pfx|vsix|zip)$/i,
@@ -72,6 +74,17 @@ assert.ok(
 assert.ok(
     (standardBundle.collections["source-controls"] ?? []).some((record) => typeof record.statement === "string" && record.statement.length > 0),
     "public ISM source-control statements may be published"
+);
+
+assert.match(
+    ventraipDeployAction,
+    /protected_paths:[\s\S]*rsync -a --delete\$RSYNC_PROTECT_ARGS/,
+    "VentraIP deploy action must preserve configured docroot child paths during rsync --delete"
+);
+assert.match(
+    webReleaseWorkflow,
+    /Deploy to VentraIP production[\s\S]*protected_paths:\s*\|\s*\n\s*test\//,
+    "production web deploy must preserve the test/ child docroot"
 );
 
 if (failures.length > 0) {

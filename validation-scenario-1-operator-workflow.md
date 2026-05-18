@@ -1,4 +1,4 @@
-# Validation Scenario 1: v1.20.0 Connected View Workflow
+# Validation Scenario 1: v1.20.1 Connected View Workflow
 
 ## Purpose
 
@@ -29,7 +29,7 @@ Manual focus:
 
 Automated coverage handles detailed counts, redaction/default-deny, schema validation, accessibility, writer lock, backup/restore, personal-data exclusion, and import/export round trips. Do not repeat those manually unless a visible behaviour looks wrong.
 
-Still out of scope for v1.20.0:
+Still out of scope for v1.20.1:
 
 - Pub, editable posture, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, Explorer-authored Change Records, change-record diff views, change-record tagging, local history pruning, automatic retention windows, plan baselines, milestone/resource/budget entities, a separate PSPF Plan product, procurement import, finance reconciliation, approvals, editable Connected View, drag-to-link, edge filtering, impact-weighted Connected View layout, image/PDF export of the board, and third-party accessibility audit.
 
@@ -63,8 +63,8 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. If DNS resolves but LiteSpeed returns `404`, check that the VentraIP/cPanel subdomain document root still matches the `test-web` `VENTRAIP_DOCROOT`; subdomain recreation can reset that mapping outside Git. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.20.0`, `Schema 1.8.0`, and `API 1.8.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.20.0` and its tooltip includes `Schema 1.8.0`, `Bundle 1.8.0`, and `API 1.8.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.20.1`, `Schema 1.8.0`, and `API 1.8.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.20.1` and its tooltip includes `Schema 1.8.0`, `Bundle 1.8.0`, and `API 1.8.0`.
 4. From `Workshop Home`, click `Load sample`.
 5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.
@@ -92,7 +92,7 @@ If `dig` returns no address or `curl` reports `Could not resolve host`, create o
 28. Use the full-width `Explorer Search` under the posture brief to find one Requirement, confirm the same search narrows the `Local Changes` list, select that Requirement, and confirm `Linked Context` shows existing linked Evidence, Actions, Risks, and tagged context plus Open buttons to the full sections. Change its status, add one evidence reference, one Action, and one Risk, then refresh the browser. Confirm the latest bundle restores automatically and the local changes and saved views are still visible as `local` / saved local state.
 29. In `Local Changes`, confirm `Include compliance history` is on by default. Click `Export local JSON` and confirm the exported bundle includes `collections.saved-views`; if the bundle contains local compliance events, confirm it also includes `collections.compliance-events` and a `manifest.collections` entry for `compliance-events`. Turn `Include compliance history` off, export again, and confirm `compliance-events` is omitted from both `collections` and `manifest.collections` while the current Requirement status/evidence/Action/Risk edits remain present. Import that history-excluded Explorer local JSON from Workshop with `Plan, review, apply`. Confirm `PSPF Workshop Import Review` opens as a read-only surface with created, updated, unchanged, write, per-type, and update-example detail before `Apply Import`; apply it, then use `Undo Import` and confirm the undo notification is clear.
 30. In GitHub Actions, open or run a Marketplace release dry run from `main` with `target=all` and `dry_run=true`. Confirm the run name includes `target=all / dry_run=true`, the dispatch summary says publication is skipped, Core, Workshop, and Shop publish jobs show dry-run summaries, and `Publish to VS Code Marketplace`, `Verify Marketplace version`, `Tag and GitHub release`, and `Verify receipt tag` are skipped.
-31. Confirm the dry run created no `core/1.20.0`, `workshop/1.20.0`, or `shop/1.20.0` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
+31. Confirm the dry run created no `core/1.20.1`, `workshop/1.20.1`, or `shop/1.20.1` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
 32. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
 
 ## Expected Manual Signals
@@ -140,12 +140,12 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.20.0-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.20.1-readiness-report.md`.
 - An Explorer Local Changes smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
-- Manual operator validation should focus on the v1.20.0 Connected View in Workshop and Explorer, Shop commercial coverage dashboard, assurance-linkage path, commercial context display, Shop visual identity, compliance-history export path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
+- Manual operator validation should focus on the v1.20.1 Connected View in Workshop and Explorer, Shop commercial coverage dashboard, assurance-linkage path, commercial context display, Shop visual identity, compliance-history export path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
 
 ## Pass Criteria
 

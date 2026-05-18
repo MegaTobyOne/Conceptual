@@ -340,6 +340,13 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 9. **Deferred-scope gate**: v1.20 does not add an editable Connected View, drag-to-link, edge filtering, impact-weighted layout, ISM control overlays, image/PDF export, multi-user cursors, or any new entity types, fields, link verbs, or compatibility axes.
 10. **Regression gate**: `e2e:v1.20`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.20.1 patch gates (Explorer Connected View hotfix, per ADR 0056)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.20.1`; schema, bundle, and API axes remain `1.8.0`; no new schema directory is introduced.
+2. **Explorer Connected View regression gate**: `check:explorer-publication` renders a linked Direction -> Requirement -> Risk -> Action chain, verifies cards and SVG edges, selects a Requirement, and confirms the connected chain receives selection/highlight classes.
+3. **Explorer local-count refresh gate**: `check:explorer-publication` adds a local Explorer Action, verifies the Overview Action count increments, and verifies the new local Action and edge appear in Connected View.
+4. **Deferred-scope gate**: v1.20.1 remains a patch release; it does not add editable Connected View, drag-to-link, edge filtering, impact-weighted layout, ISM overlays, image/PDF export, new entity types, new fields, new link verbs, or compatibility-axis changes.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

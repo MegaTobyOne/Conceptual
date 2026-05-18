@@ -158,6 +158,137 @@ try {
     };
   }, bundle);
 
+  const connectedViewValues = await page.evaluate(async (value) => {
+    const clone = JSON.parse(JSON.stringify(value));
+    const collections = clone.collections || {};
+    const requirement = (collections.requirements || [])[0];
+    if (!requirement) {
+      return { skipped: true };
+    }
+    collections.directions = [
+      ...(collections.directions || []),
+      {
+        id: "DIR-00000000-0000-4000-8000-00000000C101",
+        entityType: "direction",
+        schemaVersion: clone.manifest.schemaVersion,
+        title: "Improve governance assurance",
+        reference: "DIR-C101",
+        createdAt: "2026-05-18T00:00:00.000Z",
+        updatedAt: "2026-05-18T00:00:00.000Z",
+        sourceProduct: "workshop",
+        recordStatus: "active",
+        responseState: "not-set"
+      }
+    ];
+    collections.risks = [
+      ...(collections.risks || []),
+      {
+        id: "RSK-00000000-0000-4000-8000-00000000C101",
+        entityType: "risk",
+        schemaVersion: clone.manifest.schemaVersion,
+        title: "Governance assurance risk",
+        createdAt: "2026-05-18T00:00:00.000Z",
+        updatedAt: "2026-05-18T00:00:00.000Z",
+        sourceProduct: "workshop",
+        recordStatus: "active",
+        status: "open",
+        likelihood: 4,
+        impact: 4
+      }
+    ];
+    collections.actions = [
+      ...(collections.actions || []),
+      {
+        id: "ACT-00000000-0000-4000-8000-00000000C101",
+        entityType: "action",
+        schemaVersion: clone.manifest.schemaVersion,
+        title: "Close governance assurance action",
+        createdAt: "2026-05-18T00:00:00.000Z",
+        updatedAt: "2026-05-18T00:00:00.000Z",
+        sourceProduct: "workshop",
+        recordStatus: "active",
+        status: "todo"
+      }
+    ];
+    collections.links = [
+      ...(collections.links || []),
+      {
+        id: "LNK-00000000-0000-4000-8000-00000000C101",
+        entityType: "link",
+        schemaVersion: clone.manifest.schemaVersion,
+        title: "Direction targets requirement",
+        createdAt: "2026-05-18T00:00:00.000Z",
+        updatedAt: "2026-05-18T00:00:00.000Z",
+        sourceProduct: "workshop",
+        recordStatus: "active",
+        linkType: "targets",
+        fromId: collections.directions.at(-1).id,
+        fromType: "direction",
+        toId: requirement.id,
+        toType: "requirement"
+      },
+      {
+        id: "LNK-00000000-0000-4000-8000-00000000C102",
+        entityType: "link",
+        schemaVersion: clone.manifest.schemaVersion,
+        title: "Requirement exposed by risk",
+        createdAt: "2026-05-18T00:00:00.000Z",
+        updatedAt: "2026-05-18T00:00:00.000Z",
+        sourceProduct: "workshop",
+        recordStatus: "active",
+        linkType: "exposed-by",
+        fromId: requirement.id,
+        fromType: "requirement",
+        toId: collections.risks.at(-1).id,
+        toType: "risk"
+      },
+      {
+        id: "LNK-00000000-0000-4000-8000-00000000C103",
+        entityType: "link",
+        schemaVersion: clone.manifest.schemaVersion,
+        title: "Risk treated by action",
+        createdAt: "2026-05-18T00:00:00.000Z",
+        updatedAt: "2026-05-18T00:00:00.000Z",
+        sourceProduct: "workshop",
+        recordStatus: "active",
+        linkType: "treated-by",
+        fromId: collections.risks.at(-1).id,
+        fromType: "risk",
+        toId: collections.actions.at(-1).id,
+        toType: "action"
+      }
+    ];
+    await globalThis.pspfExplorerRender(clone.manifest, collections);
+    document.querySelector("#connected-view").open = true;
+    await new Promise(requestAnimationFrame);
+    const requirementCard = document.querySelector('#connected-view [data-cv-kind="requirement"]');
+    requirementCard?.click();
+    await new Promise(requestAnimationFrame);
+    const before = {
+      cards: document.querySelectorAll("#connected-view [data-cv-card]").length,
+      edges: document.querySelectorAll("#connected-view svg path").length,
+      highlightedEdges: document.querySelectorAll("#connected-view svg path.cv-highlight").length,
+      selectedCards: document.querySelectorAll("#connected-view .cv-selected").length,
+      connectedCards: document.querySelectorAll("#connected-view .cv-connected").length,
+      actionsMetric: Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.innerText || "",
+      actionsCount: Number(Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.querySelector("strong")?.textContent || "0")
+    };
+    await globalThis.pspfExplorerAddLocalAction(requirement.id, "Local connected action", "todo", "2026-06-30");
+    document.querySelector("#connected-view").open = true;
+    await new Promise(requestAnimationFrame);
+    return {
+      skipped: false,
+      before,
+      after: {
+        cards: document.querySelectorAll("#connected-view [data-cv-card]").length,
+        edges: document.querySelectorAll("#connected-view svg path").length,
+        actionsMetric: Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.innerText || "",
+        actionsCount: Number(Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.querySelector("strong")?.textContent || "0"),
+        connectedText: document.querySelector("#connected-view")?.textContent || ""
+      }
+    };
+  }, bundle);
+
   const checks = [
     check("No page errors", pageErrors.length === 0, pageErrors.join("; ")),
     check("No console errors", consoleErrors.length === 0, consoleErrors.join("; ")),
@@ -183,6 +314,10 @@ try {
     check("Action due dates avoid raw ISO text", rawActionDueDateCount === 0, `${rawActionDueDateCount} raw date cell(s)`),
     check("Synthetic ISO action due date renders short AU", syntheticExplorerValues.actionDueDate === "30 Jun 2026", syntheticExplorerValues.actionDueDate || "missing"),
     check("Manual ISM source IDs render compactly", syntheticExplorerValues.manualCoverageControlId === "SRC-ABCD", syntheticExplorerValues.manualCoverageControlId || "missing"),
+    check("Explorer Connected View renders linked chain", !connectedViewValues.skipped && connectedViewValues.before.cards >= 4 && connectedViewValues.before.edges >= 3, JSON.stringify(connectedViewValues.before)),
+    check("Explorer Connected View selection highlights chain", !connectedViewValues.skipped && connectedViewValues.before.selectedCards === 1 && connectedViewValues.before.connectedCards >= 3 && connectedViewValues.before.highlightedEdges >= 3, JSON.stringify(connectedViewValues.before)),
+    check("Explorer local Action updates overview count", !connectedViewValues.skipped && connectedViewValues.after.actionsCount === connectedViewValues.before.actionsCount + 1, JSON.stringify({ before: connectedViewValues.before.actionsMetric, after: connectedViewValues.after.actionsMetric })),
+    check("Explorer local Action appears in Connected View", !connectedViewValues.skipped && connectedViewValues.after.cards === connectedViewValues.before.cards + 1 && connectedViewValues.after.edges === connectedViewValues.before.edges + 1 && connectedViewValues.after.connectedText.includes("Local connected action"), JSON.stringify(connectedViewValues.after)),
     check("Generated brief includes classification", typeof brief === "string" && brief.includes("OFFICIAL: Sensitive"), "classification"),
     check("Generated brief excludes sensitive summary", typeof brief === "string" && !brief.includes("Internal assessment working note"), "summary redaction"),
     check("Generated brief excludes sensitive tag description", typeof brief === "string" && !brief.includes("Sensitive tag purpose note"), "tag redaction"),
