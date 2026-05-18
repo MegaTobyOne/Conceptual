@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { POSTURE_BRIEF_BROWSER_SCRIPT } from "@pspf/brief-renderer";
+import { CONNECTED_VIEW_STYLES, CONNECTED_VIEW_BROWSER_SCRIPT } from "@pspf/connected-view";
 import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -129,6 +130,7 @@ const html = `<!doctype html>
     section { scroll-margin-top: 76px; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     @media (max-width: 720px) { .overview-grid, .bar-row, .local-authoring-grid { grid-template-columns: 1fr; } .local-picker { position: static; } main { width: calc(100% - 32px); padding: 16px 0; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="from"], td[data-field="from"], th[data-field="to"], td[data-field="to"] { min-width: 16rem; } }
+    ${CONNECTED_VIEW_STYLES}
   </style>
 </head>
 <body>
@@ -150,6 +152,7 @@ const html = `<!doctype html>
       <a href="#source-controls">ISM Source Controls</a>
       <a href="#ism-coverage">ISM Coverage</a>
       <a href="#links">Relationships</a>
+      <a href="#connected-view">Connected View</a>
       <a href="#validation">Bundle Validation</a>
       <a href="#bundle-tools">Bundle Tools</a>
       <button type="button" id="close-all-sections">Close All</button>
@@ -178,6 +181,7 @@ const html = `<!doctype html>
     <details id="source-controls" class="panel" hidden></details>
     <details id="ism-coverage" class="panel" hidden></details>
     <details id="links" class="panel" hidden></details>
+    <details id="connected-view" class="panel" hidden></details>
     <details id="validation" class="panel" aria-live="polite" hidden></details>
     <details id="bundle-tools" class="panel snapshot-panel" open>
       <summary><h2>Bundle Tools</h2></summary>
@@ -193,6 +197,7 @@ const html = `<!doctype html>
   </main>
   <button type="button" id="back-to-top" class="back-to-top secondary" aria-label="Back to top navigation and search" hidden>Top</button>
   <script src="./brief-renderer.js"></script>
+  <script src="./connected-view.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
@@ -219,6 +224,7 @@ const changeRecordsSection = document.querySelector("#change-records");
 const sourceControlsSection = document.querySelector("#source-controls");
 const ismCoverageSection = document.querySelector("#ism-coverage");
 const linksSection = document.querySelector("#links");
+const connectedViewSection = document.querySelector("#connected-view");
 let currentBriefInput;
 let currentManifest;
 let currentBaselineCollections;
@@ -492,6 +498,9 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   linksSection.hidden = false;
   renderExplorerSection(linksSection, "Relationships Board", relationshipSavedViewsPanel() + tagFilterPanel(tagModel) + table(relationships, ["title", "relationship", "from", "to"]));
 
+  connectedViewSection.hidden = false;
+  renderConnectedViewExplorerSection(collections);
+
   bindTagFilterControls();
   bindRequirementStatusFilterControls();
   bindSavedViewControls();
@@ -556,6 +565,23 @@ function renderExplorerSection(section, heading, body, open = false) {
   const shouldOpen = section.open || open;
   section.innerHTML = '<summary><h2>' + escapeHtml(heading) + '</h2></summary><div class="section-body">' + body + '</div>';
   section.open = shouldOpen;
+}
+
+function renderConnectedViewExplorerSection(collections) {
+  const shouldOpen = connectedViewSection.open;
+  connectedViewSection.innerHTML = '<summary><h2>Connected View</h2></summary><div class="section-body"><p class="muted">Trace the chain across Directions, Requirements, Risks, and Actions. Hover for details, click to highlight the connected chain, Cmd/Ctrl-click to add to selection, and use Refresh to reload this section.</p><div data-cv-mount></div></div>';
+  connectedViewSection.open = shouldOpen;
+  const mount = connectedViewSection.querySelector("[data-cv-mount]");
+  const api = globalThis.pspfConnectedView;
+  if (!mount || !api || typeof api.renderInto !== "function") return;
+  api.renderInto(mount, {
+    requirements: collections.requirements || [],
+    risks: collections.risks || [],
+    actions: collections.actions || [],
+    directions: collections.directions || [],
+    links: collections.links || [],
+    domains: collections.domains || []
+  }, { mode: "explorer", defaultLayout: "compact", title: "Connected View", subtitle: "Directions \u00b7 Requirements \u00b7 Risks \u00b7 Actions" });
 }
 
 function buildTagModel(collections) {
@@ -2634,5 +2660,6 @@ globalThis.pspfExplorerResetLocalData = () => resetLocalData(currentBundleKey);
 
 await writeFile(join(dist, "index.html"), html, "utf8");
 await writeFile(join(dist, "brief-renderer.js"), `${POSTURE_BRIEF_BROWSER_SCRIPT}\n`, "utf8");
+await writeFile(join(dist, "connected-view.js"), `${CONNECTED_VIEW_BROWSER_SCRIPT}\n`, "utf8");
 await writeFile(join(dist, "app.js"), app, "utf8");
 console.log(`Built ${join(dist, "index.html")}`);

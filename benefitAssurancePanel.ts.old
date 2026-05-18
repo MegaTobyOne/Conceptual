@@ -1,0 +1,347 @@
+import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
+import { StorageManager } from '../storageManager';
+import { onDataChanged } from '../events';
+import { runPdfPreviewExport } from '../pdfExportFlow';
+import { injectVisualSystemStyles } from './shared/visualSystem';
+
+/**
+ * Benefit Assurance Panel
+ *
+ * An executive-level visualisation showing how Benefits map to Objectives,
+ * Objectives are threatened by Risks, and Actions mitigate those Risks.
+ * Displayed as a four-column
+ * board with SVG connection lines between linked items.
+ */
+export class BenefitAssurancePanel {
+  private static currentPanel: BenefitAssurancePanel | undefined;
+  public readonly panel: vscode.WebviewPanel;
+  private readonly extensionUri: vscode.Uri;
+  private readonly storageManager: StorageManager;
+  private disposables: vscode.Disposable[] = [];
+
+  public constructor(
+    panel: vscode.WebviewPanel,
+    extensionUri: vscode.Uri,
+    storageManager: StorageManager,
+  ) {
+    this.panel = panel;
+    this.extensionUri = extensionUri;
+    this.storageManager = storageManager;
+
+    this.panel.webview.html = this.getHtmlContent();
+
+    this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
+
+    this.panel.webview.onDidReceiveMessage(
+      (message) => this.handleMessage(message),
+      null,
+      this.disposables,
+    );
+
+    onDataChanged.event(() => this.pushData(), null, this.disposables);
+  }
+
+  /* ── Singleton lifecycle ──────────────────────────── */
+
+  public static createOrShow(extensionUri: vscode.Uri, storageManager: StorageManager): void {
+    const column = vscode.window.activeTextEditor
+      ? vscode.window.activeTextEditor.viewColumn
+      : undefined;
+
+    if (BenefitAssurancePanel.currentPanel) {
+      BenefitAssurancePanel.currentPanel.panel.reveal(column);
+      return;
+    }
+
+    const panel = vscode.window.createWebviewPanel(
+      'actiontrackerBenefitAssurance',
+      'Benefit Assurance',
+      column || vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [extensionUri],
+      },
+    );
+
+    panel.iconPath = new vscode.ThemeIcon('shield');
+
+    BenefitAssurancePanel.currentPanel = new BenefitAssurancePanel(
+      panel,
+      extensionUri,
+      storageManager,
+    );
+  }
+
+  public dispose(): void {
+    BenefitAssurancePanel.currentPanel = undefined;
+    this.panel.dispose();
+
+    while (this.disposables.length) {
+      this.disposables.pop()?.dispose();
+    }
+  }
+
+  /* ── Data ─────────────────────────────────────────── */
+
+  private pushData(): void {
+    void this.panel.webview.postMessage({
+      command: 'updateData',
+      data: this.gatherData(),
+    });
+  }
+
+  private gatherData(): {
+    benefits: unknown[];
+    outcomes: unknown[];
+    risks: unknown[];
+    actions: unknown[];
+  } {
+    return {
+      benefits: this.storageManager.getAllBenefits(),
+      outcomes: this.storageManager.getAllOutcomes(),
+      risks: this.storageManager.getAllRisks(),
+      actions: this.storageManager.getAllActions(),
+    };
+  }
+
+  /* ── Messages from webview ────────────────────────── */
+
+  private handleMessage(message: unknown): void {
+    if (!message || typeof message !== 'object') {
+      return;
+    }
+
+    const msg = message as { command?: string; entity?: string; id?: string };
+
+    switch (msg.command) {
+      case 'getInitialData':
+        this.pushData();
+        break;
+
+      case 'openDetail':
+        if (msg.entity && msg.id) {
+          this.openEntityDetail(msg.entity, msg.id);
+        }
+        break;
+
+      case 'exportPdf':
+        void this.exportBenefitAssurancePdf();
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  private async exportBenefitAssurancePdf(): Promise<void> {
+    try {
+      const exportDate = this.formatDateForFilename(new Date().toISOString());
+      const suffix = exportDate ? `-${exportDate}` : '';
+      const defaultName = `ActionTracker-Benefit-Assurance${suffix}.pdf`;
+
+      await runPdfPreviewExport({
+        previewFilePrefix: `ActionTracker-Benefit-Assurance-Preview${suffix}`,
+        defaultSaveUri: vscode.Uri.file(path.join(os.homedir(), defaultName)),
+        saveLabel: 'Export Benefit Assurance PDF',
+        successMessage: 'Benefit Assurance exported to PDF.',
+        writePdf: (targetPath) => this.writeBenefitAssurancePdf(targetPath),
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      void vscode.window.showErrorMessage(`Failed to export Benefit Assurance PDF: ${msg}`);
+    }
+  }
+
+  private async writeBenefitAssurancePdf(targetPath: string): Promise<void> {
+    const PDFDocument = (await import('pdfkit')).default;
+
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 40, size: 'A4', layout: 'landscape' });
+      const stream = fs.createWriteStream(targetPath);
+      doc.pipe(stream);
+
+      const benefits = this.storageManager.getAllBenefits();
+      const outcomes = this.storageManager.getAllOutcomes();
+      const risks = this.storageManager.getAllRisks();
+      const actions = this.storageManager.getAllActions();
+
+      const outcomesByBenefit = new Map<string, Set<string>>();
+      for (const outcome of outcomes) {
+        for (const benefitId of outcome.relatedBenefits ?? []) {
+          const bucket = outcomesByBenefit.get(benefitId) ?? new Set<string>();
+          bucket.add(outcome.id);
+          outcomesByBenefit.set(benefitId, bucket);
+        }
+      }
+
+      const risksByOutcome = new Map<string, Set<string>>();
+      for (const outcome of outcomes) {
+        const bucket = new Set<string>(outcome.relatedRisks ?? []);
+        risksByOutcome.set(outcome.id, bucket);
+      }
+
+      const actionsByRisk = new Map<string, Set<string>>();
+      for (const risk of risks) {
+        const bucket = new Set<string>(risk.relatedActions ?? []);
+        actionsByRisk.set(risk.id, bucket);
+      }
+
+      const actionsByBenefit = new Map<string, Set<string>>();
+      for (const benefit of benefits) {
+        actionsByBenefit.set(benefit.id, new Set<string>(benefit.relatedActions ?? []));
+      }
+
+      const countAtRisk = benefits.filter((benefit) => benefit.stage === 'at-risk').length;
+      const countHighCriticalRisks = risks.filter((risk) => risk.riskLevel === 'high' || risk.riskLevel === 'critical').length;
+      const countActiveActions = actions.filter((action) => action.status === 'open' || action.status === 'in-progress').length;
+
+      doc.fontSize(20).text('Benefit Assurance', { align: 'left' });
+      doc.moveDown(0.2);
+      doc.fontSize(10).fillColor('#666').text(`Exported ${new Date().toLocaleString()}`);
+      doc.fillColor('#000');
+      doc.moveDown(0.8);
+
+      doc.fontSize(13).text('Summary');
+      doc.moveDown(0.3);
+      doc.fontSize(10).text(`Benefits: ${benefits.length}`);
+      doc.fontSize(10).text(`Benefits at risk: ${countAtRisk}`);
+      doc.fontSize(10).text(`High/Critical risks: ${countHighCriticalRisks}`);
+      doc.fontSize(10).text(`Active actions: ${countActiveActions}`);
+      doc.moveDown(0.8);
+
+      doc.fontSize(13).text('Assurance Paths');
+      doc.moveDown(0.3);
+
+      if (benefits.length === 0) {
+        doc.fontSize(10).fillColor('#666').text('No benefits available.');
+        doc.fillColor('#000');
+      } else {
+        for (const benefit of benefits) {
+          const benefitTitle = benefit.title || 'Untitled benefit';
+          doc.fontSize(11).text(`Benefit: ${benefitTitle}`, { underline: true });
+          doc.fontSize(9).fillColor('#555').text(`Stage: ${benefit.stage || 'n/a'}${benefit.owner ? ` • Owner: ${benefit.owner}` : ''}`);
+          doc.fillColor('#000');
+
+          const outcomeIds = Array.from(outcomesByBenefit.get(benefit.id) ?? new Set<string>());
+          if (outcomeIds.length === 0) {
+            doc.fontSize(9).text('  Outcomes: none linked');
+          } else {
+            doc.fontSize(9).text(`  Outcomes (${outcomeIds.length}):`);
+            for (const outcomeId of outcomeIds) {
+              const outcome = outcomes.find((entry) => entry.id === outcomeId);
+              if (!outcome) {
+                continue;
+              }
+              doc.fontSize(9).text(`    • ${outcome.title || outcome.id}`);
+
+              const riskIds = Array.from(risksByOutcome.get(outcome.id) ?? new Set<string>());
+              if (riskIds.length > 0) {
+                doc.fontSize(8).fillColor('#555').text(`      Risks (${riskIds.length}):`);
+                doc.fillColor('#000');
+              }
+
+              for (const riskId of riskIds) {
+                const risk = risks.find((entry) => entry.id === riskId);
+                if (!risk) {
+                  continue;
+                }
+                doc.fontSize(8).text(`        • ${risk.title || risk.id} (${risk.riskLevel || 'n/a'})`);
+
+                const linkedActions = Array.from(actionsByRisk.get(risk.id) ?? new Set<string>());
+                if (linkedActions.length > 0) {
+                  doc.fontSize(8).fillColor('#555').text(`          Actions (${linkedActions.length}):`);
+                  doc.fillColor('#000');
+                }
+
+                for (const actionId of linkedActions) {
+                  const action = actions.find((entry) => entry.id === actionId);
+                  if (!action) {
+                    continue;
+                  }
+                  doc.fontSize(8).text(`            • ${action.summary || action.id} (${action.status || 'n/a'})`);
+                }
+              }
+            }
+          }
+
+          const directlyLinkedActions = Array.from(actionsByBenefit.get(benefit.id) ?? new Set<string>());
+          if (directlyLinkedActions.length > 0) {
+            doc.fontSize(9).text(`  Direct actions (${directlyLinkedActions.length}):`);
+            for (const actionId of directlyLinkedActions) {
+              const action = actions.find((entry) => entry.id === actionId);
+              if (!action) {
+                continue;
+              }
+              doc.fontSize(8).text(`    • ${action.summary || action.id} (${action.status || 'n/a'})`);
+            }
+          }
+
+          doc.moveDown(0.5);
+          if (doc.y > 500) {
+            doc.addPage();
+          }
+        }
+      }
+
+      doc.end();
+
+      stream.on('finish', () => resolve());
+      stream.on('error', (err) => reject(err));
+    });
+  }
+
+  private formatDateForFilename(iso: string | undefined): string {
+    if (!iso) {
+      return '';
+    }
+    const parsed = Date.parse(iso);
+    if (Number.isNaN(parsed)) {
+      return '';
+    }
+    const date = new Date(parsed);
+    const y = String(date.getFullYear());
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}${m}${d}`;
+  }
+
+  private openEntityDetail(entity: string, id: string): void {
+    const commandMap: Record<string, string> = {
+      benefit: 'actiontracker.openBenefitDetails',
+      outcome: 'actiontracker.openOutcomeDetails',
+      risk: 'actiontracker.openRiskDetails',
+      action: 'actiontracker.openActionDetails',
+    };
+
+    const cmd = commandMap[entity];
+    if (cmd) {
+      void vscode.commands.executeCommand(cmd, id);
+    }
+  }
+
+  /* ── HTML ─────────────────────────────────────────── */
+
+  private getHtmlContent(): string {
+    const htmlPath = path.join(this.extensionUri.fsPath, 'webviews', 'benefitAssurance.html');
+    let html = fs.readFileSync(htmlPath, 'utf-8');
+    html = injectVisualSystemStyles(html);
+
+    const nonce = this.getNonce();
+    html = html.replace(/\${nonce}/g, nonce);
+
+    return html;
+  }
+
+  private getNonce(): string {
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 32; i += 1) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+  }
+}

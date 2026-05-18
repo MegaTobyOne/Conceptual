@@ -1,6 +1,6 @@
 {
     "name": "pspf-explorer",
-    "version": "1.19.0",
+    "version": "1.20.0",
     "private": true,
     "type": "module",
     "description": "Static PSPF Explorer publication-mode application.",
@@ -12,6 +12,7 @@
     },
     "dependencies": {
         "@pspf/brief-renderer": "workspace:*",
+        "@pspf/connected-view": "workspace:*",
         "@pspf/contracts": "workspace:*"
     }
 }

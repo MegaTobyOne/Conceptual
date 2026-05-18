@@ -9,12 +9,6 @@
     ],
     "references": [
         {
-            "path": "../brief-renderer"
-        },
-        {
-            "path": "../connected-view"
-        },
-        {
             "path": "../contracts"
         }
     ]
