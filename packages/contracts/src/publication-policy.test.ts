@@ -48,7 +48,7 @@ test("publication sanitiser fails closed on unknown fields", () => {
   assert.throws(() => sanitiseEntityForPublication(requirement), /Missing publication policy/);
 });
 
-test("commercial publication policy excludes sensitive money and rejects restricted supplier contact", () => {
+test("commercial publication policy excludes sensitive money and restricted supplier contact", () => {
   const spendItem = withEnvelope(
     "spend-item",
     {
@@ -83,5 +83,6 @@ test("commercial publication policy excludes sensitive money and rejects restric
     },
     "shop"
   );
-  assert.throws(() => sanitiseEntityForPublication(supplier), /Restricted field cannot be published: supplier.primaryContact/);
+  const publishedSupplier = sanitiseEntityForPublication(supplier);
+  assert.equal("primaryContact" in publishedSupplier, false);
 });
