@@ -327,6 +327,19 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 10. **Deferred-scope gate**: v1.19 does not add CSV/procurement import, finance reconciliation, realised-vs-expected savings tracking, approvals, Pub integration, editable Explorer commercial views, chart/PDF export, multi-user commercial plans, new commercial entity fields, or new compatibility axes.
 11. **Regression gate**: `e2e:v1.19`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.20 candidate gates (Connected View, per ADR 0055)
+
+1. **ADR gate**: ADR 0055 records the Connected View decision before implementation starts.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.20.0`; schema, bundle, and API axes remain `1.8.0`; no new schema directory is introduced.
+3. **Renderer-package gate**: a new `@pspf/connected-view` package exports a pure `buildConnectedViewModel`, a pure HTML renderer, and a single browser enhancer script; the package has no Workshop or Explorer runtime dependencies and no new entity types, fields, or link verbs.
+4. **Workshop surface gate**: Workshop registers `pspf.workshop.openConnectedView`, exposes a Home-screen button and left-panel title action, and opens the Connected View in the rich domain-grouped layout (Requirements split per `Requirement.domain`).
+5. **Explorer surface gate**: Explorer renders a `connected-view` section after the Relationships Board in the compact three-lane layout (Directions, grouped Requirements, Risks, single Actions lane).
+6. **Selection gate**: clicking a card highlights its transitive connected chain; related Requirement cards in the chain receive a distinct visual emphasis; Cmd/Ctrl/Shift-click adds to selection; clicking the sole selected card clears it; Enter/Space replicate the click; double-click opens entity detail through the existing `openEntity` handler.
+7. **Edge and refresh gate**: edges are drawn as neutral SVG bezier curves between card edges; only the highlighted chain uses the accent colour; edges redraw on resize; the toolbar exposes `Clear selection` and `Refresh`, with Workshop refresh re-rendering from current workspace state and Explorer refresh reloading the static page.
+8. **Hover-details and redaction gate**: cards show only short reference and title by default; hover/focus details surface only short references, titles, domain codes, assessment status, action status, action impact urgency, risk likelihood/impact, direction response state, and direct linked neighbours; no restricted fields, free text, contact data, or personnel data are emitted.
+9. **Deferred-scope gate**: v1.20 does not add an editable Connected View, drag-to-link, edge filtering, impact-weighted layout, ISM control overlays, image/PDF export, multi-user cursors, or any new entity types, fields, link verbs, or compatibility axes.
+10. **Regression gate**: `e2e:v1.20`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

@@ -1,5 +1,5 @@
 {
-    "name": "@pspf/ism-source-library",
+    "name": "@pspf/connected-view",
     "version": "1.20.0",
     "private": true,
     "type": "module",
@@ -12,10 +12,10 @@
         }
     },
     "scripts": {
-        "build": "tsc -p tsconfig.json"
+        "build": "tsc -p tsconfig.json",
+        "test": "node --test dist/**/*.test.js"
     },
     "dependencies": {
-        "@pspf/contracts": "workspace:*",
-        "@pspf/reference-data": "workspace:*"
+        "@pspf/contracts": "workspace:*"
     }
 }

@@ -1,6 +1,12 @@
 import * as vscode from "vscode";
 import { renderPostureBriefMarkdown } from "@pspf/brief-renderer";
 import {
+  buildConnectedViewModel,
+  renderConnectedViewBodyHtml,
+  CONNECTED_VIEW_STYLES,
+  CONNECTED_VIEW_BROWSER_SCRIPT
+} from "@pspf/connected-view";
+import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
   CHANGE_RECORD_STATUSES,
@@ -79,6 +85,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.linkExistingRisk", linkExistingRisk),
     vscode.commands.registerCommand("pspf.workshop.linkExistingDirection", linkExistingDirection),
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
+    vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
     vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
@@ -177,6 +184,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.createAction",
       "pspf.workshop.createRisk",
       "pspf.workshop.openAssessmentDashboard",
+      "pspf.workshop.openConnectedView",
       "pspf.workshop.openEvidenceReviewQueue",
       "pspf.workshop.openItemDetail",
       "pspf.workshop.registerDirection",
@@ -287,6 +295,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.home.continue", "Continue next task", "Open the highest-priority review surface")}
         ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
+        ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
         ${homeButton("pspf.workshop.openChangeRecords", "Change records", "Review why important records changed")}
         ${homeButton("pspf.workshop.manageSavedViews", "Saved views", "Save and reopen Workshop Requirement filters")}
       </div>
@@ -375,6 +384,7 @@ function homeShellHtml(title: string, body: string): string {
   <main>${body}</main>
   <script>
     const vscode = acquireVsCodeApi();
+    globalThis.__pspfWorkshopVscode = vscode;
     document.querySelectorAll("button[data-command]").forEach((button) => {
       button.addEventListener("click", () => vscode.postMessage({ command: button.dataset.command }));
     });
@@ -853,6 +863,54 @@ async function openAssessmentDashboard(): Promise<void> {
     ${recordTable("Next Requirements To Review", nextRequirements, ["title", "domain", "status", "evidence"])}
     ${recordTable("Latest Activity", recentActivity, ["type", "title", "created"])}
   `);
+}
+
+async function openConnectedView(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel(
+    "pspfConnectedView",
+    "PSPF Connected View",
+    vscode.ViewColumn.One,
+    { enableScripts: false }
+  );
+  panel.webview.options = { enableScripts: true };
+
+  async function render(): Promise<void> {
+    const allEntities = await listAllEntities();
+    const enrichedEntities = enrichActionsWithImpact(allEntities);
+    const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+    const actions = enrichedEntities.filter((entity): entity is ActionEntity => entity.entityType === "action");
+    const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+    const directions = allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction");
+    const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
+
+    const model = buildConnectedViewModel({
+      requirements,
+      risks,
+      actions,
+      directions,
+      links,
+      domains: PSPF_DOMAINS
+    });
+
+    const body = renderConnectedViewBodyHtml(model, {
+      mode: "workshop",
+      defaultLayout: "domains",
+      title: "Connected View",
+      subtitle: "Directions · Requirements · Risks · Actions"
+    });
+
+    panel.webview.html = shellHtml("PSPF Connected View", `
+      <style>${CONNECTED_VIEW_STYLES}</style>
+      <section style="padding:0;border:0;background:transparent;">
+        ${body}
+      </section>
+      <script>${CONNECTED_VIEW_BROWSER_SCRIPT}</script>
+    `);
+  }
+
+  wireWorkshopPanelMessages(panel, render);
+  await render();
 }
 
 async function openEvidenceReviewQueue(): Promise<void> {
@@ -1675,6 +1733,10 @@ function shellHtml(title: string, body: string): string {
 
 function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: () => Promise<void>): void {
   panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string; readonly requirementId?: string; readonly directionId?: string; readonly tagId?: string; readonly savedViewId?: string; readonly direction?: string }) => {
+    if (message.command === "refresh") {
+      await refreshPanel?.();
+      return;
+    }
     if (message.command === "openEntity" && message.entityType && message.entityId) {
       await openItemDetailForEntity(message.entityType, message.entityId);
     }
