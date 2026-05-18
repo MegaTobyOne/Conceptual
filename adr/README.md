@@ -61,6 +61,12 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0046 | v1.12 Planning lens | accepted |
 | 0047 | v1.13 Release assurance and Marketplace verification | accepted |
 | 0048 | v1.14 Compliance history export controls | accepted |
+| 0049 | Core storage engine: bundled sql.js | accepted |
+| 0050 | v1.15 Shop commercial planning foundation | accepted |
+| 0051 | v1.16 Shop canonical commercial entities | accepted |
+| 0052 | v1.17 Shop Core-backed authoring | accepted |
+| 0053 | v1.18 Shop assurance linkage and identity | accepted |
+| 0054 | v1.19 Shop commercial coverage dashboard | accepted |
 
 ## Template
 

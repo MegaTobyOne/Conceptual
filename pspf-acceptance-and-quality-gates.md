@@ -281,6 +281,52 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deferred-scope gate**: v1.14 does not add local history pruning, age-based retention filters, automatic retention windows, signed audit attestations, before/after diff views, change-record tagging, editable posture, Shop, Pub, chart image export, plan baselines, Open VSX publishing, or a separate release channel.
 8. **Regression gate**: `e2e:v1.14`, `check:gates`, `check:explorer-local-authoring`, `check:explorer-to-workshop-import`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.16 release gates (Shop canonical commercial entities, per ADR 0051)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.16.0`; schema, bundle, and API axes are `1.8.0`; `schemas/explorer-bundle/1.8.0/` exists and earlier schema directories remain immutable.
+2. **Contracts gate**: `@pspf/contracts` defines `supplier`, `contract`, and `spend-item` entity types, collections, ID prefixes, TypeScript interfaces, and default-deny publication policies.
+3. **Core collection gate**: Core can count, import, export, and include redacted `suppliers`, `contracts`, and `spend-items` collections through the existing collection-driven bundle pipeline.
+4. **Schema gate**: `check:schema-coverage` and `check:schema-policy` pass for the v1.8.0 schemas, including the new commercial collection schemas.
+5. **Shop compatibility gate**: Shop uses the shared commercial entity types and normalises v1.15 local records into the v1.16 canonical local store shape.
+6. **Privacy/redaction gate**: supplier contact data is restricted, commercial notes and monetary fields are sensitive, and personal-data exclusion remains green.
+7. **Deferred-scope gate**: v1.16 does not add Shop-to-Workshop linking UI, editable Explorer commercial views, CSV/procurement import, finance reconciliation, realised-vs-expected savings tracking, chart/PDF export, Pub integration, approvals, multi-user commercial plans, or Marketplace publication of Shop.
+8. **Regression gate**: `e2e:v1.16`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.17 release gates (Shop Core-backed authoring, per ADR 0052)
+
+1. **ADR gate**: ADR 0052 records the Shop Core-backed authoring decision before implementation starts.
+2. **Core-backed store gate**: Shop creates, edits, lists, and deletes supplier, contract, and spend-item records through Core APIs rather than treating `.pspf/shop/shop.json` as the active system of record.
+3. **Compatibility import gate**: operators can explicitly import or sync existing v1.15/v1.16 `.pspf/shop/shop.json` records into Core-backed commercial collections without silently overwriting canonical Core data.
+4. **Validation status gate**: Shop shows commercial record validation and publishability status using the canonical contracts and publication policy.
+5. **Export visibility gate**: Core snapshots and Explorer master bundles include redacted commercial collections after Shop writes them through Core.
+6. **Deferred-scope gate**: v1.17 does not add CSV/procurement import, finance reconciliation, realised-vs-expected savings tracking, approvals, Pub integration, editable Explorer commercial views, chart/PDF export, multi-user commercial plans, or Marketplace publication of Shop.
+7. **Regression gate**: `e2e:v1.17`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.18 candidate gates (Shop assurance linkage and identity, per ADR 0053)
+
+1. **ADR gate**: ADR 0053 records the Shop assurance-linkage and visual-identity decision before implementation starts.
+2. **Commercial link gate**: Shop can create only the permitted commercial links from the closed taxonomy: `supplier supports requirement`, `supplier associated-with risk`, `contract supports requirement`, `contract funds spend-item`, `spend-item supports action`, and `spend-item supports requirement`.
+3. **Picker validation gate**: Shop link pickers propose only existing active Core records with valid endpoint types and reject missing, deleted, or mistyped endpoints before writing through Core.
+4. **Workshop context gate**: Workshop Requirement, Action, and Risk detail surfaces show compact linked commercial context without exposing sensitive notes, assumptions, primary contacts, or monetary fields inappropriately.
+5. **Explorer relationship gate**: exported bundles carry the commercial links as normal `relationships`/`links`, and Explorer Relationships Board can display them using redacted commercial records.
+6. **Shop identity gate**: Shop Home/Forecast uses a distinct commercial-planning visual treatment: procurement amber/teal accents, obligation/funding/savings/payback language, linked-assurance coverage, and labelled status cues that do not rely on colour alone.
+7. **Deferred-scope gate**: v1.18 does not add CSV/procurement import, finance reconciliation, realised-vs-expected savings tracking, approvals, Pub integration, editable Explorer commercial views, chart/PDF export, multi-user commercial plans, Marketplace publication of Shop, or new compatibility axes.
+8. **Regression gate**: `e2e:v1.18`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.19 candidate gates (Shop commercial coverage dashboard, per ADR 0054)
+
+1. **ADR gate**: ADR 0054 records the Shop commercial coverage dashboard decision before implementation starts.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.19.0`; schema, bundle, and API axes remain `1.8.0`; no new schema directory is introduced.
+3. **Coverage metric gate**: Shop Home/Forecast shows linked and unlinked coverage counts for suppliers, contracts, and spend items using only active Core records and existing links.
+4. **Renewal-risk gate**: Shop identifies contracts ending within the configured near-term review window without adding new contract fields or schema axes.
+5. **Funded-action gate**: Shop identifies spend items linked to open, blocked, or overdue Actions through existing `spend-item supports action` links.
+6. **Supplier-risk gate**: Shop identifies suppliers associated with high-risk or open Risk records through existing `supplier associated-with risk` links.
+7. **Quick-action gate**: coverage cards or rows route operators to the existing v1.18 link commands rather than introducing duplicate linking flows.
+8. **Privacy/redaction gate**: coverage and Workshop context surfaces do not expose supplier `primaryContact`, commercial notes, assumptions, service summaries, or monetary values where publication policy excludes them.
+9. **Marketplace workflow gate**: CI and Marketplace release workflows package and dry-run Shop as a first-class VSIX target alongside Core and Workshop; dry runs remain visibly non-publishing.
+10. **Deferred-scope gate**: v1.19 does not add CSV/procurement import, finance reconciliation, realised-vs-expected savings tracking, approvals, Pub integration, editable Explorer commercial views, chart/PDF export, multi-user commercial plans, new commercial entity fields, or new compatibility axes.
+11. **Regression gate**: `e2e:v1.19`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

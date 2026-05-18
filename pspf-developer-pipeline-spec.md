@@ -118,7 +118,7 @@ The standing instruction is:
 
 Production releases are driven by `workflow_dispatch` from `main`, not by hand-cut tags:
 
-- **Marketplace**: run `Marketplace release` with `target=core|workshop|both`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates `core/<version>` and/or `workshop/<version>` tags and GitHub releases as receipts. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection; dry-run state is shown in the workflow run name and job summaries so a green dry run is not treated as a published extension.
+- **Marketplace**: run `Marketplace release` with `target=core|workshop|shop|both|all`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates `core/<version>`, `workshop/<version>`, and/or `shop/<version>` tags and GitHub releases as receipts. `both` remains Core+Workshop for compatibility with earlier runbooks; use `all` for Core+Workshop+Shop. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection; dry-run state is shown in the workflow run name and job summaries so a green dry run is not treated as a published extension.
 - **Explorer web**: run `Web release` with `target=production`. The workflow gates on the `production-web` environment and deploys to `tobyharvey.online` through the VentraIP composite action. Test deploys to `test.tobyharvey.online` still run automatically on push to `develop`.
 
 ### Pull request discipline
@@ -348,8 +348,7 @@ All workflow files live in `.github/workflows/` at the repo root. Each is scoped
 | `personal-data-gate.yml` | every PR | exporter run against personal-data fixture; fail-closed assertion (N6, S7) |
 | `deployment-safety.yml` | every PR and release/deploy tag | static deployment and publication-bundle safety scan; blocks hosted sensitive/restricted fields, personal data, secrets, and workspace/runtime artefacts |
 | `au-english-lint.yml` | every PR | scan `docs/**` and extracted UI strings against the spelling allowlist |
-| `marketplace.yml` | `workflow_dispatch` from `main` with `target=core\|workshop\|both` and optional `dry_run` | build once, package selected VSIX(es), show explicit dry-run state, gate on `marketplace` environment approval, publish via `vsce` when `dry_run=false`, then create `core/<v>` and/or `workshop/<v>` tags and GitHub releases as receipts |
-| `shop-release.yml` | tag `shop/<v>` | as above for Shop (v0.2+) |
+| `marketplace.yml` | `workflow_dispatch` from `main` with `target=core\|workshop\|shop\|both\|all` and optional `dry_run` | build once, package selected VSIX(es), show explicit dry-run state, gate on `marketplace` environment approval, publish via `vsce` when `dry_run=false`, then create `core/<v>`, `workshop/<v>`, and/or `shop/<v>` tags and GitHub releases as receipts |
 | `pub-release.yml` | tag `pub/<v>` | as above for Pub (v0.2+) |
 | `web-release.yml` | tag `explorer/<v>` from `main` (production) or push to `develop` (test) | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment |
 | `sync-develop.yml` | push to `main`, or `workflow_dispatch` | keep `develop` aligned with `main` after a release merge: opens or updates a `main → develop` sync pull request whenever `main` has commits not yet on `develop` |
@@ -370,13 +369,13 @@ Marketplace and web deployment are separate channels. `VSCE_TOKEN` is used only 
 
 ## Shop and Pub CI/CD
 
-Shop and Pub are deferred to v0.2+ by ADR 0014, but their package directories and release workflows should be reserved from the start so naming and tags do not drift. Until implementation begins, their CI footprint is limited to docs, package metadata, and compatibility-matrix placeholders.
+Shop is active from the v1.15+ commercial-planning slices and is released through the shared `marketplace.yml` workflow as `target=shop` or as part of `target=all`. Pub remains deferred; its package directory and future release target are still reserved so naming and tags do not drift.
 
-When Shop or Pub becomes active, each package uses the same monorepo checks as Core and Workshop:
+Shop uses the same monorepo checks as Core and Workshop, and Pub should follow the same pattern when it becomes active:
 
 - PR CI for lint/build/test scoped by `paths:` filters,
 - contract check against supported Core API/schema versions,
-- `.vsix` packaging on `shop/<version>` or `pub/<version>` tag,
+- `.vsix` packaging through the Marketplace workflow with receipt tags such as `shop/<version>` after successful publication,
 - Marketplace publish on approved release tag.
 
 If Core API compatibility changes, affected package compatibility suites should fail fast in CI instead of breaking at runtime.
@@ -632,7 +631,7 @@ Across all workflows:
 
 | Secret | Repo | Purpose |
 |---|---|---|
-| `VSCE_TOKEN` | `Conceptual` / `marketplace` environment | VS Code Marketplace publishing for Core and Workshop under publisher `tobyharvey` |
+| `VSCE_TOKEN` | `Conceptual` / `marketplace` environment | VS Code Marketplace publishing for Core, Workshop, and Shop under publisher `tobyharvey` |
 | `OVSX_TOKEN` | not configured for v1.0 | Reserved for a future Open VSX decision |
 | `GITHUB_TOKEN` | `Conceptual` | standard workflow operations |
 
@@ -683,9 +682,9 @@ For v0.1 (per ADR 0014), the minimum useful CI footprint is:
 - `personal-data-gate.yml` and `au-english-lint.yml` on every PR.
 - `schema-publish.yml` on PRs that touch `schemas/**`.
 - `accessibility.yml` on PRs that touch `packages/explorer/**`.
-- `core-release.yml`, `workshop-release.yml`, `web-release.yml` on their respective release tags.
+- `marketplace.yml` for Core, Workshop, and Shop VSIX release receipts, plus `web-release.yml` for Explorer web deploys.
 
-Shop, Pub, and the nightly bench are added in v0.2.
+Pub and the nightly bench are added in a later slice.
 
 ## Specification summary
 

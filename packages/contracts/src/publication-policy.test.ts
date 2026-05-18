@@ -5,7 +5,8 @@ import {
   V0_1_ENTITY_TYPES,
   sanitiseEntityForPublication,
   withEnvelope,
-  type RequirementEntity
+  type RequirementEntity,
+  type SpendItemEntity
 } from "./index.js";
 
 test("every v0.1 entity type has publication policy metadata", () => {
@@ -45,4 +46,42 @@ test("publication sanitiser fails closed on unknown fields", () => {
 
   requirement.unexpectedField = "This field has no publication policy.";
   assert.throws(() => sanitiseEntityForPublication(requirement), /Missing publication policy/);
+});
+
+test("commercial publication policy excludes sensitive money and rejects restricted supplier contact", () => {
+  const spendItem = withEnvelope(
+    "spend-item",
+    {
+      entityType: "spend-item",
+      title: "Security monitoring renewal",
+      spendType: "opex",
+      status: "proposed",
+      amount: { amount: 240000, currency: "AUD" },
+      financialYear: "2026-27",
+      expectedSavings: { amount: 15000, currency: "AUD" },
+      assumptions: "Commercial assumptions should not publish.",
+      confidence: "medium"
+    },
+    "shop"
+  );
+
+  const published = sanitiseEntityForPublication(spendItem) as SpendItemEntity;
+  assert.equal(published.title, "Security monitoring renewal");
+  assert.equal(published.amount, undefined);
+  assert.equal(published.expectedSavings, undefined);
+  assert.equal(published.assumptions, undefined);
+
+  const supplier = withEnvelope(
+    "supplier",
+    {
+      entityType: "supplier",
+      name: "Secure Cloud Services",
+      supplierType: "managed-service",
+      status: "active",
+      criticality: "high",
+      primaryContact: "Named commercial contact"
+    },
+    "shop"
+  );
+  assert.throws(() => sanitiseEntityForPublication(supplier), /Restricted field cannot be published: supplier.primaryContact/);
 });

@@ -314,6 +314,8 @@ This helps users reason about defensibility rather than simply filling fields.
 
 Shop should focus on supplier, contract, spend, and forecast workflows. The visual emphasis should be on commercial relationships, obligations, linked controls, action status, forecast cost, expected savings, and investment timing rather than on dense compliance framing.
 
+From v1.18, Shop has a distinct commercial-planning identity inside the PSPF family. It should use procurement amber/teal accents over neutral VS Code surfaces, with restrained panels and labelled status cues rather than colour-only signalling. The surface should feel practical and commercially alert: obligations, renewal windows, funding dependencies, expected savings, payback, and linked assurance impact should be easier to scan than raw compliance detail.
+
 Core Shop page types:
 - supplier directory,
 - supplier profile,
@@ -322,6 +324,8 @@ Core Shop page types:
 - spend forecast,
 - savings opportunities,
 - linked requirements and risks.
+
+The v1.18 Shop Home/Forecast treatment should include linked-assurance coverage: commercial records without linked Requirements, Actions, or Risks; spend items that fund open Actions; suppliers associated with high-risk work; and contracts supporting Requirements.
 
 Shop should answer practical commercial questions in plain language:
 - “What are we already committed to spend?”

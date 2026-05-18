@@ -18,7 +18,12 @@ const axesByMinorVersion = new Map([
   [11, "1.7.0"],
   [12, "1.7.0"],
   [13, "1.7.0"],
-  [14, "1.7.0"]
+  [14, "1.7.0"],
+  [15, "1.7.0"],
+  [16, "1.8.0"],
+  [17, "1.8.0"],
+  [18, "1.8.0"],
+  [19, "1.8.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -31,6 +36,7 @@ const packagePaths = [
   "packages/explorer/package.json",
   "packages/ism-source-library/package.json",
   "packages/reference-data/package.json",
+  "packages/shop/package.json",
   "packages/workshop/package.json"
 ];
 
@@ -45,7 +51,7 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), `schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleVersion should be ${expectedAxes}`);
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
-const e2eScript = minorVersion >= 14 ? "e2e:v1.14" : minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = minorVersion >= 19 ? "e2e:v1.19" : minorVersion >= 18 ? "e2e:v1.18" : minorVersion >= 17 ? "e2e:v1.17" : minorVersion >= 16 ? "e2e:v1.16" : minorVersion >= 14 ? "e2e:v1.14" : minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -71,6 +77,11 @@ for (const requiredPath of [
   "adr/0046-v1-12-planning-lens.md",
   "adr/0047-v1-13-release-assurance.md",
   "adr/0048-v1-14-compliance-history-export-controls.md",
+  "adr/0050-v1-15-shop-commercial-planning-foundation.md",
+  "adr/0051-v1-16-shop-canonical-commercial-entities.md",
+  "adr/0052-v1-17-shop-core-backed-authoring.md",
+  "adr/0053-v1-18-shop-assurance-linkage-and-identity.md",
+  "adr/0054-v1-19-shop-commercial-coverage-dashboard.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -84,7 +95,8 @@ for (const requiredText of [`PSPF v${expectedVersion}`, `Schema ${expectedAxes}`
   assert.equal(scenario.includes(requiredText), true, `validation scenario should mention ${requiredText}`);
 }
 
-for (const deferredPackage of ["packages/shop/README.md", "packages/pub/README.md"]) {
+const deferredPackages = minorVersion >= 15 ? ["packages/pub/README.md"] : ["packages/shop/README.md", "packages/pub/README.md"];
+for (const deferredPackage of deferredPackages) {
   const text = await readFile(join(root, deferredPackage), "utf8");
   assert.match(text, /deferred/i, `${deferredPackage} should remain a deferral note for ${expectedVersion}`);
 }
@@ -307,6 +319,110 @@ if (/^1\.14\.\d+$/.test(expectedVersion)) {
   assert.equal(packageJson.scripts["e2e:v1.14"].includes("check:explorer-local-authoring"), true, "e2e:v1.14 should include Explorer local-authoring gate");
   assert.equal(packageJson.scripts["e2e:v1.14"].includes("check:explorer-to-workshop-import"), true, "e2e:v1.14 should include Explorer-to-Workshop import gate");
   assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.14"), true, "release:readiness should run e2e:v1.14");
+}
+
+if (/^1\.15\.\d+$/.test(expectedVersion)) {
+  const v115Adr = await readFile(join(root, "adr/0050-v1-15-shop-commercial-planning-foundation.md"), "utf8");
+  for (const requiredText of ["v1.15", "Shop commercial planning foundation", "workspace-local JSON storage", "pspfShop", "tobyharvey.pspf-shop", "1.7.0"]) {
+    assert.equal(v115Adr.includes(requiredText), true, `v1.15 ADR should mention ${requiredText}`);
+  }
+  const shopPackage = await readFile(join(root, "packages/shop/package.json"), "utf8");
+  for (const requiredText of ["pspfShop.suppliersView", "pspfShop.contractsView", "pspfShop.spendView", "pspfShop.forecastView", "pspf.shop.newSupplier", "pspf.shop.newContract", "pspf.shop.newSpendItem"]) {
+    assert.equal(shopPackage.includes(requiredText), true, `Shop extension package should mention ${requiredText}`);
+  }
+  const shopExtension = await readFile(join(root, "packages/shop/src/extension.ts"), "utf8");
+  for (const requiredText of ["SHOP_STORE_VERSION", ".pspf", "shop.json", "deriveForecast", "supplier", "contract", "spendItems"]) {
+    assert.equal(shopExtension.includes(requiredText), true, `Shop extension runtime should mention ${requiredText}`);
+  }
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.14"), true, "release:readiness should continue to run e2e:v1.14 for standalone Shop foundation");
+}
+
+if (/^1\.16\.\d+$/.test(expectedVersion)) {
+  const v116Adr = await readFile(join(root, "adr/0051-v1-16-shop-canonical-commercial-entities.md"), "utf8");
+  for (const requiredText of ["v1.16", "Shop canonical commercial entities", "supplier", "contract", "spend-item", "1.8.0"]) {
+    assert.equal(v116Adr.includes(requiredText), true, `v1.16 ADR should mention ${requiredText}`);
+  }
+  for (const schemaPath of [
+    "schemas/explorer-bundle/1.8.0/collections/suppliers.schema.json",
+    "schemas/explorer-bundle/1.8.0/collections/contracts.schema.json",
+    "schemas/explorer-bundle/1.8.0/collections/spend-items.schema.json"
+  ]) {
+    assert.equal(existsSync(join(root, schemaPath)), true, `${schemaPath} should exist`);
+  }
+  const contracts = await readFile(join(root, "packages/contracts/src/index.ts"), "utf8");
+  for (const requiredText of ["SupplierEntity", "ContractEntity", "SpendItemEntity", "suppliers", "contracts", "spend-items", "primaryContact", "restricted"]) {
+    assert.equal(contracts.includes(requiredText), true, `Contracts v1.16 commercial entity surface should mention ${requiredText}`);
+  }
+  const shopExtension = await readFile(join(root, "packages/shop/src/extension.ts"), "utf8");
+  for (const requiredText of ["type SupplierEntity", "type ContractEntity", "type SpendItemEntity", "normaliseMoneyAmount", "mapSpendType", "moneyAmount"]) {
+    assert.equal(shopExtension.includes(requiredText), true, `Shop v1.16 canonical local store should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["e2e:v1.16"], "string", "root package should define e2e:v1.16");
+  assert.equal(packageJson.scripts["e2e:v1.16"].includes("e2e:v1.14"), true, "e2e:v1.16 should include v1.14 gates");
+  assert.equal(packageJson.scripts["e2e:v1.16"].includes("check:schema-coverage"), true, "e2e:v1.16 should include schema coverage");
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.16"), true, "release:readiness should run e2e:v1.16");
+}
+
+if (/^1\.17\.\d+$/.test(expectedVersion)) {
+  const v117Adr = await readFile(join(root, "adr/0052-v1-17-shop-core-backed-authoring.md"), "utf8");
+  for (const requiredText of ["v1.17", "Shop Core-backed authoring", "Core", "local JSON", "1.8.0"]) {
+    assert.equal(v117Adr.includes(requiredText), true, `v1.17 ADR should mention ${requiredText}`);
+  }
+  const shopPackage = await readFile(join(root, "packages/shop/package.json"), "utf8");
+  for (const requiredText of ["tobyharvey.pspf-core", "pspf.shop.importLocalStore", "pspf.shop.editSupplier", "pspf.shop.deleteRecord"]) {
+    assert.equal(shopPackage.includes(requiredText), true, `Shop v1.17 package should mention ${requiredText}`);
+  }
+  const shopExtension = await readFile(join(root, "packages/shop/src/extension.ts"), "utf8");
+  for (const requiredText of ["pspf.core.listEntities", "pspf.core.upsertEntities", "importLocalStore", "sanitiseEntityForPublication", "recordStatus: \"deleted\""]) {
+    assert.equal(shopExtension.includes(requiredText), true, `Shop v1.17 Core-backed runtime should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["e2e:v1.17"], "string", "root package should define e2e:v1.17");
+  assert.equal(packageJson.scripts["e2e:v1.17"].includes("e2e:v1.16"), true, "e2e:v1.17 should include v1.16 gates");
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.17"), true, "release:readiness should run e2e:v1.17");
+}
+
+if (isV1Release && minorVersion >= 18) {
+  const v118Adr = await readFile(join(root, "adr/0053-v1-18-shop-assurance-linkage-and-identity.md"), "utf8");
+  for (const requiredText of ["v1.18", "Shop assurance linkage", "distinct visual identity", "1.8.0"]) {
+    assert.equal(v118Adr.includes(requiredText), true, `v1.18 ADR should mention ${requiredText}`);
+  }
+  const shopPackage = await readFile(join(root, "packages/shop/package.json"), "utf8");
+  for (const requiredText of ["pspf.shop.linkSupplierToRequirement", "pspf.shop.linkSupplierToRisk", "pspf.shop.linkContractToSpendItem", "pspf.shop.linkSpendToAction"]) {
+    assert.equal(shopPackage.includes(requiredText), true, `Shop v1.18 package should mention ${requiredText}`);
+  }
+  const shopExtension = await readFile(join(root, "packages/shop/src/extension.ts"), "utf8");
+  for (const requiredText of ["linkCommercialRecord", "pspf.core.listEntities", "withEnvelope(\"link\"", "Commercial planning", "--shop-amber"]) {
+    assert.equal(shopExtension.includes(requiredText), true, `Shop v1.18 runtime should mention ${requiredText}`);
+  }
+  const workshopExtension = await readFile(join(root, "packages/workshop/src/extension.ts"), "utf8");
+  for (const requiredText of ["Commercial Context", "commercialContextSection", "associated-with", "Spend item"]) {
+    assert.equal(workshopExtension.includes(requiredText), true, `Workshop v1.18 commercial context should mention ${requiredText}`);
+  }
+  const marketplaceWorkflow = await readFile(join(root, ".github/workflows/marketplace.yml"), "utf8");
+  for (const requiredText of ["- shop", "- all", "publish_shop", "Package Shop VSIX", "Publish Shop to Marketplace", "tobyharvey.pspf-shop", "shop/${{ needs.build.outputs.shop_version }}"]) {
+    assert.equal(marketplaceWorkflow.includes(requiredText), true, `Marketplace workflow should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["e2e:v1.18"], "string", "root package should define e2e:v1.18");
+  assert.equal(packageJson.scripts["e2e:v1.18"].includes("e2e:v1.17"), true, "e2e:v1.18 should include v1.17 gates");
+  if (/^1\.18\.\d+$/.test(expectedVersion)) {
+    assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.18"), true, "release:readiness should run e2e:v1.18");
+  }
+}
+
+if (/^1\.19\.\d+$/.test(expectedVersion)) {
+  const v119Adr = await readFile(join(root, "adr/0054-v1-19-shop-commercial-coverage-dashboard.md"), "utf8");
+  for (const requiredText of ["v1.19", "Shop commercial coverage dashboard", "linked-assurance", "near-term review window", "1.8.0"]) {
+    assert.equal(v119Adr.includes(requiredText), true, `v1.19 ADR should mention ${requiredText}`);
+  }
+  const shopExtension = await readFile(join(root, "packages/shop/src/extension.ts"), "utf8");
+  for (const requiredText of ["deriveCoverageDashboard", "Assurance coverage", "Near-term contract review", "Funded Actions", "Supplier Risk links", "enableCommandUris: true"]) {
+    assert.equal(shopExtension.includes(requiredText), true, `Shop v1.19 coverage dashboard should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["check:shop-coverage-dashboard"], "string", "root package should define check:shop-coverage-dashboard");
+  assert.equal(typeof packageJson.scripts["e2e:v1.19"], "string", "root package should define e2e:v1.19");
+  assert.equal(packageJson.scripts["e2e:v1.19"].includes("e2e:v1.18"), true, "e2e:v1.19 should include v1.18 gates");
+  assert.equal(packageJson.scripts["e2e:v1.19"].includes("check:shop-coverage-dashboard"), true, "e2e:v1.19 should include Shop coverage dashboard gate");
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.19"), true, "release:readiness should run e2e:v1.19");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);
