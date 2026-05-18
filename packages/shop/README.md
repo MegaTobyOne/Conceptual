@@ -10,4 +10,4 @@ Shop now reads and writes commercial records through Core. The local JSON file i
 
 v1.18 adds Shop assurance linkage and identity: suppliers, contracts, and spend items can link to Requirements, Actions, and Risks through existing Core links, Workshop surfaces that commercial context, and Shop uses a distinct commercial-planning visual treatment.
 
-The next planned slice is v1.19 Shop commercial coverage dashboard: linked/unlinked assurance coverage, expiring contracts, funded open-action signals, and supplier risk context on the existing Shop Home/Forecast surface.
+v1.19 adds the Shop commercial coverage dashboard: linked/unlinked assurance coverage, near-term contract review, funded open-action signals, and supplier risk context on the existing Shop Forecast surface.

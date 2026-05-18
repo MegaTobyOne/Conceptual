@@ -30,6 +30,7 @@ const SPEND_TYPES = ["capex", "opex", "uplift", "licence", "service"] as const;
 const SPEND_STATUSES = ["proposed", "approved", "committed", "spent", "cancelled"] as const;
 const SAVINGS_TYPES = ["avoided-cost", "efficiency", "consolidation", "risk-reduction", "contract-optimisation", "other"] as const;
 const CONFIDENCE_LEVELS = ["low", "medium", "high"] as const;
+const NEAR_TERM_REVIEW_DAYS = 120;
 
 interface ShopStore {
     readonly shopStoreVersion: string;
@@ -54,12 +55,46 @@ interface ForecastYear {
     readonly itemCount: number;
 }
 
+interface CoverageGroup {
+    readonly label: string;
+    readonly total: number;
+    readonly linked: number;
+    readonly unlinked: readonly CommercialSource[];
+    readonly linkCommand: string;
+}
+
+interface ContractRenewal {
+    readonly contract: ContractRecord;
+    readonly supplierName: string;
+    readonly daysUntilEnd: number;
+}
+
+interface FundedAction {
+    readonly spendItem: SpendItemRecord;
+    readonly action: ActionEntity;
+    readonly urgency: "blocked" | "overdue" | "open";
+}
+
+interface SupplierRisk {
+    readonly supplier: SupplierRecord;
+    readonly risk: RiskEntity;
+    readonly score: number;
+}
+
+interface CommercialCoverageDashboard {
+    readonly coverage: readonly CoverageGroup[];
+    readonly renewals: readonly ContractRenewal[];
+    readonly fundedActions: readonly FundedAction[];
+    readonly supplierRisks: readonly SupplierRisk[];
+}
+
 let shopStore: ShopStore | undefined;
 let suppliersProvider: SupplierTreeProvider | undefined;
 let contractsProvider: ContractTreeProvider | undefined;
 let spendProvider: SpendTreeProvider | undefined;
 let forecastProvider: ForecastViewProvider | undefined;
 let welcomeProvider: WelcomeTreeProvider | undefined;
+let forecastPanel: vscode.WebviewPanel | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
     suppliersProvider = new SupplierTreeProvider();
@@ -113,9 +148,18 @@ async function openHome(): Promise<void> {
 }
 
 async function openForecast(): Promise<void> {
-    await vscode.commands.executeCommand("workbench.view.extension.pspfShop");
-    await vscode.commands.executeCommand("pspfShop.forecastView.focus");
-    await refreshViews();
+    const store = await loadStore();
+    const forecast = deriveForecast(store.spendItems);
+    const dashboard = await deriveCoverageDashboard(store);
+    if (forecastPanel) {
+        forecastPanel.reveal(vscode.ViewColumn.One);
+    } else {
+        forecastPanel = vscode.window.createWebviewPanel("pspfShopForecast", "PSPF Shop Forecast", vscode.ViewColumn.One, { enableScripts: false, enableCommandUris: true });
+        forecastPanel.onDidDispose(() => {
+            forecastPanel = undefined;
+        });
+    }
+    forecastPanel.webview.html = renderForecastHtml(store, forecast, dashboard, "panel");
 }
 
 async function loadSample(): Promise<void> {
@@ -455,6 +499,9 @@ async function refreshViews(): Promise<void> {
     spendProvider?.refresh();
     forecastProvider?.refresh();
     welcomeProvider?.refresh();
+    if (forecastPanel) {
+        await openForecast();
+    }
 }
 
 async function loadStore(): Promise<ShopStore> {
@@ -1154,21 +1201,22 @@ class ForecastViewProvider implements vscode.WebviewViewProvider {
 
     resolveWebviewView(webviewView: vscode.WebviewView): void {
         this.view = webviewView;
-        webviewView.webview.options = { enableScripts: false };
-        this.render();
+        webviewView.webview.options = { enableScripts: false, enableCommandUris: true };
+        void this.render();
     }
 
     refresh(): void {
-        this.render();
+        void this.render();
     }
 
-    private render(): void {
+    private async render(): Promise<void> {
         if (!this.view) {
             return;
         }
-        const store = shopStore ?? emptyStore();
+        const store = await loadStore();
         const forecast = deriveForecast(store.spendItems);
-        this.view.webview.html = renderForecastHtml(store, forecast);
+        const dashboard = await deriveCoverageDashboard(store);
+        this.view.webview.html = renderCompactForecastHtml(store, forecast, dashboard);
     }
 }
 
@@ -1198,7 +1246,158 @@ function deriveForecast(spendItems: readonly SpendItemRecord[]): ForecastYear[] 
     return [...byYear.values()].sort((first, second) => first.financialYear.localeCompare(second.financialYear));
 }
 
-function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[]): string {
+async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCoverageDashboard> {
+    const entities = await listCoreEntities();
+    const activeEntities = entities.filter(isActiveEntity);
+    const links = activeEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
+    const actionById = new Map(activeEntities.filter((entity): entity is ActionEntity => entity.entityType === "action").map((action) => [action.id, action]));
+    const riskById = new Map(activeEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk").map((risk) => [risk.id, risk]));
+    const supplierById = new Map(store.suppliers.map((supplier) => [supplier.id, supplier]));
+    const today = startOfUtcDay(new Date());
+
+    return {
+        coverage: [
+            coverageGroup("Suppliers", store.suppliers, links, isSupplierAssuranceLink, "pspf.shop.linkSupplierToRequirement"),
+            coverageGroup("Contracts", store.contracts, links, isContractAssuranceLink, "pspf.shop.linkContractToRequirement"),
+            coverageGroup("Spend items", store.spendItems, links, isSpendAssuranceLink, "pspf.shop.linkSpendToAction")
+        ],
+        renewals: store.contracts
+            .filter((contract) => contract.status === "active")
+            .map((contract) => ({ contract, supplierName: supplierById.get(contract.supplierId)?.name ?? "Unknown supplier", daysUntilEnd: daysUntil(contract.endsAt, today) }))
+            .filter((renewal): renewal is ContractRenewal => renewal.daysUntilEnd !== undefined && renewal.daysUntilEnd >= 0 && renewal.daysUntilEnd <= NEAR_TERM_REVIEW_DAYS)
+            .sort((first, second) => first.daysUntilEnd - second.daysUntilEnd || first.contract.title.localeCompare(second.contract.title)),
+        fundedActions: links
+            .filter((link) => isSpendAssuranceLink(link) && link.toType === "action")
+            .map((link) => {
+                const spendItem = store.spendItems.find((candidate) => candidate.id === link.fromId);
+                const action = actionById.get(link.toId);
+                return spendItem && action && isOpenAction(action) ? { spendItem, action, urgency: actionUrgency(action, today) } : undefined;
+            })
+            .filter(isDefined)
+            .sort((first, second) => urgencyRank(first.urgency) - urgencyRank(second.urgency) || first.action.title.localeCompare(second.action.title)),
+        supplierRisks: links
+            .filter(isSupplierRiskLink)
+            .map((link) => {
+                const supplier = store.suppliers.find((candidate) => candidate.id === link.fromId);
+                const risk = riskById.get(link.toId);
+                const score = risk ? risk.likelihood * risk.impact : 0;
+                return supplier && risk && (risk.status === "open" || score >= 12) ? { supplier, risk, score } : undefined;
+            })
+            .filter(isDefined)
+            .sort((first, second) => second.score - first.score || first.risk.title.localeCompare(second.risk.title))
+    };
+}
+
+function coverageGroup(label: string, records: readonly CommercialSource[], links: readonly LinkEntity[], isCoveredLink: (link: LinkEntity) => boolean, linkCommand: string): CoverageGroup {
+    const linkedIds = new Set(links.filter(isCoveredLink).map((link) => link.fromId));
+    return {
+        label,
+        total: records.length,
+        linked: records.filter((record) => linkedIds.has(record.id)).length,
+        unlinked: records.filter((record) => !linkedIds.has(record.id)),
+        linkCommand
+    };
+}
+
+function isSupplierAssuranceLink(link: LinkEntity): boolean {
+    return link.fromType === "supplier" && ((link.linkType === "supports" && link.toType === "requirement") || (link.linkType === "associated-with" && link.toType === "risk"));
+}
+
+function isContractAssuranceLink(link: LinkEntity): boolean {
+    return link.fromType === "contract" && ((link.linkType === "supports" && link.toType === "requirement") || (link.linkType === "funds" && link.toType === "spend-item"));
+}
+
+function isSpendAssuranceLink(link: LinkEntity): boolean {
+    return link.fromType === "spend-item" && link.linkType === "supports" && (link.toType === "action" || link.toType === "requirement");
+}
+
+function isSupplierRiskLink(link: LinkEntity): boolean {
+    return link.fromType === "supplier" && link.toType === "risk" && link.linkType === "associated-with";
+}
+
+function daysUntil(dateText: string | undefined, today: Date): number | undefined {
+    if (!dateText) {
+        return undefined;
+    }
+    const date = startOfUtcDay(new Date(`${dateText}T00:00:00Z`));
+    if (Number.isNaN(date.getTime())) {
+        return undefined;
+    }
+    return Math.round((date.getTime() - today.getTime()) / 86_400_000);
+}
+
+function startOfUtcDay(date: Date): Date {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function isOpenAction(action: ActionEntity): boolean {
+    return action.status !== "done" && action.status !== "cancelled";
+}
+
+function actionUrgency(action: ActionEntity, today: Date): FundedAction["urgency"] {
+    if (action.status === "blocked") {
+        return "blocked";
+    }
+    const dueIn = daysUntil(action.dueDate, today);
+    return dueIn !== undefined && dueIn < 0 ? "overdue" : "open";
+}
+
+function urgencyRank(urgency: FundedAction["urgency"]): number {
+    switch (urgency) {
+        case "blocked":
+            return 0;
+        case "overdue":
+            return 1;
+        case "open":
+            return 2;
+    }
+}
+
+function renderCompactForecastHtml(store: ShopStore, forecast: readonly ForecastYear[], dashboard: CommercialCoverageDashboard): string {
+    const publicationStatus = getPublicationStatus(store);
+    const nextForecast = forecast[0];
+    const unlinkedCount = dashboard.coverage.reduce((total, group) => total + group.unlinked.length, 0);
+    const urgentActions = dashboard.fundedActions.filter((item) => item.urgency === "blocked" || item.urgency === "overdue").length;
+    return `<!doctype html>
+<html lang="en-AU">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root { --shop-amber: #c47a16; --shop-teal: #1b8078; --shop-panel: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--shop-teal)); }
+        body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0; padding: 12px; }
+        h1 { font-size: 1rem; margin: 0 0 6px; }
+        p { color: var(--vscode-descriptionForeground); margin: 0 0 10px; }
+        .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: 10px; margin: 0 0 10px; }
+        .eyebrow { color: var(--shop-teal); font-size: .72rem; font-weight: 700; letter-spacing: 0; text-transform: uppercase; margin: 0 0 4px; }
+        .summary { display: grid; gap: 8px; }
+        .pill { border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 7px 8px; }
+        .pill strong { color: var(--shop-amber); }
+        a { color: var(--vscode-textLink-foreground); }
+    </style>
+</head>
+<body>
+    <div class="masthead">
+        <p class="eyebrow">Commercial planning</p>
+        <h1>Shop Forecast</h1>
+        <p>Compact forecast summary. Open the full forecast for coverage, renewal, action, and risk detail.</p>
+    </div>
+    <div class="summary">
+        <span class="pill"><strong>${store.suppliers.length}</strong> suppliers</span>
+        <span class="pill"><strong>${store.contracts.length}</strong> contracts</span>
+        <span class="pill"><strong>${store.spendItems.length}</strong> spend items</span>
+        <span class="pill"><strong>${unlinkedCount}</strong> unlinked assurance records</span>
+        <span class="pill"><strong>${dashboard.renewals.length}</strong> contracts in review window</span>
+        <span class="pill"><strong>${urgentActions}</strong> funded blocked or overdue Actions</span>
+        <span class="pill">${publicationStatus}</span>
+        <span class="pill">${nextForecast ? `${escapeHtml(nextForecast.financialYear)} net forecast ${escapeHtml(formatCurrency(nextForecast.netForecast))}` : "No spend forecast yet"}</span>
+    </div>
+    <p><a href="${escapeHtml(commandUri("pspf.shop.openForecast", []))}">Open full forecast</a></p>
+</body>
+</html>`;
+}
+
+function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[], dashboard: CommercialCoverageDashboard, mode: "panel" | "view" = "panel"): string {
     const publicationStatus = getPublicationStatus(store);
     const rows = forecast.length === 0
         ? "<tr><td colspan=\"6\">No spend items yet.</td></tr>"
@@ -1211,7 +1410,36 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[])
         <td>${escapeHtml(formatCurrency(year.expectedSavings))}</td>
         <td>${escapeHtml(formatCurrency(year.netForecast))}</td>
       </tr>`).join("");
+    const coverageRows = dashboard.coverage.map((group) => renderCoverageRow(group)).join("");
+    const renewalRows = dashboard.renewals.length === 0
+        ? "<tr><td colspan=\"4\">No active contracts end inside the near-term review window.</td></tr>"
+        : dashboard.renewals.map((renewal) => `
+            <tr>
+                <td>${escapeHtml(renewal.contract.title)}</td>
+                <td>${escapeHtml(renewal.supplierName)}</td>
+                <td>${escapeHtml(renewal.contract.endsAt ?? "Not set")}</td>
+                <td>${renewal.daysUntilEnd} days</td>
+            </tr>`).join("");
+    const fundedActionRows = dashboard.fundedActions.length === 0
+        ? "<tr><td colspan=\"4\">No spend items are linked to open, blocked, or overdue Actions.</td></tr>"
+        : dashboard.fundedActions.map((item) => `
+            <tr>
+                <td>${escapeHtml(item.spendItem.title)}</td>
+                <td>${escapeHtml(item.action.title)}</td>
+                <td><span class="status status-${escapeHtml(item.urgency)}">${escapeHtml(formatToken(item.urgency))}</span></td>
+                <td>${escapeHtml(formatToken(item.action.status))}${item.action.dueDate ? `, due ${escapeHtml(item.action.dueDate)}` : ""}</td>
+            </tr>`).join("");
+    const supplierRiskRows = dashboard.supplierRisks.length === 0
+        ? "<tr><td colspan=\"4\">No suppliers are linked to open or high-scoring Risks.</td></tr>"
+        : dashboard.supplierRisks.map((item) => `
+            <tr>
+                <td>${escapeHtml(item.supplier.name)}</td>
+                <td>${escapeHtml(item.risk.title)}</td>
+                <td>${escapeHtml(formatToken(item.risk.status))}</td>
+                <td>${item.score}</td>
+            </tr>`).join("");
 
+    const maxWidth = mode === "panel" ? "1120px" : "none";
     return `<!doctype html>
 <html lang="en-AU">
 <head>
@@ -1219,20 +1447,31 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[])
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
         :root { --shop-amber: #c47a16; --shop-teal: #1b8078; --shop-panel: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--shop-teal)); }
-    body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0; padding: 16px; }
+    body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
+        main { max-width: ${maxWidth}; margin: 0 auto; }
         h1 { font-size: 1.25rem; margin: 0 0 8px; }
     p { color: var(--vscode-descriptionForeground); margin: 0 0 16px; }
         .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: 12px 14px; margin: 0 0 14px; }
         .eyebrow { color: var(--shop-teal); font-size: .72rem; font-weight: 700; letter-spacing: 0; text-transform: uppercase; margin: 0 0 4px; }
-    table { border-collapse: collapse; width: 100%; }
+    h2 { font-size: 1rem; margin: 20px 0 8px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 14px; }
     th, td { border-bottom: 1px solid var(--vscode-panel-border); padding: 8px 6px; text-align: left; }
     th { color: var(--vscode-descriptionForeground); font-weight: 600; }
     .summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
     .pill { border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 6px 8px; }
         .pill strong { color: var(--shop-amber); }
+        .panel { border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 10px; margin: 0 0 12px; }
+        .coverage { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+        .coverage-card { background: color-mix(in srgb, var(--vscode-editor-background) 92%, var(--shop-amber)); border-left: 3px solid var(--shop-teal); padding: 10px; }
+        .coverage-card strong { display: block; font-size: 1.4rem; color: var(--shop-amber); }
+        .coverage-card a { display: inline-block; margin-top: 6px; color: var(--vscode-textLink-foreground); }
+        .status { border: 1px solid var(--vscode-panel-border); border-radius: 999px; padding: 2px 6px; white-space: nowrap; }
+        .status-blocked { border-color: var(--vscode-errorForeground); }
+        .status-overdue { border-color: var(--shop-amber); }
   </style>
 </head>
 <body>
+    <main>
     <div class="masthead">
         <p class="eyebrow">Commercial planning</p>
         <h1>Shop Forecast</h1>
@@ -1244,14 +1483,59 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[])
         <span class="pill"><strong>${store.spendItems.length}</strong> spend items</span>
         <span class="pill">${publicationStatus}</span>
   </div>
+    <section class="panel">
+        <h2>Assurance coverage</h2>
+        <div class="coverage">${coverageRows}</div>
+    </section>
+    <section>
+        <h2>Near-term contract review</h2>
+        <table>
+            <thead><tr><th>Contract</th><th>Supplier</th><th>End date</th><th>Review window</th></tr></thead>
+            <tbody>${renewalRows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Funded Actions</h2>
+        <table>
+            <thead><tr><th>Spend item</th><th>Action</th><th>Signal</th><th>Status</th></tr></thead>
+            <tbody>${fundedActionRows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Supplier Risk links</h2>
+        <table>
+            <thead><tr><th>Supplier</th><th>Risk</th><th>Status</th><th>Score</th></tr></thead>
+            <tbody>${supplierRiskRows}</tbody>
+        </table>
+    </section>
+    <h2>Spend forecast</h2>
   <table>
     <thead>
       <tr><th>Financial year</th><th>Items</th><th>Planned spend</th><th>Forecast cost</th><th>Expected savings</th><th>Net forecast</th></tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>
+    </main>
 </body>
 </html>`;
+}
+
+function renderCoverageRow(group: CoverageGroup): string {
+    const unlinkedCount = group.unlinked.length;
+    const sample = group.unlinked[0];
+    const quickAction = sample
+        ? `<a href="${escapeHtml(commandUri(group.linkCommand, [sample]))}">Link ${escapeHtml(commercialTitle(sample))}</a>`
+        : "<span>All active records have coverage links.</span>";
+    return `<div class="coverage-card">
+        <strong>${group.linked}/${group.total}</strong>
+        <span>${escapeHtml(group.label)} linked</span><br>
+        <span>${unlinkedCount} unlinked</span><br>
+        ${quickAction}
+    </div>`;
+}
+
+function commandUri(command: string, args: readonly unknown[]): string {
+    return `command:${command}?${encodeURIComponent(JSON.stringify(args))}`;
 }
 
 function getPublicationStatus(store: ShopStore): string {
