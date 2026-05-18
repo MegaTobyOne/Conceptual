@@ -396,6 +396,10 @@ if (/^1\.18\.\d+$/.test(expectedVersion)) {
   for (const requiredText of ["Commercial Context", "commercialContextSection", "associated-with", "Spend item"]) {
     assert.equal(workshopExtension.includes(requiredText), true, `Workshop v1.18 commercial context should mention ${requiredText}`);
   }
+  const marketplaceWorkflow = await readFile(join(root, ".github/workflows/marketplace.yml"), "utf8");
+  for (const requiredText of ["- shop", "- all", "publish_shop", "Package Shop VSIX", "Publish Shop to Marketplace", "tobyharvey.pspf-shop", "shop/${{ needs.build.outputs.shop_version }}"]) {
+    assert.equal(marketplaceWorkflow.includes(requiredText), true, `Marketplace workflow should mention ${requiredText}`);
+  }
   assert.equal(typeof packageJson.scripts["e2e:v1.18"], "string", "root package should define e2e:v1.18");
   assert.equal(packageJson.scripts["e2e:v1.18"].includes("e2e:v1.17"), true, "e2e:v1.18 should include v1.17 gates");
   assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.18"), true, "release:readiness should run e2e:v1.18");
