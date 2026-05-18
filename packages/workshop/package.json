@@ -76,6 +76,22 @@
                 "title": "PSPF: Create Risk"
             },
             {
+                "command": "pspf.workshop.linkExistingEvidence",
+                "title": "PSPF: Link Existing Evidence"
+            },
+            {
+                "command": "pspf.workshop.linkExistingAction",
+                "title": "PSPF: Link Existing Action"
+            },
+            {
+                "command": "pspf.workshop.linkExistingRisk",
+                "title": "PSPF: Link Existing Risk"
+            },
+            {
+                "command": "pspf.workshop.linkExistingDirection",
+                "title": "PSPF: Link Existing Direction"
+            },
+            {
                 "command": "pspf.workshop.openAssessmentDashboard",
                 "title": "PSPF: Open Assessment Dashboard"
             },

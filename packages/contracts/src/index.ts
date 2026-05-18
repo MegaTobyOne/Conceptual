@@ -979,9 +979,6 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
     if (!publication) {
       throw new Error(`Missing publication policy for ${entity.entityType}.${field}`);
     }
-    if (publication === "restricted") {
-      throw new Error(`Restricted field cannot be published: ${entity.entityType}.${field}`);
-    }
     if (publication === "public" || publication === "internal") {
       output[field] = field === "schemaVersion" ? VERSION_AXES.schemaVersion : value;
     }

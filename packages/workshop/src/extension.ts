@@ -74,6 +74,10 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.attachEvidence", attachEvidence),
     vscode.commands.registerCommand("pspf.workshop.createAction", createAction),
     vscode.commands.registerCommand("pspf.workshop.createRisk", createRisk),
+    vscode.commands.registerCommand("pspf.workshop.linkExistingEvidence", linkExistingEvidence),
+    vscode.commands.registerCommand("pspf.workshop.linkExistingAction", linkExistingAction),
+    vscode.commands.registerCommand("pspf.workshop.linkExistingRisk", linkExistingRisk),
+    vscode.commands.registerCommand("pspf.workshop.linkExistingDirection", linkExistingDirection),
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
@@ -682,6 +686,22 @@ async function createRisk(requirementId?: string): Promise<void> {
   await upsertEntityWithRequirementLinks(risk, links, requirements);
 }
 
+async function linkExistingEvidence(requirementId?: string): Promise<void> {
+  await linkExistingItemToRequirement(requirementId, "evidence");
+}
+
+async function linkExistingAction(requirementId?: string): Promise<void> {
+  await linkExistingItemToRequirement(requirementId, "action");
+}
+
+async function linkExistingRisk(requirementId?: string): Promise<void> {
+  await linkExistingItemToRequirement(requirementId, "risk");
+}
+
+async function linkExistingDirection(requirementId?: string): Promise<void> {
+  await linkExistingItemToRequirement(requirementId, "direction");
+}
+
 async function upsertLinkedEntity(entity: V01Entity, link: LinkEntity, requirement: RequirementEntity): Promise<void> {
   await vscode.commands.executeCommand("pspf.core.upsertEntities", [entity, link]);
   const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities");
@@ -717,12 +737,6 @@ async function upsertEntityWithRequirementLinks(entity: EvidenceEntity | ActionE
 
   await refreshWorkshopSurfaces();
   await rememberRequirement(firstRequirement);
-  const summary = summariseRequirementDomains(requirements);
-  const message = `${label(entity.entityType)} linked to ${requirements.length} requirement${requirements.length === 1 ? "" : "s"}: ${summary}`;
-  const action = await vscode.window.showInformationMessage(message, "Open First Requirement");
-  if (action === "Open First Requirement") {
-    await openItemDetailForRequirement(firstRequirement);
-  }
 }
 
 async function openAssessmentDashboard(): Promise<void> {
@@ -1085,7 +1099,6 @@ async function registerDirection(): Promise<void> {
   }
   await vscode.commands.executeCommand("pspf.core.upsertEntities", entities);
   await refreshWorkshopSurfaces();
-  await vscode.window.showInformationMessage(`Direction registered: ${direction.reference} ${direction.title}`);
 }
 
 async function updateDirectionResponse(): Promise<void> {
@@ -1121,7 +1134,6 @@ async function updateDirectionResponse(): Promise<void> {
   };
   await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
   await refreshWorkshopSurfaces();
-  await vscode.window.showInformationMessage(`Direction ${updated.reference} response set to ${label(updated.responseState)}.`);
 }
 
 async function openDirectionDetail(): Promise<void> {
@@ -1273,7 +1285,6 @@ async function recordSignificantChange(entityType?: string, entityId?: string): 
   );
   await vscode.commands.executeCommand("pspf.core.upsertEntities", [changeRecord, link]);
   await refreshWorkshopSurfaces();
-  await vscode.window.showInformationMessage(`Change record created: ${changeRecord.title}`);
 }
 
 async function resolveChangeTarget(allEntities: readonly V01Entity[], entityType?: string, entityId?: string): Promise<ChangeTargetEntity | undefined> {
@@ -1330,6 +1341,7 @@ async function openItemDetailForDirection(direction: DirectionEntity): Promise<v
       <p>Source authority: ${escapeHtml(direction.sourceAuthority ?? "Not recorded")}</p>
       <p>Issued: ${escapeHtml(direction.issuedAt ? formatDisplayDate(new Date(direction.issuedAt)) : "Not recorded")}</p>
       ${versionStrip()}
+      ${directionNavigationStrip(direction, allEntities)}
       <div class="form-actions"><button type="button" data-command="openEntity" data-entity-type="direction" data-entity-id="${escapeHtml(direction.id)}">Edit</button><button type="button" data-command="recordChange" data-entity-type="direction" data-entity-id="${escapeHtml(direction.id)}">Record significant change</button></div>
     </section>
     ${recordTable("Outbound Relationships", relationships, ["title", "relationship", "targetType", "target"])}
@@ -1437,6 +1449,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
       <p>Assessment status: ${escapeHtml(label(requirement.assessmentStatus))}</p>
       <p>Domain: ${escapeHtml(domainName(requirement.domainId))}</p>
       ${versionStrip()}
+      ${requirementNavigationStrip(requirement, allEntities)}
       <div class="form-actions"><button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Edit</button><button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(requirement.id)}">Apply tag</button><button type="button" data-command="recordChange" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Record significant change</button></div>
     </section>
     ${recordTable("Tags", tagRows, ["title", "colour", "status", "action"])}
@@ -1451,7 +1464,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
 }
 
 type SaveEntityMessage = {
-  readonly command?: "saveEntity" | "saveAndCloseEntity";
+  readonly command?: "saveEntity" | "saveAndCloseEntity" | "saveAndNextEntity";
   readonly entityType?: string;
   readonly entityId?: string;
   readonly fields?: Record<string, string>;
@@ -1488,7 +1501,7 @@ async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: rea
   };
   wireWorkshopPanelMessages(panel, refreshEditor);
   panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
-    if (!["saveEntity", "saveAndCloseEntity"].includes(message.command ?? "") || message.entityType !== currentEntity.entityType || message.entityId !== currentEntity.id) {
+    if (!["saveEntity", "saveAndCloseEntity", "saveAndNextEntity"].includes(message.command ?? "") || message.entityType !== currentEntity.entityType || message.entityId !== currentEntity.id) {
       return;
     }
     const updated = await buildUpdatedEntity(currentEntity, message.fields ?? {});
@@ -1498,12 +1511,20 @@ async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: rea
     await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
     await refreshWorkshopSurfaces();
     currentEntity = updated;
-    if (message.command === "saveAndCloseEntity") {
+    if (message.command === "saveAndNextEntity") {
       panel.dispose();
-      void vscode.window.showInformationMessage(`${label(updated.entityType)} updated: ${updated.title ?? updated.id}`);
+      if (updated.entityType === "requirement") {
+        await openAdjacentRequirement(updated.id, "next");
+      }
+      if (updated.entityType === "direction") {
+        await openAdjacentDirection(updated.id, "next");
+      }
       return;
     }
-    void vscode.window.showInformationMessage(`${label(updated.entityType)} updated: ${updated.title ?? updated.id}`);
+    if (message.command === "saveAndCloseEntity") {
+      panel.dispose();
+      return;
+    }
     await refreshEditor();
   });
   panel.webview.html = shellHtml(entity.title ?? entity.id, renderEntityEditor(entity, currentEntities));
@@ -1608,6 +1629,12 @@ function shellHtml(title: string, body: string): string {
       if (command === 'openEntity') {
         vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
       }
+      if (command === 'openAdjacentRequirement') {
+        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id'), direction: button.getAttribute('data-direction') });
+      }
+      if (command === 'openAdjacentDirection') {
+        vscode.postMessage({ command, directionId: button.getAttribute('data-direction-id'), direction: button.getAttribute('data-direction') });
+      }
       if (command === 'recordChange') {
         vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
       }
@@ -1617,10 +1644,13 @@ function shellHtml(title: string, body: string): string {
       if (command === 'attachEvidenceToRequirement' || command === 'createActionForRequirement' || command === 'createRiskForRequirement' || command === 'mapRequirementToIsm') {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
       }
+      if (command === 'linkExistingEvidenceToRequirement' || command === 'linkExistingActionToRequirement' || command === 'linkExistingRiskToRequirement' || command === 'linkExistingDirectionToRequirement') {
+        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
+      }
       if (command === 'createSavedView' || command === 'applySavedView' || command === 'editSavedView' || command === 'archiveSavedView') {
         vscode.postMessage({ command, savedViewId: button.getAttribute('data-saved-view-id'), savedViewScope: button.getAttribute('data-saved-view-scope') });
       }
-      if (command === 'saveEntity' || command === 'saveAndCloseEntity') {
+      if (command === 'saveEntity' || command === 'saveAndCloseEntity' || command === 'saveAndNextEntity') {
         const form = button.closest('form');
         if (!form) {
           return;
@@ -1644,9 +1674,15 @@ function shellHtml(title: string, body: string): string {
 }
 
 function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: () => Promise<void>): void {
-  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string; readonly requirementId?: string; readonly tagId?: string; readonly savedViewId?: string }) => {
+  panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string; readonly requirementId?: string; readonly directionId?: string; readonly tagId?: string; readonly savedViewId?: string; readonly direction?: string }) => {
     if (message.command === "openEntity" && message.entityType && message.entityId) {
       await openItemDetailForEntity(message.entityType, message.entityId);
+    }
+    if (message.command === "openAdjacentRequirement" && message.requirementId && isRequirementNavigationDirection(message.direction)) {
+      await openAdjacentRequirement(message.requirementId, message.direction);
+    }
+    if (message.command === "openAdjacentDirection" && message.directionId && isRequirementNavigationDirection(message.direction)) {
+      await openAdjacentDirection(message.directionId, message.direction);
     }
     if (message.command === "recordChange") {
       await recordSignificantChange(message.entityType, message.entityId);
@@ -1664,12 +1700,28 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       await attachEvidence(message.requirementId);
       await refreshPanel?.();
     }
+    if (message.command === "linkExistingEvidenceToRequirement" && message.requirementId) {
+      await linkExistingEvidence(message.requirementId);
+      await refreshPanel?.();
+    }
     if (message.command === "createActionForRequirement" && message.requirementId) {
       await createAction(message.requirementId);
       await refreshPanel?.();
     }
+    if (message.command === "linkExistingActionToRequirement" && message.requirementId) {
+      await linkExistingAction(message.requirementId);
+      await refreshPanel?.();
+    }
     if (message.command === "createRiskForRequirement" && message.requirementId) {
       await createRisk(message.requirementId);
+      await refreshPanel?.();
+    }
+    if (message.command === "linkExistingRiskToRequirement" && message.requirementId) {
+      await linkExistingRisk(message.requirementId);
+      await refreshPanel?.();
+    }
+    if (message.command === "linkExistingDirectionToRequirement" && message.requirementId) {
+      await linkExistingDirection(message.requirementId);
       await refreshPanel?.();
     }
     if (message.command === "mapRequirementToIsm" && message.requirementId) {
@@ -1854,7 +1906,7 @@ function renderEntityEditor(entity: EditableWorkshopEntity, allEntities: readonl
     case "risk":
       return renderRiskEditor(entity, allEntities);
     case "direction":
-      return renderDirectionEditor(entity);
+      return renderDirectionEditor(entity, allEntities);
     case "change-record":
       return renderChangeRecordEditor(entity);
     case "requirement-control-mapping":
@@ -1945,14 +1997,18 @@ function renderRequirementEditor(requirement: RequirementEntity, allEntities: re
     ${isBaseline ? readonlyField("Domain", domainName(requirement.domainId)) : selectField("domainId", "Domain", domainOptions, requirement.domainId)}
     ${selectField("assessmentStatus", "Assessment status", assessmentStatusItems, requirement.assessmentStatus)}
     ${textareaField("summary", "Summary", requirement.summary ?? "")}
-  `, isBaseline ? "Official PSPF baseline title and domain are locked." : undefined)}
+  `, isBaseline ? "Official PSPF baseline title and domain are locked." : undefined, requirementNavigationStrip(requirement, allEntities))}
     <section>
       <h2>Requirement Workbench</h2>
       <p class="muted">Add or open the linked records that drive this Requirement's assessment.</p>
       <div class="form-actions">
-        <button type="button" data-command="attachEvidenceToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Add evidence</button>
+        <button type="button" data-command="attachEvidenceToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Add new evidence</button>
+        <button type="button" data-command="linkExistingEvidenceToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing evidence</button>
         <button type="button" data-command="createActionForRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Create action</button>
+        <button type="button" data-command="linkExistingActionToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing action</button>
         <button type="button" data-command="createRiskForRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Create risk</button>
+        <button type="button" data-command="linkExistingRiskToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing risk</button>
+        <button type="button" data-command="linkExistingDirectionToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing Direction</button>
         <button type="button" data-command="mapRequirementToIsm" data-requirement-id="${escapeHtml(requirement.id)}">Map ISM control</button>
         <button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(requirement.id)}">Apply tag</button>
         <button type="button" data-command="recordChange" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Record significant change</button>
@@ -2009,15 +2065,16 @@ function renderRiskEditor(risk: RiskEntity, allEntities: readonly V01Entity[]): 
   `)}${commercialContextSection(risk, allEntities)}`;
 }
 
-function renderDirectionEditor(direction: DirectionEntity): string {
+function renderDirectionEditor(direction: DirectionEntity, allEntities: readonly V01Entity[]): string {
   const isBaseline = direction.sourceProduct === "core";
+  const navigation = directionNavigationStrip(direction, allEntities);
   return editorShell(direction, "Edit Direction", `
     ${isBaseline ? readonlyField("Reference", direction.reference) : inputField("reference", "Reference", direction.reference, true)}
     ${isBaseline ? readonlyField("Title", direction.title) : inputField("title", "Title", direction.title, true)}
     ${isBaseline ? readonlyField("Source authority", direction.sourceAuthority ?? "Not recorded") : inputField("sourceAuthority", "Source authority", direction.sourceAuthority ?? "")}
     ${isBaseline ? readonlyField("Issued", direction.issuedAt ?? "Not recorded") : inputField("issuedAt", "Issued", direction.issuedAt ?? "")}
     ${selectField("responseState", "Response", directionResponseStateItems, direction.responseState)}
-  `, isBaseline ? "Official published Direction fields are locked." : undefined);
+  `, isBaseline ? "Official published Direction fields are locked." : undefined, navigation);
 }
 
 function renderChangeRecordEditor(changeRecord: ChangeRecordEntity): string {
@@ -2055,7 +2112,7 @@ function renderMappingEditor(mapping: RequirementControlMappingEntity, allEntiti
   `, "Requirement and ISM control endpoints are locked after creation.");
 }
 
-function editorShell(entity: EditableWorkshopEntity, heading: string, fieldsHtml: string, note?: string): string {
+function editorShell(entity: EditableWorkshopEntity, heading: string, fieldsHtml: string, note?: string, beforeActions = ""): string {
   const contextualActions = entity.entityType === "requirement"
     ? `<button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(entity.id)}">Apply tag</button>`
     : ["action", "risk", "direction"].includes(entity.entityType)
@@ -2066,6 +2123,7 @@ function editorShell(entity: EditableWorkshopEntity, heading: string, fieldsHtml
       <h1>${escapeHtml(entity.title ?? entity.id)}</h1>
       <p class="muted">${escapeHtml(label(entity.entityType))} · ${escapeHtml(entity.id)}</p>
       ${versionStrip()}
+      ${beforeActions}
       ${contextualActions ? `<div class="form-actions">${contextualActions}</div>` : ""}
     </section>
     <section>
@@ -2077,6 +2135,7 @@ function editorShell(entity: EditableWorkshopEntity, heading: string, fieldsHtml
         ${fieldsHtml}
         <div class="form-actions">
           <button type="button" data-command="saveEntity">Save</button>
+          ${entity.entityType === "requirement" || entity.entityType === "direction" ? `<button type="button" data-command="saveAndNextEntity">Save and next</button>` : ""}
           <button type="button" data-command="saveAndCloseEntity">Save and close</button>
         </div>
       </form>
@@ -2277,7 +2336,6 @@ async function applyTag(requirementId?: string): Promise<void> {
   await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
   await refreshWorkshopSurfaces();
   await rememberRequirement(requirement);
-  await vscode.window.showInformationMessage(`Applied ${tag.title} to ${requirement.title}.`);
 }
 
 async function removeTag(requirementId?: string, tagId?: string): Promise<void> {
@@ -2307,7 +2365,6 @@ async function removeTag(requirementId?: string, tagId?: string): Promise<void> 
   const tag = tagsById.get(link.toId);
   await vscode.commands.executeCommand("pspf.core.upsertEntity", { ...link, recordStatus: "deleted", updatedAt: new Date().toISOString() } satisfies LinkEntity);
   await refreshWorkshopSurfaces();
-  await vscode.window.showInformationMessage(`Removed ${tag?.title ?? "tag"} from ${requirement.title}.`);
 }
 
 async function filterRequirementsByTag(): Promise<void> {
@@ -2800,6 +2857,150 @@ async function listAllEntities(): Promise<V01Entity[]> {
   return entities ?? [];
 }
 
+type RequirementNavigationDirection = "previous" | "next";
+type LinkableItemType = "evidence" | "action" | "risk" | "direction";
+type LinkableExistingEntity = EvidenceEntity | ActionEntity | RiskEntity | DirectionEntity;
+
+function isRequirementNavigationDirection(value: string | undefined): value is RequirementNavigationDirection {
+  return value === "previous" || value === "next";
+}
+
+async function openAdjacentRequirement(requirementId: string, direction: RequirementNavigationDirection): Promise<void> {
+  await ensureCoreReady();
+  const requirements = (await listRequirements())
+    .filter((requirement) => requirement.recordStatus !== "deleted")
+    .sort(compareRequirementsForPicker);
+  const currentIndex = requirements.findIndex((requirement) => requirement.id === requirementId);
+  if (currentIndex < 0) {
+    await vscode.window.showWarningMessage("This Requirement no longer exists. Choose another Requirement.");
+    return;
+  }
+  const nextIndex = direction === "next" ? currentIndex + 1 : currentIndex - 1;
+  const adjacentRequirement = requirements[nextIndex];
+  if (!adjacentRequirement) {
+    await vscode.window.showInformationMessage(direction === "next" ? "Already at the last Requirement." : "Already at the first Requirement.");
+    return;
+  }
+  await openItemDetailForRequirement(adjacentRequirement);
+}
+
+async function openAdjacentDirection(directionId: string, navigationDirection: RequirementNavigationDirection): Promise<void> {
+  await ensureCoreReady();
+  const directions = (await listDirections())
+    .filter((direction) => direction.recordStatus !== "deleted")
+    .sort(compareDirectionsForPicker);
+  const currentIndex = directions.findIndex((direction) => direction.id === directionId);
+  if (currentIndex < 0) {
+    await vscode.window.showWarningMessage("This Direction no longer exists. Choose another Direction.");
+    return;
+  }
+  const nextIndex = navigationDirection === "next" ? currentIndex + 1 : currentIndex - 1;
+  const adjacentDirection = directions[nextIndex];
+  if (!adjacentDirection) {
+    await vscode.window.showInformationMessage(navigationDirection === "next" ? "Already at the last Direction." : "Already at the first Direction.");
+    return;
+  }
+  await openItemDetailForDirection(adjacentDirection);
+}
+
+async function linkExistingItemToRequirement(requirementId: string | undefined, itemType: LinkableItemType): Promise<void> {
+  await ensureCoreReady();
+  const requirement = requirementId ? (await listRequirements()).find((item) => item.id === requirementId) : await pickRequirement();
+  if (!requirement) {
+    await vscode.window.showWarningMessage(`Choose a Requirement before linking existing ${label(itemType)}.`);
+    return;
+  }
+  const allEntities = await listAllEntities();
+  const activeLinks = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted");
+  const linkType = linkTypeForExistingItem(itemType);
+  const alreadyLinkedIds = new Set(activeLinks
+    .filter((link) => isExistingItemLinkForRequirement(link, requirement.id, itemType, linkType))
+    .map((link) => itemType === "direction" ? link.fromId : link.toId));
+  const candidates = allEntities
+    .filter((entity): entity is LinkableExistingEntity => entity.entityType === itemType && entity.recordStatus !== "deleted" && !alreadyLinkedIds.has(entity.id))
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
+  if (candidates.length === 0) {
+    await vscode.window.showInformationMessage(`No unlinked ${label(itemType).toLowerCase()} records are available for this Requirement.`);
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    candidates.map((entity) => ({
+      label: entity.title,
+      description: existingItemDescription(entity, activeLinks),
+      detail: entity.id,
+      entity
+    })),
+    { title: `Link Existing ${label(itemType)}`, placeHolder: `Select one or more ${label(itemType).toLowerCase()} records to link`, canPickMany: true, ignoreFocusOut: true }
+  );
+  if (!picked || picked.length === 0) {
+    return;
+  }
+  const links = picked.map(({ entity }) => withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: itemType === "direction" ? `${entity.title} targets ${requirement.title}` : `${requirement.title} ${linkPhraseForExistingItem(itemType)} ${entity.title}`,
+      linkType,
+      fromId: itemType === "direction" ? entity.id : requirement.id,
+      fromType: itemType === "direction" ? "direction" : "requirement",
+      toId: itemType === "direction" ? requirement.id : entity.id,
+      toType: itemType === "direction" ? "requirement" : itemType
+    },
+    "workshop"
+  ));
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", links);
+  await refreshWorkshopSurfaces();
+  await rememberRequirement(requirement);
+}
+
+function linkTypeForExistingItem(itemType: LinkableItemType): LinkEntity["linkType"] {
+  if (itemType === "direction") {
+    return "targets";
+  }
+  if (itemType === "evidence") {
+    return "supported-by";
+  }
+  if (itemType === "action") {
+    return "addressed-by";
+  }
+  return "exposed-by";
+}
+
+function linkPhraseForExistingItem(itemType: LinkableItemType): string {
+  if (itemType === "direction") {
+    return "targeted by";
+  }
+  if (itemType === "evidence") {
+    return "supported by";
+  }
+  if (itemType === "action") {
+    return "addressed by";
+  }
+  return "exposed by";
+}
+
+function existingItemDescription(entity: LinkableExistingEntity, activeLinks: readonly LinkEntity[]): string {
+  const linkedRequirementCount = activeLinks.filter((link) => entity.entityType === "direction" ? link.fromId === entity.id && link.toType === "requirement" : link.toId === entity.id && link.fromType === "requirement").length;
+  const linkedText = `${linkedRequirementCount} linked Requirement${linkedRequirementCount === 1 ? "" : "s"}`;
+  if (entity.entityType === "direction") {
+    return `${entity.reference} · ${label(entity.responseState)} · ${linkedText}`;
+  }
+  if (entity.entityType === "evidence") {
+    return `${label(entity.evidenceType)} · ${label(entity.freshness)} · ${linkedText}`;
+  }
+  if (entity.entityType === "action") {
+    return `${label(entity.status)} · ${formatShortAuDateTime(entity.dueDate) ?? "No due date"} · ${linkedText}`;
+  }
+  return `${label(entity.status)} · likelihood ${entity.likelihood} · impact ${entity.impact} · ${linkedText}`;
+}
+
+function isExistingItemLinkForRequirement(link: LinkEntity, requirementId: string, itemType: LinkableItemType, linkType: LinkEntity["linkType"]): boolean {
+  if (itemType === "direction") {
+    return link.toId === requirementId && link.toType === "requirement" && link.fromType === "direction" && link.linkType === linkType;
+  }
+  return link.fromId === requirementId && link.fromType === "requirement" && link.toType === itemType && link.linkType === linkType;
+}
+
 async function ensureCoreReady(): Promise<void> {
   await vscode.commands.executeCommand("pspf.core.ensureWorkspaceReady");
 }
@@ -2941,16 +3142,10 @@ function compareRequirementsForPicker(left: RequirementEntity, right: Requiremen
   return left.title.localeCompare(right.title);
 }
 
-function summariseRequirementDomains(requirements: RequirementEntity[]): string {
-  const counts = new Map<string, number>();
-  for (const requirement of requirements) {
-    const domainTitle = PSPF_DOMAINS.find((domain) => domain.id === requirement.domainId)?.title ?? requirement.domainId;
-    counts.set(domainTitle, (counts.get(domainTitle) ?? 0) + 1);
-  }
-  return [...counts.entries()]
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([domain, count]) => `${count} ${domain}`)
-    .join(", ");
+function compareDirectionsForPicker(left: DirectionEntity, right: DirectionEntity): number {
+  return left.reference.localeCompare(right.reference, "en-AU", { sensitivity: "base", numeric: true })
+    || left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" })
+    || left.id.localeCompare(right.id);
 }
 
 async function pickOptionalRequirement(prompt: string): Promise<RequirementEntity | undefined> {
@@ -3106,6 +3301,32 @@ function recordTable(title: string, records: readonly object[], fields: readonly
   const header = `${actionHeader}${fields.map((field) => `<th data-field="${escapeHtml(field)}">${escapeHtml(label(field))}</th>`).join("")}`;
   const rows = records.map((record) => `<tr>${hasOpenEntity ? tableOpenCell(record) : ""}${fields.map((field) => tableCell(record, field)).join("")}</tr>`).join("");
   return `<section><h2>${escapeHtml(title)}</h2><div class="table-wrap" tabindex="0" aria-label="Scrollable ${escapeHtml(title)} table"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
+}
+
+function requirementNavigationStrip(requirement: RequirementEntity, allEntities: readonly V01Entity[]): string {
+  const requirements = allEntities
+    .filter((entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted")
+    .sort(compareRequirementsForPicker);
+  const index = requirements.findIndex((candidate) => candidate.id === requirement.id);
+  const position = index >= 0 ? `${index + 1} of ${requirements.length}` : "Not in current list";
+  return `<div class="form-actions" aria-label="Requirement navigation">
+    <button type="button" data-command="openAdjacentRequirement" data-requirement-id="${escapeHtml(requirement.id)}" data-direction="previous">Previous requirement</button>
+    <button type="button" data-command="openAdjacentRequirement" data-requirement-id="${escapeHtml(requirement.id)}" data-direction="next">Next requirement</button>
+    <span class="version-pill">${escapeHtml(position)}</span>
+  </div>`;
+}
+
+function directionNavigationStrip(direction: DirectionEntity, allEntities: readonly V01Entity[]): string {
+  const directions = allEntities
+    .filter((entity): entity is DirectionEntity => entity.entityType === "direction" && entity.recordStatus !== "deleted")
+    .sort(compareDirectionsForPicker);
+  const index = directions.findIndex((candidate) => candidate.id === direction.id);
+  const position = index >= 0 ? `${index + 1} of ${directions.length}` : "Not in current list";
+  return `<div class="form-actions" aria-label="Direction navigation">
+    <button type="button" data-command="openAdjacentDirection" data-direction-id="${escapeHtml(direction.id)}" data-direction="previous">Previous Direction</button>
+    <button type="button" data-command="openAdjacentDirection" data-direction-id="${escapeHtml(direction.id)}" data-direction="next">Next Direction</button>
+    <span class="version-pill">${escapeHtml(position)}</span>
+  </div>`;
 }
 
 function tableOpenCell(record: object): string {
