@@ -184,3 +184,5 @@ jobs:
           docroot: ${{ vars.VENTRAIP_DOCROOT }}
           site_url: ${{ vars.SITE_URL }}
           release_id: ${{ needs.build.outputs.release_id }}
+          protected_paths: |
+            test/
