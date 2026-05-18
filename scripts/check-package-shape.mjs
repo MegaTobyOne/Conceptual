@@ -44,13 +44,25 @@ const extensionPackages = [
   {
     name: "Shop",
     directory: "packages/shop",
+    dependency: "tobyharvey.pspf-core",
     expectedCommands: [
       "pspf.shop.openHome",
       "pspf.shop.loadSample",
+      "pspf.shop.importLocalStore",
       "pspf.shop.newSupplier",
       "pspf.shop.newContract",
       "pspf.shop.newSpendItem",
-      "pspf.shop.openForecast"
+      "pspf.shop.openForecast",
+      "pspf.shop.editSupplier",
+      "pspf.shop.editContract",
+      "pspf.shop.editSpendItem",
+      "pspf.shop.deleteRecord",
+      "pspf.shop.linkSupplierToRequirement",
+      "pspf.shop.linkSupplierToRisk",
+      "pspf.shop.linkContractToRequirement",
+      "pspf.shop.linkContractToSpendItem",
+      "pspf.shop.linkSpendToAction",
+      "pspf.shop.linkSpendToRequirement"
     ]
   }
 ];

@@ -2,7 +2,7 @@
     "name": "pspf-shop",
     "displayName": "PSPF Shop",
     "description": "PSPF commercial planning surface for suppliers, contracts, spend items, and spend forecast review.",
-    "version": "1.17.0",
+    "version": "1.18.0",
     "private": true,
     "type": "module",
     "license": "MIT",
@@ -101,6 +101,30 @@
             {
                 "command": "pspf.shop.deleteRecord",
                 "title": "PSPF: Delete Shop Record"
+            },
+            {
+                "command": "pspf.shop.linkSupplierToRequirement",
+                "title": "PSPF: Link Supplier to Requirement"
+            },
+            {
+                "command": "pspf.shop.linkSupplierToRisk",
+                "title": "PSPF: Link Supplier to Risk"
+            },
+            {
+                "command": "pspf.shop.linkContractToRequirement",
+                "title": "PSPF: Link Contract to Requirement"
+            },
+            {
+                "command": "pspf.shop.linkContractToSpendItem",
+                "title": "PSPF: Link Contract to Spend Item"
+            },
+            {
+                "command": "pspf.shop.linkSpendToAction",
+                "title": "PSPF: Link Spend to Action"
+            },
+            {
+                "command": "pspf.shop.linkSpendToRequirement",
+                "title": "PSPF: Link Spend to Requirement"
             }
         ],
         "menus": {
@@ -134,8 +158,38 @@
             "view/item/context": [
                 {
                     "command": "pspf.shop.deleteRecord",
-                    "when": "view =~ /^pspfShop\\./ && viewItem == pspfShopRecord",
+                    "when": "view =~ /^pspfShop\\./ && viewItem =~ /^pspfShop/",
                     "group": "inline@1"
+                },
+                {
+                    "command": "pspf.shop.linkSupplierToRequirement",
+                    "when": "viewItem == pspfShopSupplier",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "pspf.shop.linkSupplierToRisk",
+                    "when": "viewItem == pspfShopSupplier",
+                    "group": "navigation@2"
+                },
+                {
+                    "command": "pspf.shop.linkContractToRequirement",
+                    "when": "viewItem == pspfShopContract",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "pspf.shop.linkContractToSpendItem",
+                    "when": "viewItem == pspfShopContract",
+                    "group": "navigation@2"
+                },
+                {
+                    "command": "pspf.shop.linkSpendToAction",
+                    "when": "viewItem == pspfShopSpendItem",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "pspf.shop.linkSpendToRequirement",
+                    "when": "viewItem == pspfShopSpendItem",
+                    "group": "navigation@2"
                 }
             ]
         }

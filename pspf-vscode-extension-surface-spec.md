@@ -235,6 +235,11 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 | `pspf.shop.openForecast` | Shop: Open Spend Forecast | palette, view title |
 | `pspf.shop.openSavingsOpportunities` | Shop: Open Savings Opportunities | palette, forecast view |
 | `pspf.shop.linkSpendToAction` | Shop: Link Spend to Action | item context |
+| `pspf.shop.linkSupplierToRequirement` | Shop: Link Supplier to Requirement | supplier item context |
+| `pspf.shop.linkSupplierToRisk` | Shop: Link Supplier to Risk | supplier item context |
+| `pspf.shop.linkContractToRequirement` | Shop: Link Contract to Requirement | contract item context |
+| `pspf.shop.linkContractToSpendItem` | Shop: Link Contract to Spend Item | contract item context |
+| `pspf.shop.linkSpendToRequirement` | Shop: Link Spend to Requirement | spend item context |
 
 ### Shared hidden/internal commands
 

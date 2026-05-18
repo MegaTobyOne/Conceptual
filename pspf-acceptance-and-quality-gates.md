@@ -302,6 +302,30 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **Deferred-scope gate**: v1.17 does not add CSV/procurement import, finance reconciliation, realised-vs-expected savings tracking, approvals, Pub integration, editable Explorer commercial views, chart/PDF export, multi-user commercial plans, or Marketplace publication of Shop.
 7. **Regression gate**: `e2e:v1.17`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
+### v1.18 candidate gates (Shop assurance linkage and identity, per ADR 0053)
+
+1. **ADR gate**: ADR 0053 records the Shop assurance-linkage and visual-identity decision before implementation starts.
+2. **Commercial link gate**: Shop can create only the permitted commercial links from the closed taxonomy: `supplier supports requirement`, `supplier associated-with risk`, `contract supports requirement`, `contract funds spend-item`, `spend-item supports action`, and `spend-item supports requirement`.
+3. **Picker validation gate**: Shop link pickers propose only existing active Core records with valid endpoint types and reject missing, deleted, or mistyped endpoints before writing through Core.
+4. **Workshop context gate**: Workshop Requirement, Action, and Risk detail surfaces show compact linked commercial context without exposing sensitive notes, assumptions, primary contacts, or monetary fields inappropriately.
+5. **Explorer relationship gate**: exported bundles carry the commercial links as normal `relationships`/`links`, and Explorer Relationships Board can display them using redacted commercial records.
+6. **Shop identity gate**: Shop Home/Forecast uses a distinct commercial-planning visual treatment: procurement amber/teal accents, obligation/funding/savings/payback language, linked-assurance coverage, and labelled status cues that do not rely on colour alone.
+7. **Deferred-scope gate**: v1.18 does not add CSV/procurement import, finance reconciliation, realised-vs-expected savings tracking, approvals, Pub integration, editable Explorer commercial views, chart/PDF export, multi-user commercial plans, Marketplace publication of Shop, or new compatibility axes.
+8. **Regression gate**: `e2e:v1.18`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
+### v1.19 candidate gates (Shop commercial coverage dashboard, per ADR 0054)
+
+1. **ADR gate**: ADR 0054 records the Shop commercial coverage dashboard decision before implementation starts.
+2. **Coverage metric gate**: Shop Home/Forecast shows linked and unlinked coverage counts for suppliers, contracts, and spend items using only active Core records and existing links.
+3. **Renewal-risk gate**: Shop identifies contracts ending within the configured near-term review window without adding new contract fields or schema axes.
+4. **Funded-action gate**: Shop identifies spend items linked to open, blocked, or overdue Actions through existing `spend-item supports action` links.
+5. **Supplier-risk gate**: Shop identifies suppliers associated with high-risk or open Risk records through existing `supplier associated-with risk` links.
+6. **Quick-action gate**: coverage cards or rows route operators to the existing v1.18 link commands rather than introducing duplicate linking flows.
+7. **Privacy/redaction gate**: coverage and Workshop context surfaces do not expose supplier `primaryContact`, commercial notes, assumptions, service summaries, or monetary values where publication policy excludes them.
+8. **Marketplace workflow gate**: CI and Marketplace release workflows package and dry-run Shop as a first-class VSIX target alongside Core and Workshop; dry runs remain visibly non-publishing.
+9. **Deferred-scope gate**: v1.19 does not add CSV/procurement import, finance reconciliation, realised-vs-expected savings tracking, approvals, Pub integration, editable Explorer commercial views, chart/PDF export, multi-user commercial plans, new commercial entity fields, or new compatibility axes.
+10. **Regression gate**: `e2e:v1.19`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

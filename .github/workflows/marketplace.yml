@@ -12,7 +12,9 @@ on:
         options:
           - core
           - workshop
+          - shop
           - both
+          - all
       dry_run:
         description: Package + upload artefact only; skip vsce publish, GitHub release, and tag
         required: true
@@ -41,8 +43,10 @@ jobs:
     outputs:
       publish_core: ${{ steps.targets.outputs.publish_core }}
       publish_workshop: ${{ steps.targets.outputs.publish_workshop }}
+      publish_shop: ${{ steps.targets.outputs.publish_shop }}
       core_version: ${{ steps.versions.outputs.core_version }}
       workshop_version: ${{ steps.versions.outputs.workshop_version }}
+      shop_version: ${{ steps.versions.outputs.shop_version }}
       dry_run: ${{ steps.targets.outputs.dry_run }}
     steps:
       - name: Refuse non-main dispatch
@@ -64,15 +68,19 @@ jobs:
           dry="${{ inputs.dry_run }}"
           publish_core=false
           publish_workshop=false
+          publish_shop=false
           case "$target" in
             core) publish_core=true ;;
             workshop) publish_workshop=true ;;
+            shop) publish_shop=true ;;
             both) publish_core=true; publish_workshop=true ;;
+            all) publish_core=true; publish_workshop=true; publish_shop=true ;;
             *) echo "Unknown target: $target" >&2; exit 1 ;;
           esac
           {
             echo "publish_core=$publish_core"
             echo "publish_workshop=$publish_workshop"
+            echo "publish_shop=$publish_shop"
             echo "dry_run=$dry"
           } >> "$GITHUB_OUTPUT"
           {
@@ -145,8 +153,10 @@ jobs:
           set -euo pipefail
           core_version=$(jq -r '.version' packages/core/package.json)
           workshop_version=$(jq -r '.version' packages/workshop/package.json)
+          shop_version=$(jq -r '.version' packages/shop/package.json)
           echo "core_version=$core_version" >> "$GITHUB_OUTPUT"
           echo "workshop_version=$workshop_version" >> "$GITHUB_OUTPUT"
+          echo "shop_version=$shop_version" >> "$GITHUB_OUTPUT"
 
       - name: Create VSIX output directory
         run: mkdir -p .tmp/vsix
@@ -172,6 +182,17 @@ jobs:
             --allow-missing-repository \
             --skip-license \
             --out "../../.tmp/vsix/pspf-workshop-${{ steps.versions.outputs.workshop_version }}.vsix"
+
+      - name: Package Shop VSIX
+        if: steps.targets.outputs.publish_shop == 'true'
+        working-directory: packages/shop
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 package \
+            --no-dependencies \
+            --allow-missing-repository \
+            --skip-license \
+            --out "../../.tmp/vsix/pspf-shop-${{ steps.versions.outputs.shop_version }}.vsix"
 
       - name: Upload VSIX artefact
         uses: actions/upload-artifact@v4
@@ -327,4 +348,78 @@ jobs:
             echo "## Workshop receipt tag verified"
             echo ""
             echo "Found workshop/${{ needs.build.outputs.workshop_version }} on origin after Marketplace publication."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish-shop:
+    name: Publish Shop to Marketplace
+    needs: build
+    if: needs.build.outputs.publish_shop == 'true'
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download VSIX artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: pspf-marketplace-vsix
+          path: .tmp/vsix
+
+      - name: Dry-run summary
+        if: needs.build.outputs.dry_run == 'true'
+        run: |
+          echo "Dry run: skipping vsce publish, GitHub release, and tag for Shop."
+          ls -l .tmp/vsix
+          {
+            echo "## Shop Marketplace publication skipped"
+            echo ""
+            echo "This was a dry run. No Shop extension was published, no GitHub release was created, and no shop/${{ needs.build.outputs.shop_version }} receipt tag was created."
+            echo ""
+            echo "To publish Shop, rerun this workflow from main with target=shop or target=all and dry_run=false, then approve the marketplace environment gate."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish to VS Code Marketplace
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 publish \
+            --packagePath ".tmp/vsix/pspf-shop-${{ needs.build.outputs.shop_version }}.vsix" \
+            --pat "$VSCE_PAT"
+
+      - name: Verify Marketplace version
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          EXTENSION_ID: tobyharvey.pspf-shop
+          EXPECTED_VERSION: ${{ needs.build.outputs.shop_version }}
+        run: |
+          set -euo pipefail
+          node scripts/verify-marketplace-version.mjs
+          {
+            echo "## Shop Marketplace version verified"
+            echo ""
+            echo "Marketplace Gallery reports $EXTENSION_ID@$EXPECTED_VERSION."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tag and GitHub release
+        if: needs.build.outputs.dry_run != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: shop/${{ needs.build.outputs.shop_version }}
+          name: Shop ${{ needs.build.outputs.shop_version }}
+          target_commitish: ${{ github.sha }}
+          files: .tmp/vsix/pspf-shop-${{ needs.build.outputs.shop_version }}.vsix
+          generate_release_notes: true
+
+      - name: Verify receipt tag
+        if: needs.build.outputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          git ls-remote --exit-code origin "refs/tags/shop/${{ needs.build.outputs.shop_version }}"
+          {
+            echo "## Shop receipt tag verified"
+            echo ""
+            echo "Found shop/${{ needs.build.outputs.shop_version }} on origin after Marketplace publication."
           } >> "$GITHUB_STEP_SUMMARY"
