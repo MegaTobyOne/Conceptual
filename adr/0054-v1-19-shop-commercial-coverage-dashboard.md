@@ -1,6 +1,6 @@
 # 0054 - v1.19 Shop commercial coverage dashboard
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-05-18
 
 ## Context
@@ -16,7 +16,7 @@ v1.19 should make Shop answer practical coverage questions:
 
 ## Decision
 
-Plan v1.19 as a Shop commercial coverage dashboard slice.
+Implement v1.19 as a Shop commercial coverage dashboard slice.
 
 The slice enriches the existing Shop Home/Forecast surface with coverage and renewal-risk summaries derived from Core-backed commercial records and existing links. It does not add new entity types, fields, link verbs, bundle collections, or schema directories.
 
