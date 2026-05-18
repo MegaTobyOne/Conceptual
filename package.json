@@ -1,6 +1,6 @@
 {
     "name": "pspf",
-    "version": "1.20.0",
+    "version": "1.20.1",
     "private": true,
     "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
     "license": "MIT",

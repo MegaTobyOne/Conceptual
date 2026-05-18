@@ -36,6 +36,10 @@ inputs:
     description: Local directory containing the staged web release.
     required: false
     default: web-release
+  protected_paths:
+    description: Newline-separated docroot-relative paths that rsync --delete must preserve, such as child subdomain directories.
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -53,6 +57,7 @@ runs:
         SITE_URL: ${{ inputs.site_url }}
         RELEASE_ID: ${{ inputs.release_id }}
         SOURCE_DIR: ${{ inputs.source_dir }}
+        PROTECTED_PATHS: ${{ inputs.protected_paths }}
       run: |
         set -euo pipefail
         : "${SSH_KEY:?ssh_key is required}"
@@ -120,6 +125,21 @@ runs:
         esac
         echo "Remote APP_DIR: $APP_DIR"
         echo "Remote DOCROOT: $DOCROOT"
+        RSYNC_PROTECT_ARGS=""
+        while IFS= read -r protected_path; do
+          protected_path="${protected_path#./}"
+          protected_path="${protected_path%$'\r'}"
+          [[ -z "$protected_path" ]] && continue
+          if [[ "$protected_path" == /* || "$protected_path" == *..* || ! "$protected_path" =~ ^[A-Za-z0-9._/-]+/?$ ]]; then
+            echo "::error::Invalid protected path '$protected_path'. Use a simple docroot-relative path such as test/."
+            exit 1
+          fi
+          protected_path="${protected_path%/}"
+          RSYNC_PROTECT_ARGS+=" --exclude='/$protected_path/***'"
+        done <<< "$PROTECTED_PATHS"
+        if [[ -n "$RSYNC_PROTECT_ARGS" ]]; then
+          echo "Protected docroot paths:${PROTECTED_PATHS//$'\n'/, }"
+        fi
         run_remote() {
           local label="$1"
           shift
@@ -149,7 +169,7 @@ runs:
         run_remote "Create release and docroot directories" "mkdir -p \"$APP_DIR/releases/$RELEASE_ID\" \"$DOCROOT\""
         run_local "Upload release artefact" rsync -azv --delete -e "ssh $SSH_OPTS" "$SOURCE_DIR/" "$SSH_USER@$SSH_HOST:$APP_DIR/releases/$RELEASE_ID/"
         run_remote "Verify uploaded release artefact" "test -f \"$APP_DIR/releases/$RELEASE_ID/index.html\" && test -f \"$APP_DIR/releases/$RELEASE_ID/explorer/index.html\" && test -d \"$APP_DIR/releases/$RELEASE_ID/schemas/explorer-bundle\""
-        run_remote "Publish release to docroot" "set -e; cd \"$APP_DIR\"; ln -sfn \"releases/$RELEASE_ID\" current; rsync -a --delete current/ \"$DOCROOT\"/; find \"$DOCROOT\" -type d -exec chmod 755 {} \; ; find \"$DOCROOT\" -type f -exec chmod 644 {} \;"
+        run_remote "Publish release to docroot" "set -e; cd \"$APP_DIR\"; ln -sfn \"releases/$RELEASE_ID\" current; rsync -a --delete$RSYNC_PROTECT_ARGS current/ \"$DOCROOT\"/; find \"$DOCROOT\" -type d -exec chmod 755 {} \; ; find \"$DOCROOT\" -type f -exec chmod 644 {} \;"
         run_remote "Verify docroot artefact" "test -f \"$DOCROOT/index.html\" && test -f \"$DOCROOT/explorer/index.html\" && test -d \"$DOCROOT/schemas/explorer-bundle\" && printf 'DOCROOT files: '; find \"$DOCROOT\" -maxdepth 2 -type f | wc -l"
         smoke_url() {
           local url="$1"
