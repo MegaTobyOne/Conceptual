@@ -1,13 +1,39 @@
 # PSPF Shop
 
-PSPF Shop is the commercial planning surface for suppliers, contracts, spend items, and derived spend forecast review.
+Local-first tooling for Australian Government PSPF assurance work. Core, Workshop, Shop, and Explorer share one schema and one local store so that authoring, commercial planning, and publication stay aligned.
 
-ADR 0050 reopened the earlier Shop deferral for a standalone first slice. ADR 0051 promotes supplier, contract, and spend-item records into the canonical contracts model and Explorer bundle schema while keeping Shop's editable store at `.pspf/shop/shop.json` for the extension user experience.
+## What this extension does
 
-The extension keeps a compatibility import path for v1.15 and v1.16 local records and normalises them into the Core-backed store shape.
+PSPF Shop is the **commercial planning surface** for suppliers, contracts, spend items, and derived spend forecast review. It links commercial obligations to the controls and risks they affect, so assurance and procurement stay in step.
 
-Shop now reads and writes commercial records through Core. The local JSON file is a compatibility import source, not the active system of record.
+- Authors Suppliers, Contracts, and Spend Items in Core's canonical model.
+- Links commercial records to Requirements, Actions, and Risks through existing Core links.
+- Shop Forecast view with a commercial coverage dashboard: linked and unlinked assurance coverage, near-term contract review, funded open Actions, and supplier Risk context.
+- Compatibility import for legacy local `.pspf/shop/shop.json` records.
 
-v1.18 adds Shop assurance linkage and identity: suppliers, contracts, and spend items can link to Requirements, Actions, and Risks through existing Core links, Workshop surfaces that commercial context, and Shop uses a distinct commercial-planning visual treatment.
+Shop reads and writes commercial records through Core. The local JSON file is a compatibility import source, not the active system of record.
 
-v1.19 adds the Shop commercial coverage dashboard: linked/unlinked assurance coverage, near-term contract review, funded open-action signals, and supplier risk context on the existing Shop Forecast surface.
+## How it fits
+
+Shop requires **PSPF Core**.
+
+- Install **PSPF Core** first.
+- Workshop surfaces Shop's commercial context next to Requirements, Actions, and Risks.
+- Explorer renders the same commercial linkage in the published bundle.
+
+## Key commands
+
+- `PSPF: Open Shop`
+- `PSPF: Load Shop Sample`
+- `PSPF: New Supplier` / `New Contract` / `New Spend Item`
+- `PSPF: Open Shop Forecast`
+- `PSPF: Link Supplier to Requirement` / `Risk`
+- `PSPF: Link Contract to Requirement` / `Spend Item`
+
+## Source and docs
+
+- Repository: <https://github.com/MegaTobyOne/Conceptual>
+- Ecosystem overview: <https://tobyharvey.online>
+- Explorer (publication view): <https://tobyharvey.online/explorer/>
+
+This is an independent project. Not affiliated with the Department of Home Affairs, the Attorney-General's Department, or any other Australian Government entity. Do not enter information classified above OFFICIAL: Sensitive.
