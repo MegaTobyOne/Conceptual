@@ -1,4 +1,5 @@
-import { basename, relative } from "node:path";
+import { copyFile } from "node:fs/promises";
+import { basename, join, relative } from "node:path";
 import * as vscode from "vscode";
 import { createCoreService, type ImportMode, type ImportResult } from "./service.js";
 
@@ -50,9 +51,22 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       return snapshot;
     }),
     vscode.commands.registerCommand("pspf.core.exportBundle", async () => {
+      const saveUri = await vscode.window.showSaveDialog({
+        title: "Save PSPF JSON Bundle",
+        defaultUri: vscode.Uri.file(join(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? process.cwd(), `pspf-master-bundle-${new Date().toISOString().slice(0, 10)}.json`)),
+        filters: { "PSPF JSON bundle": ["json"] }
+      });
+      if (!saveUri) {
+        return undefined;
+      }
       const result = await getService().exportBundle();
-      await vscode.window.showInformationMessage(`PSPF master bundle exported to ${result.exportDirectory}`);
-      return result;
+      const bundlePath = join(result.exportDirectory, "bundle.json");
+      await copyFile(bundlePath, saveUri.fsPath);
+      const action = await vscode.window.showInformationMessage(`PSPF JSON bundle saved to ${saveUri.fsPath}`, "Open File");
+      if (action === "Open File") {
+        await vscode.commands.executeCommand("vscode.open", saveUri);
+      }
+      return { ...result, bundlePath: saveUri.fsPath };
     }),
     vscode.commands.registerCommand("pspf.core.importBundle", async () => {
       return importBundlesFromPicker(output, {
