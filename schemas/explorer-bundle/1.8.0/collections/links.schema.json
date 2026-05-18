@@ -48,7 +48,8 @@
                 "enum": [
                     "core",
                     "workshop",
-                    "explorer"
+                    "explorer",
+                    "shop"
                 ]
             },
             "recordStatus": {

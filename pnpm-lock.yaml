@@ -39,6 +39,12 @@ importers:
         specifier: workspace:*
         version: link:../contracts
 
+  packages/connected-view:
+    dependencies:
+      '@pspf/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
   packages/contracts: {}
 
   packages/core:
@@ -61,6 +67,9 @@ importers:
       '@pspf/brief-renderer':
         specifier: workspace:*
         version: link:../brief-renderer
+      '@pspf/connected-view':
+        specifier: workspace:*
+        version: link:../connected-view
       '@pspf/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -91,6 +100,9 @@ importers:
       '@pspf/brief-renderer':
         specifier: workspace:*
         version: link:../brief-renderer
+      '@pspf/connected-view':
+        specifier: workspace:*
+        version: link:../connected-view
       '@pspf/contracts':
         specifier: workspace:*
         version: link:../contracts

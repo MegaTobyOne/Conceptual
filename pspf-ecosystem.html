@@ -9,10 +9,10 @@
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>PSPF Ecosystem</title>
   <meta name="description"
-    content="A public guide to an Australian PSPF-focused tool ecosystem: Core and Workshop as VS Code extensions, plus an Explorer publication view. Independent, not affiliated with any Australian Government entity." />
+    content="A public guide to an Australian PSPF-focused tool ecosystem: Core, Workshop, and Shop as VS Code extensions, plus an Explorer publication view. Independent, not affiliated with any Australian Government entity." />
   <meta property="og:title" content="PSPF Ecosystem" />
   <meta property="og:description"
-    content="A public guide to an Australian PSPF-focused tool ecosystem. Core and Workshop are published as VS Code extensions; Explorer is a static publication view. Independent project." />
+    content="A public guide to an Australian PSPF-focused tool ecosystem. Core, Workshop, and Shop are published as VS Code extensions; Explorer is a static publication view. Independent project." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="robots" content="index,follow" />
@@ -737,6 +737,8 @@
         <a href="#links">Links</a>
       </nav>
       <div class="header-actions">
+        <a class="header-link" href="https://tobyharvey.online/explorer/" target="_blank" rel="noopener noreferrer">Open
+          Explorer</a>
         <a class="header-link" href="https://www.protectivesecurity.gov.au" target="_blank"
           rel="noopener noreferrer">Authoritative source</a>
         <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode">
@@ -771,18 +773,23 @@
           <span class="eyebrow">Australian PSPF tool ecosystem</span>
           <h1>Start small, stay traceable, speak the PSPF language.</h1>
           <p>PSPF is the Australian Government's Protective Security Policy Framework. This ecosystem helps Australian
-            entities assess PSPF requirements and the ASD Essential Eight locally, then share a clear publication-mode
-            view through Explorer.</p>
+            Government assurance leads, security operators, and agency teams assess PSPF requirements and the ASD
+            Essential Eight locally in VS Code, then hand reviewers a clear publication-mode view through Explorer.</p>
+          <p class="kicker">Expect these outputs as you work: a validated local assessment in Core, a copyable
+            posture brief from Workshop, a curated master JSON bundle, and an Explorer view your reviewers can open in
+            a browser.</p>
           <div class="hero-actions">
-            <a class="button primary" href="#how-it-works">See how it works</a>
+            <a class="button primary" href="https://tobyharvey.online/explorer/" target="_blank"
+              rel="noopener noreferrer">Open Explorer</a>
+            <a class="button" href="#how-it-works">See how it works</a>
             <a class="button" href="#links">Go to the links</a>
           </div>
         </div>
         <aside class="hero-panel" aria-label="Ecosystem summary">
           <div class="stack">
             <span class="mini-label">At a glance</span>
-            <p class="kicker">The repository is at v1.14.0; Marketplace listings are still v1.10.0 pending a non-dry-run
-              publish.</p>
+            <p class="kicker">The repository and Marketplace listings are at v1.19.0. Compatibility axes
+              (schema, bundle, API) are at 1.8.0.</p>
             <p>Core keeps the trusted local record. Workshop supports Requirements, Evidence, Actions, Risks,
               Directions, ISM mappings, tags, saved views, Change Records, and planning lenses in VS Code. Explorer
               turns a curated bundle into a wider publication view with AU dates, tag filters, saved views, local
@@ -862,14 +869,15 @@
           <p>Each product has one main job. The current repository slice supports a practical validation path: load
             sample data, review assessment posture, edit key records, create planning views, export a bundle, verify
             release state, and share
-            an Explorer posture brief. The public Marketplace extension listings are still v1.10.0 until the next
-            approved non-dry-run publish.</p>
+            an Explorer posture brief. Core, Workshop, and Shop are published on the VS Code Marketplace at v1.19.0
+            and Explorer is hosted at <a href="https://tobyharvey.online/explorer/" target="_blank"
+              rel="noopener noreferrer">tobyharvey.online/explorer/</a>.</p>
         </div>
         <div class="tool-grid">
           <article class="tool-card">
             <div class="tool-top">
               <h3>Core</h3>
-              <span class="tool-tag is-live">v1.10.0 · Marketplace live</span>
+              <span class="tool-tag is-live">v1.19.0 · Marketplace live</span>
             </div>
             <div class="tool-meta">
               <span>VS Code extension</span>
@@ -883,9 +891,9 @@
               <li>Owns the canonical entity and link model (Requirements, Evidence, Actions, Risks, Directions, ISM
                 mappings).</li>
               <li>Runs schema-policy validation, snapshots, backup, restore and integrity checks.</li>
-              <li>Exports the curated manifest-led JSON bundle that Explorer consumes.</li>
-              <li>Repository package version is v1.14.0; Marketplace publication is pending a real release run.</li>
-              <li>Required dependency for Workshop — install Core first.</li>
+              <li>Exports the curated manifest-led JSON bundle that Explorer consumes; the export command prompts for
+                the save location.</li>
+              <li>Required dependency for Workshop and Shop — install Core first.</li>
             </ul>
             <a class="tool-link is-install"
               href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core" target="_blank"
@@ -895,7 +903,7 @@
           <article class="tool-card">
             <div class="tool-top">
               <h3>Workshop</h3>
-              <span class="tool-tag is-live">v1.10.0 · Marketplace live</span>
+              <span class="tool-tag is-live">v1.19.0 · Marketplace live</span>
             </div>
             <div class="tool-meta">
               <span>VS Code extension</span>
@@ -911,7 +919,7 @@
               <li>Highlights stale evidence, gaps, follow-up actions, tags, saved views, Change Records, and planning
                 lenses for the current assessment loop.</li>
               <li>Triggers the export that produces the Explorer bundle.</li>
-              <li>Repository package version is v1.14.0; Marketplace publication is pending a real release run.</li>
+              <li>Previous/next navigation, save-and-next, and link-existing flows speed up the assessment loop.</li>
             </ul>
             <a class="tool-link is-install"
               href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop" target="_blank"
@@ -946,21 +954,26 @@
           <article class="tool-card">
             <div class="tool-top">
               <h3>Shop</h3>
-              <span class="tool-tag">v0.2+ · planned</span>
+              <span class="tool-tag is-live">v1.19.0 · Marketplace live</span>
             </div>
             <div class="tool-meta">
-              <span>Planned VS Code extension</span>
-              <span>Deferred</span>
+              <span>VS Code extension</span>
+              <span><code>tobyharvey.pspf-shop</code></span>
+              <span>Depends on Core</span>
             </div>
-            <p>Shop will cover supplier, contract and spend workflows, linking commercial obligations to the controls
-              and risks they affect. It is deferred until the Core, Workshop and Explorer spine is stable in real
-              use.</p>
+            <p>Shop is the commercial planning surface for suppliers, contracts, spend items, and derived spend
+              forecast review. It links commercial obligations to the Requirements, Actions, and Risks they affect, so
+              assurance and procurement stay in step.</p>
             <ul class="simple-list">
-              <li>Tracks suppliers, contracts and spend items.</li>
-              <li>Links commercial records to requirements and risks.</li>
-              <li>Supports obligation reporting.</li>
+              <li>Authors Suppliers, Contracts, and Spend Items through Core's canonical model.</li>
+              <li>Links commercial records to Requirements, Actions, and Risks.</li>
+              <li>Shop Forecast view with a commercial coverage dashboard: linked and unlinked assurance coverage,
+                near-term contract review, funded open Actions, and supplier Risk context.</li>
+              <li>Compatibility import for legacy local <code>.pspf/shop/shop.json</code> records.</li>
             </ul>
-            <span class="tool-link link-disabled" aria-disabled="true">Not yet released</span>
+            <a class="tool-link is-install"
+              href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-shop" target="_blank"
+              rel="noopener noreferrer">Install from VS Code Marketplace →</a>
           </article>
 
           <article class="tool-card">
@@ -1066,15 +1079,15 @@
           </article>
 
           <article class="source-card">
-            <span class="mini-label">VS Code extension · Marketplace v1.10.0</span>
+            <span class="mini-label">VS Code extension · Marketplace v1.19.0</span>
             <h3>Core</h3>
-            <p>Local system of record. Install Core first; Workshop depends on it.</p>
+            <p>Local system of record. Install Core first; Workshop and Shop depend on it.</p>
             <a class="tool-link" href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core"
               target="_blank" rel="noopener noreferrer">Open Marketplace listing →</a>
           </article>
 
           <article class="source-card">
-            <span class="mini-label">VS Code extension · Marketplace v1.10.0</span>
+            <span class="mini-label">VS Code extension · Marketplace v1.19.0</span>
             <h3>Workshop</h3>
             <p>Day-to-day authoring surface inside VS Code. Requires Core.</p>
             <a class="tool-link" href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop"
@@ -1082,10 +1095,11 @@
           </article>
 
           <article class="source-card">
-            <span class="mini-label">Planned extension</span>
+            <span class="mini-label">VS Code extension · Marketplace v1.19.0</span>
             <h3>Shop</h3>
-            <p>Deferred to v0.2+. Public URL to be published when the Shop extension exists.</p>
-            <span class="tool-link link-disabled" aria-disabled="true">Shop deferred to v0.2+</span>
+            <p>Commercial planning surface for suppliers, contracts, and spend. Requires Core.</p>
+            <a class="tool-link" href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-shop"
+              target="_blank" rel="noopener noreferrer">Open Marketplace listing →</a>
           </article>
 
           <article class="source-card">
@@ -1098,10 +1112,10 @@
           <article class="source-card">
             <span class="mini-label">Published view</span>
             <h3>Explorer</h3>
-            <p>Public URL to be published. The local build already opens from
-              <code>packages/explorer/dist/index.html</code> after a Core export.
-            </p>
-            <span class="tool-link link-disabled" aria-disabled="true">Explorer URL coming soon</span>
+            <p>Publication-mode reviewer view. Open in any modern browser, then load a master JSON bundle exported from
+              Core.</p>
+            <a class="tool-link" href="https://tobyharvey.online/explorer/" target="_blank"
+              rel="noopener noreferrer">Open Explorer →</a>
           </article>
 
           <article class="source-card">
@@ -1116,9 +1130,9 @@
           <article class="source-card">
             <span class="mini-label">Implementation</span>
             <h3>Readiness review</h3>
-            <p>The current repository slice is v1.14.0 with Explorer compliance-history export controls,
-              release-assurance hardening, public Marketplace version verification after real publishes, and receipt-tag
-              checks.</p>
+            <p>The current repository slice is v1.19.0 with the Shop commercial coverage dashboard, Workshop assessment
+              navigation, user-chosen export destinations, restricted-field redaction on publication,
+              release-assurance hardening, and receipt-tag checks.</p>
             <span class="tool-link link-disabled" aria-disabled="true">Documentation URL coming soon</span>
           </article>
         </div>

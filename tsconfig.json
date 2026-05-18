@@ -18,6 +18,9 @@
             "path": "./packages/brief-renderer"
         },
         {
+            "path": "./packages/connected-view"
+        },
+        {
             "path": "./packages/core"
         },
         {
