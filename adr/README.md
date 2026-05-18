@@ -65,6 +65,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0050 | v1.15 Shop commercial planning foundation | accepted |
 | 0051 | v1.16 Shop canonical commercial entities | accepted |
 | 0052 | v1.17 Shop Core-backed authoring | accepted |
+| 0053 | v1.18 Shop assurance linkage and identity | accepted |
 
 ## Template
 

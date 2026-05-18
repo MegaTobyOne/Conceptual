@@ -2,7 +2,7 @@
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.17.0 with Core, Workshop, Shop, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.8.0`.
+The repository currently ships PSPF v1.18.0 with Core, Workshop, Shop, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.8.0`.
 
 ## Products
 
@@ -29,7 +29,7 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the v1.17 gate chain and writes `.tmp/release-readiness/v1.17.0-readiness-report.md`.
+`release:readiness` runs the v1.18 gate chain and writes `.tmp/release-readiness/v1.18.0-readiness-report.md`.
 
 ## Manual Validation
 
@@ -46,4 +46,4 @@ Open Explorer from [packages/explorer/dist/index.html](packages/explorer/dist/in
 
 ## Current Shop Slice
 
-Shop authoring is Core-backed. Existing local Shop JSON can be imported explicitly; procurement import, finance reconciliation, approvals, Pub integration, and Marketplace publication remain deferred.
+Shop authoring is Core-backed and can link suppliers, contracts, and spend items to assurance Requirements, Actions, and Risks. Existing local Shop JSON can be imported explicitly; procurement import, finance reconciliation, approvals, Pub integration, and Marketplace publication remain deferred.

@@ -10,6 +10,7 @@ import {
   type ChangeRecordSource,
   type ChangeRecordStatus,
   type ChangeRecordType,
+  type ContractEntity,
   DEFAULT_TAG_COLOUR,
   PSPF_SLICE_VERSION,
   PSPF_DOMAINS,
@@ -35,6 +36,8 @@ import {
   type SavedViewEntity,
   type SavedViewScope,
   type SourceControlEntity,
+  type SpendItemEntity,
+  type SupplierEntity,
   type TagColour,
   type TagEntity,
   type V01Entity,
@@ -1441,6 +1444,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     ${recordTable("Evidence", evidenceRows, ["title", "evidenceType", "freshness", "reference"])}
     ${recordTable("Actions", actionRows, ["title", "status", "urgency", "dueDate"])}
     ${recordTable("Risks", riskRows, ["title", "status", "likelihood", "impact"])}
+    ${commercialContextSection(requirement, allEntities)}
     ${recordTable("ISM Mappings", mappings, ["controlId", "title", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"])}
     ${recordTable("Relationships", relationships, ["title", "relationship", "targetType", "target"])}
   `);
@@ -1846,9 +1850,9 @@ function renderEntityEditor(entity: EditableWorkshopEntity, allEntities: readonl
     case "evidence":
       return renderEvidenceEditor(entity);
     case "action":
-      return renderActionEditor(entity);
+      return renderActionEditor(entity, allEntities);
     case "risk":
-      return renderRiskEditor(entity);
+      return renderRiskEditor(entity, allEntities);
     case "direction":
       return renderDirectionEditor(entity);
     case "change-record":
@@ -1959,6 +1963,7 @@ function renderRequirementEditor(requirement: RequirementEntity, allEntities: re
     ${recordTable("Evidence", evidenceRows, ["title", "evidenceType", "freshness", "reference"])}
     ${recordTable("Actions", actionRows, ["title", "status", "urgency", "dueDate"])}
     ${recordTable("Risks", riskRows, ["title", "status", "likelihood", "impact"])}
+    ${commercialContextSection(requirement, allEntities)}
     ${recordTable("ISM Mappings", mappingRows, ["controlId", "title", "coverage", "profile", "confidence", "reviewed"])}
   `;
 }
@@ -1972,7 +1977,7 @@ function renderEvidenceEditor(evidence: EvidenceEntity): string {
   `);
 }
 
-function renderActionEditor(action: ActionEntity): string {
+function renderActionEditor(action: ActionEntity, allEntities: readonly V01Entity[]): string {
   const impact = action.impact;
   const readOnlyImpact = impact ? `
     <section>
@@ -1991,17 +1996,17 @@ function renderActionEditor(action: ActionEntity): string {
     ${inputField("title", "Title", action.title, true)}
     ${selectField("status", "Status", actionStatusItems, action.status)}
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "30 Jun 2026")}
-  `)}${readOnlyImpact}`;
+  `)}${readOnlyImpact}${commercialContextSection(action, allEntities)}`;
 }
 
-function renderRiskEditor(risk: RiskEntity): string {
+function renderRiskEditor(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
   const scoreOptions = [1, 2, 3, 4, 5].map((value) => ({ label: String(value), value: String(value) }));
-  return editorShell(risk, "Edit Risk", `
+  return `${editorShell(risk, "Edit Risk", `
     ${inputField("title", "Title", risk.title, true)}
     ${selectField("status", "Status", riskStatusItems, risk.status)}
     ${selectField("likelihood", "Likelihood", scoreOptions, String(risk.likelihood))}
     ${selectField("impact", "Impact", scoreOptions, String(risk.impact))}
-  `);
+  `)}${commercialContextSection(risk, allEntities)}`;
 }
 
 function renderDirectionEditor(direction: DirectionEntity): string {
@@ -3050,6 +3055,46 @@ function escapeHtml(value: string): string {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function commercialContextSection(target: RequirementEntity | ActionEntity | RiskEntity, allEntities: readonly V01Entity[]): string {
+  const entityById = new Map(allEntities.map((entity) => [entity.id, entity]));
+  const rows = allEntities
+    .filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted")
+    .filter((link) => isCommercialContextLink(link, target))
+    .map((link) => commercialContextRow(entityById.get(link.fromId), link))
+    .filter((row): row is { relationship: string; type: string; title: string; status: string; context: string } => row !== undefined);
+  return recordTable("Commercial Context", rows, ["relationship", "type", "title", "status", "context"]);
+}
+
+function isCommercialContextLink(link: LinkEntity, target: RequirementEntity | ActionEntity | RiskEntity): boolean {
+  if (target.entityType === "requirement") {
+    return link.toId === target.id && link.linkType === "supports" && (link.fromType === "supplier" || link.fromType === "contract" || link.fromType === "spend-item");
+  }
+  if (target.entityType === "action") {
+    return link.toId === target.id && link.linkType === "supports" && link.fromType === "spend-item";
+  }
+  return link.toId === target.id && link.linkType === "associated-with" && link.fromType === "supplier";
+}
+
+function commercialContextRow(entity: V01Entity | undefined, link: LinkEntity): { relationship: string; type: string; title: string; status: string; context: string } | undefined {
+  if (!entity || entity.recordStatus === "deleted") {
+    return undefined;
+  }
+  if (entity.entityType === "supplier") {
+    return commercialRow(link.linkType, "Supplier", entity.name, entity.status, `Criticality: ${label(entity.criticality)}`);
+  }
+  if (entity.entityType === "contract") {
+    return commercialRow(link.linkType, "Contract", entity.title, entity.status, entity.endsAt ? `Ends: ${entity.endsAt}` : "No end date recorded");
+  }
+  if (entity.entityType === "spend-item") {
+    return commercialRow(link.linkType, "Spend item", entity.title, entity.status, `${entity.financialYear}; confidence ${label(entity.confidence ?? "not-recorded")}`);
+  }
+  return undefined;
+}
+
+function commercialRow(relationship: string, type: string, title: string, status: string, context: string): { relationship: string; type: string; title: string; status: string; context: string } {
+  return { relationship: label(relationship), type, title, status: label(status), context };
 }
 
 function recordTable(title: string, records: readonly object[], fields: readonly string[]): string {

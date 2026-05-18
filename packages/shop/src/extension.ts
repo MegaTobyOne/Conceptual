@@ -5,12 +5,18 @@ import { randomUUID } from "node:crypto";
 import {
     PSPF_SLICE_VERSION,
     VERSION_AXES,
+    type ActionEntity,
     type ContractEntity,
+    type LinkEntity,
+    type LinkType,
     type MoneyAmount,
+    type RequirementEntity,
+    type RiskEntity,
     type SpendItemEntity,
     type SupplierEntity,
     type V01Entity,
-    sanitiseEntityForPublication
+    sanitiseEntityForPublication,
+    withEnvelope
 } from "@pspf/contracts";
 
 const SHOP_STORE_VERSION = "1.0.0";
@@ -36,6 +42,8 @@ interface ShopStore {
 type SupplierRecord = SupplierEntity;
 type ContractRecord = ContractEntity;
 type SpendItemRecord = SpendItemEntity;
+type LinkableTarget = RequirementEntity | ActionEntity | RiskEntity | SpendItemRecord;
+type CommercialSource = SupplierRecord | ContractRecord | SpendItemRecord;
 
 interface ForecastYear {
     readonly financialYear: string;
@@ -83,6 +91,12 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand("pspf.shop.editContract", editContract),
         vscode.commands.registerCommand("pspf.shop.editSpendItem", editSpendItem),
         vscode.commands.registerCommand("pspf.shop.deleteRecord", deleteRecord),
+        vscode.commands.registerCommand("pspf.shop.linkSupplierToRequirement", (supplier: SupplierRecord) => linkCommercialRecord(supplier, { linkType: "supports", targetType: "requirement", label: "Requirement" })),
+        vscode.commands.registerCommand("pspf.shop.linkSupplierToRisk", (supplier: SupplierRecord) => linkCommercialRecord(supplier, { linkType: "associated-with", targetType: "risk", label: "Risk" })),
+        vscode.commands.registerCommand("pspf.shop.linkContractToRequirement", (contract: ContractRecord) => linkCommercialRecord(contract, { linkType: "supports", targetType: "requirement", label: "Requirement" })),
+        vscode.commands.registerCommand("pspf.shop.linkContractToSpendItem", (contract: ContractRecord) => linkCommercialRecord(contract, { linkType: "funds", targetType: "spend-item", label: "Spend item" })),
+        vscode.commands.registerCommand("pspf.shop.linkSpendToAction", (spendItem: SpendItemRecord) => linkCommercialRecord(spendItem, { linkType: "supports", targetType: "action", label: "Action" })),
+        vscode.commands.registerCommand("pspf.shop.linkSpendToRequirement", (spendItem: SpendItemRecord) => linkCommercialRecord(spendItem, { linkType: "supports", targetType: "requirement", label: "Requirement" })),
         vscode.commands.registerCommand("pspf.shop.openForecast", openForecast)
     );
 
@@ -399,6 +413,41 @@ async function deleteRecord(entity: SupplierRecord | ContractRecord | SpendItemR
     vscode.window.showInformationMessage(`Deleted ${label}.`);
 }
 
+async function linkCommercialRecord(source: CommercialSource, spec: { readonly linkType: LinkType; readonly targetType: LinkableTarget["entityType"]; readonly label: string }): Promise<void> {
+    const targets = await listActiveTargets(spec.targetType);
+    if (targets.length === 0) {
+        vscode.window.showWarningMessage(`No active ${spec.label.toLowerCase()} records are available to link.`);
+        return;
+    }
+    const target = await pickLinkTarget(targets, spec.label);
+    if (!target) {
+        return;
+    }
+    const allEntities = await listCoreEntities();
+    const duplicate = allEntities.some((entity): entity is LinkEntity => entity.entityType === "link"
+        && entity.recordStatus !== "deleted"
+        && entity.fromId === source.id
+        && entity.toId === target.id
+        && entity.linkType === spec.linkType);
+    if (duplicate) {
+        vscode.window.showInformationMessage(`${commercialTitle(source)} is already linked to ${targetTitle(target)}.`);
+        return;
+    }
+
+    const link = withEnvelope("link", {
+        entityType: "link",
+        title: `${commercialTitle(source)} ${formatToken(spec.linkType)} ${targetTitle(target)}`,
+        linkType: spec.linkType,
+        fromId: source.id,
+        fromType: source.entityType,
+        toId: target.id,
+        toType: target.entityType
+    }, "shop");
+    await upsertCoreEntities([link]);
+    await refreshViews();
+    vscode.window.showInformationMessage(`Linked ${commercialTitle(source)} to ${targetTitle(target)}.`);
+}
+
 async function refreshViews(): Promise<void> {
     await loadStore();
     suppliersProvider?.refresh();
@@ -436,9 +485,9 @@ async function loadLocalStore(): Promise<ShopStore> {
 
 async function loadCoreStore(): Promise<ShopStore> {
     const [suppliers, contracts, spendItems] = await Promise.all([
-        vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "supplier"),
-        vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "contract"),
-        vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", "spend-item")
+        listCoreEntities("supplier"),
+        listCoreEntities("contract"),
+        listCoreEntities("spend-item")
     ]);
 
     return {
@@ -448,6 +497,23 @@ async function loadCoreStore(): Promise<ShopStore> {
         contracts: contracts.filter(isActiveEntity).filter(isContractEntity),
         spendItems: spendItems.filter(isActiveEntity).filter(isSpendItemEntity)
     };
+}
+
+async function listCoreEntities(entityType?: V01Entity["entityType"]): Promise<V01Entity[]> {
+    return await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities", entityType) ?? [];
+}
+
+async function listActiveTargets(entityType: LinkableTarget["entityType"]): Promise<LinkableTarget[]> {
+    const entities = await listCoreEntities(entityType);
+    return entities.filter(isActiveEntity).filter((entity): entity is LinkableTarget => isLinkableTarget(entity) && entity.entityType === entityType);
+}
+
+async function pickLinkTarget(targets: readonly LinkableTarget[], label: string): Promise<LinkableTarget | undefined> {
+    const selected = await vscode.window.showQuickPick(
+        targets.map((target) => ({ label: targetTitle(target), description: formatToken(target.entityType), target })),
+        { placeHolder: `Link to ${label}`, ignoreFocusOut: true, canPickMany: false }
+    );
+    return selected?.target;
 }
 
 async function importLocalStore(): Promise<void> {
@@ -480,6 +546,10 @@ async function saveStore(nextStore: ShopStore): Promise<void> {
 }
 
 async function upsertShopEntities(entities: readonly (SupplierRecord | ContractRecord | SpendItemRecord)[]): Promise<void> {
+    await upsertCoreEntities(entities);
+}
+
+async function upsertCoreEntities(entities: readonly V01Entity[]): Promise<void> {
     if (entities.length === 0) {
         return;
     }
@@ -721,6 +791,18 @@ function isSpendItemEntity(entity: V01Entity): entity is SpendItemRecord {
     return entity.entityType === "spend-item";
 }
 
+function isLinkableTarget(entity: V01Entity): entity is LinkableTarget {
+    return entity.entityType === "requirement" || entity.entityType === "action" || entity.entityType === "risk" || entity.entityType === "spend-item";
+}
+
+function commercialTitle(entity: CommercialSource): string {
+    return entity.entityType === "supplier" ? entity.name : entity.title;
+}
+
+function targetTitle(entity: LinkableTarget): string {
+    return entity.title;
+}
+
 function newCommercialEnvelope(entityType: "supplier" | "contract" | "spend-item"): Pick<SupplierRecord | ContractRecord | SpendItemRecord, "entityType" | "schemaVersion" | "createdAt" | "updatedAt" | "sourceProduct" | "recordStatus"> {
     const timestamp = new Date().toISOString();
     return {
@@ -765,7 +847,6 @@ function buildSampleStore(): ShopStore {
                 supplierType: "managed-service",
                 status: "active",
                 criticality: "high",
-                primaryContact: "Commercial manager",
                 notes: "Sample supplier note retained only in the local Shop store."
             }
         ],
@@ -961,7 +1042,8 @@ class SupplierTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
             `${formatToken(supplier.supplierType)} - ${formatToken(supplier.status)} - ${formatToken(supplier.criticality)}`,
             "supplier",
             "pspf.shop.editSupplier",
-            supplier
+            supplier,
+            "pspfShopSupplier"
         ));
     }
 }
@@ -986,7 +1068,7 @@ class ContractTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
         return store.contracts.map((contract) => {
             const supplier = store.suppliers.find((candidate) => candidate.id === contract.supplierId);
             const value = contract.value ? ` - ${formatCurrency(contract.value.amount, contract.value.currency)}` : "";
-            return new EntityTreeItem(contract.title, `${supplier?.name ?? "Unknown supplier"} - ${formatToken(contract.status)}${value}`, "contract", "pspf.shop.editContract", contract);
+            return new EntityTreeItem(contract.title, `${supplier?.name ?? "Unknown supplier"} - ${formatToken(contract.status)}${value}`, "contract", "pspf.shop.editContract", contract, "pspfShopContract");
         });
     }
 }
@@ -1013,7 +1095,8 @@ class SpendTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
             `${item.financialYear} - ${formatToken(item.status)} - ${formatCurrency(item.amount.amount, item.amount.currency)}`,
             "spend",
             "pspf.shop.editSpendItem",
-            item
+            item,
+            "pspfShopSpendItem"
         ));
     }
 }
@@ -1059,10 +1142,10 @@ class CommandTreeItem extends ShopTreeItem {
 }
 
 class EntityTreeItem extends ShopTreeItem {
-    constructor(label: string, description: string, iconName: "contract" | "spend" | "supplier", editCommand: string, entity: SupplierRecord | ContractRecord | SpendItemRecord) {
+    constructor(label: string, description: string, iconName: "contract" | "spend" | "supplier", editCommand: string, entity: SupplierRecord | ContractRecord | SpendItemRecord, contextValue: string) {
         super(label, description, iconName);
         this.command = { command: editCommand, title: "Edit", arguments: [entity] };
-        this.contextValue = "pspfShopRecord";
+        this.contextValue = contextValue;
     }
 }
 
@@ -1135,23 +1218,30 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[])
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+        :root { --shop-amber: #c47a16; --shop-teal: #1b8078; --shop-panel: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--shop-teal)); }
     body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0; padding: 16px; }
-    h1 { font-size: 1.2rem; margin: 0 0 8px; }
+        h1 { font-size: 1.25rem; margin: 0 0 8px; }
     p { color: var(--vscode-descriptionForeground); margin: 0 0 16px; }
+        .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: 12px 14px; margin: 0 0 14px; }
+        .eyebrow { color: var(--shop-teal); font-size: .72rem; font-weight: 700; letter-spacing: 0; text-transform: uppercase; margin: 0 0 4px; }
     table { border-collapse: collapse; width: 100%; }
     th, td { border-bottom: 1px solid var(--vscode-panel-border); padding: 8px 6px; text-align: left; }
     th { color: var(--vscode-descriptionForeground); font-weight: 600; }
     .summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
     .pill { border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 6px 8px; }
+        .pill strong { color: var(--shop-amber); }
   </style>
 </head>
 <body>
-  <h1>Shop Forecast</h1>
+    <div class="masthead">
+        <p class="eyebrow">Commercial planning</p>
+        <h1>Shop Forecast</h1>
     <p>Derived from Core-backed Shop spend items. Commercial fields use the canonical publication policy before reaching snapshots or export bundles.</p>
+    </div>
   <div class="summary">
-    <span class="pill">${store.suppliers.length} suppliers</span>
-    <span class="pill">${store.contracts.length} contracts</span>
-    <span class="pill">${store.spendItems.length} spend items</span>
+        <span class="pill"><strong>${store.suppliers.length}</strong> suppliers</span>
+        <span class="pill"><strong>${store.contracts.length}</strong> contracts</span>
+        <span class="pill"><strong>${store.spendItems.length}</strong> spend items</span>
         <span class="pill">${publicationStatus}</span>
   </div>
   <table>

@@ -1,6 +1,6 @@
 {
     "name": "pspf",
-    "version": "1.17.0",
+    "version": "1.18.0",
     "private": true,
     "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
     "license": "MIT",
@@ -65,11 +65,12 @@
         "e2e:v1.14": "pnpm run e2e:v1.13 && pnpm run check:explorer-local-authoring && pnpm run check:explorer-to-workshop-import",
         "e2e:v1.16": "pnpm run e2e:v1.14 && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run package:check",
         "e2e:v1.17": "pnpm run e2e:v1.16 && pnpm run package:check",
+        "e2e:v1.18": "pnpm run e2e:v1.17 && pnpm run package:check",
         "validate:export": "pnpm build && node scripts/validate-export.mjs",
         "validate:debug-workspace": "pnpm build && node scripts/validate-debug-workspace.mjs && node scripts/check-personal-data-exclusion.mjs",
         "lint": "pnpm lint:au",
         "lint:au": "node scripts/lint-au-english.mjs",
-        "release:readiness": "pnpm e2e:v1.17 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
+        "release:readiness": "pnpm e2e:v1.18 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
         "test": "pnpm build && pnpm -r --if-present test",
         "typecheck": "tsc -b tsconfig.json"
     },

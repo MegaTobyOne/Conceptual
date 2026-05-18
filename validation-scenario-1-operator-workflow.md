@@ -1,4 +1,4 @@
-# Validation Scenario 1: v1.17.0 Shop Core-Backed Workflow
+# Validation Scenario 1: v1.18.0 Shop Assurance Linkage Workflow
 
 ## Purpose
 
@@ -27,7 +27,7 @@ Manual focus:
 
 Automated coverage handles detailed counts, redaction/default-deny, schema validation, accessibility, writer lock, backup/restore, personal-data exclusion, and import/export round trips. Do not repeat those manually unless a visible behaviour looks wrong.
 
-Still out of scope for v1.17.0:
+Still out of scope for v1.18.0:
 
 - Pub, editable posture, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, Explorer-authored Change Records, change-record diff views, change-record tagging, local history pruning, automatic retention windows, plan baselines, milestone/resource/budget entities, a separate PSPF Plan product, procurement import, finance reconciliation, approvals, Marketplace publication of Shop, and third-party accessibility audit.
 
@@ -61,8 +61,8 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.17.0`, `Schema 1.8.0`, and `API 1.8.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.17.0` and its tooltip includes `Schema 1.8.0`, `Bundle 1.8.0`, and `API 1.8.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.18.0`, `Schema 1.8.0`, and `API 1.8.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.18.0` and its tooltip includes `Schema 1.8.0`, `Bundle 1.8.0`, and `API 1.8.0`.
 4. From `Workshop Home`, click `Load sample`.
 5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.
@@ -72,21 +72,23 @@ If `dig` returns no address or `curl` reports `Could not resolve host`, create o
 10. Run `PSPF: Add Evidence`, create `Approved Authentication policy`, choose `Browse by domain`, select Governance, Security Risk, and Technology, then select at least two Governance, one Security Risk, and two Technology Requirements. Confirm the completion message summarises the affected domains and one Evidence record is linked to multiple Requirements.
 11. Run `PSPF: Create Action`, create one cross-cutting action, choose `Browse by assessment status`, select at least one non-final status, then select two or more Requirements. Confirm one Action record is linked to multiple Requirements.
 12. Run `PSPF: Create Risk`, create one cross-cutting risk, choose `All Requirements` or `Browse by domain`, then select two or more Requirements. Confirm one Risk record is linked to multiple Requirements.
-13. Run `PSPF: Filter Requirements by Tag`, select `Security uplift`, choose `Any selected tag`, and confirm the matching Requirement opens cleanly. Then run `PSPF: Manage Saved Views`, create a Workshop Requirements view using `Security uplift` or a short search term, and confirm the Saved Views panel refreshes immediately with the new row. Apply it and confirm the filtered Requirements list opens with the expected rows.
-14. In `PSPF: Manage Saved Views`, create a Dashboard view and an Evidence Review view using the same filter. Apply the Dashboard view and confirm it opens a planning slice with filtered Requirements, open Actions, open Risks, and recent Change Records. Apply the Evidence Review view and confirm it opens missing-evidence and evidence-needing-review lists for the filtered Requirements.
-15. From `Workshop Home`, click `Validate`, `Integrity scan` (`PSPF: Run Integrity Scan`), `Snapshot`, `Copy brief`, and `Export` in that order. Confirm each completes and the copied brief is readable when pasted into a scratch note.
-16. Open `packages/explorer/dist/index.html`, select the latest debug `bundle.json` from `Bundle Tools` if a remembered bundle does not restore, and confirm the portable assurance masthead, `OFFICIAL: Sensitive · TLP:AMBER+STRICT` banner, and `Bundle baseline` / `Local changes` / `Export to Workshop` mode strip are visible.
-17. Open `Why This Changed` and confirm the Change Record appears with affected Requirement context, public summary, and no sensitive reason, impact summary, or decision-owner reference.
-18. Open `Plan Lens` and confirm it shows open Actions, open Risks, active/proposed Change Records, and Directions needing attention without introducing editable plan-baseline, milestone, resource, or budget fields.
-19. On the Requirements section, select the `Security uplift` tag filter and confirm the URL includes `tags=` and `tagsMode=any`. Switch to `All selected tags`, reload the page, and confirm the tag filter is restored from the URL/session state. Check the Relationships Board uses the same tag filter.
-20. In Requirements, combine `Explorer Search`, a Requirement status filter, and the `Security uplift` tag filter. Save the current Requirements view as `Security uplift focus`, clear the filters, apply the saved view, and confirm the search/status/tag controls and visible rows return without reopening Explorer. Rename the view, archive it, and confirm each change redraws the controls immediately.
-21. In Relationships, keep the `Security uplift` tag filter active, save the current Relationship view as `Security relationships`, clear tags, apply the saved view, and confirm the Relationships Board reopens with the tag filter restored.
-22. If the deployed Explorer has just moved schema version, refresh it before selecting a bundle and confirm it shows `Reload your PSPF JSON` rather than an empty review surface. Select the latest bundle and confirm normal rendering resumes.
-23. Use the full-width `Explorer Search` under the posture brief to find one Requirement, confirm the same search narrows the `Local Changes` list, select that Requirement, and confirm `Linked Context` shows existing linked Evidence, Actions, Risks, and tagged context plus Open buttons to the full sections. Change its status, add one evidence reference, one Action, and one Risk, then refresh the browser. Confirm the latest bundle restores automatically and the local changes and saved views are still visible as `local` / saved local state.
-24. In `Local Changes`, confirm `Include compliance history` is on by default. Click `Export local JSON` and confirm the exported bundle includes `collections.saved-views`; if the bundle contains local compliance events, confirm it also includes `collections.compliance-events` and a `manifest.collections` entry for `compliance-events`. Turn `Include compliance history` off, export again, and confirm `compliance-events` is omitted from both `collections` and `manifest.collections` while the current Requirement status/evidence/Action/Risk edits remain present. Import that history-excluded Explorer local JSON from Workshop with `Plan, review, apply`. Confirm `PSPF Workshop Import Review` opens as a read-only surface with created, updated, unchanged, write, per-type, and update-example detail before `Apply Import`; apply it, then use `Undo Import` and confirm the undo notification is clear.
-25. In GitHub Actions, open or run a Marketplace release dry run from `main` with `target=both` and `dry_run=true`. Confirm the run name includes `target=both / dry_run=true`, the dispatch summary says publication is skipped, both publish jobs show dry-run summaries, and `Publish to VS Code Marketplace`, `Verify Marketplace version`, `Tag and GitHub release`, and `Verify receipt tag` are skipped.
-26. Confirm the dry run created no `core/1.14.0` or `workshop/1.14.0` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
-27. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
+13. Open Shop, create or load a supplier, contract, and spend item, then use the Shop context menu to link supplier-to-Requirement, supplier-to-Risk, contract-to-Requirement, contract-to-spend item, spend-to-Action, and spend-to-Requirement. Confirm each picker only offers active records of the expected type and duplicate links are not created.
+14. Reopen the linked Requirement, Action, and Risk in Workshop and confirm each shows a `Commercial Context` table with relationship, type, title, status, and context only. Confirm contact details, notes, assumptions, service summaries, and monetary amounts are not displayed there.
+15. Run `PSPF: Filter Requirements by Tag`, select `Security uplift`, choose `Any selected tag`, and confirm the matching Requirement opens cleanly. Then run `PSPF: Manage Saved Views`, create a Workshop Requirements view using `Security uplift` or a short search term, and confirm the Saved Views panel refreshes immediately with the new row. Apply it and confirm the filtered Requirements list opens with the expected rows.
+16. In `PSPF: Manage Saved Views`, create a Dashboard view and an Evidence Review view using the same filter. Apply the Dashboard view and confirm it opens a planning slice with filtered Requirements, open Actions, open Risks, and recent Change Records. Apply the Evidence Review view and confirm it opens missing-evidence and evidence-needing-review lists for the filtered Requirements.
+17. From `Workshop Home`, click `Validate`, `Integrity scan` (`PSPF: Run Integrity Scan`), `Snapshot`, `Copy brief`, and `Export` in that order. Confirm each completes and the copied brief is readable when pasted into a scratch note.
+18. Open `packages/explorer/dist/index.html`, select the latest debug `bundle.json` from `Bundle Tools` if a remembered bundle does not restore, and confirm the portable assurance masthead, `OFFICIAL: Sensitive · TLP:AMBER+STRICT` banner, and `Bundle baseline` / `Local changes` / `Export to Workshop` mode strip are visible.
+19. Open `Why This Changed` and confirm the Change Record appears with affected Requirement context, public summary, and no sensitive reason, impact summary, or decision-owner reference.
+20. Open `Plan Lens` and confirm it shows open Actions, open Risks, active/proposed Change Records, and Directions needing attention without introducing editable plan-baseline, milestone, resource, or budget fields.
+21. On the Requirements section, select the `Security uplift` tag filter and confirm the URL includes `tags=` and `tagsMode=any`. Switch to `All selected tags`, reload the page, and confirm the tag filter is restored from the URL/session state. Check the Relationships Board uses the same tag filter.
+22. In Requirements, combine `Explorer Search`, a Requirement status filter, and the `Security uplift` tag filter. Save the current Requirements view as `Security uplift focus`, clear the filters, apply the saved view, and confirm the search/status/tag controls and visible rows return without reopening Explorer. Rename the view, archive it, and confirm each change redraws the controls immediately.
+23. In Relationships, keep the `Security uplift` tag filter active, save the current Relationship view as `Security relationships`, clear tags, apply the saved view, and confirm the Relationships Board reopens with the tag filter restored.
+24. If the deployed Explorer has just moved schema version, refresh it before selecting a bundle and confirm it shows `Reload your PSPF JSON` rather than an empty review surface. Select the latest bundle and confirm normal rendering resumes.
+25. Use the full-width `Explorer Search` under the posture brief to find one Requirement, confirm the same search narrows the `Local Changes` list, select that Requirement, and confirm `Linked Context` shows existing linked Evidence, Actions, Risks, and tagged context plus Open buttons to the full sections. Change its status, add one evidence reference, one Action, and one Risk, then refresh the browser. Confirm the latest bundle restores automatically and the local changes and saved views are still visible as `local` / saved local state.
+26. In `Local Changes`, confirm `Include compliance history` is on by default. Click `Export local JSON` and confirm the exported bundle includes `collections.saved-views`; if the bundle contains local compliance events, confirm it also includes `collections.compliance-events` and a `manifest.collections` entry for `compliance-events`. Turn `Include compliance history` off, export again, and confirm `compliance-events` is omitted from both `collections` and `manifest.collections` while the current Requirement status/evidence/Action/Risk edits remain present. Import that history-excluded Explorer local JSON from Workshop with `Plan, review, apply`. Confirm `PSPF Workshop Import Review` opens as a read-only surface with created, updated, unchanged, write, per-type, and update-example detail before `Apply Import`; apply it, then use `Undo Import` and confirm the undo notification is clear.
+27. In GitHub Actions, open or run a Marketplace release dry run from `main` with `target=both` and `dry_run=true`. Confirm the run name includes `target=both / dry_run=true`, the dispatch summary says publication is skipped, both publish jobs show dry-run summaries, and `Publish to VS Code Marketplace`, `Verify Marketplace version`, `Tag and GitHub release`, and `Verify receipt tag` are skipped.
+28. Confirm the dry run created no `core/1.14.0` or `workshop/1.14.0` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
+29. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
 
 ## Expected Manual Signals
 
@@ -132,16 +134,16 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.17.0-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.18.0-readiness-report.md`.
 - An Explorer Local Changes smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
-- Manual operator validation should focus on the v1.17.0 Shop Core-backed path, compliance-history export path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
+- Manual operator validation should focus on the v1.18.0 Shop assurance-linkage path, commercial context display, Shop visual identity, compliance-history export path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
 
 ## Pass Criteria
 
-- The 27-step manual operator flow completes without intervention.
+- The 29-step manual operator flow completes without intervention.
 - Workshop clearly presents the decision surface and Explorer clearly presents the portable review surface.
 - Explorer Local Changes survives refresh and exports successfully.
 - Tags survive snapshot/export/import, `Tag.description` stays out of copied briefs and published indexes, saved views survive Explorer refresh/export/import, and tag/saved-view filters are understandable without reading docs.
