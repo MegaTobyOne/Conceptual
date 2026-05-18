@@ -5,7 +5,7 @@ import { setTimeout as delay } from "node:timers/promises";
 const extensionId = process.env.EXTENSION_ID;
 const expectedVersion = process.env.EXPECTED_VERSION;
 const attempts = Number(process.env.MARKETPLACE_VERIFY_ATTEMPTS ?? "12");
-const delayMs = Number(process.env.MARKETPLACE_VERIFY_DELAY_MS ?? "15000");
+const delayMs = Number(process.env.MARKETPLACE_VERIFY_DELAY_MS ?? "60000");
 
 assert.ok(extensionId, "EXTENSION_ID is required");
 assert.ok(expectedVersion, "EXPECTED_VERSION is required");
@@ -52,6 +52,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
 
     console.log(`Attempt ${attempt}: Marketplace reports '${actualVersion || "missing"}' for ${extensionId}, expected ${expectedVersion}.`);
     if (attempt < attempts && delayMs > 0) {
+        console.log(`Waiting ${Math.round(delayMs / 1000)} second(s) before checking Marketplace again.`);
         await delay(delayMs);
     }
 }
