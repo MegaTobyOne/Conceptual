@@ -112,6 +112,17 @@ runs:
         ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "test -f \"$APP_DIR/releases/$RELEASE_ID/index.html\" && test -f \"$APP_DIR/releases/$RELEASE_ID/explorer/index.html\" && test -d \"$APP_DIR/releases/$RELEASE_ID/schemas/explorer-bundle\""
         ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "set -e; cd \"$APP_DIR\"; ln -sfn \"releases/$RELEASE_ID\" current; rsync -a --delete current/ \"$DOCROOT\"/; find \"$DOCROOT\" -type d -exec chmod 755 {} \; ; find \"$DOCROOT\" -type f -exec chmod 644 {} \;"
         ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "test -f \"$DOCROOT/index.html\" && test -f \"$DOCROOT/explorer/index.html\" && test -d \"$DOCROOT/schemas/explorer-bundle\""
-        curl --fail --silent --show-error --location --max-time 30 "$SITE_URL" >/dev/null
-        curl --fail --silent --show-error --location --max-time 30 "$SITE_URL/explorer/" >/dev/null
+        smoke_url() {
+          local url="$1"
+          local status
+          status="$(curl --silent --show-error --location --max-time 30 --output /dev/null --write-out '%{http_code}' "$url" || true)"
+          if [[ "$status" != "200" ]]; then
+            echo "Smoke test failed for $url: HTTP $status" >&2
+            echo "Remote DOCROOT is $DOCROOT. The deploy artefact exists there, so HTTP 404 usually means the cPanel subdomain document root points somewhere else." >&2
+            ssh $SSH_OPTS "$SSH_USER@$SSH_HOST" "printf 'DOCROOT listing for %s:\n' \"$DOCROOT\"; find \"$DOCROOT\" -maxdepth 2 -mindepth 1 -print | sed -n '1,80p'" >&2 || true
+            exit 1
+          fi
+        }
+        smoke_url "$SITE_URL"
+        smoke_url "$SITE_URL/explorer/"
         echo "Deployed release $RELEASE_ID to $SITE_URL"

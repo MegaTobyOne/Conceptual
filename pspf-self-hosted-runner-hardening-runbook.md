@@ -182,6 +182,8 @@ Not allowed on the self-hosted runner:
    curl -I https://test.tobyharvey.online/
    ```
 
+   If DNS resolves but LiteSpeed returns `404`, the workflow artefact is usually not the problem. Check that the VentraIP/cPanel subdomain document root for `test.tobyharvey.online` still points at the same path as the `test-web` environment's `VENTRAIP_DOCROOT` value; cPanel subdomain recreation can reset that mapping outside Git.
+
 11. Trigger a manual `web-release` deployment to `test`.
 12. Confirm `https://test.tobyharvey.online/` and `https://test.tobyharvey.online/explorer/` load.
 

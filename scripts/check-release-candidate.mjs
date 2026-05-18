@@ -289,7 +289,7 @@ if (/^1\.13\.\d+$/.test(expectedVersion)) {
     assert.equal(marketplaceWorkflow.includes(requiredText), true, `Marketplace v1.13 release assurance should mention ${requiredText}`);
   }
   const marketplaceVerifier = await readFile(join(root, "scripts/verify-marketplace-version.mjs"), "utf8");
-  for (const requiredText of ["EXTENSION_ID", "EXPECTED_VERSION", "extensionquery", "filterType: 7", "MARKETPLACE_VERIFY_ATTEMPTS"]) {
+  for (const requiredText of ["EXTENSION_ID", "EXPECTED_VERSION", "extensionquery", "filterType: 7", "MARKETPLACE_VERIFY_ATTEMPTS", "MARKETPLACE_VERIFY_DELAY_MS ?? \"60000\""]) {
     assert.equal(marketplaceVerifier.includes(requiredText), true, `Marketplace verifier should mention ${requiredText}`);
   }
   assert.equal(typeof packageJson.scripts["e2e:v1.13"], "string", "root package should define e2e:v1.13");
@@ -311,7 +311,7 @@ if (/^1\.14\.\d+$/.test(expectedVersion)) {
     assert.equal(localAuthoringCheck.includes(requiredText), true, `Explorer local-authoring v1.14 check should mention ${requiredText}`);
   }
   const deployAction = await readFile(join(root, ".github/actions/ventraip-deploy/action.yml"), "utf8");
-  for (const requiredText of ["explorer/index.html", "schemas/explorer-bundle", "refusing to deploy an empty release", "$DOCROOT/explorer/index.html"]) {
+  for (const requiredText of ["explorer/index.html", "schemas/explorer-bundle", "refusing to deploy an empty release", "$DOCROOT/explorer/index.html", "cPanel subdomain document root points somewhere else"]) {
     assert.equal(deployAction.includes(requiredText), true, `VentraIP deploy guard should mention ${requiredText}`);
   }
   assert.equal(typeof packageJson.scripts["e2e:v1.14"], "string", "root package should define e2e:v1.14");
