@@ -31,6 +31,17 @@ const SPEND_STATUSES = ["proposed", "approved", "committed", "spent", "cancelled
 const SAVINGS_TYPES = ["avoided-cost", "efficiency", "consolidation", "risk-reduction", "contract-optimisation", "other"] as const;
 const CONFIDENCE_LEVELS = ["low", "medium", "high"] as const;
 const NEAR_TERM_REVIEW_DAYS = 120;
+const MONTH_NAMES = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"] as const;
+const CPR_LINKS = {
+    valueForMoney: "https://www.finance.gov.au/government/procurement/commonwealth-procurement-rules/value-money",
+    accountability: "https://www.finance.gov.au/government/procurement/commonwealth-procurement-rules/accountability-and-transparency",
+    risk: "https://www.finance.gov.au/government/procurement/commonwealth-procurement-rules/procurement-risk",
+    negotiations: "https://www.finance.gov.au/sites/default/files/2025-10/Contract-Negotiations.pdf",
+    contractManagement: "https://www.finance.gov.au/government/procurement/contract-management-guide",
+    confidentiality: "https://www.finance.gov.au/government/procurement/buying-australian-government/confidentiality-throughout-procurement-cycle",
+    standards: "https://www.finance.gov.au/sites/default/files/2025-10/Application-and-Verification-of-Standards.pdf",
+    supplierConduct: "https://www.finance.gov.au/government/procurement/ethical-conduct-suppliers/commonwealth-supplier-code-conduct-overview"
+} as const;
 
 interface ShopStore {
     readonly shopStoreVersion: string;
@@ -53,6 +64,54 @@ interface ForecastYear {
     readonly expectedSavings: number;
     readonly netForecast: number;
     readonly itemCount: number;
+}
+
+interface ForecastMonth {
+    readonly monthKey: string;
+    readonly monthLabel: string;
+    readonly financialYear: string;
+    readonly forecastSpend: number;
+    readonly forecastSavings: number;
+    readonly itemCount: number;
+}
+
+interface SavingScheduleRow {
+    readonly spendItem: SpendItemRecord;
+    readonly financialYear: string;
+    readonly scheduledFrom: string;
+    readonly scheduledTo: string;
+    readonly plannedSaving: number;
+    readonly savingsType: string;
+    readonly confidence: string;
+    readonly replacementContext: string;
+}
+
+interface EfficiencyDividendYear {
+    readonly financialYear: string;
+    readonly plannedSaving: number;
+    readonly itemCount: number;
+    readonly confidence: string;
+}
+
+interface SupplierManagementSignal {
+    readonly supplier: SupplierRecord;
+    readonly performanceMeasure: string;
+    readonly contractManagement: string;
+    readonly fociCheck: string;
+    readonly status: "review" | "watch" | "ok";
+}
+
+interface ContractArtefactSignal {
+    readonly contract: ContractRecord;
+    readonly supplierName: string;
+    readonly artefacts: readonly ArtefactSignal[];
+}
+
+interface ArtefactSignal {
+    readonly label: string;
+    readonly status: "ready" | "needed";
+    readonly sourceLabel: string;
+    readonly href: string;
 }
 
 interface CoverageGroup {
@@ -86,6 +145,10 @@ interface CommercialCoverageDashboard {
     readonly renewals: readonly ContractRenewal[];
     readonly fundedActions: readonly FundedAction[];
     readonly supplierRisks: readonly SupplierRisk[];
+    readonly supplierManagement: readonly SupplierManagementSignal[];
+    readonly contractArtefacts: readonly ContractArtefactSignal[];
+    readonly savingSchedule: readonly SavingScheduleRow[];
+    readonly efficiencyDividends: readonly EfficiencyDividendYear[];
 }
 
 let shopStore: ShopStore | undefined;
@@ -132,7 +195,9 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand("pspf.shop.linkContractToSpendItem", (contract: ContractRecord) => linkCommercialRecord(contract, { linkType: "funds", targetType: "spend-item", label: "Spend item" })),
         vscode.commands.registerCommand("pspf.shop.linkSpendToAction", (spendItem: SpendItemRecord) => linkCommercialRecord(spendItem, { linkType: "supports", targetType: "action", label: "Action" })),
         vscode.commands.registerCommand("pspf.shop.linkSpendToRequirement", (spendItem: SpendItemRecord) => linkCommercialRecord(spendItem, { linkType: "supports", targetType: "requirement", label: "Requirement" })),
-        vscode.commands.registerCommand("pspf.shop.openForecast", openForecast)
+        vscode.commands.registerCommand("pspf.shop.openForecast", openForecast),
+        vscode.commands.registerCommand("pspf.shop.exportForecastCsv", () => exportForecastReport("csv")),
+        vscode.commands.registerCommand("pspf.shop.exportForecastXls", () => exportForecastReport("xls"))
     );
 
     void refreshViews();
@@ -150,6 +215,7 @@ async function openHome(): Promise<void> {
 async function openForecast(): Promise<void> {
     const store = await loadStore();
     const forecast = deriveForecast(store.spendItems);
+    const monthlyForecast = deriveForecastMonths(store.spendItems);
     const dashboard = await deriveCoverageDashboard(store);
     if (forecastPanel) {
         forecastPanel.reveal(vscode.ViewColumn.One);
@@ -159,7 +225,27 @@ async function openForecast(): Promise<void> {
             forecastPanel = undefined;
         });
     }
-    forecastPanel.webview.html = renderForecastHtml(store, forecast, dashboard, "panel");
+    forecastPanel.webview.html = renderForecastHtml(store, forecast, monthlyForecast, dashboard, "panel");
+}
+
+async function exportForecastReport(format: "csv" | "xls"): Promise<void> {
+    const store = await loadStore();
+    const forecast = deriveForecast(store.spendItems);
+    const monthlyForecast = deriveForecastMonths(store.spendItems);
+    const dashboard = await deriveCoverageDashboard(store);
+    const defaultUri = getWorkspaceUri(format === "csv" ? "shop-forecast-report.csv" : "shop-forecast-report.xls");
+    const target = await vscode.window.showSaveDialog({
+        defaultUri,
+        filters: format === "csv" ? { "CSV table": ["csv"] } : { "Excel-compatible table": ["xls"] }
+    });
+    if (!target) {
+        return;
+    }
+    const content = format === "csv"
+        ? renderForecastReportCsv(forecast, monthlyForecast, dashboard)
+        : renderForecastReportXls(forecast, monthlyForecast, dashboard);
+    await vscode.workspace.fs.writeFile(target, new TextEncoder().encode(content));
+    vscode.window.showInformationMessage(`Exported Shop forecast report to ${target.fsPath}.`);
 }
 
 async function loadSample(): Promise<void> {
@@ -1215,14 +1301,15 @@ class ForecastViewProvider implements vscode.WebviewViewProvider {
         }
         const store = await loadStore();
         const forecast = deriveForecast(store.spendItems);
+        const monthlyForecast = deriveForecastMonths(store.spendItems);
         const dashboard = await deriveCoverageDashboard(store);
-        this.view.webview.html = renderCompactForecastHtml(store, forecast, dashboard);
+        this.view.webview.html = renderCompactForecastHtml(store, forecast, monthlyForecast, dashboard);
     }
 }
 
 function deriveForecast(spendItems: readonly SpendItemRecord[]): ForecastYear[] {
     const byYear = new Map<string, ForecastYear>();
-    for (const item of spendItems) {
+    for (const item of forecastOnlyItems(spendItems)) {
         const existing = byYear.get(item.financialYear) ?? {
             financialYear: item.financialYear,
             plannedSpend: 0,
@@ -1246,6 +1333,103 @@ function deriveForecast(spendItems: readonly SpendItemRecord[]): ForecastYear[] 
     return [...byYear.values()].sort((first, second) => first.financialYear.localeCompare(second.financialYear));
 }
 
+function deriveForecastMonths(spendItems: readonly SpendItemRecord[]): ForecastMonth[] {
+    const byMonth = new Map<string, ForecastMonth>();
+    for (const item of forecastOnlyItems(spendItems)) {
+        const months = forecastMonthsForItem(item);
+        if (months.length === 0) {
+            continue;
+        }
+        const monthlySpend = (item.forecastCost?.amount ?? item.amount.amount) / months.length;
+        for (const month of months) {
+            const existing = byMonth.get(month.monthKey) ?? {
+                monthKey: month.monthKey,
+                monthLabel: month.monthLabel,
+                financialYear: month.financialYear,
+                forecastSpend: 0,
+                forecastSavings: 0,
+                itemCount: 0
+            };
+            byMonth.set(month.monthKey, {
+                ...existing,
+                forecastSpend: existing.forecastSpend + monthlySpend,
+                forecastSavings: existing.forecastSavings + ((item.expectedSavings?.amount ?? 0) / months.length),
+                itemCount: existing.itemCount + 1
+            });
+        }
+    }
+    return [...byMonth.values()].sort((first, second) => first.monthKey.localeCompare(second.monthKey));
+}
+
+function forecastOnlyItems(spendItems: readonly SpendItemRecord[]): SpendItemRecord[] {
+    return spendItems.filter((item) => item.status !== "spent" && item.status !== "cancelled");
+}
+
+function forecastMonthsForItem(item: SpendItemRecord): ForecastMonth[] {
+    const explicitMonths = monthsBetween(item.forecastStartAt, item.forecastEndAt, item.financialYear);
+    if (explicitMonths.length > 0) {
+        return explicitMonths;
+    }
+    return monthsForFinancialYear(item.financialYear);
+}
+
+function monthsBetween(startText: string | undefined, endText: string | undefined, fallbackFinancialYear: string): ForecastMonth[] {
+    if (!startText || !endText) {
+        return [];
+    }
+    const start = new Date(`${startText}T00:00:00Z`);
+    const end = new Date(`${endText}T00:00:00Z`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+        return [];
+    }
+    const months: ForecastMonth[] = [];
+    let cursorYear = start.getUTCFullYear();
+    let cursorMonth = start.getUTCMonth();
+    const endKey = end.getUTCFullYear() * 12 + end.getUTCMonth();
+    while (cursorYear * 12 + cursorMonth <= endKey && months.length < 60) {
+        months.push(monthBucket(cursorYear, cursorMonth, fallbackFinancialYear));
+        cursorMonth += 1;
+        if (cursorMonth > 11) {
+            cursorMonth = 0;
+            cursorYear += 1;
+        }
+    }
+    return months;
+}
+
+function monthsForFinancialYear(financialYear: string): ForecastMonth[] {
+    const match = financialYear.match(/^(\d{4})-\d{2}$/);
+    if (!match) {
+        return [];
+    }
+    const startYear = Number(match[1]);
+    return MONTH_NAMES.map((_, index) => {
+        const month = (index + 6) % 12;
+        const year = index < 6 ? startYear : startYear + 1;
+        return monthBucket(year, month, financialYear);
+    });
+}
+
+function monthBucket(year: number, month: number, fallbackFinancialYear: string): ForecastMonth {
+    const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
+    return {
+        monthKey,
+        monthLabel: new Intl.DateTimeFormat("en-AU", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month, 1))),
+        financialYear: financialYearForMonth(year, month) ?? fallbackFinancialYear,
+        forecastSpend: 0,
+        forecastSavings: 0,
+        itemCount: 0
+    };
+}
+
+function financialYearForMonth(year: number, month: number): string | undefined {
+    if (!Number.isFinite(year) || !Number.isFinite(month)) {
+        return undefined;
+    }
+    const startYear = month >= 6 ? year : year - 1;
+    return `${startYear}-${String((startYear + 1) % 100).padStart(2, "0")}`;
+}
+
 async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCoverageDashboard> {
     const entities = await listCoreEntities();
     const activeEntities = entities.filter(isActiveEntity);
@@ -1254,6 +1438,7 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
     const riskById = new Map(activeEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk").map((risk) => [risk.id, risk]));
     const supplierById = new Map(store.suppliers.map((supplier) => [supplier.id, supplier]));
     const today = startOfUtcDay(new Date());
+    const savingSchedule = deriveSavingSchedule(store, links);
 
     return {
         coverage: [
@@ -1284,8 +1469,152 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
                 return supplier && risk && (risk.status === "open" || score >= 12) ? { supplier, risk, score } : undefined;
             })
             .filter(isDefined)
-            .sort((first, second) => second.score - first.score || first.risk.title.localeCompare(second.risk.title))
+            .sort((first, second) => second.score - first.score || first.risk.title.localeCompare(second.risk.title)),
+        supplierManagement: deriveSupplierManagement(store),
+        contractArtefacts: deriveContractArtefacts(store),
+        savingSchedule,
+        efficiencyDividends: deriveEfficiencyDividends(savingSchedule)
     };
+}
+
+function deriveSavingSchedule(store: ShopStore, links: readonly LinkEntity[]): SavingScheduleRow[] {
+    const contractById = new Map(store.contracts.map((contract) => [contract.id, contract]));
+    return forecastOnlyItems(store.spendItems)
+        .filter((item) => (item.expectedSavings?.amount ?? 0) > 0)
+        .map((item) => {
+            const linkedContracts = links
+                .filter((link) => link.linkType === "funds" && link.toType === "spend-item" && link.toId === item.id && link.fromType === "contract")
+                .map((link) => contractById.get(link.fromId))
+                .filter(isDefined)
+                .sort((first, second) => first.title.localeCompare(second.title));
+            return {
+                spendItem: item,
+                financialYear: item.financialYear,
+                scheduledFrom: item.forecastStartAt ?? `FY ${item.financialYear}`,
+                scheduledTo: item.forecastEndAt ?? `FY ${item.financialYear}`,
+                plannedSaving: item.expectedSavings?.amount ?? 0,
+                savingsType: item.savingsType ? formatToken(item.savingsType) : "Efficiency",
+                confidence: item.confidence ? formatToken(item.confidence) : "Medium",
+                replacementContext: replacementContext(linkedContracts)
+            };
+        })
+        .sort((first, second) => first.financialYear.localeCompare(second.financialYear) || first.spendItem.title.localeCompare(second.spendItem.title));
+}
+
+function deriveEfficiencyDividends(savingSchedule: readonly SavingScheduleRow[]): EfficiencyDividendYear[] {
+    const byYear = new Map<string, EfficiencyDividendYear>();
+    for (const saving of savingSchedule) {
+        const existing = byYear.get(saving.financialYear) ?? { financialYear: saving.financialYear, plannedSaving: 0, itemCount: 0, confidence: "High" };
+        byYear.set(saving.financialYear, {
+            financialYear: saving.financialYear,
+            plannedSaving: existing.plannedSaving + saving.plannedSaving,
+            itemCount: existing.itemCount + 1,
+            confidence: lowerConfidence(existing.confidence, saving.confidence)
+        });
+    }
+    return [...byYear.values()].sort((first, second) => first.financialYear.localeCompare(second.financialYear));
+}
+
+function replacementContext(contracts: readonly ContractRecord[]): string {
+    if (contracts.length === 0) {
+        return "Link a contract to show replacement context";
+    }
+    const replacement = contracts.find((contract) => contract.status === "active" || contract.status === "draft") ?? contracts[0];
+    if (!replacement) {
+        return "Link a contract to show replacement context";
+    }
+    const replaced = contracts.find((contract) => contract.id !== replacement.id && (contract.status === "expired" || contract.status === "terminated"));
+    return replaced ? `${replacement.title} replaces ${replaced.title}` : contracts.map((contract) => contract.title).join("; ");
+}
+
+function lowerConfidence(first: string, second: string): string {
+    const rank = new Map([["Low", 0], ["Medium", 1], ["High", 2]]);
+    return (rank.get(first) ?? 1) <= (rank.get(second) ?? 1) ? first : second;
+}
+
+function deriveSupplierManagement(store: ShopStore): SupplierManagementSignal[] {
+    return store.suppliers
+        .slice()
+        .sort((first, second) => first.name.localeCompare(second.name))
+        .map((supplier) => {
+            const contracts = store.contracts.filter((contract) => contract.supplierId === supplier.id && contract.status === "active");
+            const highAttention = supplier.criticality === "high" || supplier.criticality === "critical" || supplier.supplierType === "managed-service";
+            return {
+                supplier,
+                performanceMeasure: supplierPerformanceMeasure(supplier),
+                contractManagement: contracts.length > 0 ? `${contracts.length} active contract review${contracts.length === 1 ? "" : "s"}` : "Needs active contract management link",
+                fociCheck: highAttention ? "FOCI check required before next review" : "FOCI check to confirm no change",
+                status: contracts.length === 0 ? "review" : highAttention ? "watch" : "ok"
+            };
+        });
+}
+
+function supplierPerformanceMeasure(supplier: SupplierRecord): string {
+    switch (supplier.supplierType) {
+        case "managed-service":
+            return "Monthly service performance and incident review";
+        case "software":
+            return "Licence, availability, and support performance check";
+        case "advisory":
+            return "Milestone acceptance and deliverable quality review";
+        case "service":
+            return "Service level and contract management review";
+        case "other":
+            return "Supplier performance review";
+    }
+}
+
+function deriveContractArtefacts(store: ShopStore): ContractArtefactSignal[] {
+    const supplierById = new Map(store.suppliers.map((supplier) => [supplier.id, supplier.name]));
+    return store.contracts
+        .slice()
+        .sort((first, second) => first.title.localeCompare(second.title))
+        .map((contract) => ({
+            contract,
+            supplierName: supplierById.get(contract.supplierId) ?? "Unknown supplier",
+            artefacts: contractArtefacts(contract)
+        }));
+}
+
+function contractArtefacts(contract: ContractRecord): ArtefactSignal[] {
+    return [
+        {
+            label: "Value-for-money and decision record",
+            status: contract.value ? "ready" : "needed",
+            sourceLabel: "CPR value for money",
+            href: CPR_LINKS.valueForMoney
+        },
+        {
+            label: "Risk and FOCI assessment",
+            status: contract.status === "active" ? "needed" : "ready",
+            sourceLabel: "CPR procurement risk",
+            href: CPR_LINKS.risk
+        },
+        {
+            label: "Contract management plan",
+            status: contract.endsAt ? "ready" : "needed",
+            sourceLabel: "Finance Contract Management Guide",
+            href: CPR_LINKS.contractManagement
+        },
+        {
+            label: "Negotiation and contract terms pack",
+            status: contract.contractRef ? "ready" : "needed",
+            sourceLabel: "Finance contract negotiations",
+            href: CPR_LINKS.negotiations
+        },
+        {
+            label: "Accountability, confidentiality, and reporting evidence",
+            status: contract.contractRef && contract.startsAt && contract.endsAt ? "ready" : "needed",
+            sourceLabel: "CPR accountability and transparency",
+            href: CPR_LINKS.accountability
+        },
+        {
+            label: "Supplier conduct and significant-events check",
+            status: contract.status === "active" ? "needed" : "ready",
+            sourceLabel: "Commonwealth Supplier Code of Conduct",
+            href: CPR_LINKS.supplierConduct
+        }
+    ];
 }
 
 function coverageGroup(label: string, records: readonly CommercialSource[], links: readonly LinkEntity[], isCoveredLink: (link: LinkEntity) => boolean, linkCommand: string): CoverageGroup {
@@ -1353,11 +1682,15 @@ function urgencyRank(urgency: FundedAction["urgency"]): number {
     }
 }
 
-function renderCompactForecastHtml(store: ShopStore, forecast: readonly ForecastYear[], dashboard: CommercialCoverageDashboard): string {
+function renderCompactForecastHtml(store: ShopStore, forecast: readonly ForecastYear[], monthlyForecast: readonly ForecastMonth[], dashboard: CommercialCoverageDashboard): string {
     const publicationStatus = getPublicationStatus(store);
     const nextForecast = forecast[0];
+    const nextMonth = monthlyForecast.find((month) => month.forecastSpend > 0);
     const unlinkedCount = dashboard.coverage.reduce((total, group) => total + group.unlinked.length, 0);
     const urgentActions = dashboard.fundedActions.filter((item) => item.urgency === "blocked" || item.urgency === "overdue").length;
+    const managementReviews = dashboard.supplierManagement.filter((item) => item.status !== "ok").length;
+    const artefactGaps = dashboard.contractArtefacts.reduce((total, contract) => total + contract.artefacts.filter((artefact) => artefact.status === "needed").length, 0);
+    const nextDividend = dashboard.efficiencyDividends[0];
     return `<!doctype html>
 <html lang="en-AU">
 <head>
@@ -1389,16 +1722,34 @@ function renderCompactForecastHtml(store: ShopStore, forecast: readonly Forecast
         <span class="pill"><strong>${unlinkedCount}</strong> unlinked assurance records</span>
         <span class="pill"><strong>${dashboard.renewals.length}</strong> contracts in review window</span>
         <span class="pill"><strong>${urgentActions}</strong> funded blocked or overdue Actions</span>
+        <span class="pill"><strong>${managementReviews}</strong> supplier management checks due</span>
+        <span class="pill"><strong>${artefactGaps}</strong> contract artefact gaps</span>
         <span class="pill">${publicationStatus}</span>
         <span class="pill">${nextForecast ? `${escapeHtml(nextForecast.financialYear)} net forecast ${escapeHtml(formatCurrency(nextForecast.netForecast))}` : "No spend forecast yet"}</span>
+        <span class="pill">${nextMonth ? `${escapeHtml(nextMonth.monthLabel)} forecast ${escapeHtml(formatCurrency(nextMonth.forecastSpend))}` : "No monthly forecast yet"}</span>
+        <span class="pill">${nextDividend ? `${escapeHtml(nextDividend.financialYear)} planned efficiency dividend ${escapeHtml(formatCurrency(nextDividend.plannedSaving))}` : "No planned efficiency dividend yet"}</span>
     </div>
     <p><a href="${escapeHtml(commandUri("pspf.shop.openForecast", []))}">Open full forecast</a></p>
 </body>
 </html>`;
 }
 
-function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[], dashboard: CommercialCoverageDashboard, mode: "panel" | "view" = "panel"): string {
+function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[], monthlyForecast: readonly ForecastMonth[], dashboard: CommercialCoverageDashboard, mode: "panel" | "view" = "panel"): string {
     const publicationStatus = getPublicationStatus(store);
+    const monthlyRows = monthlyForecast.length === 0
+        ? "<tr><td colspan=\"4\">No forecast spend by month yet.</td></tr>"
+        : monthlyForecast.map((month) => `
+            <tr>
+                <td>${escapeHtml(month.monthLabel)}</td>
+                <td>${escapeHtml(month.financialYear)}</td>
+                <td>${month.itemCount}</td>
+                <td>${escapeHtml(formatCurrency(month.forecastSpend))}</td>
+                <td>${escapeHtml(formatCurrency(month.forecastSavings))}</td>
+            </tr>`).join("");
+    const maxMonthlySpend = Math.max(...monthlyForecast.map((month) => month.forecastSpend), 0);
+    const monthlyBars = monthlyForecast.length === 0
+        ? '<p class="muted">Add forecast dates or financial years to spend items to see the monthly view.</p>'
+        : `<div class="month-grid">${monthlyForecast.map((month) => renderMonthBar(month, maxMonthlySpend)).join("")}</div>`;
     const rows = forecast.length === 0
         ? "<tr><td colspan=\"6\">No spend items yet.</td></tr>"
         : forecast.map((year) => `
@@ -1438,6 +1789,48 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
                 <td>${escapeHtml(formatToken(item.risk.status))}</td>
                 <td>${item.score}</td>
             </tr>`).join("");
+    const supplierManagementRows = dashboard.supplierManagement.length === 0
+        ? "<tr><td colspan=\"5\">No suppliers yet.</td></tr>"
+        : dashboard.supplierManagement.map((item) => `
+            <tr>
+                <td>${escapeHtml(item.supplier.name)}</td>
+                <td>${escapeHtml(formatToken(item.supplier.criticality))}</td>
+                <td>${escapeHtml(item.performanceMeasure)}</td>
+                <td>${escapeHtml(item.contractManagement)}</td>
+                <td><span class="status status-${escapeHtml(item.status)}">${escapeHtml(item.fociCheck)}</span></td>
+            </tr>`).join("");
+    const contractArtefactRows = dashboard.contractArtefacts.length === 0
+        ? "<tr><td colspan=\"5\">No contracts yet.</td></tr>"
+        : dashboard.contractArtefacts.flatMap((item) => item.artefacts.map((artefact) => `
+            <tr>
+                <td>${escapeHtml(item.contract.title)}</td>
+                <td>${escapeHtml(item.supplierName)}</td>
+                <td>${escapeHtml(artefact.label)}</td>
+                <td><span class="status status-${escapeHtml(artefact.status)}">${escapeHtml(artefact.status === "ready" ? "Present" : "Needs link")}</span></td>
+                <td><a href="${escapeHtml(artefact.href)}">${escapeHtml(artefact.sourceLabel)}</a></td>
+            </tr>`)).join("");
+    const savingScheduleRows = dashboard.savingSchedule.length === 0
+        ? "<tr><td colspan=\"8\">No planned savings yet. Add expected savings to a spend item and link any replacement contract to it.</td></tr>"
+        : dashboard.savingSchedule.map((saving) => `
+            <tr>
+                <td>${escapeHtml(saving.spendItem.title)}</td>
+                <td>${escapeHtml(saving.financialYear)}</td>
+                <td>${escapeHtml(saving.scheduledFrom)}</td>
+                <td>${escapeHtml(saving.scheduledTo)}</td>
+                <td>${escapeHtml(formatCurrency(saving.plannedSaving))}</td>
+                <td>${escapeHtml(saving.savingsType)}</td>
+                <td>${escapeHtml(saving.confidence)}</td>
+                <td>${escapeHtml(saving.replacementContext)}</td>
+            </tr>`).join("");
+    const efficiencyDividendRows = dashboard.efficiencyDividends.length === 0
+        ? "<tr><td colspan=\"4\">No planned efficiency dividends yet.</td></tr>"
+        : dashboard.efficiencyDividends.map((dividend) => `
+            <tr>
+                <td>${escapeHtml(dividend.financialYear)}</td>
+                <td>${dividend.itemCount}</td>
+                <td>${escapeHtml(formatCurrency(dividend.plannedSaving))}</td>
+                <td>${escapeHtml(dividend.confidence)}</td>
+            </tr>`).join("");
 
     const maxWidth = mode === "panel" ? "1120px" : "none";
     return `<!doctype html>
@@ -1451,6 +1844,7 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
         main { max-width: ${maxWidth}; margin: 0 auto; }
         h1 { font-size: 1.25rem; margin: 0 0 8px; }
     p { color: var(--vscode-descriptionForeground); margin: 0 0 16px; }
+        .muted { color: var(--vscode-descriptionForeground); }
         .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: 12px 14px; margin: 0 0 14px; }
         .eyebrow { color: var(--shop-teal); font-size: .72rem; font-weight: 700; letter-spacing: 0; text-transform: uppercase; margin: 0 0 4px; }
     h2 { font-size: 1rem; margin: 20px 0 8px; }
@@ -1465,9 +1859,16 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
         .coverage-card { background: color-mix(in srgb, var(--vscode-editor-background) 92%, var(--shop-amber)); border-left: 3px solid var(--shop-teal); padding: 10px; }
         .coverage-card strong { display: block; font-size: 1.4rem; color: var(--shop-amber); }
         .coverage-card a { display: inline-block; margin-top: 6px; color: var(--vscode-textLink-foreground); }
+        .month-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; margin: 0 0 14px; }
+        .month-card { border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 8px; min-height: 92px; display: grid; align-content: end; gap: 6px; }
+        .month-bar { background: color-mix(in srgb, var(--shop-teal) 72%, var(--vscode-editor-background)); border-radius: 4px 4px 2px 2px; min-height: 4px; height: var(--height); }
+        .month-card strong { color: var(--shop-amber); }
         .status { border: 1px solid var(--vscode-panel-border); border-radius: 999px; padding: 2px 6px; white-space: nowrap; }
         .status-blocked { border-color: var(--vscode-errorForeground); }
         .status-overdue { border-color: var(--shop-amber); }
+        .status-review, .status-needed { border-color: var(--vscode-errorForeground); }
+        .status-watch { border-color: var(--shop-amber); }
+        .status-ok, .status-ready { border-color: var(--shop-teal); }
   </style>
 </head>
 <body>
@@ -1475,13 +1876,15 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
     <div class="masthead">
         <p class="eyebrow">Commercial planning</p>
         <h1>Shop Forecast</h1>
-    <p>Derived from Core-backed Shop spend items. Commercial fields use the canonical publication policy before reaching snapshots or export bundles.</p>
+    <p>Derived from Core-backed Shop spend items. Shop is a commercial planning view, not the contract system of record; use it to see upcoming forecast spend, management checks, and artefact gaps.</p>
     </div>
   <div class="summary">
         <span class="pill"><strong>${store.suppliers.length}</strong> suppliers</span>
         <span class="pill"><strong>${store.contracts.length}</strong> contracts</span>
         <span class="pill"><strong>${store.spendItems.length}</strong> spend items</span>
         <span class="pill">${publicationStatus}</span>
+          <span class="pill"><a href="${escapeHtml(commandUri("pspf.shop.exportForecastCsv", []))}">Export CSV</a></span>
+          <span class="pill"><a href="${escapeHtml(commandUri("pspf.shop.exportForecastXls", []))}">Export XLS</a></span>
   </div>
     <section class="panel">
         <h2>Assurance coverage</h2>
@@ -1492,6 +1895,56 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
         <table>
             <thead><tr><th>Contract</th><th>Supplier</th><th>End date</th><th>Review window</th></tr></thead>
             <tbody>${renewalRows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Forecast spend by month</h2>
+        <p class="muted">Forward-looking forecast only. Actuals are not shown in this panel.</p>
+        ${monthlyBars}
+        <table>
+            <thead><tr><th>Month</th><th>Financial year</th><th>Items</th><th>Forecast spend</th><th>Planned saving</th></tr></thead>
+            <tbody>${monthlyRows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Planned savings schedule</h2>
+        <p class="muted">Schedule when and how much a saving might be. Link contracts to the saving spend item to show replacement or consolidation context.</p>
+        <table>
+            <thead><tr><th>Spend item</th><th>Financial year</th><th>From</th><th>To</th><th>Planned saving</th><th>Saving type</th><th>Confidence</th><th>Replacement context</th></tr></thead>
+            <tbody>${savingScheduleRows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Planned efficiency dividends</h2>
+        <p class="muted">Consolidated annual view of scheduled expected savings for simple reporting.</p>
+        <table>
+            <thead><tr><th>Financial year</th><th>Saving items</th><th>Planned efficiency dividend</th><th>Lowest confidence</th></tr></thead>
+            <tbody>${efficiencyDividendRows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Forecast spend by financial year</h2>
+        <table>
+            <thead>
+            <tr><th>Financial year</th><th>Items</th><th>Planned spend</th><th>Forecast cost</th><th>Expected savings</th><th>Net forecast</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Supplier performance and management checks</h2>
+        <p class="muted">Minimum lightweight checks for every supplier, including contract management and FOCI prompts.</p>
+        <table>
+            <thead><tr><th>Supplier</th><th>Criticality</th><th>Performance measure</th><th>Contract management</th><th>FOCI check</th></tr></thead>
+            <tbody>${supplierManagementRows}</tbody>
+        </table>
+    </section>
+    <section>
+        <h2>Contract artefact links</h2>
+        <p class="muted">Key CPR-aligned artefacts to locate in the contract system of record. These links point to Finance guidance and highlight what needs to be found.</p>
+        <table>
+            <thead><tr><th>Contract</th><th>Supplier</th><th>Artefact</th><th>Status</th><th>CPR source</th></tr></thead>
+            <tbody>${contractArtefactRows}</tbody>
         </table>
     </section>
     <section>
@@ -1508,16 +1961,52 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
             <tbody>${supplierRiskRows}</tbody>
         </table>
     </section>
-    <h2>Spend forecast</h2>
-  <table>
-    <thead>
-      <tr><th>Financial year</th><th>Items</th><th>Planned spend</th><th>Forecast cost</th><th>Expected savings</th><th>Net forecast</th></tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
     </main>
 </body>
 </html>`;
+}
+
+function renderForecastReportCsv(forecast: readonly ForecastYear[], monthlyForecast: readonly ForecastMonth[], dashboard: CommercialCoverageDashboard): string {
+    return [
+        csvSection("Forecast spend by month", [["Month", "Financial year", "Items", "Forecast spend", "Planned saving"], ...monthlyForecast.map((month) => [month.monthLabel, month.financialYear, month.itemCount, month.forecastSpend, month.forecastSavings])]),
+        csvSection("Forecast spend by financial year", [["Financial year", "Items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast"], ...forecast.map((year) => [year.financialYear, year.itemCount, year.plannedSpend, year.forecastCost, year.expectedSavings, year.netForecast])]),
+        csvSection("Planned savings schedule", [["Spend item", "Financial year", "From", "To", "Planned saving", "Saving type", "Confidence", "Replacement context"], ...dashboard.savingSchedule.map((saving) => [saving.spendItem.title, saving.financialYear, saving.scheduledFrom, saving.scheduledTo, saving.plannedSaving, saving.savingsType, saving.confidence, saving.replacementContext])]),
+        csvSection("Planned efficiency dividends", [["Financial year", "Saving items", "Planned efficiency dividend", "Lowest confidence"], ...dashboard.efficiencyDividends.map((dividend) => [dividend.financialYear, dividend.itemCount, dividend.plannedSaving, dividend.confidence])])
+    ].join("\n");
+}
+
+function renderForecastReportXls(forecast: readonly ForecastYear[], monthlyForecast: readonly ForecastMonth[], dashboard: CommercialCoverageDashboard): string {
+    return `<!doctype html><html><head><meta charset="utf-8"><title>Shop forecast report</title></head><body>
+${htmlTable("Forecast spend by month", [["Month", "Financial year", "Items", "Forecast spend", "Planned saving"], ...monthlyForecast.map((month) => [month.monthLabel, month.financialYear, month.itemCount, month.forecastSpend, month.forecastSavings])])}
+${htmlTable("Forecast spend by financial year", [["Financial year", "Items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast"], ...forecast.map((year) => [year.financialYear, year.itemCount, year.plannedSpend, year.forecastCost, year.expectedSavings, year.netForecast])])}
+${htmlTable("Planned savings schedule", [["Spend item", "Financial year", "From", "To", "Planned saving", "Saving type", "Confidence", "Replacement context"], ...dashboard.savingSchedule.map((saving) => [saving.spendItem.title, saving.financialYear, saving.scheduledFrom, saving.scheduledTo, saving.plannedSaving, saving.savingsType, saving.confidence, saving.replacementContext])])}
+${htmlTable("Planned efficiency dividends", [["Financial year", "Saving items", "Planned efficiency dividend", "Lowest confidence"], ...dashboard.efficiencyDividends.map((dividend) => [dividend.financialYear, dividend.itemCount, dividend.plannedSaving, dividend.confidence])])}
+</body></html>`;
+}
+
+function csvSection(title: string, rows: readonly (readonly unknown[])[]): string {
+    return [[title], ...rows].map((row) => row.map(csvCell).join(",")).join("\n") + "\n";
+}
+
+function csvCell(value: unknown): string {
+    return `"${String(value ?? "").replace(/"/g, "\"\"")}"`;
+}
+
+function htmlTable(title: string, rows: readonly (readonly unknown[])[]): string {
+    const [headings, ...bodyRows] = rows;
+    if (!headings) {
+        return `<h1>${escapeHtml(title)}</h1><table border="1"></table>`;
+    }
+    return `<h1>${escapeHtml(title)}</h1><table border="1"><thead><tr>${headings.map((heading) => `<th>${escapeHtml(String(heading))}</th>`).join("")}</tr></thead><tbody>${bodyRows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(String(cell ?? ""))}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+
+function renderMonthBar(month: ForecastMonth, maxMonthlySpend: number): string {
+    const height = maxMonthlySpend > 0 ? Math.max(8, Math.round((month.forecastSpend / maxMonthlySpend) * 58)) : 8;
+    return `<div class="month-card">
+                <div class="month-bar" style="--height: ${height}px;"></div>
+                <span>${escapeHtml(month.monthLabel)}</span>
+                <strong>${escapeHtml(formatCurrency(month.forecastSpend))}</strong>
+        </div>`;
 }
 
 function renderCoverageRow(group: CoverageGroup): string {
@@ -1549,6 +2038,11 @@ function getPublicationStatus(store: ShopStore): string {
         }
     }).length;
     return blocked === 0 ? "Publishable with redaction" : `${blocked} records need redaction review`;
+}
+
+function getWorkspaceUri(fileName: string): vscode.Uri | undefined {
+    const folder = vscode.workspace.workspaceFolders?.[0];
+    return folder ? vscode.Uri.joinPath(folder.uri, fileName) : undefined;
 }
 
 function formatToken(value: string): string {

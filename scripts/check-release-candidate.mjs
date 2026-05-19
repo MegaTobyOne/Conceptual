@@ -24,7 +24,8 @@ const axesByMinorVersion = new Map([
   [17, "1.8.0"],
   [18, "1.8.0"],
   [19, "1.8.0"],
-  [20, "1.8.0"]
+  [20, "1.8.0"],
+  [21, "1.8.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -53,7 +54,7 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), `schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleVersion should be ${expectedAxes}`);
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
-const e2eScript = minorVersion >= 20 ? "e2e:v1.20" : minorVersion >= 19 ? "e2e:v1.19" : minorVersion >= 18 ? "e2e:v1.18" : minorVersion >= 17 ? "e2e:v1.17" : minorVersion >= 16 ? "e2e:v1.16" : minorVersion >= 14 ? "e2e:v1.14" : minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = minorVersion >= 21 ? "e2e:v1.21" : minorVersion >= 20 ? "e2e:v1.20" : minorVersion >= 19 ? "e2e:v1.19" : minorVersion >= 18 ? "e2e:v1.18" : minorVersion >= 17 ? "e2e:v1.17" : minorVersion >= 16 ? "e2e:v1.16" : minorVersion >= 14 ? "e2e:v1.14" : minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
@@ -85,6 +86,8 @@ for (const requiredPath of [
   "adr/0053-v1-18-shop-assurance-linkage-and-identity.md",
   "adr/0054-v1-19-shop-commercial-coverage-dashboard.md",
   "adr/0055-v1-20-connected-view.md",
+  "adr/0056-v1-20-1-explorer-connected-view-hotfix.md",
+  "adr/0057-v1-21-shop-forecast-management.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -451,7 +454,20 @@ if (isV1Release && minorVersion >= 20) {
   }
   assert.equal(typeof packageJson.scripts["e2e:v1.20"], "string", "root package should define e2e:v1.20");
   assert.equal(packageJson.scripts["e2e:v1.20"].includes("e2e:v1.19"), true, "e2e:v1.20 should include v1.19 gates");
-  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.20"), true, "release:readiness should run e2e:v1.20");
+  assert.equal(packageJson.scripts["release:readiness"].includes(e2eScript), true, `release:readiness should run ${e2eScript}`);
+}
+
+if (isV1Release && minorVersion >= 21) {
+  const v121Adr = await readFile(join(root, "adr/0057-v1-21-shop-forecast-management.md"), "utf8");
+  for (const requiredText of ["v1.21", "monthly forecast", "no Actuals", "FOCI", "Commonwealth Procurement Rules", "1.8.0"]) {
+    assert.equal(v121Adr.includes(requiredText), true, `v1.21 ADR should mention ${requiredText}`);
+  }
+  const shopExtension = await readFile(join(root, "packages/shop/src/extension.ts"), "utf8");
+  for (const requiredText of ["deriveForecastMonths", "Forecast spend by month", "Supplier performance and management checks", "FOCI check", "Contract artefact links", "CPR_LINKS"]) {
+    assert.equal(shopExtension.includes(requiredText), true, `Shop v1.21 forecast surface should mention ${requiredText}`);
+  }
+  assert.equal(typeof packageJson.scripts["e2e:v1.21"], "string", "root package should define e2e:v1.21");
+  assert.equal(packageJson.scripts["e2e:v1.21"].includes("check:shop-coverage-dashboard"), true, "e2e:v1.21 should include Shop forecast management gate");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

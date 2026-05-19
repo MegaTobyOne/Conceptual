@@ -1,8 +1,8 @@
 {
     "name": "pspf-shop",
     "displayName": "PSPF Shop",
-    "description": "PSPF commercial planning surface for suppliers, contracts, spend items, and spend forecast review.",
-    "version": "1.20.1",
+    "description": "PSPF commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.",
+    "version": "1.21.0",
     "private": true,
     "type": "module",
     "license": "MIT",
@@ -85,6 +85,14 @@
             {
                 "command": "pspf.shop.openForecast",
                 "title": "PSPF: Open Shop Forecast"
+            },
+            {
+                "command": "pspf.shop.exportForecastCsv",
+                "title": "PSPF: Export Shop Forecast CSV"
+            },
+            {
+                "command": "pspf.shop.exportForecastXls",
+                "title": "PSPF: Export Shop Forecast XLS"
             },
             {
                 "command": "pspf.shop.editSupplier",
