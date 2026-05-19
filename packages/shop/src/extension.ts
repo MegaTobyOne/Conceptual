@@ -2088,15 +2088,15 @@ function renderCompactForecastHtml(
     <style>
         /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
         ${tokensCss("extension")}
-        :root { --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+        :root { --shop-amber: var(--pspf-warn); --shop-amber-soft: var(--pspf-warn-soft); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
         body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: var(--pspf-gap-md); }
         h1 { font-size: 1rem; margin: 0 0 6px; }
         p { color: var(--pspf-muted); margin: 0 0 10px; }
-        .masthead { border-left: 4px solid var(--pspf-warn); background: var(--shop-panel); padding: var(--pspf-gap); margin: 0 0 var(--pspf-gap); }
+        .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: var(--pspf-gap); margin: 0 0 var(--pspf-gap); }
         .eyebrow { color: var(--pspf-primary); font-size: var(--pspf-type-label); font-weight: 700; letter-spacing: var(--pspf-letter-label); text-transform: uppercase; margin: 0 0 4px; }
         .summary { display: grid; gap: var(--pspf-pad-sm); }
         .summary .pspf-pill { justify-content: flex-start; padding: 6px var(--pspf-pad-sm); }
-        .summary .pspf-pill strong { color: var(--pspf-warn); }
+        .summary .pspf-pill strong { color: var(--shop-amber); }
     </style>
 </head>
 <body>
@@ -2318,13 +2318,13 @@ function renderForecastHtml(
   <style>
         /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
         ${tokensCss("extension")}
-        :root { --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+        :root { --shop-amber: var(--pspf-warn); --shop-amber-soft: var(--pspf-warn-soft); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
       body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
         main { max-width: ${maxWidth}; margin: 0 auto; }
         h1 { font-size: 1.25rem; margin: 0 0 8px; }
     p { color: var(--pspf-muted); margin: 0 0 16px; }
       .muted { color: var(--pspf-muted); }
-      .masthead { border-left: 4px solid var(--pspf-warn); background: var(--shop-panel); padding: var(--pspf-gap-md) var(--pspf-pad); margin: 0 0 var(--pspf-pad); }
+      .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: var(--pspf-gap-md) var(--pspf-pad); margin: 0 0 var(--pspf-pad); }
       .eyebrow { color: var(--pspf-primary); font-size: var(--pspf-type-label); font-weight: 700; letter-spacing: var(--pspf-letter-label); text-transform: uppercase; margin: 0 0 4px; }
     h2 { font-size: 1rem; margin: 20px 0 8px; }
     table { border-collapse: collapse; width: 100%; margin-bottom: 14px; }
@@ -2332,21 +2332,21 @@ function renderForecastHtml(
     th { color: var(--pspf-muted); font-weight: 600; }
     .summary { display: flex; flex-wrap: wrap; gap: var(--pspf-pad-sm); margin: 0 0 var(--pspf-pad); }
     .summary .pspf-pill { padding: 6px var(--pspf-pad-sm); }
-      .summary .pspf-pill strong { color: var(--pspf-warn); }
+      .summary .pspf-pill strong { color: var(--shop-amber); }
       .panel { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-gap); margin: 0 0 var(--pspf-gap-md); }
         .coverage { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-      .coverage-card { background: color-mix(in srgb, var(--pspf-surface) 92%, var(--pspf-warn)); border-left: 3px solid var(--pspf-primary); padding: var(--pspf-gap); }
-      .coverage-card strong { display: block; font-size: 1.4rem; color: var(--pspf-warn); }
+      .coverage-card { background: color-mix(in srgb, var(--pspf-surface) 92%, var(--shop-amber)); border-left: 3px solid var(--pspf-primary); padding: var(--pspf-gap); }
+      .coverage-card strong { display: block; font-size: 1.4rem; color: var(--shop-amber); }
       .coverage-card a { display: inline-block; margin-top: 6px; }
         .month-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; margin: 0 0 14px; }
         .month-card { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-pad-sm); min-height: 92px; display: grid; align-content: end; gap: var(--pspf-gap-sm); }
         .month-bar { background: color-mix(in srgb, var(--pspf-primary) 72%, var(--pspf-surface)); border-radius: 4px 4px 2px 2px; min-height: 4px; height: var(--height); }
-        .month-card strong { color: var(--pspf-warn); }
+        .month-card strong { color: var(--shop-amber); }
         .status { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius-pill); padding: 2px 6px; white-space: nowrap; }
         .status-blocked { border-color: var(--vscode-errorForeground); }
-        .status-overdue { border-color: var(--pspf-warn); }
+        .status-overdue { border-color: var(--shop-amber); }
         .status-review, .status-needed { border-color: var(--vscode-errorForeground); }
-        .status-watch { border-color: var(--pspf-warn); }
+        .status-watch { border-color: var(--shop-amber); }
         .status-ok, .status-ready { border-color: var(--pspf-primary); }
   </style>
 </head>
