@@ -14,13 +14,21 @@ const lock = await service.getWriterLock();
 assert.equal(lock.writable, true, lock.detail);
 assert.equal(lock.policy, "single-writer");
 
-await writeFile(join(paths.locks, "writer-lock.json"), `${JSON.stringify({
-  holderPid: 1,
-  acquiredAt: new Date().toISOString(),
-  currentPid: process.pid,
-  writable: false,
-  detail: "Simulated second-window writer lock."
-}, null, 2)}\n`, "utf8");
+await writeFile(
+  join(paths.locks, "writer-lock.json"),
+  `${JSON.stringify(
+    {
+      holderPid: 1,
+      acquiredAt: new Date().toISOString(),
+      currentPid: process.pid,
+      writable: false,
+      detail: "Simulated second-window writer lock."
+    },
+    null,
+    2
+  )}\n`,
+  "utf8"
+);
 
 const readOnlyLock = await service.getWriterLock();
 assert.equal(readOnlyLock.writable, false, readOnlyLock.detail);
@@ -39,14 +47,22 @@ const requirement = withEnvelope(
 
 await assert.rejects(() => service.upsertEntity(requirement), /read-only|writer lock/i);
 
-await writeFile(join(paths.locks, "writer-lock.json"), `${JSON.stringify({
-  holderPid: 999999,
-  acquiredAt: new Date().toISOString(),
-  currentPid: process.pid,
-  policy: "single-writer",
-  writable: false,
-  detail: "Simulated stale second-window writer lock."
-}, null, 2)}\n`, "utf8");
+await writeFile(
+  join(paths.locks, "writer-lock.json"),
+  `${JSON.stringify(
+    {
+      holderPid: 999999,
+      acquiredAt: new Date().toISOString(),
+      currentPid: process.pid,
+      policy: "single-writer",
+      writable: false,
+      detail: "Simulated stale second-window writer lock."
+    },
+    null,
+    2
+  )}\n`,
+  "utf8"
+);
 
 const recoveredLock = await service.getWriterLock();
 assert.equal(recoveredLock.writable, true, recoveredLock.detail);

@@ -1,4 +1,12 @@
-import type { ActionEntity, DirectionEntity, DomainEntity, EvidenceEntity, LinkEntity, RequirementEntity, RiskEntity } from "@pspf/contracts";
+import type {
+  ActionEntity,
+  DirectionEntity,
+  DomainEntity,
+  EvidenceEntity,
+  LinkEntity,
+  RequirementEntity,
+  RiskEntity
+} from "@pspf/contracts";
 
 export interface PostureBriefInput {
   readonly generatedAt: Date | string;
@@ -22,8 +30,14 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
   const openActions = input.actions.filter((action) => !["done", "cancelled"].includes(action.status));
   const openRisks = input.risks.filter((risk) => risk.status !== "closed");
   const directions = input.directions ?? [];
-  const directionsNeedingResponse = directions.filter((direction) => direction.responseState === "not-set" || direction.responseState === "no").length;
-  const currentEvidenceRequirements = input.requirements.filter((requirement) => (evidenceIdsByRequirement.get(requirement.id) ?? []).some((evidenceId) => evidenceById.get(evidenceId)?.freshness === "current")).length;
+  const directionsNeedingResponse = directions.filter(
+    (direction) => direction.responseState === "not-set" || direction.responseState === "no"
+  ).length;
+  const currentEvidenceRequirements = input.requirements.filter((requirement) =>
+    (evidenceIdsByRequirement.get(requirement.id) ?? []).some(
+      (evidenceId) => evidenceById.get(evidenceId)?.freshness === "current"
+    )
+  ).length;
   const evidenceNeedsReview = input.evidence.filter((item) => item.freshness !== "current").length;
   const metadata = [
     `Generated: ${formatDisplayDate(input.generatedAt)}`,
@@ -66,15 +80,30 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
     "",
     "## Open Actions",
     "",
-    ...(openActions.length === 0 ? ["- None recorded."] : openActions.map((action) => `- ${action.title} (${label(action.status)}${action.dueDate ? `, due ${action.dueDate}` : ""}) - ${requirementTitlesByTargetId.get(action.id) ?? "No linked requirement"}`)),
+    ...(openActions.length === 0
+      ? ["- None recorded."]
+      : openActions.map(
+          (action) =>
+            `- ${action.title} (${label(action.status)}${action.dueDate ? `, due ${action.dueDate}` : ""}) - ${requirementTitlesByTargetId.get(action.id) ?? "No linked requirement"}`
+        )),
     "",
     "## Open Risks",
     "",
-    ...(openRisks.length === 0 ? ["- None recorded."] : openRisks.map((risk) => `- ${risk.title} (${label(risk.status)}, likelihood ${risk.likelihood}, impact ${risk.impact}) - ${requirementTitlesByTargetId.get(risk.id) ?? "No linked requirement"}`)),
+    ...(openRisks.length === 0
+      ? ["- None recorded."]
+      : openRisks.map(
+          (risk) =>
+            `- ${risk.title} (${label(risk.status)}, likelihood ${risk.likelihood}, impact ${risk.impact}) - ${requirementTitlesByTargetId.get(risk.id) ?? "No linked requirement"}`
+        )),
     "",
     "## Directions",
     "",
-    ...(directions.length === 0 ? ["- None registered."] : directions.map((direction) => `- ${direction.reference}: ${direction.title} (${label(direction.responseState)}${direction.sourceAuthority ? `, ${direction.sourceAuthority}` : ""})`)),
+    ...(directions.length === 0
+      ? ["- None registered."]
+      : directions.map(
+          (direction) =>
+            `- ${direction.reference}: ${direction.title} (${label(direction.responseState)}${direction.sourceAuthority ? `, ${direction.sourceAuthority}` : ""})`
+        )),
     "",
     "Note: internal summaries and restricted personal fields are excluded from this brief."
   ].join("\n");
@@ -191,11 +220,16 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
 })();`;
 
 function statusRows(requirements: readonly RequirementEntity[]): readonly string[] {
-  const rows = Object.entries(countBy(requirements, (requirement) => requirement.assessmentStatus)).map(([status, count]) => `- ${label(status)}: ${count}`);
+  const rows = Object.entries(countBy(requirements, (requirement) => requirement.assessmentStatus)).map(
+    ([status, count]) => `- ${label(status)}: ${count}`
+  );
   return rows.length > 0 ? rows : ["- None recorded."];
 }
 
-function buildRequirementTitlesByTargetId(links: readonly LinkEntity[], requirementsById: ReadonlyMap<string, RequirementEntity>): ReadonlyMap<string, string> {
+function buildRequirementTitlesByTargetId(
+  links: readonly LinkEntity[],
+  requirementsById: ReadonlyMap<string, RequirementEntity>
+): ReadonlyMap<string, string> {
   const titlesByTargetId = new Map<string, string[]>();
   for (const link of links) {
     if (link.fromType !== "requirement") {
@@ -210,7 +244,11 @@ function buildRequirementTitlesByTargetId(links: readonly LinkEntity[], requirem
   return new Map(Array.from(titlesByTargetId.entries()).map(([targetId, titles]) => [targetId, titles.join("; ")]));
 }
 
-function buildIdsByRequirement(links: readonly LinkEntity[], linkType: string, toType: string): ReadonlyMap<string, readonly string[]> {
+function buildIdsByRequirement(
+  links: readonly LinkEntity[],
+  linkType: string,
+  toType: string
+): ReadonlyMap<string, readonly string[]> {
   const idsByRequirement = new Map<string, string[]>();
   for (const link of links) {
     if (link.fromType === "requirement" && link.linkType === linkType && link.toType === toType) {
@@ -230,9 +268,18 @@ function countBy<T>(items: readonly T[], getKey: (item: T) => string): Record<st
 }
 
 function label(value: string): string {
-  return value.replaceAll("-", " ").replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`).replace(/^./, (letter) => letter.toUpperCase());
+  return value
+    .replaceAll("-", " ")
+    .replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`)
+    .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function formatDisplayDate(value: Date | string): string {
-  return new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(value));
 }

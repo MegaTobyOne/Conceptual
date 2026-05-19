@@ -21,13 +21,23 @@ const checks = [
   check("Markdown includes linked action", markdown.includes("Confirm next governance review date")),
   check("Markdown excludes sensitive requirement summary", !markdown.includes("Internal assessment working note")),
   check("Markdown excludes sensitive tag description", !markdown.includes("Sensitive tag purpose note")),
-  check("Markdown excludes restricted personal field names", !markdown.includes("person.name") && !markdown.includes("person.email") && !markdown.includes("assignment.personId")),
+  check(
+    "Markdown excludes restricted personal field names",
+    !markdown.includes("person.name") && !markdown.includes("person.email") && !markdown.includes("assignment.personId")
+  ),
   check("Browser renderer matches package renderer", browserMarkdown === markdown),
-  check("Plain text remains readable", stripMarkdown(markdown).includes("PSPF Posture Brief") && stripMarkdown(markdown).includes("Open Actions"))
+  check(
+    "Plain text remains readable",
+    stripMarkdown(markdown).includes("PSPF Posture Brief") && stripMarkdown(markdown).includes("Open Actions")
+  )
 ];
 
 const failed = checks.filter((item) => !item.ok);
-await writeFile(join(reportDirectory, "posture-brief-redaction-report.json"), `${JSON.stringify({ generatedAt: new Date().toISOString(), checks }, null, 2)}\n`, "utf8");
+await writeFile(
+  join(reportDirectory, "posture-brief-redaction-report.json"),
+  `${JSON.stringify({ generatedAt: new Date().toISOString(), checks }, null, 2)}\n`,
+  "utf8"
+);
 await writeFile(join(reportDirectory, "posture-brief-sample.md"), `${markdown}\n`, "utf8");
 
 assert.equal(failed.length, 0, failed.map((item) => item.name).join("\n"));
@@ -99,10 +109,58 @@ function createFixture() {
     risks: [risk],
     tags: [tag],
     links: [
-      withEnvelope("link", { entityType: "link", title: "supported", linkType: "supported-by", fromId: requirement.id, fromType: "requirement", toId: evidence.id, toType: "evidence" }, "workshop"),
-      withEnvelope("link", { entityType: "link", title: "addressed", linkType: "addressed-by", fromId: requirement.id, fromType: "requirement", toId: action.id, toType: "action" }, "workshop"),
-      withEnvelope("link", { entityType: "link", title: "exposed", linkType: "exposed-by", fromId: requirement.id, fromType: "requirement", toId: risk.id, toType: "risk" }, "workshop"),
-      withEnvelope("link", { entityType: "link", title: "tagged", linkType: "tagged-with", fromId: requirement.id, fromType: "requirement", toId: tag.id, toType: "tag" }, "workshop")
+      withEnvelope(
+        "link",
+        {
+          entityType: "link",
+          title: "supported",
+          linkType: "supported-by",
+          fromId: requirement.id,
+          fromType: "requirement",
+          toId: evidence.id,
+          toType: "evidence"
+        },
+        "workshop"
+      ),
+      withEnvelope(
+        "link",
+        {
+          entityType: "link",
+          title: "addressed",
+          linkType: "addressed-by",
+          fromId: requirement.id,
+          fromType: "requirement",
+          toId: action.id,
+          toType: "action"
+        },
+        "workshop"
+      ),
+      withEnvelope(
+        "link",
+        {
+          entityType: "link",
+          title: "exposed",
+          linkType: "exposed-by",
+          fromId: requirement.id,
+          fromType: "requirement",
+          toId: risk.id,
+          toType: "risk"
+        },
+        "workshop"
+      ),
+      withEnvelope(
+        "link",
+        {
+          entityType: "link",
+          title: "tagged",
+          linkType: "tagged-with",
+          fromId: requirement.id,
+          fromType: "requirement",
+          toId: tag.id,
+          toType: "tag"
+        },
+        "workshop"
+      )
     ],
     domains: PSPF_DOMAINS,
     sourceLabel: "Gate fixture",
@@ -116,5 +174,8 @@ function check(name, ok) {
 }
 
 function stripMarkdown(value) {
-  return value.replace(/^#+\s+/gm, "").replace(/^[-*]\s+/gm, "").replace(/[*_`]/g, "");
+  return value
+    .replace(/^#+\s+/gm, "")
+    .replace(/^[-*]\s+/gm, "")
+    .replace(/[*_`]/g, "");
 }

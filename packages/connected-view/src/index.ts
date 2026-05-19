@@ -37,14 +37,7 @@ export interface ConnectedViewInput {
 
 export type ConnectedViewNodeKind = "direction" | "requirement" | "risk" | "action";
 
-export type ConnectedViewBadgeTone =
-  | "ok"
-  | "partial"
-  | "gap"
-  | "info"
-  | "warn"
-  | "danger"
-  | "neutral";
+export type ConnectedViewBadgeTone = "ok" | "partial" | "gap" | "info" | "warn" | "danger" | "neutral";
 
 export interface ConnectedViewBadge {
   readonly label: string;
@@ -149,9 +142,7 @@ export function buildConnectedViewModel(input: ConnectedViewInput): ConnectedVie
       title: domain.title,
       kind: "requirements" as const,
       domainCode: domain.code,
-      nodeIds: requirementNodes
-        .filter((node) => node.domainCode === domain.code)
-        .map((node) => node.id)
+      nodeIds: requirementNodes.filter((node) => node.domainCode === domain.code).map((node) => node.id)
     }))
     .filter((lane) => lane.nodeIds.length > 0);
 
@@ -204,7 +195,11 @@ function edgesFromLinks(links: readonly LinkEntity[], nodeIds: ReadonlySet<strin
 }
 
 function isOrientedEdge(link: LinkEntity): boolean {
-  if (link.fromType === "direction" && link.toType === "requirement" && DIRECTION_TO_REQUIREMENT_LINKS.has(link.linkType)) {
+  if (
+    link.fromType === "direction" &&
+    link.toType === "requirement" &&
+    DIRECTION_TO_REQUIREMENT_LINKS.has(link.linkType)
+  ) {
     return true;
   }
   if (link.fromType === "requirement" && link.toType === "risk" && REQUIREMENT_TO_RISK_LINKS.has(link.linkType)) {
@@ -232,7 +227,11 @@ function isReverseOrientedEdge(link: LinkEntity): boolean {
   if (link.fromType === "action" && link.toType === "requirement" && REQUIREMENT_TO_ACTION_LINKS.has(link.linkType)) {
     return true;
   }
-  if (link.fromType === "requirement" && link.toType === "direction" && DIRECTION_TO_REQUIREMENT_LINKS.has(link.linkType)) {
+  if (
+    link.fromType === "requirement" &&
+    link.toType === "direction" &&
+    DIRECTION_TO_REQUIREMENT_LINKS.has(link.linkType)
+  ) {
     return true;
   }
   if (link.fromType === "action" && link.toType === "direction" && DIRECTION_TO_ACTION_LINKS.has(link.linkType)) {
@@ -352,7 +351,10 @@ export interface ConnectedViewRenderOptions {
  * page is responsible for adding the browser script (see
  * CONNECTED_VIEW_BROWSER_SCRIPT) once per page.
  */
-export function renderConnectedViewBodyHtml(model: ConnectedViewModel, options: ConnectedViewRenderOptions = {}): string {
+export function renderConnectedViewBodyHtml(
+  model: ConnectedViewModel,
+  options: ConnectedViewRenderOptions = {}
+): string {
   const mode = options.mode ?? "workshop";
   const defaultLayout = options.defaultLayout ?? (mode === "explorer" ? "compact" : "domains");
   const showDirections = options.showDirectionsLane ?? true;
@@ -367,9 +369,7 @@ export function renderConnectedViewBodyHtml(model: ConnectedViewModel, options: 
     domains: model.domains
   });
 
-  const laneHtml = lanes
-    .map((lane) => renderLaneHtml(lane, nodesById, mode))
-    .join("");
+  const laneHtml = lanes.map((lane) => renderLaneHtml(lane, nodesById, mode)).join("");
 
   return `
 <div class="pspf-connected-view ${initialClass}" data-pspf-connected-view data-default-layout="${defaultLayout}" data-mode="${mode}">
@@ -407,7 +407,11 @@ export function renderConnectedViewBodyHtml(model: ConnectedViewModel, options: 
 </div>`;
 }
 
-function renderLaneHtml(lane: ConnectedViewLane, nodesById: Map<string, ConnectedViewNode>, mode: "workshop" | "explorer"): string {
+function renderLaneHtml(
+  lane: ConnectedViewLane,
+  nodesById: Map<string, ConnectedViewNode>,
+  mode: "workshop" | "explorer"
+): string {
   const cards = lane.nodeIds
     .map((id) => nodesById.get(id))
     .filter((node): node is ConnectedViewNode => Boolean(node))
@@ -435,9 +439,10 @@ function renderCardHtml(node: ConnectedViewNode, mode: "workshop" | "explorer"):
     : `${node.reference} — ${node.title}`;
   const domainAttr = node.domainCode ? ` data-cv-domain="${escapeAttr(node.domainCode)}"` : "";
   const detailAttr = badgeLabels ? ` data-cv-detail="${escapeAttr(badgeLabels)}"` : "";
-  const openButton = mode === "workshop"
-    ? `<button type="button" class="cv-card-open" data-command="openEntity" data-entity-type="${escapeAttr(node.kind)}" data-entity-id="${escapeAttr(node.id)}" aria-label="Open ${escapeAttr(node.kind)} detail" tabindex="-1">Open</button>`
-    : "";
+  const openButton =
+    mode === "workshop"
+      ? `<button type="button" class="cv-card-open" data-command="openEntity" data-entity-type="${escapeAttr(node.kind)}" data-entity-id="${escapeAttr(node.id)}" aria-label="Open ${escapeAttr(node.kind)} detail" tabindex="-1">Open</button>`
+      : "";
   return `
 <article class="cv-card cv-card-${node.kind}" data-cv-card data-cv-id="${escapeAttr(node.id)}" data-cv-kind="${node.kind}"${domainAttr}${detailAttr} tabindex="0" aria-label="${escapeAttr(tooltipText)}">
   <div class="cv-card-ref">${escapeHtml(node.reference)}</div>
@@ -451,11 +456,7 @@ function platformModifierHint(): string {
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 function escapeAttr(value: string): string {

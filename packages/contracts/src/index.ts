@@ -190,16 +190,7 @@ export interface SnapshotEntity extends EntityEnvelope {
   readonly snapshotType: "checkpoint" | "reporting" | "backup" | "pre-migration";
 }
 
-export const TAG_COLOURS = [
-  "red",
-  "orange",
-  "yellow",
-  "green",
-  "teal",
-  "blue",
-  "purple",
-  "grey"
-] as const;
+export const TAG_COLOURS = ["red", "orange", "yellow", "green", "teal", "blue", "purple", "grey"] as const;
 
 export type TagColour = (typeof TAG_COLOURS)[number];
 
@@ -232,7 +223,11 @@ export function normaliseTagLabel(value: string): string {
 
 export function isValidTagLabel(value: string): boolean {
   const normalised = value.normalize("NFC").trim().replace(/\s+/g, " ");
-  return normalised.length >= 1 && normalised.length <= TAG_LIMITS.labelMaxLength && TAG_LABEL_ALLOWED_REGEXP.test(normalised);
+  return (
+    normalised.length >= 1 &&
+    normalised.length <= TAG_LIMITS.labelMaxLength &&
+    TAG_LABEL_ALLOWED_REGEXP.test(normalised)
+  );
 }
 
 export function isValidSingleGrapheme(value: string): boolean {
@@ -246,7 +241,14 @@ export function isValidSingleGrapheme(value: string): boolean {
   return Array.from(segmenter.segment(value)).length === 1;
 }
 
-export const SAVED_VIEW_SCOPES = ["requirements", "explorer-requirements", "explorer-relationships", "workshop-dashboard", "workshop-evidence-review", "workshop-requirements"] as const;
+export const SAVED_VIEW_SCOPES = [
+  "requirements",
+  "explorer-requirements",
+  "explorer-relationships",
+  "workshop-dashboard",
+  "workshop-evidence-review",
+  "workshop-requirements"
+] as const;
 export type SavedViewScope = (typeof SAVED_VIEW_SCOPES)[number];
 
 export const SAVED_VIEW_TAGS_MODES = ["any", "all"] as const;
@@ -258,13 +260,36 @@ export type SavedViewEvidenceCoverage = (typeof SAVED_VIEW_EVIDENCE_COVERAGE)[nu
 export const SAVED_VIEW_SORT_DIRECTIONS = ["asc", "desc"] as const;
 export type SavedViewSortDirection = (typeof SAVED_VIEW_SORT_DIRECTIONS)[number];
 
-export const SAVED_VIEW_REQUIREMENT_COLUMNS = ["id", "title", "domainId", "assessmentStatus", "tags", "evidence", "actions", "risks"] as const;
+export const SAVED_VIEW_REQUIREMENT_COLUMNS = [
+  "id",
+  "title",
+  "domainId",
+  "assessmentStatus",
+  "tags",
+  "evidence",
+  "actions",
+  "risks"
+] as const;
 export type SavedViewRequirementColumn = (typeof SAVED_VIEW_REQUIREMENT_COLUMNS)[number];
 
 export const SAVED_VIEW_RELATIONSHIP_COLUMNS = ["title", "relationship", "from", "to", "tags"] as const;
 export type SavedViewRelationshipColumn = (typeof SAVED_VIEW_RELATIONSHIP_COLUMNS)[number];
 
-export const SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS = ["priority", "requirement", "hint", "domain", "requirements", "evidenceGaps", "inProgress", "met", "notMet", "title", "status", "urgency", "total"] as const;
+export const SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS = [
+  "priority",
+  "requirement",
+  "hint",
+  "domain",
+  "requirements",
+  "evidenceGaps",
+  "inProgress",
+  "met",
+  "notMet",
+  "title",
+  "status",
+  "urgency",
+  "total"
+] as const;
 export type SavedViewWorkshopDashboardColumn = (typeof SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS)[number];
 
 export const SAVED_VIEW_REQUIREMENT_SORT_KEYS = ["title", "domainId", "assessmentStatus", "updatedAt"] as const;
@@ -290,7 +315,11 @@ export interface SavedViewFilters {
 export interface SavedViewPresentation {
   readonly sortKey?: SavedViewRequirementSortKey;
   readonly sortDirection?: SavedViewSortDirection;
-  readonly visibleColumns?: readonly (SavedViewRequirementColumn | SavedViewRelationshipColumn | SavedViewWorkshopDashboardColumn)[];
+  readonly visibleColumns?: readonly (
+    | SavedViewRequirementColumn
+    | SavedViewRelationshipColumn
+    | SavedViewWorkshopDashboardColumn
+  )[];
 }
 
 export interface SavedViewEntity extends EntityEnvelope {
@@ -387,7 +416,16 @@ export interface DirectionEntity extends EntityEnvelope {
   readonly responseState: DirectionResponseState;
 }
 
-export const CHANGE_RECORD_TYPES = ["priority", "direction", "scope", "timeline", "dependency", "risk-response", "posture", "other"] as const;
+export const CHANGE_RECORD_TYPES = [
+  "priority",
+  "direction",
+  "scope",
+  "timeline",
+  "dependency",
+  "risk-response",
+  "posture",
+  "other"
+] as const;
 export type ChangeRecordType = (typeof CHANGE_RECORD_TYPES)[number];
 
 export const CHANGE_RECORD_STATUSES = ["proposed", "active", "resolved", "absorbed", "withdrawn"] as const;
@@ -396,7 +434,14 @@ export type ChangeRecordStatus = (typeof CHANGE_RECORD_STATUSES)[number];
 export const CHANGE_RECORD_PERSISTENCE = ["temporary", "persistent"] as const;
 export type ChangeRecordPersistence = (typeof CHANGE_RECORD_PERSISTENCE)[number];
 
-export const CHANGE_RECORD_SOURCES = ["executive-direction", "risk-event", "compliance-event", "operational", "external-trigger", "other"] as const;
+export const CHANGE_RECORD_SOURCES = [
+  "executive-direction",
+  "risk-event",
+  "compliance-event",
+  "operational",
+  "external-trigger",
+  "other"
+] as const;
 export type ChangeRecordSource = (typeof CHANGE_RECORD_SOURCES)[number];
 
 export interface ChangeRecordEntity extends EntityEnvelope {
@@ -450,7 +495,13 @@ export interface ContractEntity extends EntityEnvelope {
 
 export type SpendType = "capex" | "opex" | "uplift" | "licence" | "service";
 export type SpendStatus = "proposed" | "approved" | "committed" | "spent" | "cancelled";
-export type SavingsType = "avoided-cost" | "efficiency" | "consolidation" | "risk-reduction" | "contract-optimisation" | "other";
+export type SavingsType =
+  | "avoided-cost"
+  | "efficiency"
+  | "consolidation"
+  | "risk-reduction"
+  | "contract-optimisation"
+  | "other";
 export type ForecastConfidence = "low" | "medium" | "high";
 
 export interface SpendItemEntity extends EntityEnvelope {
@@ -474,7 +525,14 @@ export interface SpendItemEntity extends EntityEnvelope {
 
 export type StrategyTrend = "improving" | "steady" | "deteriorating" | "unknown";
 export type StrategyConfidence = "low" | "medium" | "high";
-export type StrategyMeasureClass = "capability" | "essential-eight" | "coverage" | "exposure" | "detection-response" | "resilience" | "governance-assurance";
+export type StrategyMeasureClass =
+  | "capability"
+  | "essential-eight"
+  | "coverage"
+  | "exposure"
+  | "detection-response"
+  | "resilience"
+  | "governance-assurance";
 export type StrategyReferenceType = "requirement" | "risk" | "action" | "direction";
 
 export interface StrategyReference {
@@ -588,77 +646,242 @@ export type EntityDraft<EntityType extends V01EntityType> = Omit<EntityFor<Entit
   entityType: EntityType;
 };
 
-export const DISALLOWED_PUBLICATION_FIELDS = [
-  "person.name",
-  "person.email",
-  "assignment.personId"
-] as const;
+export const DISALLOWED_PUBLICATION_FIELDS = ["person.name", "person.email", "assignment.personId"] as const;
 
 export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "domain",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "code", "sortOrder")
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "code",
+      "sortOrder"
+    )
   },
   {
     entityType: "requirement",
     fields: [
-      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "domainId", "assessmentStatus"),
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "domainId",
+        "assessmentStatus"
+      ),
       { field: "summary", publication: "sensitive" }
     ]
   },
   {
     entityType: "evidence",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "evidenceType", "reference", "freshness")
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "evidenceType",
+      "reference",
+      "freshness"
+    )
   },
   {
     entityType: "action",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "status", "dueDate", "impact")
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "status",
+      "dueDate",
+      "impact"
+    )
   },
   {
     entityType: "risk",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "status", "likelihood", "impact")
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "status",
+      "likelihood",
+      "impact"
+    )
   },
   {
     entityType: "snapshot",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "snapshotType")
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "snapshotType"
+    )
   },
   {
     entityType: "link",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "linkType", "fromId", "fromType", "toId", "toType")
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "linkType",
+      "fromId",
+      "fromType",
+      "toId",
+      "toType"
+    )
   },
   {
     entityType: "tag",
     fields: [
-      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "label", "colour", "emoji"),
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "label",
+        "colour",
+        "emoji"
+      ),
       { field: "description", publication: "sensitive" }
     ]
   },
   {
     entityType: "saved-view",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "name", "scope", "filters", "presentation")
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "name",
+      "scope",
+      "filters",
+      "presentation"
+    )
   },
   {
     entityType: "source-control",
     fields: [
-      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "controlId", "statement", "profileTags", "statementChangeStatus", "externalRefs", "provenance"),
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "controlId",
+        "statement",
+        "profileTags",
+        "statementChangeStatus",
+        "externalRefs",
+        "provenance"
+      ),
       { field: "localApplicabilityNote", publication: "sensitive" }
     ]
   },
   {
     entityType: "requirement-control-mapping",
     fields: [
-      ...internalFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementId", "sourceControlId", "coverageQualifier", "applicabilityProfile", "confidence", "lastReviewedAt", "reviewBy", "provenance"),
+      ...internalFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "requirementId",
+        "sourceControlId",
+        "coverageQualifier",
+        "applicabilityProfile",
+        "confidence",
+        "lastReviewedAt",
+        "reviewBy",
+        "provenance"
+      ),
       { field: "rationale", publication: "sensitive" }
     ]
   },
   {
     entityType: "direction",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "reference", "issuedAt", "sourceAuthority", "responseState")
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "reference",
+      "issuedAt",
+      "sourceAuthority",
+      "responseState"
+    )
   },
   {
     entityType: "change-record",
     fields: [
-      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "summary", "changeType", "status", "persistence", "source", "raisedAt", "effectiveAt", "reviewDueAt"),
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "summary",
+        "changeType",
+        "status",
+        "persistence",
+        "source",
+        "raisedAt",
+        "effectiveAt",
+        "reviewDueAt"
+      ),
       { field: "reason", publication: "sensitive" },
       { field: "impactSummary", publication: "sensitive" },
       { field: "decisionOwnerRef", publication: "restricted" }
@@ -667,7 +890,18 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "supplier",
     fields: [
-      ...internalFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "supplierType", "status", "criticality"),
+      ...internalFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "supplierType",
+        "status",
+        "criticality"
+      ),
       { field: "name", publication: "sensitive" },
       { field: "primaryContact", publication: "restricted" },
       { field: "notes", publication: "sensitive" }
@@ -676,7 +910,20 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "contract",
     fields: [
-      ...internalFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "supplierId", "status", "startsAt", "endsAt"),
+      ...internalFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "supplierId",
+        "status",
+        "startsAt",
+        "endsAt"
+      ),
       { field: "contractRef", publication: "sensitive" },
       { field: "value", publication: "sensitive" },
       { field: "serviceSummary", publication: "sensitive" }
@@ -685,7 +932,22 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "spend-item",
     fields: [
-      ...internalFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "spendType", "status", "financialYear", "savingsType", "paybackPeriodMonths", "confidence"),
+      ...internalFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "spendType",
+        "status",
+        "financialYear",
+        "savingsType",
+        "paybackPeriodMonths",
+        "confidence"
+      ),
       { field: "costCentre", publication: "sensitive" },
       { field: "amount", publication: "sensitive" },
       { field: "forecastStartAt", publication: "sensitive" },
@@ -699,14 +961,53 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "strategy",
     fields: [
-      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "scope", "timeHorizon", "effectiveAt", "strategyStatement", "riskPostureStatement", "frameworks", "choices", "reviewCadence", "executiveSummary"),
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "scope",
+        "timeHorizon",
+        "effectiveAt",
+        "strategyStatement",
+        "riskPostureStatement",
+        "frameworks",
+        "choices",
+        "reviewCadence",
+        "executiveSummary"
+      ),
       { field: "owner", publication: "sensitive" },
       { field: "assumptions", publication: "sensitive" }
     ]
   },
   {
     entityType: "posture",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount", "directionCount", "changeRecordCount", "supplierCount", "contractCount", "spendItemCount", "strategyCount")
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "requirementCount",
+      "evidenceCount",
+      "actionCount",
+      "riskCount",
+      "sourceControlCount",
+      "requirementControlMappingCount",
+      "directionCount",
+      "changeRecordCount",
+      "supplierCount",
+      "contractCount",
+      "spendItemCount",
+      "strategyCount"
+    )
   }
 ] as const;
 
@@ -815,7 +1116,10 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   posture: "POSTURE"
 };
 
-export function createEntityId(entityType: Exclude<V01EntityType, "posture">, randomUuid = crypto.randomUUID()): string {
+export function createEntityId(
+  entityType: Exclude<V01EntityType, "posture">,
+  randomUuid = crypto.randomUUID()
+): string {
   return `${ID_PREFIX_BY_ENTITY_TYPE[entityType]}-${randomUuid}`;
 }
 
@@ -851,46 +1155,73 @@ export interface SampleWorkspaceOptions {
 export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {}): V01Entity[] {
   const timestamp = options.timestamp ?? "2026-05-11T00:00:00.000Z";
   const governanceDomain = PSPF_DOMAINS.find((domain) => domain.code === "governance") ?? PSPF_DOMAINS[0]!;
-  const informationDomain = PSPF_DOMAINS.find((domain) => domain.code === "information") ?? PSPF_DOMAINS[1] ?? PSPF_DOMAINS[0]!;
-  const personnelDomain = PSPF_DOMAINS.find((domain) => domain.code === "personnel") ?? PSPF_DOMAINS[2] ?? PSPF_DOMAINS[0]!;
+  const informationDomain =
+    PSPF_DOMAINS.find((domain) => domain.code === "information") ?? PSPF_DOMAINS[1] ?? PSPF_DOMAINS[0]!;
+  const personnelDomain =
+    PSPF_DOMAINS.find((domain) => domain.code === "personnel") ?? PSPF_DOMAINS[2] ?? PSPF_DOMAINS[0]!;
   const sourceControl = options.sourceControls?.[0];
 
-  const requirementGovernance: RequirementEntity = sampleEntity("requirement", "REQ-00000000-0000-4000-8000-000000000801", timestamp, {
-    entityType: "requirement",
-    title: "Confirm security governance cadence",
-    domainId: governanceDomain.id,
-    assessmentStatus: "in-progress",
-    summary: "Internal sample note excluded from publication."
-  });
-  const requirementInformation: RequirementEntity = sampleEntity("requirement", "REQ-00000000-0000-4000-8000-000000000802", timestamp, {
-    entityType: "requirement",
-    title: "Review information handling controls",
-    domainId: informationDomain.id,
-    assessmentStatus: "partially-met",
-    summary: "Internal sample note excluded from publication."
-  });
-  const requirementPersonnel: RequirementEntity = sampleEntity("requirement", "REQ-00000000-0000-4000-8000-000000000803", timestamp, {
-    entityType: "requirement",
-    title: "Validate role-based access review",
-    domainId: personnelDomain.id,
-    assessmentStatus: "under-review",
-    summary: "Internal sample note excluded from publication."
-  });
+  const requirementGovernance: RequirementEntity = sampleEntity(
+    "requirement",
+    "REQ-00000000-0000-4000-8000-000000000801",
+    timestamp,
+    {
+      entityType: "requirement",
+      title: "Confirm security governance cadence",
+      domainId: governanceDomain.id,
+      assessmentStatus: "in-progress",
+      summary: "Internal sample note excluded from publication."
+    }
+  );
+  const requirementInformation: RequirementEntity = sampleEntity(
+    "requirement",
+    "REQ-00000000-0000-4000-8000-000000000802",
+    timestamp,
+    {
+      entityType: "requirement",
+      title: "Review information handling controls",
+      domainId: informationDomain.id,
+      assessmentStatus: "partially-met",
+      summary: "Internal sample note excluded from publication."
+    }
+  );
+  const requirementPersonnel: RequirementEntity = sampleEntity(
+    "requirement",
+    "REQ-00000000-0000-4000-8000-000000000803",
+    timestamp,
+    {
+      entityType: "requirement",
+      title: "Validate role-based access review",
+      domainId: personnelDomain.id,
+      assessmentStatus: "under-review",
+      summary: "Internal sample note excluded from publication."
+    }
+  );
 
-  const evidenceGovernance: EvidenceEntity = sampleEntity("evidence", "EVD-00000000-0000-4000-8000-000000000801", timestamp, {
-    entityType: "evidence",
-    title: "Governance forum terms of reference",
-    evidenceType: "document",
-    reference: "sample/governance-forum-tor.pdf",
-    freshness: "current"
-  });
-  const evidenceAccess: EvidenceEntity = sampleEntity("evidence", "EVD-00000000-0000-4000-8000-000000000802", timestamp, {
-    entityType: "evidence",
-    title: "Access review export",
-    evidenceType: "document",
-    reference: "sample/access-review-export.csv",
-    freshness: "stale"
-  });
+  const evidenceGovernance: EvidenceEntity = sampleEntity(
+    "evidence",
+    "EVD-00000000-0000-4000-8000-000000000801",
+    timestamp,
+    {
+      entityType: "evidence",
+      title: "Governance forum terms of reference",
+      evidenceType: "document",
+      reference: "sample/governance-forum-tor.pdf",
+      freshness: "current"
+    }
+  );
+  const evidenceAccess: EvidenceEntity = sampleEntity(
+    "evidence",
+    "EVD-00000000-0000-4000-8000-000000000802",
+    timestamp,
+    {
+      entityType: "evidence",
+      title: "Access review export",
+      evidenceType: "document",
+      reference: "sample/access-review-export.csv",
+      freshness: "stale"
+    }
+  );
 
   const actionGovernance: ActionEntity = sampleEntity("action", "ACT-00000000-0000-4000-8000-000000000801", timestamp, {
     entityType: "action",
@@ -940,22 +1271,32 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     impact: 1
   });
 
-  const directionEncryption: DirectionEntity = sampleEntity("direction", "DIR-00000000-0000-4000-8000-000000000801", timestamp, {
-    entityType: "direction",
-    title: "Home Affairs Direction - encryption baseline",
-    reference: "HA-DIR-2026-01",
-    sourceAuthority: "Department of Home Affairs",
-    issuedAt: "2026-04-01T00:00:00.000Z",
-    responseState: "not-set"
-  });
-  const directionReporting: DirectionEntity = sampleEntity("direction", "DIR-00000000-0000-4000-8000-000000000802", timestamp, {
-    entityType: "direction",
-    title: "Home Affairs Direction - assurance reporting",
-    reference: "HA-DIR-2026-02",
-    sourceAuthority: "Department of Home Affairs",
-    issuedAt: "2026-04-15T00:00:00.000Z",
-    responseState: "risk-managed"
-  });
+  const directionEncryption: DirectionEntity = sampleEntity(
+    "direction",
+    "DIR-00000000-0000-4000-8000-000000000801",
+    timestamp,
+    {
+      entityType: "direction",
+      title: "Home Affairs Direction - encryption baseline",
+      reference: "HA-DIR-2026-01",
+      sourceAuthority: "Department of Home Affairs",
+      issuedAt: "2026-04-01T00:00:00.000Z",
+      responseState: "not-set"
+    }
+  );
+  const directionReporting: DirectionEntity = sampleEntity(
+    "direction",
+    "DIR-00000000-0000-4000-8000-000000000802",
+    timestamp,
+    {
+      entityType: "direction",
+      title: "Home Affairs Direction - assurance reporting",
+      reference: "HA-DIR-2026-02",
+      sourceAuthority: "Department of Home Affairs",
+      issuedAt: "2026-04-15T00:00:00.000Z",
+      responseState: "risk-managed"
+    }
+  );
 
   const strategy: StrategyEntity = sampleEntity("strategy", "STR-00000000-0000-4000-8000-000000000801", timestamp, {
     entityType: "strategy",
@@ -965,7 +1306,8 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     effectiveAt: "2026-07-01T00:00:00.000Z",
     owner: "CISO",
     strategyStatement: "Focus cyber uplift on governance cadence, encryption assurance, and role-based access review.",
-    riskPostureStatement: "Reduce likelihood and impact of common and moderately sophisticated attacks while improving PSPF evidence confidence.",
+    riskPostureStatement:
+      "Reduce likelihood and impact of common and moderately sophisticated attacks while improving PSPF evidence confidence.",
     frameworks: ["PSPF", "Essential Eight"],
     reviewCadence: "quarterly",
     executiveSummary: "Three cyber priorities connect current PSPF assurance work to measurable posture movement.",
@@ -1019,7 +1361,8 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
         statement: "Reduce exposure from unresolved encryption exceptions.",
         summary: "Encryption exception treatment links Direction response to risk reduction.",
         capabilityArea: "Protective control posture",
-        targetPosture: "Encryption exceptions reviewed, treated, and tracked against Essential Eight evidence by 2026-12-31.",
+        targetPosture:
+          "Encryption exceptions reviewed, treated, and tracked against Essential Eight evidence by 2026-12-31.",
         executiveOwner: "CISO",
         trend: "steady",
         confidence: "low",
@@ -1114,38 +1457,124 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     riskClosed,
     directionEncryption,
     directionReporting,
-    sampleLink("LNK-00000000-0000-4000-8000-000000000801", timestamp, "Governance requirement supported by current evidence", "supported-by", requirementGovernance, evidenceGovernance),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000802", timestamp, "Access requirement supported by stale evidence", "supported-by", requirementPersonnel, evidenceAccess),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000803", timestamp, "Governance requirement addressed by review action", "addressed-by", requirementGovernance, actionGovernance),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000804", timestamp, "Information requirement addressed by encryption action", "addressed-by", requirementInformation, actionEncryption),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000805", timestamp, "Personnel requirement addressed by access action", "addressed-by", requirementPersonnel, actionAccess),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000806", timestamp, "Governance risk treated by review action", "addressed-by", riskGovernance, actionGovernance),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000807", timestamp, "Encryption risk treated by encryption action", "addressed-by", riskEncryption, actionEncryption),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000808", timestamp, "Access risk treated by access action", "addressed-by", riskAccess, actionAccess),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000809", timestamp, "Encryption Direction targets information requirement", "targets", directionEncryption, requirementInformation),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000810", timestamp, "Reporting Direction targets governance requirement", "targets", directionReporting, requirementGovernance),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000811", timestamp, "Encryption Direction addressed by encryption action", "addressed-by", directionEncryption, actionEncryption),
-    sampleLink("LNK-00000000-0000-4000-8000-000000000812", timestamp, "Reporting Direction addressed by review action", "addressed-by", directionReporting, actionGovernance)
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000801",
+      timestamp,
+      "Governance requirement supported by current evidence",
+      "supported-by",
+      requirementGovernance,
+      evidenceGovernance
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000802",
+      timestamp,
+      "Access requirement supported by stale evidence",
+      "supported-by",
+      requirementPersonnel,
+      evidenceAccess
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000803",
+      timestamp,
+      "Governance requirement addressed by review action",
+      "addressed-by",
+      requirementGovernance,
+      actionGovernance
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000804",
+      timestamp,
+      "Information requirement addressed by encryption action",
+      "addressed-by",
+      requirementInformation,
+      actionEncryption
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000805",
+      timestamp,
+      "Personnel requirement addressed by access action",
+      "addressed-by",
+      requirementPersonnel,
+      actionAccess
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000806",
+      timestamp,
+      "Governance risk treated by review action",
+      "addressed-by",
+      riskGovernance,
+      actionGovernance
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000807",
+      timestamp,
+      "Encryption risk treated by encryption action",
+      "addressed-by",
+      riskEncryption,
+      actionEncryption
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000808",
+      timestamp,
+      "Access risk treated by access action",
+      "addressed-by",
+      riskAccess,
+      actionAccess
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000809",
+      timestamp,
+      "Encryption Direction targets information requirement",
+      "targets",
+      directionEncryption,
+      requirementInformation
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000810",
+      timestamp,
+      "Reporting Direction targets governance requirement",
+      "targets",
+      directionReporting,
+      requirementGovernance
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000811",
+      timestamp,
+      "Encryption Direction addressed by encryption action",
+      "addressed-by",
+      directionEncryption,
+      actionEncryption
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000812",
+      timestamp,
+      "Reporting Direction addressed by review action",
+      "addressed-by",
+      directionReporting,
+      actionGovernance
+    )
   ];
 
   if (sourceControl) {
-    entities.push(sampleEntity("requirement-control-mapping", "MAP-00000000-0000-4000-8000-000000000801", timestamp, {
-      entityType: "requirement-control-mapping",
-      title: `${requirementGovernance.title} mapped to ${sourceControl.controlId}`,
-      requirementId: requirementGovernance.id,
-      sourceControlId: sourceControl.id,
-      coverageQualifier: "primary",
-      applicabilityProfile: "official-sensitive",
-      confidence: "medium",
-      lastReviewedAt: "2026-05-11T00:00:00.000Z",
-      reviewBy: "Sample assurance role",
-      rationale: "Internal sample mapping rationale excluded from publication.",
-      provenance: {
-        author: "sample-workspace",
-        createdAt: timestamp,
-        oscalRelease: sourceControl.provenance.oscalRelease
-      }
-    }));
+    entities.push(
+      sampleEntity("requirement-control-mapping", "MAP-00000000-0000-4000-8000-000000000801", timestamp, {
+        entityType: "requirement-control-mapping",
+        title: `${requirementGovernance.title} mapped to ${sourceControl.controlId}`,
+        requirementId: requirementGovernance.id,
+        sourceControlId: sourceControl.id,
+        coverageQualifier: "primary",
+        applicabilityProfile: "official-sensitive",
+        confidence: "medium",
+        lastReviewedAt: "2026-05-11T00:00:00.000Z",
+        reviewBy: "Sample assurance role",
+        rationale: "Internal sample mapping rationale excluded from publication.",
+        provenance: {
+          author: "sample-workspace",
+          createdAt: timestamp,
+          oscalRelease: sourceControl.provenance.oscalRelease
+        }
+      })
+    );
   }
 
   return entities;
@@ -1237,7 +1666,12 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
     }
   }
 
-  const links = entities.filter((entity): entity is V01Entity & { linkType: string; fromId: string; fromType: string; toId: string; toType: string } => entity.entityType === "link");
+  const links = entities.filter(
+    (
+      entity
+    ): entity is V01Entity & { linkType: string; fromId: string; fromType: string; toId: string; toType: string } =>
+      entity.entityType === "link"
+  );
   const requirementsByAction = new Map<string, string[]>();
   const evidenceByRequirement = new Map<string, string[]>();
   const risksByAction = new Map<string, string[]>();

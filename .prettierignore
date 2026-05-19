@@ -1,0 +1,19 @@
+node_modules
+dist
+coverage
+.tmp
+debug-workspace
+pnpm-lock.yaml
+**/*.tsbuildinfo
+packages/*/dist
+packages/explorer/dist
+schemas
+
+# Generated source — owned by the reference-data generator
+packages/reference-data/src/generated/
+
+# Baseline source artefacts — must match upstream exactly
+packages/reference-data/data/
+
+# Test fixtures — byte-for-byte significant for snapshot-style tests
+packages/contracts/test-fixtures/
