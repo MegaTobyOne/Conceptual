@@ -25,6 +25,8 @@
 import { tokensCss, type ShellSurface } from "./tokens.js";
 
 export type CspMode = "strict" | "nonce-styles" | "relaxed" | "none";
+export type PillTone = "primary" | "accent" | "warn" | "danger" | "ok" | "neutral";
+export type BannerTone = "info" | "warn" | "danger" | "ok";
 
 export interface ShellHtmlOptions {
   /** Surface variant used to select the token palette. */
@@ -91,6 +93,10 @@ function escapeText(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function escapeAttribute(value: string): string {
+  return escapeText(value).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 function buildCspMeta(mode: CspMode, nonce: string | undefined): string {
   switch (mode) {
     case "none":
@@ -119,6 +125,16 @@ function buildCspMeta(mode: CspMode, nonce: string | undefined): string {
 export function versionPill(version: string, variant?: "accent" | "warn" | "ok"): string {
   const modifier = variant ? ` pspf-pill--${variant}` : "";
   return `<span class="pspf-pill${modifier}">v${escapeText(version)}</span>`;
+}
+
+export function pill(label: string, tone?: PillTone): string {
+  const modifier = tone ? ` pspf-pill--${tone}` : "";
+  return `<span class="pspf-pill${modifier}">${escapeText(label)}</span>`;
+}
+
+export function bannerHtml(message: string, tone: BannerTone = "info", role = "note"): string {
+  const modifier = tone === "info" ? "" : ` pspf-banner--${tone}`;
+  return `<div class="pspf-banner${modifier}" role="${escapeAttribute(role)}">${escapeText(message)}</div>`;
 }
 
 export function shellHtml(options: ShellHtmlOptions): string {

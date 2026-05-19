@@ -1,14 +1,19 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 
-import { cspNonce, shellHtml, tokensCss, versionPill } from "./index.js";
+import { bannerHtml, cspNonce, pill, shellHtml, tokensCss, versionPill } from "./index.js";
 
 test("tokensCss includes shared root tokens for every surface", () => {
   for (const surface of ["extension", "explorer", "marketing"] as const) {
     const css = tokensCss(surface);
     assert.match(css, /--pspf-radius:/);
     assert.match(css, /--pspf-text:/);
+    assert.match(css, /--pspf-primary:/);
     assert.match(css, /\.pspf-pill\b/);
+    assert.match(css, /\.pspf-button\b/);
+    assert.match(css, /\.pspf-banner\b/);
+    assert.match(css, /\.pspf-empty\b/);
+    assert.match(css, /\.pspf-table\b/);
     assert.match(css, /\.pspf-section\b/);
     assert.match(css, /pspf-skip-link/);
   }
@@ -99,6 +104,29 @@ test("versionPill renders accessible markup with the version prefix", () => {
 test("versionPill escapes special characters in the version string", () => {
   const html = versionPill("<bad>");
   assert.match(html, /v&lt;bad&gt;/);
+});
+
+test("pill renders generic labels without forcing a version prefix", () => {
+  assert.equal(pill("Bundle baseline"), '<span class="pspf-pill">Bundle baseline</span>');
+  assert.equal(pill("Local changes", "primary"), '<span class="pspf-pill pspf-pill--primary">Local changes</span>');
+});
+
+test("pill escapes special characters in labels", () => {
+  assert.equal(pill('<draft "x">'), '<span class="pspf-pill">&lt;draft "x"&gt;</span>');
+});
+
+test("bannerHtml renders escaped note and status variants", () => {
+  assert.equal(
+    bannerHtml("OFFICIAL: Sensitive <draft>", "warn"),
+    '<div class="pspf-banner pspf-banner--warn" role="note">OFFICIAL: Sensitive &lt;draft&gt;</div>'
+  );
+});
+
+test("bannerHtml escapes the role attribute", () => {
+  assert.equal(
+    bannerHtml("Alert", "danger", 'alert" bad="x'),
+    '<div class="pspf-banner pspf-banner--danger" role="alert&quot; bad=&quot;x">Alert</div>'
+  );
 });
 
 test("cspNonce returns a base64url-safe string of expected length", () => {
