@@ -1,5 +1,6 @@
 import { copyFile } from "node:fs/promises";
 import { basename, join, relative } from "node:path";
+import { pill as shellPill, tokensCss } from "@pspf/webview-shell";
 import * as vscode from "vscode";
 import { createCoreService, type ImportMode, type ImportResult } from "./service.js";
 
@@ -308,43 +309,37 @@ function importReviewHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PSPF Workshop Import Review</title>
   <style>
-    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --bg: #111113; --surface: #18181b; --surface-strong: #202024; --border: #3f3f46; --text: #f4f4f5; --muted: #a1a1aa; --accent: #2563eb; --accent-soft: #172554; --amber: #d97706; --amber-soft: #3f2f11; }
-    body { margin: 0; color: var(--text); background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28rem), var(--bg); }
-    header { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 18px 24px; background: linear-gradient(135deg, #172554 0%, #18181b 70%); border-bottom: 1px solid var(--border); }
+    ${tokensCss("extension")}
+    :root { color-scheme: light dark; --core-accent-strong: rgba(37, 99, 235, 0.28); }
+    body { margin: 0; padding: 0; color: var(--pspf-text); background: radial-gradient(circle at top left, var(--pspf-accent-soft), transparent 28rem), var(--pspf-surface); }
+    header { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 18px var(--pspf-pad-lg); background: linear-gradient(135deg, var(--core-accent-strong) 0%, var(--pspf-surface) 70%); border-bottom: 1px solid var(--pspf-border); }
     header strong { display: block; font-size: 22px; }
-    header span { color: #dbeafe; font-size: 13px; }
+    header span { color: var(--pspf-muted); font-size: var(--pspf-type-body); }
     main { width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0; }
-    section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+    section { background: var(--pspf-surface); border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-pad); margin-bottom: var(--pspf-pad); }
     h1, h2, h3 { margin-top: 0; }
-    .banner { background: var(--amber-soft); border-bottom: 1px solid var(--amber); color: #fde68a; padding: 8px 24px; font-weight: 700; }
-    .mode-strip, .version-strip, .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .mode-step, .pill { border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; background: var(--surface-strong); color: #d4d4d8; font-size: 12px; font-weight: 700; }
-    .mode-step.active, .pill.action { border-color: #60a5fa; background: var(--accent-soft); color: #dbeafe; }
+    .core-sensitivity { margin: 0; padding: 8px var(--pspf-pad-lg); }
+    .version-strip, .toolbar { display: flex; flex-wrap: wrap; gap: var(--pspf-pad-sm); align-items: center; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-    .metric { background: var(--surface-strong); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
-    .metric span { display: block; color: var(--muted); font-size: 12px; }
-    .metric strong { display: block; font-size: 28px; margin-top: 4px; }
+    .pspf-metric strong { font-size: 28px; margin-top: 4px; }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; min-width: min(760px, 100%); border-collapse: collapse; }
-    th, td { border-bottom: 1px solid var(--border); padding: 8px; text-align: left; vertical-align: top; }
-    th { color: #d4d4d8; font-size: 13px; }
+    th, td { border-bottom: 1px solid var(--pspf-border); padding: var(--pspf-table-cell-pad-y) var(--pspf-table-cell-pad-x); text-align: left; vertical-align: top; }
+    th { color: var(--pspf-muted); font-size: var(--pspf-type-body); }
     td { overflow-wrap: anywhere; }
     ul { margin: 8px 0 0; padding-left: 20px; }
-    button { border: 1px solid #60a5fa; border-radius: 6px; background: #1d4ed8; color: #eff6ff; padding: 8px 12px; font: inherit; font-weight: 700; cursor: pointer; }
-    button.secondary { border-color: #52525b; background: #27272a; color: #f4f4f5; }
-    button.danger { border-color: #f59e0b; background: #3f2f11; color: #fde68a; }
-    button:hover { filter: brightness(1.12); }
-    .muted { color: var(--muted); }
+    .pspf-button--danger { border-color: var(--pspf-warn); background: var(--pspf-warn-soft); color: var(--pspf-text); }
+    .muted { color: var(--pspf-muted); }
   </style>
 </head>
 <body>
-  <header><div><strong>PSPF Workshop</strong><span>System of record import review</span></div><div class="version-strip"><span class="pill action">Plan, review, apply</span><span class="pill">Explorer local JSON</span></div></header>
-  <div class="banner">OFFICIAL: Sensitive · Review every Explorer local change before writing to Workshop</div>
+  <header><div><strong>PSPF Workshop</strong><span>System of record import review</span></div><div class="version-strip">${shellPill("Plan, review, apply", "accent")}${shellPill("Explorer local JSON")}</div></header>
+  <div class="pspf-sensitivity-banner core-sensitivity">OFFICIAL: Sensitive · Review every Explorer local change before writing to Workshop</div>
   <main>
     <section>
       <h1>Import Review</h1>
       <p class="muted">This is a read-only plan. Nothing is written until you choose Apply Import.</p>
-      <div class="mode-strip"><span class="mode-step active">Review plan</span><span class="mode-step">Apply to Workshop</span><span class="mode-step">Undo available after apply</span></div>
+      <div class="pspf-mode-strip"><span class="pspf-mode-step is-active">Review plan</span><span class="pspf-mode-step">Apply to Workshop</span><span class="pspf-mode-step">Undo available after apply</span></div>
       <div class="grid">
         ${metric("Files", fileCount)}
         ${metric("Created", planSummary.created)}
@@ -353,9 +348,9 @@ function importReviewHtml(
         ${metric("Will write", written)}
       </div>
       <div class="toolbar" style="margin-top: 14px;">
-        <button type="button" data-command="applyImport">Apply Import</button>
-        <button type="button" class="secondary" data-command="showDetails">Show Details</button>
-        <button type="button" class="danger" data-command="cancelImport">Cancel</button>
+        <button type="button" class="pspf-button" data-command="applyImport">Apply Import</button>
+        <button type="button" class="pspf-button pspf-button--secondary" data-command="showDetails">Show Details</button>
+        <button type="button" class="pspf-button pspf-button--danger" data-command="cancelImport">Cancel</button>
       </div>
     </section>
     ${plans.map(importPlanCard).join("")}
@@ -374,7 +369,7 @@ function importReviewHtml(
 }
 
 function metric(label: string, value: number): string {
-  return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${value}</strong></div>`;
+  return `<div class="pspf-metric"><span>${escapeHtml(label)}</span><strong>${value}</strong></div>`;
 }
 
 function importPlanCard(plan: ImportResult): string {

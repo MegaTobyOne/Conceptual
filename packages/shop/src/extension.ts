@@ -2088,16 +2088,15 @@ function renderCompactForecastHtml(
     <style>
         /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
         ${tokensCss("extension")}
-        :root { --shop-amber: #c47a16; --shop-teal: #1b8078; --shop-panel: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--shop-teal)); }
-        body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0; padding: 12px; }
+        :root { --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+        body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: var(--pspf-gap-md); }
         h1 { font-size: 1rem; margin: 0 0 6px; }
-        p { color: var(--vscode-descriptionForeground); margin: 0 0 10px; }
-        .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: 10px; margin: 0 0 10px; }
-        .eyebrow { color: var(--shop-teal); font-size: .72rem; font-weight: 700; letter-spacing: 0; text-transform: uppercase; margin: 0 0 4px; }
-        .summary { display: grid; gap: 8px; }
-        .pill { border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 7px 8px; }
-        .pill strong { color: var(--shop-amber); }
-        a { color: var(--vscode-textLink-foreground); }
+        p { color: var(--pspf-muted); margin: 0 0 10px; }
+        .masthead { border-left: 4px solid var(--pspf-warn); background: var(--shop-panel); padding: var(--pspf-gap); margin: 0 0 var(--pspf-gap); }
+        .eyebrow { color: var(--pspf-primary); font-size: var(--pspf-type-label); font-weight: 700; letter-spacing: var(--pspf-letter-label); text-transform: uppercase; margin: 0 0 4px; }
+        .summary { display: grid; gap: var(--pspf-pad-sm); }
+        .summary .pspf-pill { justify-content: flex-start; padding: 6px var(--pspf-pad-sm); }
+        .summary .pspf-pill strong { color: var(--pspf-warn); }
     </style>
 </head>
 <body>
@@ -2107,19 +2106,19 @@ function renderCompactForecastHtml(
         <p>Compact forecast summary. Open the full forecast for coverage, renewal, action, and risk detail.</p>
     </div>
     <div class="summary">
-        <span class="pill"><strong>${store.suppliers.length}</strong> suppliers</span>
-        <span class="pill"><strong>${store.contracts.length}</strong> contracts</span>
-        <span class="pill"><strong>${store.spendItems.length}</strong> spend items</span>
-        <span class="pill"><strong>${unlinkedCount}</strong> unlinked assurance records</span>
-        <span class="pill"><strong>${uncontractedSpendCount}</strong> spend items need contract funding links</span>
-        <span class="pill"><strong>${dashboard.renewals.length}</strong> contracts in review window</span>
-        <span class="pill"><strong>${urgentActions}</strong> funded blocked or overdue Actions</span>
-        <span class="pill"><strong>${managementReviews}</strong> supplier management checks due</span>
-        <span class="pill"><strong>${artefactGaps}</strong> contract artefact gaps</span>
-        <span class="pill">${publicationStatus}</span>
-        <span class="pill">${nextForecast ? `${escapeHtml(nextForecast.financialYear)} net forecast ${escapeHtml(formatCurrency(nextForecast.netForecast))}` : "No spend forecast yet"}</span>
-        <span class="pill">${nextMonth ? `${escapeHtml(nextMonth.monthLabel)} forecast ${escapeHtml(formatCurrency(nextMonth.forecastSpend))}` : "No monthly forecast yet"}</span>
-        <span class="pill">${nextDividend ? `${escapeHtml(nextDividend.financialYear)} planned efficiency dividend ${escapeHtml(formatCurrency(nextDividend.plannedSaving))}` : "No planned efficiency dividend yet"}</span>
+        <span class="pspf-pill"><strong>${store.suppliers.length}</strong> suppliers</span>
+        <span class="pspf-pill"><strong>${store.contracts.length}</strong> contracts</span>
+        <span class="pspf-pill"><strong>${store.spendItems.length}</strong> spend items</span>
+        <span class="pspf-pill"><strong>${unlinkedCount}</strong> unlinked assurance records</span>
+        <span class="pspf-pill"><strong>${uncontractedSpendCount}</strong> spend items need contract funding links</span>
+        <span class="pspf-pill"><strong>${dashboard.renewals.length}</strong> contracts in review window</span>
+        <span class="pspf-pill"><strong>${urgentActions}</strong> funded blocked or overdue Actions</span>
+        <span class="pspf-pill"><strong>${managementReviews}</strong> supplier management checks due</span>
+        <span class="pspf-pill"><strong>${artefactGaps}</strong> contract artefact gaps</span>
+        <span class="pspf-pill">${publicationStatus}</span>
+        <span class="pspf-pill">${nextForecast ? `${escapeHtml(nextForecast.financialYear)} net forecast ${escapeHtml(formatCurrency(nextForecast.netForecast))}` : "No spend forecast yet"}</span>
+        <span class="pspf-pill">${nextMonth ? `${escapeHtml(nextMonth.monthLabel)} forecast ${escapeHtml(formatCurrency(nextMonth.forecastSpend))}` : "No monthly forecast yet"}</span>
+        <span class="pspf-pill">${nextDividend ? `${escapeHtml(nextDividend.financialYear)} planned efficiency dividend ${escapeHtml(formatCurrency(nextDividend.plannedSaving))}` : "No planned efficiency dividend yet"}</span>
     </div>
     <p><a href="${escapeHtml(commandUri("pspf.shop.openForecast", []))}">Open full forecast</a></p>
 </body>
@@ -2319,36 +2318,36 @@ function renderForecastHtml(
   <style>
         /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
         ${tokensCss("extension")}
-        :root { --shop-amber: #c47a16; --shop-teal: #1b8078; --shop-panel: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--shop-teal)); }
-    body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
+        :root { --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+      body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
         main { max-width: ${maxWidth}; margin: 0 auto; }
         h1 { font-size: 1.25rem; margin: 0 0 8px; }
-    p { color: var(--vscode-descriptionForeground); margin: 0 0 16px; }
-        .muted { color: var(--vscode-descriptionForeground); }
-        .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: 12px 14px; margin: 0 0 14px; }
-        .eyebrow { color: var(--shop-teal); font-size: .72rem; font-weight: 700; letter-spacing: 0; text-transform: uppercase; margin: 0 0 4px; }
+    p { color: var(--pspf-muted); margin: 0 0 16px; }
+      .muted { color: var(--pspf-muted); }
+      .masthead { border-left: 4px solid var(--pspf-warn); background: var(--shop-panel); padding: var(--pspf-gap-md) var(--pspf-pad); margin: 0 0 var(--pspf-pad); }
+      .eyebrow { color: var(--pspf-primary); font-size: var(--pspf-type-label); font-weight: 700; letter-spacing: var(--pspf-letter-label); text-transform: uppercase; margin: 0 0 4px; }
     h2 { font-size: 1rem; margin: 20px 0 8px; }
     table { border-collapse: collapse; width: 100%; margin-bottom: 14px; }
-    th, td { border-bottom: 1px solid var(--vscode-panel-border); padding: 8px 6px; text-align: left; }
-    th { color: var(--vscode-descriptionForeground); font-weight: 600; }
-    .summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
-    .pill { border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 6px 8px; }
-        .pill strong { color: var(--shop-amber); }
-        .panel { border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 10px; margin: 0 0 12px; }
+    th, td { border-bottom: 1px solid var(--pspf-border); padding: var(--pspf-table-cell-pad-y) var(--pspf-table-cell-pad-x); text-align: left; }
+    th { color: var(--pspf-muted); font-weight: 600; }
+    .summary { display: flex; flex-wrap: wrap; gap: var(--pspf-pad-sm); margin: 0 0 var(--pspf-pad); }
+    .summary .pspf-pill { padding: 6px var(--pspf-pad-sm); }
+      .summary .pspf-pill strong { color: var(--pspf-warn); }
+      .panel { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-gap); margin: 0 0 var(--pspf-gap-md); }
         .coverage { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-        .coverage-card { background: color-mix(in srgb, var(--vscode-editor-background) 92%, var(--shop-amber)); border-left: 3px solid var(--shop-teal); padding: 10px; }
-        .coverage-card strong { display: block; font-size: 1.4rem; color: var(--shop-amber); }
-        .coverage-card a { display: inline-block; margin-top: 6px; color: var(--vscode-textLink-foreground); }
+      .coverage-card { background: color-mix(in srgb, var(--pspf-surface) 92%, var(--pspf-warn)); border-left: 3px solid var(--pspf-primary); padding: var(--pspf-gap); }
+      .coverage-card strong { display: block; font-size: 1.4rem; color: var(--pspf-warn); }
+      .coverage-card a { display: inline-block; margin-top: 6px; }
         .month-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; margin: 0 0 14px; }
-        .month-card { border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 8px; min-height: 92px; display: grid; align-content: end; gap: 6px; }
-        .month-bar { background: color-mix(in srgb, var(--shop-teal) 72%, var(--vscode-editor-background)); border-radius: 4px 4px 2px 2px; min-height: 4px; height: var(--height); }
-        .month-card strong { color: var(--shop-amber); }
-        .status { border: 1px solid var(--vscode-panel-border); border-radius: 999px; padding: 2px 6px; white-space: nowrap; }
+        .month-card { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-pad-sm); min-height: 92px; display: grid; align-content: end; gap: var(--pspf-gap-sm); }
+        .month-bar { background: color-mix(in srgb, var(--pspf-primary) 72%, var(--pspf-surface)); border-radius: 4px 4px 2px 2px; min-height: 4px; height: var(--height); }
+        .month-card strong { color: var(--pspf-warn); }
+        .status { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius-pill); padding: 2px 6px; white-space: nowrap; }
         .status-blocked { border-color: var(--vscode-errorForeground); }
-        .status-overdue { border-color: var(--shop-amber); }
+        .status-overdue { border-color: var(--pspf-warn); }
         .status-review, .status-needed { border-color: var(--vscode-errorForeground); }
-        .status-watch { border-color: var(--shop-amber); }
-        .status-ok, .status-ready { border-color: var(--shop-teal); }
+        .status-watch { border-color: var(--pspf-warn); }
+        .status-ok, .status-ready { border-color: var(--pspf-primary); }
   </style>
 </head>
 <body>
@@ -2359,12 +2358,12 @@ function renderForecastHtml(
     <p>Derived from Core-backed Shop spend items. Shop is a commercial planning view, not the contract system of record; use it to see upcoming forecast spend, management checks, and artefact gaps.</p>
     </div>
   <div class="summary">
-        <span class="pill"><strong>${store.suppliers.length}</strong> suppliers</span>
-        <span class="pill"><strong>${store.contracts.length}</strong> contracts</span>
-        <span class="pill"><strong>${store.spendItems.length}</strong> spend items</span>
-        <span class="pill">${publicationStatus}</span>
-          <span class="pill"><a href="${escapeHtml(commandUri("pspf.shop.exportForecastCsv", []))}">Export CSV</a></span>
-          <span class="pill"><a href="${escapeHtml(commandUri("pspf.shop.exportForecastXls", []))}">Export XLS</a></span>
+        <span class="pspf-pill"><strong>${store.suppliers.length}</strong> suppliers</span>
+        <span class="pspf-pill"><strong>${store.contracts.length}</strong> contracts</span>
+        <span class="pspf-pill"><strong>${store.spendItems.length}</strong> spend items</span>
+        <span class="pspf-pill">${publicationStatus}</span>
+          <span class="pspf-pill"><a href="${escapeHtml(commandUri("pspf.shop.exportForecastCsv", []))}">Export CSV</a></span>
+          <span class="pspf-pill"><a href="${escapeHtml(commandUri("pspf.shop.exportForecastXls", []))}">Export XLS</a></span>
   </div>
     <section class="panel">
         <h2>Assurance coverage</h2>

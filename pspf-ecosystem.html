@@ -1,1050 +1,1181 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-AU" data-theme="dark">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>PSPF Ecosystem</title>
-    <meta name="description"
-        content="A streamlined guide to the PSPF local-first tool ecosystem: Core, Workshop, Shop, and Explorer for Australian Government assurance workflows." />
+    <meta
+      name="description"
+      content="A streamlined guide to the PSPF local-first tool ecosystem: Core, Workshop, Shop, and Explorer for Australian Government assurance workflows."
+    />
     <meta property="og:title" content="PSPF Ecosystem" />
-    <meta property="og:description"
-        content="Core, Workshop, Shop, and Explorer for local-first PSPF assurance workflows. Independent project." />
+    <meta
+      property="og:description"
+      content="Core, Workshop, Shop, and Explorer for local-first PSPF assurance workflows. Independent project."
+    />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="robots" content="index,follow" />
     <script>
-        (function () {
-            try {
-                var stored = localStorage.getItem('pspf-theme');
-                if (stored === 'light' || stored === 'dark') document.documentElement.setAttribute('data-theme', stored);
-            } catch (e) {
-                // Keep the default theme when storage is unavailable.
-            }
-        })();
+      (function () {
+        try {
+          var stored = localStorage.getItem("pspf-theme");
+          if (stored === "light" || stored === "dark") document.documentElement.setAttribute("data-theme", stored);
+        } catch (e) {
+          // Keep the default theme when storage is unavailable.
+        }
+      })();
     </script>
     <style>
-        :root,
-        [data-theme="light"] {
-            --bg: #f4f1eb;
-            --bg-rgb: 244, 241, 235;
-            --surface: #fffdf8;
-            --surface-soft: #ebe6dc;
-            --surface-strong: #e0d8c9;
-            --border: #cfc5b5;
-            --border-soft: #ded6c9;
-            --text: #211f1a;
-            --muted: #625c52;
-            --faint: #8b8274;
-            --inverse: #f9f5ec;
-            --teal: #006b69;
-            --teal-strong: #004f51;
-            --blue: #315c94;
-            --amber: #9a5c00;
-            --red: #9c315f;
-            --green: #456f22;
-            --shadow: 0 18px 60px rgba(33, 31, 26, 0.14);
-            --shadow-sm: 0 8px 24px rgba(33, 31, 26, 0.08);
-            --radius: 8px;
-            --radius-sm: 6px;
-            --radius-pill: 999px;
-            --max: 1180px;
-            --font-body: Avenir Next, Aptos, Segoe UI, Noto Sans, Helvetica Neue, sans-serif;
-            --font-display: Charter, Iowan Old Style, Georgia, serif;
-        }
+      :root,
+      [data-theme="light"] {
+        --bg: #f7f7f3;
+        --bg-rgb: 247, 247, 243;
+        --surface: #ffffff;
+        --surface-soft: #eef1ee;
+        --surface-strong: #e3e8e3;
+        --border: #c9d2ca;
+        --border-soft: #dbe2dc;
+        --text: #1d2321;
+        --muted: #58625d;
+        --faint: #7e8882;
+        --inverse: #f7fbf9;
+        --teal: #0f766e;
+        --teal-strong: #0b5f59;
+        --blue: #315c94;
+        --amber: #9a5c00;
+        --red: #9c315f;
+        --green: #456f22;
+        --shadow: 0 18px 60px rgba(29, 35, 33, 0.12);
+        --shadow-sm: 0 8px 24px rgba(29, 35, 33, 0.08);
+        --radius: 8px;
+        --radius-sm: 6px;
+        --radius-pill: 999px;
+        --max: 1180px;
+        --font-body: Avenir Next, Aptos, Segoe UI, Noto Sans, Helvetica Neue, sans-serif;
+        --font-display: Charter, Iowan Old Style, Georgia, serif;
+      }
 
-        [data-theme="dark"] {
-            --bg: #151616;
-            --bg-rgb: 21, 22, 22;
-            --surface: #1d1e1e;
-            --surface-soft: #252626;
-            --surface-strong: #303130;
-            --border: #444541;
-            --border-soft: #333532;
-            --text: #f0ede5;
-            --muted: #bcb4a6;
-            --faint: #81796d;
-            --inverse: #151616;
-            --teal: #48aaa5;
-            --teal-strong: #83d1ca;
-            --blue: #80a9df;
-            --amber: #d19b46;
-            --red: #d77aa2;
-            --green: #9abe6b;
-            --shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
-            --shadow-sm: 0 10px 28px rgba(0, 0, 0, 0.26);
-        }
+      [data-theme="dark"] {
+        --bg: #141817;
+        --bg-rgb: 20, 24, 23;
+        --surface: #1c211f;
+        --surface-soft: #242b29;
+        --surface-strong: #2d3633;
+        --border: #45514d;
+        --border-soft: #33403c;
+        --text: #f2f6f3;
+        --muted: #b7c1ba;
+        --faint: #818d86;
+        --inverse: #101513;
+        --teal: #5bb8b0;
+        --teal-strong: #8ad9d2;
+        --blue: #8cadde;
+        --amber: #d19b46;
+        --red: #d77aa2;
+        --green: #9abe6b;
+        --shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
+        --shadow-sm: 0 10px 28px rgba(0, 0, 0, 0.26);
+      }
 
-        * {
-            box-sizing: border-box;
-        }
+      * {
+        box-sizing: border-box;
+      }
 
-        html {
-            scroll-behavior: smooth;
-        }
+      html {
+        scroll-behavior: smooth;
+      }
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background:
-                linear-gradient(90deg, rgba(var(--bg-rgb), 0.94), rgba(var(--bg-rgb), 0.80)),
-                repeating-linear-gradient(90deg, transparent 0 62px, rgba(72, 170, 165, 0.10) 62px 63px),
-                repeating-linear-gradient(0deg, transparent 0 62px, rgba(154, 92, 0, 0.08) 62px 63px),
-                var(--bg);
-            color: var(--text);
-            font-family: var(--font-body);
-            line-height: 1.55;
-            -webkit-font-smoothing: antialiased;
-            text-rendering: optimizeLegibility;
-        }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(90deg, rgba(var(--bg-rgb), 0.94), rgba(var(--bg-rgb), 0.8)),
+          repeating-linear-gradient(
+            90deg,
+            transparent 0 62px,
+            color-mix(in srgb, var(--teal) 14%, transparent) 62px 63px
+          ),
+          repeating-linear-gradient(
+            0deg,
+            transparent 0 62px,
+            color-mix(in srgb, var(--amber) 10%, transparent) 62px 63px
+          ),
+          var(--bg);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
 
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
 
-        button {
-            font: inherit;
-            color: inherit;
-            cursor: pointer;
-        }
+      button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
 
-        :focus-visible {
-            outline: 3px solid var(--teal);
-            outline-offset: 3px;
-        }
+      :focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 3px;
+      }
 
-        .skip-link {
-            position: absolute;
-            left: -9999px;
-            top: 12px;
-            z-index: 30;
-            background: var(--teal);
-            color: var(--inverse);
-            padding: 10px 14px;
-            border-radius: var(--radius-sm);
-        }
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 12px;
+        z-index: 30;
+        background: var(--teal);
+        color: var(--inverse);
+        padding: 10px 14px;
+        border-radius: var(--radius-sm);
+      }
 
-        .skip-link:focus {
-            left: 12px;
-        }
+      .skip-link:focus {
+        left: 12px;
+      }
 
-        .wrap {
-            width: min(calc(100% - 32px), var(--max));
-            margin: 0 auto;
-        }
+      .wrap {
+        width: min(calc(100% - 32px), var(--max));
+        margin: 0 auto;
+      }
 
-        .site-header {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            background: rgba(var(--bg-rgb), 0.88);
-            border-bottom: 1px solid var(--border-soft);
-            backdrop-filter: blur(18px);
-        }
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(var(--bg-rgb), 0.88);
+        border-bottom: 1px solid var(--border-soft);
+        backdrop-filter: blur(18px);
+      }
 
-        .header-inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            min-height: 68px;
-        }
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 68px;
+      }
 
-        .brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 750;
-        }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 750;
+      }
 
-        .brand-mark {
-            width: 34px;
-            height: 34px;
-            border-radius: var(--radius);
-            display: grid;
-            place-items: center;
-            color: var(--inverse);
-            background: linear-gradient(135deg, var(--teal), var(--blue));
-            box-shadow: var(--shadow-sm);
-        }
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: var(--radius);
+        display: grid;
+        place-items: center;
+        color: var(--inverse);
+        background: linear-gradient(135deg, var(--teal), color-mix(in srgb, var(--blue) 80%, var(--teal)));
+        box-shadow: var(--shadow-sm);
+      }
 
-        .brand-mark svg {
-            width: 19px;
-            height: 19px;
-        }
+      .brand-mark svg {
+        width: 19px;
+        height: 19px;
+      }
 
-        .site-nav {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            overflow-x: auto;
-            padding: 8px 0;
-        }
+      .site-nav {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        overflow-x: auto;
+        padding: 8px 0;
+      }
 
-        .site-nav a,
-        .theme-toggle,
-        .header-cta {
-            border: 1px solid var(--border-soft);
-            border-radius: var(--radius-pill);
-            background: var(--surface);
-            color: var(--muted);
-            padding: 8px 12px;
-            font-size: 14px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
+      .site-nav a,
+      .theme-toggle,
+      .header-cta {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-pill);
+        background: var(--surface);
+        color: var(--muted);
+        padding: 8px 12px;
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
 
-        .site-nav a:hover,
-        .theme-toggle:hover,
-        .header-cta:hover {
-            color: var(--text);
-            border-color: var(--teal);
-        }
+      .site-nav a:hover,
+      .theme-toggle:hover,
+      .header-cta:hover {
+        color: var(--text);
+        border-color: var(--teal);
+      }
 
-        .header-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
+      .header-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
 
-        .header-cta {
-            color: var(--inverse);
-            background: var(--teal);
-            border-color: var(--teal);
-        }
+      .header-cta {
+        color: var(--inverse);
+        background: var(--teal);
+        border-color: var(--teal);
+      }
 
-        .theme-toggle {
-            display: inline-flex;
-            gap: 6px;
-            align-items: center;
-        }
+      .theme-toggle {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
 
-        .notice {
-            margin-top: 18px;
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--amber);
-            background: var(--surface);
-            border-radius: var(--radius);
-            padding: 14px 46px 14px 16px;
-            position: relative;
-            box-shadow: var(--shadow-sm);
-        }
+      .notice {
+        margin-top: 18px;
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--amber);
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 14px 46px 14px 16px;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+      }
 
-        .notice p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 14px;
-        }
+      .notice p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
 
-        .notice strong {
-            color: var(--text);
-        }
+      .notice strong {
+        color: var(--text);
+      }
 
-        .notice-dismiss {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 28px;
-            height: 28px;
-            border-radius: var(--radius-pill);
-            border: 1px solid transparent;
-            background: transparent;
-            color: var(--muted);
-        }
+      .notice-dismiss {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-pill);
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--muted);
+      }
 
-        .notice-dismiss:hover {
-            border-color: var(--border);
-            background: var(--surface-soft);
-            color: var(--text);
-        }
+      .notice-dismiss:hover {
+        border-color: var(--border);
+        background: var(--surface-soft);
+        color: var(--text);
+      }
 
-        .notice[hidden],
-        .notice-restore[hidden] {
-            display: none;
-        }
+      .notice[hidden],
+      .notice-restore[hidden] {
+        display: none;
+      }
 
-        .notice-restore {
-            margin: 10px 0 0;
-            font-size: 13px;
-            color: var(--muted);
-        }
+      .notice-restore {
+        margin: 10px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
 
-        .notice-restore button {
-            padding: 0;
-            border: 0;
-            background: transparent;
-            color: var(--teal);
-            text-decoration: underline;
-        }
+      .notice-restore button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--teal);
+        text-decoration: underline;
+      }
 
-        .hero {
-            min-height: calc(100vh - 86px);
-            display: grid;
-            align-items: center;
-            padding: clamp(56px, 8vw, 104px) 0 clamp(32px, 6vw, 76px);
-            position: relative;
-            overflow: hidden;
-        }
+      .hero {
+        min-height: calc(100vh - 86px);
+        display: grid;
+        align-items: center;
+        padding: clamp(56px, 8vw, 104px) 0 clamp(32px, 6vw, 76px);
+        position: relative;
+        overflow: hidden;
+      }
 
-        .hero::before {
-            content: "";
-            position: absolute;
-            inset: 10% -10% auto auto;
-            width: min(58vw, 760px);
-            height: min(58vw, 760px);
-            background: linear-gradient(135deg, rgba(72, 170, 165, 0.18), rgba(128, 169, 223, 0.12) 46%, rgba(209, 155, 70, 0.10));
-            clip-path: polygon(15% 0, 100% 14%, 86% 82%, 8% 100%, 0 24%);
-            pointer-events: none;
-        }
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 10% -10% auto auto;
+        width: min(58vw, 760px);
+        height: min(58vw, 760px);
+        background: linear-gradient(
+          135deg,
+          color-mix(in srgb, var(--teal) 18%, transparent),
+          color-mix(in srgb, var(--blue) 12%, transparent) 46%,
+          color-mix(in srgb, var(--amber) 10%, transparent)
+        );
+        clip-path: polygon(15% 0, 100% 14%, 86% 82%, 8% 100%, 0 24%);
+        pointer-events: none;
+      }
 
+      .hero-grid {
+        display: grid;
+        gap: clamp(28px, 5vw, 64px);
+        position: relative;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        width: fit-content;
+        border: 1px solid rgba(72, 170, 165, 0.5);
+        color: var(--teal-strong);
+        background: color-mix(in srgb, var(--surface) 74%, transparent);
+        border-radius: var(--radius-pill);
+        padding: 7px 12px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.04;
+      }
+
+      h1,
+      h2 {
+        font-family: var(--font-display);
+        font-weight: 700;
+      }
+
+      h1 {
+        max-width: 11ch;
+        margin-top: 18px;
+        font-size: clamp(3.2rem, 9vw, 7.6rem);
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: clamp(2rem, 4vw, 4rem);
+        letter-spacing: 0;
+      }
+
+      h3 {
+        font-size: 1.08rem;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 70ch;
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 18px;
+        max-width: 820px;
+      }
+
+      .hero-lede {
+        font-size: clamp(1.05rem, 1.3vw, 1.3rem);
+        color: var(--text);
+        max-width: 760px;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .button {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--border);
+        padding: 0 16px;
+        font-weight: 800;
+        background: var(--surface);
+        color: var(--text);
+      }
+
+      .button.primary {
+        background: var(--teal);
+        border-color: var(--teal);
+        color: var(--inverse);
+      }
+
+      .button:hover {
+        border-color: var(--teal);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .signal-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+        max-width: 760px;
+      }
+
+      .signal {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius);
+        background: color-mix(in srgb, var(--surface) 84%, transparent);
+        padding: 14px;
+      }
+
+      .signal strong {
+        display: block;
+        font-size: 1.5rem;
+        line-height: 1;
+      }
+
+      .signal span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .system-map {
+        align-self: stretch;
+        min-height: 360px;
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius);
+        background: color-mix(in srgb, var(--surface) 82%, transparent);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .map-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .map-node {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        padding: 14px;
+        min-height: 94px;
+        display: grid;
+        align-content: center;
+        gap: 4px;
+      }
+
+      .map-node strong {
+        font-size: 1rem;
+      }
+
+      .map-node span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .map-arrow {
+        color: var(--teal);
+        font-weight: 900;
+      }
+
+      .map-node.is-source {
+        border-color: color-mix(in srgb, var(--blue) 60%, var(--border));
+      }
+
+      .map-node.is-work {
+        border-color: color-mix(in srgb, var(--teal) 60%, var(--border));
+      }
+
+      .map-node.is-share {
+        border-color: color-mix(in srgb, var(--amber) 60%, var(--border));
+      }
+
+      .map-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: auto;
+      }
+
+      .map-pill {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-pill);
+        padding: 6px 9px;
+        color: var(--muted);
+        font-size: 12px;
+        background: var(--surface-soft);
+      }
+
+      section {
+        padding: clamp(44px, 7vw, 88px) 0;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 22px;
+      }
+
+      .section-head p {
+        max-width: 56ch;
+      }
+
+      .product-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .product {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: minmax(0, 1fr);
+        border: 1px solid var(--border-soft);
+        border-left: 4px solid var(--teal);
+        border-radius: var(--radius);
+        background: var(--surface);
+        padding: 18px;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .product:nth-child(3) {
+        border-left-color: var(--blue);
+      }
+
+      .product:nth-child(4) {
+        border-left-color: var(--amber);
+      }
+
+      .product:nth-child(5) {
+        border-left-color: var(--red);
+      }
+
+      .product:hover {
+        border-color: var(--teal);
+      }
+
+      .product-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .product-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .product-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius);
+        display: grid;
+        place-items: center;
+        color: var(--inverse);
+        background: var(--blue);
+        font-weight: 900;
+      }
+
+      .product:nth-child(2) .product-icon {
+        background: var(--teal);
+      }
+
+      .product:nth-child(3) .product-icon {
+        background: var(--amber);
+      }
+
+      .product:nth-child(4) .product-icon {
+        background: var(--green);
+      }
+
+      .product:nth-child(5) .product-icon {
+        background: var(--red);
+      }
+
+      .tag {
+        width: fit-content;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--border-soft);
+        color: var(--muted);
+        background: var(--surface-soft);
+        padding: 5px 9px;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .tag.live {
+        color: var(--teal-strong);
+        border-color: color-mix(in srgb, var(--teal) 55%, var(--border));
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .meta span,
+      code {
+        border-radius: var(--radius-pill);
+        background: var(--surface-soft);
+        color: var(--muted);
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      .product-link {
+        width: fit-content;
+        color: var(--teal-strong);
+        font-weight: 850;
+      }
+
+      .disabled {
+        color: var(--faint);
+        border-bottom: 1px dashed var(--border);
+        width: fit-content;
+      }
+
+      .workflow {
+        display: grid;
+        gap: 12px;
+      }
+
+      .step {
+        display: grid;
+        gap: 8px;
+        border-top: 1px solid var(--border);
+        padding-top: 16px;
+      }
+
+      .step-num {
+        color: var(--teal-strong);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .link-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .link-card {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius);
+        background: var(--surface);
+        padding: 16px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .link-card:hover {
+        border-color: var(--teal);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .fine-print {
+        border-top: 1px solid var(--border-soft);
+        padding: 28px 0 44px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      @media (min-width: 820px) {
         .hero-grid {
-            display: grid;
-            gap: clamp(28px, 5vw, 64px);
-            position: relative;
-        }
-
-        .eyebrow {
-            display: inline-flex;
-            width: fit-content;
-            border: 1px solid rgba(72, 170, 165, 0.5);
-            color: var(--teal-strong);
-            background: color-mix(in srgb, var(--surface) 74%, transparent);
-            border-radius: var(--radius-pill);
-            padding: 7px 12px;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        h1,
-        h2,
-        h3 {
-            margin: 0;
-            line-height: 1.04;
-        }
-
-        h1,
-        h2 {
-            font-family: var(--font-display);
-            font-weight: 700;
-        }
-
-        h1 {
-            max-width: 11ch;
-            margin-top: 18px;
-            font-size: clamp(3.2rem, 9vw, 7.6rem);
-            letter-spacing: 0;
-        }
-
-        h2 {
-            font-size: clamp(2rem, 4vw, 4rem);
-            letter-spacing: 0;
-        }
-
-        h3 {
-            font-size: 1.08rem;
-        }
-
-        p {
-            margin: 0;
-            color: var(--muted);
-            max-width: 70ch;
-        }
-
-        .hero-copy {
-            display: grid;
-            gap: 18px;
-            max-width: 820px;
-        }
-
-        .hero-lede {
-            font-size: clamp(1.05rem, 1.3vw, 1.3rem);
-            color: var(--text);
-            max-width: 760px;
-        }
-
-        .hero-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .button {
-            min-height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-pill);
-            border: 1px solid var(--border);
-            padding: 0 16px;
-            font-weight: 800;
-            background: var(--surface);
-            color: var(--text);
-        }
-
-        .button.primary {
-            background: var(--teal);
-            border-color: var(--teal);
-            color: var(--inverse);
-        }
-
-        .button:hover {
-            border-color: var(--teal);
-            box-shadow: var(--shadow-sm);
+          grid-template-columns: minmax(0, 1fr) minmax(340px, 0.72fr);
+          align-items: center;
         }
 
         .signal-row {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-            max-width: 760px;
-        }
-
-        .signal {
-            border: 1px solid var(--border-soft);
-            border-radius: var(--radius);
-            background: color-mix(in srgb, var(--surface) 84%, transparent);
-            padding: 14px;
-        }
-
-        .signal strong {
-            display: block;
-            font-size: 1.5rem;
-            line-height: 1;
-        }
-
-        .signal span {
-            display: block;
-            margin-top: 6px;
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .system-map {
-            align-self: stretch;
-            min-height: 360px;
-            border: 1px solid var(--border-soft);
-            border-radius: var(--radius);
-            background: color-mix(in srgb, var(--surface) 82%, transparent);
-            box-shadow: var(--shadow);
-            padding: 18px;
-            display: grid;
-            gap: 12px;
-        }
-
-        .map-row {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .map-node {
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            background: var(--surface);
-            padding: 14px;
-            min-height: 94px;
-            display: grid;
-            align-content: center;
-            gap: 4px;
-        }
-
-        .map-node strong {
-            font-size: 1rem;
-        }
-
-        .map-node span {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .map-arrow {
-            color: var(--teal);
-            font-weight: 900;
-        }
-
-        .map-node.is-source {
-            border-color: color-mix(in srgb, var(--blue) 60%, var(--border));
-        }
-
-        .map-node.is-work {
-            border-color: color-mix(in srgb, var(--teal) 60%, var(--border));
-        }
-
-        .map-node.is-share {
-            border-color: color-mix(in srgb, var(--amber) 60%, var(--border));
-        }
-
-        .map-strip {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: auto;
-        }
-
-        .map-pill {
-            border: 1px solid var(--border-soft);
-            border-radius: var(--radius-pill);
-            padding: 6px 9px;
-            color: var(--muted);
-            font-size: 12px;
-            background: var(--surface-soft);
-        }
-
-        section {
-            padding: clamp(44px, 7vw, 88px) 0;
-        }
-
-        .section-head {
-            display: flex;
-            align-items: end;
-            justify-content: space-between;
-            gap: 24px;
-            margin-bottom: 22px;
-        }
-
-        .section-head p {
-            max-width: 56ch;
-        }
-
-        .product-grid {
-            display: grid;
-            gap: 12px;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
         }
 
         .product {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: minmax(0, 1fr);
-            border: 1px solid var(--border-soft);
-            border-radius: var(--radius);
-            background: var(--surface);
-            padding: 18px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .product:hover {
-            border-color: var(--teal);
-        }
-
-        .product-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .product-name {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .product-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius);
-            display: grid;
-            place-items: center;
-            color: var(--inverse);
-            background: var(--blue);
-            font-weight: 900;
-        }
-
-        .product:nth-child(2) .product-icon {
-            background: var(--teal);
-        }
-
-        .product:nth-child(3) .product-icon {
-            background: var(--amber);
-        }
-
-        .product:nth-child(4) .product-icon {
-            background: var(--green);
-        }
-
-        .product:nth-child(5) .product-icon {
-            background: var(--red);
-        }
-
-        .tag {
-            width: fit-content;
-            border-radius: var(--radius-pill);
-            border: 1px solid var(--border-soft);
-            color: var(--muted);
-            background: var(--surface-soft);
-            padding: 5px 9px;
-            font-size: 12px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .tag.live {
-            color: var(--teal-strong);
-            border-color: color-mix(in srgb, var(--teal) 55%, var(--border));
-        }
-
-        .meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .meta span,
-        code {
-            border-radius: var(--radius-pill);
-            background: var(--surface-soft);
-            color: var(--muted);
-            padding: 4px 8px;
-            font-size: 12px;
-        }
-
-        code {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        }
-
-        .product-link {
-            width: fit-content;
-            color: var(--teal-strong);
-            font-weight: 850;
-        }
-
-        .disabled {
-            color: var(--faint);
-            border-bottom: 1px dashed var(--border);
-            width: fit-content;
+          grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr) auto;
+          align-items: center;
         }
 
         .workflow {
-            display: grid;
-            gap: 12px;
-        }
-
-        .step {
-            display: grid;
-            gap: 8px;
-            border-top: 1px solid var(--border);
-            padding-top: 16px;
-        }
-
-        .step-num {
-            color: var(--teal-strong);
-            font-size: 12px;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
         .link-grid {
-            display: grid;
-            gap: 12px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 760px) {
+        .header-inner {
+          flex-wrap: wrap;
+          padding: 10px 0;
         }
 
-        .link-card {
-            border: 1px solid var(--border-soft);
-            border-radius: var(--radius);
-            background: var(--surface);
-            padding: 16px;
-            display: grid;
-            gap: 8px;
+        .site-nav {
+          order: 3;
+          width: 100%;
         }
 
-        .link-card:hover {
-            border-color: var(--teal);
-            box-shadow: var(--shadow-sm);
+        .header-actions {
+          margin-left: auto;
         }
 
-        .fine-print {
-            border-top: 1px solid var(--border-soft);
-            padding: 28px 0 44px;
-            color: var(--muted);
-            font-size: 14px;
+        .header-actions .header-cta {
+          display: none;
         }
 
-        @media (min-width: 820px) {
-            .hero-grid {
-                grid-template-columns: minmax(0, 1fr) minmax(340px, 0.72fr);
-                align-items: center;
-            }
-
-            .signal-row {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-            }
-
-            .product {
-                grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr) auto;
-                align-items: center;
-            }
-
-            .workflow {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
-
-            .link-grid {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
+        .section-head {
+          display: grid;
         }
 
-        @media (max-width: 760px) {
-            .header-inner {
-                flex-wrap: wrap;
-                padding: 10px 0;
-            }
-
-            .site-nav {
-                order: 3;
-                width: 100%;
-            }
-
-            .header-actions {
-                margin-left: auto;
-            }
-
-            .header-actions .header-cta {
-                display: none;
-            }
-
-            .section-head {
-                display: grid;
-            }
-
-            .map-row {
-                grid-template-columns: 1fr;
-            }
-
-            .map-arrow {
-                display: none;
-            }
-
-            h1 {
-                max-width: 9ch;
-            }
+        .map-row {
+          grid-template-columns: 1fr;
         }
 
-        @media (prefers-reduced-motion: reduce) {
-            html {
-                scroll-behavior: auto;
-            }
-
-            * {
-                transition-duration: 0.01ms !important;
-            }
+        .map-arrow {
+          display: none;
         }
+
+        h1 {
+          max-width: 9ch;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        * {
+          transition-duration: 0.01ms !important;
+        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
-        <div class="wrap header-inner">
-            <a href="#top" class="brand" aria-label="PSPF Ecosystem home">
-                <span class="brand-mark" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M12 3 4 7v6c0 4.5 3.4 7.2 8 8 4.6-.8 8-3.5 8-8V7l-8-4Z" />
-                        <path d="m8.7 12.2 2.1 2.1 4.7-5" />
-                    </svg>
-                </span>
-                <span>PSPF Ecosystem</span>
-            </a>
-            <nav class="site-nav" aria-label="Section navigation">
-                <a href="#products">Products</a>
-                <a href="#workflow">Workflow</a>
-                <a href="#links">Links</a>
-            </nav>
-            <div class="header-actions">
-                <a class="header-cta" href="https://tobyharvey.online/explorer/" target="_blank"
-                    rel="noopener noreferrer">Open Explorer</a>
-                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch colour theme"><span
-                        aria-hidden="true">◐</span><span>Theme</span></button>
-            </div>
+      <div class="wrap header-inner">
+        <a href="#top" class="brand" aria-label="PSPF Ecosystem home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 3 4 7v6c0 4.5 3.4 7.2 8 8 4.6-.8 8-3.5 8-8V7l-8-4Z" />
+              <path d="m8.7 12.2 2.1 2.1 4.7-5" />
+            </svg>
+          </span>
+          <span>PSPF Ecosystem</span>
+        </a>
+        <nav class="site-nav" aria-label="Section navigation">
+          <a href="#products">Products</a>
+          <a href="#workflow">Workflow</a>
+          <a href="#links">Links</a>
+        </nav>
+        <div class="header-actions">
+          <a class="header-cta" href="https://tobyharvey.online/explorer/" target="_blank" rel="noopener noreferrer"
+            >Open Explorer</a
+          >
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch colour theme">
+            <span aria-hidden="true">◐</span><span>Theme</span>
+          </button>
         </div>
+      </div>
     </header>
 
     <main id="main">
-        <div class="wrap">
-            <aside class="notice" role="note" aria-label="Independent project notice" data-project-notice>
-                <button type="button" class="notice-dismiss" data-notice-dismiss
-                    aria-label="Hide this notice">×</button>
-                <p><strong>Independent project.</strong> Not affiliated with, endorsed by, or operated by any Australian
-                    Government entity. Use official PSPF and ASD sources for authoritative policy. Do not enter
-                    information classified above <strong>OFFICIAL: Sensitive</strong> into tools reachable from this
-                    site.</p>
-            </aside>
-            <p class="notice-restore" data-notice-restore hidden>Project notice hidden. <button type="button"
-                    data-notice-restore-button>Show again</button></p>
+      <div class="wrap">
+        <aside class="notice" role="note" aria-label="Independent project notice" data-project-notice>
+          <button type="button" class="notice-dismiss" data-notice-dismiss aria-label="Hide this notice">×</button>
+          <p>
+            <strong>Independent project.</strong> Not affiliated with, endorsed by, or operated by any Australian
+            Government entity. Use official PSPF and ASD sources for authoritative policy. Do not enter information
+            classified above <strong>OFFICIAL: Sensitive</strong> into tools reachable from this site.
+          </p>
+        </aside>
+        <p class="notice-restore" data-notice-restore hidden>
+          Project notice hidden. <button type="button" data-notice-restore-button>Show again</button>
+        </p>
+      </div>
+
+      <section class="hero" id="top">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <span class="eyebrow">Australian PSPF assurance tooling</span>
+            <h1>Local records. Shareable assurance.</h1>
+            <p class="hero-lede">
+              A local-first toolchain for PSPF assessment work: author in VS Code, validate the bundle, then share a
+              browser-based Explorer view with reviewers.
+            </p>
+            <p>
+              Core is the trusted workspace record. Workshop is the operator surface. Shop links commercial planning to
+              assurance. Explorer turns a curated JSON bundle into a portable publication view.
+            </p>
+            <div class="hero-actions">
+              <a
+                class="button primary"
+                href="https://tobyharvey.online/explorer/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Open Explorer</a
+              >
+              <a class="button" href="#products">View products</a>
+              <a class="button" href="#links">Install extensions</a>
+            </div>
+            <div class="signal-row" aria-label="Current release signals">
+              <div class="signal"><strong>1.24</strong><span>current polish slice</span></div>
+              <div class="signal"><strong>1.10</strong><span>schema / bundle / API axes</span></div>
+              <div class="signal"><strong>4</strong><span>active product surfaces</span></div>
+              <div class="signal"><strong>0</strong><span>cloud database dependency</span></div>
+            </div>
+          </div>
+          <div class="system-map" aria-label="PSPF ecosystem flow diagram">
+            <div class="map-row">
+              <div class="map-node is-source">
+                <strong>Official sources</strong><span>PSPF, ISM, Essential Eight</span>
+              </div>
+              <span class="map-arrow" aria-hidden="true">→</span>
+              <div class="map-node is-work">
+                <strong>Core + Workshop</strong><span>Local authoring and validation</span>
+              </div>
+            </div>
+            <div class="map-row">
+              <div class="map-node is-work"><strong>Shop</strong><span>Suppliers, contracts, spend</span></div>
+              <span class="map-arrow" aria-hidden="true">→</span>
+              <div class="map-node is-share"><strong>Explorer</strong><span>Portable review bundle</span></div>
+            </div>
+            <div class="map-strip" aria-label="Key outputs">
+              <span class="map-pill">Posture brief</span>
+              <span class="map-pill">Master JSON</span>
+              <span class="map-pill">Connected View</span>
+              <span class="map-pill">Saved views</span>
+              <span class="map-pill">Backup JSON</span>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <section class="hero" id="top">
-            <div class="wrap hero-grid">
-                <div class="hero-copy">
-                    <span class="eyebrow">Australian PSPF assurance tooling</span>
-                    <h1>Local records. Shareable assurance.</h1>
-                    <p class="hero-lede">A local-first toolchain for PSPF assessment work: author in VS Code, validate
-                        the bundle, then share a browser-based Explorer view with reviewers.</p>
-                    <p>Core is the trusted workspace record. Workshop is the operator surface. Shop links commercial
-                        planning to assurance. Explorer turns a curated JSON bundle into a portable publication view.
-                    </p>
-                    <div class="hero-actions">
-                        <a class="button primary" href="https://tobyharvey.online/explorer/" target="_blank"
-                            rel="noopener noreferrer">Open Explorer</a>
-                        <a class="button" href="#products">View products</a>
-                        <a class="button" href="#links">Install extensions</a>
-                    </div>
-                    <div class="signal-row" aria-label="Current release signals">
-                        <div class="signal"><strong>1.22</strong><span>current polish slice</span></div>
-                        <div class="signal"><strong>1.8</strong><span>schema / bundle / API axes</span></div>
-                        <div class="signal"><strong>4</strong><span>active product surfaces</span></div>
-                        <div class="signal"><strong>0</strong><span>cloud database dependency</span></div>
-                    </div>
+      <section id="products">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Products</h2>
+            <p>
+              Each surface has a distinct job. The current work keeps the system local-first and uses the master JSON
+              bundle as the exchange boundary.
+            </p>
+          </div>
+          <div class="product-grid">
+            <article class="product">
+              <div class="product-head">
+                <div class="product-name">
+                  <span class="product-icon">C</span>
+                  <h3>Core</h3>
                 </div>
-                <div class="system-map" aria-label="PSPF ecosystem flow diagram">
-                    <div class="map-row">
-                        <div class="map-node is-source"><strong>Official sources</strong><span>PSPF, ISM, Essential
-                                Eight</span></div>
-                        <span class="map-arrow" aria-hidden="true">→</span>
-                        <div class="map-node is-work"><strong>Core + Workshop</strong><span>Local authoring and
-                                validation</span></div>
-                    </div>
-                    <div class="map-row">
-                        <div class="map-node is-work"><strong>Shop</strong><span>Suppliers, contracts, spend</span>
-                        </div>
-                        <span class="map-arrow" aria-hidden="true">→</span>
-                        <div class="map-node is-share"><strong>Explorer</strong><span>Portable review bundle</span>
-                        </div>
-                    </div>
-                    <div class="map-strip" aria-label="Key outputs">
-                        <span class="map-pill">Posture brief</span>
-                        <span class="map-pill">Master JSON</span>
-                        <span class="map-pill">Connected View</span>
-                        <span class="map-pill">Saved views</span>
-                        <span class="map-pill">Backup JSON</span>
-                    </div>
+                <span class="tag live">Marketplace</span>
+              </div>
+              <div>
+                <p>
+                  Local system of record, SQLite workspace, snapshots, validation, import/export, writer lock, and
+                  backup-oriented master JSON.
+                </p>
+                <div class="meta">
+                  <span>VS Code extension</span><code>tobyharvey.pspf-core</code><span>local-only</span>
                 </div>
-            </div>
-        </section>
+              </div>
+              <a
+                class="product-link"
+                href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Install Core →</a
+              >
+            </article>
+            <article class="product">
+              <div class="product-head">
+                <div class="product-name">
+                  <span class="product-icon">W</span>
+                  <h3>Workshop</h3>
+                </div>
+                <span class="tag live">Marketplace</span>
+              </div>
+              <div>
+                <p>
+                  Day-to-day authoring for Requirements, Evidence, Actions, Risks, Directions, ISM mappings, tags, saved
+                  views, and posture briefs.
+                </p>
+                <div class="meta">
+                  <span>VS Code extension</span><code>tobyharvey.pspf-workshop</code><span>depends on Core</span>
+                </div>
+              </div>
+              <a
+                class="product-link"
+                href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Install Workshop →</a
+              >
+            </article>
+            <article class="product">
+              <div class="product-head">
+                <div class="product-name">
+                  <span class="product-icon">E</span>
+                  <h3>Explorer</h3>
+                </div>
+                <span class="tag live">web</span>
+              </div>
+              <div>
+                <p>
+                  Static publication view for reviewers: posture, records, local changes, saved views, Plan Lens,
+                  Connected View, and copyable brief output.
+                </p>
+                <div class="meta">
+                  <span>browser view</span><span>reads JSON bundle</span><span>no server store</span>
+                </div>
+              </div>
+              <a
+                class="product-link"
+                href="https://tobyharvey.online/explorer/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Open Explorer →</a
+              >
+            </article>
+            <article class="product">
+              <div class="product-head">
+                <div class="product-name">
+                  <span class="product-icon">S</span>
+                  <h3>Shop</h3>
+                </div>
+                <span class="tag live">Marketplace</span>
+              </div>
+              <div>
+                <p>
+                  Commercial planning for suppliers, contracts, spend items, forecast review, and assurance-linked
+                  commercial context.
+                </p>
+                <div class="meta">
+                  <span>VS Code extension</span><code>tobyharvey.pspf-shop</code><span>depends on Core</span>
+                </div>
+              </div>
+              <a
+                class="product-link"
+                href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-shop"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Install Shop →</a
+              >
+            </article>
+            <article class="product">
+              <div class="product-head">
+                <div class="product-name">
+                  <span class="product-icon">P</span>
+                  <h3>Pub</h3>
+                </div>
+                <span class="tag">planned</span>
+              </div>
+              <div>
+                <p>
+                  Future people, role, team, and assignment workflows. Deferred until the privacy and publication
+                  boundary is ready.
+                </p>
+                <div class="meta"><span>planned extension</span><span>personal data stays local</span></div>
+              </div>
+              <span class="disabled">Not yet released</span>
+            </article>
+          </div>
+        </div>
+      </section>
 
-        <section id="products">
-            <div class="wrap">
-                <div class="section-head">
-                    <h2>Products</h2>
-                    <p>Each surface has a distinct job. The current work keeps the system local-first and uses the
-                        master JSON bundle as the exchange boundary.</p>
-                </div>
-                <div class="product-grid">
-                    <article class="product">
-                        <div class="product-head">
-                            <div class="product-name"><span class="product-icon">C</span>
-                                <h3>Core</h3>
-                            </div><span class="tag live">Marketplace</span>
-                        </div>
-                        <div>
-                            <p>Local system of record, SQLite workspace, snapshots, validation, import/export, writer
-                                lock, and backup-oriented master JSON.</p>
-                            <div class="meta"><span>VS Code
-                                    extension</span><code>tobyharvey.pspf-core</code><span>local-only</span></div>
-                        </div>
-                        <a class="product-link"
-                            href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core"
-                            target="_blank" rel="noopener noreferrer">Install Core →</a>
-                    </article>
-                    <article class="product">
-                        <div class="product-head">
-                            <div class="product-name"><span class="product-icon">W</span>
-                                <h3>Workshop</h3>
-                            </div><span class="tag live">Marketplace</span>
-                        </div>
-                        <div>
-                            <p>Day-to-day authoring for Requirements, Evidence, Actions, Risks, Directions, ISM
-                                mappings, tags, saved views, and posture briefs.</p>
-                            <div class="meta"><span>VS Code
-                                    extension</span><code>tobyharvey.pspf-workshop</code><span>depends on Core</span>
-                            </div>
-                        </div>
-                        <a class="product-link"
-                            href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop"
-                            target="_blank" rel="noopener noreferrer">Install Workshop →</a>
-                    </article>
-                    <article class="product">
-                        <div class="product-head">
-                            <div class="product-name"><span class="product-icon">E</span>
-                                <h3>Explorer</h3>
-                            </div><span class="tag live">web</span>
-                        </div>
-                        <div>
-                            <p>Static publication view for reviewers: posture, records, local changes, saved views, Plan
-                                Lens, Connected View, and copyable brief output.</p>
-                            <div class="meta"><span>browser view</span><span>reads JSON bundle</span><span>no server
-                                    store</span></div>
-                        </div>
-                        <a class="product-link" href="https://tobyharvey.online/explorer/" target="_blank"
-                            rel="noopener noreferrer">Open Explorer →</a>
-                    </article>
-                    <article class="product">
-                        <div class="product-head">
-                            <div class="product-name"><span class="product-icon">S</span>
-                                <h3>Shop</h3>
-                            </div><span class="tag live">Marketplace</span>
-                        </div>
-                        <div>
-                            <p>Commercial planning for suppliers, contracts, spend items, forecast review, and
-                                assurance-linked commercial context.</p>
-                            <div class="meta"><span>VS Code
-                                    extension</span><code>tobyharvey.pspf-shop</code><span>depends on Core</span></div>
-                        </div>
-                        <a class="product-link"
-                            href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-shop"
-                            target="_blank" rel="noopener noreferrer">Install Shop →</a>
-                    </article>
-                    <article class="product">
-                        <div class="product-head">
-                            <div class="product-name"><span class="product-icon">P</span>
-                                <h3>Pub</h3>
-                            </div><span class="tag">planned</span>
-                        </div>
-                        <div>
-                            <p>Future people, role, team, and assignment workflows. Deferred until the privacy and
-                                publication boundary is ready.</p>
-                            <div class="meta"><span>planned extension</span><span>personal data stays local</span></div>
-                        </div>
-                        <span class="disabled">Not yet released</span>
-                    </article>
-                </div>
-            </div>
-        </section>
+      <section id="workflow">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Workflow</h2>
+            <p>
+              The useful path is deliberately short: capture, validate, share, and recover. Every step keeps the
+              authoritative policy source separate from local assessment data.
+            </p>
+          </div>
+          <div class="workflow">
+            <article class="step">
+              <span class="step-num">Step 1</span>
+              <h3>Capture locally</h3>
+              <p>
+                Use Core and Workshop to maintain assessment state, evidence, actions, risks, Directions, ISM mappings,
+                and planning context.
+              </p>
+            </article>
+            <article class="step">
+              <span class="step-num">Step 2</span>
+              <h3>Validate and export</h3>
+              <p>
+                Run validation, create snapshots, and export a master JSON bundle. The same bundle can support backup
+                import through the validated review path.
+              </p>
+            </article>
+            <article class="step">
+              <span class="step-num">Step 3</span>
+              <h3>Review in Explorer</h3>
+              <p>
+                Open the bundle in Explorer for posture, records, Connected View, saved views, local changes, and a
+                copyable posture brief.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
 
-        <section id="workflow">
-            <div class="wrap">
-                <div class="section-head">
-                    <h2>Workflow</h2>
-                    <p>The useful path is deliberately short: capture, validate, share, and recover. Every step keeps
-                        the authoritative policy source separate from local assessment data.</p>
-                </div>
-                <div class="workflow">
-                    <article class="step"><span class="step-num">Step 1</span>
-                        <h3>Capture locally</h3>
-                        <p>Use Core and Workshop to maintain assessment state, evidence, actions, risks, Directions, ISM
-                            mappings, and planning context.</p>
-                    </article>
-                    <article class="step"><span class="step-num">Step 2</span>
-                        <h3>Validate and export</h3>
-                        <p>Run validation, create snapshots, and export a master JSON bundle. The same bundle can
-                            support backup import through the validated review path.</p>
-                    </article>
-                    <article class="step"><span class="step-num">Step 3</span>
-                        <h3>Review in Explorer</h3>
-                        <p>Open the bundle in Explorer for posture, records, Connected View, saved views, local changes,
-                            and a copyable posture brief.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section id="links">
-            <div class="wrap">
-                <div class="section-head">
-                    <h2>Useful links</h2>
-                    <p>Start with the authoritative sources, then install the local tools and open Explorer when you
-                        have a bundle to review.</p>
-                </div>
-                <div class="link-grid">
-                    <a class="link-card" href="https://www.protectivesecurity.gov.au" target="_blank"
-                        rel="noopener noreferrer"><span class="tag">authoritative</span>
-                        <h3>Protective Security Policy Framework</h3>
-                        <p>Official PSPF policy and guidance.</p>
-                    </a>
-                    <a class="link-card"
-                        href="https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight"
-                        target="_blank" rel="noopener noreferrer"><span class="tag">authoritative</span>
-                        <h3>ASD Essential Eight</h3>
-                        <p>Official mitigation strategy terminology.</p>
-                    </a>
-                    <a class="link-card" href="https://tobyharvey.online/explorer/" target="_blank"
-                        rel="noopener noreferrer"><span class="tag live">published view</span>
-                        <h3>PSPF Explorer</h3>
-                        <p>Load a master JSON bundle in a browser.</p>
-                    </a>
-                    <a class="link-card" href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core"
-                        target="_blank" rel="noopener noreferrer"><span class="tag live">Marketplace</span>
-                        <h3>Core</h3>
-                        <p>Install the local system of record.</p>
-                    </a>
-                    <a class="link-card"
-                        href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop"
-                        target="_blank" rel="noopener noreferrer"><span class="tag live">Marketplace</span>
-                        <h3>Workshop</h3>
-                        <p>Install the authoring surface.</p>
-                    </a>
-                    <a class="link-card" href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-shop"
-                        target="_blank" rel="noopener noreferrer"><span class="tag live">Marketplace</span>
-                        <h3>Shop</h3>
-                        <p>Install commercial planning support.</p>
-                    </a>
-                </div>
-            </div>
-        </section>
+      <section id="links">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Useful links</h2>
+            <p>
+              Start with the authoritative sources, then install the local tools and open Explorer when you have a
+              bundle to review.
+            </p>
+          </div>
+          <div class="link-grid">
+            <a class="link-card" href="https://www.protectivesecurity.gov.au" target="_blank" rel="noopener noreferrer"
+              ><span class="tag">authoritative</span>
+              <h3>Protective Security Policy Framework</h3>
+              <p>Official PSPF policy and guidance.</p>
+            </a>
+            <a
+              class="link-card"
+              href="https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><span class="tag">authoritative</span>
+              <h3>ASD Essential Eight</h3>
+              <p>Official mitigation strategy terminology.</p>
+            </a>
+            <a class="link-card" href="https://tobyharvey.online/explorer/" target="_blank" rel="noopener noreferrer"
+              ><span class="tag live">published view</span>
+              <h3>PSPF Explorer</h3>
+              <p>Load a master JSON bundle in a browser.</p>
+            </a>
+            <a
+              class="link-card"
+              href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><span class="tag live">Marketplace</span>
+              <h3>Core</h3>
+              <p>Install the local system of record.</p>
+            </a>
+            <a
+              class="link-card"
+              href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><span class="tag live">Marketplace</span>
+              <h3>Workshop</h3>
+              <p>Install the authoring surface.</p>
+            </a>
+            <a
+              class="link-card"
+              href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-shop"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><span class="tag live">Marketplace</span>
+              <h3>Shop</h3>
+              <p>Install commercial planning support.</p>
+            </a>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="fine-print">
-        <div class="wrap">
-            <p><strong>Independent project.</strong> This page explains how the tools fit together. It is not the policy
-                source, not a government service, and not a cloud system of record. Use official PSPF and ASD sources
-                for authoritative guidance.</p>
-        </div>
+      <div class="wrap">
+        <p>
+          <strong>Independent project.</strong> This page explains how the tools fit together. It is not the policy
+          source, not a government service, and not a cloud system of record. Use official PSPF and ASD sources for
+          authoritative guidance.
+        </p>
+      </div>
     </footer>
 
     <script>
-        (function () {
-            var root = document.documentElement;
-            var toggle = document.querySelector('[data-theme-toggle]');
-            var stored = localStorage.getItem('pspf-theme');
-            var mode = stored === 'light' || stored === 'dark' ? stored : 'dark';
-            root.setAttribute('data-theme', mode);
-            function updateLabel() {
-                if (!toggle) return;
-                toggle.setAttribute('aria-label', mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-            }
+      (function () {
+        var root = document.documentElement;
+        var toggle = document.querySelector("[data-theme-toggle]");
+        var stored = localStorage.getItem("pspf-theme");
+        var mode = stored === "light" || stored === "dark" ? stored : "dark";
+        root.setAttribute("data-theme", mode);
+        function updateLabel() {
+          if (!toggle) return;
+          toggle.setAttribute("aria-label", mode === "dark" ? "Switch to light mode" : "Switch to dark mode");
+        }
+        updateLabel();
+        toggle &&
+          toggle.addEventListener("click", function () {
+            mode = mode === "dark" ? "light" : "dark";
+            root.setAttribute("data-theme", mode);
+            localStorage.setItem("pspf-theme", mode);
             updateLabel();
-            toggle && toggle.addEventListener('click', function () {
-                mode = mode === 'dark' ? 'light' : 'dark';
-                root.setAttribute('data-theme', mode);
-                localStorage.setItem('pspf-theme', mode);
-                updateLabel();
-            });
-        })();
+          });
+      })();
     </script>
     <script>
-        (function () {
-            var notice = document.querySelector('[data-project-notice]');
-            var restore = document.querySelector('[data-notice-restore]');
-            var dismiss = document.querySelector('[data-notice-dismiss]');
-            var restoreBtn = document.querySelector('[data-notice-restore-button]');
-            if (!notice || !restore || !dismiss || !restoreBtn) return;
-            var KEY = 'pspf-notice-hidden';
-            function apply(hidden) {
-                notice.hidden = hidden;
-                restore.hidden = !hidden;
-            }
-            try { apply(localStorage.getItem(KEY) === '1'); } catch (e) { /* leave defaults */ }
-            dismiss.addEventListener('click', function () {
-                apply(true);
-                try { localStorage.setItem(KEY, '1'); } catch (e) { /* ignore */ }
-            });
-            restoreBtn.addEventListener('click', function () {
-                apply(false);
-                try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
-            });
-        })();
+      (function () {
+        var notice = document.querySelector("[data-project-notice]");
+        var restore = document.querySelector("[data-notice-restore]");
+        var dismiss = document.querySelector("[data-notice-dismiss]");
+        var restoreBtn = document.querySelector("[data-notice-restore-button]");
+        if (!notice || !restore || !dismiss || !restoreBtn) return;
+        var KEY = "pspf-notice-hidden";
+        function apply(hidden) {
+          notice.hidden = hidden;
+          restore.hidden = !hidden;
+        }
+        try {
+          apply(localStorage.getItem(KEY) === "1");
+        } catch (e) {
+          /* leave defaults */
+        }
+        dismiss.addEventListener("click", function () {
+          apply(true);
+          try {
+            localStorage.setItem(KEY, "1");
+          } catch (e) {
+            /* ignore */
+          }
+        });
+        restoreBtn.addEventListener("click", function () {
+          apply(false);
+          try {
+            localStorage.removeItem(KEY);
+          } catch (e) {
+            /* ignore */
+          }
+        });
+      })();
     </script>
-</body>
-
+  </body>
 </html>

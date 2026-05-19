@@ -565,7 +565,9 @@ The ecosystem should meet WCAG AA contrast requirements for normal text and UI c
 
 ### Base tokens
 
-Suggested token groups:
+The canonical implementation lives in `@pspf/webview-shell`. Extension webviews, Explorer, and public web surfaces should consume its token names or map their local surface-specific variables onto the same roles. New local primitive classes should be avoided unless the surface has a documented reason not to use the shared primitive.
+
+Canonical token groups:
 - colour/background/surface/text/accent/status
 - type scale
 - spacing scale
@@ -573,6 +575,22 @@ Suggested token groups:
 - border alpha scale
 - shadow scale
 - motion timing
+
+Canonical primitive classes:
+- `pspf-button` with secondary, small, and danger variants for command actions.
+- `pspf-pill` with tone variants for status, version, and provenance chips.
+- `pspf-banner` and `pspf-sensitivity-banner` for warning, sensitivity, and trust notices.
+- `pspf-mode-strip` and `pspf-mode-step` for ordered workflow or exchange-mode cues.
+- `pspf-metric`, `pspf-empty`, `pspf-error`, and `pspf-table` for dense operational panels.
+
+Product surfaces may still keep narrow product aliases such as `--workshop-*` or `--shop-*`, but those aliases should resolve to `--pspf-*` tokens. Hardcoded local palettes, local `.pill` / `.version-pill` primitives, and one-off `.mode-step` styling are transitional only. The `check:design-drift` script guards against adding new drift while older surfaces are migrated.
+
+Canonical exchange labels:
+- Explorer mode strip: `Bundle baseline`, `Local changes`, `Export to Workshop`.
+- Workshop import review: `Plan, review, apply`.
+- Core and Workshop records: use `snapshot` for system-of-record point-in-time records.
+- Explorer and bundle exchange: use `export` for generated master JSON bundles.
+- Sensitivity banner: `OFFICIAL: Sensitive · TLP:AMBER+STRICT` in Explorer and `OFFICIAL: Sensitive` in extension webviews.
 
 ### Character of motion
 

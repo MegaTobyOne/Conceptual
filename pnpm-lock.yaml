@@ -85,6 +85,9 @@ importers:
       '@pspf/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@pspf/webview-shell':
+        specifier: workspace:*
+        version: link:../webview-shell
 
   packages/ism-source-library:
     dependencies:

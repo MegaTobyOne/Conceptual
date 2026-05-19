@@ -6,6 +6,7 @@ import {
   CONNECTED_VIEW_STYLES,
   CONNECTED_VIEW_BROWSER_SCRIPT
 } from "@pspf/connected-view";
+import { pill as shellPill } from "@pspf/webview-shell";
 import { escapeHtml, homeButton, homeShellHtml, shellHtml } from "./webview/shell.js";
 import {
   CHANGE_RECORD_PERSISTENCE,
@@ -1061,7 +1062,7 @@ function strategyReferenceList(
             : reference.entityType === "action"
               ? lookup.actions.get(reference.entityId)
               : lookup.directions.get(reference.entityId);
-      return `<li><span class="version-pill">${escapeHtml(label(reference.role))}</span> ${escapeHtml(label(reference.entityType))}: ${escapeHtml(entity?.title ?? reference.entityId)}</li>`;
+      return `<li>${shellPill(label(reference.role))} ${escapeHtml(label(reference.entityType))}: ${escapeHtml(entity?.title ?? reference.entityId)}</li>`;
     })
     .join("");
   return `<ul>${rows}</ul>`;
@@ -4334,7 +4335,7 @@ function requirementNavigationStrip(requirement: RequirementEntity, allEntities:
   return `<div class="form-actions" aria-label="Requirement navigation">
     <button type="button" data-command="openAdjacentRequirement" data-requirement-id="${escapeHtml(requirement.id)}" data-direction="previous">Previous requirement</button>
     <button type="button" data-command="openAdjacentRequirement" data-requirement-id="${escapeHtml(requirement.id)}" data-direction="next">Next requirement</button>
-    <span class="version-pill">${escapeHtml(position)}</span>
+    ${shellPill(position)}
   </div>`;
 }
 
@@ -4349,7 +4350,7 @@ function directionNavigationStrip(direction: DirectionEntity, allEntities: reado
   return `<div class="form-actions" aria-label="Direction navigation">
     <button type="button" data-command="openAdjacentDirection" data-direction-id="${escapeHtml(direction.id)}" data-direction="previous">Previous Direction</button>
     <button type="button" data-command="openAdjacentDirection" data-direction-id="${escapeHtml(direction.id)}" data-direction="next">Next Direction</button>
-    <span class="version-pill">${escapeHtml(position)}</span>
+    ${shellPill(position)}
   </div>`;
 }
 
@@ -4382,7 +4383,7 @@ function summariseImpactExplanation(explanation: readonly string[]): string {
 }
 
 function versionStrip(): string {
-  return `<div class="version-strip" aria-label="PSPF version context"><span class="version-pill">PSPF v${PSPF_SLICE_VERSION}</span><span class="version-pill">Schema ${VERSION_AXES.schemaVersion}</span><span class="version-pill">API ${VERSION_AXES.apiVersion}</span></div>`;
+  return `<div class="version-strip" aria-label="PSPF version context">${shellPill(`PSPF v${PSPF_SLICE_VERSION}`)}${shellPill(`Schema ${VERSION_AXES.schemaVersion}`)}${shellPill(`API ${VERSION_AXES.apiVersion}`)}</div>`;
 }
 
 function metricCard(label: string, value: number | string): string {
@@ -4391,9 +4392,7 @@ function metricCard(label: string, value: number | string): string {
 
 function directionChips(counts: Record<DirectionResponseState, number>): string {
   const order: DirectionResponseState[] = ["not-set", "yes", "no", "risk-managed"];
-  return order
-    .map((state) => `<span class="version-pill">${escapeHtml(label(state))}: ${counts[state] ?? 0}</span>`)
-    .join(" ");
+  return order.map((state) => shellPill(`${label(state)}: ${counts[state] ?? 0}`)).join(" ");
 }
 
 function domainName(domainId: string): string {

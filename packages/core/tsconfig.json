@@ -14,6 +14,9 @@
     },
     {
       "path": "../reference-data"
+    },
+    {
+      "path": "../webview-shell"
     }
   ]
 }
