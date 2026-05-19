@@ -128,6 +128,7 @@ export function shellHtml(title: string, body: string): string {
     header strong { display: block; font-size: 20px; letter-spacing: 0.005em; }
     header span { color: var(--muted); font-size: 12.5px; }
     main { max-width: 1180px; margin: 0 auto; padding: var(--pad-lg); }
+    main:has(.requirement-browser) { max-width: 1320px; }
     section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); margin-bottom: var(--gap); }
     section > h2:first-child { margin-top: 0; }
     h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: -0.005em; }
@@ -159,6 +160,17 @@ export function shellHtml(title: string, body: string): string {
     textarea { resize: vertical; min-height: 96px; line-height: 1.45; }
     input[readonly] { color: var(--muted); background: color-mix(in srgb, var(--surface-strong) 65%, transparent); }
     .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .requirement-browser { width: min(100%, 1320px); display: grid; grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); gap: var(--gap); align-items: start; }
+    .requirement-browser__nav { position: sticky; top: var(--pad); max-height: calc(100vh - 150px); display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 10px; }
+    .requirement-browser__nav h2 { margin-bottom: 0; }
+    .requirement-browser__filter { box-sizing: border-box; }
+    .requirement-browser__list { overflow: auto; display: grid; gap: 6px; padding-right: 2px; }
+    .requirement-browser__item { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 9px; color: var(--text); background: var(--surface-strong); text-align: left; cursor: pointer; }
+    .requirement-browser__item:hover { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 8%, var(--surface-strong)); }
+    .requirement-browser__item[aria-current="page"] { border-color: var(--workshop-blue); box-shadow: inset 3px 0 0 var(--workshop-blue); }
+    .requirement-browser__number { display: block; color: var(--workshop-blue); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .requirement-browser__meta { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .requirement-browser__content { min-width: 0; }
     .workshop-sensitivity { margin: 0; padding: 8px var(--pad-lg); }
     .muted { color: var(--muted); }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -168,6 +180,9 @@ export function shellHtml(title: string, body: string): string {
       main { padding: var(--pad); }
       header { padding: var(--pad); }
       .workshop-sensitivity { padding: 8px var(--pad); }
+      .requirement-browser { grid-template-columns: 1fr; }
+      .requirement-browser__nav { position: static; max-height: none; }
+      .requirement-browser__list { max-height: 320px; }
       table { min-width: 680px; }
       th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"] { min-width: 16rem; }
     }
@@ -189,6 +204,9 @@ export function shellHtml(title: string, body: string): string {
       const command = button.getAttribute('data-command');
       if (command === 'openEntity') {
         vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
+      }
+      if (command === 'openRequirementInEditor') {
+        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
       }
       if (command === 'openAdjacentRequirement') {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id'), direction: button.getAttribute('data-direction') });
@@ -231,6 +249,21 @@ export function shellHtml(title: string, body: string): string {
           fields
         });
       }
+    });
+    document.addEventListener('input', (event) => {
+      const input = event.target instanceof HTMLInputElement ? event.target : null;
+      const targetSelector = input?.getAttribute('data-filter-target');
+      if (!input || !targetSelector) {
+        return;
+      }
+      const filterText = input.value.trim().toLocaleLowerCase('en-AU');
+      document.querySelectorAll(targetSelector).forEach((item) => {
+        if (!(item instanceof HTMLElement)) {
+          return;
+        }
+        const searchable = (item.getAttribute('data-search') || item.textContent || '').toLocaleLowerCase('en-AU');
+        item.hidden = filterText.length > 0 && !searchable.includes(filterText);
+      });
     });
   </script>
 </body>

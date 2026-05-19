@@ -1201,40 +1201,20 @@ async function openEvidenceReviewQueue(): Promise<void> {
 
 async function openRequirementsList(): Promise<void> {
   await ensureCoreReady();
-  await openRecordListPanel(
-    "PSPF Requirements",
-    "Requirements",
-    "Browse Requirements and open a record to review or edit it.",
-    async () => {
-      const allEntities = await listAllEntities();
-      const links = allEntities.filter(
-        (entity): entity is LinkEntity =>
-          entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.linkType === "tagged-with"
-      );
-      const tagsById = new Map(
-        allEntities.filter((entity): entity is TagEntity => entity.entityType === "tag").map((tag) => [tag.id, tag])
-      );
-      return allEntities
-        .filter(
-          (entity): entity is RequirementEntity =>
-            entity.entityType === "requirement" && entity.recordStatus !== "deleted"
-        )
-        .sort(compareRequirementsForPicker)
-        .map((requirement) => ({
-          openEntityType: "requirement",
-          openEntityId: requirement.id,
-          title: requirement.title,
-          domain: domainName(requirement.domainId),
-          status: label(requirement.assessmentStatus),
-          tags:
-            links
-              .filter((link) => link.fromId === requirement.id)
-              .map((link) => tagChipLabel(tagsById.get(link.toId)))
-              .join(", ") || "None"
-        }));
-    },
-    ["title", "domain", "status", "tags"]
-  );
+  const allEntities = await listAllEntities();
+  const requirements = allEntities
+    .filter(
+      (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
+    )
+    .sort(compareRequirementsForPicker);
+  const recentRequirementId = getRecentRequirementId();
+  const initialRequirement =
+    requirements.find((requirement) => requirement.id === recentRequirementId) ?? requirements.at(0);
+  if (!initialRequirement) {
+    await vscode.window.showInformationMessage("No Requirements found. Create or import Requirements first.");
+    return;
+  }
+  await openEntityEditor(initialRequirement, allEntities);
 }
 
 async function openEvidenceList(): Promise<void> {
@@ -2001,9 +1981,10 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
 }
 
 type SaveEntityMessage = {
-  readonly command?: "saveEntity" | "saveAndCloseEntity" | "saveAndNextEntity";
+  readonly command?: "saveEntity" | "saveAndCloseEntity" | "saveAndNextEntity" | "openRequirementInEditor";
   readonly entityType?: string;
   readonly entityId?: string;
+  readonly requirementId?: string;
   readonly fields?: Record<string, string>;
 };
 
@@ -2067,6 +2048,18 @@ async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: rea
   };
   wireWorkshopPanelMessages(panel, refreshEditor);
   panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
+    if (message.command === "openRequirementInEditor" && message.requirementId) {
+      const target = (await listAllEntities()).find(
+        (item): item is RequirementEntity =>
+          item.entityType === "requirement" && item.id === message.requirementId && item.recordStatus !== "deleted"
+      );
+      if (target) {
+        currentEntity = target;
+        await rememberRequirement(target);
+        await refreshEditor();
+      }
+      return;
+    }
     if (
       !["saveEntity", "saveAndCloseEntity", "saveAndNextEntity"].includes(message.command ?? "") ||
       message.entityType !== currentEntity.entityType ||
@@ -2481,7 +2474,7 @@ function renderRequirementEditor(requirement: RequirementEntity, allEntities: re
         reviewed: mapping.lastReviewedAt ? formatDisplayDate(new Date(mapping.lastReviewedAt)) : "Not recorded"
       };
     });
-  return `${editorShell(
+  const editorContent = `${editorShell(
     requirement,
     "Edit Requirement",
     `
@@ -2517,6 +2510,47 @@ function renderRequirementEditor(requirement: RequirementEntity, allEntities: re
     ${commercialContextSection(requirement, allEntities)}
     ${recordTable("ISM Mappings", mappingRows, ["controlId", "title", "coverage", "profile", "confidence", "reviewed"])}
   `;
+  return `<div class="requirement-browser">
+    ${requirementBrowserNav(requirement, allEntities)}
+    <div class="requirement-browser__content">${editorContent}</div>
+  </div>`;
+}
+
+function requirementBrowserNav(requirement: RequirementEntity, allEntities: readonly V01Entity[]): string {
+  const requirements = allEntities
+    .filter(
+      (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
+    )
+    .sort(compareRequirementsForPicker);
+  const currentIndex = requirements.findIndex((candidate) => candidate.id === requirement.id);
+  const position = currentIndex >= 0 ? `${currentIndex + 1} of ${requirements.length}` : `${requirements.length} total`;
+  const items = requirements
+    .map((candidate) => requirementBrowserNavItem(candidate, candidate.id === requirement.id))
+    .join("");
+  return `<section class="requirement-browser__nav" aria-label="Requirement browser">
+    <h2>Requirements</h2>
+    <input class="requirement-browser__filter" type="search" aria-label="Filter requirements" placeholder="Filter by title, domain, or status" data-filter-target=".requirement-browser__item">
+    <div class="requirement-browser__list" role="list" aria-label="Scrollable Requirements list">
+      ${items || '<p class="muted">No Requirements found.</p>'}
+    </div>
+    <p class="muted">${escapeHtml(position)}</p>
+  </section>`;
+}
+
+function requirementBrowserNavItem(requirement: RequirementEntity, isCurrent: boolean): string {
+  const title = requirement.title;
+  const domain = domainName(requirement.domainId);
+  const status = label(requirement.assessmentStatus);
+  const searchText = `${title} ${domain} ${status} ${requirement.id}`;
+  return `<button type="button" class="requirement-browser__item" role="listitem" title="${escapeHtml(title)}" aria-label="${escapeHtml(`${requirementNumberLabel(requirement)}. ${title}. ${domain}. ${status}`)}" data-command="openRequirementInEditor" data-requirement-id="${escapeHtml(requirement.id)}" data-search="${escapeHtml(searchText)}"${isCurrent ? ' aria-current="page"' : ""}>
+    <span class="requirement-browser__number">${escapeHtml(requirementNumberLabel(requirement))}</span>
+    <span class="requirement-browser__meta">${escapeHtml(domain)} · ${escapeHtml(status)}</span>
+  </button>`;
+}
+
+function requirementNumberLabel(requirement: RequirementEntity): string {
+  const match = requirement.title.trim().match(/^(?:requirement\s*)?([0-9]+[A-Za-z]?(?:\.[0-9]+[A-Za-z]?)*)\b/i);
+  return match ? `Requirement ${match[1]}` : requirement.id;
 }
 
 function renderEvidenceEditor(evidence: EvidenceEntity): string {
