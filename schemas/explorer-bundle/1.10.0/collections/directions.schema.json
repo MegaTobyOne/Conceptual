@@ -1,0 +1,79 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.10.0/collections/directions.schema.json",
+    "title": "PSPF Explorer Directions Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "reference",
+            "responseState"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^DIR-"
+            },
+            "entityType": {
+                "const": "direction"
+            },
+            "schemaVersion": {
+                "const": "1.10.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "reference": {
+                "type": "string",
+                "minLength": 1
+            },
+            "issuedAt": {
+                "type": "string"
+            },
+            "sourceAuthority": {
+                "type": "string"
+            },
+            "responseState": {
+                "enum": [
+                    "not-set",
+                    "yes",
+                    "no",
+                    "risk-managed"
+                ]
+            }
+        }
+    }
+}

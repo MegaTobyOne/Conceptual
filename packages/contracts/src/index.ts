@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.9.0",
-  bundleVersion: "1.9.0",
-  apiVersion: "1.9.0"
+  schemaVersion: "1.10.0",
+  bundleVersion: "1.10.0",
+  apiVersion: "1.10.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.23.0" as const;
+export const PSPF_SLICE_VERSION = "1.24.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -25,6 +25,7 @@ export const V0_1_ENTITY_TYPES = [
   "supplier",
   "contract",
   "spend-item",
+  "strategy",
   "posture"
 ] as const;
 
@@ -47,6 +48,7 @@ export const V0_1_COLLECTIONS = [
   "suppliers",
   "contracts",
   "spend-items",
+  "strategies",
   "posture"
 ] as const;
 
@@ -371,6 +373,7 @@ export interface PostureEntity extends EntityEnvelope {
   readonly supplierCount?: number;
   readonly contractCount?: number;
   readonly spendItemCount?: number;
+  readonly strategyCount?: number;
 }
 
 export type DirectionResponseState = "not-set" | "yes" | "no" | "risk-managed";
@@ -469,6 +472,69 @@ export interface SpendItemEntity extends EntityEnvelope {
   readonly notes?: string;
 }
 
+export type StrategyTrend = "improving" | "steady" | "deteriorating" | "unknown";
+export type StrategyConfidence = "low" | "medium" | "high";
+export type StrategyMeasureClass = "capability" | "essential-eight" | "coverage" | "exposure" | "detection-response" | "resilience" | "governance-assurance";
+export type StrategyReferenceType = "requirement" | "risk" | "action" | "direction";
+
+export interface StrategyReference {
+  readonly entityType: StrategyReferenceType;
+  readonly entityId: string;
+  readonly role: "drives" | "addresses" | "blocked-by" | "evidenced-by" | "monitors";
+}
+
+export interface StrategyMeasure {
+  readonly id: string;
+  readonly title: string;
+  readonly measureClass: StrategyMeasureClass;
+  readonly baseline?: string;
+  readonly current?: string;
+  readonly target?: string;
+  readonly unit?: string;
+  readonly trend: StrategyTrend;
+  readonly confidence: StrategyConfidence;
+  readonly reviewCadence: "monthly" | "quarterly" | "event-driven";
+}
+
+export interface StrategyOutcome {
+  readonly id: string;
+  readonly statement: string;
+  readonly summary: string;
+  readonly measures: readonly StrategyMeasure[];
+  readonly references: readonly StrategyReference[];
+}
+
+export interface StrategicChoice {
+  readonly id: string;
+  readonly statement: string;
+  readonly summary: string;
+  readonly capabilityArea: string;
+  readonly targetPosture: string;
+  readonly executiveOwner?: string;
+  readonly trend: StrategyTrend;
+  readonly confidence: StrategyConfidence;
+  readonly outcomes: readonly StrategyOutcome[];
+  readonly references: readonly StrategyReference[];
+  readonly rationale?: string;
+  readonly constraints?: string;
+}
+
+export interface StrategyEntity extends EntityEnvelope {
+  readonly entityType: "strategy";
+  readonly title: string;
+  readonly scope: string;
+  readonly timeHorizon: string;
+  readonly effectiveAt?: string;
+  readonly owner?: string;
+  readonly strategyStatement: string;
+  readonly riskPostureStatement: string;
+  readonly frameworks: readonly string[];
+  readonly choices: readonly StrategicChoice[];
+  readonly reviewCadence: "monthly" | "quarterly" | "event-driven";
+  readonly executiveSummary?: string;
+  readonly assumptions?: string;
+}
+
 export type V01Entity =
   | DomainEntity
   | RequirementEntity
@@ -486,6 +552,7 @@ export type V01Entity =
   | SupplierEntity
   | ContractEntity
   | SpendItemEntity
+  | StrategyEntity
   | PostureEntity;
 
 export type EntityByCollection = {
@@ -505,6 +572,7 @@ export type EntityByCollection = {
   suppliers: SupplierEntity;
   contracts: ContractEntity;
   "spend-items": SpendItemEntity;
+  strategies: StrategyEntity;
   posture: PostureEntity;
 };
 
@@ -629,8 +697,16 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
     ]
   },
   {
+    entityType: "strategy",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "scope", "timeHorizon", "effectiveAt", "strategyStatement", "riskPostureStatement", "frameworks", "choices", "reviewCadence", "executiveSummary"),
+      { field: "owner", publication: "sensitive" },
+      { field: "assumptions", publication: "sensitive" }
+    ]
+  },
+  {
     entityType: "posture",
-    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount", "directionCount", "changeRecordCount", "supplierCount", "contractCount", "spendItemCount")
+    fields: publicFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "requirementCount", "evidenceCount", "actionCount", "riskCount", "sourceControlCount", "requirementControlMappingCount", "directionCount", "changeRecordCount", "supplierCount", "contractCount", "spendItemCount", "strategyCount")
   }
 ] as const;
 
@@ -714,6 +790,7 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   supplier: "suppliers",
   contract: "contracts",
   "spend-item": "spend-items",
+  strategy: "strategies",
   posture: "posture"
 };
 
@@ -734,6 +811,7 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   supplier: "SUP",
   contract: "CTR",
   "spend-item": "SPD",
+  strategy: "STR",
   posture: "POSTURE"
 };
 
@@ -879,7 +957,149 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     responseState: "risk-managed"
   });
 
+  const strategy: StrategyEntity = sampleEntity("strategy", "STR-00000000-0000-4000-8000-000000000801", timestamp, {
+    entityType: "strategy",
+    title: "Cybersecurity Strategy",
+    scope: "Enterprise",
+    timeHorizon: "2026-2028",
+    effectiveAt: "2026-07-01T00:00:00.000Z",
+    owner: "CISO",
+    strategyStatement: "Focus cyber uplift on governance cadence, encryption assurance, and role-based access review.",
+    riskPostureStatement: "Reduce likelihood and impact of common and moderately sophisticated attacks while improving PSPF evidence confidence.",
+    frameworks: ["PSPF", "Essential Eight"],
+    reviewCadence: "quarterly",
+    executiveSummary: "Three cyber priorities connect current PSPF assurance work to measurable posture movement.",
+    assumptions: "Internal strategic assumptions excluded from publication.",
+    choices: [
+      {
+        id: "choice-governance-cadence",
+        statement: "Strengthen governance cadence as the strategic control point for assurance.",
+        summary: "Quarterly evidence review keeps PSPF reporting decisions current.",
+        capabilityArea: "Governance and assurance",
+        targetPosture: "Quarterly evidence review operating with current governance artefacts by 2026-12-31.",
+        executiveOwner: "CISO",
+        trend: "improving",
+        confidence: "medium",
+        rationale: "Internal rationale excluded from publication.",
+        constraints: "Dependent on governance forum cadence.",
+        references: [
+          { entityType: "requirement", entityId: requirementGovernance.id, role: "drives" },
+          { entityType: "risk", entityId: riskGovernance.id, role: "blocked-by" },
+          { entityType: "action", entityId: actionGovernance.id, role: "addresses" },
+          { entityType: "direction", entityId: directionReporting.id, role: "monitors" }
+        ],
+        outcomes: [
+          {
+            id: "outcome-governance-evidence-current",
+            statement: "Governance evidence remains current for executive assurance decisions.",
+            summary: "Evidence review cadence is visible and linked to assurance work.",
+            references: [
+              { entityType: "requirement", entityId: requirementGovernance.id, role: "evidenced-by" },
+              { entityType: "action", entityId: actionGovernance.id, role: "addresses" }
+            ],
+            measures: [
+              {
+                id: "measure-governance-review-cadence",
+                title: "Governance review cadence",
+                measureClass: "governance-assurance",
+                baseline: "Ad hoc",
+                current: "Quarterly review scheduled",
+                target: "Quarterly review complete",
+                unit: "cadence",
+                trend: "improving",
+                confidence: "medium",
+                reviewCadence: "quarterly"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "choice-encryption-assurance",
+        statement: "Reduce exposure from unresolved encryption exceptions.",
+        summary: "Encryption exception treatment links Direction response to risk reduction.",
+        capabilityArea: "Protective control posture",
+        targetPosture: "Encryption exceptions reviewed, treated, and tracked against Essential Eight evidence by 2026-12-31.",
+        executiveOwner: "CISO",
+        trend: "steady",
+        confidence: "low",
+        references: [
+          { entityType: "requirement", entityId: requirementInformation.id, role: "drives" },
+          { entityType: "risk", entityId: riskEncryption.id, role: "blocked-by" },
+          { entityType: "action", entityId: actionEncryption.id, role: "addresses" },
+          { entityType: "direction", entityId: directionEncryption.id, role: "monitors" }
+        ],
+        outcomes: [
+          {
+            id: "outcome-encryption-exceptions-treated",
+            statement: "Encryption exceptions are visible, risk-assessed, and moving toward treatment.",
+            summary: "Exception register is tied to PSPF and Direction response work.",
+            references: [
+              { entityType: "risk", entityId: riskEncryption.id, role: "blocked-by" },
+              { entityType: "action", entityId: actionEncryption.id, role: "addresses" }
+            ],
+            measures: [
+              {
+                id: "measure-encryption-exception-age",
+                title: "Encryption exception age",
+                measureClass: "exposure",
+                baseline: "Unknown",
+                current: "Exception register blocked",
+                target: "All exceptions reviewed within quarter",
+                trend: "steady",
+                confidence: "low",
+                reviewCadence: "monthly"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "choice-access-review",
+        statement: "Make role-based access review a repeatable control assurance loop.",
+        summary: "Access review evidence links personnel security assurance to open follow-up work.",
+        capabilityArea: "Identity and access assurance",
+        targetPosture: "Dormant and privileged access findings reviewed monthly with evidence refreshed by 2026-12-31.",
+        executiveOwner: "CISO",
+        trend: "improving",
+        confidence: "medium",
+        references: [
+          { entityType: "requirement", entityId: requirementPersonnel.id, role: "drives" },
+          { entityType: "risk", entityId: riskAccess.id, role: "blocked-by" },
+          { entityType: "action", entityId: actionAccess.id, role: "addresses" }
+        ],
+        outcomes: [
+          {
+            id: "outcome-access-review-current",
+            statement: "Role access review evidence is current and connected to assurance decisions.",
+            summary: "Dormant access findings are treated through visible follow-up work.",
+            references: [
+              { entityType: "requirement", entityId: requirementPersonnel.id, role: "evidenced-by" },
+              { entityType: "risk", entityId: riskAccess.id, role: "blocked-by" },
+              { entityType: "action", entityId: actionAccess.id, role: "addresses" }
+            ],
+            measures: [
+              {
+                id: "measure-access-review-freshness",
+                title: "Access review evidence freshness",
+                measureClass: "capability",
+                baseline: "Stale review evidence",
+                current: "Refresh action open",
+                target: "Current review evidence linked monthly",
+                unit: "cadence",
+                trend: "improving",
+                confidence: "medium",
+                reviewCadence: "monthly"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+
   const entities: V01Entity[] = [
+    strategy,
     requirementGovernance,
     requirementInformation,
     requirementPersonnel,
@@ -988,6 +1208,13 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
 
   if (entity.entityType === "requirement-control-mapping" && output.confidence === undefined) {
     output.confidence = "medium";
+  }
+
+  if (entity.entityType === "strategy" && Array.isArray(output.choices)) {
+    output.choices = output.choices.map((choice) => {
+      const { rationale: _rationale, constraints: _constraints, ...publicChoice } = choice as StrategicChoice;
+      return publicChoice;
+    });
   }
 
   return output as unknown as V01Entity;

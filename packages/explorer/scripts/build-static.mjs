@@ -146,6 +146,7 @@ const html = `<!doctype html>
       <a href="#actions">Actions</a>
       <a href="#action-impact">Action Impact</a>
       <a href="#risks">Risks</a>
+      <a href="#strategy">Strategy</a>
       <a href="#plan-lens">Plan Lens</a>
       <a href="#directions">Directions</a>
       <a href="#change-records">Why This Changed</a>
@@ -175,6 +176,7 @@ const html = `<!doctype html>
     <details id="actions" class="panel" hidden></details>
     <details id="action-impact" class="panel" hidden></details>
     <details id="risks" class="panel" hidden></details>
+    <details id="strategy" class="panel" hidden></details>
     <details id="plan-lens" class="panel" hidden></details>
     <details id="directions" class="panel" hidden></details>
     <details id="change-records" class="panel" hidden></details>
@@ -218,6 +220,7 @@ const evidenceSection = document.querySelector("#evidence");
 const actionsSection = document.querySelector("#actions");
 const actionImpactSection = document.querySelector("#action-impact");
 const risksSection = document.querySelector("#risks");
+const strategySection = document.querySelector("#strategy");
 const planLensSection = document.querySelector("#plan-lens");
 const directionsSection = document.querySelector("#directions");
 const changeRecordsSection = document.querySelector("#change-records");
@@ -472,6 +475,9 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   risksSection.hidden = false;
   renderExplorerSection(risksSection, "Risks", table(risks, ["title", "status", "likelihood", "impact", "requirements"]));
 
+  strategySection.hidden = false;
+  renderExplorerSection(strategySection, "Cyber Strategy", strategyPanel(collections, entitiesById));
+
   planLensSection.hidden = false;
   renderExplorerSection(planLensSection, "Plan Lens", planLensPanel(collections, entitiesById));
 
@@ -588,6 +594,61 @@ function renderConnectedViewExplorerSection(collections) {
     links: collections.links || [],
     domains: collections.domains || []
   }, { mode: "explorer", defaultLayout: "compact", title: "Connected View", subtitle: "Directions \u00b7 Requirements \u00b7 Risks \u00b7 Actions" });
+}
+
+function strategyPanel(collections, entitiesById) {
+  const strategies = collections.strategies || [];
+  if (strategies.length === 0) {
+    return '<p class="muted">No published Strategy record in this bundle.</p>';
+  }
+  const strategy = strategies[0];
+  const choiceCards = (strategy.choices || []).map((choice) => '<article class="metric">' +
+    '<span>' + escapeHtml(choice.capabilityArea || "Strategic choice") + '</span>' +
+    '<strong style="font-size:18px;line-height:1.25;">' + escapeHtml(choice.statement || "Untitled choice") + '</strong>' +
+    '<p>' + escapeHtml(choice.summary || "") + '</p>' +
+    '<p class="muted">Trend: ' + escapeHtml(label(choice.trend || "unknown")) + ' · Confidence: ' + escapeHtml(label(choice.confidence || "low")) + '</p>' +
+    '<p>' + escapeHtml(choice.targetPosture || "") + '</p>' +
+    '<h3>Linked records</h3>' + strategyReferenceList(choice.references || [], entitiesById) +
+    '<h3>Outcomes</h3>' + (choice.outcomes || []).map((outcome) => '<p><strong>' + escapeHtml(outcome.statement || "Outcome") + '</strong><br><span class="muted">' + escapeHtml(outcome.summary || "") + '</span></p>').join("") +
+  '</article>').join("");
+  const choiceRows = (strategy.choices || []).map((choice) => ({
+    choice: choice.statement,
+    capability: choice.capabilityArea,
+    trend: label(choice.trend || "unknown"),
+    confidence: label(choice.confidence || "low"),
+    outcomes: (choice.outcomes || []).length,
+    linkedRecords: (choice.references || []).length,
+    target: choice.targetPosture
+  }));
+  const measureRows = (strategy.choices || []).flatMap((choice) => (choice.outcomes || []).flatMap((outcome) => (outcome.measures || []).map((measure) => ({
+    choice: choice.statement,
+    outcome: outcome.statement,
+    measure: measure.title,
+    class: label(measure.measureClass || "capability"),
+    current: measure.current || "Not recorded",
+    target: measure.target || "Not recorded",
+    trend: label(measure.trend || "unknown"),
+    confidence: label(measure.confidence || "low")
+  }))));
+  return '<p class="muted">Executive strategy view links choices and outcomes to published Requirements, Risks, Actions, and Directions.</p>' +
+    '<div class="grid">' +
+      metric("Scope", strategy.scope || "Not recorded") +
+      metric("Time horizon", strategy.timeHorizon || "Not recorded") +
+      metric("Choices", (strategy.choices || []).length) +
+      metric("Frameworks", (strategy.frameworks || []).join(", ") || "Not recorded") +
+    '</div>' +
+    '<h3>Strategy Statement</h3><p>' + escapeHtml(strategy.strategyStatement || "") + '</p>' +
+    '<h3>Risk Posture</h3><p>' + escapeHtml(strategy.riskPostureStatement || "") + '</p>' +
+    '<div class="grid">' + choiceCards + '</div>' +
+    '<h3>Choice Summary</h3>' + table(choiceRows, ["choice", "capability", "trend", "confidence", "outcomes", "linkedRecords", "target"]) +
+    '<h3>Posture Measures</h3>' + table(measureRows, ["choice", "outcome", "measure", "class", "current", "target", "trend", "confidence"]);
+}
+
+function strategyReferenceList(references, entitiesById) {
+  if (references.length === 0) {
+    return '<p class="muted">No linked records.</p>';
+  }
+  return '<ul>' + references.map((reference) => '<li><span class="version-pill">' + escapeHtml(label(reference.role || "linked")) + '</span> ' + escapeHtml(label(reference.entityType || "record")) + ': ' + escapeHtml(entitiesById.get(reference.entityId) || reference.entityId || "Unknown record") + '</li>').join("") + '</ul>';
 }
 
 function buildTagModel(collections) {
@@ -1124,7 +1185,7 @@ async function writeClipboardText(value) {
 }
 
 async function validateBundle(manifest, collections, collectionTexts) {
-  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "suppliers", "contracts", "spend-items", "posture"];
+  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "suppliers", "contracts", "spend-items", "strategies", "posture"];
   const checks = [
     check("Bundle version", manifest.bundleVersion === "${VERSION_AXES.bundleVersion}", manifest.bundleVersion || "missing"),
     check("Schema version", manifest.schemaVersion === "${VERSION_AXES.schemaVersion}", manifest.schemaVersion || "missing"),
@@ -1141,7 +1202,9 @@ async function validateBundle(manifest, collections, collectionTexts) {
     checks.push(check(entry.name + " count", entry.count === records.length, String(records.length)));
     const text = collectionTexts && collectionTexts[entry.name] ? collectionTexts[entry.name] : JSON.stringify(records, null, 2) + "\\n";
     const hash = await sha256(text);
-    checks.push(check(entry.name + " hash", hash === (entry.hash && entry.hash.value), hash.slice(0, 12)));
+    if (entry.hash && entry.hash.value) {
+      checks.push(check(entry.name + " hash", hash === entry.hash.value, hash.slice(0, 12)));
+    }
   }
 
   const posture = collections.posture && collections.posture[0] ? collections.posture[0] : {};
@@ -1155,6 +1218,7 @@ async function validateBundle(manifest, collections, collectionTexts) {
   checks.push(check("Posture suppliers", posture.supplierCount === (collections.suppliers || []).length, String(posture.supplierCount || 0)));
   checks.push(check("Posture contracts", posture.contractCount === (collections.contracts || []).length, String(posture.contractCount || 0)));
   checks.push(check("Posture spend items", posture.spendItemCount === (collections["spend-items"] || []).length, String(posture.spendItemCount || 0)));
+  checks.push(check("Posture strategies", posture.strategyCount === (collections.strategies || []).length, String(posture.strategyCount || 0)));
   checks.push(check("Mapping rationale excluded", !containsPath(collections["requirement-control-mappings"] || [], ["rationale"]), "default deny"));
   checks.push(check("Change reasons excluded", !containsPath(collections["change-records"] || [], ["reason"]), "default deny"));
   checks.push(check("Change impact notes excluded", !containsPath(collections["change-records"] || [], ["impactSummary"]), "default deny"));
@@ -1164,6 +1228,10 @@ async function validateBundle(manifest, collections, collectionTexts) {
   checks.push(check("Contract values excluded", !containsPath(collections.contracts || [], ["value"]), "default deny"));
   checks.push(check("Spend amounts excluded", !containsPath(collections["spend-items"] || [], ["amount"]), "default deny"));
   checks.push(check("Spend assumptions excluded", !containsPath(collections["spend-items"] || [], ["assumptions"]), "default deny"));
+  checks.push(check("Strategy owner excluded", !containsPath(collections.strategies || [], ["owner"]), "default deny"));
+  checks.push(check("Strategy assumptions excluded", !containsPath(collections.strategies || [], ["assumptions"]), "default deny"));
+  checks.push(check("Strategy rationale excluded", !containsPath(collections.strategies || [], ["rationale"]), "default deny"));
+  checks.push(check("Strategy constraints excluded", !containsPath(collections.strategies || [], ["constraints"]), "default deny"));
   const mappings = collections["requirement-control-mappings"] || [];
   const validConfidence = new Set(["low", "medium", "high"]);
   checks.push(check("Mapping confidence present", mappings.every((mapping) => validConfidence.has(mapping.confidence)), mappings.length + " mapping(s)"));

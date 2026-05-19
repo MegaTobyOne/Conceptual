@@ -2,7 +2,7 @@
     "name": "pspf-workshop",
     "displayName": "PSPF Workshop",
     "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-    "version": "1.23.0",
+    "version": "1.24.0",
     "private": true,
     "type": "module",
     "license": "MIT",
@@ -125,6 +125,11 @@
                 "command": "pspf.workshop.openConnectedView",
                 "title": "PSPF: Open Connected View",
                 "icon": "$(type-hierarchy)"
+            },
+            {
+                "command": "pspf.workshop.openStrategyMap",
+                "title": "PSPF: Open Cyber Strategy Map",
+                "icon": "$(graph)"
             },
             {
                 "command": "pspf.workshop.openEvidenceReviewQueue",

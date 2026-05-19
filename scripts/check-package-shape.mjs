@@ -31,6 +31,7 @@ const extensionPackages = [
       "pspf.workshop.createAction",
       "pspf.workshop.createRisk",
       "pspf.workshop.openAssessmentDashboard",
+      "pspf.workshop.openStrategyMap",
       "pspf.workshop.openEvidenceReviewQueue",
       "pspf.workshop.openItemDetail",
       "pspf.workshop.browseIsmSourceControls",

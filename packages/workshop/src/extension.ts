@@ -43,6 +43,7 @@ import {
   type SavedViewScope,
   type SourceControlEntity,
   type SpendItemEntity,
+  type StrategyEntity,
   type SupplierEntity,
   type TagColour,
   type TagEntity,
@@ -92,6 +93,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.linkExistingDirection", linkExistingDirection),
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
     vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
+    vscode.commands.registerCommand("pspf.workshop.openStrategyMap", openStrategyMap),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
     vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
@@ -207,6 +209,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openRisksList",
       "pspf.workshop.openAssessmentDashboard",
       "pspf.workshop.openConnectedView",
+      "pspf.workshop.openStrategyMap",
       "pspf.workshop.openEvidenceReviewQueue",
       "pspf.workshop.openItemDetail",
       "pspf.workshop.registerDirection",
@@ -322,6 +325,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
         ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
+        ${homeButton("pspf.workshop.openStrategyMap", "Strategy Map", "Connect strategic choices to Requirements, Risks, Actions, and Directions")}
         ${homeButton("pspf.workshop.openChangeRecords", "Change records", "Review why important records changed")}
         ${homeButton("pspf.workshop.manageSavedViews", "Saved views", "Save and reopen Workshop Requirement filters")}
       </div>
@@ -890,6 +894,126 @@ async function openAssessmentDashboard(): Promise<void> {
     ${recordTable("Next Requirements To Review", nextRequirements, ["title", "domain", "status", "evidence"])}
     ${recordTable("Latest Activity", recentActivity, ["type", "title", "created"])}
   `);
+}
+
+async function openStrategyMap(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const strategies = allEntities.filter((entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.recordStatus !== "deleted");
+  const requirements = new Map(allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement").map((entity) => [entity.id, entity]));
+  const risks = new Map(allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk").map((entity) => [entity.id, entity]));
+  const actions = new Map(enrichActionsWithImpact(allEntities).filter((entity): entity is ActionEntity => entity.entityType === "action").map((entity) => [entity.id, entity]));
+  const directions = new Map(allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction").map((entity) => [entity.id, entity]));
+  const strategy = strategies[0];
+  const panel = vscode.window.createWebviewPanel("pspfStrategyMap", "PSPF Cyber Strategy Map", vscode.ViewColumn.One, { enableScripts: false });
+  panel.webview.options = { enableScripts: true };
+  wireWorkshopPanelMessages(panel);
+
+  if (!strategy) {
+    panel.webview.html = shellHtml("PSPF Cyber Strategy Map", `
+      <section>
+        <h1>Cyber Strategy Map</h1>
+        <p class="muted">No Strategy record is available in this workspace yet. Load the sample workspace to test the v1.24 strategy view.</p>
+        ${versionStrip()}
+      </section>
+    `);
+    return;
+  }
+
+  const choiceRows = strategy.choices.map((choice) => ({
+    choice: choice.statement,
+    capability: choice.capabilityArea,
+    trend: label(choice.trend),
+    confidence: label(choice.confidence),
+    outcomes: choice.outcomes.length,
+    linkedRecords: choice.references.length,
+    target: choice.targetPosture
+  }));
+  const measureRows = strategy.choices.flatMap((choice) => choice.outcomes.flatMap((outcome) => outcome.measures.map((measure) => ({
+    choice: choice.statement,
+    outcome: outcome.statement,
+    measure: measure.title,
+    class: label(measure.measureClass),
+    current: measure.current ?? "Not recorded",
+    target: measure.target ?? "Not recorded",
+    trend: label(measure.trend),
+    confidence: label(measure.confidence)
+  }))));
+
+  panel.webview.html = shellHtml("PSPF Cyber Strategy Map", `
+    <section>
+      <p class="eyebrow">Leadership Strategy Map</p>
+      <h1>${escapeHtml(strategy.title)}</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))}</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Scope", strategy.scope)}
+        ${metricCard("Time horizon", strategy.timeHorizon)}
+        ${metricCard("Choices", strategy.choices.length)}
+        ${metricCard("Frameworks", strategy.frameworks.join(", "))}
+      </div>
+      <h2>Strategy Statement</h2>
+      <p>${escapeHtml(strategy.strategyStatement)}</p>
+      <h2>Risk Posture</h2>
+      <p>${escapeHtml(strategy.riskPostureStatement)}</p>
+    </section>
+    <section>
+      <h2>Strategic Choices</h2>
+      <div class="grid">
+        ${strategy.choices.map((choice) => strategyChoiceCard(choice, { requirements, risks, actions, directions })).join("")}
+      </div>
+    </section>
+    ${recordTable("Choice Summary", choiceRows, ["choice", "capability", "trend", "confidence", "outcomes", "linkedRecords", "target"])}
+    ${recordTable("Posture Measures", measureRows, ["choice", "outcome", "measure", "class", "current", "target", "trend", "confidence"])}
+  `);
+}
+
+function strategyChoiceCard(
+  choice: StrategyEntity["choices"][number],
+  lookup: {
+    readonly requirements: ReadonlyMap<string, RequirementEntity>;
+    readonly risks: ReadonlyMap<string, RiskEntity>;
+    readonly actions: ReadonlyMap<string, ActionEntity>;
+    readonly directions: ReadonlyMap<string, DirectionEntity>;
+  }
+): string {
+  const outcomes = choice.outcomes.map((outcome) => `
+    <h3>${escapeHtml(outcome.statement)}</h3>
+    <p class="muted">${escapeHtml(outcome.summary)}</p>
+    <p class="muted">Measures: ${escapeHtml(String(outcome.measures.length))} · Linked records: ${escapeHtml(String(outcome.references.length))}</p>
+  `).join("");
+  return `<article class="metric">
+    <span>${escapeHtml(choice.capabilityArea)}</span>
+    <strong style="font-size:18px;line-height:1.25;">${escapeHtml(choice.statement)}</strong>
+    <p>${escapeHtml(choice.summary)}</p>
+    <p class="muted">Trend: ${escapeHtml(label(choice.trend))} · Confidence: ${escapeHtml(label(choice.confidence))}</p>
+    <p>${escapeHtml(choice.targetPosture)}</p>
+    <h3>Linked Records</h3>
+    ${strategyReferenceList(choice.references, lookup)}
+    ${outcomes}
+  </article>`;
+}
+
+function strategyReferenceList(
+  references: readonly StrategyEntity["choices"][number]["references"][number][],
+  lookup: {
+    readonly requirements: ReadonlyMap<string, RequirementEntity>;
+    readonly risks: ReadonlyMap<string, RiskEntity>;
+    readonly actions: ReadonlyMap<string, ActionEntity>;
+    readonly directions: ReadonlyMap<string, DirectionEntity>;
+  }
+): string {
+  if (references.length === 0) {
+    return `<p class="muted">No linked records.</p>`;
+  }
+  const rows = references.map((reference) => {
+    const entity = reference.entityType === "requirement" ? lookup.requirements.get(reference.entityId)
+      : reference.entityType === "risk" ? lookup.risks.get(reference.entityId)
+        : reference.entityType === "action" ? lookup.actions.get(reference.entityId)
+          : lookup.directions.get(reference.entityId);
+    return `<li><span class="version-pill">${escapeHtml(label(reference.role))}</span> ${escapeHtml(label(reference.entityType))}: ${escapeHtml(entity?.title ?? reference.entityId)}</li>`;
+  }).join("");
+  return `<ul>${rows}</ul>`;
 }
 
 async function openConnectedView(): Promise<void> {
