@@ -347,6 +347,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 3. **Explorer local-count refresh gate**: `check:explorer-publication` adds a local Explorer Action, verifies the Overview Action count increments, and verifies the new local Action and edge appear in Connected View.
 4. **Deferred-scope gate**: v1.20.1 remains a patch release; it does not add editable Connected View, drag-to-link, edge filtering, impact-weighted layout, ISM overlays, image/PDF export, new entity types, new fields, new link verbs, or compatibility-axis changes.
 
+### v1.21 candidate gates (Shop forecast and management visibility, per ADR 0057)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.21.0`; schema, bundle, and API axes remain `1.8.0`; no new schema directory is introduced.
+2. **Monthly forecast gate**: Shop Forecast renders forecast spend by month and by financial year from existing Spend Items, excludes `spent` and `cancelled` spend items from forecast totals, and does not present Actuals.
+3. **Planned savings gate**: Shop Forecast renders a planned savings schedule from `expectedSavings`, forecast dates, saving type, confidence, and linked Contract context; annual planned efficiency dividends consolidate those savings by financial year.
+4. **Simple reporting gate**: Shop Forecast exposes CSV and Excel-compatible `.xls` table exports for monthly forecast, FY forecast, planned savings schedule, and annual planned efficiency dividends.
+5. **Supplier management gate**: every Supplier appears with a lightweight performance measure, contract-management signal, and FOCI check prompt.
+6. **Contract artefact gate**: every Contract appears with CPR/Finance source links for value for money, procurement risk, contract management, contract negotiations, accountability/transparency, and supplier conduct artefacts.
+7. **System-of-record boundary gate**: Shop copy states that Shop is a commercial planning view, not the contract system of record; v1.21 does not add document storage, new entity types, new fields, new link verbs, or compatibility-axis changes.
+8. **Regression gate**: `check:shop-coverage-dashboard`, `check:release-candidate`, `lint`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

@@ -8,7 +8,9 @@ PSPF Shop is the **commercial planning surface** for suppliers, contracts, spend
 
 - Authors Suppliers, Contracts, and Spend Items in Core's canonical model.
 - Links commercial records to Requirements, Actions, and Risks through existing Core links.
-- Shop Forecast view with a commercial coverage dashboard: linked and unlinked assurance coverage, near-term contract review, funded open Actions, and supplier Risk context.
+- Shop Forecast view with a commercial coverage dashboard: monthly and financial-year forecast spend, planned savings schedule, annual planned efficiency dividends, linked and unlinked assurance coverage, near-term contract review, funded open Actions, supplier Risk context, supplier performance/FOCI prompts, and CPR-aligned contract artefact links.
+- Exports simple reporting tables as CSV or Excel-compatible `.xls` from the full forecast panel.
+- Shop is a commercial planning surface, not the contract system of record. The forecast panel points to what needs to be found or managed in the authoritative procurement records.
 - Compatibility import for legacy local `.pspf/shop/shop.json` records.
 
 Shop reads and writes commercial records through Core. The local JSON file is a compatibility import source, not the active system of record.
@@ -27,6 +29,7 @@ Shop requires **PSPF Core**.
 - `PSPF: Load Shop Sample`
 - `PSPF: New Supplier` / `New Contract` / `New Spend Item`
 - `PSPF: Open Shop Forecast`
+- `PSPF: Export Shop Forecast CSV` / `PSPF: Export Shop Forecast XLS`
 - `PSPF: Link Supplier to Requirement` / `Risk`
 - `PSPF: Link Contract to Requirement` / `Spend Item`
 
