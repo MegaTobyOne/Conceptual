@@ -25,7 +25,9 @@ const axesByMinorVersion = new Map([
   [18, "1.8.0"],
   [19, "1.8.0"],
   [20, "1.8.0"],
-  [21, "1.8.0"]
+  [21, "1.8.0"],
+  [22, "1.8.0"],
+  [23, "1.9.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -54,12 +56,15 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), `schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleVersion should be ${expectedAxes}`);
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
-const e2eScript = minorVersion >= 21 ? "e2e:v1.21" : minorVersion >= 20 ? "e2e:v1.20" : minorVersion >= 19 ? "e2e:v1.19" : minorVersion >= 18 ? "e2e:v1.18" : minorVersion >= 17 ? "e2e:v1.17" : minorVersion >= 16 ? "e2e:v1.16" : minorVersion >= 14 ? "e2e:v1.14" : minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
-for (const scriptName of [e2eScript, "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
+const e2eScript = minorVersion >= 23 ? "e2e:v1.23" : minorVersion >= 22 ? "e2e:v1.22" : minorVersion >= 21 ? "e2e:v1.21" : minorVersion >= 20 ? "e2e:v1.20" : minorVersion >= 19 ? "e2e:v1.19" : minorVersion >= 18 ? "e2e:v1.18" : minorVersion >= 17 ? "e2e:v1.17" : minorVersion >= 16 ? "e2e:v1.16" : minorVersion >= 14 ? "e2e:v1.14" : minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+for (const scriptName of [e2eScript, "check:adr-coverage", "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
+assert.equal(packageJson.scripts["check:gates"].includes("check-adr-coverage.mjs"), true, "check:gates should run ADR coverage before release gates");
+assert.equal(packageJson.scripts["e2e:v1.23"].includes("check:adr-coverage"), true, "e2e:v1.23 should run ADR coverage");
 
 for (const requiredPath of [
+  "scripts/check-adr-coverage.mjs",
   "adr/0027-v0-9-release-candidate-freeze.md",
   "validation-scenario-1-operator-workflow.md",
   isV1Release ? "adr/0028-v1-0-initial-assurance-user-testing-release.md" : "adr/0027-v0-9-release-candidate-freeze.md",
@@ -88,6 +93,8 @@ for (const requiredPath of [
   "adr/0055-v1-20-connected-view.md",
   "adr/0056-v1-20-1-explorer-connected-view-hotfix.md",
   "adr/0057-v1-21-shop-forecast-management.md",
+  "adr/0058-v1-22-operator-input-assistance.md",
+  "adr/0059-v1-23-connected-view-and-commercial-planning-polish.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",

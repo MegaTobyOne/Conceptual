@@ -375,12 +375,12 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 ### v1.23 candidate gates (Connected View controls and commercial planning polish, per ADR 0059)
 
 1. **ADR gate**: ADR 0059 records the Connected View controls and commercial-planning polish decision before implementation starts.
-2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.23.0`; schema, bundle, and API axes remain `1.8.0` unless office/cost-centre fields are explicitly accepted.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.23.0`; schema, bundle, and API axes are `1.9.0` because the optional spend-item `costCentre` field is accepted.
 3. **Connected View controls gate**: Explorer Connected View exposes zoom in, zoom out, reset, and lane visibility controls that preserve keyboard access and relationship highlighting.
 4. **Selected-chain gate**: selecting a Connected View card scrolls the first selected or highlighted card into view and makes the connected chain visually easier to find without changing link semantics.
 5. **Shared-boundary gate**: v1.23 records whether graph controls remain Explorer-shell behaviour or move into `@pspf/connected-view` for Workshop reuse; relationship model, redaction, and selection semantics remain shared.
 6. **Spend-linking gate**: Shop highlights spend items that lack an existing `contract funds spend-item` link and routes operators to the existing commercial-link flow.
-7. **Office/cost-centre decision gate**: v1.23 either defers office/cost-centre metadata explicitly, or adds optional spend fields with publication policy, schema coverage, import/export validation, and a compatibility-axis bump.
+7. **Cost-centre field gate**: v1.23 adds optional `SpendItemEntity.costCentre` text with sensitive publication policy, `schemas/explorer-bundle/1.9.0` publication coverage that excludes the sensitive field, Shop create/edit support, CSV/XLS export columns, and a `pspf.shop.defaultCostCentre` setting used only for new spend-item defaults.
 8. **Deferred-scope gate**: v1.23 does not add editable Connected View, drag-to-link, new graph link verbs, reminders, recurring actions, notifications, calendars, approvals, Pub assignment workflows, editable Explorer commercial views, chart/PDF export, or new commercial workflow states.
 9. **Regression gate**: `check:explorer-publication`, `check:shop-coverage-dashboard`, `check:release-candidate`, `lint`, and `typecheck` pass.
 

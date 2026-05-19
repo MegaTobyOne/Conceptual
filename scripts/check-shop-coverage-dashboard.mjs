@@ -43,7 +43,11 @@ for (const requiredText of [
     "commandUri(\"pspf.shop.openForecast\"",
     "pspf.shop.linkSupplierToRequirement",
     "pspf.shop.linkContractToRequirement",
-    "pspf.shop.linkSpendToAction"
+    "pspf.shop.linkSpendToAction",
+    "pspf.shop.linkSpendItemToContract",
+    "Spend items needing contract funding links",
+    "contract funds spend-item",
+    "isContractFundingLink"
 ]) {
     assert.equal(shopExtension.includes(requiredText), true, `Shop coverage dashboard should mention ${requiredText}`);
 }

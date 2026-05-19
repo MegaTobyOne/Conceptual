@@ -1,0 +1,88 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.9.0/collections/tags.schema.json",
+    "title": "PSPF Explorer Tags Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "label",
+            "colour",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^TAG-"
+            },
+            "entityType": {
+                "const": "tag"
+            },
+            "schemaVersion": {
+                "const": "1.9.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+            },
+            "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40,
+                "pattern": "^[\\p{L}\\p{N} '\\-]+$"
+            },
+            "description": {
+                "type": "string",
+                "maxLength": 1000
+            },
+            "colour": {
+                "enum": [
+                    "red",
+                    "orange",
+                    "yellow",
+                    "green",
+                    "teal",
+                    "blue",
+                    "purple",
+                    "grey"
+                ]
+            },
+            "emoji": {
+                "type": "string",
+                "maxLength": 8
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            }
+        }
+    }
+}
