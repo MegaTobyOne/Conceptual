@@ -43,6 +43,7 @@ const packagePaths = [
   "packages/ism-source-library/package.json",
   "packages/reference-data/package.json",
   "packages/shop/package.json",
+  "packages/webview-shell/package.json",
   "packages/workshop/package.json"
 ];
 
@@ -880,12 +881,17 @@ if (isV1Release && minorVersion >= 18) {
   for (const requiredText of [
     "linkCommercialRecord",
     "pspf.core.listEntities",
-    'withEnvelope("link"',
     "Commercial planning",
     "--shop-amber"
   ]) {
     assert.equal(shopExtension.includes(requiredText), true, `Shop v1.18 runtime should mention ${requiredText}`);
   }
+  // Wrap-agnostic check: Prettier may wrap `withEnvelope("link", ...)` across lines.
+  assert.match(
+    shopExtension,
+    /withEnvelope\(\s*"link"/,
+    'Shop v1.18 runtime should call withEnvelope("link", ...)'
+  );
   const workshopExtension = await readFile(join(root, "packages/workshop/src/extension.ts"), "utf8");
   for (const requiredText of ["Commercial Context", "commercialContextSection", "associated-with", "Spend item"]) {
     assert.equal(
