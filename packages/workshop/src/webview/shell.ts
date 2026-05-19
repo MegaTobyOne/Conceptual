@@ -1,0 +1,238 @@
+import { PSPF_SLICE_VERSION } from "@pspf/contracts";
+import { tokensCss } from "@pspf/webview-shell";
+
+/**
+ * Workshop webview chrome wrappers.
+ *
+ * These wrap a caller-supplied `body` string in the standard PSPF Workshop
+ * surface (header, sensitivity banner, shared design tokens, and a generic
+ * `vscode.postMessage` click bridge). The home shell is sized for the
+ * activity-bar sidebar; the panel shell is sized for full-width editor
+ * panels. Both are intentionally kept here as plain template-string
+ * builders so the bundle output stays close to the previous layout.
+ *
+ * Note: a couple of strings here are surveyed by the release-candidate gate
+ * (`scripts/check-release-candidate.mjs`) — "System of record",
+ * "Workshop is the decision surface", and "Local workspace writes stay in
+ * Workshop". If you change them, update the gate too.
+ */
+
+export function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+export function homeShellHtml(title: string, body: string): string {
+  return `<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(title)}</title>
+  <style>
+    /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
+    ${tokensCss("extension")}
+    /* Workshop home surface tokens layered on top of the shared base. */
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --workshop-blue: var(--pspf-accent);
+      --workshop-blue-soft: var(--pspf-accent-soft);
+      --workshop-amber: var(--pspf-warn);
+      --workshop-radius: var(--pspf-radius);
+      --workshop-radius-sm: var(--pspf-radius-sm);
+      --workshop-gap: var(--pspf-gap);
+      --workshop-pad: var(--pspf-gap-md);
+    }
+    body { margin: 0; color: var(--vscode-foreground); background: radial-gradient(circle at top left, var(--workshop-blue-soft), transparent 18rem), var(--vscode-sideBar-background); font-feature-settings: "ss01", "cv01"; }
+    header { display: grid; gap: 2px; padding: var(--workshop-pad); border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border); background: linear-gradient(135deg, rgba(37, 99, 235, 0.24), transparent 78%); }
+    header strong { font-size: 15px; letter-spacing: 0.01em; }
+    header span { color: var(--vscode-descriptionForeground); font-size: 11.5px; }
+    .workshop-sensitivity { margin: 0; padding: 6px var(--workshop-pad); }
+    main { padding: var(--workshop-pad); }
+    section { border: 1px solid var(--vscode-sideBarSectionHeader-border); border-radius: var(--workshop-radius); padding: var(--workshop-gap); margin-bottom: var(--workshop-gap); background: var(--vscode-editor-background); }
+    section + section { margin-top: 0; }
+    .hero-section { border-color: rgba(37, 99, 235, 0.45); background: linear-gradient(180deg, rgba(37, 99, 235, 0.13), var(--vscode-editor-background)); }
+    .eyebrow { margin: 0 0 6px; color: var(--workshop-blue); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    h2 { font-size: 12.5px; line-height: 1.25; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .muted { color: var(--vscode-descriptionForeground); font-size: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; }
+    .metric { border: 1px solid var(--pspf-border); border-radius: var(--workshop-radius); padding: var(--pspf-pad-sm) var(--pspf-input-pad-x); background: var(--pspf-surface-strong); }
+    .metric span { color: var(--pspf-muted); display: block; font-size: var(--pspf-type-label); text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .metric strong { display: block; font-size: var(--pspf-type-page-title); line-height: 1.1; margin-top: 3px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .action-list { display: grid; grid-template-columns: 1fr; gap: 6px; }
+    .action-list.compact { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); }
+    button { width: 100%; min-width: 0; text-align: left; }
+    button:hover { background: var(--vscode-button-hoverBackground); }
+    button:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 1px; }
+    .button-title { display: block; overflow-wrap: anywhere; font-weight: 500; }
+    .button-description { display: block; margin-top: 2px; color: var(--vscode-button-secondaryForeground, var(--vscode-descriptionForeground)); font-size: 11px; line-height: 1.35; font-weight: 400; }
+    .version-strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <header><strong>PSPF Workshop</strong><span>System of record · v${PSPF_SLICE_VERSION}</span></header>
+  <div class="pspf-sensitivity-banner workshop-sensitivity">OFFICIAL: Sensitive · Local workspace writes stay in Workshop</div>
+  <main>${body}</main>
+  <script>
+    const vscode = acquireVsCodeApi();
+    globalThis.__pspfWorkshopVscode = vscode;
+    document.querySelectorAll("button[data-command]").forEach((button) => {
+      button.addEventListener("click", () => vscode.postMessage({ command: button.dataset.command }));
+    });
+  </script>
+</body>
+</html>`;
+}
+
+export function homeButton(command: string, text: string, description?: string): string {
+  const descriptionHtml = description ? `<span class="button-description">${escapeHtml(description)}</span>` : "";
+  return `<button type="button" data-command="${escapeHtml(command)}"><span class="button-title">${escapeHtml(text)}</span>${descriptionHtml}</button>`;
+}
+
+export function shellHtml(title: string, body: string): string {
+  return `<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(title)}</title>
+  <style>
+    /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
+    ${tokensCss("extension")}
+    /* Workshop main-panel surface tokens layered on top of the shared base. */
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --workshop-blue: var(--pspf-accent);
+      --workshop-blue-soft: var(--pspf-accent-soft);
+      --workshop-blue-strong: rgba(37, 99, 235, 0.28);
+      --amber: var(--pspf-warn);
+      --amber-soft: var(--pspf-warn-soft);
+      --radius: var(--pspf-radius-lg);
+      --radius-sm: var(--pspf-radius-sm);
+      --gap: var(--pspf-gap-md);
+      --gap-lg: var(--pspf-gap-lg);
+      --pad: var(--pspf-pad);
+      --pad-lg: var(--pspf-pad-lg);
+      --text: var(--vscode-foreground);
+      --muted: var(--vscode-descriptionForeground);
+      --surface: var(--vscode-editor-background);
+      --surface-strong: var(--vscode-input-background, var(--vscode-editor-background));
+      --border: var(--vscode-panel-border, var(--vscode-input-border));
+    }
+    body { margin: 0; color: var(--text); background: radial-gradient(circle at top left, var(--workshop-blue-soft), transparent 28rem), var(--vscode-editor-background); font-feature-settings: "ss01", "cv01"; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: var(--pad) var(--pad-lg); border-bottom: 1px solid var(--border); background: linear-gradient(135deg, var(--workshop-blue-strong) 0%, transparent 72%); }
+    header strong { display: block; font-size: 20px; letter-spacing: 0.005em; }
+    header span { color: var(--muted); font-size: 12.5px; }
+    main { max-width: 1180px; margin: 0 auto; padding: var(--pad-lg); }
+    section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); margin-bottom: var(--gap); }
+    section > h2:first-child { margin-top: 0; }
+    h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: -0.005em; }
+    h2 { font-size: 16px; margin-top: 0; margin-bottom: 10px; letter-spacing: 0.01em; }
+    h3 { font-size: 14px; margin: 12px 0 6px; }
+    p { line-height: 1.5; }
+    .eyebrow { margin: 0 0 6px; color: var(--workshop-blue); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .metric { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--pspf-gap-md); background: var(--surface-strong); }
+    .metric span { color: var(--muted); display: block; font-size: var(--pspf-type-label); text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .metric strong { display: block; font-size: 28px; line-height: 1.1; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .table-wrap { width: 100%; overflow-x: auto; margin-top: 10px; border-radius: var(--radius-sm); }
+    table { width: 100%; min-width: min(760px, 100%); border-collapse: collapse; table-layout: auto; }
+    th, td { text-align: left; padding: var(--pspf-table-cell-pad-y) var(--pspf-table-cell-pad-x); border-bottom: 1px solid var(--border); vertical-align: top; }
+    td { overflow-wrap: anywhere; }
+    th { color: var(--muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; background: color-mix(in srgb, var(--surface-strong) 75%, transparent); position: sticky; top: 0; }
+    tbody tr:hover { background: color-mix(in srgb, var(--workshop-blue) 6%, transparent); }
+    tbody tr:last-child td { border-bottom: none; }
+    th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"], th[data-field="target"], td[data-field="target"] { min-width: 18rem; max-width: 34rem; }
+    th[data-field="explanation"], td[data-field="explanation"] { max-width: 22rem; }
+    .cell-compact { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="freshness"], td[data-field="freshness"] { white-space: nowrap; width: 1%; font-variant-numeric: tabular-nums; }
+    th[data-field="open"], td[data-field="open"] { white-space: nowrap; width: 1%; }
+    button, input, select, textarea { font: inherit; }
+    .form-grid { display: grid; gap: 12px; max-width: 640px; }
+    label { display: grid; gap: 5px; color: var(--text); font-size: 13px; }
+    input, select, textarea { width: 100%; }
+    input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: -1px; border-color: transparent; }
+    textarea { resize: vertical; min-height: 96px; line-height: 1.45; }
+    input[readonly] { color: var(--muted); background: color-mix(in srgb, var(--surface-strong) 65%, transparent); }
+    .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .workshop-sensitivity { margin: 0; padding: 8px var(--pad-lg); }
+    .muted { color: var(--muted); }
+    .version-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    a { color: var(--vscode-textLink-foreground); }
+    a:hover { color: var(--vscode-textLink-activeForeground); }
+    @media (max-width: 720px) {
+      main { padding: var(--pad); }
+      header { padding: var(--pad); }
+      .workshop-sensitivity { padding: 8px var(--pad); }
+      table { min-width: 680px; }
+      th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"] { min-width: 16rem; }
+    }
+  </style>
+</head>
+<body>
+  <header><strong>PSPF Workshop</strong><span>System of record · v${PSPF_SLICE_VERSION}</span></header>
+  <div class="pspf-sensitivity-banner workshop-sensitivity">OFFICIAL: Sensitive · Workshop is the decision surface</div>
+  <main>
+    ${body}
+  </main>
+  <script>
+    const vscode = typeof acquireVsCodeApi === 'function' ? acquireVsCodeApi() : undefined;
+    document.addEventListener('click', (event) => {
+      const button = event.target instanceof HTMLElement ? event.target.closest('button[data-command]') : null;
+      if (!button || !vscode) {
+        return;
+      }
+      const command = button.getAttribute('data-command');
+      if (command === 'openEntity') {
+        vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
+      }
+      if (command === 'openAdjacentRequirement') {
+        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id'), direction: button.getAttribute('data-direction') });
+      }
+      if (command === 'openAdjacentDirection') {
+        vscode.postMessage({ command, directionId: button.getAttribute('data-direction-id'), direction: button.getAttribute('data-direction') });
+      }
+      if (command === 'recordChange') {
+        vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
+      }
+      if (command === 'createTag' || command === 'editTag' || command === 'archiveTag' || command === 'applyTag' || command === 'removeTag') {
+        vscode.postMessage({ command, tagId: button.getAttribute('data-tag-id'), requirementId: button.getAttribute('data-requirement-id') });
+      }
+      if (command === 'attachEvidenceToRequirement' || command === 'createActionForRequirement' || command === 'createRiskForRequirement' || command === 'mapRequirementToIsm') {
+        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
+      }
+      if (command === 'linkExistingEvidenceToRequirement' || command === 'linkExistingActionToRequirement' || command === 'linkExistingRiskToRequirement' || command === 'linkExistingDirectionToRequirement') {
+        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
+      }
+      if (command === 'createSavedView' || command === 'applySavedView' || command === 'editSavedView' || command === 'archiveSavedView') {
+        vscode.postMessage({ command, savedViewId: button.getAttribute('data-saved-view-id'), savedViewScope: button.getAttribute('data-saved-view-scope') });
+      }
+      if (command === 'refresh') {
+        vscode.postMessage({ command });
+      }
+      if (command === 'saveEntity' || command === 'saveAndCloseEntity' || command === 'saveAndNextEntity') {
+        const form = button.closest('form');
+        if (!form) {
+          return;
+        }
+        const data = new FormData(form);
+        const fields = {};
+        for (const [key, value] of data.entries()) {
+          fields[key] = String(value);
+        }
+        vscode.postMessage({
+          command,
+          entityType: String(data.get('entityType') || ''),
+          entityId: String(data.get('entityId') || ''),
+          fields
+        });
+      }
+    });
+  </script>
+</body>
+</html>`;
+}

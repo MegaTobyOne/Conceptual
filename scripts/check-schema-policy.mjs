@@ -7,7 +7,9 @@ import {
 } from "../packages/contracts/dist/index.js";
 
 const root = process.cwd();
-const standardFixture = JSON.parse(readFileSync(join(root, "packages/contracts/test-fixtures/standard/bundle.json"), "utf8"));
+const standardFixture = JSON.parse(
+  readFileSync(join(root, "packages/contracts/test-fixtures/standard/bundle.json"), "utf8")
+);
 const failures = [];
 
 for (const entityType of V0_1_ENTITY_TYPES) {

@@ -32,35 +32,58 @@ try {
   const byTagPath = join(dataDirectory, "indexes", "by-tag.json");
   const byTagIndex = existsSync(byTagPath) ? JSON.parse(readFileSyncText(byTagPath)) : undefined;
   const hasTagData = (bundle.collections?.tags || []).length > 0;
-  const expectedRequirementTitle = bundle.collections?.requirements?.[0]?.title || "Validate governance reporting workflow";
+  const expectedRequirementTitle =
+    bundle.collections?.requirements?.[0]?.title || "Validate governance reporting workflow";
   const expectedEvidenceTitle = bundle.collections?.evidence?.[0]?.title;
   await page.evaluate(async (value) => {
     await globalThis.pspfExplorerRender(value.manifest, value.collections || {});
   }, bundle);
   await page.waitForSelector("#validation:not([hidden])");
 
-  const validationInitiallyCollapsed = await page.locator("#validation").evaluate((element) => element instanceof HTMLDetailsElement && !element.open);
+  const validationInitiallyCollapsed = await page
+    .locator("#validation")
+    .evaluate((element) => element instanceof HTMLDetailsElement && !element.open);
   await page.locator('.section-nav a[href="#validation"]').click();
   await page.waitForFunction(() => document.querySelector("#validation")?.open === true);
-  const validationNavOpened = await page.locator("#validation").evaluate((element) => element instanceof HTMLDetailsElement && element.open);
-  const requirementsInitiallyCollapsed = await page.locator("#requirements").evaluate((element) => element instanceof HTMLDetailsElement && !element.open);
+  const validationNavOpened = await page
+    .locator("#validation")
+    .evaluate((element) => element instanceof HTMLDetailsElement && element.open);
+  const requirementsInitiallyCollapsed = await page
+    .locator("#requirements")
+    .evaluate((element) => element instanceof HTMLDetailsElement && !element.open);
   await page.locator('.section-nav a[href="#requirements"]').click();
   await page.waitForFunction(() => document.querySelector("#requirements")?.open === true);
-  const requirementsNavOpened = await page.locator("#requirements").evaluate((element) => element instanceof HTMLDetailsElement && element.open);
+  const requirementsNavOpened = await page
+    .locator("#requirements")
+    .evaluate((element) => element instanceof HTMLDetailsElement && element.open);
   const requirementsText = await page.locator("#requirements").innerText();
   const initialRequirementRows = await page.locator("#requirements tbody tr:not([hidden])").count();
   await page.locator("#explorer-search").fill(expectedRequirementTitle);
-  await page.waitForFunction(() => document.querySelector("#requirements")?.open === true && Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden).length === 1);
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#requirements")?.open === true &&
+      Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden).length === 1
+  );
   const explorerSearchResult = await page.evaluate(() => ({
-    visibleRequirementRows: Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden).length,
-    hiddenRequirementRows: Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => row.hidden).length,
+    visibleRequirementRows: Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden)
+      .length,
+    hiddenRequirementRows: Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => row.hidden)
+      .length,
     statusText: document.querySelector("#explorer-search-status")?.textContent || "",
-    matchedText: Array.from(document.querySelectorAll("#requirements tbody tr")).find((row) => !row.hidden)?.textContent || ""
+    matchedText:
+      Array.from(document.querySelectorAll("#requirements tbody tr")).find((row) => !row.hidden)?.textContent || ""
   }));
   await page.locator("#explorer-search").fill("");
-  await page.waitForFunction((expectedRows) => Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden).length === expectedRows, initialRequirementRows);
+  await page.waitForFunction(
+    (expectedRows) =>
+      Array.from(document.querySelectorAll("#requirements tbody tr")).filter((row) => !row.hidden).length ===
+      expectedRows,
+    initialRequirementRows
+  );
   await page.getByRole("button", { name: "Close All" }).click();
-  const closeAllCollapsedSections = await page.locator("details.panel").evaluateAll((sections) => sections.every((section) => section instanceof HTMLDetailsElement && !section.open));
+  const closeAllCollapsedSections = await page
+    .locator("details.panel")
+    .evaluateAll((sections) => sections.every((section) => section instanceof HTMLDetailsElement && !section.open));
   await page.evaluate(() => {
     document.querySelectorAll("details.panel").forEach((section) => {
       section.open = true;
@@ -91,7 +114,14 @@ try {
     const bundleTools = document.querySelector("#bundle-tools");
     const searchInput = document.querySelector("#explorer-search");
     if (!summary || !searchPanel || !localChanges || !validation || !links || !bundleTools || !searchInput) {
-      return { visible: false, afterSummary: false, beforeLocalChanges: false, validationAfterLinks: false, bundleToolsAfterValidation: false, searchUsesPanelWidth: false };
+      return {
+        visible: false,
+        afterSummary: false,
+        beforeLocalChanges: false,
+        validationAfterLinks: false,
+        bundleToolsAfterValidation: false,
+        searchUsesPanelWidth: false
+      };
     }
     const position = summary.compareDocumentPosition(searchPanel);
     const localChangesPosition = searchPanel.compareDocumentPosition(localChanges);
@@ -108,7 +138,11 @@ try {
       searchUsesPanelWidth: inputRect.width >= panelRect.width - 34
     };
   });
-  const rawActionDueDateCount = await page.locator('#actions td[data-field="dueDate"]').evaluateAll((cells) => cells.filter((cell) => /\d{4}-\d{2}-\d{2}T|\d{4}-\d{2}-\d{2}/.test(cell.textContent || "")).length);
+  const rawActionDueDateCount = await page
+    .locator('#actions td[data-field="dueDate"]')
+    .evaluateAll(
+      (cells) => cells.filter((cell) => /\d{4}-\d{2}-\d{2}T|\d{4}-\d{2}-\d{2}/.test(cell.textContent || "")).length
+    );
   const desktopLayoutChecks = await collectLayoutChecks(page, "Desktop");
   await page.setViewportSize({ width: 1600, height: 900 });
   const wideLayoutChecks = await collectLayoutChecks(page, "Wide");
@@ -156,8 +190,12 @@ try {
     document.querySelector("#actions").open = true;
     document.querySelector("#ism-coverage").open = true;
     return {
-      actionDueDate: Array.from(document.querySelectorAll('#actions td[data-field="dueDate"]')).at(-1)?.textContent?.trim(),
-      manualCoverageControlId: Array.from(document.querySelectorAll('#ism-coverage td[data-field="controlId"]')).at(-1)?.textContent?.trim()
+      actionDueDate: Array.from(document.querySelectorAll('#actions td[data-field="dueDate"]'))
+        .at(-1)
+        ?.textContent?.trim(),
+      manualCoverageControlId: Array.from(document.querySelectorAll('#ism-coverage td[data-field="controlId"]'))
+        .at(-1)
+        ?.textContent?.trim()
     };
   }, bundle);
 
@@ -273,17 +311,28 @@ try {
       highlightedEdges: document.querySelectorAll("#connected-view svg path.cv-highlight").length,
       selectedCards: document.querySelectorAll("#connected-view .cv-selected").length,
       connectedCards: document.querySelectorAll("#connected-view .cv-connected").length,
-      zoomControls: document.querySelectorAll('#connected-view [data-cv-action="zoom-in"], #connected-view [data-cv-action="zoom-out"], #connected-view [data-cv-action="zoom-reset"]').length,
+      zoomControls: document.querySelectorAll(
+        '#connected-view [data-cv-action="zoom-in"], #connected-view [data-cv-action="zoom-out"], #connected-view [data-cv-action="zoom-reset"]'
+      ).length,
       laneControls: document.querySelectorAll("#connected-view [data-cv-lane-toggle]").length,
       zoomLabel: document.querySelector("#connected-view [data-cv-zoom-label]")?.textContent || "",
-      actionsMetric: Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.innerText || "",
-      actionsCount: Number(Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.querySelector("strong")?.textContent || "0")
+      actionsMetric:
+        Array.from(document.querySelectorAll("#summary .metric")).find((element) =>
+          element.textContent.includes("Actions")
+        )?.innerText || "",
+      actionsCount: Number(
+        Array.from(document.querySelectorAll("#summary .metric"))
+          .find((element) => element.textContent.includes("Actions"))
+          ?.querySelector("strong")?.textContent || "0"
+      )
     };
     document.querySelector('#connected-view [data-cv-action="zoom-in"]')?.click();
     document.querySelector('#connected-view [data-cv-lane-toggle="risks"]')?.click();
     await new Promise(requestAnimationFrame);
     before.zoomAfterClick = document.querySelector("#connected-view [data-cv-zoom-label]")?.textContent || "";
-    before.risksHiddenAfterToggle = document.querySelector('#connected-view [data-cv-lane-kind="risks"]')?.classList.contains("cv-lane-hidden") || false;
+    before.risksHiddenAfterToggle =
+      document.querySelector('#connected-view [data-cv-lane-kind="risks"]')?.classList.contains("cv-lane-hidden") ||
+      false;
     await globalThis.pspfExplorerAddLocalAction(requirement.id, "Local connected action", "todo", "2026-06-30");
     document.querySelector("#connected-view").open = true;
     await new Promise(requestAnimationFrame);
@@ -293,8 +342,15 @@ try {
       after: {
         cards: document.querySelectorAll("#connected-view [data-cv-card]").length,
         edges: document.querySelectorAll("#connected-view svg path").length,
-        actionsMetric: Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.innerText || "",
-        actionsCount: Number(Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.querySelector("strong")?.textContent || "0"),
+        actionsMetric:
+          Array.from(document.querySelectorAll("#summary .metric")).find((element) =>
+            element.textContent.includes("Actions")
+          )?.innerText || "",
+        actionsCount: Number(
+          Array.from(document.querySelectorAll("#summary .metric"))
+            .find((element) => element.textContent.includes("Actions"))
+            ?.querySelector("strong")?.textContent || "0"
+        ),
         connectedText: document.querySelector("#connected-view")?.textContent || ""
       }
     };
@@ -304,41 +360,171 @@ try {
     check("No page errors", pageErrors.length === 0, pageErrors.join("; ")),
     check("No console errors", consoleErrors.length === 0, consoleErrors.join("; ")),
     check("Validation panel has no failed checks", validationFailures === 0, `${validationFailures} failed check(s)`),
-    check("Visible PSPF slice version", visibleText.includes(`PSPF v${PSPF_SLICE_VERSION}`), `PSPF v${PSPF_SLICE_VERSION}`),
-    check("Visible schema version", visibleText.includes(`Schema ${VERSION_AXES.schemaVersion}`), `Schema ${VERSION_AXES.schemaVersion}`),
-    check("Visible bundle version", visibleText.includes(`Bundle ${VERSION_AXES.bundleVersion}`), `Bundle ${VERSION_AXES.bundleVersion}`),
-    check("Visible API version", visibleText.includes(`API ${VERSION_AXES.apiVersion}`), `API ${VERSION_AXES.apiVersion}`),
-    check("Mode strip distinguishes baseline and local", modePillColours.baselineBackground !== modePillColours.localBackground && modePillColours.localBackground !== "missing", JSON.stringify(modePillColours)),
+    check(
+      "Visible PSPF slice version",
+      visibleText.includes(`PSPF v${PSPF_SLICE_VERSION}`),
+      `PSPF v${PSPF_SLICE_VERSION}`
+    ),
+    check(
+      "Visible schema version",
+      visibleText.includes(`Schema ${VERSION_AXES.schemaVersion}`),
+      `Schema ${VERSION_AXES.schemaVersion}`
+    ),
+    check(
+      "Visible bundle version",
+      visibleText.includes(`Bundle ${VERSION_AXES.bundleVersion}`),
+      `Bundle ${VERSION_AXES.bundleVersion}`
+    ),
+    check(
+      "Visible API version",
+      visibleText.includes(`API ${VERSION_AXES.apiVersion}`),
+      `API ${VERSION_AXES.apiVersion}`
+    ),
+    check(
+      "Mode strip distinguishes baseline and local",
+      modePillColours.baselineBackground !== modePillColours.localBackground &&
+        modePillColours.localBackground !== "missing",
+      JSON.stringify(modePillColours)
+    ),
     check("Copy posture brief button visible", copyButtonVisible, "button"),
     check("Compliance status table sits under donut", statusTableUnderDonut === 1, `${statusTableUnderDonut} table(s)`),
-    check("Explorer Search sits below posture brief", explorerSearchPlacement.visible && explorerSearchPlacement.afterSummary && explorerSearchPlacement.beforeLocalChanges, JSON.stringify(explorerSearchPlacement)),
-    check("Explorer Search uses full panel width", explorerSearchPlacement.searchUsesPanelWidth, JSON.stringify(explorerSearchPlacement)),
-    check("Bundle diagnostics sit after record sections", explorerSearchPlacement.validationAfterLinks && explorerSearchPlacement.bundleToolsAfterValidation, JSON.stringify(explorerSearchPlacement)),
+    check(
+      "Explorer Search sits below posture brief",
+      explorerSearchPlacement.visible &&
+        explorerSearchPlacement.afterSummary &&
+        explorerSearchPlacement.beforeLocalChanges,
+      JSON.stringify(explorerSearchPlacement)
+    ),
+    check(
+      "Explorer Search uses full panel width",
+      explorerSearchPlacement.searchUsesPanelWidth,
+      JSON.stringify(explorerSearchPlacement)
+    ),
+    check(
+      "Bundle diagnostics sit after record sections",
+      explorerSearchPlacement.validationAfterLinks && explorerSearchPlacement.bundleToolsAfterValidation,
+      JSON.stringify(explorerSearchPlacement)
+    ),
     check("Validation section starts collapsed", validationInitiallyCollapsed, "collapsed by default"),
     check("Validation nav opens section", validationNavOpened, "nav target opens"),
     check("Requirements section starts collapsed", requirementsInitiallyCollapsed, "collapsed by default"),
     check("Requirements nav opens section", requirementsNavOpened, "nav target opens"),
-    check("Explorer Search filters requirement rows", explorerSearchResult.visibleRequirementRows === 1 && explorerSearchResult.hiddenRequirementRows >= 0, `${explorerSearchResult.visibleRequirementRows} visible / ${explorerSearchResult.hiddenRequirementRows} hidden`),
-    check("Explorer Search keeps matching requirement readable", explorerSearchResult.matchedText.includes(expectedRequirementTitle), explorerSearchResult.matchedText || "missing"),
-    check("Explorer Search reports row matches", explorerSearchResult.statusText.includes("rows match"), explorerSearchResult.statusText || "missing"),
+    check(
+      "Explorer Search filters requirement rows",
+      explorerSearchResult.visibleRequirementRows === 1 && explorerSearchResult.hiddenRequirementRows >= 0,
+      `${explorerSearchResult.visibleRequirementRows} visible / ${explorerSearchResult.hiddenRequirementRows} hidden`
+    ),
+    check(
+      "Explorer Search keeps matching requirement readable",
+      explorerSearchResult.matchedText.includes(expectedRequirementTitle),
+      explorerSearchResult.matchedText || "missing"
+    ),
+    check(
+      "Explorer Search reports row matches",
+      explorerSearchResult.statusText.includes("rows match"),
+      explorerSearchResult.statusText || "missing"
+    ),
     check("Close All collapses record sections", closeAllCollapsedSections, "all details closed"),
-    check("Action due dates avoid raw ISO text", rawActionDueDateCount === 0, `${rawActionDueDateCount} raw date cell(s)`),
-    check("Synthetic ISO action due date renders short AU", syntheticExplorerValues.actionDueDate === "30 Jun 2026", syntheticExplorerValues.actionDueDate || "missing"),
-    check("Manual ISM source IDs render compactly", syntheticExplorerValues.manualCoverageControlId === "SRC-ABCD", syntheticExplorerValues.manualCoverageControlId || "missing"),
-    check("Explorer Connected View renders linked chain", !connectedViewValues.skipped && connectedViewValues.before.cards >= 4 && connectedViewValues.before.edges >= 3, JSON.stringify(connectedViewValues.before)),
-    check("Explorer Connected View selection highlights chain", !connectedViewValues.skipped && connectedViewValues.before.selectedCards === 1 && connectedViewValues.before.connectedCards >= 3 && connectedViewValues.before.highlightedEdges >= 3, JSON.stringify(connectedViewValues.before)),
-    check("Explorer Connected View exposes v1.23 controls", !connectedViewValues.skipped && connectedViewValues.before.zoomControls === 3 && connectedViewValues.before.laneControls >= 3 && connectedViewValues.before.zoomLabel === "100%", JSON.stringify(connectedViewValues.before)),
-    check("Explorer Connected View controls apply", !connectedViewValues.skipped && connectedViewValues.before.zoomAfterClick === "110%" && connectedViewValues.before.risksHiddenAfterToggle, JSON.stringify(connectedViewValues.before)),
-    check("Explorer local Action updates overview count", !connectedViewValues.skipped && connectedViewValues.after.actionsCount === connectedViewValues.before.actionsCount + 1, JSON.stringify({ before: connectedViewValues.before.actionsMetric, after: connectedViewValues.after.actionsMetric })),
-    check("Explorer local Action appears in Connected View", !connectedViewValues.skipped && connectedViewValues.after.cards === connectedViewValues.before.cards + 1 && connectedViewValues.after.edges === connectedViewValues.before.edges + 1 && connectedViewValues.after.connectedText.includes("Local connected action"), JSON.stringify(connectedViewValues.after)),
-    check("Generated brief includes classification", typeof brief === "string" && brief.includes("OFFICIAL: Sensitive"), "classification"),
-    check("Generated brief excludes sensitive summary", typeof brief === "string" && !brief.includes("Internal assessment working note"), "summary redaction"),
-    check("Generated brief excludes sensitive tag description", typeof brief === "string" && !brief.includes("Sensitive tag purpose note"), "tag redaction"),
-    check("Tag collection exported", Array.isArray(bundle.collections?.tags), `${bundle.collections?.tags?.length ?? "missing"} tag(s)`),
-    check("By-tag index exported", hasTagData ? Boolean(byTagIndex && Array.isArray(byTagIndex.tags)) : true, byTagPath),
-    check("By-tag index excludes sensitive tag description", byTagIndex ? !JSON.stringify(byTagIndex).includes("Sensitive tag purpose note") : !hasTagData, "default deny"),
-    check("Readable requirement title rendered", requirementsText.includes(expectedRequirementTitle), "requirement title"),
-    check("Readable relationship target rendered", expectedEvidenceTitle ? visibleText.includes(expectedEvidenceTitle) : true, "evidence title"),
+    check(
+      "Action due dates avoid raw ISO text",
+      rawActionDueDateCount === 0,
+      `${rawActionDueDateCount} raw date cell(s)`
+    ),
+    check(
+      "Synthetic ISO action due date renders short AU",
+      syntheticExplorerValues.actionDueDate === "30 Jun 2026",
+      syntheticExplorerValues.actionDueDate || "missing"
+    ),
+    check(
+      "Manual ISM source IDs render compactly",
+      syntheticExplorerValues.manualCoverageControlId === "SRC-ABCD",
+      syntheticExplorerValues.manualCoverageControlId || "missing"
+    ),
+    check(
+      "Explorer Connected View renders linked chain",
+      !connectedViewValues.skipped && connectedViewValues.before.cards >= 4 && connectedViewValues.before.edges >= 3,
+      JSON.stringify(connectedViewValues.before)
+    ),
+    check(
+      "Explorer Connected View selection highlights chain",
+      !connectedViewValues.skipped &&
+        connectedViewValues.before.selectedCards === 1 &&
+        connectedViewValues.before.connectedCards >= 3 &&
+        connectedViewValues.before.highlightedEdges >= 3,
+      JSON.stringify(connectedViewValues.before)
+    ),
+    check(
+      "Explorer Connected View exposes v1.23 controls",
+      !connectedViewValues.skipped &&
+        connectedViewValues.before.zoomControls === 3 &&
+        connectedViewValues.before.laneControls >= 3 &&
+        connectedViewValues.before.zoomLabel === "100%",
+      JSON.stringify(connectedViewValues.before)
+    ),
+    check(
+      "Explorer Connected View controls apply",
+      !connectedViewValues.skipped &&
+        connectedViewValues.before.zoomAfterClick === "110%" &&
+        connectedViewValues.before.risksHiddenAfterToggle,
+      JSON.stringify(connectedViewValues.before)
+    ),
+    check(
+      "Explorer local Action updates overview count",
+      !connectedViewValues.skipped &&
+        connectedViewValues.after.actionsCount === connectedViewValues.before.actionsCount + 1,
+      JSON.stringify({
+        before: connectedViewValues.before.actionsMetric,
+        after: connectedViewValues.after.actionsMetric
+      })
+    ),
+    check(
+      "Explorer local Action appears in Connected View",
+      !connectedViewValues.skipped &&
+        connectedViewValues.after.cards === connectedViewValues.before.cards + 1 &&
+        connectedViewValues.after.edges === connectedViewValues.before.edges + 1 &&
+        connectedViewValues.after.connectedText.includes("Local connected action"),
+      JSON.stringify(connectedViewValues.after)
+    ),
+    check(
+      "Generated brief includes classification",
+      typeof brief === "string" && brief.includes("OFFICIAL: Sensitive"),
+      "classification"
+    ),
+    check(
+      "Generated brief excludes sensitive summary",
+      typeof brief === "string" && !brief.includes("Internal assessment working note"),
+      "summary redaction"
+    ),
+    check(
+      "Generated brief excludes sensitive tag description",
+      typeof brief === "string" && !brief.includes("Sensitive tag purpose note"),
+      "tag redaction"
+    ),
+    check(
+      "Tag collection exported",
+      Array.isArray(bundle.collections?.tags),
+      `${bundle.collections?.tags?.length ?? "missing"} tag(s)`
+    ),
+    check(
+      "By-tag index exported",
+      hasTagData ? Boolean(byTagIndex && Array.isArray(byTagIndex.tags)) : true,
+      byTagPath
+    ),
+    check(
+      "By-tag index excludes sensitive tag description",
+      byTagIndex ? !JSON.stringify(byTagIndex).includes("Sensitive tag purpose note") : !hasTagData,
+      "default deny"
+    ),
+    check(
+      "Readable requirement title rendered",
+      requirementsText.includes(expectedRequirementTitle),
+      "requirement title"
+    ),
+    check(
+      "Readable relationship target rendered",
+      expectedEvidenceTitle ? visibleText.includes(expectedEvidenceTitle) : true,
+      "evidence title"
+    ),
     ...desktopLayoutChecks,
     ...wideLayoutChecks,
     ...narrowLayoutChecks
@@ -351,7 +537,11 @@ try {
     bundlePath: relative(root, bundlePath),
     checks
   };
-  await writeFile(join(reportDirectory, "explorer-publication-report.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
+  await writeFile(
+    join(reportDirectory, "explorer-publication-report.json"),
+    `${JSON.stringify(report, null, 2)}\n`,
+    "utf8"
+  );
   assert.equal(failed.length, 0, failed.map((item) => `${item.name}: ${item.detail}`).join("\n"));
   console.log("ok Explorer publication smoke passed");
   console.log(`report: ${relative(root, join(reportDirectory, "explorer-publication-report.json"))}`);
@@ -375,9 +565,11 @@ function findBundlePath() {
 function bundleMatchesCurrentAxes(bundlePath) {
   try {
     const bundle = JSON.parse(readFileSyncText(bundlePath));
-    return bundle?.manifest?.schemaVersion === VERSION_AXES.schemaVersion
-      && bundle?.manifest?.bundleVersion === VERSION_AXES.bundleVersion
-      && bundle?.manifest?.apiVersion === VERSION_AXES.apiVersion;
+    return (
+      bundle?.manifest?.schemaVersion === VERSION_AXES.schemaVersion &&
+      bundle?.manifest?.bundleVersion === VERSION_AXES.bundleVersion &&
+      bundle?.manifest?.apiVersion === VERSION_AXES.apiVersion
+    );
   } catch {
     return false;
   }
@@ -417,7 +609,11 @@ async function collectLayoutChecks(page, viewportLabel) {
       detail: `${wrappedCompact.length} wrapped label(s)`
     });
 
-    const titleCells = Array.from(document.querySelectorAll('td[data-field="title"], td[data-field="requirement"], td[data-field="control"], td[data-field="from"], td[data-field="to"], td[data-field="target"]'));
+    const titleCells = Array.from(
+      document.querySelectorAll(
+        'td[data-field="title"], td[data-field="requirement"], td[data-field="control"], td[data-field="from"], td[data-field="to"], td[data-field="target"]'
+      )
+    );
     const minimumWidth = label === "Desktop" ? 250 : 220;
     const narrowTitleCells = titleCells.filter((cell) => cell.getBoundingClientRect().width < minimumWidth);
     checks.push({
@@ -427,7 +623,9 @@ async function collectLayoutChecks(page, viewportLabel) {
     });
 
     const relationshipFromCells = Array.from(document.querySelectorAll('#links td[data-field="from"]'));
-    const narrowRelationshipFromCells = relationshipFromCells.filter((cell) => cell.getBoundingClientRect().width < minimumWidth);
+    const narrowRelationshipFromCells = relationshipFromCells.filter(
+      (cell) => cell.getBoundingClientRect().width < minimumWidth
+    );
     checks.push({
       name: `${label} Relationships From column keeps readable width`,
       ok: narrowRelationshipFromCells.length === 0,
@@ -446,7 +644,9 @@ async function collectLayoutChecks(page, viewportLabel) {
       detail: `${pageOverflowingElements.length} overflowing non-table element(s)`
     });
 
-    const denseTables = Array.from(document.querySelectorAll("#ism-coverage .table-wrap, #source-controls .table-wrap"));
+    const denseTables = Array.from(
+      document.querySelectorAll("#ism-coverage .table-wrap, #source-controls .table-wrap")
+    );
     checks.push({
       name: `${label} dense tables use local overflow wrappers`,
       ok: denseTables.every((wrapper) => getComputedStyle(wrapper).overflowX !== "visible"),

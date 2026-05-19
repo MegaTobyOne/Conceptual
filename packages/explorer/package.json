@@ -1,18 +1,19 @@
 {
-    "name": "pspf-explorer",
-    "version": "1.24.0",
-    "private": true,
-    "type": "module",
-    "description": "Static PSPF Explorer publication-mode application.",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "scripts": {
-        "build": "tsc -p tsconfig.json && node scripts/build-static.mjs",
-        "test": "node --test dist/**/*.test.js"
-    },
-    "dependencies": {
-        "@pspf/brief-renderer": "workspace:*",
-        "@pspf/connected-view": "workspace:*",
-        "@pspf/contracts": "workspace:*"
-    }
+  "name": "pspf-explorer",
+  "version": "1.24.0",
+  "private": true,
+  "type": "module",
+  "description": "Static PSPF Explorer publication-mode application.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/build-static.mjs",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "dependencies": {
+    "@pspf/brief-renderer": "workspace:*",
+    "@pspf/connected-view": "workspace:*",
+    "@pspf/contracts": "workspace:*",
+    "@pspf/webview-shell": "workspace:*"
+  }
 }

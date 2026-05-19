@@ -15,14 +15,26 @@ export async function validateExportBundle(bundlePath, options = {}) {
   const collections = bundle.collections ?? {};
 
   check(manifest.bundleType === "pspf-explorer-bundle", "manifest.bundleType is pspf-explorer-bundle", failures);
-  check(manifest.bundleVersion === VERSION_AXES.bundleVersion, `bundleVersion is ${VERSION_AXES.bundleVersion}`, failures);
-  check(manifest.schemaVersion === VERSION_AXES.schemaVersion, `schemaVersion is ${VERSION_AXES.schemaVersion}`, failures);
+  check(
+    manifest.bundleVersion === VERSION_AXES.bundleVersion,
+    `bundleVersion is ${VERSION_AXES.bundleVersion}`,
+    failures
+  );
+  check(
+    manifest.schemaVersion === VERSION_AXES.schemaVersion,
+    `schemaVersion is ${VERSION_AXES.schemaVersion}`,
+    failures
+  );
   check(manifest.apiVersion === VERSION_AXES.apiVersion, `apiVersion is ${VERSION_AXES.apiVersion}`, failures);
   check(manifest.generator?.mode === "publication", "generator mode is publication", failures);
   check(manifest.security?.classification === "OFFICIAL: Sensitive", "classification is OFFICIAL: Sensitive", failures);
 
   const manifestCollectionNames = (manifest.collections ?? []).map((collection) => collection.name);
-  check(JSON.stringify(manifestCollectionNames) === JSON.stringify(V0_1_COLLECTIONS), "manifest lists every active collection in order", failures);
+  check(
+    JSON.stringify(manifestCollectionNames) === JSON.stringify(V0_1_COLLECTIONS),
+    "manifest lists every active collection in order",
+    failures
+  );
 
   const counts = {};
   for (const collectionName of V0_1_COLLECTIONS) {
@@ -76,7 +88,11 @@ export async function validateExportBundle(bundlePath, options = {}) {
   }
 
   const ismDrift = summariseIsmDrift(collections);
-  check(ismDrift.sourceControlsWithStatus === (collections["source-controls"] ?? []).length, "source controls carry statement drift status", failures);
+  check(
+    ismDrift.sourceControlsWithStatus === (collections["source-controls"] ?? []).length,
+    "source controls carry statement drift status",
+    failures
+  );
 
   const schemaChecks = await validateBundleSchemas(root, manifest, collections);
   for (const schemaCheck of schemaChecks) {
@@ -104,7 +120,9 @@ export async function validateExportBundle(bundlePath, options = {}) {
     redactionChecks,
     mappingRedaction: {
       ok: mappingRationaleExcluded,
-      detail: mappingRationaleExcluded ? "Mapping rationale excluded from published bundle" : "Mapping rationale leaked into published bundle"
+      detail: mappingRationaleExcluded
+        ? "Mapping rationale excluded from published bundle"
+        : "Mapping rationale leaked into published bundle"
     },
     mappingQuality,
     ismDrift,
@@ -235,7 +253,9 @@ async function validateBundleSchemas(root, manifest, collections) {
   for (const collectionName of V0_1_COLLECTIONS) {
     const schema = JSON.parse(await readFile(join(schemaRoot, "collections", `${collectionName}.schema.json`), "utf8"));
     const validateCollection = ajv.compile(schema);
-    checks.push(schemaCheck(collectionName, validateCollection(collections[collectionName] ?? []), validateCollection.errors));
+    checks.push(
+      schemaCheck(collectionName, validateCollection(collections[collectionName] ?? []), validateCollection.errors)
+    );
   }
 
   return checks;
@@ -296,7 +316,9 @@ function summariseIsmDrift(collections) {
     }
   }
   return {
-    sourceControlsWithStatus: sourceControls.filter((sourceControl) => typeof sourceControl.statementChangeStatus === "string").length,
+    sourceControlsWithStatus: sourceControls.filter(
+      (sourceControl) => typeof sourceControl.statementChangeStatus === "string"
+    ).length,
     affectedMappings
   };
 }

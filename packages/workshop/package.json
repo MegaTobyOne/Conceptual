@@ -1,249 +1,250 @@
 {
-    "name": "pspf-workshop",
-    "displayName": "PSPF Workshop",
-    "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-    "version": "1.24.0",
-    "private": true,
-    "type": "module",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/MegaTobyOne/Conceptual.git",
-        "directory": "packages/workshop"
-    },
-    "publisher": "tobyharvey",
-    "engines": {
-        "vscode": "^1.100.0"
-    },
-    "categories": [
-        "Other"
-    ],
-    "extensionDependencies": [
-        "tobyharvey.pspf-core"
-    ],
-    "main": "./dist/extension.js",
-    "contributes": {
-        "viewsContainers": {
-            "activitybar": [
-                {
-                    "id": "pspfWorkshop",
-                    "title": "PSPF Workshop",
-                    "icon": "resources/workshop.svg"
-                }
-            ]
-        },
-        "views": {
-            "pspfWorkshop": [
-                {
-                    "type": "webview",
-                    "id": "pspfWorkshop.homeView",
-                    "name": "Workshop Home"
-                }
-            ]
-        },
-        "commands": [
-            {
-                "command": "pspf.workshop.openHome",
-                "title": "PSPF: Open Workshop Home"
-            },
-            {
-                "command": "pspf.workshop.openWelcome",
-                "title": "PSPF: Open Workshop Welcome"
-            },
-            {
-                "command": "pspf.workshop.loadSampleWorkspace",
-                "title": "PSPF: Load Sample Workspace"
-            },
-            {
-                "command": "pspf.workshop.importBundle",
-                "title": "PSPF: Import Explorer Local JSON",
-                "icon": "$(cloud-download)"
-            },
-            {
-                "command": "pspf.workshop.exportBackupJson",
-                "title": "PSPF: Export Backup JSON",
-                "icon": "$(cloud-upload)"
-            },
-            {
-                "command": "pspf.workshop.importBackupJson",
-                "title": "PSPF: Import Backup JSON",
-                "icon": "$(cloud-download)"
-            },
-            {
-                "command": "pspf.workshop.createRequirement",
-                "title": "PSPF: Create Requirement"
-            },
-            {
-                "command": "pspf.workshop.attachEvidence",
-                "title": "PSPF: Add Evidence"
-            },
-            {
-                "command": "pspf.workshop.createAction",
-                "title": "PSPF: Create Action"
-            },
-            {
-                "command": "pspf.workshop.createRisk",
-                "title": "PSPF: Create Risk"
-            },
-            {
-                "command": "pspf.workshop.openRequirementsList",
-                "title": "PSPF: Open Requirements List"
-            },
-            {
-                "command": "pspf.workshop.openEvidenceList",
-                "title": "PSPF: Open Evidence List"
-            },
-            {
-                "command": "pspf.workshop.openActionsList",
-                "title": "PSPF: Open Actions List"
-            },
-            {
-                "command": "pspf.workshop.openRisksList",
-                "title": "PSPF: Open Risks List"
-            },
-            {
-                "command": "pspf.workshop.linkExistingEvidence",
-                "title": "PSPF: Link Existing Evidence"
-            },
-            {
-                "command": "pspf.workshop.linkExistingAction",
-                "title": "PSPF: Link Existing Action"
-            },
-            {
-                "command": "pspf.workshop.linkExistingRisk",
-                "title": "PSPF: Link Existing Risk"
-            },
-            {
-                "command": "pspf.workshop.linkExistingDirection",
-                "title": "PSPF: Link Existing Direction"
-            },
-            {
-                "command": "pspf.workshop.openAssessmentDashboard",
-                "title": "PSPF: Open Assessment Dashboard"
-            },
-            {
-                "command": "pspf.workshop.openConnectedView",
-                "title": "PSPF: Open Connected View",
-                "icon": "$(type-hierarchy)"
-            },
-            {
-                "command": "pspf.workshop.openStrategyMap",
-                "title": "PSPF: Open Cyber Strategy Map",
-                "icon": "$(graph)"
-            },
-            {
-                "command": "pspf.workshop.openEvidenceReviewQueue",
-                "title": "PSPF: Open Evidence Review Queue"
-            },
-            {
-                "command": "pspf.workshop.openItemDetail",
-                "title": "PSPF: Open Item Detail"
-            },
-            {
-                "command": "pspf.workshop.browseIsmSourceControls",
-                "title": "PSPF: Browse ISM Source Controls"
-            },
-            {
-                "command": "pspf.workshop.createRequirementControlMapping",
-                "title": "PSPF: Map Requirement to ISM Control"
-            },
-            {
-                "command": "pspf.workshop.registerDirection",
-                "title": "PSPF: Register Direction"
-            },
-            {
-                "command": "pspf.workshop.updateDirectionResponse",
-                "title": "PSPF: Update Direction Response"
-            },
-            {
-                "command": "pspf.workshop.openDirectionDetail",
-                "title": "PSPF: Open Direction Detail"
-            },
-            {
-                "command": "pspf.workshop.openChangeRecords",
-                "title": "PSPF: Open Change Records"
-            },
-            {
-                "command": "pspf.workshop.recordSignificantChange",
-                "title": "PSPF: Record Significant Change"
-            },
-            {
-                "command": "pspf.workshop.manageTags",
-                "title": "PSPF: Manage Tags"
-            },
-            {
-                "command": "pspf.workshop.manageSavedViews",
-                "title": "PSPF: Manage Saved Views"
-            },
-            {
-                "command": "pspf.workshop.applyTag",
-                "title": "PSPF: Apply Tag to Requirement"
-            },
-            {
-                "command": "pspf.workshop.removeTag",
-                "title": "PSPF: Remove Tag from Requirement"
-            },
-            {
-                "command": "pspf.workshop.filterRequirementsByTag",
-                "title": "PSPF: Filter Requirements by Tag"
-            },
-            {
-                "command": "pspf.workshop.copyPostureBrief",
-                "title": "PSPF: Copy Posture Brief"
-            }
-        ],
-        "menus": {
-            "view/title": [
-                {
-                    "command": "pspf.workshop.importBundle",
-                    "when": "view == pspfWorkshop.homeView",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "pspf.workshop.exportBackupJson",
-                    "when": "view == pspfWorkshop.homeView",
-                    "group": "navigation@1.1"
-                },
-                {
-                    "command": "pspf.workshop.importBackupJson",
-                    "when": "view == pspfWorkshop.homeView",
-                    "group": "navigation@1.2"
-                },
-                {
-                    "command": "pspf.workshop.loadSampleWorkspace",
-                    "when": "view == pspfWorkshop.homeView",
-                    "group": "navigation@2"
-                },
-                {
-                    "command": "pspf.workshop.manageTags",
-                    "when": "view == pspfWorkshop.homeView",
-                    "group": "navigation@3"
-                },
-                {
-                    "command": "pspf.workshop.openChangeRecords",
-                    "when": "view == pspfWorkshop.homeView",
-                    "group": "navigation@4"
-                },
-                {
-                    "command": "pspf.workshop.openConnectedView",
-                    "when": "view == pspfWorkshop.homeView",
-                    "group": "navigation@5"
-                },
-                {
-                    "command": "pspf.workshop.manageSavedViews",
-                    "when": "view == pspfWorkshop.homeView",
-                    "group": "navigation@6"
-                }
-            ]
+  "name": "pspf-workshop",
+  "displayName": "PSPF Workshop",
+  "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
+  "version": "1.24.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MegaTobyOne/Conceptual.git",
+    "directory": "packages/workshop"
+  },
+  "publisher": "tobyharvey",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionDependencies": [
+    "tobyharvey.pspf-core"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pspfWorkshop",
+          "title": "PSPF Workshop",
+          "icon": "resources/workshop.svg"
         }
+      ]
     },
-    "scripts": {
-        "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
-        "test": "node --test dist/**/*.test.js"
+    "views": {
+      "pspfWorkshop": [
+        {
+          "type": "webview",
+          "id": "pspfWorkshop.homeView",
+          "name": "Workshop Home"
+        }
+      ]
     },
-    "dependencies": {
-        "@pspf/brief-renderer": "workspace:*",
-        "@pspf/connected-view": "workspace:*",
-        "@pspf/contracts": "workspace:*"
+    "commands": [
+      {
+        "command": "pspf.workshop.openHome",
+        "title": "PSPF: Open Workshop Home"
+      },
+      {
+        "command": "pspf.workshop.openWelcome",
+        "title": "PSPF: Open Workshop Welcome"
+      },
+      {
+        "command": "pspf.workshop.loadSampleWorkspace",
+        "title": "PSPF: Load Sample Workspace"
+      },
+      {
+        "command": "pspf.workshop.importBundle",
+        "title": "PSPF: Import Explorer Local JSON",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "pspf.workshop.exportBackupJson",
+        "title": "PSPF: Export Backup JSON",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "pspf.workshop.importBackupJson",
+        "title": "PSPF: Import Backup JSON",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "pspf.workshop.createRequirement",
+        "title": "PSPF: Create Requirement"
+      },
+      {
+        "command": "pspf.workshop.attachEvidence",
+        "title": "PSPF: Add Evidence"
+      },
+      {
+        "command": "pspf.workshop.createAction",
+        "title": "PSPF: Create Action"
+      },
+      {
+        "command": "pspf.workshop.createRisk",
+        "title": "PSPF: Create Risk"
+      },
+      {
+        "command": "pspf.workshop.openRequirementsList",
+        "title": "PSPF: Open Requirements List"
+      },
+      {
+        "command": "pspf.workshop.openEvidenceList",
+        "title": "PSPF: Open Evidence List"
+      },
+      {
+        "command": "pspf.workshop.openActionsList",
+        "title": "PSPF: Open Actions List"
+      },
+      {
+        "command": "pspf.workshop.openRisksList",
+        "title": "PSPF: Open Risks List"
+      },
+      {
+        "command": "pspf.workshop.linkExistingEvidence",
+        "title": "PSPF: Link Existing Evidence"
+      },
+      {
+        "command": "pspf.workshop.linkExistingAction",
+        "title": "PSPF: Link Existing Action"
+      },
+      {
+        "command": "pspf.workshop.linkExistingRisk",
+        "title": "PSPF: Link Existing Risk"
+      },
+      {
+        "command": "pspf.workshop.linkExistingDirection",
+        "title": "PSPF: Link Existing Direction"
+      },
+      {
+        "command": "pspf.workshop.openAssessmentDashboard",
+        "title": "PSPF: Open Assessment Dashboard"
+      },
+      {
+        "command": "pspf.workshop.openConnectedView",
+        "title": "PSPF: Open Connected View",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "pspf.workshop.openStrategyMap",
+        "title": "PSPF: Open Cyber Strategy Map",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "pspf.workshop.openEvidenceReviewQueue",
+        "title": "PSPF: Open Evidence Review Queue"
+      },
+      {
+        "command": "pspf.workshop.openItemDetail",
+        "title": "PSPF: Open Item Detail"
+      },
+      {
+        "command": "pspf.workshop.browseIsmSourceControls",
+        "title": "PSPF: Browse ISM Source Controls"
+      },
+      {
+        "command": "pspf.workshop.createRequirementControlMapping",
+        "title": "PSPF: Map Requirement to ISM Control"
+      },
+      {
+        "command": "pspf.workshop.registerDirection",
+        "title": "PSPF: Register Direction"
+      },
+      {
+        "command": "pspf.workshop.updateDirectionResponse",
+        "title": "PSPF: Update Direction Response"
+      },
+      {
+        "command": "pspf.workshop.openDirectionDetail",
+        "title": "PSPF: Open Direction Detail"
+      },
+      {
+        "command": "pspf.workshop.openChangeRecords",
+        "title": "PSPF: Open Change Records"
+      },
+      {
+        "command": "pspf.workshop.recordSignificantChange",
+        "title": "PSPF: Record Significant Change"
+      },
+      {
+        "command": "pspf.workshop.manageTags",
+        "title": "PSPF: Manage Tags"
+      },
+      {
+        "command": "pspf.workshop.manageSavedViews",
+        "title": "PSPF: Manage Saved Views"
+      },
+      {
+        "command": "pspf.workshop.applyTag",
+        "title": "PSPF: Apply Tag to Requirement"
+      },
+      {
+        "command": "pspf.workshop.removeTag",
+        "title": "PSPF: Remove Tag from Requirement"
+      },
+      {
+        "command": "pspf.workshop.filterRequirementsByTag",
+        "title": "PSPF: Filter Requirements by Tag"
+      },
+      {
+        "command": "pspf.workshop.copyPostureBrief",
+        "title": "PSPF: Copy Posture Brief"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pspf.workshop.importBundle",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.workshop.exportBackupJson",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@1.1"
+        },
+        {
+          "command": "pspf.workshop.importBackupJson",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@1.2"
+        },
+        {
+          "command": "pspf.workshop.loadSampleWorkspace",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pspf.workshop.manageTags",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "pspf.workshop.openChangeRecords",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4"
+        },
+        {
+          "command": "pspf.workshop.openConnectedView",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@5"
+        },
+        {
+          "command": "pspf.workshop.manageSavedViews",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@6"
+        }
+      ]
     }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "dependencies": {
+    "@pspf/brief-renderer": "workspace:*",
+    "@pspf/connected-view": "workspace:*",
+    "@pspf/contracts": "workspace:*",
+    "@pspf/webview-shell": "workspace:*"
+  }
 }

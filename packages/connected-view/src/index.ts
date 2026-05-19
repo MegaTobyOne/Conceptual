@@ -37,14 +37,7 @@ export interface ConnectedViewInput {
 
 export type ConnectedViewNodeKind = "direction" | "requirement" | "risk" | "action";
 
-export type ConnectedViewBadgeTone =
-  | "ok"
-  | "partial"
-  | "gap"
-  | "info"
-  | "warn"
-  | "danger"
-  | "neutral";
+export type ConnectedViewBadgeTone = "ok" | "partial" | "gap" | "info" | "warn" | "danger" | "neutral";
 
 export interface ConnectedViewBadge {
   readonly label: string;
@@ -149,9 +142,7 @@ export function buildConnectedViewModel(input: ConnectedViewInput): ConnectedVie
       title: domain.title,
       kind: "requirements" as const,
       domainCode: domain.code,
-      nodeIds: requirementNodes
-        .filter((node) => node.domainCode === domain.code)
-        .map((node) => node.id)
+      nodeIds: requirementNodes.filter((node) => node.domainCode === domain.code).map((node) => node.id)
     }))
     .filter((lane) => lane.nodeIds.length > 0);
 
@@ -204,7 +195,11 @@ function edgesFromLinks(links: readonly LinkEntity[], nodeIds: ReadonlySet<strin
 }
 
 function isOrientedEdge(link: LinkEntity): boolean {
-  if (link.fromType === "direction" && link.toType === "requirement" && DIRECTION_TO_REQUIREMENT_LINKS.has(link.linkType)) {
+  if (
+    link.fromType === "direction" &&
+    link.toType === "requirement" &&
+    DIRECTION_TO_REQUIREMENT_LINKS.has(link.linkType)
+  ) {
     return true;
   }
   if (link.fromType === "requirement" && link.toType === "risk" && REQUIREMENT_TO_RISK_LINKS.has(link.linkType)) {
@@ -232,7 +227,11 @@ function isReverseOrientedEdge(link: LinkEntity): boolean {
   if (link.fromType === "action" && link.toType === "requirement" && REQUIREMENT_TO_ACTION_LINKS.has(link.linkType)) {
     return true;
   }
-  if (link.fromType === "requirement" && link.toType === "direction" && DIRECTION_TO_REQUIREMENT_LINKS.has(link.linkType)) {
+  if (
+    link.fromType === "requirement" &&
+    link.toType === "direction" &&
+    DIRECTION_TO_REQUIREMENT_LINKS.has(link.linkType)
+  ) {
     return true;
   }
   if (link.fromType === "action" && link.toType === "direction" && DIRECTION_TO_ACTION_LINKS.has(link.linkType)) {
@@ -352,7 +351,10 @@ export interface ConnectedViewRenderOptions {
  * page is responsible for adding the browser script (see
  * CONNECTED_VIEW_BROWSER_SCRIPT) once per page.
  */
-export function renderConnectedViewBodyHtml(model: ConnectedViewModel, options: ConnectedViewRenderOptions = {}): string {
+export function renderConnectedViewBodyHtml(
+  model: ConnectedViewModel,
+  options: ConnectedViewRenderOptions = {}
+): string {
   const mode = options.mode ?? "workshop";
   const defaultLayout = options.defaultLayout ?? (mode === "explorer" ? "compact" : "domains");
   const showDirections = options.showDirectionsLane ?? true;
@@ -367,9 +369,7 @@ export function renderConnectedViewBodyHtml(model: ConnectedViewModel, options: 
     domains: model.domains
   });
 
-  const laneHtml = lanes
-    .map((lane) => renderLaneHtml(lane, nodesById, mode))
-    .join("");
+  const laneHtml = lanes.map((lane) => renderLaneHtml(lane, nodesById, mode)).join("");
 
   return `
 <div class="pspf-connected-view ${initialClass}" data-pspf-connected-view data-default-layout="${defaultLayout}" data-mode="${mode}">
@@ -407,7 +407,11 @@ export function renderConnectedViewBodyHtml(model: ConnectedViewModel, options: 
 </div>`;
 }
 
-function renderLaneHtml(lane: ConnectedViewLane, nodesById: Map<string, ConnectedViewNode>, mode: "workshop" | "explorer"): string {
+function renderLaneHtml(
+  lane: ConnectedViewLane,
+  nodesById: Map<string, ConnectedViewNode>,
+  mode: "workshop" | "explorer"
+): string {
   const cards = lane.nodeIds
     .map((id) => nodesById.get(id))
     .filter((node): node is ConnectedViewNode => Boolean(node))
@@ -435,9 +439,10 @@ function renderCardHtml(node: ConnectedViewNode, mode: "workshop" | "explorer"):
     : `${node.reference} — ${node.title}`;
   const domainAttr = node.domainCode ? ` data-cv-domain="${escapeAttr(node.domainCode)}"` : "";
   const detailAttr = badgeLabels ? ` data-cv-detail="${escapeAttr(badgeLabels)}"` : "";
-  const openButton = mode === "workshop"
-    ? `<button type="button" class="cv-card-open" data-command="openEntity" data-entity-type="${escapeAttr(node.kind)}" data-entity-id="${escapeAttr(node.id)}" aria-label="Open ${escapeAttr(node.kind)} detail" tabindex="-1">Open</button>`
-    : "";
+  const openButton =
+    mode === "workshop"
+      ? `<button type="button" class="cv-card-open" data-command="openEntity" data-entity-type="${escapeAttr(node.kind)}" data-entity-id="${escapeAttr(node.id)}" aria-label="Open ${escapeAttr(node.kind)} detail" tabindex="-1">Open</button>`
+      : "";
   return `
 <article class="cv-card cv-card-${node.kind}" data-cv-card data-cv-id="${escapeAttr(node.id)}" data-cv-kind="${node.kind}"${domainAttr}${detailAttr} tabindex="0" aria-label="${escapeAttr(tooltipText)}">
   <div class="cv-card-ref">${escapeHtml(node.reference)}</div>
@@ -451,11 +456,7 @@ function platformModifierHint(): string {
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 function escapeAttr(value: string): string {
@@ -466,21 +467,21 @@ function escapeAttr(value: string): string {
 
 export const CONNECTED_VIEW_STYLES = String.raw`
 .pspf-connected-view {
-  --cv-bg: var(--vscode-editor-background, #141311);
-  --cv-surface: var(--vscode-input-background, #1d1b17);
-  --cv-surface-strong: color-mix(in srgb, var(--vscode-input-background, #25221d) 90%, #ffffff 4%);
-  --cv-border: var(--vscode-panel-border, #2a3140);
-  --cv-text: var(--vscode-foreground, #e6e9ef);
-  --cv-muted: var(--vscode-descriptionForeground, #8a93a3);
-  --cv-accent: var(--vscode-textLink-foreground, #4f8cff);
+  --cv-bg: var(--pspf-surface, var(--vscode-editor-background, #141311));
+  --cv-surface: var(--pspf-surface, var(--vscode-input-background, #1d1b17));
+  --cv-surface-strong: var(--pspf-surface-strong, color-mix(in srgb, var(--vscode-input-background, #25221d) 90%, #ffffff 4%));
+  --cv-border: var(--pspf-border, var(--vscode-panel-border, #2a3140));
+  --cv-text: var(--pspf-text, var(--vscode-foreground, #e6e9ef));
+  --cv-muted: var(--pspf-muted, var(--vscode-descriptionForeground, #8a93a3));
+  --cv-accent: var(--pspf-link, var(--vscode-textLink-foreground, #4f8cff));
   --cv-dom-governance: #6ea8ff;
   --cv-dom-security-risk: #f0a36d;
   --cv-dom-information: #7ad3a3;
   --cv-dom-technology: #b39bff;
   --cv-dom-personnel: #f0c36d;
   --cv-dom-physical: #d59bff;
-  --cv-risk: #ff8c8c;
-  --cv-action: #5dd4c2;
+  --cv-risk: var(--pspf-danger, #ff8c8c);
+  --cv-action: var(--pspf-ok, #5dd4c2);
   --cv-direction: #87a8ff;
   --cv-line: color-mix(in srgb, var(--cv-muted) 55%, transparent);
   --cv-line-sel: var(--cv-accent);
@@ -489,7 +490,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   flex-direction: column;
   --cv-zoom: 1;
   color: var(--cv-text);
-  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font: var(--pspf-type-body, 13px)/var(--pspf-line-body, 1.45) -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 .pspf-connected-view * { box-sizing: border-box; }
 
@@ -506,10 +507,11 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 
 .cv-chip {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px; border-radius: 999px;
+  padding: 4px 10px; border-radius: var(--pspf-radius-pill, 999px);
   border: 1px solid var(--cv-border); background: var(--cv-surface-strong);
   color: var(--cv-text); font: inherit; cursor: pointer;
 }
+.cv-chip:focus-visible { outline: 2px solid var(--pspf-focus, var(--cv-accent)); outline-offset: 1px; }
 .cv-chip[aria-pressed="false"] { opacity: 0.55; }
 .cv-chip-label { color: var(--cv-muted); }
 .cv-zoom-level { color: var(--cv-muted); font-size: 11.5px; min-width: 38px; text-align: center; }
@@ -542,7 +544,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   display: flex; flex-direction: column;
   background: var(--cv-surface);
   border: 1px solid var(--cv-border);
-  border-radius: 8px;
+  border-radius: var(--pspf-radius, 8px);
   min-height: 360px;
 }
 .cv-lane-header {
@@ -579,6 +581,8 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 }
 .cv-empty {
   margin: 6px; color: var(--cv-muted); font-size: 12px; text-align: center;
+  border: 1px solid var(--cv-border); border-radius: var(--pspf-radius, 6px);
+  background: var(--cv-surface-strong); padding: var(--pspf-gap, 10px);
 }
 
 .cv-card {
@@ -586,14 +590,14 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   background: var(--cv-surface-strong);
   border: 1px solid var(--cv-border);
   border-left: 3px solid color-mix(in srgb, var(--cv-muted) 50%, transparent);
-  border-radius: 6px;
+  border-radius: var(--pspf-radius, 6px);
   padding: 7px 9px;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, opacity 200ms ease;
+  transition: background var(--pspf-motion-standard, 120ms) var(--pspf-ease-standard, ease), border-color var(--pspf-motion-standard, 120ms) var(--pspf-ease-standard, ease), opacity 200ms ease;
   outline: none;
 }
 .cv-card:hover { background: color-mix(in srgb, var(--cv-surface-strong) 85%, var(--cv-accent) 10%); }
-.cv-card:focus-visible { outline: 2px solid var(--cv-accent); outline-offset: 1px; }
+.cv-card:focus-visible { outline: 2px solid var(--pspf-focus, var(--cv-accent)); outline-offset: 1px; }
 .cv-card-ref {
   font-size: 10.5px; color: var(--cv-muted);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
@@ -605,15 +609,15 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   overflow-wrap: anywhere; line-height: 1.3;
 }
 .cv-badge {
-  font-size: 10.5px; padding: 1px 7px; border-radius: 999px;
+  font-size: var(--pspf-type-label, 10.5px); padding: var(--pspf-pill-pad-y, 1px) var(--pspf-pill-pad-x, 7px); border-radius: var(--pspf-radius-pill, 999px);
   border: 1px solid var(--cv-border); color: var(--cv-muted);
   background: color-mix(in srgb, var(--cv-surface) 60%, transparent);
 }
-.cv-badge-ok { color: var(--cv-action); border-color: color-mix(in srgb, var(--cv-action) 50%, transparent); }
+.cv-badge-ok { color: var(--pspf-ok, var(--cv-action)); border-color: color-mix(in srgb, var(--pspf-ok, var(--cv-action)) 50%, transparent); }
 .cv-badge-info { color: var(--cv-accent); border-color: color-mix(in srgb, var(--cv-accent) 50%, transparent); }
 .cv-badge-partial { color: var(--cv-dom-personnel); border-color: color-mix(in srgb, var(--cv-dom-personnel) 50%, transparent); }
-.cv-badge-warn { color: var(--cv-dom-security-risk); border-color: color-mix(in srgb, var(--cv-dom-security-risk) 50%, transparent); }
-.cv-badge-gap, .cv-badge-danger { color: var(--cv-risk); border-color: color-mix(in srgb, var(--cv-risk) 50%, transparent); }
+.cv-badge-warn { color: var(--pspf-warn, var(--cv-dom-security-risk)); border-color: color-mix(in srgb, var(--pspf-warn, var(--cv-dom-security-risk)) 50%, transparent); }
+.cv-badge-gap, .cv-badge-danger { color: var(--pspf-danger, var(--cv-risk)); border-color: color-mix(in srgb, var(--pspf-danger, var(--cv-risk)) 50%, transparent); }
 .cv-badge-neutral { color: var(--cv-muted); }
 
 .cv-card-direction { border-left-color: var(--cv-direction); }
@@ -629,7 +633,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 .cv-card-open {
   position: absolute; top: 6px; right: 6px;
   font-size: 10.5px; padding: 1px 7px;
-  border: 1px solid var(--cv-border); border-radius: 999px;
+  border: 1px solid var(--cv-border); border-radius: var(--pspf-radius-pill, 999px);
   background: var(--cv-surface);
   color: var(--cv-text);
   cursor: pointer;

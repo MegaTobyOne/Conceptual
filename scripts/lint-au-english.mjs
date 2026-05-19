@@ -17,7 +17,8 @@ const SKIP_DIRECTORIES = new Set([
 
 const ROOT_FILES = ["README.md", ".github/copilot-instructions.md"];
 const SCANNED_TREES = ["docs", "adr"];
-const ROOT_MARKDOWN_GLOB = /^(?:pspf-.*\.md|validation-scenario-.*\.md|explorer-screen-workflow-spec\.md|extracted-spec-pspf-explorer\.md)$/;
+const ROOT_MARKDOWN_GLOB =
+  /^(?:pspf-.*\.md|validation-scenario-.*\.md|explorer-screen-workflow-spec\.md|extracted-spec-pspf-explorer\.md)$/;
 
 const targets = new Set();
 for (const file of ROOT_FILES) {
