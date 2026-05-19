@@ -70,6 +70,9 @@ importers:
       '@pspf/reference-data':
         specifier: workspace:*
         version: link:../reference-data
+      '@pspf/webview-shell':
+        specifier: workspace:*
+        version: link:../webview-shell
       sql.js:
         specifier: ^1.14.1
         version: 1.14.1
