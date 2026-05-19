@@ -358,6 +358,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **System-of-record boundary gate**: Shop copy states that Shop is a commercial planning view, not the contract system of record; v1.21 does not add document storage, new entity types, new fields, new link verbs, or compatibility-axis changes.
 8. **Regression gate**: `check:shop-coverage-dashboard`, `check:release-candidate`, `lint`, and `typecheck` pass.
 
+### v1.22 candidate gates (Operator input assistance and review polish, per ADR 0058)
+
+1. **ADR gate**: ADR 0058 records the operator-input assistance and review-polish decision before implementation starts.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.22.0`; schema, bundle, and API axes remain `1.8.0`; no new schema directory is introduced.
+3. **Relative due-date gate**: Workshop Action create/edit accepts `today` in the due-date field and stores the resolved local calendar date as the existing short AU date string, not the relative word.
+4. **Prompt visibility gate**: the visible Action due-date prompt and editor placeholder advertise `today` alongside an explicit AU date example.
+5. **Export stability gate**: Core records, Explorer bundles, and posture briefs never emit raw relative date tokens for Action due dates after Workshop normalisation.
+6. **Review polish gate**: v1.22 review-surface copy and layout changes make existing Action, Shop forecast, supplier-management, and Connected View cues clearer without adding new fields, link verbs, or workflow states.
+7. **Deferred-scope gate**: v1.22 does not add broad natural-language date parsing, reminders, recurring actions, notifications, calendars, approvals, Pub assignment workflows, editable Explorer commercial views, chart/PDF export, new entity types, new fields, new link verbs, or compatibility-axis changes.
+8. **Regression gate**: `check:shop-coverage-dashboard`, `check:release-candidate`, `lint`, `typecheck`, and Workshop unit tests pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.
