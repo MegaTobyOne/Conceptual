@@ -19,6 +19,7 @@ import {
   withEnvelope
 } from "@pspf/contracts";
 import { tokensCss } from "@pspf/webview-shell";
+import { commandUri, escapeHtml, formatCurrency, formatToken } from "./webview/util.js";
 
 const SHOP_STORE_VERSION = "1.0.0";
 const SHOP_STORE_PATH = [".pspf", "shop", "shop.json"] as const;
@@ -2589,10 +2590,6 @@ function renderCoverageRow(group: CoverageGroup): string {
     </div>`;
 }
 
-function commandUri(command: string, args: readonly unknown[]): string {
-  return `command:${command}?${encodeURIComponent(JSON.stringify(args))}`;
-}
-
 function getPublicationStatus(store: ShopStore): string {
   const entities = [...store.suppliers, ...store.contracts, ...store.spendItems];
   const blocked = entities.filter((entity) => {
@@ -2609,17 +2606,6 @@ function getPublicationStatus(store: ShopStore): string {
 function getWorkspaceUri(fileName: string): vscode.Uri | undefined {
   const folder = vscode.workspace.workspaceFolders?.[0];
   return folder ? vscode.Uri.joinPath(folder.uri, fileName) : undefined;
-}
-
-function formatToken(value: string): string {
-  return value
-    .split("-")
-    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
-    .join(" ");
-}
-
-function formatCurrency(value: number, currency = "AUD"): string {
-  return new Intl.NumberFormat("en-AU", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
 }
 
 function moneyAmount(amount: number, currency = "AUD"): MoneyAmount {
@@ -2641,13 +2627,4 @@ function iconFor(iconName: "contract" | "home" | "info" | "sample" | "spend" | "
     case "supplier":
       return "briefcase";
   }
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
