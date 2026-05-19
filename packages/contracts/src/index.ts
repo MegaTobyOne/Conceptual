@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.8.0",
-  bundleVersion: "1.8.0",
-  apiVersion: "1.8.0"
+  schemaVersion: "1.9.0",
+  bundleVersion: "1.9.0",
+  apiVersion: "1.9.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.21.0" as const;
+export const PSPF_SLICE_VERSION = "1.23.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -457,6 +457,7 @@ export interface SpendItemEntity extends EntityEnvelope {
   readonly status: SpendStatus;
   readonly amount: MoneyAmount;
   readonly financialYear: string;
+  readonly costCentre?: string;
   readonly forecastStartAt?: string;
   readonly forecastEndAt?: string;
   readonly forecastCost?: MoneyAmount;
@@ -617,6 +618,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
     entityType: "spend-item",
     fields: [
       ...internalFields("id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "spendType", "status", "financialYear", "savingsType", "paybackPeriodMonths", "confidence"),
+      { field: "costCentre", publication: "sensitive" },
       { field: "amount", publication: "sensitive" },
       { field: "forecastStartAt", publication: "sensitive" },
       { field: "forecastEndAt", publication: "sensitive" },

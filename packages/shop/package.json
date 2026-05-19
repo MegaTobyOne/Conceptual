@@ -2,7 +2,7 @@
     "name": "pspf-shop",
     "displayName": "PSPF Shop",
     "description": "PSPF commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.",
-    "version": "1.21.0",
+    "version": "1.23.0",
     "private": true,
     "type": "module",
     "license": "MIT",
@@ -23,6 +23,16 @@
     ],
     "main": "./dist/extension.js",
     "contributes": {
+        "configuration": {
+            "title": "PSPF Shop",
+            "properties": {
+                "pspf.shop.defaultCostCentre": {
+                    "type": "string",
+                    "default": "",
+                    "markdownDescription": "Default cost centre text used to prefill new PSPF Shop spend items. Changing this setting does not update existing spend items."
+                }
+            }
+        },
         "viewsContainers": {
             "activitybar": [
                 {
@@ -127,6 +137,10 @@
                 "title": "PSPF: Link Contract to Spend Item"
             },
             {
+                "command": "pspf.shop.linkSpendItemToContract",
+                "title": "PSPF: Link Spend Item to Contract"
+            },
+            {
                 "command": "pspf.shop.linkSpendToAction",
                 "title": "PSPF: Link Spend to Action"
             },
@@ -190,14 +204,19 @@
                     "group": "navigation@2"
                 },
                 {
-                    "command": "pspf.shop.linkSpendToAction",
+                    "command": "pspf.shop.linkSpendItemToContract",
                     "when": "viewItem == pspfShopSpendItem",
                     "group": "navigation@1"
                 },
                 {
-                    "command": "pspf.shop.linkSpendToRequirement",
+                    "command": "pspf.shop.linkSpendToAction",
                     "when": "viewItem == pspfShopSpendItem",
                     "group": "navigation@2"
+                },
+                {
+                    "command": "pspf.shop.linkSpendToRequirement",
+                    "when": "viewItem == pspfShopSpendItem",
+                    "group": "navigation@3"
                 }
             ]
         }

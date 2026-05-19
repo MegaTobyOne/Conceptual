@@ -2,7 +2,7 @@
     "name": "pspf-workshop",
     "displayName": "PSPF Workshop",
     "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-    "version": "1.21.0",
+    "version": "1.23.0",
     "private": true,
     "type": "module",
     "license": "MIT",
@@ -60,6 +60,16 @@
                 "icon": "$(cloud-download)"
             },
             {
+                "command": "pspf.workshop.exportBackupJson",
+                "title": "PSPF: Export Backup JSON",
+                "icon": "$(cloud-upload)"
+            },
+            {
+                "command": "pspf.workshop.importBackupJson",
+                "title": "PSPF: Import Backup JSON",
+                "icon": "$(cloud-download)"
+            },
+            {
                 "command": "pspf.workshop.createRequirement",
                 "title": "PSPF: Create Requirement"
             },
@@ -74,6 +84,22 @@
             {
                 "command": "pspf.workshop.createRisk",
                 "title": "PSPF: Create Risk"
+            },
+            {
+                "command": "pspf.workshop.openRequirementsList",
+                "title": "PSPF: Open Requirements List"
+            },
+            {
+                "command": "pspf.workshop.openEvidenceList",
+                "title": "PSPF: Open Evidence List"
+            },
+            {
+                "command": "pspf.workshop.openActionsList",
+                "title": "PSPF: Open Actions List"
+            },
+            {
+                "command": "pspf.workshop.openRisksList",
+                "title": "PSPF: Open Risks List"
             },
             {
                 "command": "pspf.workshop.linkExistingEvidence",
@@ -167,6 +193,16 @@
                     "command": "pspf.workshop.importBundle",
                     "when": "view == pspfWorkshop.homeView",
                     "group": "navigation@1"
+                },
+                {
+                    "command": "pspf.workshop.exportBackupJson",
+                    "when": "view == pspfWorkshop.homeView",
+                    "group": "navigation@1.1"
+                },
+                {
+                    "command": "pspf.workshop.importBackupJson",
+                    "when": "view == pspfWorkshop.homeView",
+                    "group": "navigation@1.2"
                 },
                 {
                     "command": "pspf.workshop.loadSampleWorkspace",

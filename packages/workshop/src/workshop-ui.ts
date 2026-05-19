@@ -51,12 +51,23 @@ export function formatShortAuDateTime(value: string | Date | undefined): string 
     return usesTime ? `${dateText}, ${formatTime(date)}` : dateText;
 }
 
-export function normaliseShortAuDateTime(value: string | undefined): string | undefined {
+export function normaliseShortAuDateTime(value: string | undefined, referenceDate = new Date()): string | undefined {
     const trimmed = value?.trim();
     if (!trimmed) {
         return undefined;
     }
+    const relativeDate = resolveRelativeDateInput(trimmed, referenceDate);
+    if (relativeDate) {
+        return formatShortAuDateTime(relativeDate);
+    }
     return formatShortAuDateTime(trimmed);
+}
+
+function resolveRelativeDateInput(value: string, referenceDate: Date): Date | undefined {
+    if (value.toLowerCase() !== "today") {
+        return undefined;
+    }
+    return validLocalDate(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate(), 0, 0);
 }
 
 function extractRequirementNumber(title: string | undefined): string | undefined {

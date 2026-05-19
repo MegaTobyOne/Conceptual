@@ -22,4 +22,5 @@ test("due dates render as short AU dates without raw ISO noise", () => {
     assert.equal(formatShortAuDateTime("2026-06-30T00:00:00.000Z"), "30 Jun 2026");
     assert.equal(normaliseShortAuDateTime("30/06/2026"), "30 Jun 2026");
     assert.equal(normaliseShortAuDateTime("30 Jun 2026"), "30 Jun 2026");
+    assert.equal(normaliseShortAuDateTime("today", new Date(2026, 4, 19, 15, 45)), "19 May 2026");
 });

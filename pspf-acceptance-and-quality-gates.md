@@ -358,6 +358,32 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **System-of-record boundary gate**: Shop copy states that Shop is a commercial planning view, not the contract system of record; v1.21 does not add document storage, new entity types, new fields, new link verbs, or compatibility-axis changes.
 8. **Regression gate**: `check:shop-coverage-dashboard`, `check:release-candidate`, `lint`, and `typecheck` pass.
 
+### v1.22 candidate gates (Operator input assistance and review polish, per ADR 0058)
+
+1. **ADR gate**: ADR 0058 records the operator-input assistance and review-polish decision before implementation starts.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.22.0`; schema, bundle, and API axes remain `1.8.0`; no new schema directory is introduced.
+3. **Relative due-date gate**: Workshop Action create/edit accepts `today` in the due-date field and stores the resolved local calendar date as the existing short AU date string, not the relative word.
+4. **Prompt visibility gate**: the visible Action due-date prompt and editor placeholder advertise `today` alongside an explicit AU date example.
+5. **Export stability gate**: Core records, Explorer bundles, and posture briefs never emit raw relative date tokens for Action due dates after Workshop normalisation.
+6. **Explorer Connected View gate**: Explorer opens Connected View to a usable board by default, renders a linked Direction -> Requirement -> Risk -> Action chain with SVG edges, and surfaces a clear message if the shared Connected View script cannot initialise.
+7. **Saved Views usability gate**: Workshop Saved Views manager shows active/archived counts, exposes an explicit Open view action for active views, and refreshes the manager after create, rename, or archive operations.
+8. **Workshop navigation gate**: Workshop Home exposes Requirements, Evidence, Actions, and Risks browse buttons that open list panels with Open actions and refresh without losing the panel.
+9. **Backup JSON gate**: export/import copy and runbook guidance explain that exported master JSON can be used as a restore-oriented backup only through the existing validated import review and undo path.
+10. **Deferred-scope gate**: v1.22 does not add Connected View zoom/lane controls, selected-card repositioning, Shop spend-linking cues, broad natural-language date parsing, reminders, recurring actions, notifications, calendars, approvals, Pub assignment workflows, editable Explorer commercial views, chart/PDF export, office/cost-centre fields, new entity types, new fields, new link verbs, or compatibility-axis changes.
+11. **Regression gate**: `check:explorer-publication`, `check:release-candidate`, `lint`, `typecheck`, and Workshop unit tests pass.
+
+### v1.23 candidate gates (Connected View controls and commercial planning polish, per ADR 0059)
+
+1. **ADR gate**: ADR 0059 records the Connected View controls and commercial-planning polish decision before implementation starts.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.23.0`; schema, bundle, and API axes are `1.9.0` because the optional spend-item `costCentre` field is accepted.
+3. **Connected View controls gate**: Explorer Connected View exposes zoom in, zoom out, reset, and lane visibility controls that preserve keyboard access and relationship highlighting.
+4. **Selected-chain gate**: selecting a Connected View card scrolls the first selected or highlighted card into view and makes the connected chain visually easier to find without changing link semantics.
+5. **Shared-boundary gate**: v1.23 records whether graph controls remain Explorer-shell behaviour or move into `@pspf/connected-view` for Workshop reuse; relationship model, redaction, and selection semantics remain shared.
+6. **Spend-linking gate**: Shop highlights spend items that lack an existing `contract funds spend-item` link and routes operators to the existing commercial-link flow.
+7. **Cost-centre field gate**: v1.23 adds optional `SpendItemEntity.costCentre` text with sensitive publication policy, `schemas/explorer-bundle/1.9.0` publication coverage that excludes the sensitive field, Shop create/edit support, CSV/XLS export columns, and a `pspf.shop.defaultCostCentre` setting used only for new spend-item defaults.
+8. **Deferred-scope gate**: v1.23 does not add editable Connected View, drag-to-link, new graph link verbs, reminders, recurring actions, notifications, calendars, approvals, Pub assignment workflows, editable Explorer commercial views, chart/PDF export, or new commercial workflow states.
+9. **Regression gate**: `check:explorer-publication`, `check:shop-coverage-dashboard`, `check:release-candidate`, `lint`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

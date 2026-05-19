@@ -77,9 +77,15 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openWelcome", openWelcome),
     vscode.commands.registerCommand("pspf.workshop.loadSampleWorkspace", loadSampleWorkspace),
     vscode.commands.registerCommand("pspf.workshop.importBundle", importBundle),
+    vscode.commands.registerCommand("pspf.workshop.exportBackupJson", exportBackupJson),
+    vscode.commands.registerCommand("pspf.workshop.importBackupJson", importBackupJson),
     vscode.commands.registerCommand("pspf.workshop.attachEvidence", attachEvidence),
     vscode.commands.registerCommand("pspf.workshop.createAction", createAction),
     vscode.commands.registerCommand("pspf.workshop.createRisk", createRisk),
+    vscode.commands.registerCommand("pspf.workshop.openRequirementsList", openRequirementsList),
+    vscode.commands.registerCommand("pspf.workshop.openEvidenceList", openEvidenceList),
+    vscode.commands.registerCommand("pspf.workshop.openActionsList", openActionsList),
+    vscode.commands.registerCommand("pspf.workshop.openRisksList", openRisksList),
     vscode.commands.registerCommand("pspf.workshop.linkExistingEvidence", linkExistingEvidence),
     vscode.commands.registerCommand("pspf.workshop.linkExistingAction", linkExistingAction),
     vscode.commands.registerCommand("pspf.workshop.linkExistingRisk", linkExistingRisk),
@@ -115,6 +121,16 @@ async function openHome(): Promise<void> {
 
 async function importBundle(): Promise<void> {
   await vscode.commands.executeCommand("pspf.core.importExplorerLocalBundle");
+  await homeViewProvider?.refresh();
+}
+
+async function exportBackupJson(): Promise<void> {
+  await vscode.commands.executeCommand("pspf.core.exportBundle");
+  await homeViewProvider?.refresh();
+}
+
+async function importBackupJson(): Promise<void> {
+  await vscode.commands.executeCommand("pspf.core.importBundle");
   await homeViewProvider?.refresh();
 }
 
@@ -178,11 +194,17 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.core.runIntegrityScan",
       "pspf.core.createSnapshot",
       "pspf.core.exportBundle",
+      "pspf.workshop.exportBackupJson",
+      "pspf.workshop.importBackupJson",
       "pspf.workshop.loadSampleWorkspace",
       "pspf.workshop.createRequirement",
       "pspf.workshop.attachEvidence",
       "pspf.workshop.createAction",
       "pspf.workshop.createRisk",
+      "pspf.workshop.openRequirementsList",
+      "pspf.workshop.openEvidenceList",
+      "pspf.workshop.openActionsList",
+      "pspf.workshop.openRisksList",
       "pspf.workshop.openAssessmentDashboard",
       "pspf.workshop.openConnectedView",
       "pspf.workshop.openEvidenceReviewQueue",
@@ -293,6 +315,10 @@ function renderHomeView(model: WorkshopHomeModel): string {
       <p class="muted">Recent requirement: ${escapeHtml(model.recentRequirementTitle)}</p>
       <div class="action-list">
         ${homeButton("pspf.workshop.home.continue", "Continue next task", "Open the highest-priority review surface")}
+        ${homeButton("pspf.workshop.openRequirementsList", "Requirements", "Browse and open Requirements")}
+        ${homeButton("pspf.workshop.openEvidenceList", "Evidence", "Browse evidence records")}
+        ${homeButton("pspf.workshop.openActionsList", "Actions", "Browse Action records")}
+        ${homeButton("pspf.workshop.openRisksList", "Risks", "Browse Risk records")}
         ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
         ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
@@ -304,9 +330,9 @@ function renderHomeView(model: WorkshopHomeModel): string {
       <h2>Create</h2>
       <div class="action-list compact">
         ${homeButton("pspf.workshop.createRequirement", "Requirement")}
-        ${homeButton("pspf.workshop.attachEvidence", "Evidence")}
-        ${homeButton("pspf.workshop.createAction", "Action")}
-        ${homeButton("pspf.workshop.createRisk", "Risk")}
+        ${homeButton("pspf.workshop.attachEvidence", "Add evidence")}
+        ${homeButton("pspf.workshop.createAction", "Create action")}
+        ${homeButton("pspf.workshop.createRisk", "Create risk")}
         ${homeButton("pspf.workshop.registerDirection", "Direction")}
         ${homeButton("pspf.workshop.recordSignificantChange", "Change record")}
         ${homeButton("pspf.workshop.manageTags", "Tag")}
@@ -319,7 +345,8 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.core.validateWorkspace", "Validate")}
         ${homeButton("pspf.core.runIntegrityScan", "Integrity scan")}
         ${homeButton("pspf.core.createSnapshot", "Snapshot")}
-        ${homeButton("pspf.core.exportBundle", "Export")}
+        ${homeButton("pspf.workshop.exportBackupJson", "Export backup JSON")}
+        ${homeButton("pspf.workshop.importBackupJson", "Import backup JSON")}
         ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
       </div>
     </section>
@@ -594,7 +621,7 @@ async function createAction(requirementId?: string): Promise<void> {
 
   const dueDate = await vscode.window.showInputBox({
     title: "Create Action",
-    prompt: "Due date, for example 30 Jun 2026. Press Enter to skip.",
+    prompt: "Due date, for example today or 30 Jun 2026. Press Enter to skip.",
     ignoreFocusOut: true
   });
   if (dueDate === undefined) {
@@ -964,6 +991,90 @@ async function openEvidenceReviewQueue(): Promise<void> {
     ${recordTable("Evidence Needing Freshness Review", ageingEvidence, ["title", "freshness", "reference"])}
     ${recordTable("Unlinked Evidence", unlinkedEvidence, ["title", "freshness", "reference"])}
   `);
+}
+
+async function openRequirementsList(): Promise<void> {
+  await ensureCoreReady();
+  await openRecordListPanel("PSPF Requirements", "Requirements", "Browse Requirements and open a record to review or edit it.", async () => {
+    const allEntities = await listAllEntities();
+    const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.linkType === "tagged-with");
+    const tagsById = new Map(allEntities.filter((entity): entity is TagEntity => entity.entityType === "tag").map((tag) => [tag.id, tag]));
+    return allEntities
+      .filter((entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted")
+      .sort(compareRequirementsForPicker)
+      .map((requirement) => ({
+        openEntityType: "requirement",
+        openEntityId: requirement.id,
+        title: requirement.title,
+        domain: domainName(requirement.domainId),
+        status: label(requirement.assessmentStatus),
+        tags: links.filter((link) => link.fromId === requirement.id).map((link) => tagChipLabel(tagsById.get(link.toId))).join(", ") || "None"
+      }));
+  }, ["title", "domain", "status", "tags"]);
+}
+
+async function openEvidenceList(): Promise<void> {
+  await ensureCoreReady();
+  await openRecordListPanel("PSPF Evidence", "Evidence", "Browse evidence records and open one to update its reference, freshness, or links.", async () => (await listAllEntities())
+    .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted")
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }))
+    .map((evidence) => ({
+      openEntityType: "evidence",
+      openEntityId: evidence.id,
+      title: evidence.title,
+      type: label(evidence.evidenceType),
+      freshness: label(evidence.freshness),
+      reference: evidence.reference || "Not recorded"
+    })), ["title", "type", "freshness", "reference"]);
+}
+
+async function openActionsList(): Promise<void> {
+  await ensureCoreReady();
+  await openRecordListPanel("PSPF Actions", "Actions", "Browse Action records, including status, urgency, and due date.", async () => enrichActionsWithImpact(await listAllEntities())
+    .filter((entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted")
+    .sort((left, right) => (formatShortAuDateTime(left.dueDate) ?? "").localeCompare(formatShortAuDateTime(right.dueDate) ?? "") || left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }))
+    .map((action) => ({
+      openEntityType: "action",
+      openEntityId: action.id,
+      title: action.title,
+      status: label(action.status),
+      urgency: action.impact ? label(action.impact.urgency) : "normal",
+      dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set"
+    })), ["title", "status", "urgency", "dueDate"]);
+}
+
+async function openRisksList(): Promise<void> {
+  await ensureCoreReady();
+  await openRecordListPanel("PSPF Risks", "Risks", "Browse Risk records by severity and open one to update treatment details.", async () => (await listAllEntities())
+    .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
+    .sort((left, right) => right.likelihood * right.impact - left.likelihood * left.impact || left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }))
+    .map((risk) => ({
+      openEntityType: "risk",
+      openEntityId: risk.id,
+      title: risk.title,
+      status: label(risk.status),
+      likelihood: risk.likelihood,
+      impact: risk.impact,
+      severity: risk.likelihood * risk.impact
+    })), ["title", "status", "likelihood", "impact", "severity"]);
+}
+
+async function openRecordListPanel(title: string, heading: string, description: string, listRows: () => Promise<readonly object[]>, fields: readonly string[]): Promise<void> {
+  const panel = vscode.window.createWebviewPanel("pspfWorkshopRecordList", title, vscode.ViewColumn.One, { enableScripts: true });
+  const refresh = async () => {
+    const rows = await listRows();
+    panel.webview.html = shellHtml(title, `
+      <section>
+        <h1>${escapeHtml(heading)}</h1>
+        <p class="muted">${escapeHtml(description)} · ${rows.length} record(s)</p>
+        ${versionStrip()}
+        <div class="form-actions"><button type="button" data-command="refresh">Refresh</button></div>
+      </section>
+      ${recordTable(heading, rows, fields)}
+    `);
+  };
+  wireWorkshopPanelMessages(panel, refresh);
+  await refresh();
 }
 
 async function openItemDetail(): Promise<void> {
@@ -1708,6 +1819,9 @@ function shellHtml(title: string, body: string): string {
       if (command === 'createSavedView' || command === 'applySavedView' || command === 'editSavedView' || command === 'archiveSavedView') {
         vscode.postMessage({ command, savedViewId: button.getAttribute('data-saved-view-id'), savedViewScope: button.getAttribute('data-saved-view-scope') });
       }
+      if (command === 'refresh') {
+        vscode.postMessage({ command });
+      }
       if (command === 'saveEntity' || command === 'saveAndCloseEntity' || command === 'saveAndNextEntity') {
         const form = button.closest('form');
         if (!form) {
@@ -2113,7 +2227,7 @@ function renderActionEditor(action: ActionEntity, allEntities: readonly V01Entit
   return `${editorShell(action, "Edit Action", `
     ${inputField("title", "Title", action.title, true)}
     ${selectField("status", "Status", actionStatusItems, action.status)}
-    ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "30 Jun 2026")}
+    ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
   `)}${readOnlyImpact}${commercialContextSection(action, allEntities)}`;
 }
 
@@ -2481,6 +2595,7 @@ async function manageSavedViews(): Promise<void> {
   const panel = vscode.window.createWebviewPanel("pspfSavedViewManager", "PSPF Saved Views", vscode.ViewColumn.One, { enableScripts: true });
   const refresh = async () => {
     panel.webview.html = renderSavedViewManager(await listSavedViews(true));
+    panel.reveal(vscode.ViewColumn.One, true);
   };
   panel.webview.onDidReceiveMessage(async (message: { readonly command?: string; readonly savedViewId?: string; readonly savedViewScope?: SavedViewScope }) => {
     if (message.command === "createSavedView") {
@@ -2515,18 +2630,28 @@ async function manageSavedViews(): Promise<void> {
 }
 
 function renderSavedViewManager(savedViews: readonly SavedViewEntity[]): string {
+  const workshopViews = savedViews.filter((view) => view.scope.startsWith("workshop-"));
+  const activeViews = workshopViews.filter((view) => view.recordStatus !== "archived");
+  const archivedViews = workshopViews.filter((view) => view.recordStatus === "archived");
   const rows = savedViews.filter((view) => view.scope.startsWith("workshop-")).map((view) => ({
     name: view.name,
     scope: label(view.scope),
     filters: savedViewFilterSummary(view),
     status: label(view.recordStatus),
-    action: `<button type="button" data-command="applySavedView" data-saved-view-id="${escapeHtml(view.id)}">Apply</button> <button type="button" data-command="editSavedView" data-saved-view-id="${escapeHtml(view.id)}">Rename</button> ${view.recordStatus === "archived" ? "" : `<button type="button" data-command="archiveSavedView" data-saved-view-id="${escapeHtml(view.id)}">Archive</button>`}`
+    action: view.recordStatus === "archived"
+      ? `<span class="muted">Archived</span> <button type="button" data-command="editSavedView" data-saved-view-id="${escapeHtml(view.id)}">Rename</button>`
+      : `<button type="button" data-command="applySavedView" data-saved-view-id="${escapeHtml(view.id)}">Open view</button> <button type="button" data-command="editSavedView" data-saved-view-id="${escapeHtml(view.id)}">Rename</button> <button type="button" data-command="archiveSavedView" data-saved-view-id="${escapeHtml(view.id)}">Archive</button>`
   }));
   return shellHtml("PSPF Saved Views", `
     <section>
       <h1>Saved Views</h1>
-      <p class="muted">Workshop-owned views are convenience planning filters. They export in bundles but other tools may ignore them.</p>
+      <p class="muted">Open a saved view to start working from its filters. Workshop-owned views export in bundles, but other tools may ignore unsupported scopes.</p>
       ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Active views", activeViews.length)}
+        ${metricCard("Archived views", archivedViews.length)}
+        ${metricCard("Workshop scopes", new Set(workshopViews.map((view) => view.scope)).size)}
+      </div>
       <div class="form-actions">
         <button type="button" data-command="createSavedView" data-saved-view-scope="workshop-requirements">Create Requirements view</button>
         <button type="button" data-command="createSavedView" data-saved-view-scope="workshop-dashboard">Create Dashboard view</button>

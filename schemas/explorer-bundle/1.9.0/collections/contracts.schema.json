@@ -1,0 +1,83 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.9.0/collections/contracts.schema.json",
+    "title": "PSPF Explorer Contracts Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "supplierId",
+            "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^CTR-"
+            },
+            "entityType": {
+                "const": "contract"
+            },
+            "schemaVersion": {
+                "const": "1.9.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer",
+                    "shop"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "supplierId": {
+                "type": "string",
+                "pattern": "^SUP-"
+            },
+            "status": {
+                "enum": [
+                    "draft",
+                    "active",
+                    "expired",
+                    "terminated"
+                ]
+            },
+            "startsAt": {
+                "type": "string",
+                "format": "date"
+            },
+            "endsAt": {
+                "type": "string",
+                "format": "date"
+            }
+        }
+    }
+}
