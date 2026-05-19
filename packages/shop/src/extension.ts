@@ -18,6 +18,7 @@ import {
   sanitiseEntityForPublication,
   withEnvelope
 } from "@pspf/contracts";
+import { tokensCss } from "@pspf/webview-shell";
 
 const SHOP_STORE_VERSION = "1.0.0";
 const SHOP_STORE_PATH = [".pspf", "shop", "shop.json"] as const;
@@ -2084,6 +2085,8 @@ function renderCompactForecastHtml(
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
+        ${tokensCss("extension")}
         :root { --shop-amber: #c47a16; --shop-teal: #1b8078; --shop-panel: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--shop-teal)); }
         body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0; padding: 12px; }
         h1 { font-size: 1rem; margin: 0 0 6px; }
@@ -2313,6 +2316,8 @@ function renderForecastHtml(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+        /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
+        ${tokensCss("extension")}
         :root { --shop-amber: #c47a16; --shop-teal: #1b8078; --shop-panel: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--shop-teal)); }
     body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
         main { max-width: ${maxWidth}; margin: 0 auto; }

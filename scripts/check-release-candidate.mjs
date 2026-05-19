@@ -887,11 +887,7 @@ if (isV1Release && minorVersion >= 18) {
     assert.equal(shopExtension.includes(requiredText), true, `Shop v1.18 runtime should mention ${requiredText}`);
   }
   // Wrap-agnostic check: Prettier may wrap `withEnvelope("link", ...)` across lines.
-  assert.match(
-    shopExtension,
-    /withEnvelope\(\s*"link"/,
-    'Shop v1.18 runtime should call withEnvelope("link", ...)'
-  );
+  assert.match(shopExtension, /withEnvelope\(\s*"link"/, 'Shop v1.18 runtime should call withEnvelope("link", ...)');
   const workshopExtension = await readFile(join(root, "packages/workshop/src/extension.ts"), "utf8");
   for (const requiredText of ["Commercial Context", "commercialContextSection", "associated-with", "Spend item"]) {
     assert.equal(

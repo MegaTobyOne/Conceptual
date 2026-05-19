@@ -226,6 +226,7 @@
     "test": "node --test dist/**/*.test.js"
   },
   "dependencies": {
-    "@pspf/contracts": "workspace:*"
+    "@pspf/contracts": "workspace:*",
+    "@pspf/webview-shell": "workspace:*"
   }
 }
