@@ -12,6 +12,26 @@ for (const requiredText of [
     "Near-term contract review",
     "Funded Actions",
     "Supplier Risk links",
+    "deriveForecastMonths",
+    "Forecast spend by month",
+    "Forward-looking forecast only. Actuals are not shown in this panel.",
+    "deriveSavingSchedule",
+    "Planned savings schedule",
+    "Planned efficiency dividends",
+    "planned efficiency dividend",
+    "replacement context",
+    "Export CSV",
+    "Export XLS",
+    "renderForecastReportCsv",
+    "renderForecastReportXls",
+    "pspf.shop.exportForecastCsv",
+    "pspf.shop.exportForecastXls",
+    "Supplier performance and management checks",
+    "FOCI check",
+    "Contract artefact links",
+    "CPR source",
+    "Commonwealth Supplier Code of Conduct",
+    "Contract Management Guide",
     "isSupplierAssuranceLink",
     "isContractAssuranceLink",
     "isSpendAssuranceLink",
@@ -36,5 +56,8 @@ const renderBody = shopExtension.slice(renderStart, renderEnd);
 for (const excludedText of ["primaryContact", "serviceSummary", "assumptions"]) {
     assert.equal(renderBody.includes(excludedText), false, `Shop coverage dashboard render should not expose ${excludedText}`);
 }
+
+assert.equal(renderBody.includes("Actuals</"), false, "Shop forecast should not render an Actuals table column");
+assert.equal(renderBody.includes("spent"), false, "Shop forecast render should avoid actual-spend language");
 
 console.log("ok Shop commercial coverage dashboard gate passes");
