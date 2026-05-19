@@ -86,6 +86,7 @@
     "@pspf/contracts": "workspace:*",
     "@pspf/ism-source-library": "workspace:*",
     "@pspf/reference-data": "workspace:*",
+    "@pspf/webview-shell": "workspace:*",
     "sql.js": "^1.14.1"
   }
 }
