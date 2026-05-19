@@ -270,9 +270,17 @@ try {
       highlightedEdges: document.querySelectorAll("#connected-view svg path.cv-highlight").length,
       selectedCards: document.querySelectorAll("#connected-view .cv-selected").length,
       connectedCards: document.querySelectorAll("#connected-view .cv-connected").length,
+      zoomControls: document.querySelectorAll('#connected-view [data-cv-action="zoom-in"], #connected-view [data-cv-action="zoom-out"], #connected-view [data-cv-action="zoom-reset"]').length,
+      laneControls: document.querySelectorAll("#connected-view [data-cv-lane-toggle]").length,
+      zoomLabel: document.querySelector("#connected-view [data-cv-zoom-label]")?.textContent || "",
       actionsMetric: Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.innerText || "",
       actionsCount: Number(Array.from(document.querySelectorAll("#summary .metric")).find((element) => element.textContent.includes("Actions"))?.querySelector("strong")?.textContent || "0")
     };
+    document.querySelector('#connected-view [data-cv-action="zoom-in"]')?.click();
+    document.querySelector('#connected-view [data-cv-lane-toggle="risks"]')?.click();
+    await new Promise(requestAnimationFrame);
+    before.zoomAfterClick = document.querySelector("#connected-view [data-cv-zoom-label]")?.textContent || "";
+    before.risksHiddenAfterToggle = document.querySelector('#connected-view [data-cv-lane-kind="risks"]')?.classList.contains("cv-lane-hidden") || false;
     await globalThis.pspfExplorerAddLocalAction(requirement.id, "Local connected action", "todo", "2026-06-30");
     document.querySelector("#connected-view").open = true;
     await new Promise(requestAnimationFrame);
@@ -316,6 +324,8 @@ try {
     check("Manual ISM source IDs render compactly", syntheticExplorerValues.manualCoverageControlId === "SRC-ABCD", syntheticExplorerValues.manualCoverageControlId || "missing"),
     check("Explorer Connected View renders linked chain", !connectedViewValues.skipped && connectedViewValues.before.cards >= 4 && connectedViewValues.before.edges >= 3, JSON.stringify(connectedViewValues.before)),
     check("Explorer Connected View selection highlights chain", !connectedViewValues.skipped && connectedViewValues.before.selectedCards === 1 && connectedViewValues.before.connectedCards >= 3 && connectedViewValues.before.highlightedEdges >= 3, JSON.stringify(connectedViewValues.before)),
+    check("Explorer Connected View exposes v1.23 controls", !connectedViewValues.skipped && connectedViewValues.before.zoomControls === 3 && connectedViewValues.before.laneControls >= 3 && connectedViewValues.before.zoomLabel === "100%", JSON.stringify(connectedViewValues.before)),
+    check("Explorer Connected View controls apply", !connectedViewValues.skipped && connectedViewValues.before.zoomAfterClick === "110%" && connectedViewValues.before.risksHiddenAfterToggle, JSON.stringify(connectedViewValues.before)),
     check("Explorer local Action updates overview count", !connectedViewValues.skipped && connectedViewValues.after.actionsCount === connectedViewValues.before.actionsCount + 1, JSON.stringify({ before: connectedViewValues.before.actionsMetric, after: connectedViewValues.after.actionsMetric })),
     check("Explorer local Action appears in Connected View", !connectedViewValues.skipped && connectedViewValues.after.cards === connectedViewValues.before.cards + 1 && connectedViewValues.after.edges === connectedViewValues.before.edges + 1 && connectedViewValues.after.connectedText.includes("Local connected action"), JSON.stringify(connectedViewValues.after)),
     check("Generated brief includes classification", typeof brief === "string" && brief.includes("OFFICIAL: Sensitive"), "classification"),
@@ -351,12 +361,23 @@ function findBundlePath() {
   if (existsSync(e2eReportPath)) {
     const report = JSON.parse(readFileSyncText(e2eReportPath));
     const candidate = join(root, report.bundlePath);
-    if (existsSync(candidate)) {
+    if (existsSync(candidate) && bundleMatchesCurrentAxes(candidate)) {
       return candidate;
     }
   }
 
   return join(root, "packages", "contracts", "test-fixtures", "standard", "bundle.json");
+}
+
+function bundleMatchesCurrentAxes(bundlePath) {
+  try {
+    const bundle = JSON.parse(readFileSyncText(bundlePath));
+    return bundle?.manifest?.schemaVersion === VERSION_AXES.schemaVersion
+      && bundle?.manifest?.bundleVersion === VERSION_AXES.bundleVersion
+      && bundle?.manifest?.apiVersion === VERSION_AXES.apiVersion;
+  } catch {
+    return false;
+  }
 }
 
 function readFileSyncText(path) {

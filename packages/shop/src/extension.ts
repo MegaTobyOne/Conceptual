@@ -30,6 +30,7 @@ const SPEND_TYPES = ["capex", "opex", "uplift", "licence", "service"] as const;
 const SPEND_STATUSES = ["proposed", "approved", "committed", "spent", "cancelled"] as const;
 const SAVINGS_TYPES = ["avoided-cost", "efficiency", "consolidation", "risk-reduction", "contract-optimisation", "other"] as const;
 const CONFIDENCE_LEVELS = ["low", "medium", "high"] as const;
+const SHOP_CONFIGURATION_SECTION = "pspf.shop";
 const NEAR_TERM_REVIEW_DAYS = 120;
 const MONTH_NAMES = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"] as const;
 const CPR_LINKS = {
@@ -93,6 +94,16 @@ interface EfficiencyDividendYear {
     readonly confidence: string;
 }
 
+interface SpendItemReportRow {
+    readonly title: string;
+    readonly financialYear: string;
+    readonly costCentre: string;
+    readonly status: string;
+    readonly amount: number;
+    readonly forecastCost: number;
+    readonly expectedSavings: number;
+}
+
 interface SupplierManagementSignal {
     readonly supplier: SupplierRecord;
     readonly performanceMeasure: string;
@@ -142,11 +153,13 @@ interface SupplierRisk {
 
 interface CommercialCoverageDashboard {
     readonly coverage: readonly CoverageGroup[];
+    readonly uncontractedSpendItems: readonly SpendItemRecord[];
     readonly renewals: readonly ContractRenewal[];
     readonly fundedActions: readonly FundedAction[];
     readonly supplierRisks: readonly SupplierRisk[];
     readonly supplierManagement: readonly SupplierManagementSignal[];
     readonly contractArtefacts: readonly ContractArtefactSignal[];
+    readonly spendItemReport: readonly SpendItemReportRow[];
     readonly savingSchedule: readonly SavingScheduleRow[];
     readonly efficiencyDividends: readonly EfficiencyDividendYear[];
 }
@@ -193,6 +206,7 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand("pspf.shop.linkSupplierToRisk", (supplier: SupplierRecord) => linkCommercialRecord(supplier, { linkType: "associated-with", targetType: "risk", label: "Risk" })),
         vscode.commands.registerCommand("pspf.shop.linkContractToRequirement", (contract: ContractRecord) => linkCommercialRecord(contract, { linkType: "supports", targetType: "requirement", label: "Requirement" })),
         vscode.commands.registerCommand("pspf.shop.linkContractToSpendItem", (contract: ContractRecord) => linkCommercialRecord(contract, { linkType: "funds", targetType: "spend-item", label: "Spend item" })),
+        vscode.commands.registerCommand("pspf.shop.linkSpendItemToContract", linkSpendItemToContract),
         vscode.commands.registerCommand("pspf.shop.linkSpendToAction", (spendItem: SpendItemRecord) => linkCommercialRecord(spendItem, { linkType: "supports", targetType: "action", label: "Action" })),
         vscode.commands.registerCommand("pspf.shop.linkSpendToRequirement", (spendItem: SpendItemRecord) => linkCommercialRecord(spendItem, { linkType: "supports", targetType: "requirement", label: "Requirement" })),
         vscode.commands.registerCommand("pspf.shop.openForecast", openForecast),
@@ -440,6 +454,7 @@ async function newSpendItem(): Promise<void> {
     if (!financialYear) {
         return;
     }
+    const costCentre = await promptOptionalText("Cost centre", getDefaultCostCentre());
     const forecastStartAt = await promptOptionalDate("Forecast start date (YYYY-MM-DD)");
     const forecastEndAt = await promptOptionalDate("Forecast end date (YYYY-MM-DD)");
     const forecastCost = await promptOptionalNumber("Forecast cost (AUD)");
@@ -459,6 +474,7 @@ async function newSpendItem(): Promise<void> {
         status,
         amount: moneyAmount(amount),
         financialYear,
+        ...(costCentre ? { costCentre } : {}),
         ...(forecastStartAt ? { forecastStartAt } : {}),
         ...(forecastEndAt ? { forecastEndAt } : {}),
         ...(forecastCost === undefined ? {} : { forecastCost: moneyAmount(forecastCost) }),
@@ -498,6 +514,7 @@ async function editSpendItem(spendItem: SpendItemRecord): Promise<void> {
     if (!financialYear) {
         return;
     }
+    const costCentre = await promptOptionalText("Cost centre", spendItem.costCentre ?? getDefaultCostCentre());
     const forecastStartAt = await promptOptionalDate("Forecast start date (YYYY-MM-DD)", spendItem.forecastStartAt);
     const forecastEndAt = await promptOptionalDate("Forecast end date (YYYY-MM-DD)", spendItem.forecastEndAt);
     const forecastCost = await promptOptionalNumber("Forecast cost (AUD)", spendItem.forecastCost?.amount);
@@ -515,6 +532,7 @@ async function editSpendItem(spendItem: SpendItemRecord): Promise<void> {
         amount: moneyAmount(amount),
         financialYear,
         updatedAt: new Date().toISOString(),
+        ...(costCentre ? { costCentre } : { costCentre: undefined }),
         ...(forecastStartAt ? { forecastStartAt } : { forecastStartAt: undefined }),
         ...(forecastEndAt ? { forecastEndAt } : { forecastEndAt: undefined }),
         ...(forecastCost === undefined ? { forecastCost: undefined } : { forecastCost: moneyAmount(forecastCost) }),
@@ -576,6 +594,45 @@ async function linkCommercialRecord(source: CommercialSource, spec: { readonly l
     await upsertCoreEntities([link]);
     await refreshViews();
     vscode.window.showInformationMessage(`Linked ${commercialTitle(source)} to ${targetTitle(target)}.`);
+}
+
+async function linkSpendItemToContract(spendItem: SpendItemRecord): Promise<void> {
+    const store = await loadStore();
+    const contracts = store.contracts.filter((contract) => contract.status !== "terminated");
+    if (contracts.length === 0) {
+        vscode.window.showWarningMessage("No active or draft contracts are available to fund this spend item.");
+        return;
+    }
+    const selected = await vscode.window.showQuickPick(
+        contracts.map((contract) => ({ label: contract.title, description: formatToken(contract.status), contract })),
+        { placeHolder: "Contract funding this spend item", ignoreFocusOut: true, canPickMany: false }
+    );
+    const contract = selected?.contract;
+    if (!contract) {
+        return;
+    }
+    const allEntities = await listCoreEntities();
+    const duplicate = allEntities.some((entity): entity is LinkEntity => entity.entityType === "link"
+        && entity.recordStatus !== "deleted"
+        && entity.fromId === contract.id
+        && entity.toId === spendItem.id
+        && entity.linkType === "funds");
+    if (duplicate) {
+        vscode.window.showInformationMessage(`${contract.title} already funds ${spendItem.title}.`);
+        return;
+    }
+    const link = withEnvelope("link", {
+        entityType: "link",
+        title: `${contract.title} funds ${spendItem.title}`,
+        linkType: "funds",
+        fromId: contract.id,
+        fromType: "contract",
+        toId: spendItem.id,
+        toType: "spend-item"
+    }, "shop");
+    await upsertCoreEntities([link]);
+    await refreshViews();
+    vscode.window.showInformationMessage(`Linked ${spendItem.title} to funding contract ${contract.title}.`);
 }
 
 async function refreshViews(): Promise<void> {
@@ -807,6 +864,7 @@ function normaliseSpendItemRecord(value: unknown): SpendItemRecord | undefined {
         status,
         amount,
         financialYear: value.financialYear,
+        ...(typeof value.costCentre === "string" ? { costCentre: value.costCentre } : {}),
         ...(typeof value.forecastStartAt === "string" ? { forecastStartAt: value.forecastStartAt } : {}),
         ...(typeof value.forecastEndAt === "string" ? { forecastEndAt: value.forecastEndAt } : {}),
         ...(forecastCost ? { forecastCost } : {}),
@@ -1011,6 +1069,7 @@ function buildSampleStore(): ShopStore {
                 status: "proposed",
                 amount: moneyAmount(240000),
                 financialYear: "2026-27",
+                costCentre: "SEC-OPS",
                 forecastStartAt: "2026-07-01",
                 forecastEndAt: "2027-06-30",
                 forecastCost: moneyAmount(252000),
@@ -1030,6 +1089,7 @@ function buildSampleStore(): ShopStore {
                 status: "proposed",
                 amount: moneyAmount(80000),
                 financialYear: "2026-27",
+                costCentre: "SEC-OPS",
                 forecastCost: moneyAmount(80000),
                 expectedSavings: moneyAmount(25000),
                 savingsType: "efficiency",
@@ -1153,6 +1213,10 @@ function cleanText(value: string | undefined): string | undefined {
     return trimmed ? trimmed : undefined;
 }
 
+function getDefaultCostCentre(): string | undefined {
+    return cleanText(vscode.workspace.getConfiguration(SHOP_CONFIGURATION_SECTION).get<string>("defaultCostCentre"));
+}
+
 class SupplierTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
     private readonly changedEmitter = new vscode.EventEmitter<ShopTreeItem | undefined | null | void>();
     readonly onDidChangeTreeData = this.changedEmitter.event;
@@ -1225,7 +1289,7 @@ class SpendTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
         }
         return store.spendItems.map((item) => new EntityTreeItem(
             item.title,
-            `${item.financialYear} - ${formatToken(item.status)} - ${formatCurrency(item.amount.amount, item.amount.currency)}`,
+            `${item.financialYear}${item.costCentre ? ` - ${item.costCentre}` : ""} - ${formatToken(item.status)} - ${formatCurrency(item.amount.amount, item.amount.currency)}`,
             "spend",
             "pspf.shop.editSpendItem",
             item,
@@ -1446,6 +1510,9 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
             coverageGroup("Contracts", store.contracts, links, isContractAssuranceLink, "pspf.shop.linkContractToRequirement"),
             coverageGroup("Spend items", store.spendItems, links, isSpendAssuranceLink, "pspf.shop.linkSpendToAction")
         ],
+        uncontractedSpendItems: store.spendItems
+            .filter((item) => !links.some((link) => isContractFundingLink(link) && link.toId === item.id))
+            .sort((first, second) => first.financialYear.localeCompare(second.financialYear) || first.title.localeCompare(second.title)),
         renewals: store.contracts
             .filter((contract) => contract.status === "active")
             .map((contract) => ({ contract, supplierName: supplierById.get(contract.supplierId)?.name ?? "Unknown supplier", daysUntilEnd: daysUntil(contract.endsAt, today) }))
@@ -1472,9 +1539,25 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
             .sort((first, second) => second.score - first.score || first.risk.title.localeCompare(second.risk.title)),
         supplierManagement: deriveSupplierManagement(store),
         contractArtefacts: deriveContractArtefacts(store),
+        spendItemReport: deriveSpendItemReport(store.spendItems),
         savingSchedule,
         efficiencyDividends: deriveEfficiencyDividends(savingSchedule)
     };
+}
+
+function deriveSpendItemReport(spendItems: readonly SpendItemRecord[]): SpendItemReportRow[] {
+    return spendItems
+        .slice()
+        .sort((first, second) => first.financialYear.localeCompare(second.financialYear) || first.title.localeCompare(second.title))
+        .map((item) => ({
+            title: item.title,
+            financialYear: item.financialYear,
+            costCentre: item.costCentre ?? "",
+            status: formatToken(item.status),
+            amount: item.amount.amount,
+            forecastCost: item.forecastCost?.amount ?? item.amount.amount,
+            expectedSavings: item.expectedSavings?.amount ?? 0
+        }));
 }
 
 function deriveSavingSchedule(store: ShopStore, links: readonly LinkEntity[]): SavingScheduleRow[] {
@@ -1636,6 +1719,10 @@ function isContractAssuranceLink(link: LinkEntity): boolean {
     return link.fromType === "contract" && ((link.linkType === "supports" && link.toType === "requirement") || (link.linkType === "funds" && link.toType === "spend-item"));
 }
 
+function isContractFundingLink(link: LinkEntity): boolean {
+    return link.fromType === "contract" && link.toType === "spend-item" && link.linkType === "funds";
+}
+
 function isSpendAssuranceLink(link: LinkEntity): boolean {
     return link.fromType === "spend-item" && link.linkType === "supports" && (link.toType === "action" || link.toType === "requirement");
 }
@@ -1687,6 +1774,7 @@ function renderCompactForecastHtml(store: ShopStore, forecast: readonly Forecast
     const nextForecast = forecast[0];
     const nextMonth = monthlyForecast.find((month) => month.forecastSpend > 0);
     const unlinkedCount = dashboard.coverage.reduce((total, group) => total + group.unlinked.length, 0);
+    const uncontractedSpendCount = dashboard.uncontractedSpendItems.length;
     const urgentActions = dashboard.fundedActions.filter((item) => item.urgency === "blocked" || item.urgency === "overdue").length;
     const managementReviews = dashboard.supplierManagement.filter((item) => item.status !== "ok").length;
     const artefactGaps = dashboard.contractArtefacts.reduce((total, contract) => total + contract.artefacts.filter((artefact) => artefact.status === "needed").length, 0);
@@ -1720,6 +1808,7 @@ function renderCompactForecastHtml(store: ShopStore, forecast: readonly Forecast
         <span class="pill"><strong>${store.contracts.length}</strong> contracts</span>
         <span class="pill"><strong>${store.spendItems.length}</strong> spend items</span>
         <span class="pill"><strong>${unlinkedCount}</strong> unlinked assurance records</span>
+        <span class="pill"><strong>${uncontractedSpendCount}</strong> spend items need contract funding links</span>
         <span class="pill"><strong>${dashboard.renewals.length}</strong> contracts in review window</span>
         <span class="pill"><strong>${urgentActions}</strong> funded blocked or overdue Actions</span>
         <span class="pill"><strong>${managementReviews}</strong> supplier management checks due</span>
@@ -1762,6 +1851,15 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
         <td>${escapeHtml(formatCurrency(year.netForecast))}</td>
       </tr>`).join("");
     const coverageRows = dashboard.coverage.map((group) => renderCoverageRow(group)).join("");
+    const fundingCueRows = dashboard.uncontractedSpendItems.length === 0
+        ? "<tr><td colspan=\"4\">All spend items have a contract funding link.</td></tr>"
+        : dashboard.uncontractedSpendItems.map((item) => `
+            <tr>
+                <td>${escapeHtml(item.title)}</td>
+                <td>${escapeHtml(item.financialYear)}</td>
+                <td>${escapeHtml(item.costCentre ?? "Not set")}</td>
+                <td><a href="${escapeHtml(commandUri("pspf.shop.linkSpendItemToContract", [item]))}">Link to contract</a></td>
+            </tr>`).join("");
     const renewalRows = dashboard.renewals.length === 0
         ? "<tr><td colspan=\"4\">No active contracts end inside the near-term review window.</td></tr>"
         : dashboard.renewals.map((renewal) => `
@@ -1809,12 +1907,25 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
                 <td><span class="status status-${escapeHtml(artefact.status)}">${escapeHtml(artefact.status === "ready" ? "Present" : "Needs link")}</span></td>
                 <td><a href="${escapeHtml(artefact.href)}">${escapeHtml(artefact.sourceLabel)}</a></td>
             </tr>`)).join("");
+    const spendItemReportRows = dashboard.spendItemReport.length === 0
+        ? "<tr><td colspan=\"7\">No spend items yet.</td></tr>"
+        : dashboard.spendItemReport.map((item) => `
+            <tr>
+                <td>${escapeHtml(item.title)}</td>
+                <td>${escapeHtml(item.financialYear)}</td>
+                <td>${escapeHtml(item.costCentre || "Not set")}</td>
+                <td>${escapeHtml(item.status)}</td>
+                <td>${escapeHtml(formatCurrency(item.amount))}</td>
+                <td>${escapeHtml(formatCurrency(item.forecastCost))}</td>
+                <td>${escapeHtml(formatCurrency(item.expectedSavings))}</td>
+            </tr>`).join("");
     const savingScheduleRows = dashboard.savingSchedule.length === 0
         ? "<tr><td colspan=\"8\">No planned savings yet. Add expected savings to a spend item and link any replacement contract to it.</td></tr>"
         : dashboard.savingSchedule.map((saving) => `
             <tr>
                 <td>${escapeHtml(saving.spendItem.title)}</td>
                 <td>${escapeHtml(saving.financialYear)}</td>
+                <td>${escapeHtml(saving.spendItem.costCentre ?? "Not set")}</td>
                 <td>${escapeHtml(saving.scheduledFrom)}</td>
                 <td>${escapeHtml(saving.scheduledTo)}</td>
                 <td>${escapeHtml(formatCurrency(saving.plannedSaving))}</td>
@@ -1891,6 +2002,14 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
         <div class="coverage">${coverageRows}</div>
     </section>
     <section>
+        <h2>Spend items needing contract funding links</h2>
+        <p class="muted">Spend items should be funded by a Contract through the existing <code>contract funds spend-item</code> relationship.</p>
+        <table>
+            <thead><tr><th>Spend item</th><th>Financial year</th><th>Cost centre</th><th>Action</th></tr></thead>
+            <tbody>${fundingCueRows}</tbody>
+        </table>
+    </section>
+    <section>
         <h2>Near-term contract review</h2>
         <table>
             <thead><tr><th>Contract</th><th>Supplier</th><th>End date</th><th>Review window</th></tr></thead>
@@ -1907,10 +2026,18 @@ function renderForecastHtml(store: ShopStore, forecast: readonly ForecastYear[],
         </table>
     </section>
     <section>
+        <h2>Spend item report</h2>
+        <p class="muted">Export-friendly spend item detail, including financial year and cost centre.</p>
+        <table>
+            <thead><tr><th>Spend item</th><th>Financial year</th><th>Cost centre</th><th>Status</th><th>Planned spend</th><th>Forecast cost</th><th>Expected savings</th></tr></thead>
+            <tbody>${spendItemReportRows}</tbody>
+        </table>
+    </section>
+    <section>
         <h2>Planned savings schedule</h2>
         <p class="muted">Schedule when and how much a saving might be. Link contracts to the saving spend item to show replacement or consolidation context.</p>
         <table>
-            <thead><tr><th>Spend item</th><th>Financial year</th><th>From</th><th>To</th><th>Planned saving</th><th>Saving type</th><th>Confidence</th><th>Replacement context</th></tr></thead>
+            <thead><tr><th>Spend item</th><th>Financial year</th><th>Cost centre</th><th>From</th><th>To</th><th>Planned saving</th><th>Saving type</th><th>Confidence</th><th>Replacement context</th></tr></thead>
             <tbody>${savingScheduleRows}</tbody>
         </table>
     </section>
@@ -1970,7 +2097,8 @@ function renderForecastReportCsv(forecast: readonly ForecastYear[], monthlyForec
     return [
         csvSection("Forecast spend by month", [["Month", "Financial year", "Items", "Forecast spend", "Planned saving"], ...monthlyForecast.map((month) => [month.monthLabel, month.financialYear, month.itemCount, month.forecastSpend, month.forecastSavings])]),
         csvSection("Forecast spend by financial year", [["Financial year", "Items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast"], ...forecast.map((year) => [year.financialYear, year.itemCount, year.plannedSpend, year.forecastCost, year.expectedSavings, year.netForecast])]),
-        csvSection("Planned savings schedule", [["Spend item", "Financial year", "From", "To", "Planned saving", "Saving type", "Confidence", "Replacement context"], ...dashboard.savingSchedule.map((saving) => [saving.spendItem.title, saving.financialYear, saving.scheduledFrom, saving.scheduledTo, saving.plannedSaving, saving.savingsType, saving.confidence, saving.replacementContext])]),
+        csvSection("Spend item report", [["Spend item", "Financial year", "Cost centre", "Status", "Planned spend", "Forecast cost", "Expected savings"], ...dashboard.spendItemReport.map((item) => [item.title, item.financialYear, item.costCentre, item.status, item.amount, item.forecastCost, item.expectedSavings])]),
+        csvSection("Planned savings schedule", [["Spend item", "Financial year", "Cost centre", "From", "To", "Planned saving", "Saving type", "Confidence", "Replacement context"], ...dashboard.savingSchedule.map((saving) => [saving.spendItem.title, saving.financialYear, saving.spendItem.costCentre ?? "", saving.scheduledFrom, saving.scheduledTo, saving.plannedSaving, saving.savingsType, saving.confidence, saving.replacementContext])]),
         csvSection("Planned efficiency dividends", [["Financial year", "Saving items", "Planned efficiency dividend", "Lowest confidence"], ...dashboard.efficiencyDividends.map((dividend) => [dividend.financialYear, dividend.itemCount, dividend.plannedSaving, dividend.confidence])])
     ].join("\n");
 }
@@ -1979,7 +2107,8 @@ function renderForecastReportXls(forecast: readonly ForecastYear[], monthlyForec
     return `<!doctype html><html><head><meta charset="utf-8"><title>Shop forecast report</title></head><body>
 ${htmlTable("Forecast spend by month", [["Month", "Financial year", "Items", "Forecast spend", "Planned saving"], ...monthlyForecast.map((month) => [month.monthLabel, month.financialYear, month.itemCount, month.forecastSpend, month.forecastSavings])])}
 ${htmlTable("Forecast spend by financial year", [["Financial year", "Items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast"], ...forecast.map((year) => [year.financialYear, year.itemCount, year.plannedSpend, year.forecastCost, year.expectedSavings, year.netForecast])])}
-${htmlTable("Planned savings schedule", [["Spend item", "Financial year", "From", "To", "Planned saving", "Saving type", "Confidence", "Replacement context"], ...dashboard.savingSchedule.map((saving) => [saving.spendItem.title, saving.financialYear, saving.scheduledFrom, saving.scheduledTo, saving.plannedSaving, saving.savingsType, saving.confidence, saving.replacementContext])])}
+${htmlTable("Spend item report", [["Spend item", "Financial year", "Cost centre", "Status", "Planned spend", "Forecast cost", "Expected savings"], ...dashboard.spendItemReport.map((item) => [item.title, item.financialYear, item.costCentre, item.status, item.amount, item.forecastCost, item.expectedSavings])])}
+${htmlTable("Planned savings schedule", [["Spend item", "Financial year", "Cost centre", "From", "To", "Planned saving", "Saving type", "Confidence", "Replacement context"], ...dashboard.savingSchedule.map((saving) => [saving.spendItem.title, saving.financialYear, saving.spendItem.costCentre ?? "", saving.scheduledFrom, saving.scheduledTo, saving.plannedSaving, saving.savingsType, saving.confidence, saving.replacementContext])])}
 ${htmlTable("Planned efficiency dividends", [["Financial year", "Saving items", "Planned efficiency dividend", "Lowest confidence"], ...dashboard.efficiencyDividends.map((dividend) => [dividend.financialYear, dividend.itemCount, dividend.plannedSaving, dividend.confidence])])}
 </body></html>`;
 }

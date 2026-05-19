@@ -568,12 +568,18 @@ function renderExplorerSection(section, heading, body, open = false) {
 }
 
 function renderConnectedViewExplorerSection(collections) {
-  const shouldOpen = connectedViewSection.open;
+  const hasRendered = connectedViewSection.dataset.connectedViewRendered === "true";
+  const shouldOpen = hasRendered ? connectedViewSection.open : true;
+  connectedViewSection.classList.add("connected-view-panel");
+  connectedViewSection.dataset.connectedViewRendered = "true";
   connectedViewSection.innerHTML = '<summary><h2>Connected View</h2></summary><div class="section-body"><p class="muted">Trace the chain across Directions, Requirements, Risks, and Actions. Hover for details, click to highlight the connected chain, Cmd/Ctrl-click to add to selection, and use Refresh to reload this section.</p><div data-cv-mount></div></div>';
   connectedViewSection.open = shouldOpen;
   const mount = connectedViewSection.querySelector("[data-cv-mount]");
   const api = globalThis.pspfConnectedView;
-  if (!mount || !api || typeof api.renderInto !== "function") return;
+  if (!mount || !api || typeof api.renderInto !== "function") {
+    connectedViewSection.querySelector(".section-body")?.insertAdjacentHTML("beforeend", '<p class="muted">Connected View could not initialise. Reload the page and open the latest PSPF JSON again.</p>');
+    return;
+  }
   api.renderInto(mount, {
     requirements: collections.requirements || [],
     risks: collections.risks || [],
