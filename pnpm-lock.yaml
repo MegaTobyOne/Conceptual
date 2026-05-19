@@ -107,6 +107,8 @@ importers:
         specifier: workspace:*
         version: link:../contracts
 
+  packages/webview-shell: {}
+
   packages/workshop:
     dependencies:
       '@pspf/brief-renderer':
