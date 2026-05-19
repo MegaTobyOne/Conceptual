@@ -128,12 +128,9 @@ try {
     (title) => document.querySelector('[aria-labelledby="local-selected-heading"]')?.textContent?.includes(title),
     requirement.title
   );
-  const clickSelection = await page.evaluate(
-    (expectedId) => ({
-      selectedId: document.querySelector('.local-requirement-option[aria-pressed="true"]')?.dataset.requirementId
-    }),
-    requirement.id
-  );
+  const clickSelection = await page.evaluate(() => ({
+    selectedId: document.querySelector('.local-requirement-option[aria-pressed="true"]')?.dataset.requirementId
+  }));
   const baselineLinkedContext = await page.evaluate(() => ({
     hasContext: document.querySelector("#local-authoring")?.textContent?.includes("Linked Context"),
     evidenceVisible: document.querySelector("#local-authoring")?.textContent?.includes("Baseline linked evidence"),

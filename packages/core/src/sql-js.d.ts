@@ -25,4 +25,5 @@ declare module "sql.js" {
   export default function initSqlJs(config?: SqlJsConfig): Promise<SqlJsStatic>;
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- ambient module declaration above precludes a top-level `import type`.
 type SqlJsQueryResult = import("sql.js").QueryResults;

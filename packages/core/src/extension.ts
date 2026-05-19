@@ -250,15 +250,6 @@ async function importBundlesFromPicker(
   }
 }
 
-function planDetail(results: readonly ImportResult[]): string {
-  return results
-    .flatMap((result) => [
-      `${basename(result.bundlePath)}: ${result.summary.created} created, ${result.summary.updated} updated, ${result.summary.unchanged} unchanged.`,
-      ...result.summary.examples.slice(0, 5)
-    ])
-    .join("\n");
-}
-
 function openImportReviewSurface(
   output: vscode.OutputChannel,
   plans: readonly ImportResult[],

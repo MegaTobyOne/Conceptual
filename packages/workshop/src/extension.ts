@@ -17,7 +17,6 @@ import {
   type ChangeRecordSource,
   type ChangeRecordStatus,
   type ChangeRecordType,
-  type ContractEntity,
   DEFAULT_TAG_COLOUR,
   PSPF_SLICE_VERSION,
   PSPF_DOMAINS,
@@ -43,9 +42,7 @@ import {
   type SavedViewEntity,
   type SavedViewScope,
   type SourceControlEntity,
-  type SpendItemEntity,
   type StrategyEntity,
-  type SupplierEntity,
   type TagColour,
   type TagEntity,
   type V01Entity,
@@ -811,26 +808,6 @@ async function linkExistingRisk(requirementId?: string): Promise<void> {
 
 async function linkExistingDirection(requirementId?: string): Promise<void> {
   await linkExistingItemToRequirement(requirementId, "direction");
-}
-
-async function upsertLinkedEntity(entity: V01Entity, link: LinkEntity, requirement: RequirementEntity): Promise<void> {
-  await vscode.commands.executeCommand("pspf.core.upsertEntities", [entity, link]);
-  const entities = await vscode.commands.executeCommand<V01Entity[]>("pspf.core.listEntities");
-  const allEntities = entities ?? [];
-  const entityExists = allEntities.some((candidate) => candidate.id === entity.id);
-  const linkExists = allEntities.some((candidate) => candidate.id === link.id && candidate.entityType === "link");
-  if (!entityExists || !linkExists) {
-    throw new Error(
-      `Could not confirm ${label(entity.entityType)} was linked. Run PSPF: Validate Workspace and try again.`
-    );
-  }
-  await rememberRequirement(requirement);
-  const entityTitle = entity.title ?? entity.id;
-  const message = `${label(entity.entityType)} linked to ${requirement.title}: ${entityTitle} (${label(link.linkType)})`;
-  const action = await vscode.window.showInformationMessage(message, "Open Item Detail");
-  if (action === "Open Item Detail") {
-    await openItemDetailForRequirement(requirement);
-  }
 }
 
 async function upsertEntityWithRequirementLinks(
@@ -3188,7 +3165,6 @@ async function removeTag(requirementId?: string, tagId?: string): Promise<void> 
   if (!link) {
     return;
   }
-  const tag = tagsById.get(link.toId);
   await vscode.commands.executeCommand("pspf.core.upsertEntity", {
     ...link,
     recordStatus: "deleted",
