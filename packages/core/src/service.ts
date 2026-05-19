@@ -782,6 +782,7 @@ function createEmptyCollections(): BundleCollections {
     suppliers: [],
     contracts: [],
     "spend-items": [],
+    strategies: [],
     posture: []
   };
 }
@@ -850,7 +851,8 @@ function buildPosture(collections: BundleCollections, paths: WorkspacePaths): En
     changeRecordCount: collections["change-records"].length,
     supplierCount: collections.suppliers.length,
     contractCount: collections.contracts.length,
-    spendItemCount: collections["spend-items"].length
+    spendItemCount: collections["spend-items"].length,
+    strategyCount: collections.strategies.length
   };
 }
 
@@ -872,6 +874,7 @@ function getCollectionCounts(collections: BundleCollections): Record<V01Collecti
     suppliers: collections.suppliers.length,
     contracts: collections.contracts.length,
     "spend-items": collections["spend-items"].length,
+    strategies: collections.strategies.length,
     posture: collections.posture.length
   };
 }

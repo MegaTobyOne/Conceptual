@@ -1,9 +1,9 @@
 {
     "manifest": {
         "bundleType": "pspf-explorer-bundle",
-        "bundleVersion": "1.9.0",
-        "schemaVersion": "1.9.0",
-        "apiVersion": "1.9.0",
+        "bundleVersion": "1.10.0",
+        "schemaVersion": "1.10.0",
+        "apiVersion": "1.10.0",
         "generatedAt": "2026-05-10T00:00:00.000Z",
         "generator": {
             "product": "pspf-core",
@@ -15,14 +15,105 @@
             "containsSensitiveData": true,
             "redactionProfile": "explorer-default"
         },
-        "collections": []
+        "collections": [
+            {
+                "name": "domains",
+                "path": "data/collections/domains.json",
+                "count": 1
+            },
+            {
+                "name": "requirements",
+                "path": "data/collections/requirements.json",
+                "count": 1
+            },
+            {
+                "name": "evidence",
+                "path": "data/collections/evidence.json",
+                "count": 0
+            },
+            {
+                "name": "actions",
+                "path": "data/collections/actions.json",
+                "count": 0
+            },
+            {
+                "name": "risks",
+                "path": "data/collections/risks.json",
+                "count": 0
+            },
+            {
+                "name": "snapshots",
+                "path": "data/collections/snapshots.json",
+                "count": 0
+            },
+            {
+                "name": "links",
+                "path": "data/collections/links.json",
+                "count": 1
+            },
+            {
+                "name": "tags",
+                "path": "data/collections/tags.json",
+                "count": 0
+            },
+            {
+                "name": "saved-views",
+                "path": "data/collections/saved-views.json",
+                "count": 0
+            },
+            {
+                "name": "source-controls",
+                "path": "data/collections/source-controls.json",
+                "count": 1
+            },
+            {
+                "name": "requirement-control-mappings",
+                "path": "data/collections/requirement-control-mappings.json",
+                "count": 1
+            },
+            {
+                "name": "directions",
+                "path": "data/collections/directions.json",
+                "count": 0
+            },
+            {
+                "name": "change-records",
+                "path": "data/collections/change-records.json",
+                "count": 1
+            },
+            {
+                "name": "suppliers",
+                "path": "data/collections/suppliers.json",
+                "count": 0
+            },
+            {
+                "name": "contracts",
+                "path": "data/collections/contracts.json",
+                "count": 0
+            },
+            {
+                "name": "spend-items",
+                "path": "data/collections/spend-items.json",
+                "count": 0
+            },
+            {
+                "name": "strategies",
+                "path": "data/collections/strategies.json",
+                "count": 1
+            },
+            {
+                "name": "posture",
+                "path": "data/collections/posture.json",
+                "count": 1
+            }
+        ]
     },
     "collections": {
         "domains": [
             {
                 "id": "DOM-00000000-0000-7000-8000-000000000001",
                 "entityType": "domain",
-                "schemaVersion": "1.9.0",
+                "schemaVersion": "1.10.0",
                 "title": "Governance",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -36,7 +127,7 @@
             {
                 "id": "REQ-00000000-0000-7000-8000-000000000101",
                 "entityType": "requirement",
-                "schemaVersion": "1.9.0",
+                "schemaVersion": "1.10.0",
                 "title": "Governance arrangements are established",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -54,7 +145,7 @@
             {
                 "id": "LNK-00000000-0000-7000-8000-000000000501",
                 "entityType": "link",
-                "schemaVersion": "1.9.0",
+                "schemaVersion": "1.10.0",
                 "title": "Direction reprioritised governance arrangements changes Governance arrangements are established",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -72,7 +163,7 @@
             {
                 "id": "SRC-00000000-0000-7000-8000-000000000101",
                 "entityType": "source-control",
-                "schemaVersion": "1.9.0",
+                "schemaVersion": "1.10.0",
                 "title": "Application control is implemented",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -107,7 +198,7 @@
             {
                 "id": "MAP-00000000-0000-7000-8000-000000000101",
                 "entityType": "requirement-control-mapping",
-                "schemaVersion": "1.9.0",
+                "schemaVersion": "1.10.0",
                 "title": "Governance arrangements are established mapped to ISM-1657",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -131,7 +222,7 @@
             {
                 "id": "POSTURE",
                 "entityType": "posture",
-                "schemaVersion": "1.9.0",
+                "schemaVersion": "1.10.0",
                 "title": "PSPF posture for standard fixture",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -147,7 +238,78 @@
                 "changeRecordCount": 1,
                 "supplierCount": 0,
                 "contractCount": 0,
-                "spendItemCount": 0
+                "spendItemCount": 0,
+                "strategyCount": 1
+            }
+        ],
+        "strategies": [
+            {
+                "id": "STR-00000000-0000-7000-8000-000000000601",
+                "entityType": "strategy",
+                "schemaVersion": "1.10.0",
+                "title": "Cybersecurity Strategy",
+                "createdAt": "2026-05-10T00:00:00.000Z",
+                "updatedAt": "2026-05-10T00:00:00.000Z",
+                "sourceProduct": "workshop",
+                "recordStatus": "active",
+                "scope": "Enterprise",
+                "timeHorizon": "2026-2028",
+                "effectiveAt": "2026-07-01T00:00:00.000Z",
+                "strategyStatement": "Focus cyber uplift on governance cadence and PSPF assurance evidence.",
+                "riskPostureStatement": "Improve assurance confidence while reducing unmanaged cyber exposure.",
+                "frameworks": [
+                    "PSPF",
+                    "Essential Eight"
+                ],
+                "reviewCadence": "quarterly",
+                "executiveSummary": "Cyber priorities connect assurance work to measurable posture movement.",
+                "choices": [
+                    {
+                        "id": "choice-governance-cadence",
+                        "statement": "Strengthen governance cadence as the strategic control point for assurance.",
+                        "summary": "Quarterly evidence review keeps PSPF reporting decisions current.",
+                        "capabilityArea": "Governance and assurance",
+                        "targetPosture": "Quarterly evidence review operating with current governance artefacts by 2026-12-31.",
+                        "executiveOwner": "CISO",
+                        "trend": "improving",
+                        "confidence": "medium",
+                        "references": [
+                            {
+                                "entityType": "requirement",
+                                "entityId": "REQ-00000000-0000-7000-8000-000000000101",
+                                "role": "drives"
+                            }
+                        ],
+                        "outcomes": [
+                            {
+                                "id": "outcome-governance-evidence-current",
+                                "statement": "Governance evidence remains current for executive assurance decisions.",
+                                "summary": "Evidence review cadence is visible and linked to assurance work.",
+                                "references": [
+                                    {
+                                        "entityType": "requirement",
+                                        "entityId": "REQ-00000000-0000-7000-8000-000000000101",
+                                        "role": "evidenced-by"
+                                    }
+                                ],
+                                "measures": [
+                                    {
+                                        "id": "measure-governance-review-cadence",
+                                        "title": "Governance review cadence",
+                                        "measureClass": "governance-assurance",
+                                        "baseline": "Ad hoc",
+                                        "current": "Quarterly review scheduled",
+                                        "target": "Quarterly review complete",
+                                        "unit": "cadence",
+                                        "trend": "improving",
+                                        "confidence": "medium",
+                                        "reviewCadence": "quarterly"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "directions": [],
@@ -155,7 +317,7 @@
             {
                 "id": "CHG-00000000-0000-7000-8000-000000000501",
                 "entityType": "change-record",
-                "schemaVersion": "1.9.0",
+                "schemaVersion": "1.10.0",
                 "title": "Direction reprioritised governance arrangements",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",

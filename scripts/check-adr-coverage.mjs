@@ -66,7 +66,8 @@ const coverage = [
     adr("0056-v1-20-1-explorer-connected-view-hotfix.md", "automated", ["check:explorer-publication", "check:release-candidate"]),
     adr("0057-v1-21-shop-forecast-management.md", "automated", ["check:shop-coverage-dashboard", "check:release-candidate"]),
     adr("0058-v1-22-operator-input-assistance.md", "automated", ["e2e:v1.23", "check:explorer-publication", "check:release-candidate"]),
-    adr("0059-v1-23-connected-view-and-commercial-planning-polish.md", "automated", ["check:explorer-publication", "check:shop-coverage-dashboard", "check:schema-coverage", "check:schema-policy", "check:release-candidate"])
+    adr("0059-v1-23-connected-view-and-commercial-planning-polish.md", "automated", ["check:explorer-publication", "check:shop-coverage-dashboard", "check:schema-coverage", "check:schema-policy", "check:release-candidate"]),
+    adr("0060-v1-24-workshop-cyber-strategy-map.md", "automated", ["check:release-candidate", "check:schema-policy", "check:schema-coverage", "check:explorer-publication"])
 ];
 
 const adrFiles = (await readdir(adrDirectory)).filter((file) => /^\d{4}-.*\.md$/.test(file)).sort();
