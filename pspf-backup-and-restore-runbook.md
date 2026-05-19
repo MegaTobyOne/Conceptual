@@ -12,6 +12,7 @@ This runbook covers:
 
 - backup of the PSPF Core SQLite database,
 - backup of associated PSPF workspace metadata,
+- restore-oriented export and import of PSPF master JSON bundles,
 - restore of the Core SQLite database,
 - post-restore validation,
 - backup verification,
@@ -110,7 +111,32 @@ Before running a manual backup or restore:
 
 ## Backup methods
 
-### Method A — preferred live backup with SQLite `.backup`
+### Method A — portable master JSON backup
+
+Use this method when the operator needs a portable PSPF backup that can be imported through the normal Core validation, import review, and undo path. It is also the preferred handoff format for checking that a backup can be restored into a fresh workspace without copying SQLite files directly.
+
+In VS Code:
+
+1. Run `PSPF: Export Master Bundle`.
+2. Store the exported JSON directory or archive in the chosen backup location.
+3. Record the exported manifest path and timestamp in the backup log.
+
+To test or restore the JSON backup:
+
+1. Initialise a fresh PSPF workspace or use the intended restore workspace.
+2. Run `PSPF: Import Bundle` or the Workshop restore/import entry point.
+3. Choose the exported master JSON manifest.
+4. Review the import plan and apply only after the create/update/unchanged counts match expectation.
+5. Run `PSPF: Run Integrity Scan` and `PSPF: Validate Workspace` after import.
+6. If the import result is wrong, use `PSPF: Undo Last Import` before continuing work.
+
+Notes:
+
+- The master JSON bundle is a validated restore artefact, not a replacement for low-level database backups.
+- Import must continue to use Core validation and plan/apply review; do not bypass the import review by copying JSON records directly into the database.
+- Treat exported JSON as OFFICIAL: Sensitive unless a separate publication review has confirmed a lower marking.
+
+### Method B — preferred live backup with SQLite `.backup`
 
 SQLite’s backup API is the recommended mechanism for creating a consistent copy of a live database, and the SQLite CLI exposes this via the `.backup` command.
 
@@ -129,7 +155,7 @@ sqlite3 .pspf/core/pspf-core.db ".backup '~/Backups/pspf/core-$(date +%Y%m%d-%H%
 - A live backup is safer than a raw file copy when the database may be open.
 - If PSPF Core is writing continuously, schedule a quiet period before running the backup.
 
-### Method B — cold file copy
+### Method C — cold file copy
 
 Use this only when VS Code is closed or the PSPF extensions are fully inactive.
 
@@ -141,7 +167,7 @@ If a workspace was last written by a SQLite engine using WAL mode (`journal_mode
 - `pspf-core.db-wal` — write-ahead log
 - `pspf-core.db-shm` — shared-memory index
 
-A cold file copy MUST copy all three files together as one atomic unit, or the resulting backup may be inconsistent or unreadable. Prefer Method A whenever Core may have run; only use Method B after Core has been cleanly closed and a checkpoint has been performed.
+A cold file copy MUST copy all three files together as one atomic unit, or the resulting backup may be inconsistent or unreadable. Prefer Method B whenever Core may have run; only use Method C after Core has been cleanly closed and a checkpoint has been performed.
 
 To force a checkpoint before a cold copy:
 
@@ -165,7 +191,7 @@ cp .pspf/core/pspf-core.db-shm ~/Backups/pspf/core-$TS.db-shm 2>/dev/null || tru
 
 A raw copy is simple, but it is safest when the database is definitely not being written to and a WAL checkpoint has been performed. Practical SQLite guidance consistently treats `.backup` as the more reliable transactional method for active databases.
 
-### Method C — SQL dump backup
+### Method D — SQL dump backup
 
 Use this as a secondary portability backup, not the primary operational restore copy.
 
