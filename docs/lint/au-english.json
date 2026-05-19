@@ -1,14 +1,14 @@
 {
-    "description": "AU-English spelling pairs for docs and extracted UI strings. Code identifiers are exempt.",
-    "pairs": [
-        {"use": "organisation", "avoid": "organization"},
-        {"use": "organisations", "avoid": "organizations"},
-        {"use": "organisational", "avoid": "organizational"},
-        {"use": "initialise", "avoid": "initialize"},
-        {"use": "initialisation", "avoid": "initialization"},
-        {"use": "behaviour", "avoid": "behavior"},
-        {"use": "colour", "avoid": "color"},
-        {"use": "optimise", "avoid": "optimize"},
-        {"use": "recognise", "avoid": "recognize"}
-    ]
+  "description": "AU-English spelling pairs for docs and extracted UI strings. Code identifiers are exempt.",
+  "pairs": [
+    { "use": "organisation", "avoid": "organization" },
+    { "use": "organisations", "avoid": "organizations" },
+    { "use": "organisational", "avoid": "organizational" },
+    { "use": "initialise", "avoid": "initialize" },
+    { "use": "initialisation", "avoid": "initialization" },
+    { "use": "behaviour", "avoid": "behavior" },
+    { "use": "colour", "avoid": "color" },
+    { "use": "optimise", "avoid": "optimize" },
+    { "use": "recognise", "avoid": "recognize" }
+  ]
 }

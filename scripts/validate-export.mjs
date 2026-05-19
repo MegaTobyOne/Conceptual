@@ -27,4 +27,6 @@ if (!report.ok) {
 }
 
 console.log(`ok export integrity passed for ${relative(root, bundlePath)}`);
-console.log(`counts requirements=${report.counts.requirements} evidence=${report.counts.evidence} actions=${report.counts.actions} risks=${report.counts.risks} links=${report.counts.links}`);
+console.log(
+  `counts requirements=${report.counts.requirements} evidence=${report.counts.evidence} actions=${report.counts.actions} risks=${report.counts.risks} links=${report.counts.links}`
+);

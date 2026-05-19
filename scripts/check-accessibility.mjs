@@ -28,7 +28,9 @@ try {
   assert.deepEqual(pageErrors, []);
 
   const results = await new AxeBuilder({ page }).analyze();
-  const seriousOrCritical = results.violations.filter((violation) => violation.impact === "serious" || violation.impact === "critical");
+  const seriousOrCritical = results.violations.filter(
+    (violation) => violation.impact === "serious" || violation.impact === "critical"
+  );
   const report = {
     generatedAt: new Date().toISOString(),
     explorerPath: relative(root, explorerPath),
@@ -43,8 +45,16 @@ try {
     }))
   };
 
-  await writeFile(join(reportDirectory, "explorer-accessibility-report.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
-  assert.equal(seriousOrCritical.length, 0, seriousOrCritical.map((violation) => `${violation.id}: ${violation.help}`).join("\n"));
+  await writeFile(
+    join(reportDirectory, "explorer-accessibility-report.json"),
+    `${JSON.stringify(report, null, 2)}\n`,
+    "utf8"
+  );
+  assert.equal(
+    seriousOrCritical.length,
+    0,
+    seriousOrCritical.map((violation) => `${violation.id}: ${violation.help}`).join("\n")
+  );
   console.log("ok Explorer accessibility floor passed with zero serious/critical axe findings");
   console.log(`report: ${relative(root, join(reportDirectory, "explorer-accessibility-report.json"))}`);
 } finally {

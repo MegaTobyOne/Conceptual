@@ -36,7 +36,12 @@ check("temporary PSPF workspace", () => {
   const pspfRoot = join(directory, ".pspf");
   const dbPath = join(pspfRoot, "core", "pspf-core.db");
   try {
-    execFileSync("mkdir", ["-p", join(pspfRoot, "core"), join(pspfRoot, "config"), join(pspfRoot, "exchange", "exports")]);
+    execFileSync("mkdir", [
+      "-p",
+      join(pspfRoot, "core"),
+      join(pspfRoot, "config"),
+      join(pspfRoot, "exchange", "exports")
+    ]);
     writeFileSync(dbPath, "");
     return "sample .pspf layout can be created";
   } finally {

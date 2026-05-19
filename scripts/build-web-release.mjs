@@ -21,40 +21,40 @@ await cp(explorerDist, join(outputRoot, "explorer"), { recursive: true });
 await cp(schemaRoot, join(outputRoot, "schemas", "explorer-bundle"), { recursive: true });
 
 await writeFile(
-    join(outputRoot, ".htaccess"),
-    [
-        "Options All -Indexes",
-        "Header always set X-Content-Type-Options \"nosniff\"",
-        "Header always set Referrer-Policy \"strict-origin-when-cross-origin\"",
-        "Header always set X-Frame-Options \"DENY\"",
-        "Header always set Permissions-Policy \"camera=(), microphone=(), geolocation=(), payment=()\"",
-        "Header always set Content-Security-Policy \"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'\"",
-        "",
-        "<IfModule mod_rewrite.c>",
-        "  RewriteEngine On",
-        "  RewriteRule ^explorer$ /explorer/ [R=302,L]",
-        "</IfModule>",
-        ""
-    ].join("\n"),
-    "utf8"
+  join(outputRoot, ".htaccess"),
+  [
+    "Options All -Indexes",
+    'Header always set X-Content-Type-Options "nosniff"',
+    'Header always set Referrer-Policy "strict-origin-when-cross-origin"',
+    'Header always set X-Frame-Options "DENY"',
+    'Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"',
+    "Header always set Content-Security-Policy \"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'\"",
+    "",
+    "<IfModule mod_rewrite.c>",
+    "  RewriteEngine On",
+    "  RewriteRule ^explorer$ /explorer/ [R=302,L]",
+    "</IfModule>",
+    ""
+  ].join("\n"),
+  "utf8"
 );
 
 console.log("ok web release staged at .tmp/web-release with root page, /explorer, and schemas");
 
 async function assertReadable(path) {
-    try {
-        await readFile(path);
-    } catch (error) {
-        assert.fail(`${path} must exist before staging the web release: ${error.message}`);
-    }
+  try {
+    await readFile(path);
+  } catch (error) {
+    assert.fail(`${path} must exist before staging the web release: ${error.message}`);
+  }
 }
 
 async function assertDirectory(path) {
-    try {
-        await access(path);
-        const stats = await stat(path);
-        assert.equal(stats.isDirectory(), true, `${path} must be a directory before staging the web release`);
-    } catch (error) {
-        assert.fail(`${path} must exist before staging the web release: ${error.message}`);
-    }
+  try {
+    await access(path);
+    const stats = await stat(path);
+    assert.equal(stats.isDirectory(), true, `${path} must be a directory before staging the web release`);
+  } catch (error) {
+    assert.fail(`${path} must exist before staging the web release: ${error.message}`);
+  }
 }
