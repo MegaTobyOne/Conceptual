@@ -6,7 +6,7 @@ import {
   CONNECTED_VIEW_STYLES,
   CONNECTED_VIEW_BROWSER_SCRIPT
 } from "@pspf/connected-view";
-import { tokensCss } from "@pspf/webview-shell";
+import { escapeHtml, homeButton, homeShellHtml, shellHtml } from "./webview/shell.js";
 import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
@@ -387,74 +387,6 @@ function renderHomeView(model: WorkshopHomeModel): string {
     </section>
   `
   );
-}
-
-function homeShellHtml(title: string, body: string): string {
-  return `<!doctype html>
-<html lang="en-AU">
-<head>
-  <meta charset="utf-8">
-  <title>${escapeHtml(title)}</title>
-  <style>
-    /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
-    ${tokensCss("extension")}
-    /* Workshop home surface tokens layered on top of the shared base. */
-    :root {
-      color-scheme: light dark;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --workshop-blue: #2563eb;
-      --workshop-blue-soft: rgba(37, 99, 235, 0.18);
-      --workshop-amber: #d97706;
-      --workshop-radius: 6px;
-      --workshop-radius-sm: 4px;
-      --workshop-gap: 10px;
-      --workshop-pad: 12px;
-    }
-    body { margin: 0; color: var(--vscode-foreground); background: radial-gradient(circle at top left, var(--workshop-blue-soft), transparent 18rem), var(--vscode-sideBar-background); font-feature-settings: "ss01", "cv01"; }
-    header { display: grid; gap: 2px; padding: var(--workshop-pad); border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border); background: linear-gradient(135deg, rgba(37, 99, 235, 0.24), transparent 78%); }
-    header strong { font-size: 15px; letter-spacing: 0.01em; }
-    header span { color: var(--vscode-descriptionForeground); font-size: 11.5px; }
-    .sensitivity { background: rgba(217, 119, 6, 0.18); border-bottom: 1px solid var(--workshop-amber); color: var(--vscode-foreground); padding: 6px var(--workshop-pad); font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em; }
-    main { padding: var(--workshop-pad); }
-    section { border: 1px solid var(--vscode-sideBarSectionHeader-border); border-radius: var(--workshop-radius); padding: var(--workshop-gap); margin-bottom: var(--workshop-gap); background: var(--vscode-editor-background); }
-    section + section { margin-top: 0; }
-    .hero-section { border-color: rgba(37, 99, 235, 0.45); background: linear-gradient(180deg, rgba(37, 99, 235, 0.13), var(--vscode-editor-background)); }
-    .eyebrow { margin: 0 0 6px; color: var(--workshop-blue); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-    h2 { font-size: 12.5px; line-height: 1.25; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .muted { color: var(--vscode-descriptionForeground); font-size: 12px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; }
-    .metric { border: 1px solid var(--vscode-input-border); border-radius: var(--workshop-radius); padding: 8px 9px; background: var(--vscode-input-background); }
-    .metric span { color: var(--vscode-descriptionForeground); display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .metric strong { display: block; font-size: 22px; line-height: 1.1; margin-top: 3px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-    .action-list { display: grid; grid-template-columns: 1fr; gap: 6px; }
-    .action-list.compact { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); }
-    button { width: 100%; min-width: 0; border: 1px solid var(--vscode-button-border, transparent); border-radius: var(--workshop-radius-sm); padding: 7px 9px; color: var(--vscode-button-foreground); background: var(--vscode-button-background); font: inherit; cursor: pointer; text-align: left; transition: background-color 80ms ease; }
-    button:hover { background: var(--vscode-button-hoverBackground); }
-    button:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 1px; }
-    .button-title { display: block; overflow-wrap: anywhere; font-weight: 500; }
-    .button-description { display: block; margin-top: 2px; color: var(--vscode-button-secondaryForeground, var(--vscode-descriptionForeground)); font-size: 11px; line-height: 1.35; font-weight: 400; }
-    .version-strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-    .version-pill { border: 1px solid var(--vscode-input-border); border-radius: 999px; padding: 2px 8px; color: var(--vscode-descriptionForeground); background: var(--vscode-input-background); font-size: 11px; white-space: nowrap; line-height: 1.4; font-variant-numeric: tabular-nums; }
-  </style>
-</head>
-<body>
-  <header><strong>PSPF Workshop</strong><span>System of record · v${PSPF_SLICE_VERSION}</span></header>
-  <div class="sensitivity">OFFICIAL: Sensitive · Local workspace writes stay in Workshop</div>
-  <main>${body}</main>
-  <script>
-    const vscode = acquireVsCodeApi();
-    globalThis.__pspfWorkshopVscode = vscode;
-    document.querySelectorAll("button[data-command]").forEach((button) => {
-      button.addEventListener("click", () => vscode.postMessage({ command: button.dataset.command }));
-    });
-  </script>
-</body>
-</html>`;
-}
-
-function homeButton(command: string, text: string, description?: string): string {
-  const descriptionHtml = description ? `<span class="button-description">${escapeHtml(description)}</span>` : "";
-  return `<button type="button" data-command="${escapeHtml(command)}"><span class="button-title">${escapeHtml(text)}</span>${descriptionHtml}</button>`;
 }
 
 async function openWelcome(): Promise<void> {
@@ -2165,155 +2097,6 @@ async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: rea
     await refreshEditor();
   });
   panel.webview.html = shellHtml(entity.title ?? entity.id, renderEntityEditor(entity, currentEntities));
-}
-
-function shellHtml(title: string, body: string): string {
-  return `<!doctype html>
-<html lang="en-AU">
-<head>
-  <meta charset="utf-8">
-  <title>${escapeHtml(title)}</title>
-  <style>
-    /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
-    ${tokensCss("extension")}
-    /* Workshop main-panel surface tokens layered on top of the shared base. */
-    :root {
-      color-scheme: light dark;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --workshop-blue: #2563eb;
-      --workshop-blue-soft: rgba(37, 99, 235, 0.14);
-      --workshop-blue-strong: rgba(37, 99, 235, 0.28);
-      --amber: #d97706;
-      --amber-soft: rgba(217, 119, 6, 0.18);
-      --radius: 8px;
-      --radius-sm: 4px;
-      --radius-pill: 999px;
-      --gap: 14px;
-      --gap-lg: 18px;
-      --pad: 16px;
-      --pad-lg: 22px;
-      --text: var(--vscode-foreground);
-      --muted: var(--vscode-descriptionForeground);
-      --surface: var(--vscode-editor-background);
-      --surface-strong: var(--vscode-input-background, var(--vscode-editor-background));
-      --border: var(--vscode-panel-border, var(--vscode-input-border));
-    }
-    body { margin: 0; color: var(--text); background: radial-gradient(circle at top left, var(--workshop-blue-soft), transparent 28rem), var(--vscode-editor-background); font-feature-settings: "ss01", "cv01"; }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: var(--pad) var(--pad-lg); border-bottom: 1px solid var(--border); background: linear-gradient(135deg, var(--workshop-blue-strong) 0%, transparent 72%); }
-    header strong { display: block; font-size: 20px; letter-spacing: 0.005em; }
-    header span { color: var(--muted); font-size: 12.5px; }
-    main { max-width: 1180px; margin: 0 auto; padding: var(--pad-lg); }
-    section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); margin-bottom: var(--gap); }
-    section > h2:first-child { margin-top: 0; }
-    h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: -0.005em; }
-    h2 { font-size: 16px; margin-top: 0; margin-bottom: 10px; letter-spacing: 0.01em; }
-    h3 { font-size: 14px; margin: 12px 0 6px; }
-    p { line-height: 1.5; }
-    .eyebrow { margin: 0 0 6px; color: var(--workshop-blue); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-    .metric { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: var(--surface-strong); }
-    .metric span { color: var(--muted); display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .metric strong { display: block; font-size: 28px; line-height: 1.1; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-    .table-wrap { width: 100%; overflow-x: auto; margin-top: 10px; border-radius: var(--radius-sm); }
-    table { width: 100%; min-width: min(760px, 100%); border-collapse: collapse; table-layout: auto; }
-    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-    td { overflow-wrap: anywhere; }
-    th { color: var(--muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; background: color-mix(in srgb, var(--surface-strong) 75%, transparent); position: sticky; top: 0; }
-    tbody tr:hover { background: color-mix(in srgb, var(--workshop-blue) 6%, transparent); }
-    tbody tr:last-child td { border-bottom: none; }
-    th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"], th[data-field="target"], td[data-field="target"] { min-width: 18rem; max-width: 34rem; }
-    th[data-field="explanation"], td[data-field="explanation"] { max-width: 22rem; }
-    .cell-compact { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="freshness"], td[data-field="freshness"] { white-space: nowrap; width: 1%; font-variant-numeric: tabular-nums; }
-    th[data-field="open"], td[data-field="open"] { white-space: nowrap; width: 1%; }
-    button, input, select, textarea { font: inherit; }
-    button { border: 1px solid var(--vscode-button-border, transparent); border-radius: var(--radius-sm); background: var(--vscode-button-background); color: var(--vscode-button-foreground); padding: 6px 11px; cursor: pointer; transition: background-color 80ms ease; }
-    button:hover { background: var(--vscode-button-hoverBackground); }
-    button:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 1px; }
-    .form-grid { display: grid; gap: 12px; max-width: 640px; }
-    label { display: grid; gap: 5px; color: var(--text); font-size: 13px; }
-    input, select, textarea { box-sizing: border-box; width: 100%; border: 1px solid var(--vscode-input-border, var(--border)); border-radius: var(--radius-sm); background: var(--vscode-input-background); color: var(--vscode-input-foreground, var(--text)); padding: 7px 9px; }
-    input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: -1px; border-color: transparent; }
-    textarea { resize: vertical; min-height: 96px; line-height: 1.45; }
-    input[readonly] { color: var(--muted); background: color-mix(in srgb, var(--surface-strong) 65%, transparent); }
-    .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-    .banner { background: var(--amber-soft); border-bottom: 1px solid var(--amber); color: var(--text); padding: 8px var(--pad-lg); font-weight: 600; font-size: 12.5px; letter-spacing: 0.02em; }
-    .muted { color: var(--muted); }
-    .version-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .version-pill { border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 3px 10px; color: var(--muted); background: var(--surface-strong); font-size: 11.5px; white-space: nowrap; line-height: 1.4; font-variant-numeric: tabular-nums; }
-    a { color: var(--vscode-textLink-foreground); }
-    a:hover { color: var(--vscode-textLink-activeForeground); }
-    @media (max-width: 720px) {
-      main { padding: var(--pad); }
-      header { padding: var(--pad); }
-      .banner { padding: 8px var(--pad); }
-      table { min-width: 680px; }
-      th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"] { min-width: 16rem; }
-    }
-  </style>
-</head>
-<body>
-  <header><strong>PSPF Workshop</strong><span>System of record · v${PSPF_SLICE_VERSION}</span></header>
-  <div class="banner">OFFICIAL: Sensitive · Workshop is the decision surface</div>
-  <main>
-    ${body}
-  </main>
-  <script>
-    const vscode = typeof acquireVsCodeApi === 'function' ? acquireVsCodeApi() : undefined;
-    document.addEventListener('click', (event) => {
-      const button = event.target instanceof HTMLElement ? event.target.closest('button[data-command]') : null;
-      if (!button || !vscode) {
-        return;
-      }
-      const command = button.getAttribute('data-command');
-      if (command === 'openEntity') {
-        vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
-      }
-      if (command === 'openAdjacentRequirement') {
-        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id'), direction: button.getAttribute('data-direction') });
-      }
-      if (command === 'openAdjacentDirection') {
-        vscode.postMessage({ command, directionId: button.getAttribute('data-direction-id'), direction: button.getAttribute('data-direction') });
-      }
-      if (command === 'recordChange') {
-        vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
-      }
-      if (command === 'createTag' || command === 'editTag' || command === 'archiveTag' || command === 'applyTag' || command === 'removeTag') {
-        vscode.postMessage({ command, tagId: button.getAttribute('data-tag-id'), requirementId: button.getAttribute('data-requirement-id') });
-      }
-      if (command === 'attachEvidenceToRequirement' || command === 'createActionForRequirement' || command === 'createRiskForRequirement' || command === 'mapRequirementToIsm') {
-        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
-      }
-      if (command === 'linkExistingEvidenceToRequirement' || command === 'linkExistingActionToRequirement' || command === 'linkExistingRiskToRequirement' || command === 'linkExistingDirectionToRequirement') {
-        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
-      }
-      if (command === 'createSavedView' || command === 'applySavedView' || command === 'editSavedView' || command === 'archiveSavedView') {
-        vscode.postMessage({ command, savedViewId: button.getAttribute('data-saved-view-id'), savedViewScope: button.getAttribute('data-saved-view-scope') });
-      }
-      if (command === 'refresh') {
-        vscode.postMessage({ command });
-      }
-      if (command === 'saveEntity' || command === 'saveAndCloseEntity' || command === 'saveAndNextEntity') {
-        const form = button.closest('form');
-        if (!form) {
-          return;
-        }
-        const data = new FormData(form);
-        const fields = {};
-        for (const [key, value] of data.entries()) {
-          fields[key] = String(value);
-        }
-        vscode.postMessage({
-          command,
-          entityType: String(data.get('entityType') || ''),
-          entityId: String(data.get('entityId') || ''),
-          fields
-        });
-      }
-    });
-  </script>
-</body>
-</html>`;
 }
 
 function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: () => Promise<void>): void {
@@ -4441,15 +4224,6 @@ async function pickScore(title: string): Promise<number | undefined> {
     { title, ignoreFocusOut: true }
   );
   return picked?.value;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }
 
 function commercialContextSection(
