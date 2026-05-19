@@ -594,7 +594,7 @@ async function createAction(requirementId?: string): Promise<void> {
 
   const dueDate = await vscode.window.showInputBox({
     title: "Create Action",
-    prompt: "Due date, for example 30 Jun 2026. Press Enter to skip.",
+    prompt: "Due date, for example today or 30 Jun 2026. Press Enter to skip.",
     ignoreFocusOut: true
   });
   if (dueDate === undefined) {
@@ -2113,7 +2113,7 @@ function renderActionEditor(action: ActionEntity, allEntities: readonly V01Entit
   return `${editorShell(action, "Edit Action", `
     ${inputField("title", "Title", action.title, true)}
     ${selectField("status", "Status", actionStatusItems, action.status)}
-    ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "30 Jun 2026")}
+    ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
   `)}${readOnlyImpact}${commercialContextSection(action, allEntities)}`;
 }
 
