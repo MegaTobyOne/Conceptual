@@ -2,10 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
-import {
-  ISM_SOURCE_CONTROLS,
-  PREVIOUS_ISM_SOURCE_CONTROLS
-} from "../packages/ism-source-library/dist/index.js";
+import { ISM_SOURCE_CONTROLS, PREVIOUS_ISM_SOURCE_CONTROLS } from "../packages/ism-source-library/dist/index.js";
 
 const root = process.cwd();
 const reportDirectory = join(root, ".tmp", "ism-drift");
@@ -26,7 +23,11 @@ for (const current of ISM_SOURCE_CONTROLS) {
     declaredStatus: current.statementChangeStatus,
     computedStatus
   });
-  assert.equal(current.statementChangeStatus, computedStatus, `${current.controlId} declared drift status does not match seeded source comparison`);
+  assert.equal(
+    current.statementChangeStatus,
+    computedStatus,
+    `${current.controlId} declared drift status does not match seeded source comparison`
+  );
   if (["changed", "new", "removed"].includes(computedStatus)) {
     changedControlIds.add(current.controlId);
   }
@@ -48,16 +49,25 @@ for (const previous of PREVIOUS_ISM_SOURCE_CONTROLS) {
 const seededChangedControl = ISM_SOURCE_CONTROLS.find((control) => control.statementChangeStatus === "changed");
 const seededUnchangedControl = ISM_SOURCE_CONTROLS.find((control) => control.statementChangeStatus === "unchanged");
 assert.ok(seededChangedControl, "seeded drift fixture must include at least one changed ISM statement");
-assert.ok(changedControlIds.has(seededChangedControl.controlId), `seeded drift fixture must detect changed ${seededChangedControl.controlId} statement`);
+assert.ok(
+  changedControlIds.has(seededChangedControl.controlId),
+  `seeded drift fixture must detect changed ${seededChangedControl.controlId} statement`
+);
 if (seededUnchangedControl) {
-  assert.equal(changedControlIds.has(seededUnchangedControl.controlId), false, `unchanged ${seededUnchangedControl.controlId} must not be flagged`);
+  assert.equal(
+    changedControlIds.has(seededUnchangedControl.controlId),
+    false,
+    `unchanged ${seededUnchangedControl.controlId} must not be flagged`
+  );
 }
 
 const bundlePath = findBundlePath();
 const affectedMappings = [];
 if (bundlePath) {
   const bundle = JSON.parse(readFileSync(bundlePath, "utf8"));
-  const sourceControlsById = new Map((bundle.collections?.["source-controls"] ?? []).map((control) => [control.id, control]));
+  const sourceControlsById = new Map(
+    (bundle.collections?.["source-controls"] ?? []).map((control) => [control.id, control])
+  );
   for (const mapping of bundle.collections?.["requirement-control-mappings"] ?? []) {
     const sourceControl = sourceControlsById.get(mapping.sourceControlId);
     if (sourceControl && changedControlIds.has(sourceControl.controlId)) {
@@ -74,7 +84,9 @@ if (bundlePath) {
   }
 }
 
-const mappingCount = bundlePath ? JSON.parse(readFileSync(bundlePath, "utf8")).collections?.["requirement-control-mappings"]?.length ?? 0 : 0;
+const mappingCount = bundlePath
+  ? (JSON.parse(readFileSync(bundlePath, "utf8")).collections?.["requirement-control-mappings"]?.length ?? 0)
+  : 0;
 if (mappingCount > 0 && affectedMappings.length === 0) {
   console.warn("warning: bundle contains mappings but none target the seeded changed ISM control");
 }

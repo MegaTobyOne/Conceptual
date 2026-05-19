@@ -32,17 +32,23 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     }),
     vscode.commands.registerCommand("pspf.core.validateWorkspace", async () => {
       const result = await getService().validateWorkspace();
-      await vscode.window.showInformationMessage(result.ok ? result.message : `PSPF validation failed: ${result.message}`);
+      await vscode.window.showInformationMessage(
+        result.ok ? result.message : `PSPF validation failed: ${result.message}`
+      );
       return result;
     }),
     vscode.commands.registerCommand("pspf.core.verifyIntegrity", async () => {
       const result = await getService().verifyIntegrity();
-      await vscode.window.showInformationMessage(result.ok ? "PSPF SQLite integrity check passed." : `PSPF integrity check failed: ${result.detail}`);
+      await vscode.window.showInformationMessage(
+        result.ok ? "PSPF SQLite integrity check passed." : `PSPF integrity check failed: ${result.detail}`
+      );
       return result;
     }),
     vscode.commands.registerCommand("pspf.core.runIntegrityScan", async () => {
       const report = await getService().runIntegrityScan();
-      await vscode.window.showInformationMessage(report.ok ? report.summary : `PSPF integrity scan failed: ${report.summary}`);
+      await vscode.window.showInformationMessage(
+        report.ok ? report.summary : `PSPF integrity scan failed: ${report.summary}`
+      );
       return report;
     }),
     vscode.commands.registerCommand("pspf.core.createSnapshot", async () => {
@@ -53,7 +59,12 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     vscode.commands.registerCommand("pspf.core.exportBundle", async () => {
       const saveUri = await vscode.window.showSaveDialog({
         title: "Save PSPF JSON Bundle",
-        defaultUri: vscode.Uri.file(join(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? process.cwd(), `pspf-master-bundle-${new Date().toISOString().slice(0, 10)}.json`)),
+        defaultUri: vscode.Uri.file(
+          join(
+            vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? process.cwd(),
+            `pspf-master-bundle-${new Date().toISOString().slice(0, 10)}.json`
+          )
+        ),
         filters: { "PSPF JSON bundle": ["json"] }
       });
       if (!saveUri) {
@@ -62,7 +73,10 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       const result = await getService().exportBundle();
       const bundlePath = join(result.exportDirectory, "bundle.json");
       await copyFile(bundlePath, saveUri.fsPath);
-      const action = await vscode.window.showInformationMessage(`PSPF JSON bundle saved to ${saveUri.fsPath}`, "Open File");
+      const action = await vscode.window.showInformationMessage(
+        `PSPF JSON bundle saved to ${saveUri.fsPath}`,
+        "Open File"
+      );
       if (action === "Open File") {
         await vscode.commands.executeCommand("vscode.open", saveUri);
       }
@@ -97,8 +111,12 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       await vscode.window.showInformationMessage(result.message);
       return result;
     }),
-    vscode.commands.registerCommand("pspf.core.planImportBundleFromPath", (bundlePath: string, mode: ImportMode) => getService().planImportBundle(bundlePath, mode)),
-    vscode.commands.registerCommand("pspf.core.importBundleFromPath", (bundlePath: string, mode: ImportMode) => getService().importBundle(bundlePath, mode)),
+    vscode.commands.registerCommand("pspf.core.planImportBundleFromPath", (bundlePath: string, mode: ImportMode) =>
+      getService().planImportBundle(bundlePath, mode)
+    ),
+    vscode.commands.registerCommand("pspf.core.importBundleFromPath", (bundlePath: string, mode: ImportMode) =>
+      getService().importBundle(bundlePath, mode)
+    ),
     vscode.commands.registerCommand("pspf.core.ensureWorkspaceReady", async () => getService().initialiseWorkspace()),
     vscode.commands.registerCommand("pspf.core.runIntegrityScanHeadless", async () => getService().runIntegrityScan()),
     vscode.commands.registerCommand("pspf.core.upsertEntity", (entity) => getService().upsertEntity(entity)),
@@ -114,7 +132,13 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
 
 async function importBundlesFromPicker(
   output: vscode.OutputChannel,
-  labels: { readonly openTitle: string; readonly filterName: string; readonly progressTitle: string; readonly completePrefix: string; readonly errorPrefix: string }
+  labels: {
+    readonly openTitle: string;
+    readonly filterName: string;
+    readonly progressTitle: string;
+    readonly completePrefix: string;
+    readonly errorPrefix: string;
+  }
 ): Promise<ImportResult | ImportResult[] | undefined> {
   const pickedFile = await vscode.window.showOpenDialog({
     title: labels.openTitle,
@@ -130,9 +154,21 @@ async function importBundlesFromPicker(
 
   const pickedMode = await vscode.window.showQuickPick(
     [
-      { label: "Additive merge", description: "Add or update bundle records without deleting existing records", value: "additive-merge" as const },
-      { label: "Plan, review, apply", description: "Preview changes and confirm before writing", value: "plan-apply" as const },
-      { label: "Full replace", description: "Create a rollback snapshot, then replace existing records", value: "full-replace" as const }
+      {
+        label: "Additive merge",
+        description: "Add or update bundle records without deleting existing records",
+        value: "additive-merge" as const
+      },
+      {
+        label: "Plan, review, apply",
+        description: "Preview changes and confirm before writing",
+        value: "plan-apply" as const
+      },
+      {
+        label: "Full replace",
+        description: "Create a rollback snapshot, then replace existing records",
+        value: "full-replace" as const
+      }
     ],
     { title: "Select Import Mode", ignoreFocusOut: true }
   );
@@ -142,7 +178,9 @@ async function importBundlesFromPicker(
 
   try {
     if (pickedMode.value === "plan-apply") {
-      const plans = await Promise.all(bundlePaths.map((bundlePath) => getService().planImportBundle(bundlePath, "plan-apply")));
+      const plans = await Promise.all(
+        bundlePaths.map((bundlePath) => getService().planImportBundle(bundlePath, "plan-apply"))
+      );
       writeImportSummary(output, plans);
       const planSummary = combineImportSummaries(plans);
       const reviewAction = await openImportReviewSurface(output, plans, planSummary);
@@ -213,10 +251,12 @@ async function importBundlesFromPicker(
 }
 
 function planDetail(results: readonly ImportResult[]): string {
-  return results.flatMap((result) => [
-    `${basename(result.bundlePath)}: ${result.summary.created} created, ${result.summary.updated} updated, ${result.summary.unchanged} unchanged.`,
-    ...result.summary.examples.slice(0, 5)
-  ]).join("\n");
+  return results
+    .flatMap((result) => [
+      `${basename(result.bundlePath)}: ${result.summary.created} created, ${result.summary.updated} updated, ${result.summary.unchanged} unchanged.`,
+      ...result.summary.examples.slice(0, 5)
+    ])
+    .join("\n");
 }
 
 function openImportReviewSurface(
@@ -349,14 +389,19 @@ function metric(label: string, value: number): string {
 function importPlanCard(plan: ImportResult): string {
   const byTypeRows = Object.entries(plan.summary.byType)
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([entityType, summary]) => `<tr><td>${escapeHtml(entityType)}</td><td>${summary.created}</td><td>${summary.updated}</td><td>${summary.unchanged}</td><td>${summary.written}</td></tr>`)
+    .map(
+      ([entityType, summary]) =>
+        `<tr><td>${escapeHtml(entityType)}</td><td>${summary.created}</td><td>${summary.updated}</td><td>${summary.unchanged}</td><td>${summary.written}</td></tr>`
+    )
     .join("");
-  const conflictItems = plan.summary.conflicts.length > 0
-    ? plan.summary.conflicts.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
-    : '<li><span class="muted">No updates or conflicts in this file.</span></li>';
-  const exampleItems = plan.summary.examples.length > 0
-    ? plan.summary.examples.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
-    : '<li><span class="muted">No example changes.</span></li>';
+  const conflictItems =
+    plan.summary.conflicts.length > 0
+      ? plan.summary.conflicts.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
+      : '<li><span class="muted">No updates or conflicts in this file.</span></li>';
+  const exampleItems =
+    plan.summary.examples.length > 0
+      ? plan.summary.examples.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
+      : '<li><span class="muted">No example changes.</span></li>';
   return `<section>
     <h2>${escapeHtml(basename(plan.bundlePath))}</h2>
     <p class="muted">${escapeHtml(plan.bundlePath)}</p>
@@ -376,7 +421,11 @@ function importPlanCard(plan: ImportResult): string {
   </section>`;
 }
 
-function combineImportSummaries(results: readonly ImportResult[]): { created: number; updated: number; unchanged: number } {
+function combineImportSummaries(results: readonly ImportResult[]): {
+  created: number;
+  updated: number;
+  unchanged: number;
+} {
   return results.reduce(
     (total, result) => ({
       created: total.created + result.summary.created,
@@ -390,9 +439,15 @@ function combineImportSummaries(results: readonly ImportResult[]): { created: nu
 function writeImportSummary(output: vscode.OutputChannel, results: readonly ImportResult[]): void {
   output.appendLine(`PSPF import summary (${new Date().toISOString()})`);
   for (const result of results) {
-    output.appendLine(`- ${basename(result.bundlePath)} (${result.mode}): ${result.summary.created} created, ${result.summary.updated} updated, ${result.summary.unchanged} unchanged, ${result.summary.written} written.`);
-    for (const [entityType, summary] of Object.entries(result.summary.byType).sort(([left], [right]) => left.localeCompare(right))) {
-      output.appendLine(`  ${entityType}: ${summary.created} created, ${summary.updated} updated, ${summary.unchanged} unchanged`);
+    output.appendLine(
+      `- ${basename(result.bundlePath)} (${result.mode}): ${result.summary.created} created, ${result.summary.updated} updated, ${result.summary.unchanged} unchanged, ${result.summary.written} written.`
+    );
+    for (const [entityType, summary] of Object.entries(result.summary.byType).sort(([left], [right]) =>
+      left.localeCompare(right)
+    )) {
+      output.appendLine(
+        `  ${entityType}: ${summary.created} created, ${summary.updated} updated, ${summary.unchanged} unchanged`
+      );
     }
     if (result.summary.examples.length > 0) {
       output.appendLine("  Examples:");
@@ -430,7 +485,9 @@ async function initialiseOnActivation(output: vscode.OutputChannel): Promise<voi
     return;
   }
 
-  const shouldInitialise = vscode.workspace.getConfiguration("pspf.core", folder.uri).get<boolean>("initialiseOnActivation", false);
+  const shouldInitialise = vscode.workspace
+    .getConfiguration("pspf.core", folder.uri)
+    .get<boolean>("initialiseOnActivation", false);
   if (!shouldInitialise) {
     return;
   }

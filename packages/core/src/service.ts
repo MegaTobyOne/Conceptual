@@ -43,7 +43,11 @@ import {
   withEnvelope
 } from "@pspf/contracts";
 import { ISM_SOURCE_CONTROLS } from "@pspf/ism-source-library";
-import { PSPF_BASELINE_DIRECTIONS, PSPF_BASELINE_DIRECTION_LINKS, PSPF_BASELINE_REQUIREMENTS } from "@pspf/reference-data";
+import {
+  PSPF_BASELINE_DIRECTIONS,
+  PSPF_BASELINE_DIRECTION_LINKS,
+  PSPF_BASELINE_REQUIREMENTS
+} from "@pspf/reference-data";
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
 
 const SQLITE_BUSY_TIMEOUT_MS = 5000;
@@ -197,7 +201,8 @@ export function createCoreReadApi(workspaceRoot: string): CoreReadApi {
   return {
     getWorkspacePaths: () => getWorkspacePaths(workspaceRoot),
     validateWorkspace: () => serialiseWorkspaceOperation(workspaceRoot, () => validateWorkspace(workspaceRoot)),
-    listEntities: (entityType) => serialiseWorkspaceOperation(workspaceRoot, () => listEntities(workspaceRoot, entityType))
+    listEntities: (entityType) =>
+      serialiseWorkspaceOperation(workspaceRoot, () => listEntities(workspaceRoot, entityType))
   };
 }
 
@@ -207,15 +212,18 @@ export function createCoreWriteApi(workspaceRoot: string): CoreWriteApi {
     createSnapshot: () => serialiseWorkspaceOperation(workspaceRoot, () => createSnapshot(workspaceRoot)),
     getWriterLock: () => serialiseWorkspaceOperation(workspaceRoot, () => getWriterLock(workspaceRoot)),
     upsertEntity: (entity) => serialiseWorkspaceOperation(workspaceRoot, () => upsertEntity(workspaceRoot, entity)),
-    upsertEntities: (entities) => serialiseWorkspaceOperation(workspaceRoot, () => upsertEntities(workspaceRoot, entities))
+    upsertEntities: (entities) =>
+      serialiseWorkspaceOperation(workspaceRoot, () => upsertEntities(workspaceRoot, entities))
   };
 }
 
 export function createCoreExchangeApi(workspaceRoot: string): CoreExchangeApi {
   return {
     exportBundle: () => serialiseWorkspaceOperation(workspaceRoot, () => exportBundle(workspaceRoot)),
-    planImportBundle: (bundlePath, mode) => serialiseWorkspaceOperation(workspaceRoot, () => planImportBundle(workspaceRoot, bundlePath, mode)),
-    importBundle: (bundlePath, mode) => serialiseWorkspaceOperation(workspaceRoot, () => importBundle(workspaceRoot, bundlePath, mode)),
+    planImportBundle: (bundlePath, mode) =>
+      serialiseWorkspaceOperation(workspaceRoot, () => planImportBundle(workspaceRoot, bundlePath, mode)),
+    importBundle: (bundlePath, mode) =>
+      serialiseWorkspaceOperation(workspaceRoot, () => importBundle(workspaceRoot, bundlePath, mode)),
     undoLastImport: () => serialiseWorkspaceOperation(workspaceRoot, () => undoLastImport(workspaceRoot))
   };
 }
@@ -267,7 +275,9 @@ async function initialiseWorkspace(workspaceRoot: string): Promise<WorkspacePath
   await writeJson(join(paths.config, "products.json"), { trustedCallerOverrides: [] });
   await writeJson(join(paths.config, "policies.json"), { publicationDefault: "sensitive" });
 
-  await runSql(paths.db, `
+  await runSql(
+    paths.db,
+    `
   PRAGMA busy_timeout=${SQLITE_BUSY_TIMEOUT_MS};
 PRAGMA journal_mode=WAL;
   PRAGMA synchronous=NORMAL;
@@ -295,22 +305,57 @@ INSERT INTO metadata(key, value) VALUES ('bundleVersion', '${VERSION_AXES.bundle
   ON CONFLICT(key) DO UPDATE SET value = excluded.value;
 INSERT INTO metadata(key, value) VALUES ('apiVersion', '${VERSION_AXES.apiVersion}')
   ON CONFLICT(key) DO UPDATE SET value = excluded.value;
-`);
+`
+  );
 
   const timestamp = nowIso();
-  const seededDomains: V01Entity[] = PSPF_DOMAINS.map((domain) => ({ ...domain, createdAt: timestamp, updatedAt: timestamp }));
-  const seededSourceControls: V01Entity[] = ISM_SOURCE_CONTROLS.map((sourceControl) => ({ ...sourceControl, createdAt: timestamp, updatedAt: timestamp }));
-  const seededRequirements: V01Entity[] = PSPF_BASELINE_REQUIREMENTS.map((requirement) => ({ ...requirement, createdAt: timestamp, updatedAt: timestamp }));
-  const seededDirections: V01Entity[] = PSPF_BASELINE_DIRECTIONS.map((direction) => ({ ...direction, createdAt: timestamp, updatedAt: timestamp }));
-  const seededDirectionLinks: V01Entity[] = PSPF_BASELINE_DIRECTION_LINKS.map((link) => ({ ...link, createdAt: timestamp, updatedAt: timestamp }));
+  const seededDomains: V01Entity[] = PSPF_DOMAINS.map((domain) => ({
+    ...domain,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
+  const seededSourceControls: V01Entity[] = ISM_SOURCE_CONTROLS.map((sourceControl) => ({
+    ...sourceControl,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
+  const seededRequirements: V01Entity[] = PSPF_BASELINE_REQUIREMENTS.map((requirement) => ({
+    ...requirement,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
+  const seededDirections: V01Entity[] = PSPF_BASELINE_DIRECTIONS.map((direction) => ({
+    ...direction,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
+  const seededDirectionLinks: V01Entity[] = PSPF_BASELINE_DIRECTION_LINKS.map((link) => ({
+    ...link,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
   await upsertEntities(workspaceRoot, [...seededDomains, ...seededSourceControls]);
-  await insertReferenceEntitiesIfMissing(workspaceRoot, [...seededRequirements, ...seededDirections, ...seededDirectionLinks]);
+  await insertReferenceEntitiesIfMissing(workspaceRoot, [
+    ...seededRequirements,
+    ...seededDirections,
+    ...seededDirectionLinks
+  ]);
   return paths;
 }
 
-async function validateWorkspace(workspaceRoot: string): Promise<{ ok: boolean; message: string; counts: Record<V01Collection, number> }> {
+async function validateWorkspace(
+  workspaceRoot: string
+): Promise<{ ok: boolean; message: string; counts: Record<V01Collection, number> }> {
   const paths = await ensureInitialised(workspaceRoot);
-  const requiredPaths = [paths.db, paths.config, paths.exports, paths.imports, paths.snapshots, paths.logs, paths.locks];
+  const requiredPaths = [
+    paths.db,
+    paths.config,
+    paths.exports,
+    paths.imports,
+    paths.snapshots,
+    paths.logs,
+    paths.locks
+  ];
   const missing = requiredPaths.filter((path) => !existsSync(path));
   const collections = await getBundleCollections(workspaceRoot, paths);
   const counts = getCollectionCounts(collections);
@@ -319,7 +364,11 @@ async function validateWorkspace(workspaceRoot: string): Promise<{ ok: boolean; 
     return { ok: false, message: `Missing ${missing.map((path) => basename(path)).join(", ")}`, counts };
   }
 
-  return { ok: true, message: `Workspace ready with ${counts.requirements} requirement(s) and ${counts.evidence} evidence item(s).`, counts };
+  return {
+    ok: true,
+    message: `Workspace ready with ${counts.requirements} requirement(s) and ${counts.evidence} evidence item(s).`,
+    counts
+  };
 }
 
 async function verifyIntegrity(workspaceRoot: string): Promise<{ ok: boolean; detail: string }> {
@@ -337,27 +386,46 @@ async function runIntegrityScan(workspaceRoot: string): Promise<IntegrityScanRep
   if (sqliteResult === "ok") {
     findings.push({ section: "sqlite", severity: "info", message: "SQLite PRAGMA integrity_check returned ok." });
   } else {
-    findings.push({ section: "sqlite", severity: "error", message: `SQLite integrity_check returned: ${sqliteResult}` });
+    findings.push({
+      section: "sqlite",
+      severity: "error",
+      message: `SQLite integrity_check returned: ${sqliteResult}`
+    });
   }
 
   const rawOutput = await runSql(paths.db, "SELECT id, entity_type, payload FROM entities;", ["-json"]);
-  const rows = rawOutput.trim() === "" ? [] : JSON.parse(rawOutput) as readonly { id: string; entity_type: string; payload: string }[];
+  const rows =
+    rawOutput.trim() === ""
+      ? []
+      : (JSON.parse(rawOutput) as readonly { id: string; entity_type: string; payload: string }[]);
   const entitiesById = new Map<string, V01Entity>();
   let unparseable = 0;
   for (const row of rows) {
     try {
       const entity = JSON.parse(row.payload) as V01Entity;
       if (entity.id !== row.id) {
-        findings.push({ section: "payload", severity: "error", message: `Entity row id ${row.id} does not match payload id ${entity.id}.` });
+        findings.push({
+          section: "payload",
+          severity: "error",
+          message: `Entity row id ${row.id} does not match payload id ${entity.id}.`
+        });
       }
       if (entity.entityType !== row.entity_type) {
-        findings.push({ section: "payload", severity: "error", message: `Entity ${entity.id} entity_type column (${row.entity_type}) does not match payload entityType (${entity.entityType}).` });
+        findings.push({
+          section: "payload",
+          severity: "error",
+          message: `Entity ${entity.id} entity_type column (${row.entity_type}) does not match payload entityType (${entity.entityType}).`
+        });
       }
       entitiesById.set(entity.id, entity);
     } catch (error) {
       unparseable += 1;
       const message = error instanceof Error ? error.message : String(error);
-      findings.push({ section: "payload", severity: "error", message: `Entity row ${row.id} payload is not valid JSON: ${message}` });
+      findings.push({
+        section: "payload",
+        severity: "error",
+        message: `Entity row ${row.id} payload is not valid JSON: ${message}`
+      });
     }
   }
 
@@ -369,28 +437,54 @@ async function runIntegrityScan(workspaceRoot: string): Promise<IntegrityScanRep
       continue;
     }
     linkCount += 1;
-    const link = entity as V01Entity & { fromId: string; fromType: string; toId: string; toType: string; linkType: string };
+    const link = entity as V01Entity & {
+      fromId: string;
+      fromType: string;
+      toId: string;
+      toType: string;
+      linkType: string;
+    };
     const fromEntity = entitiesById.get(link.fromId);
     const toEntity = entitiesById.get(link.toId);
     if (!fromEntity) {
       orphanedLinks += 1;
-      findings.push({ section: "links", severity: "error", message: `Link ${link.id} references missing fromId ${link.fromId}.` });
+      findings.push({
+        section: "links",
+        severity: "error",
+        message: `Link ${link.id} references missing fromId ${link.fromId}.`
+      });
     } else if (fromEntity.entityType !== link.fromType) {
       mistypedLinks += 1;
-      findings.push({ section: "links", severity: "error", message: `Link ${link.id} fromType ${link.fromType} does not match referenced entity ${link.fromId} (${fromEntity.entityType}).` });
+      findings.push({
+        section: "links",
+        severity: "error",
+        message: `Link ${link.id} fromType ${link.fromType} does not match referenced entity ${link.fromId} (${fromEntity.entityType}).`
+      });
     }
     if (!toEntity) {
       orphanedLinks += 1;
-      findings.push({ section: "links", severity: "error", message: `Link ${link.id} references missing toId ${link.toId}.` });
+      findings.push({
+        section: "links",
+        severity: "error",
+        message: `Link ${link.id} references missing toId ${link.toId}.`
+      });
     } else if (toEntity.entityType !== link.toType) {
       mistypedLinks += 1;
-      findings.push({ section: "links", severity: "error", message: `Link ${link.id} toType ${link.toType} does not match referenced entity ${link.toId} (${toEntity.entityType}).` });
+      findings.push({
+        section: "links",
+        severity: "error",
+        message: `Link ${link.id} toType ${link.toType} does not match referenced entity ${link.toId} (${toEntity.entityType}).`
+      });
     }
   }
 
   const lock = await readWriterLock(paths);
   if (lock.holderPid && lock.holderPid !== process.pid && !isProcessAlive(lock.holderPid)) {
-    findings.push({ section: "writer-lock", severity: "warning", message: `Writer lock holder pid ${lock.holderPid} is no longer alive; lock is stale.` });
+    findings.push({
+      section: "writer-lock",
+      severity: "warning",
+      message: `Writer lock holder pid ${lock.holderPid} is no longer alive; lock is stale.`
+    });
   } else {
     findings.push({ section: "writer-lock", severity: "info", message: lock.detail });
   }
@@ -442,7 +536,9 @@ async function createSnapshot(workspaceRoot: string): Promise<V01Entity> {
   return snapshot;
 }
 
-async function exportBundle(workspaceRoot: string): Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }> {
+async function exportBundle(
+  workspaceRoot: string
+): Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }> {
   const paths = await ensureInitialised(workspaceRoot);
   await assertWritable(paths);
   const collections = await getBundleCollections(workspaceRoot, paths);
@@ -555,27 +651,55 @@ async function planImportBundle(workspaceRoot: string, bundlePath: string, mode:
   return { imported: plan.writeSet.length, mode, bundlePath, importId, summary: plan.summary };
 }
 
-async function buildImportPlan(workspaceRoot: string, bundlePath: string, mode: ImportMode): Promise<{ incomingEntities: readonly V01Entity[]; writeSet: readonly V01Entity[]; summary: ImportSummary }> {
-  const bundle = JSON.parse(await readFile(bundlePath, "utf8")) as { readonly collections?: Partial<BundleCollections> };
+async function buildImportPlan(
+  workspaceRoot: string,
+  bundlePath: string,
+  mode: ImportMode
+): Promise<{ incomingEntities: readonly V01Entity[]; writeSet: readonly V01Entity[]; summary: ImportSummary }> {
+  const bundle = JSON.parse(await readFile(bundlePath, "utf8")) as {
+    readonly collections?: Partial<BundleCollections>;
+  };
   let incomingEntities = flattenImportEntities(bundle.collections ?? {});
   if (mode === "full-replace") {
     incomingEntities = await includeExistingReferencedSourceControls(workspaceRoot, incomingEntities);
   }
   const existingEntities = await listEntities(workspaceRoot);
-  const tagImportResult = mode === "additive-merge" || mode === "plan-apply" ? filterIncomingTagLabelCollisions(incomingEntities, existingEntities) : { entities: incomingEntities, conflicts: [] as string[] };
+  const tagImportResult =
+    mode === "additive-merge" || mode === "plan-apply"
+      ? filterIncomingTagLabelCollisions(incomingEntities, existingEntities)
+      : { entities: incomingEntities, conflicts: [] as string[] };
   incomingEntities = tagImportResult.entities;
-  const savedViewImportResult = mode === "additive-merge" || mode === "plan-apply" ? filterIncomingSavedViewNameCollisions(incomingEntities, existingEntities) : { entities: incomingEntities, conflicts: [] as string[] };
+  const savedViewImportResult =
+    mode === "additive-merge" || mode === "plan-apply"
+      ? filterIncomingSavedViewNameCollisions(incomingEntities, existingEntities)
+      : { entities: incomingEntities, conflicts: [] as string[] };
   incomingEntities = savedViewImportResult.entities;
-  const validationEntities = mode === "additive-merge" || mode === "plan-apply" ? [...existingEntities, ...incomingEntities] : incomingEntities;
+  const validationEntities =
+    mode === "additive-merge" || mode === "plan-apply" ? [...existingEntities, ...incomingEntities] : incomingEntities;
   validateImportedMappings(validationEntities);
   validateTagRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   validateSavedViewRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   validateChangeRecordRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
-  const writeSet = mode === "additive-merge" || mode === "plan-apply" ? additiveMergeWriteSet(incomingEntities, existingEntities) : incomingEntities;
-  return { incomingEntities, writeSet, summary: summariseImportChanges(incomingEntities, existingEntities, writeSet, [...tagImportResult.conflicts, ...savedViewImportResult.conflicts]) };
+  const writeSet =
+    mode === "additive-merge" || mode === "plan-apply"
+      ? additiveMergeWriteSet(incomingEntities, existingEntities)
+      : incomingEntities;
+  return {
+    incomingEntities,
+    writeSet,
+    summary: summariseImportChanges(incomingEntities, existingEntities, writeSet, [
+      ...tagImportResult.conflicts,
+      ...savedViewImportResult.conflicts
+    ])
+  };
 }
 
-function summariseImportChanges(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[], writeSet: readonly V01Entity[], extraConflicts: readonly string[] = []): ImportSummary {
+function summariseImportChanges(
+  incomingEntities: readonly V01Entity[],
+  existingEntities: readonly V01Entity[],
+  writeSet: readonly V01Entity[],
+  extraConflicts: readonly string[] = []
+): ImportSummary {
   const existingById = new Map(existingEntities.map((entity) => [entity.id, entity]));
   const writtenIds = new Set(writeSet.map((entity) => entity.id));
   const byType: Record<string, ImportTypeSummary> = {};
@@ -586,7 +710,9 @@ function summariseImportChanges(incomingEntities: readonly V01Entity[], existing
   let unchanged = 0;
 
   for (const incoming of incomingEntities) {
-    const typeSummary = { ...(byType[incoming.entityType] || { total: 0, created: 0, updated: 0, unchanged: 0, written: 0 }) };
+    const typeSummary = {
+      ...(byType[incoming.entityType] || { total: 0, created: 0, updated: 0, unchanged: 0, written: 0 })
+    };
     const existing = existingById.get(incoming.id);
     const written = writtenIds.has(incoming.id);
     typeSummary.total += 1;
@@ -598,7 +724,9 @@ function summariseImportChanges(incomingEntities: readonly V01Entity[], existing
       created += 1;
       typeSummary.created += 1;
       pushImportExample(examples, `Created ${entityChangeLabel(incoming)}`);
-    } else if (canonicalEntityJson({ ...incoming, createdAt: existing.createdAt } as V01Entity) === canonicalEntityJson(existing)) {
+    } else if (
+      canonicalEntityJson({ ...incoming, createdAt: existing.createdAt } as V01Entity) === canonicalEntityJson(existing)
+    ) {
       unchanged += 1;
       typeSummary.unchanged += 1;
     } else if (written) {
@@ -614,14 +742,28 @@ function summariseImportChanges(incomingEntities: readonly V01Entity[], existing
     byType[incoming.entityType] = typeSummary;
   }
 
-  return { total: incomingEntities.length, created, updated, unchanged, written: writeSet.length, byType, examples, conflicts };
+  return {
+    total: incomingEntities.length,
+    created,
+    updated,
+    unchanged,
+    written: writeSet.length,
+    byType,
+    examples,
+    conflicts
+  };
 }
 
 async function undoLastImport(workspaceRoot: string): Promise<ImportUndoResult> {
   const paths = await ensureInitialised(workspaceRoot);
   await assertWritable(paths);
   const operations = await readOperations(paths);
-  const lastImport = operations.find((operation) => operation.operation_type === "import" && operation.status === "success" && (operation.detail.startsWith("additive-merge:import-") || operation.detail.startsWith("plan-apply:import-")));
+  const lastImport = operations.find(
+    (operation) =>
+      operation.operation_type === "import" &&
+      operation.status === "success" &&
+      (operation.detail.startsWith("additive-merge:import-") || operation.detail.startsWith("plan-apply:import-"))
+  );
   if (!lastImport) {
     return { undone: false, restored: 0, message: "No additive or plan-apply import is available to undo." };
   }
@@ -631,18 +773,36 @@ async function undoLastImport(workspaceRoot: string): Promise<ImportUndoResult> 
   }
   const snapshotPath = join(paths.imports, `pre-${importId}.json`);
   if (!existsSync(snapshotPath)) {
-    return { undone: false, restored: 0, importId, message: "The undo snapshot for the last import is no longer available." };
+    return {
+      undone: false,
+      restored: 0,
+      importId,
+      message: "The undo snapshot for the last import is no longer available."
+    };
   }
   const snapshot = JSON.parse(await readFile(snapshotPath, "utf8")) as { readonly entities?: readonly V01Entity[] };
   const entities = snapshot.entities || [];
   await runSql(paths.db, ["DELETE FROM entities;", ...entities.map(upsertEntitySql)].join("\n"));
   await recordOperation(paths, "import-undo", "success", importId);
-  return { undone: true, restored: entities.length, importId, message: `Undid ${importId}; restored ${entities.length} record(s).` };
+  return {
+    undone: true,
+    restored: entities.length,
+    importId,
+    message: `Undid ${importId}; restored ${entities.length} record(s).`
+  };
 }
 
-async function readOperations(paths: WorkspacePaths): Promise<readonly { operation_type: string; status: string; detail: string; created_at: string }[]> {
-  const output = await runSql(paths.db, "SELECT operation_type, status, detail, created_at FROM operations ORDER BY created_at DESC;", ["-json"]);
-  return output.trim() === "" ? [] : JSON.parse(output) as readonly { operation_type: string; status: string; detail: string; created_at: string }[];
+async function readOperations(
+  paths: WorkspacePaths
+): Promise<readonly { operation_type: string; status: string; detail: string; created_at: string }[]> {
+  const output = await runSql(
+    paths.db,
+    "SELECT operation_type, status, detail, created_at FROM operations ORDER BY created_at DESC;",
+    ["-json"]
+  );
+  return output.trim() === ""
+    ? []
+    : (JSON.parse(output) as readonly { operation_type: string; status: string; detail: string; created_at: string }[]);
 }
 
 function pushImportExample(examples: string[], example: string): void {
@@ -652,7 +812,11 @@ function pushImportExample(examples: string[], example: string): void {
 }
 
 function describeEntityUpdate(existing: V01Entity, incoming: V01Entity): string {
-  if (existing.entityType === "requirement" && incoming.entityType === "requirement" && existing.assessmentStatus !== incoming.assessmentStatus) {
+  if (
+    existing.entityType === "requirement" &&
+    incoming.entityType === "requirement" &&
+    existing.assessmentStatus !== incoming.assessmentStatus
+  ) {
     return `Updated ${entityChangeLabel(incoming)} status ${labelValue(existing.assessmentStatus)} -> ${labelValue(incoming.assessmentStatus)}`;
   }
   if (existing.entityType === "action" && incoming.entityType === "action" && existing.status !== incoming.status) {
@@ -674,10 +838,15 @@ function truncate(value: string, limit: number): string {
 }
 
 function labelValue(value: string | undefined): string {
-  return String(value || "not recorded").replace(/-/g, " ").replace(/\b\w/g, (character) => character.toUpperCase());
+  return String(value || "not recorded")
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
-function additiveMergeWriteSet(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): V01Entity[] {
+function additiveMergeWriteSet(
+  incomingEntities: readonly V01Entity[],
+  existingEntities: readonly V01Entity[]
+): V01Entity[] {
   const existingById = new Map(existingEntities.map((entity) => [entity.id, entity]));
   const writeSet: V01Entity[] = [];
   for (const incoming of incomingEntities) {
@@ -745,7 +914,7 @@ async function listEntities(workspaceRoot: string, entityType?: V01Entity["entit
 async function readStoredEntities(paths: WorkspacePaths, entityType?: V01Entity["entityType"]): Promise<V01Entity[]> {
   const where = entityType ? ` WHERE entity_type = '${sqlEscape(entityType)}'` : "";
   const output = await runSql(paths.db, `SELECT payload FROM entities${where} ORDER BY created_at ASC;`, ["-json"]);
-  const rows = output.trim() === "" ? [] : JSON.parse(output) as readonly { payload: string }[];
+  const rows = output.trim() === "" ? [] : (JSON.parse(output) as readonly { payload: string }[]);
   return rows.map((row) => JSON.parse(row.payload) as V01Entity);
 }
 
@@ -794,12 +963,15 @@ function flattenImportEntities(collections: Partial<BundleCollections>): V01Enti
       continue;
     }
     const records = collections[collectionName] ?? [];
-    entities.push(...records as V01Entity[]);
+    entities.push(...(records as V01Entity[]));
   }
   return entities;
 }
 
-async function includeExistingReferencedSourceControls(workspaceRoot: string, entities: readonly V01Entity[]): Promise<V01Entity[]> {
+async function includeExistingReferencedSourceControls(
+  workspaceRoot: string,
+  entities: readonly V01Entity[]
+): Promise<V01Entity[]> {
   const entityIds = new Set(entities.map((entity) => entity.id));
   const missingSourceControlIds = new Set<string>();
   for (const entity of entities) {
@@ -815,7 +987,9 @@ async function includeExistingReferencedSourceControls(workspaceRoot: string, en
   }
 
   const existingSourceControls = await listEntities(workspaceRoot, "source-control");
-  const sourceControlsToPreserve = existingSourceControls.filter((sourceControl) => missingSourceControlIds.has(sourceControl.id));
+  const sourceControlsToPreserve = existingSourceControls.filter((sourceControl) =>
+    missingSourceControlIds.has(sourceControl.id)
+  );
   return [...entities, ...sourceControlsToPreserve];
 }
 
@@ -886,8 +1060,14 @@ function buildStatusSummary(collections: BundleCollections): Record<string, unkn
     evidence: countBy(collections.evidence, (evidence) => evidence.freshness),
     actions: countBy(collections.actions, (action) => action.status),
     risks: countBy(collections.risks, (risk) => risk.status),
-    sourceControls: countBy(collections["source-controls"], (sourceControl) => sourceControl.profileTags[0] ?? "unprofiled"),
-    requirementControlMappings: countBy(collections["requirement-control-mappings"], (mapping) => mapping.coverageQualifier),
+    sourceControls: countBy(
+      collections["source-controls"],
+      (sourceControl) => sourceControl.profileTags[0] ?? "unprofiled"
+    ),
+    requirementControlMappings: countBy(
+      collections["requirement-control-mappings"],
+      (mapping) => mapping.coverageQualifier
+    ),
     suppliers: countBy(collections.suppliers, (supplier) => supplier.status),
     contracts: countBy(collections.contracts, (contract) => contract.status),
     spendItems: countBy(collections["spend-items"], (spendItem) => spendItem.status)
@@ -895,7 +1075,9 @@ function buildStatusSummary(collections: BundleCollections): Record<string, unkn
 }
 
 function buildByTagIndex(collections: BundleCollections): Record<string, unknown> {
-  const requirementsById = new Map(collections.requirements.map((requirement, index) => [requirement.id, { requirement, index }]));
+  const requirementsById = new Map(
+    collections.requirements.map((requirement, index) => [requirement.id, { requirement, index }])
+  );
   const requirementIdsByTag = new Map<string, string[]>();
   for (const link of collections.links) {
     if (link.linkType === "tagged-with" && link.fromType === "requirement" && link.toType === "tag") {
@@ -923,15 +1105,23 @@ function buildByTagIndex(collections: BundleCollections): Record<string, unknown
         return left.localeCompare(right);
       })
     }))
-    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }) || left.tagId.localeCompare(right.tagId));
+    .sort(
+      (left, right) =>
+        left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }) || left.tagId.localeCompare(right.tagId)
+    );
 
   return { schemaVersion: VERSION_AXES.schemaVersion, generatedAt: nowIso(), tags };
 }
 
-function filterIncomingTagLabelCollisions(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): { readonly entities: V01Entity[]; readonly conflicts: string[] } {
-  const existingTagsByLabel = new Map(existingEntities
-    .filter((entity): entity is EntityByCollection["tags"] => entity.entityType === "tag")
-    .map((tag) => [normaliseTagLabel(tag.label), tag]));
+function filterIncomingTagLabelCollisions(
+  incomingEntities: readonly V01Entity[],
+  existingEntities: readonly V01Entity[]
+): { readonly entities: V01Entity[]; readonly conflicts: string[] } {
+  const existingTagsByLabel = new Map(
+    existingEntities
+      .filter((entity): entity is EntityByCollection["tags"] => entity.entityType === "tag")
+      .map((tag) => [normaliseTagLabel(tag.label), tag])
+  );
   const rejectedTagIds = new Set<string>();
   const conflicts: string[] = [];
   const filteredTags = incomingEntities.filter((entity) => {
@@ -941,7 +1131,9 @@ function filterIncomingTagLabelCollisions(incomingEntities: readonly V01Entity[]
     const existing = existingTagsByLabel.get(normaliseTagLabel(entity.label));
     if (existing && existing.id !== entity.id) {
       rejectedTagIds.add(entity.id);
-      conflicts.push(`Rejected tag ${entity.id} ${entity.title}: label already exists on ${existing.id} ${existing.title}.`);
+      conflicts.push(
+        `Rejected tag ${entity.id} ${entity.title}: label already exists on ${existing.id} ${existing.title}.`
+      );
       return false;
     }
     return true;
@@ -951,14 +1143,22 @@ function filterIncomingTagLabelCollisions(incomingEntities: readonly V01Entity[]
   }
   return {
     conflicts,
-    entities: filteredTags.filter((entity) => !(entity.entityType === "link" && entity.linkType === "tagged-with" && rejectedTagIds.has(entity.toId)))
+    entities: filteredTags.filter(
+      (entity) =>
+        !(entity.entityType === "link" && entity.linkType === "tagged-with" && rejectedTagIds.has(entity.toId))
+    )
   };
 }
 
-function filterIncomingSavedViewNameCollisions(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): { readonly entities: V01Entity[]; readonly conflicts: string[] } {
-  const existingSavedViewsByName = new Map(existingEntities
-    .filter((entity): entity is EntityByCollection["saved-views"] => entity.entityType === "saved-view")
-    .map((savedView) => [savedViewScopeNameKey(savedView.scope, savedView.name), savedView]));
+function filterIncomingSavedViewNameCollisions(
+  incomingEntities: readonly V01Entity[],
+  existingEntities: readonly V01Entity[]
+): { readonly entities: V01Entity[]; readonly conflicts: string[] } {
+  const existingSavedViewsByName = new Map(
+    existingEntities
+      .filter((entity): entity is EntityByCollection["saved-views"] => entity.entityType === "saved-view")
+      .map((savedView) => [savedViewScopeNameKey(savedView.scope, savedView.name), savedView])
+  );
   const conflicts: string[] = [];
   const entities = incomingEntities.filter((entity) => {
     if (entity.entityType !== "saved-view") {
@@ -966,7 +1166,9 @@ function filterIncomingSavedViewNameCollisions(incomingEntities: readonly V01Ent
     }
     const existing = existingSavedViewsByName.get(savedViewScopeNameKey(entity.scope, entity.name));
     if (existing && existing.id !== entity.id) {
-      conflicts.push(`Rejected saved view ${entity.id} ${entity.name}: name already exists on ${existing.id} ${existing.name}.`);
+      conflicts.push(
+        `Rejected saved view ${entity.id} ${entity.name}: name already exists on ${existing.id} ${existing.name}.`
+      );
       return false;
     }
     return true;
@@ -981,7 +1183,9 @@ function validateTagRules(incomingEntities: readonly V01Entity[], existingEntiti
   }
   const merged = [...mergedById.values()];
 
-  const tags = merged.filter((entity): entity is EntityByCollection["tags"] => entity.entityType === "tag" && entity.recordStatus !== "deleted");
+  const tags = merged.filter(
+    (entity): entity is EntityByCollection["tags"] => entity.entityType === "tag" && entity.recordStatus !== "deleted"
+  );
   if (tags.length > TAG_LIMITS.perWorkspaceHard) {
     throw new Error(`Tag limit exceeded: maximum ${TAG_LIMITS.perWorkspaceHard} tags per workspace.`);
   }
@@ -989,13 +1193,17 @@ function validateTagRules(incomingEntities: readonly V01Entity[], existingEntiti
   const labelsByNormalisedValue = new Map<string, EntityByCollection["tags"]>();
   for (const tag of tags) {
     if (!isValidTagLabel(tag.label)) {
-      throw new Error(`Invalid tag label for ${tag.id}: use 1-${TAG_LIMITS.labelMaxLength} letters, digits, spaces, hyphens, or apostrophes.`);
+      throw new Error(
+        `Invalid tag label for ${tag.id}: use 1-${TAG_LIMITS.labelMaxLength} letters, digits, spaces, hyphens, or apostrophes.`
+      );
     }
     if (!tag.title || tag.title.length > TAG_LIMITS.titleMaxLength) {
       throw new Error(`Invalid tag title for ${tag.id}: use 1-${TAG_LIMITS.titleMaxLength} characters.`);
     }
     if ((tag.description ?? "").length > TAG_LIMITS.descriptionMaxLength) {
-      throw new Error(`Invalid tag description for ${tag.id}: use at most ${TAG_LIMITS.descriptionMaxLength} characters.`);
+      throw new Error(
+        `Invalid tag description for ${tag.id}: use at most ${TAG_LIMITS.descriptionMaxLength} characters.`
+      );
     }
     if (!TAG_COLOURS.includes(tag.colour ?? DEFAULT_TAG_COLOUR)) {
       throw new Error(`Invalid tag colour for ${tag.id}.`);
@@ -1041,12 +1249,21 @@ function validateSavedViewRules(incomingEntities: readonly V01Entity[], existing
     mergedById.set(entity.id, entity);
   }
   const merged = [...mergedById.values()];
-  const domainIds = new Set(merged.filter((entity) => entity.entityType === "domain" && entity.recordStatus !== "deleted").map((entity) => entity.id));
+  const domainIds = new Set(
+    merged
+      .filter((entity) => entity.entityType === "domain" && entity.recordStatus !== "deleted")
+      .map((entity) => entity.id)
+  );
   const namesByNormalisedValue = new Map<string, EntityByCollection["saved-views"]>();
 
-  for (const savedView of merged.filter((entity): entity is EntityByCollection["saved-views"] => entity.entityType === "saved-view" && entity.recordStatus !== "deleted")) {
+  for (const savedView of merged.filter(
+    (entity): entity is EntityByCollection["saved-views"] =>
+      entity.entityType === "saved-view" && entity.recordStatus !== "deleted"
+  )) {
     if (!isValidSavedViewName(savedView.name)) {
-      throw new Error(`Invalid saved-view name for ${savedView.id}: use 1-${SAVED_VIEW_LIMITS.nameMaxLength} characters.`);
+      throw new Error(
+        `Invalid saved-view name for ${savedView.id}: use 1-${SAVED_VIEW_LIMITS.nameMaxLength} characters.`
+      );
     }
     if (savedView.title !== savedView.name) {
       throw new Error(`Invalid saved-view title for ${savedView.id}: title must mirror name.`);
@@ -1063,22 +1280,44 @@ function validateSavedViewRules(incomingEntities: readonly V01Entity[], existing
     }
     const filters = savedView.filters ?? {};
     if ((filters.query ?? "").length > SAVED_VIEW_LIMITS.queryMaxLength) {
-      throw new Error(`Invalid saved-view query for ${savedView.id}: use at most ${SAVED_VIEW_LIMITS.queryMaxLength} characters.`);
+      throw new Error(
+        `Invalid saved-view query for ${savedView.id}: use at most ${SAVED_VIEW_LIMITS.queryMaxLength} characters.`
+      );
     }
     for (const domainId of filters.domainIds ?? []) {
       if (!domainIds.has(domainId)) {
         throw new Error(`Invalid saved-view domain for ${savedView.id}: ${domainId} is not a known domain.`);
       }
     }
-    assertAllAllowed(filters.assessmentStatuses ?? [], ["not-started", "in-progress", "met", "partially-met", "not-met", "not-applicable", "under-review"] satisfies readonly AssessmentStatus[], `Invalid saved-view assessment status for ${savedView.id}`);
+    assertAllAllowed(
+      filters.assessmentStatuses ?? [],
+      [
+        "not-started",
+        "in-progress",
+        "met",
+        "partially-met",
+        "not-met",
+        "not-applicable",
+        "under-review"
+      ] satisfies readonly AssessmentStatus[],
+      `Invalid saved-view assessment status for ${savedView.id}`
+    );
     if (filters.tagsMode && !SAVED_VIEW_TAGS_MODES.includes(filters.tagsMode)) {
       throw new Error(`Invalid saved-view tag mode for ${savedView.id}.`);
     }
     if (filters.evidenceCoverage && !SAVED_VIEW_EVIDENCE_COVERAGE.includes(filters.evidenceCoverage)) {
       throw new Error(`Invalid saved-view evidence coverage for ${savedView.id}.`);
     }
-    assertAllAllowed(filters.actionStates ?? [], ["todo", "in-progress", "blocked", "done", "cancelled"] satisfies readonly ActionStatus[], `Invalid saved-view action state for ${savedView.id}`);
-    assertAllAllowed(filters.riskStates ?? [], ["open", "monitored", "closed"] satisfies readonly RiskStatus[], `Invalid saved-view risk state for ${savedView.id}`);
+    assertAllAllowed(
+      filters.actionStates ?? [],
+      ["todo", "in-progress", "blocked", "done", "cancelled"] satisfies readonly ActionStatus[],
+      `Invalid saved-view action state for ${savedView.id}`
+    );
+    assertAllAllowed(
+      filters.riskStates ?? [],
+      ["open", "monitored", "closed"] satisfies readonly RiskStatus[],
+      `Invalid saved-view risk state for ${savedView.id}`
+    );
 
     const presentation = savedView.presentation ?? {};
     if (presentation.sortKey && !SAVED_VIEW_REQUIREMENT_SORT_KEYS.includes(presentation.sortKey)) {
@@ -1091,7 +1330,11 @@ function validateSavedViewRules(incomingEntities: readonly V01Entity[], existing
     if (visibleColumns.length > SAVED_VIEW_LIMITS.visibleColumnsHard) {
       throw new Error(`Invalid saved-view columns for ${savedView.id}: too many visible columns.`);
     }
-    assertAllAllowed(visibleColumns, [...SAVED_VIEW_REQUIREMENT_COLUMNS, ...SAVED_VIEW_RELATIONSHIP_COLUMNS, ...SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS], `Invalid saved-view column for ${savedView.id}`);
+    assertAllAllowed(
+      visibleColumns,
+      [...SAVED_VIEW_REQUIREMENT_COLUMNS, ...SAVED_VIEW_RELATIONSHIP_COLUMNS, ...SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS],
+      `Invalid saved-view column for ${savedView.id}`
+    );
   }
 }
 
@@ -1099,16 +1342,29 @@ function savedViewScopeNameKey(scope: string, name: string): string {
   return `${scope}::${normaliseSavedViewName(name)}`;
 }
 
-function validateChangeRecordRules(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): void {
+function validateChangeRecordRules(
+  incomingEntities: readonly V01Entity[],
+  existingEntities: readonly V01Entity[]
+): void {
   const mergedById = new Map(existingEntities.map((entity) => [entity.id, entity]));
   for (const entity of incomingEntities) {
     mergedById.set(entity.id, entity);
   }
   const merged = [...mergedById.values()];
   const entityIds = new Set(merged.map((entity) => entity.id));
-  const permittedTargetTypes = new Set<V01Entity["entityType"]>(["requirement", "action", "risk", "direction", "tag", "saved-view"]);
+  const permittedTargetTypes = new Set<V01Entity["entityType"]>([
+    "requirement",
+    "action",
+    "risk",
+    "direction",
+    "tag",
+    "saved-view"
+  ]);
 
-  for (const changeRecord of merged.filter((entity): entity is EntityByCollection["change-records"] => entity.entityType === "change-record" && entity.recordStatus !== "deleted")) {
+  for (const changeRecord of merged.filter(
+    (entity): entity is EntityByCollection["change-records"] =>
+      entity.entityType === "change-record" && entity.recordStatus !== "deleted"
+  )) {
     if (!CHANGE_RECORD_TYPES.includes(changeRecord.changeType)) {
       throw new Error(`Invalid change-record type for ${changeRecord.id}.`);
     }
@@ -1128,7 +1384,9 @@ function validateChangeRecordRules(incomingEntities: readonly V01Entity[], exist
       continue;
     }
     if (entity.fromType !== "change-record" || !permittedTargetTypes.has(entity.toType)) {
-      throw new Error(`Invalid changes link ${entity.id}: only change-record -> requirement/action/risk/direction/tag/saved-view is permitted in v1.10.`);
+      throw new Error(
+        `Invalid changes link ${entity.id}: only change-record -> requirement/action/risk/direction/tag/saved-view is permitted in v1.10.`
+      );
     }
     if (!entityIds.has(entity.fromId) || !entityIds.has(entity.toId)) {
       throw new Error(`Invalid changes link ${entity.id}: endpoint is missing.`);
@@ -1136,7 +1394,11 @@ function validateChangeRecordRules(incomingEntities: readonly V01Entity[], exist
   }
 }
 
-function assertAllAllowed<T extends string>(values: readonly string[], allowedValues: readonly T[], message: string): void {
+function assertAllAllowed<T extends string>(
+  values: readonly string[],
+  allowedValues: readonly T[],
+  message: string
+): void {
   for (const value of values) {
     if (!(allowedValues as readonly string[]).includes(value)) {
       throw new Error(`${message}: ${value}.`);
@@ -1197,31 +1459,84 @@ async function ensureInitialised(workspaceRoot: string, createIfMissing = true):
 
 async function refreshReferenceData(workspaceRoot: string): Promise<void> {
   const timestamp = nowIso();
-  await deleteRetiredCoreReferenceEntities(workspaceRoot, "source-control", new Set(ISM_SOURCE_CONTROLS.map((control) => control.id)));
-  await deleteRetiredCoreReferenceEntities(workspaceRoot, "direction", new Set(PSPF_BASELINE_DIRECTIONS.map((direction) => direction.id)), "DIR-PSPF-");
-  await deleteRetiredCoreReferenceEntities(workspaceRoot, "link", new Set(PSPF_BASELINE_DIRECTION_LINKS.map((link) => link.id)), "LNK-PSPF-DIRECTION-");
-  const seededDomains: V01Entity[] = PSPF_DOMAINS.map((domain) => ({ ...domain, createdAt: timestamp, updatedAt: timestamp }));
-  const seededSourceControls: V01Entity[] = ISM_SOURCE_CONTROLS.map((sourceControl) => ({ ...sourceControl, createdAt: timestamp, updatedAt: timestamp }));
-  const seededRequirements: V01Entity[] = PSPF_BASELINE_REQUIREMENTS.map((requirement) => ({ ...requirement, createdAt: timestamp, updatedAt: timestamp }));
-  const seededDirections: V01Entity[] = PSPF_BASELINE_DIRECTIONS.map((direction) => ({ ...direction, createdAt: timestamp, updatedAt: timestamp }));
-  const seededDirectionLinks: V01Entity[] = PSPF_BASELINE_DIRECTION_LINKS.map((link) => ({ ...link, createdAt: timestamp, updatedAt: timestamp }));
+  await deleteRetiredCoreReferenceEntities(
+    workspaceRoot,
+    "source-control",
+    new Set(ISM_SOURCE_CONTROLS.map((control) => control.id))
+  );
+  await deleteRetiredCoreReferenceEntities(
+    workspaceRoot,
+    "direction",
+    new Set(PSPF_BASELINE_DIRECTIONS.map((direction) => direction.id)),
+    "DIR-PSPF-"
+  );
+  await deleteRetiredCoreReferenceEntities(
+    workspaceRoot,
+    "link",
+    new Set(PSPF_BASELINE_DIRECTION_LINKS.map((link) => link.id)),
+    "LNK-PSPF-DIRECTION-"
+  );
+  const seededDomains: V01Entity[] = PSPF_DOMAINS.map((domain) => ({
+    ...domain,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
+  const seededSourceControls: V01Entity[] = ISM_SOURCE_CONTROLS.map((sourceControl) => ({
+    ...sourceControl,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
+  const seededRequirements: V01Entity[] = PSPF_BASELINE_REQUIREMENTS.map((requirement) => ({
+    ...requirement,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
+  const seededDirections: V01Entity[] = PSPF_BASELINE_DIRECTIONS.map((direction) => ({
+    ...direction,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
+  const seededDirectionLinks: V01Entity[] = PSPF_BASELINE_DIRECTION_LINKS.map((link) => ({
+    ...link,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
   await upsertEntities(workspaceRoot, [...seededDomains, ...seededSourceControls]);
-  await insertReferenceEntitiesIfMissing(workspaceRoot, [...seededRequirements, ...seededDirections, ...seededDirectionLinks]);
+  await insertReferenceEntitiesIfMissing(workspaceRoot, [
+    ...seededRequirements,
+    ...seededDirections,
+    ...seededDirectionLinks
+  ]);
 }
 
-async function deleteRetiredCoreReferenceEntities(workspaceRoot: string, entityType: V01Entity["entityType"], activeIds: ReadonlySet<string>, idPrefix?: string): Promise<void> {
+async function deleteRetiredCoreReferenceEntities(
+  workspaceRoot: string,
+  entityType: V01Entity["entityType"],
+  activeIds: ReadonlySet<string>,
+  idPrefix?: string
+): Promise<void> {
   const paths = getWorkspacePaths(workspaceRoot);
-  const output = await runSql(paths.db, `SELECT payload FROM entities WHERE entity_type = '${sqlEscape(entityType)}';`, ["-json"]);
-  const rows = output.trim() === "" ? [] : JSON.parse(output) as readonly { payload: string }[];
+  const output = await runSql(
+    paths.db,
+    `SELECT payload FROM entities WHERE entity_type = '${sqlEscape(entityType)}';`,
+    ["-json"]
+  );
+  const rows = output.trim() === "" ? [] : (JSON.parse(output) as readonly { payload: string }[]);
   const existing = rows.map((row) => JSON.parse(row.payload) as V01Entity);
   const retiredIds = existing
-    .filter((entity) => entity.sourceProduct === "core" && (!idPrefix || entity.id.startsWith(idPrefix)) && !activeIds.has(entity.id))
+    .filter(
+      (entity) =>
+        entity.sourceProduct === "core" && (!idPrefix || entity.id.startsWith(idPrefix)) && !activeIds.has(entity.id)
+    )
     .map((entity) => entity.id);
   if (retiredIds.length === 0) {
     return;
   }
 
-  await runSql(paths.db, `DELETE FROM entities WHERE id IN (${retiredIds.map((id) => `'${sqlEscape(id)}'`).join(", ")});`);
+  await runSql(
+    paths.db,
+    `DELETE FROM entities WHERE id IN (${retiredIds.map((id) => `'${sqlEscape(id)}'`).join(", ")});`
+  );
 }
 
 async function insertReferenceEntitiesIfMissing(workspaceRoot: string, entities: readonly V01Entity[]): Promise<void> {
@@ -1280,7 +1595,9 @@ async function readWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
     policy: "single-writer",
     writable,
     detail: writable
-      ? heldByCurrentProcess ? "Writer lock held by current process." : "Writer lock is available."
+      ? heldByCurrentProcess
+        ? "Writer lock held by current process."
+        : "Writer lock is available."
       : `Workspace is read-only because writer lock is held by process ${holderPid}.`
   };
 }
@@ -1294,7 +1611,12 @@ function isProcessAlive(pid: number): boolean {
   }
 }
 
-async function recordOperation(paths: WorkspacePaths, operationType: string, status: string, detail: string): Promise<void> {
+async function recordOperation(
+  paths: WorkspacePaths,
+  operationType: string,
+  status: string,
+  detail: string
+): Promise<void> {
   const id = `${operationType}-${Date.now()}`;
   await runSql(
     paths.db,
@@ -1350,7 +1672,9 @@ async function persistSqlDatabase(db: SqlJsDatabase, dbPath: string): Promise<vo
 }
 
 function sqlResultsToJson(results: readonly SqlJsQueryResult[]): string {
-  const rows = results.flatMap((result) => result.values.map((values) => Object.fromEntries(result.columns.map((column, index) => [column, values[index]]))));
+  const rows = results.flatMap((result) =>
+    result.values.map((values) => Object.fromEntries(result.columns.map((column, index) => [column, values[index]])))
+  );
   return rows.length === 0 ? "" : JSON.stringify(rows);
 }
 
@@ -1367,5 +1691,11 @@ function sha256(value: string): string {
 }
 
 function formatDisplayDate(date: Date): string {
-  return new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
 }

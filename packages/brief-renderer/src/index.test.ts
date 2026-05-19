@@ -20,7 +20,10 @@ test("browser posture brief renderer matches the package renderer", () => {
   vm.runInNewContext(POSTURE_BRIEF_BROWSER_SCRIPT, context);
   const renderer = context.globalThis as { pspfBriefRenderer: { renderPostureBriefMarkdown(input: unknown): string } };
 
-  assert.equal(renderer.pspfBriefRenderer.renderPostureBriefMarkdown(briefFixture()), renderPostureBriefMarkdown(briefFixture()));
+  assert.equal(
+    renderer.pspfBriefRenderer.renderPostureBriefMarkdown(briefFixture()),
+    renderPostureBriefMarkdown(briefFixture())
+  );
 });
 
 function briefFixture() {
@@ -77,9 +80,45 @@ function briefFixture() {
     actions: [action],
     risks: [risk],
     links: [
-      withEnvelope("link", { entityType: "link", title: "supported", linkType: "supported-by", fromId: requirement.id, fromType: "requirement", toId: evidence.id, toType: "evidence" }, "workshop"),
-      withEnvelope("link", { entityType: "link", title: "addressed", linkType: "addressed-by", fromId: requirement.id, fromType: "requirement", toId: action.id, toType: "action" }, "workshop"),
-      withEnvelope("link", { entityType: "link", title: "exposed", linkType: "exposed-by", fromId: requirement.id, fromType: "requirement", toId: risk.id, toType: "risk" }, "workshop")
+      withEnvelope(
+        "link",
+        {
+          entityType: "link",
+          title: "supported",
+          linkType: "supported-by",
+          fromId: requirement.id,
+          fromType: "requirement",
+          toId: evidence.id,
+          toType: "evidence"
+        },
+        "workshop"
+      ),
+      withEnvelope(
+        "link",
+        {
+          entityType: "link",
+          title: "addressed",
+          linkType: "addressed-by",
+          fromId: requirement.id,
+          fromType: "requirement",
+          toId: action.id,
+          toType: "action"
+        },
+        "workshop"
+      ),
+      withEnvelope(
+        "link",
+        {
+          entityType: "link",
+          title: "exposed",
+          linkType: "exposed-by",
+          fromId: requirement.id,
+          fromType: "requirement",
+          toId: risk.id,
+          toType: "risk"
+        },
+        "workshop"
+      )
     ],
     domains: PSPF_DOMAINS,
     sourceLabel: "Test"

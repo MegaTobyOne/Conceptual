@@ -1,231 +1,231 @@
 {
-    "name": "pspf-shop",
-    "displayName": "PSPF Shop",
-    "description": "PSPF commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.",
-    "version": "1.24.0",
-    "private": true,
-    "type": "module",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/MegaTobyOne/Conceptual.git",
-        "directory": "packages/shop"
-    },
-    "publisher": "tobyharvey",
-    "engines": {
-        "vscode": "^1.100.0"
-    },
-    "categories": [
-        "Other"
-    ],
-    "extensionDependencies": [
-        "tobyharvey.pspf-core"
-    ],
-    "main": "./dist/extension.js",
-    "contributes": {
-        "configuration": {
-            "title": "PSPF Shop",
-            "properties": {
-                "pspf.shop.defaultCostCentre": {
-                    "type": "string",
-                    "default": "",
-                    "markdownDescription": "Default cost centre text used to prefill new PSPF Shop spend items. Changing this setting does not update existing spend items."
-                }
-            }
-        },
-        "viewsContainers": {
-            "activitybar": [
-                {
-                    "id": "pspfShop",
-                    "title": "PSPF Shop",
-                    "icon": "resources/shop.svg"
-                }
-            ]
-        },
-        "views": {
-            "pspfShop": [
-                {
-                    "id": "pspfShop.suppliersView",
-                    "name": "Suppliers"
-                },
-                {
-                    "id": "pspfShop.contractsView",
-                    "name": "Contracts"
-                },
-                {
-                    "id": "pspfShop.spendView",
-                    "name": "Spend"
-                },
-                {
-                    "type": "webview",
-                    "id": "pspfShop.forecastView",
-                    "name": "Forecast"
-                },
-                {
-                    "id": "pspfShop.welcomeView",
-                    "name": "Welcome"
-                }
-            ]
-        },
-        "commands": [
-            {
-                "command": "pspf.shop.openHome",
-                "title": "PSPF: Open Shop"
-            },
-            {
-                "command": "pspf.shop.loadSample",
-                "title": "PSPF: Load Shop Sample"
-            },
-            {
-                "command": "pspf.shop.importLocalStore",
-                "title": "PSPF: Import Shop Local JSON"
-            },
-            {
-                "command": "pspf.shop.newSupplier",
-                "title": "PSPF: New Supplier"
-            },
-            {
-                "command": "pspf.shop.newContract",
-                "title": "PSPF: New Contract"
-            },
-            {
-                "command": "pspf.shop.newSpendItem",
-                "title": "PSPF: New Spend Item"
-            },
-            {
-                "command": "pspf.shop.openForecast",
-                "title": "PSPF: Open Shop Forecast"
-            },
-            {
-                "command": "pspf.shop.exportForecastCsv",
-                "title": "PSPF: Export Shop Forecast CSV"
-            },
-            {
-                "command": "pspf.shop.exportForecastXls",
-                "title": "PSPF: Export Shop Forecast XLS"
-            },
-            {
-                "command": "pspf.shop.editSupplier",
-                "title": "PSPF: Edit Supplier"
-            },
-            {
-                "command": "pspf.shop.editContract",
-                "title": "PSPF: Edit Contract"
-            },
-            {
-                "command": "pspf.shop.editSpendItem",
-                "title": "PSPF: Edit Spend Item"
-            },
-            {
-                "command": "pspf.shop.deleteRecord",
-                "title": "PSPF: Delete Shop Record"
-            },
-            {
-                "command": "pspf.shop.linkSupplierToRequirement",
-                "title": "PSPF: Link Supplier to Requirement"
-            },
-            {
-                "command": "pspf.shop.linkSupplierToRisk",
-                "title": "PSPF: Link Supplier to Risk"
-            },
-            {
-                "command": "pspf.shop.linkContractToRequirement",
-                "title": "PSPF: Link Contract to Requirement"
-            },
-            {
-                "command": "pspf.shop.linkContractToSpendItem",
-                "title": "PSPF: Link Contract to Spend Item"
-            },
-            {
-                "command": "pspf.shop.linkSpendItemToContract",
-                "title": "PSPF: Link Spend Item to Contract"
-            },
-            {
-                "command": "pspf.shop.linkSpendToAction",
-                "title": "PSPF: Link Spend to Action"
-            },
-            {
-                "command": "pspf.shop.linkSpendToRequirement",
-                "title": "PSPF: Link Spend to Requirement"
-            }
-        ],
-        "menus": {
-            "view/title": [
-                {
-                    "command": "pspf.shop.newSupplier",
-                    "when": "view == pspfShop.suppliersView",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "pspf.shop.newContract",
-                    "when": "view == pspfShop.contractsView",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "pspf.shop.newSpendItem",
-                    "when": "view == pspfShop.spendView",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "pspf.shop.loadSample",
-                    "when": "view =~ /^pspfShop\\./",
-                    "group": "navigation@2"
-                },
-                {
-                    "command": "pspf.shop.importLocalStore",
-                    "when": "view =~ /^pspfShop\\./",
-                    "group": "navigation@3"
-                }
-            ],
-            "view/item/context": [
-                {
-                    "command": "pspf.shop.deleteRecord",
-                    "when": "view =~ /^pspfShop\\./ && viewItem =~ /^pspfShop/",
-                    "group": "inline@1"
-                },
-                {
-                    "command": "pspf.shop.linkSupplierToRequirement",
-                    "when": "viewItem == pspfShopSupplier",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "pspf.shop.linkSupplierToRisk",
-                    "when": "viewItem == pspfShopSupplier",
-                    "group": "navigation@2"
-                },
-                {
-                    "command": "pspf.shop.linkContractToRequirement",
-                    "when": "viewItem == pspfShopContract",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "pspf.shop.linkContractToSpendItem",
-                    "when": "viewItem == pspfShopContract",
-                    "group": "navigation@2"
-                },
-                {
-                    "command": "pspf.shop.linkSpendItemToContract",
-                    "when": "viewItem == pspfShopSpendItem",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "pspf.shop.linkSpendToAction",
-                    "when": "viewItem == pspfShopSpendItem",
-                    "group": "navigation@2"
-                },
-                {
-                    "command": "pspf.shop.linkSpendToRequirement",
-                    "when": "viewItem == pspfShopSpendItem",
-                    "group": "navigation@3"
-                }
-            ]
+  "name": "pspf-shop",
+  "displayName": "PSPF Shop",
+  "description": "PSPF commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.",
+  "version": "1.24.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MegaTobyOne/Conceptual.git",
+    "directory": "packages/shop"
+  },
+  "publisher": "tobyharvey",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionDependencies": [
+    "tobyharvey.pspf-core"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "PSPF Shop",
+      "properties": {
+        "pspf.shop.defaultCostCentre": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Default cost centre text used to prefill new PSPF Shop spend items. Changing this setting does not update existing spend items."
         }
+      }
     },
-    "scripts": {
-        "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
-        "test": "node --test dist/**/*.test.js"
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pspfShop",
+          "title": "PSPF Shop",
+          "icon": "resources/shop.svg"
+        }
+      ]
     },
-    "dependencies": {
-        "@pspf/contracts": "workspace:*"
+    "views": {
+      "pspfShop": [
+        {
+          "id": "pspfShop.suppliersView",
+          "name": "Suppliers"
+        },
+        {
+          "id": "pspfShop.contractsView",
+          "name": "Contracts"
+        },
+        {
+          "id": "pspfShop.spendView",
+          "name": "Spend"
+        },
+        {
+          "type": "webview",
+          "id": "pspfShop.forecastView",
+          "name": "Forecast"
+        },
+        {
+          "id": "pspfShop.welcomeView",
+          "name": "Welcome"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "pspf.shop.openHome",
+        "title": "PSPF: Open Shop"
+      },
+      {
+        "command": "pspf.shop.loadSample",
+        "title": "PSPF: Load Shop Sample"
+      },
+      {
+        "command": "pspf.shop.importLocalStore",
+        "title": "PSPF: Import Shop Local JSON"
+      },
+      {
+        "command": "pspf.shop.newSupplier",
+        "title": "PSPF: New Supplier"
+      },
+      {
+        "command": "pspf.shop.newContract",
+        "title": "PSPF: New Contract"
+      },
+      {
+        "command": "pspf.shop.newSpendItem",
+        "title": "PSPF: New Spend Item"
+      },
+      {
+        "command": "pspf.shop.openForecast",
+        "title": "PSPF: Open Shop Forecast"
+      },
+      {
+        "command": "pspf.shop.exportForecastCsv",
+        "title": "PSPF: Export Shop Forecast CSV"
+      },
+      {
+        "command": "pspf.shop.exportForecastXls",
+        "title": "PSPF: Export Shop Forecast XLS"
+      },
+      {
+        "command": "pspf.shop.editSupplier",
+        "title": "PSPF: Edit Supplier"
+      },
+      {
+        "command": "pspf.shop.editContract",
+        "title": "PSPF: Edit Contract"
+      },
+      {
+        "command": "pspf.shop.editSpendItem",
+        "title": "PSPF: Edit Spend Item"
+      },
+      {
+        "command": "pspf.shop.deleteRecord",
+        "title": "PSPF: Delete Shop Record"
+      },
+      {
+        "command": "pspf.shop.linkSupplierToRequirement",
+        "title": "PSPF: Link Supplier to Requirement"
+      },
+      {
+        "command": "pspf.shop.linkSupplierToRisk",
+        "title": "PSPF: Link Supplier to Risk"
+      },
+      {
+        "command": "pspf.shop.linkContractToRequirement",
+        "title": "PSPF: Link Contract to Requirement"
+      },
+      {
+        "command": "pspf.shop.linkContractToSpendItem",
+        "title": "PSPF: Link Contract to Spend Item"
+      },
+      {
+        "command": "pspf.shop.linkSpendItemToContract",
+        "title": "PSPF: Link Spend Item to Contract"
+      },
+      {
+        "command": "pspf.shop.linkSpendToAction",
+        "title": "PSPF: Link Spend to Action"
+      },
+      {
+        "command": "pspf.shop.linkSpendToRequirement",
+        "title": "PSPF: Link Spend to Requirement"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pspf.shop.newSupplier",
+          "when": "view == pspfShop.suppliersView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.shop.newContract",
+          "when": "view == pspfShop.contractsView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.shop.newSpendItem",
+          "when": "view == pspfShop.spendView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.shop.loadSample",
+          "when": "view =~ /^pspfShop\\./",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pspf.shop.importLocalStore",
+          "when": "view =~ /^pspfShop\\./",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pspf.shop.deleteRecord",
+          "when": "view =~ /^pspfShop\\./ && viewItem =~ /^pspfShop/",
+          "group": "inline@1"
+        },
+        {
+          "command": "pspf.shop.linkSupplierToRequirement",
+          "when": "viewItem == pspfShopSupplier",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.shop.linkSupplierToRisk",
+          "when": "viewItem == pspfShopSupplier",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pspf.shop.linkContractToRequirement",
+          "when": "viewItem == pspfShopContract",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.shop.linkContractToSpendItem",
+          "when": "viewItem == pspfShopContract",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pspf.shop.linkSpendItemToContract",
+          "when": "viewItem == pspfShopSpendItem",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.shop.linkSpendToAction",
+          "when": "viewItem == pspfShopSpendItem",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pspf.shop.linkSpendToRequirement",
+          "when": "viewItem == pspfShopSpendItem",
+          "group": "navigation@3"
+        }
+      ]
     }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "dependencies": {
+    "@pspf/contracts": "workspace:*"
+  }
 }

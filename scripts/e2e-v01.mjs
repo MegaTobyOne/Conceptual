@@ -3,7 +3,12 @@ import { readFile, rm } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { createCoreService } from "../packages/core/dist/service.js";
 import { PSPF_DOMAINS, withEnvelope } from "../packages/contracts/dist/index.js";
-import { ISM_SOURCE_CONTROLS, PSPF_BASELINE_DIRECTIONS, PSPF_BASELINE_DIRECTION_LINKS, PSPF_BASELINE_REQUIREMENTS } from "../packages/reference-data/dist/index.js";
+import {
+  ISM_SOURCE_CONTROLS,
+  PSPF_BASELINE_DIRECTIONS,
+  PSPF_BASELINE_DIRECTION_LINKS,
+  PSPF_BASELINE_REQUIREMENTS
+} from "../packages/reference-data/dist/index.js";
 import { validateExportBundle, writeValidationReport } from "./lib/export-validation.mjs";
 
 const root = process.cwd();
@@ -48,19 +53,21 @@ const evidence = withEnvelope(
   "workshop"
 );
 await service.upsertEntity(evidence);
-await service.upsertEntity(withEnvelope(
-  "link",
-  {
-    entityType: "link",
-    title: `${requirement.title} supported by ${evidence.title}`,
-    linkType: "supported-by",
-    fromId: requirement.id,
-    fromType: "requirement",
-    toId: evidence.id,
-    toType: "evidence"
-  },
-  "workshop"
-));
+await service.upsertEntity(
+  withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${requirement.title} supported by ${evidence.title}`,
+      linkType: "supported-by",
+      fromId: requirement.id,
+      fromType: "requirement",
+      toId: evidence.id,
+      toType: "evidence"
+    },
+    "workshop"
+  )
+);
 
 const tag = withEnvelope(
   "tag",
@@ -75,19 +82,21 @@ const tag = withEnvelope(
   "workshop"
 );
 await service.upsertEntity(tag);
-await service.upsertEntity(withEnvelope(
-  "link",
-  {
-    entityType: "link",
-    title: `${requirement.title} tagged with ${tag.title}`,
-    linkType: "tagged-with",
-    fromId: requirement.id,
-    fromType: "requirement",
-    toId: tag.id,
-    toType: "tag"
-  },
-  "workshop"
-));
+await service.upsertEntity(
+  withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${requirement.title} tagged with ${tag.title}`,
+      linkType: "tagged-with",
+      fromId: requirement.id,
+      fromType: "requirement",
+      toId: tag.id,
+      toType: "tag"
+    },
+    "workshop"
+  )
+);
 
 const action = withEnvelope(
   "action",
@@ -100,19 +109,21 @@ const action = withEnvelope(
   "workshop"
 );
 await service.upsertEntity(action);
-await service.upsertEntity(withEnvelope(
-  "link",
-  {
-    entityType: "link",
-    title: `${requirement.title} addressed by ${action.title}`,
-    linkType: "addressed-by",
-    fromId: requirement.id,
-    fromType: "requirement",
-    toId: action.id,
-    toType: "action"
-  },
-  "workshop"
-));
+await service.upsertEntity(
+  withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${requirement.title} addressed by ${action.title}`,
+      linkType: "addressed-by",
+      fromId: requirement.id,
+      fromType: "requirement",
+      toId: action.id,
+      toType: "action"
+    },
+    "workshop"
+  )
+);
 
 const risk = withEnvelope(
   "risk",
@@ -126,19 +137,21 @@ const risk = withEnvelope(
   "workshop"
 );
 await service.upsertEntity(risk);
-await service.upsertEntity(withEnvelope(
-  "link",
-  {
-    entityType: "link",
-    title: `${requirement.title} exposed by ${risk.title}`,
-    linkType: "exposed-by",
-    fromId: requirement.id,
-    fromType: "requirement",
-    toId: risk.id,
-    toType: "risk"
-  },
-  "workshop"
-));
+await service.upsertEntity(
+  withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${requirement.title} exposed by ${risk.title}`,
+      linkType: "exposed-by",
+      fromId: requirement.id,
+      fromType: "requirement",
+      toId: risk.id,
+      toType: "risk"
+    },
+    "workshop"
+  )
+);
 
 const sourceControls = await service.listEntities("source-control");
 assert.equal(sourceControls.length, ISM_SOURCE_CONTROLS.length);
@@ -179,19 +192,21 @@ const direction = withEnvelope(
   "workshop"
 );
 await service.upsertEntity(direction);
-await service.upsertEntity(withEnvelope(
-  "link",
-  {
-    entityType: "link",
-    title: `${direction.title} targets ${requirement.title}`,
-    linkType: "targets",
-    fromId: direction.id,
-    fromType: "direction",
-    toId: requirement.id,
-    toType: "requirement"
-  },
-  "workshop"
-));
+await service.upsertEntity(
+  withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${direction.title} targets ${requirement.title}`,
+      linkType: "targets",
+      fromId: direction.id,
+      fromType: "direction",
+      toId: requirement.id,
+      toType: "requirement"
+    },
+    "workshop"
+  )
+);
 
 const strategy = withEnvelope(
   "strategy",
@@ -295,7 +310,11 @@ assert.equal(report.counts["requirement-control-mappings"], 1);
 assert.equal(report.counts.directions, PSPF_BASELINE_DIRECTIONS.length + 1);
 assert.equal(report.counts.strategies, 1);
 assert.equal(report.mappingRedaction.ok, true, report.mappingRedaction.detail);
-assert.equal(report.mappingQuality.checks.every((check) => check.ok), true, JSON.stringify(report.mappingQuality.checks));
+assert.equal(
+  report.mappingQuality.checks.every((check) => check.ok),
+  true,
+  JSON.stringify(report.mappingQuality.checks)
+);
 assert.equal(report.ismDrift.affectedMappings.length, 1);
 const byTag = JSON.parse(await readFile(join(exported.exportDirectory, "data", "indexes", "by-tag.json"), "utf8"));
 assert.equal(byTag.tags.length, 1);
@@ -330,12 +349,16 @@ assert.equal(importedMappings[0].reviewBy, "Cyber assurance lead");
 const importedTags = await importService.listEntities("tag");
 assert.equal(importedTags[0].label, "security uplift");
 assert.equal(importedTags[0].description, undefined);
-const importedTagLinks = (await importService.listEntities("link")).filter((entity) => entity.linkType === "tagged-with");
+const importedTagLinks = (await importService.listEntities("link")).filter(
+  (entity) => entity.linkType === "tagged-with"
+);
 assert.equal(importedTagLinks.length, 1);
 assert.equal(importedTagLinks[0].fromId, requirement.id);
 assert.equal(importedTagLinks[0].toId, importedTags[0].id);
 
-console.log("ok e2e workspace initialised, authored, tagged, mapped to ISM, snapshotted, exported, imported, and verified");
+console.log(
+  "ok e2e workspace initialised, authored, tagged, mapped to ISM, snapshotted, exported, imported, and verified"
+);
 console.log(`workspace: ${relative(root, workspaceRoot)}`);
 console.log(`import workspace: ${relative(root, importWorkspaceRoot)}`);
 console.log(`bundle: ${relative(root, bundlePath)}`);

@@ -1,19 +1,19 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "pnpm: build",
-            "type": "shell",
-            "command": "npx pnpm@10.10.0 build",
-            "group": "build",
-            "problemMatcher": "$tsc"
-        },
-        {
-            "label": "pnpm: typecheck",
-            "type": "shell",
-            "command": "npx pnpm@10.10.0 typecheck",
-            "group": "build",
-            "problemMatcher": "$tsc"
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "pnpm: build",
+      "type": "shell",
+      "command": "npx pnpm@10.10.0 build",
+      "group": "build",
+      "problemMatcher": "$tsc"
+    },
+    {
+      "label": "pnpm: typecheck",
+      "type": "shell",
+      "command": "npx pnpm@10.10.0 typecheck",
+      "group": "build",
+      "problemMatcher": "$tsc"
+    }
+  ]
 }

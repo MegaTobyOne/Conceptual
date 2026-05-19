@@ -6,50 +6,50 @@ const root = process.cwd();
 const shopExtension = await readFile(join(root, "packages/shop/src/extension.ts"), "utf8");
 
 for (const requiredText of [
-    "NEAR_TERM_REVIEW_DAYS = 120",
-    "deriveCoverageDashboard",
-    "Assurance coverage",
-    "Near-term contract review",
-    "Funded Actions",
-    "Supplier Risk links",
-    "deriveForecastMonths",
-    "Forecast spend by month",
-    "Forward-looking forecast only. Actuals are not shown in this panel.",
-    "deriveSavingSchedule",
-    "Planned savings schedule",
-    "Planned efficiency dividends",
-    "planned efficiency dividend",
-    "replacement context",
-    "Export CSV",
-    "Export XLS",
-    "renderForecastReportCsv",
-    "renderForecastReportXls",
-    "pspf.shop.exportForecastCsv",
-    "pspf.shop.exportForecastXls",
-    "Supplier performance and management checks",
-    "FOCI check",
-    "Contract artefact links",
-    "CPR source",
-    "Commonwealth Supplier Code of Conduct",
-    "Contract Management Guide",
-    "isSupplierAssuranceLink",
-    "isContractAssuranceLink",
-    "isSpendAssuranceLink",
-    "createWebviewPanel(\"pspfShopForecast\"",
-    "renderCompactForecastHtml",
-    "Open full forecast",
-    "enableCommandUris: true",
-    "commandUri(group.linkCommand",
-    "commandUri(\"pspf.shop.openForecast\"",
-    "pspf.shop.linkSupplierToRequirement",
-    "pspf.shop.linkContractToRequirement",
-    "pspf.shop.linkSpendToAction",
-    "pspf.shop.linkSpendItemToContract",
-    "Spend items needing contract funding links",
-    "contract funds spend-item",
-    "isContractFundingLink"
+  "NEAR_TERM_REVIEW_DAYS = 120",
+  "deriveCoverageDashboard",
+  "Assurance coverage",
+  "Near-term contract review",
+  "Funded Actions",
+  "Supplier Risk links",
+  "deriveForecastMonths",
+  "Forecast spend by month",
+  "Forward-looking forecast only. Actuals are not shown in this panel.",
+  "deriveSavingSchedule",
+  "Planned savings schedule",
+  "Planned efficiency dividends",
+  "planned efficiency dividend",
+  "replacement context",
+  "Export CSV",
+  "Export XLS",
+  "renderForecastReportCsv",
+  "renderForecastReportXls",
+  "pspf.shop.exportForecastCsv",
+  "pspf.shop.exportForecastXls",
+  "Supplier performance and management checks",
+  "FOCI check",
+  "Contract artefact links",
+  "CPR source",
+  "Commonwealth Supplier Code of Conduct",
+  "Contract Management Guide",
+  "isSupplierAssuranceLink",
+  "isContractAssuranceLink",
+  "isSpendAssuranceLink",
+  'createWebviewPanel("pspfShopForecast"',
+  "renderCompactForecastHtml",
+  "Open full forecast",
+  "enableCommandUris: true",
+  "commandUri(group.linkCommand",
+  'commandUri("pspf.shop.openForecast"',
+  "pspf.shop.linkSupplierToRequirement",
+  "pspf.shop.linkContractToRequirement",
+  "pspf.shop.linkSpendToAction",
+  "pspf.shop.linkSpendItemToContract",
+  "Spend items needing contract funding links",
+  "contract funds spend-item",
+  "isContractFundingLink"
 ]) {
-    assert.equal(shopExtension.includes(requiredText), true, `Shop coverage dashboard should mention ${requiredText}`);
+  assert.equal(shopExtension.includes(requiredText), true, `Shop coverage dashboard should mention ${requiredText}`);
 }
 
 const renderStart = shopExtension.indexOf("function renderForecastHtml");
@@ -58,7 +58,11 @@ assert.ok(renderStart > 0 && renderEnd > renderStart, "Shop coverage dashboard r
 const renderBody = shopExtension.slice(renderStart, renderEnd);
 
 for (const excludedText of ["primaryContact", "serviceSummary", "assumptions"]) {
-    assert.equal(renderBody.includes(excludedText), false, `Shop coverage dashboard render should not expose ${excludedText}`);
+  assert.equal(
+    renderBody.includes(excludedText),
+    false,
+    `Shop coverage dashboard render should not expose ${excludedText}`
+  );
 }
 
 assert.equal(renderBody.includes("Actuals</"), false, "Shop forecast should not render an Actuals table column");

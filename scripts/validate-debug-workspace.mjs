@@ -15,8 +15,14 @@ try {
     console.error(`Debug workspace not ready: ${validation.message}`);
     process.exit(1);
   }
-  if (validation.counts.domains !== 6 || validation.counts.requirements < PSPF_BASELINE_REQUIREMENTS.length || validation.counts["source-controls"] !== ISM_SOURCE_CONTROLS.length) {
-    console.error(`Debug workspace baseline incomplete: domains=${validation.counts.domains} requirements=${validation.counts.requirements} source-controls=${validation.counts["source-controls"]}`);
+  if (
+    validation.counts.domains !== 6 ||
+    validation.counts.requirements < PSPF_BASELINE_REQUIREMENTS.length ||
+    validation.counts["source-controls"] !== ISM_SOURCE_CONTROLS.length
+  ) {
+    console.error(
+      `Debug workspace baseline incomplete: domains=${validation.counts.domains} requirements=${validation.counts.requirements} source-controls=${validation.counts["source-controls"]}`
+    );
     process.exit(1);
   }
   await service.exportBundle();
@@ -48,4 +54,6 @@ if (!report.ok) {
 console.log(`ok debug workspace export validates: ${relative(root, bundlePath)}`);
 console.log(`report: ${relative(root, reportPaths.markdownPath)}`);
 console.log(`explorer: ${report.explorerPath}`);
-console.log(`counts requirements=${report.counts.requirements} evidence=${report.counts.evidence} actions=${report.counts.actions} risks=${report.counts.risks} links=${report.counts.links}`);
+console.log(
+  `counts requirements=${report.counts.requirements} evidence=${report.counts.evidence} actions=${report.counts.actions} risks=${report.counts.risks} links=${report.counts.links}`
+);

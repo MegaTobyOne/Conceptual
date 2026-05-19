@@ -1,36 +1,36 @@
 {
-    "compilerOptions": {
-        "forceConsistentCasingInFileNames": true,
-        "strict": true
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "strict": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/contracts"
     },
-    "files": [],
-    "references": [
-        {
-            "path": "./packages/contracts"
-        },
-        {
-            "path": "./packages/reference-data"
-        },
-        {
-            "path": "./packages/ism-source-library"
-        },
-        {
-            "path": "./packages/brief-renderer"
-        },
-        {
-            "path": "./packages/connected-view"
-        },
-        {
-            "path": "./packages/core"
-        },
-        {
-            "path": "./packages/workshop"
-        },
-        {
-            "path": "./packages/shop"
-        },
-        {
-            "path": "./packages/explorer"
-        }
-    ]
+    {
+      "path": "./packages/reference-data"
+    },
+    {
+      "path": "./packages/ism-source-library"
+    },
+    {
+      "path": "./packages/brief-renderer"
+    },
+    {
+      "path": "./packages/connected-view"
+    },
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/workshop"
+    },
+    {
+      "path": "./packages/shop"
+    },
+    {
+      "path": "./packages/explorer"
+    }
+  ]
 }
