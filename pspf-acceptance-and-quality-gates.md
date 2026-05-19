@@ -384,6 +384,20 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 8. **Deferred-scope gate**: v1.23 does not add editable Connected View, drag-to-link, new graph link verbs, reminders, recurring actions, notifications, calendars, approvals, Pub assignment workflows, editable Explorer commercial views, chart/PDF export, or new commercial workflow states.
 9. **Regression gate**: `check:explorer-publication`, `check:shop-coverage-dashboard`, `check:release-candidate`, `lint`, and `typecheck` pass.
 
+### v1.24 candidate gates (Workshop Cyber Strategy Map, per ADR 0060)
+
+1. **ADR gate**: ADR 0060 records the Workshop Cyber Strategy Map decision before implementation starts.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.24.0`; schema, bundle, and API axes are `1.10.0` because the canonical `Strategy` entity is implemented.
+3. **Strategy entity gate**: v1.24 introduces one canonical workspace strategy entity with nested strategic choices, outcomes, posture measures, and publication policies for every field.
+4. **Hierarchy cap gate**: the model supports only Strategy -> Strategic choice -> Outcome -> Measure or linked existing record in the first slice; deeper nesting is rejected or deferred.
+5. **Traceability gate**: strategic choices and outcomes can reference existing Requirements, Risks, Actions, and Directions through validated inline references; missing or wrong-type references fail validation.
+6. **Posture-measure gate**: outcome measures capture baseline, target, current value, trend, confidence, and review cadence; capability outcomes are the strategic frame and Essential Eight maturity is one posture evidence set.
+7. **Workshop strategy-map gate**: Workshop exposes a Leadership Strategy Map with 3 to 6 strategic choices, outcome summaries, posture gaps, trends, confidence, linked blockers, and linked work.
+8. **Working-view gate**: Workshop provides a focused editing view for one strategic choice, its outcomes, measures, rationale, and links without duplicating Action management.
+9. **Explorer executive-view gate**: Explorer publishes a sanitised executive strategy view that excludes sensitive rationale, assumptions, constraints, detailed measures, and non-public commentary by default.
+10. **Deferred-scope gate**: v1.24 does not add multiple strategy records, standalone strategy-choice entities, Connected View strategy nodes, PMO scheduling, approvals, reminders, calendars, finance reconciliation, Shop workflow changes, or Explorer strategy editing.
+11. **Regression gate**: `check:schema-policy`, `check:schema-coverage`, `check:explorer-publication`, `check:release-candidate`, `lint`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

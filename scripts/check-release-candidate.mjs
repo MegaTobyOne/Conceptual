@@ -27,7 +27,8 @@ const axesByMinorVersion = new Map([
   [20, "1.8.0"],
   [21, "1.8.0"],
   [22, "1.8.0"],
-  [23, "1.9.0"]
+  [23, "1.9.0"],
+  [24, "1.10.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -56,12 +57,13 @@ assert.match(contracts, new RegExp(`schemaVersion: "${expectedAxes}"`), `schemaV
 assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleVersion should be ${expectedAxes}`);
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
-const e2eScript = minorVersion >= 23 ? "e2e:v1.23" : minorVersion >= 22 ? "e2e:v1.22" : minorVersion >= 21 ? "e2e:v1.21" : minorVersion >= 20 ? "e2e:v1.20" : minorVersion >= 19 ? "e2e:v1.19" : minorVersion >= 18 ? "e2e:v1.18" : minorVersion >= 17 ? "e2e:v1.17" : minorVersion >= 16 ? "e2e:v1.16" : minorVersion >= 14 ? "e2e:v1.14" : minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
+const e2eScript = minorVersion >= 24 ? "e2e:v1.24" : minorVersion >= 23 ? "e2e:v1.23" : minorVersion >= 22 ? "e2e:v1.22" : minorVersion >= 21 ? "e2e:v1.21" : minorVersion >= 20 ? "e2e:v1.20" : minorVersion >= 19 ? "e2e:v1.19" : minorVersion >= 18 ? "e2e:v1.18" : minorVersion >= 17 ? "e2e:v1.17" : minorVersion >= 16 ? "e2e:v1.16" : minorVersion >= 14 ? "e2e:v1.14" : minorVersion >= 13 ? "e2e:v1.13" : minorVersion >= 12 ? "e2e:v1.12" : minorVersion >= 11 ? "e2e:v1.11" : minorVersion >= 10 ? "e2e:v1.10" : /^1\.9\.\d+$/.test(expectedVersion) ? "e2e:v1.9" : /^1\.8\.\d+$/.test(expectedVersion) ? "e2e:v1.8" : /^1\.7\.\d+$/.test(expectedVersion) ? "e2e:v1.7" : /^1\.6\.\d+$/.test(expectedVersion) ? "e2e:v1.6" : /^1\.5\.\d+$/.test(expectedVersion) ? "e2e:v1.5" : /^1\.4\.\d+$/.test(expectedVersion) ? "e2e:v1.4" : /^1\.3\.\d+$/.test(expectedVersion) ? "e2e:v1.3" : /^1\.2\.\d+$/.test(expectedVersion) ? "e2e:v1.2" : isV11OrLaterRelease ? "e2e:v1.1" : isV1Release ? "e2e:v1.0" : "e2e:v0.9";
 for (const scriptName of [e2eScript, "check:adr-coverage", "check:release-candidate", "check:gates", "validate:debug-workspace", "release:readiness"]) {
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
 assert.equal(packageJson.scripts["check:gates"].includes("check-adr-coverage.mjs"), true, "check:gates should run ADR coverage before release gates");
 assert.equal(packageJson.scripts["e2e:v1.23"].includes("check:adr-coverage"), true, "e2e:v1.23 should run ADR coverage");
+assert.equal(packageJson.scripts["e2e:v1.24"].includes("check:explorer-publication"), true, "e2e:v1.24 should run Explorer publication gate");
 
 for (const requiredPath of [
   "scripts/check-adr-coverage.mjs",
@@ -95,6 +97,7 @@ for (const requiredPath of [
   "adr/0057-v1-21-shop-forecast-management.md",
   "adr/0058-v1-22-operator-input-assistance.md",
   "adr/0059-v1-23-connected-view-and-commercial-planning-polish.md",
+  "adr/0060-v1-24-workshop-cyber-strategy-map.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -475,6 +478,35 @@ if (isV1Release && minorVersion >= 21) {
   }
   assert.equal(typeof packageJson.scripts["e2e:v1.21"], "string", "root package should define e2e:v1.21");
   assert.equal(packageJson.scripts["e2e:v1.21"].includes("check:shop-coverage-dashboard"), true, "e2e:v1.21 should include Shop forecast management gate");
+}
+
+const v124Adr = await readFile(join(root, "adr/0060-v1-24-workshop-cyber-strategy-map.md"), "utf8");
+for (const requiredText of ["Workshop Cyber Strategy Map", "one canonical workspace strategy", "Requirements", "Risks", "Actions", "Directions", "Explorer executive strategy view", "schema-bearing"]) {
+  assert.equal(v124Adr.includes(requiredText), true, `v1.24 strategy ADR should mention ${requiredText}`);
+}
+const acceptanceGates = await readFile(join(root, "pspf-acceptance-and-quality-gates.md"), "utf8");
+assert.equal(acceptanceGates.includes("v1.24 candidate gates (Workshop Cyber Strategy Map, per ADR 0060)"), true, "acceptance gates should include v1.24 strategy gates");
+
+if (isV1Release && minorVersion >= 24) {
+  for (const requiredText of ["StrategyEntity", "strategy", "strategies", "STR", "strategyCount", "StrategicChoice"]) {
+    assert.equal(contracts.includes(requiredText), true, `Contracts v1.24 strategy surface should mention ${requiredText}`);
+  }
+  const coreService = await readFile(join(root, "packages/core/src/service.ts"), "utf8");
+  for (const requiredText of ["strategies: []", "strategyCount", "collections.strategies.length"]) {
+    assert.equal(coreService.includes(requiredText), true, `Core v1.24 strategy bundle support should mention ${requiredText}`);
+  }
+  const workshopExtension = await readFile(join(root, "packages/workshop/src/extension.ts"), "utf8");
+  for (const requiredText of ["pspf.workshop.openStrategyMap", "openStrategyMap", "Cyber Strategy Map", "strategyChoiceCard"]) {
+    assert.equal(workshopExtension.includes(requiredText), true, `Workshop v1.24 strategy map should mention ${requiredText}`);
+  }
+  const workshopPackage = await readFile(join(root, "packages/workshop/package.json"), "utf8");
+  assert.equal(workshopPackage.includes("pspf.workshop.openStrategyMap"), true, "Workshop package should contribute Strategy Map command");
+  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  for (const requiredText of ["#strategy", "strategyPanel", "Posture strategies", "Strategy rationale excluded", "Cyber Strategy"]) {
+    assert.equal(explorer.includes(requiredText), true, `Explorer v1.24 strategy view should mention ${requiredText}`);
+  }
+  assert.equal(existsSync(join(root, "schemas/explorer-bundle", expectedAxes, "collections", "strategies.schema.json")), true, "Explorer schema should include strategies collection schema");
+  assert.equal(packageJson.scripts["release:readiness"].includes("e2e:v1.24"), true, "release:readiness should run e2e:v1.24");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

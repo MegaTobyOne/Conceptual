@@ -193,6 +193,71 @@ await service.upsertEntity(withEnvelope(
   "workshop"
 ));
 
+const strategy = withEnvelope(
+  "strategy",
+  {
+    entityType: "strategy",
+    title: "Cybersecurity Strategy",
+    scope: "Enterprise",
+    timeHorizon: "2026-2028",
+    effectiveAt: "2026-07-01T00:00:00.000Z",
+    owner: "CISO",
+    strategyStatement: "Focus cyber uplift on governance cadence and encryption assurance.",
+    riskPostureStatement: "Improve assurance confidence while reducing unmanaged cyber exposure.",
+    frameworks: ["PSPF", "Essential Eight"],
+    reviewCadence: "quarterly",
+    executiveSummary: "Cyber priorities connect assurance work to measurable posture movement.",
+    assumptions: "Sensitive strategy assumption that must not be exported.",
+    choices: [
+      {
+        id: "choice-governance-cadence",
+        statement: "Strengthen governance cadence as the strategic control point for assurance.",
+        summary: "Quarterly evidence review keeps PSPF reporting decisions current.",
+        capabilityArea: "Governance and assurance",
+        targetPosture: "Quarterly evidence review operating with current governance artefacts by 2026-12-31.",
+        executiveOwner: "CISO",
+        trend: "improving",
+        confidence: "medium",
+        rationale: "Sensitive strategy rationale that must not be exported.",
+        constraints: "Sensitive strategy constraint that must not be exported.",
+        references: [
+          { entityType: "requirement", entityId: requirement.id, role: "drives" },
+          { entityType: "risk", entityId: risk.id, role: "blocked-by" },
+          { entityType: "action", entityId: action.id, role: "addresses" },
+          { entityType: "direction", entityId: direction.id, role: "monitors" }
+        ],
+        outcomes: [
+          {
+            id: "outcome-governance-evidence-current",
+            statement: "Governance evidence remains current for executive assurance decisions.",
+            summary: "Evidence review cadence is visible and linked to assurance work.",
+            references: [
+              { entityType: "requirement", entityId: requirement.id, role: "evidenced-by" },
+              { entityType: "action", entityId: action.id, role: "addresses" }
+            ],
+            measures: [
+              {
+                id: "measure-governance-review-cadence",
+                title: "Governance review cadence",
+                measureClass: "governance-assurance",
+                baseline: "Ad hoc",
+                current: "Quarterly review scheduled",
+                target: "Quarterly review complete",
+                unit: "cadence",
+                trend: "improving",
+                confidence: "medium",
+                reviewCadence: "quarterly"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "workshop"
+);
+await service.upsertEntity(strategy);
+
 const snapshot = await service.createSnapshot();
 assert.equal(snapshot.entityType, "snapshot");
 
@@ -211,6 +276,7 @@ assert.equal(validation.counts.snapshots, 1);
 assert.equal(validation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(validation.counts["requirement-control-mappings"], 1);
 assert.equal(validation.counts.directions, PSPF_BASELINE_DIRECTIONS.length + 1);
+assert.equal(validation.counts.strategies, 1);
 
 const exported = await service.exportBundle();
 const bundlePath = join(exported.exportDirectory, "bundle.json");
@@ -227,6 +293,7 @@ assert.equal(report.counts.snapshots, 1);
 assert.equal(report.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(report.counts["requirement-control-mappings"], 1);
 assert.equal(report.counts.directions, PSPF_BASELINE_DIRECTIONS.length + 1);
+assert.equal(report.counts.strategies, 1);
 assert.equal(report.mappingRedaction.ok, true, report.mappingRedaction.detail);
 assert.equal(report.mappingQuality.checks.every((check) => check.ok), true, JSON.stringify(report.mappingQuality.checks));
 assert.equal(report.ismDrift.affectedMappings.length, 1);
@@ -255,6 +322,7 @@ assert.equal(importValidation.counts.tags, 1);
 assert.equal(importValidation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(importValidation.counts["requirement-control-mappings"], 1);
 assert.equal(importValidation.counts.directions, PSPF_BASELINE_DIRECTIONS.length + 1);
+assert.equal(importValidation.counts.strategies, 1);
 const importedMappings = await importService.listEntities("requirement-control-mapping");
 assert.equal(importedMappings[0].confidence, "medium");
 assert.equal(importedMappings[0].lastReviewedAt, "2026-05-10T00:00:00.000Z");
