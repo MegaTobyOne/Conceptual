@@ -6,6 +6,7 @@ import {
   CONNECTED_VIEW_STYLES,
   CONNECTED_VIEW_BROWSER_SCRIPT
 } from "@pspf/connected-view";
+import { tokensCss } from "@pspf/webview-shell";
 import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
@@ -398,6 +399,9 @@ function homeShellHtml(title: string, body: string): string {
   <meta charset="utf-8">
   <title>${escapeHtml(title)}</title>
   <style>
+    /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
+    ${tokensCss("extension")}
+    /* Workshop home surface tokens layered on top of the shared base. */
     :root {
       color-scheme: light dark;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -2193,6 +2197,9 @@ function shellHtml(title: string, body: string): string {
   <meta charset="utf-8">
   <title>${escapeHtml(title)}</title>
   <style>
+    /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
+    ${tokensCss("extension")}
+    /* Workshop main-panel surface tokens layered on top of the shared base. */
     :root {
       color-scheme: light dark;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;

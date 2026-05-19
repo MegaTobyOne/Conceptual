@@ -244,6 +244,7 @@
   "dependencies": {
     "@pspf/brief-renderer": "workspace:*",
     "@pspf/connected-view": "workspace:*",
-    "@pspf/contracts": "workspace:*"
+    "@pspf/contracts": "workspace:*",
+    "@pspf/webview-shell": "workspace:*"
   }
 }
