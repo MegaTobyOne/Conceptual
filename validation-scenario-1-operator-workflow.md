@@ -1,8 +1,8 @@
-# Validation Scenario 1: v1.24.2 Cyber Strategy Map Workflow
+# Validation Scenario 1: v1.25.0 Operational Dashboard Workflow
 
 ## Purpose
 
-Validate that a PSPF/security operator can complete the current initial assurance workflow without developer assistance: open Workshop, load the sample assurance scenario, review the Cyber Strategy Map, trace Directions, Requirements, Risks, and Actions in Connected View, record a significant change, create and apply tags, create Workshop saved views including planning scopes, export to Explorer, review Explorer "Why This Changed", Plan Lens, Strategy, and Connected View, filter Requirements and Relationships by tag/status/search, save and apply Explorer saved views, review Explorer Local Changes, confirm compliance-history export controls, confirm Explorer-to-Workshop import/undo behaviour, review Shop commercial coverage, and distinguish Marketplace dry-run release validation from actual publication.
+Validate that a PSPF/security operator can complete the current initial assurance workflow without developer assistance: open Workshop, load the sample assurance scenario, review the Master Dashboard, Plan of Action, Essential Eight dashboard, Cyber Strategy Map, trace Directions, Requirements, Risks, and Actions in Connected View, record a significant change, create and apply tags, create Workshop saved views including planning scopes, export to Explorer, review Explorer "Why This Changed", Plan Lens, Strategy, and Connected View, filter Requirements and Relationships by tag/status/search, save and apply Explorer saved views, review Explorer Local Changes, confirm compliance-history export controls, confirm Explorer-to-Workshop import/undo behaviour, review Shop commercial coverage, and distinguish Marketplace dry-run release validation from actual publication.
 
 ## Persona
 
@@ -14,8 +14,11 @@ Manual focus:
 
 - Workshop launch, Activity Bar access, status bar version context, and sample workspace loading.
 - Workshop dashboard orientation: Directions, Action Impact, evidence queue, and version context.
+- Workshop Master Dashboard and Plan of Action: decision context, N/A-aware metrics, Action dates, status filtering, and Today timeline marker.
+- Workshop Essential Eight dashboard: strategy tracking, evidence/action/risk context, and uplift plan.
 - Workshop Cyber Strategy Map: strategic choices, outcomes, posture measures, trends, confidence, and linked Requirements, Risks, Actions, and Directions.
-- Workshop and Explorer Connected View: compact card labels, hover/focus details, transitive chain highlighting, related Requirement emphasis, zoom controls, lane visibility controls, selected-chain scroll, toolbar clear, and toolbar refresh.
+- Workshop Strategy Editor: full-size editing of the canonical Strategy record while preserving explicit save/discard/cancel behaviour.
+- Workshop and Explorer Connected View: compact card labels, hover/focus details, transitive chain highlighting, related Requirement emphasis, zoom controls, lane visibility controls, not-applicable Requirement visibility, selected-chain scroll, toolbar clear, and toolbar refresh.
 - Workshop Change Records list, significant-change authoring, and Change Record edit surface.
 - Workshop Tag Manager, Requirement Detail tag rail, and Requirement tag filtering.
 - Explorer visual identity, publication load, "Why This Changed", full-width Explorer Search, Local Changes, refresh restore, compliance-history export controls, and local JSON export.
@@ -30,7 +33,7 @@ Manual focus:
 
 Automated coverage handles detailed counts, redaction/default-deny, schema validation, accessibility, writer lock, backup/restore, personal-data exclusion, and import/export round trips. Do not repeat those manually unless a visible behaviour looks wrong.
 
-Still out of scope for v1.24.2:
+Still out of scope for v1.25.0:
 
 - Pub, editable posture, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, Explorer-authored Change Records, change-record diff views, change-record tagging, local history pruning, automatic retention windows, plan baselines, milestone/resource/budget entities, standalone strategy-choice entities, multiple Strategy records, Explorer strategy editing, a separate PSPF Plan product, procurement import, finance reconciliation, approvals, editable Connected View, drag-to-link, impact-weighted Connected View layout, office/cost-centre hierarchy, image/PDF export of the board, and third-party accessibility audit.
 
@@ -64,13 +67,13 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. If DNS resolves but LiteSpeed returns `404`, check that the VentraIP/cPanel subdomain document root still matches the `test-web` `VENTRAIP_DOCROOT`; subdomain recreation can reset that mapping outside Git. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.24.2`, `Schema 1.10.0`, and `API 1.10.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.24.2` and its tooltip includes `Schema 1.10.0`, `Bundle 1.10.0`, and `API 1.10.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.25.0`, `Schema 1.10.0`, and `API 1.10.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.25.0` and its tooltip includes `Schema 1.10.0`, `Bundle 1.10.0`, and `API 1.10.0`.
 4. From `Workshop Home`, click `Load sample`.
-5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions. Then open `Strategy Map` and confirm the Cyber Strategy Map shows three strategic choices, outcome summaries, posture measures, trend/confidence labels, and linked Requirements, Risks, Actions, and Directions.
+5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, N/A-aware completion/evidence metrics, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions. Open `Plan of Action` and confirm the graphical plan shows Action date spans, status filters, and a visible Today marker. Open `Essential Eight` and confirm the strategy tracker and uplift plan are populated from linked Requirements, Evidence, Risks, and Actions. Then open `Strategy Map` and confirm the Cyber Strategy Map shows three strategic choices, outcome summaries, posture measures, trend/confidence labels, and linked Requirements, Risks, Actions, and Directions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.
-7. From the Workshop left panel or `Workshop Home`, open `Connected View`. Confirm the board uses domain-grouped Requirements, a single Actions lane, neutral curved edges, compact cards showing only reference and title, zoom controls, lane visibility controls, `Clear selection`, and `Refresh`.
-8. Hover or keyboard-focus a Requirement card and confirm the popover appears next to that card with its status/domain detail and direct linked Directions, Risks, or Actions. Select the Requirement and confirm the selected chain scrolls into view, the transitive chain highlights, unrelated cards dim, related Requirements receive a distinct emphasis, Cmd/Ctrl/Shift-click adds another card, clicking the only selected card clears it, double-click opens item detail, and `Refresh` re-renders the panel.
+7. From the Workshop left panel or `Workshop Home`, open `Connected View`. Confirm the board uses domain-grouped Requirements, a single Actions lane, neutral curved edges, compact cards showing only reference and title, zoom controls, lane visibility controls, `N/A requirements`, `Clear selection`, and `Refresh`.
+8. Toggle `N/A requirements` off and confirm not-applicable Requirement cards are hidden and connector paths redraw without leaving orphaned visual links. Toggle it back on. Hover or keyboard-focus a Requirement card and confirm the popover appears next to that card with its status/domain detail and direct linked Directions, Risks, or Actions. Select the Requirement and confirm the selected chain scrolls into view, the transitive chain highlights, unrelated cards dim, related Requirements receive a distinct emphasis, Cmd/Ctrl/Shift-click adds another card, clicking the only selected card clears it, double-click opens item detail, and `Refresh` re-renders the panel.
 9. Open one Requirement item detail, click `Record significant change`, create a Change Record with a short public summary and optional sensitive reason/impact notes, then run `PSPF: Open Change Records` and confirm the row shows status, type, persistence, source, raised date, affected Requirement, and summary.
 10. Open the Change Record row, edit the public summary or status, save, reopen `PSPF: Open Change Records`, and confirm the update is visible.
 11. Open one Requirement item detail, click `Apply tag`, create a `Security uplift` tag if needed, and confirm the tag appears in the `Tags` rail. Run `PSPF: Manage Tags` and confirm the Tag Manager shows the tag, colour, status, and Requirement count.
@@ -93,7 +96,7 @@ If `dig` returns no address or `curl` reports `Could not resolve host`, create o
 28. Use the full-width `Explorer Search` under the posture brief to find one Requirement, confirm the same search narrows the `Local Changes` list, select that Requirement, and confirm `Linked Context` shows existing linked Evidence, Actions, Risks, and tagged context plus Open buttons to the full sections. Change its status, add one evidence reference, one Action, and one Risk, then refresh the browser. Confirm the latest bundle restores automatically and the local changes and saved views are still visible as `local` / saved local state.
 29. In `Local Changes`, confirm `Include compliance history` is on by default. Click `Export local JSON` and confirm the exported bundle includes `collections.saved-views`; if the bundle contains local compliance events, confirm it also includes `collections.compliance-events` and a `manifest.collections` entry for `compliance-events`. Turn `Include compliance history` off, export again, and confirm `compliance-events` is omitted from both `collections` and `manifest.collections` while the current Requirement status/evidence/Action/Risk edits remain present. Import that history-excluded Explorer local JSON from Workshop with `Plan, review, apply`. Confirm `PSPF Workshop Import Review` opens as a read-only surface with created, updated, unchanged, write, per-type, and update-example detail before `Apply Import`; apply it, then use `Undo Import` and confirm the undo notification is clear.
 30. In GitHub Actions, open or run a Marketplace release dry run from `main` with `target=all` and `dry_run=true`. Confirm the run name includes `target=all / dry_run=true`, the dispatch summary says publication is skipped, Core, Workshop, and Shop publish jobs show dry-run summaries, and `Publish to VS Code Marketplace`, `Verify Marketplace version`, `Tag and GitHub release`, and `Verify receipt tag` are skipped.
-31. Confirm the dry run created no `core/1.24.2`, `workshop/1.24.2`, or `shop/1.24.2` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
+31. Confirm the dry run created no `core/1.25.0`, `workshop/1.25.0`, or `shop/1.25.0` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
 32. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
 
 ## Expected Manual Signals
@@ -120,7 +123,7 @@ The following automated gates now cover the detailed checks that used to be manu
 For a quick spine check, run:
 
 ```sh
-npx pnpm@10.10.0 run e2e:v1.24
+npx pnpm@10.10.0 run e2e:v1.25
 ```
 
 Expected outputs:
@@ -141,12 +144,12 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.24.2-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.25.0-readiness-report.md`.
 - An Explorer Local Changes smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke and posture brief redaction gates.
-- Manual operator validation should focus on the v1.24.2 Cyber Strategy Map, Explorer executive Strategy view, Connected View zoom/lane/selected-chain controls, Shop Forecast monthly/FY forecast, spend item report with cost centre, planned savings schedule, annual planned efficiency dividends, CSV/XLS export, supplier management and FOCI prompts, CPR contract artefact links, Shop commercial coverage dashboard, uncontracted spend-item cues, assurance-linkage path, commercial context display, Shop visual identity, compliance-history export path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
+- Manual operator validation should focus on the v1.25.0 Master Dashboard, Plan of Action Today marker/status filters, Essential Eight dashboard, full-size Strategy Editor, Cyber Strategy Map, Explorer executive Strategy view, Connected View zoom/lane/not-applicable/selected-chain controls, openable evidence references, Shop Forecast monthly/FY forecast, spend item report with cost centre, planned savings schedule, annual planned efficiency dividends, CSV/XLS export, supplier management and FOCI prompts, CPR contract artefact links, Shop commercial coverage dashboard, uncontracted spend-item cues, assurance-linkage path, commercial context display, Shop visual identity, compliance-history export path, Marketplace dry-run clarity, Workshop Dashboard/Evidence Review saved views, Change Record flow, tag creation/application/filtering, Explorer tag filter URL/session behaviour, Workshop/Explorer visual identity separation, Workshop import review, plan-apply review, schema-change reload guidance, and undo clarity.
 
 ## Pass Criteria
 

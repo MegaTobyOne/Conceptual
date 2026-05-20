@@ -398,6 +398,19 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 10. **Deferred-scope gate**: v1.24 does not add multiple strategy records, standalone strategy-choice entities, Connected View strategy nodes, PMO scheduling, approvals, reminders, calendars, finance reconciliation, Shop workflow changes, or Explorer strategy editing.
 11. **Regression gate**: `check:schema-policy`, `check:schema-coverage`, `check:explorer-publication`, `check:release-candidate`, `lint`, and `typecheck` pass.
 
+### v1.25 candidate gates (Workshop operational dashboards, per ADR 0061)
+
+1. **ADR gate**: ADR 0061 records the Workshop operational dashboards decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.25.0`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
+3. **Master Dashboard gate**: Workshop presents the Data -> Decisions -> PSPF Artefacts -> Measurable Uplift operating spine without extension-file clutter, and keeps N/A requirements excluded from compliance/evidence metrics by default.
+4. **Plan of Action grounding gate**: the Plan of Action board supports Action start/end dates, status filtering, impact context, and a Today marker that anchors the timeline to the current date.
+5. **Essential Eight dashboard gate**: Workshop exposes dedicated Essential Eight tracking and an uplift plan using existing Requirements, mappings, Evidence, Risks, and Actions.
+6. **Strategy Editor gate**: Workshop provides a full-size Strategy Editor for the canonical Strategy entity while preserving the existing sanitised Explorer executive strategy view.
+7. **Connected View volume gate**: Workshop and Explorer Connected View can hide Requirements marked not applicable and redraw linked context without changing link semantics.
+8. **Evidence opening gate**: Evidence browse, list, review, and editor surfaces can open supported evidence references while preserving explicit save/discard/cancel behaviour for dirty editors.
+9. **Deferred-scope gate**: v1.25 does not add new entity types, link verbs, schema axes, editable Explorer strategy, PMO scheduling, approvals, finance reconciliation, or editable Connected View.
+10. **Regression gate**: `e2e:v1.25`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.24.2",
+  "version": "1.25.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -148,7 +148,7 @@
       },
       {
         "command": "pspf.workshop.editStrategySummary",
-        "title": "PSPF: Edit Strategy Summary",
+        "title": "PSPF: Open Strategy Editor",
         "icon": "$(edit)"
       },
       {

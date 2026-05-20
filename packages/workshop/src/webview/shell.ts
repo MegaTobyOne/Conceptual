@@ -134,6 +134,7 @@ export function shellHtml(title: string, body: string): string {
     main { max-width: 1180px; margin: 0 auto; padding: var(--pad-lg); }
     main:has(.pspf-connected-view) { max-width: min(1760px, calc(100vw - 24px)); }
     main:has(.requirement-browser) { max-width: 1320px; }
+    main:has(.strategy-editor) { max-width: min(1680px, calc(100vw - 24px)); }
     section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); margin-bottom: var(--gap); }
     section > h2:first-child { margin-top: 0; }
     h1 { margin: 0 0 8px; font-size: 22px; letter-spacing: -0.005em; }
@@ -165,6 +166,13 @@ export function shellHtml(title: string, body: string): string {
     textarea { resize: vertical; min-height: 96px; line-height: 1.45; }
     input[readonly] { color: var(--muted); background: color-mix(in srgb, var(--surface-strong) 65%, transparent); }
     .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .strategy-editor__form { max-width: none; display: block; }
+    .strategy-editor__form section { margin-bottom: var(--gap); }
+    .strategy-editor__two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; align-items: start; }
+    .strategy-editor__field { margin-top: 12px; }
+    .strategy-editor__field textarea { min-height: 10rem; }
+    .strategy-editor__nested { margin-top: 14px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--surface-strong) 78%, transparent); }
+    .strategy-editor__measure { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
     .requirement-browser { width: min(100%, 1320px); display: grid; grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); gap: var(--gap); align-items: start; }
     .requirement-browser__nav { position: sticky; top: var(--pad); max-height: calc(100vh - 150px); display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 10px; }
     .requirement-browser__nav h2 { margin-bottom: 0; }
@@ -188,6 +196,8 @@ export function shellHtml(title: string, body: string): string {
     .poa-task__label strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .poa-task__label span { color: var(--muted); font-size: 11px; }
     .poa-track { position: relative; min-height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 0 1px, transparent 1px 28px), color-mix(in srgb, var(--surface-strong) 80%, transparent); overflow: hidden; }
+    .poa-today-marker { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--amber); z-index: 2; pointer-events: none; }
+    .poa-today-marker span { position: absolute; top: 1px; left: 5px; padding: 1px 5px; border-radius: var(--radius-sm); color: var(--text); background: color-mix(in srgb, var(--amber) 24%, var(--surface)); border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--border)); font-size: 10px; font-weight: 700; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.03em; }
     .poa-bar { position: absolute; top: 5px; height: 22px; display: flex; align-items: center; min-width: 18px; max-width: calc(100% - 2px); border-radius: 999px; padding: 0 8px; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; box-sizing: border-box; overflow: hidden; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24); }
     .poa-bar--blocked { background: #b42318; }
     .poa-bar--overdue { background: #b54708; }
@@ -205,6 +215,7 @@ export function shellHtml(title: string, body: string): string {
       header { padding: var(--pad); }
       .workshop-sensitivity { padding: 8px var(--pad); }
       .requirement-browser { grid-template-columns: 1fr; }
+      .strategy-editor__two-col { grid-template-columns: 1fr; }
       .requirement-browser__nav { position: static; max-height: none; }
       .requirement-browser__list { max-height: 320px; }
       .poa-task { grid-template-columns: 1fr; }
@@ -341,8 +352,8 @@ export function shellHtml(title: string, body: string): string {
         const fields = pspfFormFields(form);
         vscode.postMessage({
           command,
-          entityType: String(data.get('entityType') || ''),
-          entityId: String(data.get('entityId') || ''),
+          entityType: String(fields.entityType || ''),
+          entityId: String(fields.entityId || ''),
           fields
         });
       }

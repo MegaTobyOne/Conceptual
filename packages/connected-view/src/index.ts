@@ -50,6 +50,7 @@ export interface ConnectedViewNode {
   readonly title: string;
   readonly reference: string;
   readonly domainCode?: string;
+  readonly assessmentStatus?: AssessmentStatus;
   readonly badges: readonly ConnectedViewBadge[];
 }
 
@@ -123,6 +124,7 @@ export function buildConnectedViewModel(input: ConnectedViewInput): ConnectedVie
     title: requirement.title,
     reference: shortRequirementRef(requirement),
     domainCode: domainById.get(requirement.domainId)?.code,
+    assessmentStatus: requirement.assessmentStatus,
     badges: [statusBadge(requirement.assessmentStatus)]
   }));
 
@@ -477,6 +479,7 @@ export function renderConnectedViewBodyHtml(
       <button type="button" class="cv-chip" data-cv-lane-toggle="requirements" aria-pressed="true">Requirements</button>
       <button type="button" class="cv-chip" data-cv-lane-toggle="risks" aria-pressed="true">Risks</button>
       <button type="button" class="cv-chip" data-cv-lane-toggle="actions" aria-pressed="true">Actions</button>
+      <button type="button" class="cv-chip" data-cv-action="toggle-not-applicable" aria-pressed="true">N/A requirements</button>
       <span class="cv-chip-label cv-domain-label">Domains:</span>
       ${model.domains.map((domain) => `<button type="button" class="cv-chip cv-chip-domain" data-cv-domain-toggle="${escapeAttr(domain.code)}" aria-pressed="true">${escapeHtml(domain.code.toUpperCase())}</button>`).join("")}
       <button type="button" class="cv-chip" data-cv-action="zoom-out" aria-label="Zoom out">−</button>
@@ -528,13 +531,16 @@ function renderCardHtml(node: ConnectedViewNode, mode: "workshop" | "explorer"):
     ? `${node.reference} — ${node.title}\n${badgeLabels}`
     : `${node.reference} — ${node.title}`;
   const domainAttr = node.domainCode ? ` data-cv-domain="${escapeAttr(node.domainCode)}"` : "";
+  const assessmentAttr = node.assessmentStatus
+    ? ` data-cv-assessment-status="${escapeAttr(node.assessmentStatus)}"`
+    : "";
   const detailAttr = badgeLabels ? ` data-cv-detail="${escapeAttr(badgeLabels)}"` : "";
   const openButton =
     mode === "workshop"
       ? `<button type="button" class="cv-card-open" data-command="openEntity" data-entity-type="${escapeAttr(node.kind)}" data-entity-id="${escapeAttr(node.id)}" aria-label="Open ${escapeAttr(node.kind)} detail" tabindex="-1">Open</button>`
       : "";
   return `
-<article class="cv-card cv-card-${node.kind}" data-cv-card data-cv-id="${escapeAttr(node.id)}" data-cv-kind="${node.kind}"${domainAttr}${detailAttr} tabindex="0" aria-label="${escapeAttr(tooltipText)}">
+<article class="cv-card cv-card-${node.kind}" data-cv-card data-cv-id="${escapeAttr(node.id)}" data-cv-kind="${node.kind}"${domainAttr}${assessmentAttr}${detailAttr} tabindex="0" aria-label="${escapeAttr(tooltipText)}">
   <div class="cv-card-ref">${escapeHtml(node.reference)}</div>
   <div class="cv-card-title">${escapeHtml(node.title)}</div>
   ${openButton}
@@ -628,6 +634,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 }
 .cv-lane.cv-lane-hidden { display: none !important; }
 .cv-card.cv-domain-hidden { display: none !important; }
+.cv-card.cv-not-applicable-hidden { display: none !important; }
 .pspf-connected-view.layout-grouped .cv-board {
   grid-auto-flow: column;
   grid-auto-columns: minmax(240px, 1fr);
@@ -934,7 +941,7 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     });
     const requirementNodes = requirements.map(function (r) {
       const dom = domainById.get(r.domainId);
-      return { id: r.id, kind: "requirement", title: r.title, reference: shortIdRef(r.id), domainCode: dom && dom.code, badges: [statusBadge(r.assessmentStatus)] };
+      return { id: r.id, kind: "requirement", title: r.title, reference: shortIdRef(r.id), domainCode: dom && dom.code, assessmentStatus: r.assessmentStatus, badges: [statusBadge(r.assessmentStatus)] };
     });
     const riskNodes = risks.map(function (r) {
       return { id: r.id, kind: "risk", title: r.title, reference: shortIdRef(r.id), badges: [riskBadge(r)] };
@@ -979,11 +986,12 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       ? node.reference + " \u2014 " + node.title + "\n" + badgeLabels
       : node.reference + " \u2014 " + node.title;
     const domainAttr = node.domainCode ? ' data-cv-domain="' + escAttr(node.domainCode) + '"' : "";
+    const assessmentAttr = node.assessmentStatus ? ' data-cv-assessment-status="' + escAttr(node.assessmentStatus) + '"' : "";
     const detailAttr = badgeLabels ? ' data-cv-detail="' + escAttr(badgeLabels) + '"' : "";
     const openBtn = mode === "workshop"
       ? '<button type="button" class="cv-card-open" data-command="openEntity" data-entity-type="' + escAttr(node.kind) + '" data-entity-id="' + escAttr(node.id) + '" aria-label="Open ' + escAttr(node.kind) + ' detail" tabindex="-1">Open</button>'
       : '';
-    return '<article class="cv-card cv-card-' + esc(node.kind) + '" data-cv-card data-cv-id="' + escAttr(node.id) + '" data-cv-kind="' + esc(node.kind) + '"' + domainAttr + detailAttr + ' tabindex="0" aria-label="' + escAttr(tooltipText) + '">' +
+    return '<article class="cv-card cv-card-' + esc(node.kind) + '" data-cv-card data-cv-id="' + escAttr(node.id) + '" data-cv-kind="' + esc(node.kind) + '"' + domainAttr + assessmentAttr + detailAttr + ' tabindex="0" aria-label="' + escAttr(tooltipText) + '">' +
       '<div class="cv-card-ref">' + esc(node.reference) + '</div>' +
       '<div class="cv-card-title">' + esc(node.title) + '</div>' +
       openBtn +
@@ -1023,6 +1031,7 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
           '<button type="button" class="cv-chip" data-cv-lane-toggle="requirements" aria-pressed="true">Requirements</button>' +
           '<button type="button" class="cv-chip" data-cv-lane-toggle="risks" aria-pressed="true">Risks</button>' +
           '<button type="button" class="cv-chip" data-cv-lane-toggle="actions" aria-pressed="true">Actions</button>' +
+          '<button type="button" class="cv-chip" data-cv-action="toggle-not-applicable" aria-pressed="true">N/A requirements</button>' +
           '<span class="cv-chip-label cv-domain-label">Domains:</span>' +
           domainControls +
           '<button type="button" class="cv-chip" data-cv-action="zoom-out" aria-label="Zoom out">-</button>' +
@@ -1069,6 +1078,7 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     const layoutBtn = root.querySelector('[data-cv-action="toggle-layout"]');
     const layoutLabel = root.querySelector("[data-cv-layout-label]");
     const directionsBtn = root.querySelector('[data-cv-action="toggle-directions"]');
+    const notApplicableBtn = root.querySelector('[data-cv-action="toggle-not-applicable"]');
     const zoomOutBtn = root.querySelector('[data-cv-action="zoom-out"]');
     const zoomInBtn = root.querySelector('[data-cv-action="zoom-in"]');
     const zoomResetBtn = root.querySelector('[data-cv-action="zoom-reset"]');
@@ -1269,6 +1279,10 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       return selected;
     }
 
+    function showingNotApplicableRequirements() {
+      return !notApplicableBtn || notApplicableBtn.getAttribute("aria-pressed") !== "false";
+    }
+
     function connectedToSelectedDomains(requirementIds) {
       const connected = new Set(requirementIds);
       for (const edge of edges) {
@@ -1289,11 +1303,14 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
 
     function applyDomainVisibility() {
       const selectedDomains = selectedDomainCodes();
+      const showNotApplicable = showingNotApplicableRequirements();
       const visibleRequirements = new Set();
       root.querySelectorAll('[data-cv-card][data-cv-kind="requirement"]').forEach(function (card) {
-        const show = selectedDomains.has(card.dataset.cvDomain);
-        card.classList.toggle("cv-domain-hidden", !show);
-        if (show) visibleRequirements.add(card.dataset.cvId);
+        const domainVisible = selectedDomains.has(card.dataset.cvDomain);
+        const applicableVisible = showNotApplicable || card.dataset.cvAssessmentStatus !== "not-applicable";
+        card.classList.toggle("cv-domain-hidden", !domainVisible);
+        card.classList.toggle("cv-not-applicable-hidden", !applicableVisible);
+        if (domainVisible && applicableVisible) visibleRequirements.add(card.dataset.cvId);
       });
       const connected = connectedToSelectedDomains(visibleRequirements);
       root.querySelectorAll('[data-cv-card]:not([data-cv-kind="requirement"])').forEach(function (card) {
@@ -1311,6 +1328,11 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
         if (el.matches && el.matches("[data-cv-lane]")) el.classList.toggle("cv-lane-hidden", !show);
         else el.classList.toggle("cv-domain-hidden", !show);
       });
+      applyDomainVisibility();
+    }
+
+    function setNotApplicableVisibility(show) {
+      if (notApplicableBtn) notApplicableBtn.setAttribute("aria-pressed", show ? "true" : "false");
       applyDomainVisibility();
     }
 
@@ -1471,6 +1493,12 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
         setDomainVisibility(domainCode, showing ? false : true);
       });
     });
+    if (notApplicableBtn) {
+      notApplicableBtn.addEventListener("click", function () {
+        const showing = notApplicableBtn.getAttribute("aria-pressed") !== "false";
+        setNotApplicableVisibility(showing ? false : true);
+      });
+    }
     if (zoomOutBtn) zoomOutBtn.addEventListener("click", function () { setZoom(zoom - 0.1); });
     if (zoomInBtn) zoomInBtn.addEventListener("click", function () { setZoom(zoom + 0.1); });
     if (zoomResetBtn) zoomResetBtn.addEventListener("click", function () { setZoom(1); });
