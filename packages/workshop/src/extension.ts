@@ -2651,6 +2651,7 @@ type SaveEntityMessage = {
     | "saveAndCloseEntity"
     | "saveAndNextEntity"
     | "openRequirementInEditor"
+    | "openEvidenceReference"
     | "editorDirtyState"
     | "confirmDirtyNavigation";
   readonly entityType?: string;
@@ -2669,6 +2670,8 @@ type SaveEntityMessage = {
   readonly pendingSavedViewScope?: string;
   readonly pendingDirection?: string;
   readonly pendingFilterText?: string;
+  readonly pendingEvidenceReference?: string;
+  readonly evidenceReference?: string;
 };
 
 type RequirementBrowserOptions = {
@@ -2841,6 +2844,12 @@ async function openEntityEditor(
       await openItemDetailForEntity(message.pendingEntityType, message.pendingEntityId);
       return;
     }
+    if (command === "openEvidenceReference") {
+      const reference =
+        currentEntity.entityType === "evidence" ? message.fields?.reference : message.pendingEvidenceReference;
+      await openEvidenceReference(reference);
+      return;
+    }
     if (command === "recordChange") {
       await recordSignificantChange(message.pendingEntityType, message.pendingEntityId);
       await refreshEditor();
@@ -2938,6 +2947,10 @@ async function openEntityEditor(
       } else {
         hasUnsavedEditorChanges = false;
         unsavedEditorFields = undefined;
+        if (message.pendingCommand === "openEvidenceReference" && currentEntity.entityType === "evidence") {
+          await openEvidenceReference(currentEntity.reference);
+          return;
+        }
       }
       await runPendingEditorCommand(message);
       return;
@@ -2953,6 +2966,10 @@ async function openEntityEditor(
         await rememberRequirement(target);
         await refreshEditor();
       }
+      return;
+    }
+    if (message.command === "openEvidenceReference") {
+      await openEvidenceReference(message.evidenceReference);
       return;
     }
     if (
@@ -3015,6 +3032,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       readonly tagId?: string;
       readonly savedViewId?: string;
       readonly direction?: string;
+      readonly evidenceReference?: string;
     }) => {
       if (message.command === "refresh") {
         await refreshPanel?.();
@@ -3022,6 +3040,10 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       }
       if (message.command === "openEntity" && message.entityType && message.entityId) {
         await openItemDetailForEntity(message.entityType, message.entityId);
+      }
+      if (message.command === "openEvidenceReference") {
+        await openEvidenceReference(message.evidenceReference);
+        return;
       }
       if (
         message.command === "openAdjacentRequirement" &&
@@ -3540,6 +3562,7 @@ function renderEvidenceEditor(evidence: EvidenceEntity): string {
     ${inputField("title", "Title", evidence.title, true)}
     ${selectField("evidenceType", "Evidence type", evidenceTypeItems, evidence.evidenceType)}
     ${inputField("reference", "Reference", evidence.reference, true)}
+    <div class="form-actions">${evidenceReferenceButton(evidence.reference)}</div>
     ${selectField("freshness", "Freshness", freshnessItems, evidence.freshness)}
   `
   );
@@ -5395,11 +5418,60 @@ function tableCell(record: object, field: string): string {
   if (field === "action") {
     return `<td data-field="${escapeHtml(field)}">${value}</td>`;
   }
+  if (field === "reference" && readRecordField(record, "openEntityType") === "evidence") {
+    return `<td data-field="${escapeHtml(field)}">${evidenceReferenceCell(value)}</td>`;
+  }
   if (field === "explanation") {
     const fullValue = String(readRecordField(record, "explanationFull") ?? value);
     return `<td data-field="${escapeHtml(field)}" title="${escapeHtml(fullValue)}"><span class="cell-compact">${escapeHtml(value)}</span></td>`;
   }
   return `<td data-field="${escapeHtml(field)}">${escapeHtml(value)}</td>`;
+}
+
+function evidenceReferenceCell(reference: string): string {
+  const trimmed = reference.trim();
+  if (!trimmed || trimmed === "Not recorded") {
+    return escapeHtml(reference);
+  }
+  return `<span class="cell-compact">${escapeHtml(trimmed)}</span> ${evidenceReferenceButton(trimmed)}`;
+}
+
+function evidenceReferenceButton(reference: string): string {
+  return `<button type="button" data-command="openEvidenceReference" data-evidence-reference="${escapeHtml(reference)}">Open evidence</button>`;
+}
+
+async function openEvidenceReference(reference: string | undefined): Promise<void> {
+  const trimmed = reference?.trim();
+  if (!trimmed) {
+    await vscode.window.showWarningMessage("No Evidence reference is recorded to open.");
+    return;
+  }
+  const uri = evidenceReferenceUri(trimmed);
+  if (!uri) {
+    await vscode.window.showWarningMessage("This Evidence reference is not a URL or file path that Workshop can open.");
+    return;
+  }
+  const opened = await vscode.env.openExternal(uri);
+  if (!opened) {
+    await vscode.window.showWarningMessage("Could not open the Evidence reference.");
+  }
+}
+
+function evidenceReferenceUri(reference: string): vscode.Uri | undefined {
+  if (/^https?:\/\//i.test(reference) || /^file:\/\//i.test(reference)) {
+    return vscode.Uri.parse(reference, true);
+  }
+  if (reference.startsWith("/") || reference.startsWith("~")) {
+    return vscode.Uri.file(reference.startsWith("~/") ? reference.replace(/^~/, process.env.HOME ?? "") : reference);
+  }
+  if (/^[A-Za-z]:[\\/]/.test(reference)) {
+    return vscode.Uri.file(reference);
+  }
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (workspaceFolder && /[\\/]/.test(reference)) {
+    return vscode.Uri.joinPath(workspaceFolder.uri, ...reference.split(/[\\/]+/).filter(Boolean));
+  }
+  return undefined;
 }
 
 function summariseImpactExplanation(explanation: readonly string[]): string {

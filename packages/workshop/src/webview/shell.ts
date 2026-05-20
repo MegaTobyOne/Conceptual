@@ -255,6 +255,7 @@ export function shellHtml(title: string, body: string): string {
         pendingSavedViewId: button.getAttribute('data-saved-view-id'),
         pendingSavedViewScope: button.getAttribute('data-saved-view-scope'),
         pendingDirection: button.getAttribute('data-direction'),
+        pendingEvidenceReference: button.getAttribute('data-evidence-reference'),
         pendingFilterText: document.querySelector('.requirement-browser__filter') instanceof HTMLInputElement ? document.querySelector('.requirement-browser__filter').value : ''
       };
     }
@@ -289,6 +290,11 @@ export function shellHtml(title: string, body: string): string {
       pspfAcknowledgeCommandButton(button);
       if (command === 'openEntity') {
         vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
+      }
+      if (command === 'openEvidenceReference') {
+        const form = button.closest('form');
+        const fields = form ? pspfFormFields(form) : undefined;
+        vscode.postMessage({ command, evidenceReference: fields?.reference || button.getAttribute('data-evidence-reference') });
       }
       if (command === 'openRequirementInEditor') {
         const filterInput = document.querySelector('.requirement-browser__filter');
