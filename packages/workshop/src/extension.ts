@@ -107,6 +107,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.linkExistingDirection", linkExistingDirection),
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
     vscode.commands.registerCommand("pspf.workshop.openMasterDashboard", openMasterDashboard),
+    vscode.commands.registerCommand("pspf.workshop.openEssentialEightDashboard", openEssentialEightDashboard),
     vscode.commands.registerCommand("pspf.workshop.openPlanOfActionBoard", openPlanOfActionBoard),
     vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
     vscode.commands.registerCommand("pspf.workshop.openStrategyMap", openStrategyMap),
@@ -232,6 +233,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openRisksList",
       "pspf.workshop.openAssessmentDashboard",
       "pspf.workshop.openMasterDashboard",
+      "pspf.workshop.openEssentialEightDashboard",
       "pspf.workshop.openPlanOfActionBoard",
       "pspf.workshop.openConnectedView",
       "pspf.workshop.openStrategyMap",
@@ -371,6 +373,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
         ${homeButton("pspf.workshop.openMasterDashboard", "Master Dashboard", "Open the CISO decision board")}
+        ${homeButton("pspf.workshop.openEssentialEightDashboard", "Essential Eight", "Track E8 posture, mappings, and uplift plan")}
         ${homeButton("pspf.workshop.openPlanOfActionBoard", "Plan of Action", "Review workstreams, timing, and linked Actions")}
         ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
         ${homeButton("pspf.workshop.openStrategyMap", "Strategy Map", "Connect strategic choices to Requirements, Risks, Actions, and Directions")}
@@ -1147,6 +1150,7 @@ async function openMasterDashboard(): Promise<void> {
         ${metricCard("Report signals", changeRecords.length + directions.length)}
       </div>
       <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openEssentialEightDashboard">Essential Eight</button>
         <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
         <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
         <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
@@ -1177,6 +1181,67 @@ async function openMasterDashboard(): Promise<void> {
       </div>
     </section>
     ${recordTable("Action Pressure", actionRows, ["title", "status", "urgency", "total", "dueDate"])}
+  `
+  );
+}
+
+async function openEssentialEightDashboard(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const model = buildEssentialEightDashboardModel(allEntities);
+  const panel = vscode.window.createWebviewPanel(
+    "pspfEssentialEightDashboard",
+    "PSPF Essential Eight Dashboard",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = renderEssentialEightDashboard(buildEssentialEightDashboardModel(await listAllEntities()));
+  });
+  panel.webview.html = renderEssentialEightDashboard(model);
+}
+
+function renderEssentialEightDashboard(model: EssentialEightDashboardModel): string {
+  return shellHtml(
+    "PSPF Essential Eight Dashboard",
+    `
+    <section>
+      <p class="eyebrow">TECH 14 · Essential Eight</p>
+      <h1>Essential Eight Dashboard</h1>
+      <p class="muted">OFFICIAL: Sensitive · Dedicated tracking for ASD Essential Eight posture, PSPF Requirement coverage, ISM mappings, evidence, risks, and the uplift plan.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("E8 requirements", model.metrics.requirements)}
+        ${metricCard("Met, excl N/A", `${model.metrics.metPercentage}%`)}
+        ${metricCard("Evidence, excl N/A", `${model.metrics.evidenceCoverage}%`)}
+        ${metricCard("N/A excluded", model.metrics.notApplicable)}
+        ${metricCard("E8 ISM mappings", model.metrics.ismMappings)}
+        ${metricCard("Open actions", model.metrics.openActions)}
+        ${metricCard("Blocked/overdue", model.metrics.blockedOrOverdue)}
+        ${metricCard("Open risks", model.metrics.openRisks)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.createAction">Create action</button>
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
+        <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
+        <button type="button" data-command="pspf.workshop.browseIsmSourceControls">ISM controls</button>
+        <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
+      </div>
+    </section>
+    <section>
+      <h2>Tracking Summary</h2>
+      <p class="muted">${escapeHtml(model.summary)}</p>
+      <div class="grid">
+        ${metricCard("Strategies met", `${model.metrics.strategiesMet} of ${ESSENTIAL_EIGHT_STRATEGIES.length}`)}
+        ${metricCard("Needs evidence", model.metrics.needsEvidence)}
+        ${metricCard("Needs uplift", model.metrics.needsUplift)}
+        ${metricCard("Mapped controls", model.metrics.mappedControls)}
+      </div>
+    </section>
+    ${recordTable("E8 Strategy Tracker", model.strategyRows, ["strategy", "target", "status", "requirements", "met", "evidence", "ismMappings", "openActions", "openRisks", "nextStep"])}
+    ${recordTable("E8 Uplift Plan", model.planRows, ["title", "strategy", "status", "urgency", "startDate", "endDate", "dueDate", "impact", "linkedRequirements"])}
+    ${recordTable("E8 Requirements To Review", model.requirementRows, ["title", "status", "evidence", "actions", "risks", "ismMappings"])}
   `
   );
 }
@@ -1339,6 +1404,361 @@ function masterLoopRow(
   question: string
 ): { loop: string; maturity: string; records: number; signal: string; question: string } {
   return { loop, maturity, records, signal, question };
+}
+
+const ESSENTIAL_EIGHT_STRATEGIES = [
+  {
+    requirementNumber: 99,
+    strategy: "Patch applications",
+    aliases: ["patch applications"]
+  },
+  {
+    requirementNumber: 100,
+    strategy: "Patch operating systems",
+    aliases: ["patch operating systems"]
+  },
+  {
+    requirementNumber: 101,
+    strategy: "Multi-factor authentication",
+    aliases: ["multi-factor authentication", "multifactor authentication", "mfa"]
+  },
+  {
+    requirementNumber: 102,
+    strategy: "Restrict administrative privileges",
+    aliases: ["restrict administrative privileges"]
+  },
+  {
+    requirementNumber: 103,
+    strategy: "Application control",
+    aliases: ["application control"]
+  },
+  {
+    requirementNumber: 104,
+    strategy: "Restrict Microsoft Office macros",
+    aliases: ["restrict microsoft office macros", "configure microsoft office macros", "office macros"]
+  },
+  {
+    requirementNumber: 105,
+    strategy: "User application hardening",
+    aliases: ["user application hardening"]
+  },
+  {
+    requirementNumber: 106,
+    strategy: "Regular back-ups",
+    aliases: ["regular back-ups", "regular backups"]
+  }
+] as const;
+
+type EssentialEightStrategy = (typeof ESSENTIAL_EIGHT_STRATEGIES)[number];
+
+type EssentialEightDashboardModel = {
+  readonly metrics: {
+    readonly requirements: number;
+    readonly metPercentage: number;
+    readonly evidenceCoverage: number;
+    readonly notApplicable: number;
+    readonly ismMappings: number;
+    readonly mappedControls: number;
+    readonly openActions: number;
+    readonly blockedOrOverdue: number;
+    readonly openRisks: number;
+    readonly strategiesMet: number;
+    readonly needsEvidence: number;
+    readonly needsUplift: number;
+  };
+  readonly summary: string;
+  readonly strategyRows: readonly object[];
+  readonly planRows: readonly object[];
+  readonly requirementRows: readonly object[];
+};
+
+function buildEssentialEightDashboardModel(allEntities: readonly V01Entity[]): EssentialEightDashboardModel {
+  const enrichedEntities = enrichActionsWithImpact(allEntities);
+  const requirements = allEntities.filter(
+    (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
+  );
+  const evidence = allEntities.filter(
+    (entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted"
+  );
+  const actions = enrichedEntities.filter(
+    (entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const sourceControlsById = new Map(
+    allEntities
+      .filter(
+        (entity): entity is SourceControlEntity =>
+          entity.entityType === "source-control" && entity.recordStatus !== "deleted"
+      )
+      .map((sourceControl) => [sourceControl.id, sourceControl])
+  );
+  const mappings = allEntities.filter(
+    (entity): entity is RequirementControlMappingEntity =>
+      entity.entityType === "requirement-control-mapping" && entity.recordStatus !== "deleted"
+  );
+  const e8Mappings = mappings.filter((mapping) =>
+    isEssentialEightMapping(mapping, sourceControlsById.get(mapping.sourceControlId))
+  );
+  const directE8RequirementIds = new Set(
+    requirements
+      .filter((requirement) => Boolean(essentialEightStrategyForRequirement(requirement)))
+      .map((requirement) => requirement.id)
+  );
+  const e8RequirementIds = new Set([...directE8RequirementIds, ...e8Mappings.map((mapping) => mapping.requirementId)]);
+  const e8Requirements = requirements.filter((requirement) => e8RequirementIds.has(requirement.id));
+  const e8RequirementIdSet = new Set(e8Requirements.map((requirement) => requirement.id));
+  const evidenceRequirementIds = new Set(
+    links
+      .filter(
+        (link) => link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence"
+      )
+      .map((link) => link.fromId)
+      .filter((requirementId) => e8RequirementIdSet.has(requirementId))
+  );
+  const completion = buildRequirementCompletionMetrics(e8Requirements, evidenceRequirementIds);
+  const linkedActionIds = new Set(
+    links
+      .filter(
+        (link) =>
+          link.linkType === "addressed-by" && link.fromType === "requirement" && e8RequirementIdSet.has(link.fromId)
+      )
+      .map((link) => link.toId)
+  );
+  const linkedRiskIds = new Set(
+    links
+      .filter(
+        (link) =>
+          link.linkType === "exposed-by" && link.fromType === "requirement" && e8RequirementIdSet.has(link.fromId)
+      )
+      .map((link) => link.toId)
+  );
+  const e8Actions = actions.filter((action) => linkedActionIds.has(action.id));
+  const openActions = e8Actions.filter((action) => !["done", "cancelled"].includes(action.status));
+  const openRisks = risks.filter((risk) => linkedRiskIds.has(risk.id) && risk.status !== "closed");
+  const strategyRows = ESSENTIAL_EIGHT_STRATEGIES.map((strategy) =>
+    essentialEightStrategyRow(strategy, e8Requirements, e8Mappings, sourceControlsById, links, actions, risks)
+  );
+  const strategiesMet = strategyRows.filter((row) => readRecordField(row, "status") === "Met").length;
+  const needsEvidence = strategyRows.filter((row) => Number(readRecordField(row, "evidence") ?? 0) === 0).length;
+  const needsUplift = strategyRows.filter((row) =>
+    ["Needs uplift", "Not started"].includes(String(readRecordField(row, "status") ?? ""))
+  ).length;
+  const planRows = e8Actions
+    .map((action) => {
+      const requirementIds = links
+        .filter(
+          (link) => link.linkType === "addressed-by" && link.toId === action.id && e8RequirementIdSet.has(link.fromId)
+        )
+        .map((link) => link.fromId);
+      const linkedRequirements = requirementIds
+        .map((requirementId) => requirements.find((requirement) => requirement.id === requirementId))
+        .filter((requirement): requirement is RequirementEntity => Boolean(requirement));
+      const strategyNames = uniqueStrings(
+        linkedRequirements.map(
+          (requirement) => essentialEightStrategyForRequirement(requirement)?.strategy ?? "E8 mapped control"
+        )
+      );
+      const impact = action.impact
+        ? (action.impact.postureUplift ?? 0) +
+          (action.impact.evidenceUplift ?? 0) +
+          (action.impact.riskReduction ?? 0) +
+          (action.impact.directionUplift ?? 0)
+        : 0;
+      return {
+        openEntityType: "action",
+        openEntityId: action.id,
+        title: action.title,
+        strategy: strategyNames.join(", ") || "E8 mapped control",
+        status: label(action.status),
+        urgency: action.impact ? label(action.impact.urgency) : "Normal",
+        startDate: formatShortAuDateTime(action.startDate) ?? "Not set",
+        endDate: formatShortAuDateTime(action.endDate) ?? "Not set",
+        dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set",
+        impact,
+        linkedRequirements: linkedRequirements.length
+      };
+    })
+    .sort((left, right) => Number(right.impact) - Number(left.impact));
+  const requirementRows = e8Requirements
+    .map((requirement) => {
+      const requirementMappings = e8Mappings.filter((mapping) => mapping.requirementId === requirement.id);
+      return {
+        openEntityType: "requirement",
+        openEntityId: requirement.id,
+        title: requirement.title,
+        status: label(requirement.assessmentStatus),
+        evidence: evidenceRequirementIds.has(requirement.id) ? "Linked" : "Missing",
+        actions: countRequirementLinks(links, requirement.id, "action", "addressed-by"),
+        risks: countRequirementLinks(links, requirement.id, "risk", "exposed-by"),
+        ismMappings: requirementMappings.length
+      };
+    })
+    .sort((left, right) => String(left.title).localeCompare(String(right.title), "en-AU", { sensitivity: "base" }));
+  const blockedOrOverdue = openActions.filter((action) =>
+    ["blocked", "overdue"].includes(action.impact?.urgency ?? "")
+  ).length;
+  return {
+    metrics: {
+      requirements: e8Requirements.length,
+      metPercentage: completion.metPercentageApplicable,
+      evidenceCoverage: completion.evidenceCoverageApplicable,
+      notApplicable: completion.notApplicable,
+      ismMappings: e8Mappings.length,
+      mappedControls: uniqueStrings(e8Mappings.map((mapping) => mapping.sourceControlId)).length,
+      openActions: openActions.length,
+      blockedOrOverdue,
+      openRisks: openRisks.length,
+      strategiesMet,
+      needsEvidence,
+      needsUplift
+    },
+    summary: `${strategiesMet} of ${ESSENTIAL_EIGHT_STRATEGIES.length} Essential Eight strategies are currently met, with ${openActions.length} open linked Actions and ${e8Mappings.length} E8-scoped ISM mappings.`,
+    strategyRows,
+    planRows,
+    requirementRows
+  };
+}
+
+function essentialEightStrategyRow(
+  strategy: EssentialEightStrategy,
+  e8Requirements: readonly RequirementEntity[],
+  e8Mappings: readonly RequirementControlMappingEntity[],
+  sourceControlsById: ReadonlyMap<string, SourceControlEntity>,
+  links: readonly LinkEntity[],
+  actions: readonly ActionEntity[],
+  risks: readonly RiskEntity[]
+): object {
+  const strategyRequirements = e8Requirements.filter(
+    (requirement) => essentialEightStrategyForRequirement(requirement)?.requirementNumber === strategy.requirementNumber
+  );
+  const requirementIds = new Set(strategyRequirements.map((requirement) => requirement.id));
+  const mappings = e8Mappings.filter((mapping) => requirementIds.has(mapping.requirementId));
+  const evidenceCount = strategyRequirements.filter((requirement) =>
+    links.some(
+      (link) =>
+        link.linkType === "supported-by" &&
+        link.fromType === "requirement" &&
+        link.toType === "evidence" &&
+        link.fromId === requirement.id
+    )
+  ).length;
+  const openActionCount = actions.filter(
+    (action) =>
+      !["done", "cancelled"].includes(action.status) &&
+      links.some(
+        (link) =>
+          link.linkType === "addressed-by" &&
+          link.toType === "action" &&
+          link.toId === action.id &&
+          requirementIds.has(link.fromId)
+      )
+  ).length;
+  const openRiskCount = risks.filter(
+    (risk) =>
+      risk.status !== "closed" &&
+      links.some(
+        (link) =>
+          link.linkType === "exposed-by" &&
+          link.toType === "risk" &&
+          link.toId === risk.id &&
+          requirementIds.has(link.fromId)
+      )
+  ).length;
+  const metCount = strategyRequirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const applicableRequirements = strategyRequirements.filter((requirement) => !isNotApplicableRequirement(requirement));
+  const status = essentialEightStrategyStatus(strategyRequirements);
+  return {
+    strategy: strategy.strategy,
+    target: "ML2",
+    status,
+    requirements: strategyRequirements.length,
+    met: `${metCount} of ${applicableRequirements.length}`,
+    evidence: evidenceCount,
+    ismMappings: uniqueStrings(
+      mappings.map((mapping) => sourceControlsById.get(mapping.sourceControlId)?.controlId ?? mapping.sourceControlId)
+    ).length,
+    openActions: openActionCount,
+    openRisks: openRiskCount,
+    nextStep: essentialEightNextStep(status, evidenceCount, openActionCount, openRiskCount)
+  };
+}
+
+function essentialEightStrategyStatus(requirements: readonly RequirementEntity[]): string {
+  if (requirements.length === 0) {
+    return "Not linked";
+  }
+  const applicableRequirements = requirements.filter((requirement) => !isNotApplicableRequirement(requirement));
+  if (applicableRequirements.length === 0) {
+    return "Not applicable";
+  }
+  if (applicableRequirements.every((requirement) => requirement.assessmentStatus === "met")) {
+    return "Met";
+  }
+  if (applicableRequirements.some((requirement) => requirement.assessmentStatus === "not-met")) {
+    return "Needs uplift";
+  }
+  return applicableRequirements.some((requirement) => requirement.assessmentStatus === "in-progress")
+    ? "In progress"
+    : "Not started";
+}
+
+function essentialEightNextStep(status: string, evidenceCount: number, openActions: number, openRisks: number): string {
+  if (status === "Not linked") {
+    return "Load or map the PSPF E8 Requirement";
+  }
+  if (evidenceCount === 0) {
+    return "Attach evidence";
+  }
+  if (openActions > 0) {
+    return "Work linked Actions";
+  }
+  if (openRisks > 0) {
+    return "Review residual risk";
+  }
+  return status === "Met" ? "Maintain and recheck" : "Set assessment state";
+}
+
+function essentialEightStrategyForRequirement(requirement: RequirementEntity): EssentialEightStrategy | undefined {
+  const text = `${requirement.id} ${requirement.title} ${requirement.summary ?? ""}`.toLocaleLowerCase("en-AU");
+  return ESSENTIAL_EIGHT_STRATEGIES.find(
+    (strategy) =>
+      new RegExp(`\\b0?${strategy.requirementNumber}\\b`).test(text) ||
+      strategy.aliases.some((alias) => text.includes(alias))
+  );
+}
+
+function isEssentialEightMapping(
+  mapping: RequirementControlMappingEntity,
+  sourceControl: SourceControlEntity | undefined
+): boolean {
+  return (
+    mapping.applicabilityProfile.toLocaleLowerCase("en-AU").startsWith("e8-") ||
+    sourceControl?.profileTags.some((tag) => tag.toLocaleLowerCase("en-AU").startsWith("e8-")) === true
+  );
+}
+
+function countRequirementLinks(
+  links: readonly LinkEntity[],
+  requirementId: string,
+  toType: LinkEntity["toType"],
+  linkType: LinkEntity["linkType"]
+): number {
+  return links.filter(
+    (link) =>
+      link.fromId === requirementId &&
+      link.fromType === "requirement" &&
+      link.toType === toType &&
+      link.linkType === linkType
+  ).length;
+}
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return [...new Set(values.filter((value) => value.trim().length > 0))];
 }
 
 function buildRequirementCompletionMetrics(
@@ -3133,10 +3553,12 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.openAssessmentDashboard",
         "pspf.workshop.openConnectedView",
         "pspf.workshop.openMasterDashboard",
+        "pspf.workshop.openEssentialEightDashboard",
         "pspf.workshop.openPlanOfActionBoard",
         "pspf.workshop.openStrategyMap",
         "pspf.workshop.editStrategySummary",
         "pspf.workshop.openEvidenceReviewQueue",
+        "pspf.workshop.browseIsmSourceControls",
         "pspf.workshop.copyPostureBrief"
       ]);
       if (message.command && allowedPanelCommands.has(message.command)) {

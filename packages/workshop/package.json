@@ -127,6 +127,11 @@
         "icon": "$(dashboard)"
       },
       {
+        "command": "pspf.workshop.openEssentialEightDashboard",
+        "title": "PSPF: Open Essential Eight Dashboard",
+        "icon": "$(shield)"
+      },
+      {
         "command": "pspf.workshop.openPlanOfActionBoard",
         "title": "PSPF: Open Plan of Action Board",
         "icon": "$(project)"
