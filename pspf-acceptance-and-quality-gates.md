@@ -387,7 +387,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 ### v1.24 candidate gates (Workshop Cyber Strategy Map, per ADR 0060)
 
 1. **ADR gate**: ADR 0060 records the Workshop Cyber Strategy Map decision before implementation starts.
-2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.24.1`; schema, bundle, and API axes are `1.10.0` because the canonical `Strategy` entity is implemented.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.24.2`; schema, bundle, and API axes are `1.10.0` because the canonical `Strategy` entity is implemented.
 3. **Strategy entity gate**: v1.24 introduces one canonical workspace strategy entity with nested strategic choices, outcomes, posture measures, and publication policies for every field.
 4. **Hierarchy cap gate**: the model supports only Strategy -> Strategic choice -> Outcome -> Measure or linked existing record in the first slice; deeper nesting is rejected or deferred.
 5. **Traceability gate**: strategic choices and outcomes can reference existing Requirements, Risks, Actions, and Directions through validated inline references; missing or wrong-type references fail validation.

@@ -59,6 +59,15 @@ import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitl
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
 let workshopContext: vscode.ExtensionContext | undefined;
 let homeViewProvider: WorkshopHomeViewProvider | undefined;
+let requirementWorkbenchController:
+  | {
+      open: (
+        requirement: RequirementEntity,
+        allEntities: readonly V01Entity[],
+        options?: RequirementBrowserOptions
+      ) => Promise<void>;
+    }
+  | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   workshopContext = context;
@@ -947,8 +956,12 @@ async function openStrategyMap(): Promise<void> {
       `
       <section>
         <h1>Cyber Strategy Map</h1>
-        <p class="muted">No Strategy record is available in this workspace yet. Load the sample workspace to test the v1.24 strategy view.</p>
+        <p class="muted">No Strategy record is available in this workspace yet. Create a draft strategy or load the sample workspace to test the v1.24 strategy view.</p>
         ${versionStrip()}
+        <div class="form-actions">
+          <button type="button" data-command="createStrategyDraft">Create draft strategy</button>
+          <button type="button" data-command="pspf.workshop.loadSampleWorkspace">Load sample workspace</button>
+        </div>
       </section>
     `
     );
@@ -1008,6 +1021,79 @@ async function openStrategyMap(): Promise<void> {
     ${recordTable("Posture Measures", measureRows, ["choice", "outcome", "measure", "class", "current", "target", "trend", "confidence"])}
   `
   );
+}
+
+async function createDraftStrategy(): Promise<StrategyEntity | undefined> {
+  await ensureCoreReady();
+  const existing = (await listAllEntities()).find(
+    (entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.recordStatus !== "deleted"
+  );
+  if (existing) {
+    await vscode.window.showInformationMessage("A Strategy record already exists. Opening the Strategy Map.");
+    return existing;
+  }
+
+  const strategy = withEnvelope(
+    "strategy",
+    {
+      entityType: "strategy",
+      title: "Cybersecurity Strategy",
+      scope: "Enterprise",
+      timeHorizon: "2026-2028",
+      effectiveAt: new Date().toISOString(),
+      owner: "CISO",
+      strategyStatement: "Define the organisation's cybersecurity choices and connect them to PSPF assurance work.",
+      riskPostureStatement:
+        "Set the target risk posture and track whether linked work is moving exposure in the right direction.",
+      frameworks: ["PSPF"],
+      reviewCadence: "quarterly",
+      executiveSummary: "Draft strategy ready for leadership refinement.",
+      assumptions: "Draft internal assumptions are sensitive and excluded from publication by default.",
+      choices: [
+        {
+          id: "choice-assurance-focus",
+          statement: "Set the first strategic choice",
+          summary: "Draft choice ready to link to Requirements, Risks, Actions, and Directions.",
+          capabilityArea: "Governance and assurance",
+          targetPosture: "Target posture to be defined.",
+          executiveOwner: "CISO",
+          trend: "unknown",
+          confidence: "low",
+          rationale: "Draft rationale to be refined by the operator.",
+          constraints: "Constraints not yet recorded.",
+          references: [],
+          outcomes: [
+            {
+              id: "outcome-initial-posture",
+              statement: "Define the first target outcome",
+              summary: "Draft outcome ready for posture measures and linked work.",
+              references: [],
+              measures: [
+                {
+                  id: "measure-initial-posture",
+                  title: "Initial posture measure",
+                  measureClass: "capability",
+                  baseline: "Not recorded",
+                  current: "Not recorded",
+                  target: "To be defined",
+                  unit: "state",
+                  trend: "unknown",
+                  confidence: "low",
+                  reviewCadence: "quarterly"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "workshop"
+  ) satisfies StrategyEntity;
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", strategy);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage("Created draft Cybersecurity Strategy.");
+  return strategy;
 }
 
 function strategyChoiceCard(
@@ -1985,7 +2071,13 @@ type SaveEntityMessage = {
   readonly entityType?: string;
   readonly entityId?: string;
   readonly requirementId?: string;
+  readonly filterText?: string;
   readonly fields?: Record<string, string>;
+};
+
+type RequirementBrowserOptions = {
+  readonly filterText?: string;
+  readonly savedView?: SavedViewEntity;
 };
 
 type EditableWorkshopEntity =
@@ -2022,9 +2114,20 @@ function isEditableWorkshopEntity(entity: V01Entity): entity is EditableWorkshop
   ].includes(entity.entityType);
 }
 
-async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: readonly V01Entity[]): Promise<void> {
+async function openEntityEditor(
+  entity: EditableWorkshopEntity,
+  allEntities: readonly V01Entity[],
+  options: RequirementBrowserOptions = {}
+): Promise<void> {
+  if (entity.entityType === "requirement" && requirementWorkbenchController) {
+    await requirementWorkbenchController.open(entity, allEntities, options);
+    return;
+  }
+
   let currentEntity = entity;
   let currentEntities = allEntities;
+  let requirementFilterText = options.filterText ?? options.savedView?.filters.query ?? "";
+  let requirementSavedView = options.savedView;
   const panel = vscode.window.createWebviewPanel(
     "pspfEntityDetail",
     shortWorkshopPanelTitle(currentEntity),
@@ -2043,12 +2146,34 @@ async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: rea
     panel.title = shortWorkshopPanelTitle(currentEntity);
     panel.webview.html = shellHtml(
       currentEntity.title ?? currentEntity.id,
-      renderEntityEditor(currentEntity, currentEntities)
+      renderEntityEditor(currentEntity, currentEntities, {
+        filterText: requirementFilterText,
+        savedView: requirementSavedView
+      })
     );
   };
+  if (entity.entityType === "requirement") {
+    requirementWorkbenchController = {
+      open: async (requirement, entities, options) => {
+        await rememberRequirement(requirement);
+        currentEntity = requirement;
+        currentEntities = entities;
+        requirementSavedView = options?.savedView;
+        requirementFilterText = options?.filterText ?? options?.savedView?.filters.query ?? "";
+        await refreshEditor();
+        panel.reveal(vscode.ViewColumn.One, true);
+      }
+    };
+    panel.onDidDispose(() => {
+      if (requirementWorkbenchController?.open) {
+        requirementWorkbenchController = undefined;
+      }
+    });
+  }
   wireWorkshopPanelMessages(panel, refreshEditor);
   panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
     if (message.command === "openRequirementInEditor" && message.requirementId) {
+      requirementFilterText = message.filterText ?? "";
       const target = (await listAllEntities()).find(
         (item): item is RequirementEntity =>
           item.entityType === "requirement" && item.id === message.requirementId && item.recordStatus !== "deleted"
@@ -2075,10 +2200,27 @@ async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: rea
     await refreshWorkshopSurfaces();
     currentEntity = updated;
     if (message.command === "saveAndNextEntity") {
-      panel.dispose();
       if (updated.entityType === "requirement") {
-        await openAdjacentRequirement(updated.id, "next");
+        currentEntities = await listAllEntities();
+        const adjacent = adjacentRequirementFromEntities(updated.id, "next", currentEntities, requirementSavedView);
+        if (adjacent.status === "missing") {
+          await vscode.window.showWarningMessage("This Requirement no longer exists. Choose another Requirement.");
+          return;
+        }
+        if (adjacent.status === "edge") {
+          await vscode.window.showInformationMessage("Already at the last Requirement.");
+          await refreshEditor();
+          return;
+        }
+        if (adjacent.status !== "found") {
+          return;
+        }
+        currentEntity = adjacent.requirement;
+        await rememberRequirement(adjacent.requirement);
+        await refreshEditor();
+        return;
       }
+      panel.dispose();
       if (updated.entityType === "direction") {
         await openAdjacentDirection(updated.id, "next");
       }
@@ -2090,7 +2232,7 @@ async function openEntityEditor(entity: EditableWorkshopEntity, allEntities: rea
     }
     await refreshEditor();
   });
-  panel.webview.html = shellHtml(entity.title ?? entity.id, renderEntityEditor(entity, currentEntities));
+  panel.webview.html = shellHtml(entity.title ?? entity.id, renderEntityEditor(entity, currentEntities, options));
 }
 
 function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: () => Promise<void>): void {
@@ -2178,6 +2320,18 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         if (savedView) {
           await openWorkshopRequirementsView(savedView);
         }
+      }
+      if (message.command === "createStrategyDraft") {
+        const strategy = await createDraftStrategy();
+        if (strategy) {
+          panel.dispose();
+          await openStrategyMap();
+        }
+      }
+      if (message.command === "pspf.workshop.loadSampleWorkspace") {
+        await loadSampleWorkspace();
+        panel.dispose();
+        await openStrategyMap();
       }
     }
   );
@@ -2354,10 +2508,14 @@ async function buildUpdatedEntity(
   }
 }
 
-function renderEntityEditor(entity: EditableWorkshopEntity, allEntities: readonly V01Entity[]): string {
+function renderEntityEditor(
+  entity: EditableWorkshopEntity,
+  allEntities: readonly V01Entity[],
+  requirementOptions: RequirementBrowserOptions = {}
+): string {
   switch (entity.entityType) {
     case "requirement":
-      return renderRequirementEditor(entity, allEntities);
+      return renderRequirementEditor(entity, allEntities, requirementOptions);
     case "evidence":
       return renderEvidenceEditor(entity);
     case "action":
@@ -2373,7 +2531,11 @@ function renderEntityEditor(entity: EditableWorkshopEntity, allEntities: readonl
   }
 }
 
-function renderRequirementEditor(requirement: RequirementEntity, allEntities: readonly V01Entity[]): string {
+function renderRequirementEditor(
+  requirement: RequirementEntity,
+  allEntities: readonly V01Entity[],
+  browserOptions: RequirementBrowserOptions = {}
+): string {
   const isBaseline = requirement.sourceProduct === "core";
   const domainOptions = PSPF_DOMAINS.map((domain) => ({ label: domain.title, value: domain.id }));
   const outboundLinks = allEntities.filter(
@@ -2511,25 +2673,39 @@ function renderRequirementEditor(requirement: RequirementEntity, allEntities: re
     ${recordTable("ISM Mappings", mappingRows, ["controlId", "title", "coverage", "profile", "confidence", "reviewed"])}
   `;
   return `<div class="requirement-browser">
-    ${requirementBrowserNav(requirement, allEntities)}
+    ${requirementBrowserNav(requirement, allEntities, browserOptions)}
     <div class="requirement-browser__content">${editorContent}</div>
   </div>`;
 }
 
-function requirementBrowserNav(requirement: RequirementEntity, allEntities: readonly V01Entity[]): string {
+function requirementBrowserNav(
+  requirement: RequirementEntity,
+  allEntities: readonly V01Entity[],
+  options: RequirementBrowserOptions = {}
+): string {
   const requirements = allEntities
     .filter(
       (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
     )
+    .filter((candidate) => {
+      if (!options.savedView) {
+        return true;
+      }
+      const links = allEntities.filter(
+        (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+      );
+      return savedViewMatchesRequirement(options.savedView, candidate, links);
+    })
     .sort(compareRequirementsForPicker);
   const currentIndex = requirements.findIndex((candidate) => candidate.id === requirement.id);
   const position = currentIndex >= 0 ? `${currentIndex + 1} of ${requirements.length}` : `${requirements.length} total`;
+  const filterText = options.filterText?.trim() ?? "";
   const items = requirements
-    .map((candidate) => requirementBrowserNavItem(candidate, candidate.id === requirement.id))
+    .map((candidate) => requirementBrowserNavItem(candidate, candidate.id === requirement.id, filterText))
     .join("");
   return `<section class="requirement-browser__nav" aria-label="Requirement browser">
     <h2>Requirements</h2>
-    <input class="requirement-browser__filter" type="search" aria-label="Filter requirements" placeholder="Filter by title, domain, or status" data-filter-target=".requirement-browser__item">
+    <input class="requirement-browser__filter" type="search" aria-label="Filter requirements" placeholder="Filter by title, domain, or status" value="${escapeHtml(filterText)}" data-filter-target=".requirement-browser__item">
     <div class="requirement-browser__list" role="list" aria-label="Scrollable Requirements list">
       ${items || '<p class="muted">No Requirements found.</p>'}
     </div>
@@ -2537,12 +2713,14 @@ function requirementBrowserNav(requirement: RequirementEntity, allEntities: read
   </section>`;
 }
 
-function requirementBrowserNavItem(requirement: RequirementEntity, isCurrent: boolean): string {
+function requirementBrowserNavItem(requirement: RequirementEntity, isCurrent: boolean, filterText = ""): string {
   const title = requirement.title;
   const domain = domainName(requirement.domainId);
   const status = label(requirement.assessmentStatus);
   const searchText = `${title} ${domain} ${status} ${requirement.id}`;
-  return `<button type="button" class="requirement-browser__item" role="listitem" title="${escapeHtml(title)}" aria-label="${escapeHtml(`${requirementNumberLabel(requirement)}. ${title}. ${domain}. ${status}`)}" data-command="openRequirementInEditor" data-requirement-id="${escapeHtml(requirement.id)}" data-search="${escapeHtml(searchText)}"${isCurrent ? ' aria-current="page"' : ""}>
+  const normalisedFilter = filterText.toLocaleLowerCase("en-AU");
+  const hidden = normalisedFilter && !searchText.toLocaleLowerCase("en-AU").includes(normalisedFilter);
+  return `<button type="button" class="requirement-browser__item" role="listitem" title="${escapeHtml(title)}" aria-label="${escapeHtml(`${requirementNumberLabel(requirement)}. ${title}. ${domain}. ${status}`)}" data-command="openRequirementInEditor" data-requirement-id="${escapeHtml(requirement.id)}" data-search="${escapeHtml(searchText)}"${isCurrent ? ' aria-current="page"' : ""}${hidden ? " hidden" : ""}>
     <span class="requirement-browser__number">${escapeHtml(requirementNumberLabel(requirement))}</span>
     <span class="requirement-browser__meta">${escapeHtml(domain)} · ${escapeHtml(status)}</span>
   </button>`;
@@ -3445,47 +3623,31 @@ async function openWorkshopEvidenceReviewSavedView(savedView: SavedViewEntity): 
 async function openWorkshopRequirementsView(savedView: SavedViewEntity): Promise<void> {
   await ensureCoreReady();
   const allEntities = await listAllEntities();
-  const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
   const links = allEntities.filter(
     (entity): entity is LinkEntity =>
       entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.linkType === "tagged-with"
   );
-  const tagsById = new Map(
-    allEntities.filter((entity): entity is TagEntity => entity.entityType === "tag").map((tag) => [tag.id, tag])
-  );
+  const requirements = allEntities
+    .filter(
+      (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
+    )
+    .sort(compareRequirementsForPicker);
   const matchingRequirements = requirements.filter((requirement) =>
     savedViewMatchesRequirement(savedView, requirement, links)
   );
-  const rows = matchingRequirements.map((requirement) => ({
-    openEntityType: "requirement",
-    openEntityId: requirement.id,
-    title: requirement.title,
-    domain: domainName(requirement.domainId),
-    status: label(requirement.assessmentStatus),
-    tags:
-      links
-        .filter((link) => link.fromId === requirement.id)
-        .map((link) => tagChipLabel(tagsById.get(link.toId)))
-        .join(", ") || "None"
-  }));
-  const panel = vscode.window.createWebviewPanel(
-    "pspfWorkshopSavedView",
-    shortWorkshopPanelTitle({ entityType: "saved-view", title: savedView.name } as V01Entity),
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-  wireWorkshopPanelMessages(panel);
-  panel.webview.html = shellHtml(
-    savedView.name,
-    `
-    <section>
-      <h1>${escapeHtml(savedView.name)}</h1>
-      <p class="muted">${escapeHtml(savedViewFilterSummary(savedView))} · ${matchingRequirements.length} of ${requirements.length} Requirements</p>
-      ${versionStrip()}
-    </section>
-    ${recordTable("Matching Requirements", rows, ["title", "domain", "status", "tags"])}
-  `
-  );
+  const recentRequirementId = getRecentRequirementId();
+  const initialRequirement =
+    matchingRequirements.find((requirement) => requirement.id === recentRequirementId) ?? matchingRequirements.at(0);
+  if (!initialRequirement) {
+    await vscode.window.showInformationMessage(
+      `${savedView.name} has no matching Requirements. Update the saved filters or create matching Requirements first.`
+    );
+    return;
+  }
+  await openEntityEditor(initialRequirement, allEntities, {
+    savedView,
+    filterText: savedView.filters.query ?? ""
+  });
 }
 
 function savedViewMatchesRequirement(
@@ -3496,6 +3658,9 @@ function savedViewMatchesRequirement(
   const filters = savedView.filters;
   const query = filters.query?.trim().toLocaleLowerCase("en-AU");
   if (query && !`${requirement.title} ${requirement.summary ?? ""}`.toLocaleLowerCase("en-AU").includes(query)) {
+    return false;
+  }
+  if ((filters.domainIds ?? []).length > 0 && !filters.domainIds?.includes(requirement.domainId)) {
     return false;
   }
   if (
@@ -3743,23 +3908,46 @@ async function openAdjacentRequirement(
   direction: RequirementNavigationDirection
 ): Promise<void> {
   await ensureCoreReady();
-  const requirements = (await listRequirements())
-    .filter((requirement) => requirement.recordStatus !== "deleted")
-    .sort(compareRequirementsForPicker);
-  const currentIndex = requirements.findIndex((requirement) => requirement.id === requirementId);
-  if (currentIndex < 0) {
+  const allEntities = await listAllEntities();
+  const adjacent = adjacentRequirementFromEntities(requirementId, direction, allEntities);
+  if (adjacent.status === "missing") {
     await vscode.window.showWarningMessage("This Requirement no longer exists. Choose another Requirement.");
     return;
   }
-  const nextIndex = direction === "next" ? currentIndex + 1 : currentIndex - 1;
-  const adjacentRequirement = requirements[nextIndex];
-  if (!adjacentRequirement) {
+  if (adjacent.status === "edge") {
     await vscode.window.showInformationMessage(
       direction === "next" ? "Already at the last Requirement." : "Already at the first Requirement."
     );
     return;
   }
-  await openItemDetailForRequirement(adjacentRequirement);
+  if (adjacent.status !== "found") {
+    return;
+  }
+  await openEntityEditor(adjacent.requirement, allEntities);
+}
+
+function adjacentRequirementFromEntities(
+  requirementId: string,
+  direction: RequirementNavigationDirection,
+  allEntities: readonly V01Entity[],
+  savedView?: SavedViewEntity
+): { readonly status: "found"; readonly requirement: RequirementEntity } | { readonly status: "missing" | "edge" } {
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const requirements = allEntities
+    .filter(
+      (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
+    )
+    .filter((requirement) => !savedView || savedViewMatchesRequirement(savedView, requirement, links))
+    .sort(compareRequirementsForPicker);
+  const currentIndex = requirements.findIndex((requirement) => requirement.id === requirementId);
+  if (currentIndex < 0) {
+    return { status: "missing" };
+  }
+  const nextIndex = direction === "next" ? currentIndex + 1 : currentIndex - 1;
+  const requirement = requirements[nextIndex];
+  return requirement ? { status: "found", requirement } : { status: "edge" };
 }
 
 async function openAdjacentDirection(
