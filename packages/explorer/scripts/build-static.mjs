@@ -130,6 +130,9 @@ const html = `<!doctype html>
     .muted { color: #a1a1aa; }
     .footer { color: #a1a1aa; font-size: 13px; margin-top: 24px; }
     section { scroll-margin-top: 76px; }
+    .connected-view-panel[open] .section-body { min-height: calc(100vh - 220px); display: flex; flex-direction: column; }
+    .connected-view-panel [data-cv-mount] { flex: 1 1 auto; display: flex; min-height: min(720px, calc(100vh - 280px)); }
+    .connected-view-panel [data-cv-mount] > .pspf-connected-view { flex: 1 1 auto; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     @media (max-width: 720px) { .overview-grid, .bar-row, .local-authoring-grid { grid-template-columns: 1fr; } .local-picker { position: static; } main { width: calc(100% - 32px); padding: 16px 0; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="from"], td[data-field="from"], th[data-field="to"], td[data-field="to"] { min-width: 16rem; } }
     ${CONNECTED_VIEW_STYLES}
@@ -2414,7 +2417,7 @@ function planActionRows(collections, entitiesById) {
       status: label(action.status),
       urgency: action.impact ? label(action.impact.urgency || "normal") : planningUrgency(action),
       urgencyRank: planningUrgencyRank(action),
-      dueDate: action.dueDate ? formatDate(action.dueDate) : "Not set",
+      dueDate: action.dueDate ? formatShortDate(action.dueDate) || String(action.dueDate) : "Not set",
       requirements: (requirementTitlesByActionId.get(action.id) || []).join("; ") || "No linked Requirement"
     }))
     .sort((left, right) => right.urgencyRank - left.urgencyRank || String(left.dueDate).localeCompare(String(right.dueDate)) || left.title.localeCompare(right.title));
@@ -2705,7 +2708,14 @@ function containsPath(value, pathParts) {
 }
 
 function formatDate(value) {
-  return value ? new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value)) : "unknown";
+  if (!value) {
+    return "unknown";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+  return new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
 function escapeHtml(value) {

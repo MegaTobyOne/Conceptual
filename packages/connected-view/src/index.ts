@@ -488,6 +488,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   position: relative;
   display: flex;
   flex-direction: column;
+  min-height: min(760px, calc(100vh - 180px));
   --cv-zoom: 1;
   color: var(--cv-text);
   font: var(--pspf-type-body, 13px)/var(--pspf-line-body, 1.45) -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -521,10 +522,11 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 .cv-board {
   position: relative;
   display: grid; gap: 12px; padding: 14px;
+  flex: 1 1 auto;
   border: 1px solid var(--cv-border); border-top: 0;
   border-radius: 0 0 8px 8px;
   background: color-mix(in srgb, var(--cv-bg) 90%, transparent);
-  min-height: 480px;
+  min-height: 560px;
   overflow: auto;
   zoom: var(--cv-zoom);
 }

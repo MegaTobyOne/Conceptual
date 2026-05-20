@@ -206,7 +206,9 @@ export function shellHtml(title: string, body: string): string {
         vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
       }
       if (command === 'openRequirementInEditor') {
-        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
+        const filterInput = document.querySelector('.requirement-browser__filter');
+        const filterText = filterInput instanceof HTMLInputElement ? filterInput.value : '';
+        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id'), filterText });
       }
       if (command === 'openAdjacentRequirement') {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id'), direction: button.getAttribute('data-direction') });
@@ -228,6 +230,12 @@ export function shellHtml(title: string, body: string): string {
       }
       if (command === 'createSavedView' || command === 'applySavedView' || command === 'editSavedView' || command === 'archiveSavedView') {
         vscode.postMessage({ command, savedViewId: button.getAttribute('data-saved-view-id'), savedViewScope: button.getAttribute('data-saved-view-scope') });
+      }
+      if (command === 'createStrategyDraft') {
+        vscode.postMessage({ command });
+      }
+      if (command === 'pspf.workshop.loadSampleWorkspace') {
+        vscode.postMessage({ command });
       }
       if (command === 'refresh') {
         vscode.postMessage({ command });
