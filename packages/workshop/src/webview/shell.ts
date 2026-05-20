@@ -242,6 +242,8 @@ export function shellHtml(title: string, body: string): string {
       }
       if (command === 'pspf.workshop.loadSampleWorkspace') {
         vscode.postMessage({ command });
+      } else if (command && command.startsWith('pspf.')) {
+        vscode.postMessage({ command });
       }
       if (command === 'refresh') {
         vscode.postMessage({ command });

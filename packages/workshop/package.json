@@ -122,6 +122,11 @@
         "title": "PSPF: Open Assessment Dashboard"
       },
       {
+        "command": "pspf.workshop.openMasterDashboard",
+        "title": "PSPF: Open Master Dashboard",
+        "icon": "$(dashboard)"
+      },
+      {
         "command": "pspf.workshop.openConnectedView",
         "title": "PSPF: Open Connected View",
         "icon": "$(type-hierarchy)"
@@ -223,6 +228,11 @@
           "command": "pspf.workshop.openChangeRecords",
           "when": "view == pspfWorkshop.homeView",
           "group": "navigation@4"
+        },
+        {
+          "command": "pspf.workshop.openMasterDashboard",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.5"
         },
         {
           "command": "pspf.workshop.openConnectedView",
