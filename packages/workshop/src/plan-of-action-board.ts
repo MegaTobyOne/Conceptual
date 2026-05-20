@@ -64,6 +64,8 @@ export interface PlanOfActionBoardModel {
   readonly generatedAt: string;
   readonly timelineStart: string;
   readonly timelineEnd: string;
+  readonly today: string;
+  readonly todayX: number;
   readonly totalDays: number;
   readonly dayWidth: number;
   readonly timelineWidth: number;
@@ -138,6 +140,8 @@ export function buildPlanOfActionBoardModel(
     generatedAt: now.toISOString(),
     timelineStart: toIsoDateOnly(timelineStart),
     timelineEnd: toIsoDateOnly(timelineEnd),
+    today: toIsoDateOnly(now),
+    todayX: Math.max(0, Math.round(diffDays(timelineStart, now) * dayWidth)),
     totalDays,
     dayWidth,
     timelineWidth,

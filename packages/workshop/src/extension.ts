@@ -1331,13 +1331,18 @@ function renderPlanOfActionTimeline(model: PlanOfActionBoardModel): string {
     return `<p class="muted">No open Actions are available yet. Create Actions or load the sample workspace to populate the Plan of Action.</p>`;
   }
   return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
-    ${model.phases.map((phase) => renderPlanOfActionPhase(phase, model.timelineWidth)).join("")}
+    ${model.phases.map((phase) => renderPlanOfActionPhase(phase, model.timelineWidth, model.todayX, model.today)).join("")}
   </div>`;
 }
 
-function renderPlanOfActionPhase(phase: PlanOfActionPhaseModel, timelineWidth: number): string {
+function renderPlanOfActionPhase(
+  phase: PlanOfActionPhaseModel,
+  timelineWidth: number,
+  todayX: number,
+  today: string
+): string {
   const tasks = phase.tasks.length
-    ? phase.tasks.map((task) => renderPlanOfActionTask(task, timelineWidth)).join("")
+    ? phase.tasks.map((task) => renderPlanOfActionTask(task, timelineWidth, todayX, today)).join("")
     : `<p class="muted">No open Actions currently sit in this workstream.</p>`;
   return `<div class="poa-phase">
     <div class="poa-phase__header">
@@ -1348,7 +1353,12 @@ function renderPlanOfActionPhase(phase: PlanOfActionPhaseModel, timelineWidth: n
   </div>`;
 }
 
-function renderPlanOfActionTask(task: PlanOfActionTaskModel, timelineWidth: number): string {
+function renderPlanOfActionTask(
+  task: PlanOfActionTaskModel,
+  timelineWidth: number,
+  todayX: number,
+  today: string
+): string {
   const barClass = `poa-bar poa-bar--${task.urgency}`;
   const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
   return `<div class="poa-task" data-poa-task data-poa-status="${escapeHtml(task.status)}">
@@ -1357,9 +1367,14 @@ function renderPlanOfActionTask(task: PlanOfActionTaskModel, timelineWidth: numb
       <span>${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
     </button>
     <div class="poa-track" style="width: ${timelineWidth}px;">
+      ${renderPlanOfActionTodayMarker(todayX, today)}
       <div class="${escapeHtml(barClass)}" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}">${barLabel}</div>
     </div>
   </div>`;
+}
+
+function renderPlanOfActionTodayMarker(todayX: number, today: string): string {
+  return `<div class="poa-today-marker" style="left: ${todayX}px;" aria-hidden="true" title="Today: ${escapeHtml(today)}"><span>Today</span></div>`;
 }
 
 function planOfActionFilterScript(): string {
@@ -1476,9 +1491,6 @@ function buildEssentialEightDashboardModel(allEntities: readonly V01Entity[]): E
   const enrichedEntities = enrichActionsWithImpact(allEntities);
   const requirements = allEntities.filter(
     (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
-  );
-  const evidence = allEntities.filter(
-    (entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted"
   );
   const actions = enrichedEntities.filter(
     (entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted"
@@ -1896,7 +1908,7 @@ async function openStrategyMap(): Promise<void> {
       <h2>Risk Posture</h2>
       <p>${escapeHtml(strategy.riskPostureStatement)}</p>
       <div class="form-actions">
-        <button type="button" data-command="pspf.workshop.editStrategySummary">Edit strategy summary</button>
+        <button type="button" data-command="pspf.workshop.editStrategySummary">Open strategy editor</button>
         <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
       </div>
     </section>
@@ -1995,104 +2007,256 @@ async function editStrategySummary(): Promise<void> {
   if (!strategy) {
     return;
   }
+  await openStrategyEditorPanel(strategy);
+}
 
-  const title = await vscode.window.showInputBox({
-    title: "Edit Strategy Summary",
-    prompt: "Strategy title",
-    value: strategy.title,
-    ignoreFocusOut: true,
-    validateInput: (value) => (value.trim().length === 0 ? "Enter a strategy title." : undefined)
+async function openStrategyEditorPanel(strategy: StrategyEntity): Promise<void> {
+  let currentStrategy = strategy;
+  const panel = vscode.window.createWebviewPanel("pspfStrategyEditor", "PSPF Strategy Editor", vscode.ViewColumn.One, {
+    enableScripts: true
   });
-  if (!title) {
-    return;
-  }
-  const scope = await vscode.window.showInputBox({
-    title: "Edit Strategy Summary",
-    prompt: "Scope",
-    value: strategy.scope,
-    ignoreFocusOut: true,
-    validateInput: (value) => (value.trim().length === 0 ? "Enter the strategy scope." : undefined)
-  });
-  if (!scope) {
-    return;
-  }
-  const timeHorizon = await vscode.window.showInputBox({
-    title: "Edit Strategy Summary",
-    prompt: "Time horizon",
-    value: strategy.timeHorizon,
-    ignoreFocusOut: true,
-    validateInput: (value) => (value.trim().length === 0 ? "Enter the time horizon." : undefined)
-  });
-  if (!timeHorizon) {
-    return;
-  }
-  const owner = await vscode.window.showInputBox({
-    title: "Edit Strategy Summary",
-    prompt: "Owner",
-    value: strategy.owner ?? "",
-    ignoreFocusOut: true
-  });
-  if (owner === undefined) {
-    return;
-  }
-  const strategyStatement = await vscode.window.showInputBox({
-    title: "Edit Strategy Summary",
-    prompt: "Short strategy statement for dashboards and copied briefs",
-    value: strategy.strategyStatement,
-    ignoreFocusOut: true,
-    validateInput: (value) => (value.trim().length === 0 ? "Enter the strategy statement." : undefined)
-  });
-  if (!strategyStatement) {
-    return;
-  }
-  const riskPostureStatement = await vscode.window.showInputBox({
-    title: "Edit Strategy Summary",
-    prompt: "Risk posture statement",
-    value: strategy.riskPostureStatement,
-    ignoreFocusOut: true,
-    validateInput: (value) => (value.trim().length === 0 ? "Enter the risk posture statement." : undefined)
-  });
-  if (!riskPostureStatement) {
-    return;
-  }
-  const executiveSummary = await vscode.window.showInputBox({
-    title: "Edit Strategy Summary",
-    prompt: "Short executive summary for copied briefs",
-    value: strategy.executiveSummary ?? "",
-    ignoreFocusOut: true
-  });
-  if (executiveSummary === undefined) {
-    return;
-  }
-  const frameworks = await vscode.window.showInputBox({
-    title: "Edit Strategy Summary",
-    prompt: "Frameworks, comma-separated",
-    value: strategy.frameworks.join(", "),
-    ignoreFocusOut: true
-  });
-  if (frameworks === undefined) {
-    return;
-  }
 
-  const updated: StrategyEntity = {
-    ...strategy,
-    title: title.trim(),
-    scope: scope.trim(),
-    timeHorizon: timeHorizon.trim(),
-    owner: trimOptional(owner),
-    strategyStatement: strategyStatement.trim(),
-    riskPostureStatement: riskPostureStatement.trim(),
-    executiveSummary: trimOptional(executiveSummary),
-    frameworks: frameworks
-      .split(",")
-      .map((framework) => framework.trim())
-      .filter((framework) => framework.length > 0),
-    updatedAt: new Date().toISOString()
+  const refresh = (): void => {
+    panel.webview.html = renderStrategyEditorPanel(currentStrategy);
   };
 
-  await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
-  await refreshWorkshopSurfaces();
-  await vscode.window.showInformationMessage("Strategy summary updated.");
+  const runPendingCommand = async (message: SaveEntityMessage): Promise<void> => {
+    const command = message.pendingCommand;
+    if (!command) {
+      return;
+    }
+    if (command === "pspf.workshop.openStrategyMap") {
+      panel.dispose();
+      await openStrategyMap();
+      return;
+    }
+    if (command.startsWith("pspf.")) {
+      await vscode.commands.executeCommand(command);
+      refresh();
+    }
+  };
+
+  panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
+    if (message.command === "confirmDirtyNavigation") {
+      const choice = await vscode.window.showWarningMessage(
+        "You have unsaved strategy changes. Save before continuing?",
+        { modal: true },
+        "Save",
+        "Discard",
+        "Cancel"
+      );
+      if (choice === "Cancel" || !choice) {
+        return;
+      }
+      if (choice === "Save") {
+        const updated = await buildUpdatedStrategy(currentStrategy, message.fields ?? {});
+        if (!updated) {
+          return;
+        }
+        currentStrategy = updated;
+        await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+        await refreshWorkshopSurfaces();
+      }
+      await runPendingCommand(message);
+      return;
+    }
+    if (message.command === "saveEntity" || message.command === "saveAndCloseEntity") {
+      const updated = await buildUpdatedStrategy(currentStrategy, message.fields ?? {});
+      if (!updated) {
+        return;
+      }
+      currentStrategy = updated;
+      await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+      await refreshWorkshopSurfaces();
+      if (message.command === "saveAndCloseEntity") {
+        panel.dispose();
+        await openStrategyMap();
+        return;
+      }
+      await vscode.window.showInformationMessage("Strategy updated.");
+      refresh();
+      return;
+    }
+    if (message.command === "refresh") {
+      const latest = (await listAllEntities()).find(
+        (entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.id === currentStrategy.id
+      );
+      if (latest) {
+        currentStrategy = latest;
+      }
+      refresh();
+      return;
+    }
+    if (message.command === "pspf.workshop.openStrategyMap") {
+      panel.dispose();
+      await openStrategyMap();
+      return;
+    }
+    if (message.command?.startsWith("pspf.")) {
+      await vscode.commands.executeCommand(message.command);
+      refresh();
+    }
+  });
+
+  refresh();
+}
+
+function renderStrategyEditorPanel(strategy: StrategyEntity): string {
+  const choiceSections = strategy.choices
+    .map(
+      (choice, choiceIndex) => `
+      <section>
+        <h2>Strategic Choice ${choiceIndex + 1}</h2>
+        <div class="strategy-editor__two-col">
+          ${strategyTextArea(`choice.${choiceIndex}.statement`, "Choice statement", choice.statement, 5)}
+          ${strategyTextArea(`choice.${choiceIndex}.summary`, "Choice summary", choice.summary, 5)}
+          ${inputField(`choice.${choiceIndex}.capabilityArea`, "Capability area", choice.capabilityArea, true)}
+          ${inputField(`choice.${choiceIndex}.targetPosture`, "Target posture", choice.targetPosture, true)}
+          ${inputField(`choice.${choiceIndex}.executiveOwner`, "Executive owner", choice.executiveOwner ?? "")}
+          ${inputField(`choice.${choiceIndex}.rationale`, "Rationale", choice.rationale ?? "")}
+        </div>
+        ${strategyTextArea(`choice.${choiceIndex}.constraints`, "Constraints and dependencies", choice.constraints ?? "", 4)}
+        ${choice.outcomes
+          .map(
+            (outcome, outcomeIndex) => `
+            <div class="strategy-editor__nested">
+              <h3>Outcome ${choiceIndex + 1}.${outcomeIndex + 1}</h3>
+              <div class="strategy-editor__two-col">
+                ${strategyTextArea(`choice.${choiceIndex}.outcome.${outcomeIndex}.statement`, "Outcome statement", outcome.statement, 4)}
+                ${strategyTextArea(`choice.${choiceIndex}.outcome.${outcomeIndex}.summary`, "Outcome summary", outcome.summary, 4)}
+              </div>
+              ${outcome.measures
+                .map(
+                  (measure, measureIndex) => `
+                  <div class="strategy-editor__measure">
+                    <h3>Measure ${choiceIndex + 1}.${outcomeIndex + 1}.${measureIndex + 1}</h3>
+                    <div class="strategy-editor__two-col">
+                      ${inputField(`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.title`, "Measure title", measure.title, true)}
+                      ${inputField(`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.unit`, "Unit", measure.unit ?? "")}
+                      ${strategyTextArea(`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.baseline`, "Baseline", measure.baseline ?? "", 3)}
+                      ${strategyTextArea(`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.current`, "Current", measure.current ?? "", 3)}
+                      ${strategyTextArea(`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.target`, "Target", measure.target ?? "", 3)}
+                    </div>
+                  </div>`
+                )
+                .join("")}
+            </div>`
+          )
+          .join("")}
+      </section>`
+    )
+    .join("");
+
+  return shellHtml(
+    "PSPF Strategy Editor",
+    `
+    <div class="strategy-editor">
+      <section>
+        <p class="eyebrow">Full Size Editor</p>
+        <h1>${escapeHtml(strategy.title)}</h1>
+        <p class="muted">OFFICIAL: Sensitive · Edit the strategy narrative, posture logic, assumptions, choices, outcomes and measures together.</p>
+        ${versionStrip()}
+        <div class="form-actions">
+          <button type="button" data-command="refresh">Refresh</button>
+          <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
+          <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
+        </div>
+      </section>
+      <form class="form-grid strategy-editor__form">
+        <input type="hidden" name="entityType" value="strategy">
+        <input type="hidden" name="entityId" value="${escapeHtml(strategy.id)}">
+        <section>
+          <h2>Strategy Frame</h2>
+          <div class="strategy-editor__two-col">
+            ${inputField("title", "Title", strategy.title, true)}
+            ${inputField("scope", "Scope", strategy.scope, true)}
+            ${inputField("timeHorizon", "Time horizon", strategy.timeHorizon, true)}
+            ${inputField("owner", "Owner", strategy.owner ?? "")}
+            ${inputField("effectiveAt", "Effective from", strategy.effectiveAt ?? "")}
+            ${inputField("frameworks", "Frameworks", strategy.frameworks.join(", "))}
+          </div>
+          ${strategyTextArea("strategyStatement", "Strategy statement", strategy.strategyStatement, 8)}
+          ${strategyTextArea("riskPostureStatement", "Risk posture statement", strategy.riskPostureStatement, 8)}
+          ${strategyTextArea("executiveSummary", "Executive summary", strategy.executiveSummary ?? "", 8)}
+          ${strategyTextArea("assumptions", "Assumptions", strategy.assumptions ?? "", 8)}
+        </section>
+        ${choiceSections}
+        <section>
+          <h2>Save</h2>
+          <p class="muted">Saving updates the Strategy record used by the Strategy Map and copied posture brief.</p>
+          <div class="form-actions">
+            <button type="button" data-command="saveEntity">Save strategy</button>
+            <button type="button" data-command="saveAndCloseEntity">Save and view map</button>
+          </div>
+        </section>
+      </form>
+    </div>
+  `
+  );
+}
+
+async function buildUpdatedStrategy(
+  strategy: StrategyEntity,
+  fields: Record<string, string>
+): Promise<StrategyEntity | undefined> {
+  const title = fields.title?.trim();
+  const scope = fields.scope?.trim();
+  const timeHorizon = fields.timeHorizon?.trim();
+  const strategyStatement = fields.strategyStatement?.trim();
+  const riskPostureStatement = fields.riskPostureStatement?.trim();
+  if (!title || !scope || !timeHorizon || !strategyStatement || !riskPostureStatement) {
+    await vscode.window.showWarningMessage(
+      "Enter the Strategy title, scope, time horizon, strategy statement and risk posture before saving."
+    );
+    return undefined;
+  }
+  return {
+    ...strategy,
+    title,
+    scope,
+    timeHorizon,
+    effectiveAt: trimOptional(fields.effectiveAt),
+    owner: trimOptional(fields.owner),
+    strategyStatement,
+    riskPostureStatement,
+    frameworks: splitCommaList(fields.frameworks),
+    executiveSummary: trimOptional(fields.executiveSummary),
+    assumptions: trimOptional(fields.assumptions),
+    choices: strategy.choices.map((choice, choiceIndex) => ({
+      ...choice,
+      statement: requiredFallback(fields[`choice.${choiceIndex}.statement`], choice.statement),
+      summary: fields[`choice.${choiceIndex}.summary`]?.trim() ?? choice.summary,
+      capabilityArea: requiredFallback(fields[`choice.${choiceIndex}.capabilityArea`], choice.capabilityArea),
+      targetPosture: requiredFallback(fields[`choice.${choiceIndex}.targetPosture`], choice.targetPosture),
+      executiveOwner: trimOptional(fields[`choice.${choiceIndex}.executiveOwner`]),
+      rationale: trimOptional(fields[`choice.${choiceIndex}.rationale`]),
+      constraints: trimOptional(fields[`choice.${choiceIndex}.constraints`]),
+      outcomes: choice.outcomes.map((outcome, outcomeIndex) => ({
+        ...outcome,
+        statement: requiredFallback(
+          fields[`choice.${choiceIndex}.outcome.${outcomeIndex}.statement`],
+          outcome.statement
+        ),
+        summary: fields[`choice.${choiceIndex}.outcome.${outcomeIndex}.summary`]?.trim() ?? outcome.summary,
+        measures: outcome.measures.map((measure, measureIndex) => ({
+          ...measure,
+          title: requiredFallback(
+            fields[`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.title`],
+            measure.title
+          ),
+          unit: trimOptional(fields[`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.unit`]),
+          baseline: trimOptional(
+            fields[`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.baseline`]
+          ),
+          current: trimOptional(
+            fields[`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.current`]
+          ),
+          target: trimOptional(fields[`choice.${choiceIndex}.outcome.${outcomeIndex}.measure.${measureIndex}.target`])
+        }))
+      }))
+    })),
+    updatedAt: new Date().toISOString()
+  };
 }
 
 function strategyChoiceCard(
@@ -3066,14 +3230,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
 }
 
 type SaveEntityMessage = {
-  readonly command?:
-    | "saveEntity"
-    | "saveAndCloseEntity"
-    | "saveAndNextEntity"
-    | "openRequirementInEditor"
-    | "openEvidenceReference"
-    | "editorDirtyState"
-    | "confirmDirtyNavigation";
+  readonly command?: string;
   readonly entityType?: string;
   readonly entityId?: string;
   readonly requirementId?: string;
@@ -4152,6 +4309,10 @@ function textareaField(name: string, fieldLabel: string, value: string): string 
   return `<label>${escapeHtml(fieldLabel)}<textarea name="${escapeHtml(name)}" rows="4">${escapeHtml(value)}</textarea></label>`;
 }
 
+function strategyTextArea(name: string, fieldLabel: string, value: string, rows: number): string {
+  return `<label class="strategy-editor__field">${escapeHtml(fieldLabel)}<textarea name="${escapeHtml(name)}" rows="${rows}">${escapeHtml(value)}</textarea></label>`;
+}
+
 function readonlyField(fieldLabel: string, value: string): string {
   return `<label>${escapeHtml(fieldLabel)}<input value="${escapeHtml(value)}" readonly></label>`;
 }
@@ -4174,6 +4335,18 @@ function selectField(
 function trimOptional(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
+}
+
+function splitCommaList(value: string | undefined): string[] {
+  return (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+function requiredFallback(value: string | undefined, fallback: string): string {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : fallback;
 }
 
 function isAssessmentStatus(value: string | undefined): value is AssessmentStatus {

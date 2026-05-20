@@ -67,6 +67,13 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0052 | v1.17 Shop Core-backed authoring | accepted |
 | 0053 | v1.18 Shop assurance linkage and identity | accepted |
 | 0054 | v1.19 Shop commercial coverage dashboard | accepted |
+| 0055 | v1.20 Connected View | accepted |
+| 0056 | v1.20.1 Explorer Connected View hotfix | accepted |
+| 0057 | v1.21 Shop forecast management | accepted |
+| 0058 | v1.22 Operator input assistance | accepted |
+| 0059 | v1.23 Connected View and commercial planning polish | accepted |
+| 0060 | v1.24 Workshop Cyber Strategy Map | accepted |
+| 0061 | v1.25 Workshop operational dashboards | accepted |
 
 ## Template
 

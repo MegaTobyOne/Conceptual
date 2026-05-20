@@ -80,6 +80,19 @@ test("plan of action caps long timeline width instead of using fixed day width",
   assert.equal(model.dayWidth < 18, true);
 });
 
+test("plan of action exposes today marker position on the timeline", () => {
+  const action = actionEntity({
+    title: "Ground the workplan",
+    startDate: "2026-05-10T00:00:00.000Z",
+    endDate: "2026-05-30T00:00:00.000Z",
+    dueDate: "2026-05-30T00:00:00.000Z"
+  });
+  const model = buildPlanOfActionBoardModel([action], { now: new Date("2026-05-20T00:00:00.000Z") });
+
+  assert.equal(model.today, "2026-05-20");
+  assert.equal(model.todayX, 180);
+});
+
 test("task labels default visible and explicit false is preserved", () => {
   assert.equal(normaliseTaskLabelVisibility(), true);
   assert.equal(normaliseTaskLabelVisibility(true), true);

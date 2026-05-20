@@ -205,6 +205,13 @@ const coverage = [
     "check:schema-policy",
     "check:schema-coverage",
     "check:explorer-publication"
+  ]),
+  adr("0061-v1-25-workshop-operational-dashboards.md", "automated", [
+    "e2e:v1.25",
+    "check:release-candidate",
+    "check:explorer-publication",
+    "check:schema-policy",
+    "check:schema-coverage"
   ])
 ];
 
