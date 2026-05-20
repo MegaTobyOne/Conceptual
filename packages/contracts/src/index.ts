@@ -161,6 +161,8 @@ export interface ActionEntity extends EntityEnvelope {
   readonly entityType: "action";
   readonly title: string;
   readonly status: ActionStatus;
+  readonly startDate?: string;
+  readonly endDate?: string;
   readonly dueDate?: string;
   readonly impact?: ActionImpact;
 }
@@ -710,6 +712,8 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
       "sourceProduct",
       "recordStatus",
       "status",
+      "startDate",
+      "endDate",
       "dueDate",
       "impact"
     )

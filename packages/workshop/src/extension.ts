@@ -110,6 +110,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openPlanOfActionBoard", openPlanOfActionBoard),
     vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
     vscode.commands.registerCommand("pspf.workshop.openStrategyMap", openStrategyMap),
+    vscode.commands.registerCommand("pspf.workshop.editStrategySummary", editStrategySummary),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
     vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
@@ -234,6 +235,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openPlanOfActionBoard",
       "pspf.workshop.openConnectedView",
       "pspf.workshop.openStrategyMap",
+      "pspf.workshop.editStrategySummary",
       "pspf.workshop.openEvidenceReviewQueue",
       "pspf.workshop.openItemDetail",
       "pspf.workshop.registerDirection",
@@ -636,9 +638,27 @@ async function createAction(requirementId?: string): Promise<void> {
     return;
   }
 
+  const startDate = await vscode.window.showInputBox({
+    title: "Create Action",
+    prompt: "Start date, for example today or 1 Jul 2026. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (startDate === undefined) {
+    return;
+  }
+
+  const endDate = await vscode.window.showInputBox({
+    title: "Create Action",
+    prompt: "End date, for example 30 Sep 2026. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (endDate === undefined) {
+    return;
+  }
+
   const dueDate = await vscode.window.showInputBox({
     title: "Create Action",
-    prompt: "Due date, for example today or 30 Jun 2026. Press Enter to skip.",
+    prompt: "Due date or decision point, for example 30 Jun 2026. Press Enter to use the end date or skip.",
     ignoreFocusOut: true
   });
   if (dueDate === undefined) {
@@ -658,7 +678,9 @@ async function createAction(requirementId?: string): Promise<void> {
       entityType: "action",
       title: title.trim(),
       status: status.value,
-      dueDate: normaliseShortAuDateTime(dueDate)
+      startDate: normaliseShortAuDateTime(startDate),
+      endDate: normaliseShortAuDateTime(endDate),
+      dueDate: normaliseShortAuDateTime(dueDate) ?? normaliseShortAuDateTime(endDate)
     },
     "workshop"
   );
@@ -862,19 +884,25 @@ async function openAssessmentDashboard(): Promise<void> {
     .slice(0, 5);
   const domainRows = PSPF_DOMAINS.map((domain) => {
     const domainRequirements = requirements.filter((requirement) => requirement.domainId === domain.id);
+    const applicableRequirements = domainRequirements.filter((requirement) => !isNotApplicableRequirement(requirement));
     return {
       domain: domain.title,
-      requirements: domainRequirements.length,
-      evidenceGaps: domainRequirements.filter((requirement) => !evidenceRequirementIds.has(requirement.id)).length,
-      inProgress: domainRequirements.filter((requirement) => requirement.assessmentStatus === "in-progress").length,
-      met: domainRequirements.filter((requirement) => requirement.assessmentStatus === "met").length,
-      notMet: domainRequirements.filter(
+      requirements: applicableRequirements.length,
+      notApplicable: domainRequirements.length - applicableRequirements.length,
+      evidenceGaps: applicableRequirements.filter((requirement) => !evidenceRequirementIds.has(requirement.id)).length,
+      inProgress: applicableRequirements.filter((requirement) => requirement.assessmentStatus === "in-progress").length,
+      met: applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met").length,
+      notMet: applicableRequirements.filter(
         (requirement) => requirement.assessmentStatus === "not-met" || requirement.assessmentStatus === "partially-met"
       ).length
     };
   });
   const nextRequirements = requirements
-    .filter((requirement) => !evidenceRequirementIds.has(requirement.id) || requirement.assessmentStatus !== "met")
+    .filter(
+      (requirement) =>
+        !isNotApplicableRequirement(requirement) &&
+        (!evidenceRequirementIds.has(requirement.id) || requirement.assessmentStatus !== "met")
+    )
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
     .slice(0, 8)
     .map((requirement) => ({
@@ -920,7 +948,7 @@ async function openAssessmentDashboard(): Promise<void> {
       <p class="muted">Recent requirement: ${escapeHtml(recentRequirement?.title ?? "None selected yet")}</p>
     </section>
     ${recordTable("Validation Hints", validationHints, ["priority", "requirement", "hint"])}
-    ${recordTable("Domain Summary", domainRows, ["domain", "requirements", "evidenceGaps", "inProgress", "met", "notMet"])}
+    ${recordTable("Domain Summary", domainRows, ["domain", "requirements", "notApplicable", "evidenceGaps", "inProgress", "met", "notMet"])}
     ${recordTable("Action Impact — Top 5", actionImpactRows, ["title", "status", "urgency", "total", "postureUplift", "evidenceUplift", "riskReduction", "directionUplift", "explanation"])}
     ${recordTable("Directions", directionRows, ["reference", "title", "responseState", "sourceAuthority", "issuedAt"])}
     ${recordTable("Next Requirements To Review", nextRequirements, ["title", "domain", "status", "evidence"])}
@@ -966,10 +994,10 @@ async function openMasterDashboard(): Promise<void> {
   const blockedActions = openActions.filter((action) => action.impact?.urgency === "blocked").length;
   const openRisks = risks.filter((risk) => risk.status !== "closed");
   const highRisks = openRisks.filter((risk) => risk.likelihood * risk.impact >= 16).length;
-  const metRequirements = requirements.filter((requirement) => requirement.assessmentStatus === "met").length;
-  const evidenceCoverage =
-    requirements.length > 0 ? Math.round((evidenceRequirementIds.size / requirements.length) * 100) : 0;
-  const metPercentage = requirements.length > 0 ? Math.round((metRequirements / requirements.length) * 100) : 0;
+  const completion = buildRequirementCompletionMetrics(requirements, evidenceRequirementIds);
+  const metRequirements = completion.metApplicable;
+  const evidenceCoverage = completion.evidenceCoverageApplicable;
+  const metPercentage = completion.metPercentageApplicable;
   const staleEvidence = evidence.filter(
     (item) => item.freshness !== "current" || !linkedEvidenceIds.has(item.id)
   ).length;
@@ -987,43 +1015,6 @@ async function openMasterDashboard(): Promise<void> {
     no: directions.filter((direction) => direction.responseState === "no").length,
     "risk-managed": directions.filter((direction) => direction.responseState === "risk-managed").length
   };
-  const ecosystemRows = [
-    {
-      surface: "Core",
-      purpose: "Trust, validation, snapshots, import and export",
-      signal: `${requirements.length + evidence.length + actions.length + risks.length} working records`,
-      next: "Validate or snapshot",
-      action: `<button type="button" data-command="pspf.core.validateWorkspace">Validate</button>`
-    },
-    {
-      surface: "Workshop",
-      purpose: "Authoring, evidence linkage, decisions and reporting preparation",
-      signal: `${openActions.length} open actions, ${staleEvidence} evidence items to review`,
-      next: "Continue assurance work",
-      action: `<button type="button" data-command="pspf.workshop.openAssessmentDashboard">Open</button>`
-    },
-    {
-      surface: "Shop",
-      purpose: "Supplier, contract and spend context linked to assurance work",
-      signal: "Commercial context available through Shop forecast",
-      next: "Review funded actions and contract context",
-      action: `<button type="button" data-command="pspf.shop.openForecast">Forecast</button>`
-    },
-    {
-      surface: "Explorer",
-      purpose: "Redacted posture lens for sharing and assurance review",
-      signal: `${metPercentage}% requirements met, ${evidenceCoverage}% evidence coverage`,
-      next: "Export master bundle",
-      action: `<button type="button" data-command="pspf.core.exportBundle">Export</button>`
-    },
-    {
-      surface: "Pub",
-      purpose: "People, assignments and succession load-sharing",
-      signal: "Deferred beyond the current working slice",
-      next: "Keep as dashboard placeholder",
-      action: "Deferred"
-    }
-  ];
   const decisionLoopRows = [
     masterLoopRow(
       "Strategy, Risk and Architecture",
@@ -1145,8 +1136,11 @@ async function openMasterDashboard(): Promise<void> {
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Digital management board for strategy, evidence, risk, action and reporting loops.</p>
       ${versionStrip()}
       <div class="grid">
-        ${metricCard("Requirements met", `${metPercentage}%`)}
-        ${metricCard("Evidence coverage", `${evidenceCoverage}%`)}
+        ${metricCard("Met, excl N/A", `${metPercentage}%`)}
+        ${metricCard("Evidence, excl N/A", `${evidenceCoverage}%`)}
+        ${metricCard("N/A excluded", completion.notApplicable)}
+        ${metricCard("Met, incl N/A", `${completion.metPercentageAll}%`)}
+        ${metricCard("Evidence, incl N/A", `${completion.evidenceCoverageAll}%`)}
         ${metricCard("Open actions", openActions.length)}
         ${metricCard("High risks", highRisks)}
         ${metricCard("Strategy choices", strategyChoices)}
@@ -1161,16 +1155,16 @@ async function openMasterDashboard(): Promise<void> {
         <button type="button" data-command="pspf.core.exportBundle">Export Bundle</button>
       </div>
     </section>
-    ${recordTable("Extension Tiles", ecosystemRows, ["surface", "purpose", "signal", "next", "action"])}
     <section>
       <h2>Explorer Preview</h2>
       <p class="muted">This is the shareable posture slice that should survive outside your VS Code workspace: current PSPF status, evidence coverage, risk exposure, action pressure and reporting readiness.</p>
       <div class="grid">
         ${metricCard("Met", metRequirements)}
-        ${metricCard("Not yet met", Math.max(requirements.length - metRequirements, 0))}
+        ${metricCard("Not yet met", Math.max(completion.applicable - metRequirements, 0))}
         ${metricCard("Evidence to review", staleEvidence)}
         ${metricCard("Directions not set", directionResponses["not-set"])}
       </div>
+      <p class="muted">Compliance and evidence coverage ignore ${completion.notApplicable} not applicable requirement${completion.notApplicable === 1 ? "" : "s"}. Including N/A: ${completion.metPercentageAll}% met, ${completion.evidenceCoverageAll}% evidence coverage.</p>
     </section>
     ${recordTable("CISO Decision Loops", decisionLoopRows, ["loop", "maturity", "records", "signal", "question"])}
     ${recordTable("Strategy And Performance", strategyRows, ["choice", "capability", "trend", "confidence", "outcomes", "measures", "target"])}
@@ -1215,6 +1209,8 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
       stream: phase.title,
       status: label(task.status),
       urgency: label(task.urgency),
+      startDate: formatShortAuDateTime(task.startDate) ?? task.startDate,
+      endDate: formatShortAuDateTime(task.endDate) ?? task.endDate,
       dueDate: formatShortAuDateTime(task.dueDate) ?? "Not set",
       linkedRequirements: task.linkedRequirements,
       linkedRisks: task.linkedRisks,
@@ -1249,11 +1245,20 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
     <section>
       <h2>Timeline Preview</h2>
       <p class="muted">${escapeHtml(model.timelineStart)} to ${escapeHtml(model.timelineEnd)} · ${model.totalDays} days · adaptive width ${Math.round(model.dayWidth * 10) / 10}px/day</p>
+      ${renderPlanOfActionStatusFilters()}
       ${renderPlanOfActionTimeline(model)}
     </section>
-    ${recordTable("Action Worklist", taskRows, ["title", "stream", "status", "urgency", "dueDate", "linkedRequirements", "linkedRisks", "impact"])}
+    ${recordTable("Action Worklist", taskRows, ["title", "stream", "status", "urgency", "startDate", "endDate", "dueDate", "linkedRequirements", "linkedRisks", "impact"])}
+    ${planOfActionFilterScript()}
   `
   );
+}
+
+function renderPlanOfActionStatusFilters(): string {
+  return `<div class="form-actions poa-status-filters" data-poa-status-filters>
+    ${actionStatusItems.map((item) => `<button type="button" class="poa-status-filter" data-poa-status-filter="${escapeHtml(item.value)}" aria-pressed="true">${escapeHtml(item.label)}</button>`).join("")}
+    <button type="button" class="poa-status-filter" data-poa-status-filter="all">All</button>
+  </div>`;
 }
 
 function renderPlanOfActionTimeline(model: PlanOfActionBoardModel): string {
@@ -1281,15 +1286,49 @@ function renderPlanOfActionPhase(phase: PlanOfActionPhaseModel, timelineWidth: n
 function renderPlanOfActionTask(task: PlanOfActionTaskModel, timelineWidth: number): string {
   const barClass = `poa-bar poa-bar--${task.urgency}`;
   const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
-  return `<div class="poa-task">
+  return `<div class="poa-task" data-poa-task data-poa-status="${escapeHtml(task.status)}">
     <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
       <strong>${escapeHtml(task.title)}</strong>
-      <span>${escapeHtml(label(task.status))} · ${escapeHtml(label(task.urgency))}</span>
+      <span>${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
     </button>
     <div class="poa-track" style="width: ${timelineWidth}px;">
       <div class="${escapeHtml(barClass)}" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}">${barLabel}</div>
     </div>
   </div>`;
+}
+
+function planOfActionFilterScript(): string {
+  return `<script>
+(() => {
+  const root = document.querySelector('[data-poa-status-filters]');
+  if (!root) return;
+  const buttons = Array.from(root.querySelectorAll('[data-poa-status-filter]'));
+  const taskSelector = '[data-poa-task]';
+  function selectedStatuses() {
+    return new Set(buttons.filter((button) => button.dataset.poaStatusFilter !== 'all' && button.getAttribute('aria-pressed') !== 'false').map((button) => button.dataset.poaStatusFilter));
+  }
+  function applyFilters() {
+    const selected = selectedStatuses();
+    document.querySelectorAll(taskSelector).forEach((task) => {
+      task.hidden = !selected.has(task.dataset.poaStatus);
+    });
+  }
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const value = button.dataset.poaStatusFilter;
+      if (value === 'all') {
+        buttons.forEach((item) => {
+          if (item.dataset.poaStatusFilter !== 'all') item.setAttribute('aria-pressed', 'true');
+        });
+      } else {
+        button.setAttribute('aria-pressed', button.getAttribute('aria-pressed') === 'false' ? 'true' : 'false');
+      }
+      applyFilters();
+    });
+  });
+  applyFilters();
+})();
+</script>`;
 }
 
 function masterLoopRow(
@@ -1300,6 +1339,47 @@ function masterLoopRow(
   question: string
 ): { loop: string; maturity: string; records: number; signal: string; question: string } {
   return { loop, maturity, records, signal, question };
+}
+
+function buildRequirementCompletionMetrics(
+  requirements: readonly RequirementEntity[],
+  evidenceRequirementIds: ReadonlySet<string>
+): {
+  readonly total: number;
+  readonly applicable: number;
+  readonly notApplicable: number;
+  readonly metApplicable: number;
+  readonly metAll: number;
+  readonly metPercentageApplicable: number;
+  readonly metPercentageAll: number;
+  readonly evidenceCoverageApplicable: number;
+  readonly evidenceCoverageAll: number;
+} {
+  const applicableRequirements = requirements.filter((requirement) => !isNotApplicableRequirement(requirement));
+  const metApplicable = applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const metAll = requirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const evidenceCoveredApplicable = applicableRequirements.filter((requirement) =>
+    evidenceRequirementIds.has(requirement.id)
+  ).length;
+  return {
+    total: requirements.length,
+    applicable: applicableRequirements.length,
+    notApplicable: requirements.length - applicableRequirements.length,
+    metApplicable,
+    metAll,
+    metPercentageApplicable: percent(metApplicable, applicableRequirements.length),
+    metPercentageAll: percent(metAll, requirements.length),
+    evidenceCoverageApplicable: percent(evidenceCoveredApplicable, applicableRequirements.length),
+    evidenceCoverageAll: percent(evidenceRequirementIds.size, requirements.length)
+  };
+}
+
+function isNotApplicableRequirement(requirement: RequirementEntity): boolean {
+  return requirement.assessmentStatus === "not-applicable";
+}
+
+function percent(value: number, total: number): number {
+  return total > 0 ? Math.round((value / total) * 100) : 0;
 }
 
 async function openStrategyMap(): Promise<void> {
@@ -1395,6 +1475,10 @@ async function openStrategyMap(): Promise<void> {
       <p>${escapeHtml(strategy.strategyStatement)}</p>
       <h2>Risk Posture</h2>
       <p>${escapeHtml(strategy.riskPostureStatement)}</p>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.editStrategySummary">Edit strategy summary</button>
+        <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
+      </div>
     </section>
     <section>
       <h2>Strategic Choices</h2>
@@ -1479,6 +1563,116 @@ async function createDraftStrategy(): Promise<StrategyEntity | undefined> {
   await refreshWorkshopSurfaces();
   await vscode.window.showInformationMessage("Created draft Cybersecurity Strategy.");
   return strategy;
+}
+
+async function editStrategySummary(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const existing = allEntities.find(
+    (entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.recordStatus !== "deleted"
+  );
+  const strategy = existing ?? (await createDraftStrategy());
+  if (!strategy) {
+    return;
+  }
+
+  const title = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Strategy title",
+    value: strategy.title,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a strategy title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+  const scope = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Scope",
+    value: strategy.scope,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the strategy scope." : undefined)
+  });
+  if (!scope) {
+    return;
+  }
+  const timeHorizon = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Time horizon",
+    value: strategy.timeHorizon,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the time horizon." : undefined)
+  });
+  if (!timeHorizon) {
+    return;
+  }
+  const owner = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Owner",
+    value: strategy.owner ?? "",
+    ignoreFocusOut: true
+  });
+  if (owner === undefined) {
+    return;
+  }
+  const strategyStatement = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Short strategy statement for dashboards and copied briefs",
+    value: strategy.strategyStatement,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the strategy statement." : undefined)
+  });
+  if (!strategyStatement) {
+    return;
+  }
+  const riskPostureStatement = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Risk posture statement",
+    value: strategy.riskPostureStatement,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the risk posture statement." : undefined)
+  });
+  if (!riskPostureStatement) {
+    return;
+  }
+  const executiveSummary = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Short executive summary for copied briefs",
+    value: strategy.executiveSummary ?? "",
+    ignoreFocusOut: true
+  });
+  if (executiveSummary === undefined) {
+    return;
+  }
+  const frameworks = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Frameworks, comma-separated",
+    value: strategy.frameworks.join(", "),
+    ignoreFocusOut: true
+  });
+  if (frameworks === undefined) {
+    return;
+  }
+
+  const updated: StrategyEntity = {
+    ...strategy,
+    title: title.trim(),
+    scope: scope.trim(),
+    timeHorizon: timeHorizon.trim(),
+    owner: trimOptional(owner),
+    strategyStatement: strategyStatement.trim(),
+    riskPostureStatement: riskPostureStatement.trim(),
+    executiveSummary: trimOptional(executiveSummary),
+    frameworks: frameworks
+      .split(",")
+      .map((framework) => framework.trim())
+      .filter((framework) => framework.length > 0),
+    updatedAt: new Date().toISOString()
+  };
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage("Strategy summary updated.");
 }
 
 function strategyChoiceCard(
@@ -2452,12 +2646,32 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
 }
 
 type SaveEntityMessage = {
-  readonly command?: "saveEntity" | "saveAndCloseEntity" | "saveAndNextEntity" | "openRequirementInEditor";
+  readonly command?:
+    | "saveEntity"
+    | "saveAndCloseEntity"
+    | "saveAndNextEntity"
+    | "openRequirementInEditor"
+    | "openEvidenceReference"
+    | "editorDirtyState"
+    | "confirmDirtyNavigation";
   readonly entityType?: string;
   readonly entityId?: string;
   readonly requirementId?: string;
   readonly filterText?: string;
   readonly fields?: Record<string, string>;
+  readonly isDirty?: boolean;
+  readonly pendingCommand?: string;
+  readonly pendingEntityType?: string;
+  readonly pendingEntityId?: string;
+  readonly pendingRequirementId?: string;
+  readonly pendingDirectionId?: string;
+  readonly pendingTagId?: string;
+  readonly pendingSavedViewId?: string;
+  readonly pendingSavedViewScope?: string;
+  readonly pendingDirection?: string;
+  readonly pendingFilterText?: string;
+  readonly pendingEvidenceReference?: string;
+  readonly evidenceReference?: string;
 };
 
 type RequirementBrowserOptions = {
@@ -2513,6 +2727,8 @@ async function openEntityEditor(
   let currentEntities = allEntities;
   let requirementFilterText = options.filterText ?? options.savedView?.filters.query ?? "";
   let requirementSavedView = options.savedView;
+  let hasUnsavedEditorChanges = false;
+  let unsavedEditorFields: Record<string, string> | undefined;
   const panel = vscode.window.createWebviewPanel(
     "pspfEntityDetail",
     shortWorkshopPanelTitle(currentEntity),
@@ -2536,10 +2752,50 @@ async function openEntityEditor(
         savedView: requirementSavedView
       })
     );
+    hasUnsavedEditorChanges = false;
+    unsavedEditorFields = undefined;
+  };
+  const saveCurrentEntity = async (fields: Record<string, string>): Promise<boolean> => {
+    const updated = await buildUpdatedEntity(currentEntity, fields);
+    if (!updated) {
+      return false;
+    }
+    await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+    await refreshWorkshopSurfaces();
+    currentEntity = updated;
+    hasUnsavedEditorChanges = false;
+    unsavedEditorFields = undefined;
+    return true;
+  };
+  const confirmDirtyEditorChanges = async (): Promise<boolean> => {
+    if (!hasUnsavedEditorChanges || !unsavedEditorFields) {
+      return true;
+    }
+    const choice = await vscode.window.showWarningMessage(
+      "You have unsaved changes in this editor. Save before continuing?",
+      { modal: true },
+      "Save",
+      "Discard",
+      "Cancel"
+    );
+    if (choice === "Cancel" || !choice) {
+      return false;
+    }
+    if (choice === "Save") {
+      return saveCurrentEntity(unsavedEditorFields);
+    }
+    hasUnsavedEditorChanges = false;
+    unsavedEditorFields = undefined;
+    return true;
   };
   if (entity.entityType === "requirement") {
     requirementWorkbenchController = {
       open: async (requirement, entities, options) => {
+        const canContinue = await confirmDirtyEditorChanges();
+        if (!canContinue) {
+          panel.reveal(vscode.ViewColumn.One, true);
+          return;
+        }
         await rememberRequirement(requirement);
         currentEntity = requirement;
         currentEntities = entities;
@@ -2556,7 +2812,149 @@ async function openEntityEditor(
     });
   }
   wireWorkshopPanelMessages(panel, refreshEditor);
+  const runPendingEditorCommand = async (message: SaveEntityMessage): Promise<void> => {
+    const command = message.pendingCommand;
+    if (!command) {
+      return;
+    }
+    if (command === "openRequirementInEditor" && message.pendingRequirementId) {
+      requirementFilterText = message.pendingFilterText ?? "";
+      const target = (await listAllEntities()).find(
+        (item): item is RequirementEntity =>
+          item.entityType === "requirement" &&
+          item.id === message.pendingRequirementId &&
+          item.recordStatus !== "deleted"
+      );
+      if (target) {
+        currentEntity = target;
+        await rememberRequirement(target);
+        await refreshEditor();
+      }
+      return;
+    }
+    if (
+      command === "openAdjacentRequirement" &&
+      message.pendingRequirementId &&
+      isRequirementNavigationDirection(message.pendingDirection)
+    ) {
+      await openAdjacentRequirement(message.pendingRequirementId, message.pendingDirection);
+      return;
+    }
+    if (command === "openEntity" && message.pendingEntityType && message.pendingEntityId) {
+      await openItemDetailForEntity(message.pendingEntityType, message.pendingEntityId);
+      return;
+    }
+    if (command === "openEvidenceReference") {
+      const reference =
+        currentEntity.entityType === "evidence" ? message.fields?.reference : message.pendingEvidenceReference;
+      await openEvidenceReference(reference);
+      return;
+    }
+    if (command === "recordChange") {
+      await recordSignificantChange(message.pendingEntityType, message.pendingEntityId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "applyTag" && message.pendingRequirementId) {
+      await applyTag(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "removeTag" && message.pendingRequirementId && message.pendingTagId) {
+      await removeTag(message.pendingRequirementId, message.pendingTagId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "attachEvidenceToRequirement" && message.pendingRequirementId) {
+      await attachEvidence(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "linkExistingEvidenceToRequirement" && message.pendingRequirementId) {
+      await linkExistingEvidence(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "createActionForRequirement" && message.pendingRequirementId) {
+      await createAction(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "linkExistingActionToRequirement" && message.pendingRequirementId) {
+      await linkExistingAction(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "createRiskForRequirement" && message.pendingRequirementId) {
+      await createRisk(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "linkExistingRiskToRequirement" && message.pendingRequirementId) {
+      await linkExistingRisk(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "linkExistingDirectionToRequirement" && message.pendingRequirementId) {
+      await linkExistingDirection(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "mapRequirementToIsm" && message.pendingRequirementId) {
+      const requirement = (await listRequirements()).find((item) => item.id === message.pendingRequirementId);
+      if (requirement) {
+        await createRequirementControlMapping(requirement);
+        await refreshEditor();
+      }
+      return;
+    }
+    if (command === "refresh") {
+      await refreshEditor();
+      return;
+    }
+    if (command.startsWith("pspf.")) {
+      await vscode.commands.executeCommand(command);
+      await refreshEditor();
+    }
+  };
   panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
+    if (message.command === "editorDirtyState") {
+      if (message.entityType === currentEntity.entityType && message.entityId === currentEntity.id) {
+        hasUnsavedEditorChanges = Boolean(message.isDirty);
+        unsavedEditorFields = message.fields;
+      }
+      return;
+    }
+    if (message.command === "confirmDirtyNavigation") {
+      if (message.entityType !== currentEntity.entityType || message.entityId !== currentEntity.id || !message.fields) {
+        return;
+      }
+      const choice = await vscode.window.showWarningMessage(
+        "You have unsaved changes in this editor. Save before continuing?",
+        { modal: true },
+        "Save",
+        "Discard",
+        "Cancel"
+      );
+      if (choice === "Cancel" || !choice) {
+        return;
+      }
+      if (choice === "Save") {
+        const saved = await saveCurrentEntity(message.fields);
+        if (!saved) {
+          return;
+        }
+      } else {
+        hasUnsavedEditorChanges = false;
+        unsavedEditorFields = undefined;
+        if (message.pendingCommand === "openEvidenceReference" && currentEntity.entityType === "evidence") {
+          await openEvidenceReference(currentEntity.reference);
+          return;
+        }
+      }
+      await runPendingEditorCommand(message);
+      return;
+    }
     if (message.command === "openRequirementInEditor" && message.requirementId) {
       requirementFilterText = message.filterText ?? "";
       const target = (await listAllEntities()).find(
@@ -2570,6 +2968,10 @@ async function openEntityEditor(
       }
       return;
     }
+    if (message.command === "openEvidenceReference") {
+      await openEvidenceReference(message.evidenceReference);
+      return;
+    }
     if (
       !["saveEntity", "saveAndCloseEntity", "saveAndNextEntity"].includes(message.command ?? "") ||
       message.entityType !== currentEntity.entityType ||
@@ -2581,8 +2983,7 @@ async function openEntityEditor(
     if (!updated) {
       return;
     }
-    await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
-    await refreshWorkshopSurfaces();
+    await saveCurrentEntity(message.fields ?? {});
     currentEntity = updated;
     if (message.command === "saveAndNextEntity") {
       if (updated.entityType === "requirement") {
@@ -2631,6 +3032,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       readonly tagId?: string;
       readonly savedViewId?: string;
       readonly direction?: string;
+      readonly evidenceReference?: string;
     }) => {
       if (message.command === "refresh") {
         await refreshPanel?.();
@@ -2638,6 +3040,10 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       }
       if (message.command === "openEntity" && message.entityType && message.entityId) {
         await openItemDetailForEntity(message.entityType, message.entityId);
+      }
+      if (message.command === "openEvidenceReference") {
+        await openEvidenceReference(message.evidenceReference);
+        return;
       }
       if (
         message.command === "openAdjacentRequirement" &&
@@ -2729,6 +3135,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.openMasterDashboard",
         "pspf.workshop.openPlanOfActionBoard",
         "pspf.workshop.openStrategyMap",
+        "pspf.workshop.editStrategySummary",
         "pspf.workshop.openEvidenceReviewQueue",
         "pspf.workshop.copyPostureBrief"
       ]);
@@ -2804,7 +3211,15 @@ async function buildUpdatedEntity(
         await vscode.window.showWarningMessage("Select a valid Action status before saving.");
         return undefined;
       }
-      return { ...entity, title, status, dueDate: normaliseShortAuDateTime(fields.dueDate), updatedAt };
+      return {
+        ...entity,
+        title,
+        status,
+        startDate: normaliseShortAuDateTime(fields.startDate),
+        endDate: normaliseShortAuDateTime(fields.endDate),
+        dueDate: normaliseShortAuDateTime(fields.dueDate),
+        updatedAt
+      };
     }
     case "risk": {
       const title = fields.title?.trim();
@@ -3147,6 +3562,7 @@ function renderEvidenceEditor(evidence: EvidenceEntity): string {
     ${inputField("title", "Title", evidence.title, true)}
     ${selectField("evidenceType", "Evidence type", evidenceTypeItems, evidence.evidenceType)}
     ${inputField("reference", "Reference", evidence.reference, true)}
+    <div class="form-actions">${evidenceReferenceButton(evidence.reference)}</div>
     ${selectField("freshness", "Freshness", freshnessItems, evidence.freshness)}
   `
   );
@@ -3175,6 +3591,8 @@ function renderActionEditor(action: ActionEntity, allEntities: readonly V01Entit
     `
     ${inputField("title", "Title", action.title, true)}
     ${selectField("status", "Status", actionStatusItems, action.status)}
+    ${inputField("startDate", "Start date", formatShortAuDateTime(action.startDate) ?? "", false, "today or 1 Jul 2026")}
+    ${inputField("endDate", "End date", formatShortAuDateTime(action.endDate) ?? "", false, "30 Sep 2026")}
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
   `
   )}${readOnlyImpact}${commercialContextSection(action, allEntities)}`;
@@ -4282,6 +4700,7 @@ async function copyPostureBrief(): Promise<void> {
   const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
   const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
   const directions = allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction");
+  const strategies = allEntities.filter((entity): entity is StrategyEntity => entity.entityType === "strategy");
   const brief = renderPostureBriefMarkdown({
     generatedAt: new Date(),
     requirements,
@@ -4290,6 +4709,7 @@ async function copyPostureBrief(): Promise<void> {
     risks,
     links,
     directions,
+    strategies,
     domains: PSPF_DOMAINS,
     sourceLabel: "PSPF Workshop"
   });
@@ -4998,11 +5418,60 @@ function tableCell(record: object, field: string): string {
   if (field === "action") {
     return `<td data-field="${escapeHtml(field)}">${value}</td>`;
   }
+  if (field === "reference" && readRecordField(record, "openEntityType") === "evidence") {
+    return `<td data-field="${escapeHtml(field)}">${evidenceReferenceCell(value)}</td>`;
+  }
   if (field === "explanation") {
     const fullValue = String(readRecordField(record, "explanationFull") ?? value);
     return `<td data-field="${escapeHtml(field)}" title="${escapeHtml(fullValue)}"><span class="cell-compact">${escapeHtml(value)}</span></td>`;
   }
   return `<td data-field="${escapeHtml(field)}">${escapeHtml(value)}</td>`;
+}
+
+function evidenceReferenceCell(reference: string): string {
+  const trimmed = reference.trim();
+  if (!trimmed || trimmed === "Not recorded") {
+    return escapeHtml(reference);
+  }
+  return `<span class="cell-compact">${escapeHtml(trimmed)}</span> ${evidenceReferenceButton(trimmed)}`;
+}
+
+function evidenceReferenceButton(reference: string): string {
+  return `<button type="button" data-command="openEvidenceReference" data-evidence-reference="${escapeHtml(reference)}">Open evidence</button>`;
+}
+
+async function openEvidenceReference(reference: string | undefined): Promise<void> {
+  const trimmed = reference?.trim();
+  if (!trimmed) {
+    await vscode.window.showWarningMessage("No Evidence reference is recorded to open.");
+    return;
+  }
+  const uri = evidenceReferenceUri(trimmed);
+  if (!uri) {
+    await vscode.window.showWarningMessage("This Evidence reference is not a URL or file path that Workshop can open.");
+    return;
+  }
+  const opened = await vscode.env.openExternal(uri);
+  if (!opened) {
+    await vscode.window.showWarningMessage("Could not open the Evidence reference.");
+  }
+}
+
+function evidenceReferenceUri(reference: string): vscode.Uri | undefined {
+  if (/^https?:\/\//i.test(reference) || /^file:\/\//i.test(reference)) {
+    return vscode.Uri.parse(reference, true);
+  }
+  if (reference.startsWith("/") || reference.startsWith("~")) {
+    return vscode.Uri.file(reference.startsWith("~/") ? reference.replace(/^~/, process.env.HOME ?? "") : reference);
+  }
+  if (/^[A-Za-z]:[\\/]/.test(reference)) {
+    return vscode.Uri.file(reference);
+  }
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (workspaceFolder && /[\\/]/.test(reference)) {
+    return vscode.Uri.joinPath(workspaceFolder.uri, ...reference.split(/[\\/]+/).filter(Boolean));
+  }
+  return undefined;
 }
 
 function summariseImpactExplanation(explanation: readonly string[]): string {

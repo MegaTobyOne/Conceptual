@@ -142,6 +142,11 @@
         "icon": "$(graph)"
       },
       {
+        "command": "pspf.workshop.editStrategySummary",
+        "title": "PSPF: Edit Strategy Summary",
+        "icon": "$(edit)"
+      },
+      {
         "command": "pspf.workshop.openEvidenceReviewQueue",
         "title": "PSPF: Open Evidence Review Queue"
       },

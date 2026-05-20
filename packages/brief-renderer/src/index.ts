@@ -5,7 +5,8 @@ import type {
   EvidenceEntity,
   LinkEntity,
   RequirementEntity,
-  RiskEntity
+  RiskEntity,
+  StrategyEntity
 } from "@pspf/contracts";
 
 export interface PostureBriefInput {
@@ -17,6 +18,7 @@ export interface PostureBriefInput {
   readonly links: readonly LinkEntity[];
   readonly domains: readonly Pick<DomainEntity, "id" | "title">[];
   readonly directions?: readonly DirectionEntity[];
+  readonly strategies?: readonly StrategyEntity[];
   readonly sourceLabel?: string;
   readonly bundleVersion?: string;
   readonly schemaVersion?: string;
@@ -30,6 +32,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
   const openActions = input.actions.filter((action) => !["done", "cancelled"].includes(action.status));
   const openRisks = input.risks.filter((risk) => risk.status !== "closed");
   const directions = input.directions ?? [];
+  const strategy = (input.strategies ?? []).find((item) => item.recordStatus !== "deleted");
   const directionsNeedingResponse = directions.filter(
     (direction) => direction.responseState === "not-set" || direction.responseState === "no"
   ).length;
@@ -60,6 +63,13 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
     `- Actions: ${input.actions.length}`,
     `- Risks: ${input.risks.length}`,
     `- Directions: ${directions.length}${directions.length > 0 ? ` (${directionsNeedingResponse} need a response)` : ""}`,
+    strategy
+      ? `- Strategy: ${strategy.title} (${strategy.scope}, ${strategy.timeHorizon})`
+      : "- Strategy: None recorded",
+    "",
+    "## Strategy",
+    "",
+    ...strategyRows(strategy),
     "",
     "## Requirement Status",
     "",
@@ -118,6 +128,7 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     const openActions = (input.actions || []).filter((action) => !["done", "cancelled"].includes(action.status));
     const openRisks = (input.risks || []).filter((risk) => risk.status !== "closed");
     const directions = input.directions || [];
+    const strategy = (input.strategies || []).find((item) => item.recordStatus !== "deleted");
     const directionsNeedingResponse = directions.filter((direction) => direction.responseState === "not-set" || direction.responseState === "no").length;
     const currentEvidenceRequirements = (input.requirements || []).filter((requirement) => (evidenceIdsByRequirement.get(requirement.id) || []).some((evidenceId) => evidenceById.get(evidenceId)?.freshness === "current")).length;
     const evidenceNeedsReview = (input.evidence || []).filter((item) => item.freshness !== "current").length;
@@ -141,6 +152,11 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "- Actions: " + (input.actions || []).length,
       "- Risks: " + (input.risks || []).length,
       "- Directions: " + directions.length + (directions.length > 0 ? " (" + directionsNeedingResponse + " need a response)" : ""),
+      strategy ? "- Strategy: " + strategy.title + " (" + strategy.scope + ", " + strategy.timeHorizon + ")" : "- Strategy: None recorded",
+      "",
+      "## Strategy",
+      "",
+      ...strategyRows(strategy),
       "",
       "## Requirement Status",
       "",
@@ -178,6 +194,20 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     const counts = countBy(requirements, (requirement) => requirement.assessmentStatus);
     const rows = Object.entries(counts).map(([status, count]) => "- " + label(status) + ": " + count);
     return rows.length > 0 ? rows : ["- None recorded."];
+  }
+  function strategyRows(strategy) {
+    if (!strategy) {
+      return ["- None recorded."];
+    }
+    const rows = [
+      "- Statement: " + strategy.strategyStatement,
+      "- Risk posture: " + strategy.riskPostureStatement,
+      strategy.executiveSummary ? "- Executive summary: " + strategy.executiveSummary : undefined,
+      strategy.owner ? "- Owner: " + strategy.owner : undefined,
+      strategy.frameworks && strategy.frameworks.length > 0 ? "- Frameworks: " + strategy.frameworks.join(", ") : undefined
+    ].filter(Boolean);
+    const choices = (strategy.choices || []).slice(0, 3).map((choice) => "- Choice: " + choice.statement + " - " + choice.targetPosture);
+    return [...rows, ...choices];
   }
   function buildRequirementTitlesByTargetId(links, requirementsById) {
     const titlesByTargetId = new Map();
@@ -224,6 +254,23 @@ function statusRows(requirements: readonly RequirementEntity[]): readonly string
     ([status, count]) => `- ${label(status)}: ${count}`
   );
   return rows.length > 0 ? rows : ["- None recorded."];
+}
+
+function strategyRows(strategy: StrategyEntity | undefined): readonly string[] {
+  if (!strategy) {
+    return ["- None recorded."];
+  }
+  const rows = [
+    `- Statement: ${strategy.strategyStatement}`,
+    `- Risk posture: ${strategy.riskPostureStatement}`,
+    strategy.executiveSummary ? `- Executive summary: ${strategy.executiveSummary}` : undefined,
+    strategy.owner ? `- Owner: ${strategy.owner}` : undefined,
+    strategy.frameworks.length > 0 ? `- Frameworks: ${strategy.frameworks.join(", ")}` : undefined
+  ].filter((row): row is string => Boolean(row));
+  const choices = strategy.choices
+    .slice(0, 3)
+    .map((choice) => `- Choice: ${choice.statement} - ${choice.targetPosture}`);
+  return [...rows, ...choices];
 }
 
 function buildRequirementTitlesByTargetId(

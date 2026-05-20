@@ -84,9 +84,9 @@ export function buildPlanOfActionBoardModel(
 ): PlanOfActionBoardModel {
   const now = startOfUtcDay(options.now ?? new Date());
   const maxTimelineWidth = options.maxTimelineWidth ?? 1100;
-  const actions = entities
-    .filter((entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted")
-    .filter((action) => !["done", "cancelled"].includes(action.status));
+  const actions = entities.filter(
+    (entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted"
+  );
   const links = entities.filter(
     (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
   );
@@ -132,6 +132,7 @@ export function buildPlanOfActionBoardModel(
     ...phase,
     tasks: tasks.filter((task) => task.phaseId === phase.id)
   }));
+  const activeTasks = tasks.filter((task) => !["done", "cancelled"].includes(task.status));
 
   return {
     generatedAt: now.toISOString(),
@@ -142,10 +143,10 @@ export function buildPlanOfActionBoardModel(
     timelineWidth,
     phases,
     metrics: {
-      actions: actions.length,
-      blocked: tasks.filter((task) => task.urgency === "blocked").length,
-      overdue: tasks.filter((task) => task.urgency === "overdue").length,
-      dueSoon: tasks.filter((task) => task.urgency === "due-soon").length,
+      actions: activeTasks.length,
+      blocked: activeTasks.filter((task) => task.urgency === "blocked").length,
+      overdue: activeTasks.filter((task) => task.urgency === "overdue").length,
+      dueSoon: activeTasks.filter((task) => task.urgency === "due-soon").length,
       linkedRequirements: uniqueLinkedCount("requirement", links, actions),
       linkedRisks: uniqueLinkedCount("risk", links, actions)
     }
@@ -193,10 +194,10 @@ function deriveTaskDates(
   fallbackIndex: number
 ): { readonly startDate: Date; readonly endDate: Date } {
   const urgency = action.impact?.urgency ?? "normal";
-  const dueDate = parseDate(action.dueDate) ?? addDays(now, 14 + fallbackIndex * 3);
+  const endDate = parseDate(action.endDate) ?? parseDate(action.dueDate) ?? addDays(now, 14 + fallbackIndex * 3);
   const durationDays = urgency === "blocked" ? 14 : urgency === "overdue" ? 10 : urgency === "due-soon" ? 7 : 12;
-  const startDate = addDays(dueDate, -(durationDays - 1));
-  return { startDate, endDate: dueDate };
+  const startDate = parseDate(action.startDate) ?? addDays(endDate, -(durationDays - 1));
+  return startDate <= endDate ? { startDate, endDate } : { startDate: endDate, endDate: startDate };
 }
 
 function countActionLinks(
