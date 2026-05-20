@@ -1,5 +1,5 @@
 import { PSPF_SLICE_VERSION } from "@pspf/contracts";
-import { tokensCss } from "@pspf/webview-shell";
+import { commandButtonAcknowledgementScript, tokensCss } from "@pspf/webview-shell";
 
 /**
  * Workshop webview chrome wrappers.
@@ -80,8 +80,12 @@ export function homeShellHtml(title: string, body: string): string {
   <script>
     const vscode = acquireVsCodeApi();
     globalThis.__pspfWorkshopVscode = vscode;
+    ${commandButtonAcknowledgementScript}
     document.querySelectorAll("button[data-command]").forEach((button) => {
-      button.addEventListener("click", () => vscode.postMessage({ command: button.dataset.command }));
+      button.addEventListener("click", () => {
+        pspfAcknowledgeCommandButton(button);
+        vscode.postMessage({ command: button.dataset.command });
+      });
     });
   </script>
 </body>
@@ -196,11 +200,13 @@ export function shellHtml(title: string, body: string): string {
   </main>
   <script>
     const vscode = typeof acquireVsCodeApi === 'function' ? acquireVsCodeApi() : undefined;
+    ${commandButtonAcknowledgementScript}
     document.addEventListener('click', (event) => {
       const button = event.target instanceof HTMLElement ? event.target.closest('button[data-command]') : null;
       if (!button || !vscode) {
         return;
       }
+      pspfAcknowledgeCommandButton(button);
       const command = button.getAttribute('data-command');
       if (command === 'openEntity') {
         vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });

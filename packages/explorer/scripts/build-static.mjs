@@ -27,14 +27,16 @@ const html = `<!doctype html>
     .header-trust { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; }
     main { width: min(1680px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0; }
     button, input { font: inherit; }
-    button { background: var(--pspf-primary); color: #f0fdfa; border: 1px solid var(--accent-strong); border-radius: var(--pspf-radius); padding: 8px 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    button { background: var(--pspf-primary); color: #f0fdfa; border: 1px solid var(--accent-strong); border-radius: var(--pspf-radius); padding: 8px 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transform-origin: center; transition: background-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), border-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), opacity var(--pspf-motion-responsive) var(--pspf-ease-responsive), transform var(--pspf-motion-responsive) var(--pspf-ease-responsive); }
     button.secondary { background: var(--pspf-surface-strong); border-color: var(--pspf-border); color: var(--pspf-text); }
     button:hover { background: #0d9488; }
+    button:active:not(:disabled) { transform: scale(var(--pspf-button-active-scale)); }
     button:focus-visible { outline: 2px solid var(--pspf-focus); outline-offset: 2px; }
+    button[aria-busy="true"], button[data-state="saving"] { opacity: 0.78; cursor: progress; }
     input, select { color: #f4f4f5; }
     select { background: var(--pspf-surface-strong); border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: 6px 8px; }
     input::file-selector-button { background: var(--pspf-surface-strong); color: var(--pspf-text); border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: 6px 10px; }
-    input:focus-visible { outline: 2px solid var(--pspf-focus); outline-offset: 2px; }
+    input:focus-visible { outline: 2px solid var(--pspf-focus); outline-offset: 2px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--pspf-focus) 18%, transparent); }
     a { color: #bae6fd; }
     a:focus-visible { outline: 2px solid var(--pspf-focus); outline-offset: 2px; border-radius: var(--pspf-radius-sm); }
     .banner { margin: 0; background: var(--amber-soft); border-bottom: 1px solid var(--amber); color: #fde68a; padding: 8px var(--pspf-pad-lg); font-weight: 600; }
@@ -46,8 +48,9 @@ const html = `<!doctype html>
     .panel { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--pspf-radius); padding: var(--pspf-pad); margin-bottom: var(--pspf-pad); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset; }
     .snapshot-panel { border-color: rgba(20, 184, 166, 0.45); background: linear-gradient(180deg, rgba(18, 63, 59, 0.24), var(--surface)); }
     .section-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: var(--pspf-pad-sm); align-items: center; background: rgba(20, 19, 17, 0.92); border: 1px solid var(--border-soft); border-radius: var(--pspf-radius); padding: var(--pspf-pad-sm); margin: 0 0 var(--pspf-pad); backdrop-filter: blur(10px); }
-    .section-nav a, .section-nav button { color: #e8dfcf; text-decoration: none; border: 1px solid var(--border-soft); background: var(--surface-soft); border-radius: var(--pspf-radius); padding: 6px 10px; font-size: 14px; white-space: nowrap; font-weight: 600; }
+    .section-nav a, .section-nav button { color: #e8dfcf; text-decoration: none; border: 1px solid var(--border-soft); background: var(--surface-soft); border-radius: var(--pspf-radius); padding: 6px 10px; font-size: 14px; white-space: nowrap; font-weight: 600; transform-origin: center; transition: background-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), border-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), transform var(--pspf-motion-responsive) var(--pspf-ease-responsive); }
     .section-nav a:hover, .section-nav button:hover { border-color: var(--accent-strong); background: var(--surface-strong); }
+    .section-nav a:active, .section-nav button:active { transform: scale(var(--pspf-button-active-scale)); }
     .search-panel { display: grid; grid-template-columns: 1fr; gap: 10px; border-color: rgba(20, 184, 166, 0.32); background: linear-gradient(180deg, rgba(18, 63, 59, 0.14), var(--surface)); }
     .search-panel h2 { margin: 0; }
     .search-panel p { margin: 0; }
@@ -81,7 +84,8 @@ const html = `<!doctype html>
     .local-filter-status { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; border: 1px solid rgba(20, 184, 166, 0.32); border-radius: 6px; background: rgba(18, 63, 59, 0.22); color: #ccfbf1; font-size: 12px; line-height: 1.4; padding: 8px; margin-top: 10px; }
     .local-filter-status button { padding: 4px 8px; font-size: 12px; }
     .local-requirement-list { display: grid; gap: 4px; max-height: min(72vh, 48rem); overflow: auto; margin-top: 10px; padding-right: 2px; }
-    .local-requirement-option { width: 100%; display: grid; gap: 3px; text-align: left; background: var(--surface); border-color: var(--border-soft); color: var(--text); white-space: normal; font-size: 13px; line-height: 1.35; font-weight: 600; padding: 7px 9px; }
+    .local-requirement-option { width: 100%; display: grid; gap: 3px; text-align: left; background: var(--surface); border-color: var(--border-soft); color: var(--text); white-space: normal; font-size: 13px; line-height: 1.35; font-weight: 600; padding: 7px 9px; transition: background-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), border-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), transform var(--pspf-motion-responsive) var(--pspf-ease-responsive); }
+    .local-requirement-option:active { transform: scale(var(--pspf-button-active-scale)); }
     .local-requirement-option > span:first-child { overflow-wrap: anywhere; }
     .local-requirement-option[aria-pressed="true"] { border-color: var(--accent-strong); background: var(--accent-soft); }
     .local-requirement-option.search-pinned { border-style: dashed; }
@@ -243,6 +247,7 @@ let currentLocalEvidenceReferences = [];
 let currentLocalActions = [];
 let currentLocalRisks = [];
 let currentSavedViews = [];
+let localSaveFeedback;
 let activeSavedViewId = "";
 let activeRelationshipsSavedViewId = "";
 let currentLocalRequirementId;
@@ -1300,7 +1305,7 @@ function localAuthoringPanel(requirements) {
           '<h3 id="local-selected-heading">Selected Requirement</h3>' +
           '<p><strong>' + escapeHtml(selectedRequirement?.title || "No Requirement selected") + '</strong></p>' +
           '<p class="muted">Baseline: ' + escapeHtml(label(selectedBaseline?.assessmentStatus || selectedRequirement?.assessmentStatus || "not-started")) + ' · Local: ' + escapeHtml(label(selectedRequirement?.assessmentStatus || "not-started")) + (selectedConflict ? ' · <span class="check fail">Baseline changed</span>' : '') + '</p>' +
-          (selectedRequirement ? '<div class="toolbar"><label for="local-selected-status">Status</label>' + statusSelect(selectedRequirement.id, selectedRequirement.assessmentStatus, "local-selected-status") + '</div>' : '') +
+          (selectedRequirement ? '<div class="toolbar"><label for="local-selected-status">Status</label>' + statusSelect(selectedRequirement.id, selectedRequirement.assessmentStatus, "local-selected-status") + localSaveStatusHtml("status") + '</div>' : '') +
         '</section>' +
         '<section class="local-card" aria-labelledby="local-linked-heading">' +
           '<h3 id="local-linked-heading">Linked Context</h3>' +
@@ -1321,6 +1326,7 @@ function localAuthoringPanel(requirements) {
             '<label for="local-evidence-title">Title</label><input id="local-evidence-title" type="text" value="Local evidence reference">' +
             '<label for="local-evidence-reference">Reference</label><input id="local-evidence-reference" type="text" placeholder="Document path or URL">' +
             '<button type="button" id="add-local-evidence">Add evidence</button>' +
+            localSaveStatusHtml("evidence") +
           '</div>' +
           '<p class="muted">Local evidence references: ' + localEvidenceCount + '</p>' +
           table(localEvidenceRows(selectedRequirement?.id), ["title", "requirement", "reference", "source"]) +
@@ -1332,6 +1338,7 @@ function localAuthoringPanel(requirements) {
             '<label for="local-action-status">Status</label>' + actionStatusSelect() +
             '<label for="local-action-due-date">Due date</label><input id="local-action-due-date" type="date">' +
             '<button type="button" id="add-local-action">Add action</button>' +
+            localSaveStatusHtml("action") +
           '</div>' +
           '<p class="muted">Local actions: ' + localActionCount + '</p>' +
           table(localActionRows(selectedRequirement?.id), ["title", "requirement", "status", "dueDate", "source"]) +
@@ -1344,6 +1351,7 @@ function localAuthoringPanel(requirements) {
             '<label for="local-risk-likelihood">Likelihood</label>' + scoreSelect("local-risk-likelihood", 3) +
             '<label for="local-risk-impact">Impact</label>' + scoreSelect("local-risk-impact", 3) +
             '<button type="button" id="add-local-risk">Add risk</button>' +
+            localSaveStatusHtml("risk") +
           '</div>' +
           '<p class="muted">Local risks: ' + localRiskCount + '</p>' +
           table(localRiskRows(selectedRequirement?.id), ["title", "requirement", "status", "likelihood", "impact", "source"]) +
@@ -1353,11 +1361,92 @@ function localAuthoringPanel(requirements) {
     '<details class="local-card"><summary><strong>All local status overlays</strong></summary>' + tableHtml(rows, ["title", "baseline", "local", "source", "conflict"]) + '</details>';
 }
 
+function localSaveStatusHtml(target) {
+  const feedback = localSaveFeedback && localSaveFeedback.target === target ? localSaveFeedback : undefined;
+  const state = feedback?.state || "idle";
+  const text = feedback?.message || "";
+  return '<span class="pspf-save-indicator" data-local-save-target="' + escapeHtml(target) + '" data-state="' + escapeHtml(state) + '" role="status">' + escapeHtml(text) + '</span>';
+}
+
+function setLocalSaveFeedback(target, state, message) {
+  localSaveFeedback = { target, state, message };
+  const status = localAuthoringSection.querySelector('[data-local-save-target="' + target + '"]');
+  if (status) {
+    status.setAttribute("data-state", state);
+    status.textContent = message;
+  }
+}
+
+function setButtonState(button, state) {
+  if (!button) {
+    return;
+  }
+  if (state === "saving") {
+    button.setAttribute("aria-busy", "true");
+    button.dataset.state = "saving";
+    button.disabled = true;
+    return;
+  }
+  button.removeAttribute("aria-busy");
+  button.dataset.state = state;
+  button.disabled = false;
+}
+
+async function withLocalSaveFeedback(target, button, action) {
+  setButtonState(button, "saving");
+  setLocalSaveFeedback(target, "saving", "Saving...");
+  try {
+    await action();
+    setLocalSaveFeedback(target, "saved", "Saved ✓");
+  } catch (error) {
+    setButtonState(button, "error");
+    setLocalSaveFeedback(target, "error", "Could not save");
+    throw error;
+  }
+}
+
+function setRequiredFieldState(input, valid, message) {
+  if (!(input instanceof HTMLInputElement)) {
+    return;
+  }
+  input.setAttribute("aria-invalid", valid ? "false" : "true");
+  if (!valid) {
+    input.focus();
+  }
+  input.title = valid ? "" : message;
+}
+
+function requireInputValue(selector, message) {
+  const input = localAuthoringSection.querySelector(selector);
+  const value = input instanceof HTMLInputElement ? input.value.trim() : "";
+  setRequiredFieldState(input, value.length > 0, message);
+  return value;
+}
+
+function bindRequiredFieldValidation(selector, message) {
+  const input = localAuthoringSection.querySelector(selector);
+  if (!(input instanceof HTMLInputElement)) {
+    return;
+  }
+  input.addEventListener("blur", () => {
+    setRequiredFieldState(input, input.value.trim().length > 0, message);
+  });
+  input.addEventListener("input", () => {
+    if (input.getAttribute("aria-invalid") === "true" && input.value.trim().length > 0) {
+      setRequiredFieldState(input, true, message);
+    }
+  });
+}
+
 function bindLocalAuthoringControls() {
+  bindRequiredFieldValidation("#local-evidence-title", "Enter an evidence title");
+  bindRequiredFieldValidation("#local-evidence-reference", "Enter an evidence reference");
+  bindRequiredFieldValidation("#local-action-title", "Enter an action title");
+  bindRequiredFieldValidation("#local-risk-title", "Enter a risk title");
   localAuthoringSection.querySelectorAll("select[data-requirement-id]").forEach((select) => {
     select.addEventListener("change", async () => {
       currentLocalRequirementId = select.dataset.requirementId;
-      await setLocalRequirementStatus(select.dataset.requirementId, select.value);
+      await withLocalSaveFeedback("status", undefined, () => setLocalRequirementStatus(select.dataset.requirementId, select.value));
     });
   });
   localAuthoringSection.querySelectorAll(".local-requirement-option").forEach((button) => {
@@ -1400,26 +1489,38 @@ function bindLocalAuthoringControls() {
       }
     });
   });
-  localAuthoringSection.querySelector("#add-local-evidence")?.addEventListener("click", async () => {
+  localAuthoringSection.querySelector("#add-local-evidence")?.addEventListener("click", async (event) => {
     const requirementId = currentLocalRequirementId;
-    const title = localAuthoringSection.querySelector("#local-evidence-title")?.value;
-    const reference = localAuthoringSection.querySelector("#local-evidence-reference")?.value;
-    await addLocalEvidenceReference(requirementId, title, reference);
+    const title = requireInputValue("#local-evidence-title", "Enter an evidence title");
+    const reference = requireInputValue("#local-evidence-reference", "Enter an evidence reference");
+    if (!title || !reference) {
+      setLocalSaveFeedback("evidence", "error", "Add a title and reference");
+      return;
+    }
+    await withLocalSaveFeedback("evidence", event.currentTarget, () => addLocalEvidenceReference(requirementId, title, reference));
   });
-  localAuthoringSection.querySelector("#add-local-action")?.addEventListener("click", async () => {
+  localAuthoringSection.querySelector("#add-local-action")?.addEventListener("click", async (event) => {
     const requirementId = currentLocalRequirementId;
-    const title = localAuthoringSection.querySelector("#local-action-title")?.value;
+    const title = requireInputValue("#local-action-title", "Enter an action title");
     const status = localAuthoringSection.querySelector("#local-action-status")?.value;
     const dueDate = localAuthoringSection.querySelector("#local-action-due-date")?.value;
-    await addLocalAction(requirementId, title, status, dueDate);
+    if (!title) {
+      setLocalSaveFeedback("action", "error", "Add an action title");
+      return;
+    }
+    await withLocalSaveFeedback("action", event.currentTarget, () => addLocalAction(requirementId, title, status, dueDate));
   });
-  localAuthoringSection.querySelector("#add-local-risk")?.addEventListener("click", async () => {
+  localAuthoringSection.querySelector("#add-local-risk")?.addEventListener("click", async (event) => {
     const requirementId = currentLocalRequirementId;
-    const title = localAuthoringSection.querySelector("#local-risk-title")?.value;
+    const title = requireInputValue("#local-risk-title", "Enter a risk title");
     const status = localAuthoringSection.querySelector("#local-risk-status")?.value;
     const likelihood = Number(localAuthoringSection.querySelector("#local-risk-likelihood")?.value || 3);
     const impact = Number(localAuthoringSection.querySelector("#local-risk-impact")?.value || 3);
-    await addLocalRisk(requirementId, title, status, likelihood, impact);
+    if (!title) {
+      setLocalSaveFeedback("risk", "error", "Add a risk title");
+      return;
+    }
+    await withLocalSaveFeedback("risk", event.currentTarget, () => addLocalRisk(requirementId, title, status, likelihood, impact));
   });
   snapSelectedLocalRequirementIntoView();
   updateStorageStatus();

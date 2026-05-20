@@ -528,6 +528,18 @@ Empty states should be helpful and specific. Good examples:
 
 Loading should use skeletons or subtle progress indicators rather than blank screens. The UI should keep enough structure visible that users understand what kind of content is coming.
 
+### Interaction acknowledgement
+
+Every common interaction should visibly acknowledge the user within 100 ms, even when the underlying work takes longer. The canonical timing is `--pspf-motion-responsive: 180ms` with `--pspf-ease-responsive: cubic-bezier(0.16, 1, 0.3, 1)` from `@pspf/webview-shell`.
+
+Buttons should use distinct hover and active states. Hover may shift background or border tone; active press must feel tactile with `transform: scale(var(--pspf-button-active-scale))`, then snap back on the responsive easing curve. When a button starts an asynchronous operation, it should enter a busy or saving state immediately and show a spinner only if the operation lasts beyond a short delay.
+
+Fields should show a visible focus ring, not just a colour shift. Inline validation should appear after blur or failed save/submit, not while the user is still typing. Use `aria-invalid` and a text message so the state is not communicated by colour alone. Floating-label layouts may be used where they improve context without adding clutter.
+
+Save feedback should be contextual. Prefer an inline status near the changed element, for example `Saving...`, `Saved ✓`, `All changes saved`, or a persistent inline error. The save button itself should also change state during save and briefly after success before resetting.
+
+Use the shared primitives for these states: `pspf-button`, `pspf-field`, `pspf-inline-status`, `pspf-save-indicator`, `pspf-spinner`, and `pspf-skeleton`. Product-specific aliases may wrap these primitives, but should not invent separate timing, spinner, or save-status systems.
+
 ### Error states
 
 Errors should be actionable and safe. Use messages like:
@@ -582,6 +594,7 @@ Canonical primitive classes:
 - `pspf-banner` and `pspf-sensitivity-banner` for warning, sensitivity, and trust notices.
 - `pspf-mode-strip` and `pspf-mode-step` for ordered workflow or exchange-mode cues.
 - `pspf-metric`, `pspf-empty`, `pspf-error`, and `pspf-table` for dense operational panels.
+- `pspf-field`, `pspf-inline-status`, `pspf-save-indicator`, `pspf-spinner`, and `pspf-skeleton` for responsive field, save, and loading feedback.
 
 Product surfaces may still keep narrow product aliases such as `--workshop-*` or `--shop-*`, but those aliases should resolve to `--pspf-*` tokens. Hardcoded local palettes, local `.pill` / `.version-pill` primitives, and one-off `.mode-step` styling are transitional only. The `check:design-drift` script guards against adding new drift while older surfaces are migrated.
 

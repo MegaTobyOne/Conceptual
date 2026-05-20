@@ -1,6 +1,6 @@
 import { copyFile } from "node:fs/promises";
 import { basename, join, relative } from "node:path";
-import { pill as shellPill, tokensCss } from "@pspf/webview-shell";
+import { commandButtonAcknowledgementScript, pill as shellPill, tokensCss } from "@pspf/webview-shell";
 import * as vscode from "vscode";
 import { createCoreService, type ImportMode, type ImportResult } from "./service.js";
 
@@ -357,9 +357,11 @@ function importReviewHtml(
   </main>
   <script>
     const vscode = acquireVsCodeApi();
+    ${commandButtonAcknowledgementScript}
     document.addEventListener("click", (event) => {
       const button = event.target instanceof HTMLElement ? event.target.closest("button[data-command]") : null;
       if (button) {
+        pspfAcknowledgeCommandButton(button);
         vscode.postMessage({ command: button.dataset.command });
       }
     });
