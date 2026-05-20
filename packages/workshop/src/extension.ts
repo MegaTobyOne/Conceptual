@@ -9,6 +9,12 @@ import {
 import { pill as shellPill } from "@pspf/webview-shell";
 import { escapeHtml, homeButton, homeShellHtml, shellHtml } from "./webview/shell.js";
 import {
+  buildPlanOfActionBoardModel,
+  type PlanOfActionBoardModel,
+  type PlanOfActionPhaseModel,
+  type PlanOfActionTaskModel
+} from "./plan-of-action-board.js";
+import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
   CHANGE_RECORD_STATUSES,
@@ -101,6 +107,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.linkExistingDirection", linkExistingDirection),
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
     vscode.commands.registerCommand("pspf.workshop.openMasterDashboard", openMasterDashboard),
+    vscode.commands.registerCommand("pspf.workshop.openPlanOfActionBoard", openPlanOfActionBoard),
     vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
     vscode.commands.registerCommand("pspf.workshop.openStrategyMap", openStrategyMap),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
@@ -224,6 +231,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openRisksList",
       "pspf.workshop.openAssessmentDashboard",
       "pspf.workshop.openMasterDashboard",
+      "pspf.workshop.openPlanOfActionBoard",
       "pspf.workshop.openConnectedView",
       "pspf.workshop.openStrategyMap",
       "pspf.workshop.openEvidenceReviewQueue",
@@ -361,6 +369,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
         ${homeButton("pspf.workshop.openMasterDashboard", "Master Dashboard", "Open the CISO decision board")}
+        ${homeButton("pspf.workshop.openPlanOfActionBoard", "Plan of Action", "Review workstreams, timing, and linked Actions")}
         ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
         ${homeButton("pspf.workshop.openStrategyMap", "Strategy Map", "Connect strategic choices to Requirements, Risks, Actions, and Directions")}
         ${homeButton("pspf.workshop.openChangeRecords", "Change records", "Review why important records changed")}
@@ -958,9 +967,12 @@ async function openMasterDashboard(): Promise<void> {
   const openRisks = risks.filter((risk) => risk.status !== "closed");
   const highRisks = openRisks.filter((risk) => risk.likelihood * risk.impact >= 16).length;
   const metRequirements = requirements.filter((requirement) => requirement.assessmentStatus === "met").length;
-  const evidenceCoverage = requirements.length > 0 ? Math.round((evidenceRequirementIds.size / requirements.length) * 100) : 0;
+  const evidenceCoverage =
+    requirements.length > 0 ? Math.round((evidenceRequirementIds.size / requirements.length) * 100) : 0;
   const metPercentage = requirements.length > 0 ? Math.round((metRequirements / requirements.length) * 100) : 0;
-  const staleEvidence = evidence.filter((item) => item.freshness !== "current" || !linkedEvidenceIds.has(item.id)).length;
+  const staleEvidence = evidence.filter(
+    (item) => item.freshness !== "current" || !linkedEvidenceIds.has(item.id)
+  ).length;
   const strategy = strategies[0];
   const strategyChoices = strategy?.choices.length ?? 0;
   const strategyMeasures =
@@ -1013,11 +1025,41 @@ async function openMasterDashboard(): Promise<void> {
     }
   ];
   const decisionLoopRows = [
-    masterLoopRow("Strategy, Risk and Architecture", "GOV / RISK", strategyChoices, `${strategyMeasures} measures`, "Why this control here, why now?"),
-    masterLoopRow("Governance, Metrics and Reporting", "GOV", directions.length, `${directionResponses["not-set"]} Directions not set`, "What needs AA, Audit Committee or CSO attention?"),
-    masterLoopRow("Systems, Authorisation and Operations", "TECH / INFO", requirements.length, `${evidenceCoverage}% evidence coverage`, "Which systems and controls can we stand behind?"),
-    masterLoopRow("Incident Management and Resilience", "GOV / TECH / RISK", changeRecords.length, `${changeRecords.length} change records`, "What did we learn and what changed?"),
-    masterLoopRow("People, Capability and Culture", "GOV / PER / RISK", openActions.length, `${blockedActions} blocked actions`, "Where does capability constrain uplift?")
+    masterLoopRow(
+      "Strategy, Risk and Architecture",
+      "GOV / RISK",
+      strategyChoices,
+      `${strategyMeasures} measures`,
+      "Why this control here, why now?"
+    ),
+    masterLoopRow(
+      "Governance, Metrics and Reporting",
+      "GOV",
+      directions.length,
+      `${directionResponses["not-set"]} Directions not set`,
+      "What needs AA, Audit Committee or CSO attention?"
+    ),
+    masterLoopRow(
+      "Systems, Authorisation and Operations",
+      "TECH / INFO",
+      requirements.length,
+      `${evidenceCoverage}% evidence coverage`,
+      "Which systems and controls can we stand behind?"
+    ),
+    masterLoopRow(
+      "Incident Management and Resilience",
+      "GOV / TECH / RISK",
+      changeRecords.length,
+      `${changeRecords.length} change records`,
+      "What did we learn and what changed?"
+    ),
+    masterLoopRow(
+      "People, Capability and Culture",
+      "GOV / PER / RISK",
+      openActions.length,
+      `${blockedActions} blocked actions`,
+      "Where does capability constrain uplift?"
+    )
   ];
   const streamRows = [
     {
@@ -1068,7 +1110,9 @@ async function openMasterDashboard(): Promise<void> {
       }))
     : [];
   const actionRows = openActions
-    .filter((action): action is ActionEntity & { impact: NonNullable<ActionEntity["impact"]> } => Boolean(action.impact))
+    .filter((action): action is ActionEntity & { impact: NonNullable<ActionEntity["impact"]> } =>
+      Boolean(action.impact)
+    )
     .map((action) => ({
       openEntityType: "action",
       openEntityId: action.id,
@@ -1109,6 +1153,7 @@ async function openMasterDashboard(): Promise<void> {
         ${metricCard("Report signals", changeRecords.length + directions.length)}
       </div>
       <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
         <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
         <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
         <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
@@ -1130,9 +1175,121 @@ async function openMasterDashboard(): Promise<void> {
     ${recordTable("CISO Decision Loops", decisionLoopRows, ["loop", "maturity", "records", "signal", "question"])}
     ${recordTable("Strategy And Performance", strategyRows, ["choice", "capability", "trend", "confidence", "outcomes", "measures", "target"])}
     ${recordTable("Plan Of Action Streams", streamRows, ["stream", "focus", "count", "leadSurface", "action"])}
+    <section>
+      <h2>Plan Of Action Board</h2>
+      <p class="muted">Open the workstream timeline for linked Actions, live status, evidence/risk context and reporting pressure.</p>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Open Plan of Action</button>
+      </div>
+    </section>
     ${recordTable("Action Pressure", actionRows, ["title", "status", "urgency", "total", "dueDate"])}
   `
   );
+}
+
+async function openPlanOfActionBoard(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const model = buildPlanOfActionBoardModel(enrichActionsWithImpact(allEntities));
+  const panel = vscode.window.createWebviewPanel(
+    "pspfPlanOfActionBoard",
+    "PSPF Plan of Action",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    const refreshedEntities = await listAllEntities();
+    panel.webview.html = renderPlanOfActionBoard(
+      buildPlanOfActionBoardModel(enrichActionsWithImpact(refreshedEntities))
+    );
+  });
+  panel.webview.html = renderPlanOfActionBoard(model);
+}
+
+function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
+  const taskRows = model.phases.flatMap((phase) =>
+    phase.tasks.map((task) => ({
+      openEntityType: "action",
+      openEntityId: task.actionId,
+      title: task.title,
+      stream: phase.title,
+      status: label(task.status),
+      urgency: label(task.urgency),
+      dueDate: formatShortAuDateTime(task.dueDate) ?? "Not set",
+      linkedRequirements: task.linkedRequirements,
+      linkedRisks: task.linkedRisks,
+      impact: task.impactTotal
+    }))
+  );
+
+  return shellHtml(
+    "PSPF Plan of Action",
+    `
+    <section>
+      <p class="eyebrow">Master Dashboard Upgrade</p>
+      <h1>Plan of Action</h1>
+      <p class="muted">OFFICIAL: Sensitive · Derived from live Workshop Actions, linked evidence, risks, requirements and Directions.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Open actions", model.metrics.actions)}
+        ${metricCard("Blocked", model.metrics.blocked)}
+        ${metricCard("Overdue", model.metrics.overdue)}
+        ${metricCard("Due soon", model.metrics.dueSoon)}
+        ${metricCard("Linked requirements", model.metrics.linkedRequirements)}
+        ${metricCard("Linked risks", model.metrics.linkedRisks)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.createAction">Create action</button>
+        <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
+        <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
+        <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
+      </div>
+    </section>
+    <section>
+      <h2>Timeline Preview</h2>
+      <p class="muted">${escapeHtml(model.timelineStart)} to ${escapeHtml(model.timelineEnd)} · ${model.totalDays} days · adaptive width ${Math.round(model.dayWidth * 10) / 10}px/day</p>
+      ${renderPlanOfActionTimeline(model)}
+    </section>
+    ${recordTable("Action Worklist", taskRows, ["title", "stream", "status", "urgency", "dueDate", "linkedRequirements", "linkedRisks", "impact"])}
+  `
+  );
+}
+
+function renderPlanOfActionTimeline(model: PlanOfActionBoardModel): string {
+  if (model.metrics.actions === 0) {
+    return `<p class="muted">No open Actions are available yet. Create Actions or load the sample workspace to populate the Plan of Action.</p>`;
+  }
+  return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
+    ${model.phases.map((phase) => renderPlanOfActionPhase(phase, model.timelineWidth)).join("")}
+  </div>`;
+}
+
+function renderPlanOfActionPhase(phase: PlanOfActionPhaseModel, timelineWidth: number): string {
+  const tasks = phase.tasks.length
+    ? phase.tasks.map((task) => renderPlanOfActionTask(task, timelineWidth)).join("")
+    : `<p class="muted">No open Actions currently sit in this workstream.</p>`;
+  return `<div class="poa-phase">
+    <div class="poa-phase__header">
+      <strong>${escapeHtml(phase.title)}</strong>
+      <span>${escapeHtml(phase.summary)}</span>
+    </div>
+    <div class="poa-phase__tasks">${tasks}</div>
+  </div>`;
+}
+
+function renderPlanOfActionTask(task: PlanOfActionTaskModel, timelineWidth: number): string {
+  const barClass = `poa-bar poa-bar--${task.urgency}`;
+  const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
+  return `<div class="poa-task">
+    <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
+      <strong>${escapeHtml(task.title)}</strong>
+      <span>${escapeHtml(label(task.status))} · ${escapeHtml(label(task.urgency))}</span>
+    </button>
+    <div class="poa-track" style="width: ${timelineWidth}px;">
+      <div class="${escapeHtml(barClass)}" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}">${barLabel}</div>
+    </div>
+  </div>`;
 }
 
 function masterLoopRow(
@@ -2566,8 +2723,11 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.core.createSnapshot",
         "pspf.core.exportBundle",
         "pspf.shop.openForecast",
+        "pspf.workshop.createAction",
         "pspf.workshop.openAssessmentDashboard",
         "pspf.workshop.openConnectedView",
+        "pspf.workshop.openMasterDashboard",
+        "pspf.workshop.openPlanOfActionBoard",
         "pspf.workshop.openStrategyMap",
         "pspf.workshop.openEvidenceReviewQueue",
         "pspf.workshop.copyPostureBrief"

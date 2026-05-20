@@ -175,6 +175,22 @@ export function shellHtml(title: string, body: string): string {
     .requirement-browser__number { display: block; color: var(--workshop-blue); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
     .requirement-browser__meta { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .requirement-browser__content { min-width: 0; }
+    .poa-board { display: grid; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .poa-phase { min-width: max(760px, var(--poa-width)); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; background: linear-gradient(180deg, color-mix(in srgb, var(--workshop-blue) 8%, var(--surface)), var(--surface)); }
+    .poa-phase__header { display: grid; gap: 3px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .poa-phase__header strong { font-size: 13px; }
+    .poa-phase__header span { color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .poa-phase__tasks { display: grid; gap: 7px; }
+    .poa-task { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 10px; align-items: center; }
+    .poa-task__label { display: grid; gap: 2px; min-height: 34px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); background: var(--surface-strong); text-align: left; }
+    .poa-task__label strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .poa-task__label span { color: var(--muted); font-size: 11px; }
+    .poa-track { position: relative; min-height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 0 1px, transparent 1px 28px), color-mix(in srgb, var(--surface-strong) 80%, transparent); overflow: hidden; }
+    .poa-bar { position: absolute; top: 5px; height: 22px; display: flex; align-items: center; min-width: 18px; max-width: calc(100% - 2px); border-radius: 999px; padding: 0 8px; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; box-sizing: border-box; overflow: hidden; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24); }
+    .poa-bar--blocked { background: #b42318; }
+    .poa-bar--overdue { background: #b54708; }
+    .poa-bar--due-soon { background: #1d4ed8; }
+    .poa-bar--normal { background: #047857; }
     .workshop-sensitivity { margin: 0; padding: 8px var(--pad-lg); }
     .muted { color: var(--muted); }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -187,6 +203,8 @@ export function shellHtml(title: string, body: string): string {
       .requirement-browser { grid-template-columns: 1fr; }
       .requirement-browser__nav { position: static; max-height: none; }
       .requirement-browser__list { max-height: 320px; }
+      .poa-task { grid-template-columns: 1fr; }
+      .poa-task__label strong { white-space: normal; }
       table { min-width: 680px; }
       th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"] { min-width: 16rem; }
     }
