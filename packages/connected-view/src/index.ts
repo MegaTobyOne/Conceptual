@@ -75,6 +75,23 @@ export interface ConnectedViewModel {
   readonly compactLanes: readonly ConnectedViewLane[];
 }
 
+export type ConnectedViewAnchorSide = "left" | "right" | "top" | "bottom";
+
+export interface ConnectedViewConnectorRect {
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface ConnectedViewConnectorPath {
+  readonly fromSide: ConnectedViewAnchorSide;
+  readonly toSide: ConnectedViewAnchorSide;
+  readonly from: { readonly x: number; readonly y: number };
+  readonly to: { readonly x: number; readonly y: number };
+  readonly path: string;
+}
+
 /* -------------------- link verbs we surface -------------------- */
 
 const DIRECTION_TO_REQUIREMENT_LINKS = new Set(["targets"]);
@@ -240,6 +257,77 @@ function isReverseOrientedEdge(link: LinkEntity): boolean {
   return false;
 }
 
+export function buildConnectedViewConnectorPath(
+  fromRect: ConnectedViewConnectorRect,
+  toRect: ConnectedViewConnectorRect
+): ConnectedViewConnectorPath {
+  const fromCentre = rectCentre(fromRect);
+  const toCentre = rectCentre(toRect);
+  const xDelta = toCentre.x - fromCentre.x;
+  const yDelta = toCentre.y - fromCentre.y;
+  const useVerticalAnchors = Math.abs(yDelta) > Math.abs(xDelta) * 1.15;
+  const fromSide: ConnectedViewAnchorSide = useVerticalAnchors
+    ? yDelta >= 0
+      ? "bottom"
+      : "top"
+    : xDelta >= 0
+      ? "right"
+      : "left";
+  const toSide: ConnectedViewAnchorSide = useVerticalAnchors
+    ? yDelta >= 0
+      ? "top"
+      : "bottom"
+    : xDelta >= 0
+      ? "left"
+      : "right";
+  const from = anchorPoint(fromRect, fromSide);
+  const to = anchorPoint(toRect, toSide);
+  const path = useVerticalAnchors
+    ? verticalConnectorPath(from, to, fromSide)
+    : horizontalConnectorPath(from, to, fromSide);
+  return { fromSide, toSide, from, to, path };
+}
+
+function rectCentre(rect: ConnectedViewConnectorRect): { readonly x: number; readonly y: number } {
+  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+}
+
+function anchorPoint(
+  rect: ConnectedViewConnectorRect,
+  side: ConnectedViewAnchorSide
+): { readonly x: number; readonly y: number } {
+  switch (side) {
+    case "left":
+      return { x: rect.left, y: rect.top + rect.height / 2 };
+    case "right":
+      return { x: rect.left + rect.width, y: rect.top + rect.height / 2 };
+    case "top":
+      return { x: rect.left + rect.width / 2, y: rect.top };
+    case "bottom":
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height };
+  }
+}
+
+function horizontalConnectorPath(
+  from: { readonly x: number; readonly y: number },
+  to: { readonly x: number; readonly y: number },
+  fromSide: ConnectedViewAnchorSide
+): string {
+  const direction = fromSide === "right" ? 1 : -1;
+  const handle = Math.max(40, Math.abs(to.x - from.x) * 0.45);
+  return `M ${from.x} ${from.y} C ${from.x + handle * direction} ${from.y}, ${to.x - handle * direction} ${to.y}, ${to.x} ${to.y}`;
+}
+
+function verticalConnectorPath(
+  from: { readonly x: number; readonly y: number },
+  to: { readonly x: number; readonly y: number },
+  fromSide: ConnectedViewAnchorSide
+): string {
+  const direction = fromSide === "bottom" ? 1 : -1;
+  const handle = Math.max(40, Math.abs(to.y - from.y) * 0.45);
+  return `M ${from.x} ${from.y} C ${from.x} ${from.y + handle * direction}, ${to.x} ${to.y - handle * direction}, ${to.x} ${to.y}`;
+}
+
 /* -------------------- badge helpers -------------------- */
 
 function statusBadge(status: AssessmentStatus): ConnectedViewBadge {
@@ -389,6 +477,8 @@ export function renderConnectedViewBodyHtml(
       <button type="button" class="cv-chip" data-cv-lane-toggle="requirements" aria-pressed="true">Requirements</button>
       <button type="button" class="cv-chip" data-cv-lane-toggle="risks" aria-pressed="true">Risks</button>
       <button type="button" class="cv-chip" data-cv-lane-toggle="actions" aria-pressed="true">Actions</button>
+      <span class="cv-chip-label cv-domain-label">Domains:</span>
+      ${model.domains.map((domain) => `<button type="button" class="cv-chip cv-chip-domain" data-cv-domain-toggle="${escapeAttr(domain.code)}" aria-pressed="true">${escapeHtml(domain.code.toUpperCase())}</button>`).join("")}
       <button type="button" class="cv-chip" data-cv-action="zoom-out" aria-label="Zoom out">−</button>
       <span class="cv-zoom-level" data-cv-zoom-label>100%</span>
       <button type="button" class="cv-chip" data-cv-action="zoom-in" aria-label="Zoom in">+</button>
@@ -519,6 +609,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 .cv-chip:focus-visible { outline: 2px solid var(--pspf-focus, var(--cv-accent)); outline-offset: 1px; }
 .cv-chip[aria-pressed="false"] { opacity: 0.55; }
 .cv-chip-label { color: var(--cv-muted); }
+.cv-domain-label { padding-inline: 4px 0; }
 .cv-zoom-level { color: var(--cv-muted); font-size: 11.5px; min-width: 38px; text-align: center; }
 .cv-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cv-muted); }
 .cv-dot-directions { background: var(--cv-direction); }
@@ -526,6 +617,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 .cv-board {
   position: relative;
   display: grid; gap: 12px; padding: 14px;
+  width: 100%;
   flex: 1 1 auto;
   border: 1px solid var(--cv-border); border-top: 0;
   border-radius: 0 0 8px 8px;
@@ -535,9 +627,10 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   zoom: var(--cv-zoom);
 }
 .cv-lane.cv-lane-hidden { display: none !important; }
+.cv-card.cv-domain-hidden { display: none !important; }
 .pspf-connected-view.layout-grouped .cv-board {
   grid-auto-flow: column;
-  grid-auto-columns: minmax(220px, 1fr);
+  grid-auto-columns: minmax(240px, 1fr);
 }
 .pspf-connected-view.layout-compact .cv-board {
   grid-template-columns: minmax(260px, 1.3fr) minmax(260px, 1fr) minmax(260px, 1fr);
@@ -672,7 +765,13 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   border-color: color-mix(in srgb, var(--cv-accent) 65%, var(--cv-border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--cv-accent) 35%, transparent);
 }
+.cv-card.cv-promoted { animation: cv-promote 180ms var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)); }
 .cv-card.cv-scroll-target { box-shadow: 0 0 0 3px color-mix(in srgb, var(--cv-accent) 55%, transparent); }
+
+@keyframes cv-promote {
+  from { transform: translateY(5px); }
+  to { transform: translateY(0); }
+}
 
 .cv-links {
   position: absolute; inset: 0;
@@ -719,6 +818,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 @media (prefers-reduced-motion: reduce) {
   .cv-chip, .cv-card, .cv-links path, .cv-card-open { transition: none; }
   .cv-chip:active, .cv-card:active, .cv-card-open:active { transform: none; }
+  .cv-card.cv-promoted { animation: none; }
 }
 @media (max-width: 900px) {
   .pspf-connected-view.layout-grouped .cv-board,
@@ -910,6 +1010,9 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     const subtitle = opts.subtitle || "Requirements \u2194 Risks \u2194 Actions";
     const showDirections = opts.showDirectionsLane !== false;
     const dataPayload = JSON.stringify({ edges: model.edges, grouped: model.groupedLanes, compact: model.compactLanes, domains: model.domains }).replace(/</g, "\\u003c");
+    const domainControls = model.domains.map(function (domain) {
+      return '<button type="button" class="cv-chip cv-chip-domain" data-cv-domain-toggle="' + escAttr(domain.code) + '" aria-pressed="true">' + esc(domain.code.toUpperCase()) + '</button>';
+    }).join("");
     const laneHtml = lanes.map(function (l) { return renderLane(l, nodesById, mode); }).join("");
     return '<div class="pspf-connected-view ' + initialClass + '" data-pspf-connected-view data-default-layout="' + defaultLayout + '" data-mode="' + mode + '">' +
       '<header class="cv-toolbar">' +
@@ -920,6 +1023,8 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
           '<button type="button" class="cv-chip" data-cv-lane-toggle="requirements" aria-pressed="true">Requirements</button>' +
           '<button type="button" class="cv-chip" data-cv-lane-toggle="risks" aria-pressed="true">Risks</button>' +
           '<button type="button" class="cv-chip" data-cv-lane-toggle="actions" aria-pressed="true">Actions</button>' +
+          '<span class="cv-chip-label cv-domain-label">Domains:</span>' +
+          domainControls +
           '<button type="button" class="cv-chip" data-cv-action="zoom-out" aria-label="Zoom out">-</button>' +
           '<span class="cv-zoom-level" data-cv-zoom-label>100%</span>' +
           '<button type="button" class="cv-chip" data-cv-action="zoom-in" aria-label="Zoom in">+</button>' +
@@ -969,6 +1074,7 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     const zoomResetBtn = root.querySelector('[data-cv-action="zoom-reset"]');
     const zoomLabel = root.querySelector('[data-cv-zoom-label]');
     const laneButtons = root.querySelectorAll('[data-cv-lane-toggle]');
+    const domainButtons = root.querySelectorAll('[data-cv-domain-toggle]');
 
     const selection = new Set();
     let zoom = 1;
@@ -1008,12 +1114,41 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       return null;
     }
 
-    function anchor(el, side) {
+    function rectFor(el) {
       const br = board.getBoundingClientRect();
       const r = el.getBoundingClientRect();
-      const x = side === "right" ? r.right - br.left + board.scrollLeft : r.left - br.left + board.scrollLeft;
-      const y = r.top - br.top + board.scrollTop + r.height / 2;
-      return { x: x, y: y };
+      return {
+        left: r.left - br.left + board.scrollLeft,
+        top: r.top - br.top + board.scrollTop,
+        width: r.width,
+        height: r.height
+      };
+    }
+    function centre(rect) { return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }
+    function point(rect, side) {
+      if (side === "left") return { x: rect.left, y: rect.top + rect.height / 2 };
+      if (side === "right") return { x: rect.left + rect.width, y: rect.top + rect.height / 2 };
+      if (side === "top") return { x: rect.left + rect.width / 2, y: rect.top };
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height };
+    }
+    function connectorPath(fromRect, toRect) {
+      const fromCentre = centre(fromRect);
+      const toCentre = centre(toRect);
+      const xDelta = toCentre.x - fromCentre.x;
+      const yDelta = toCentre.y - fromCentre.y;
+      const vertical = Math.abs(yDelta) > Math.abs(xDelta) * 1.15;
+      const fromSide = vertical ? (yDelta >= 0 ? "bottom" : "top") : (xDelta >= 0 ? "right" : "left");
+      const toSide = vertical ? (yDelta >= 0 ? "top" : "bottom") : (xDelta >= 0 ? "left" : "right");
+      const from = point(fromRect, fromSide);
+      const to = point(toRect, toSide);
+      if (vertical) {
+        const direction = fromSide === "bottom" ? 1 : -1;
+        const handle = Math.max(40, Math.abs(to.y - from.y) * 0.45);
+        return "M " + from.x + " " + from.y + " C " + from.x + " " + (from.y + handle * direction) + ", " + to.x + " " + (to.y - handle * direction) + ", " + to.x + " " + to.y;
+      }
+      const direction = fromSide === "right" ? 1 : -1;
+      const handle = Math.max(40, Math.abs(to.x - from.x) * 0.45);
+      return "M " + from.x + " " + from.y + " C " + (from.x + handle * direction) + " " + from.y + ", " + (to.x - handle * direction) + " " + to.y + ", " + to.x + " " + to.y;
     }
 
     function drawLinks() {
@@ -1028,12 +1163,8 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
         const a = visibleCard(edge.fromId);
         const b = visibleCard(edge.toId);
         if (!a || !b) continue;
-        const p1 = anchor(a, "right");
-        const p2 = anchor(b, "left");
-        const dx = Math.max(40, (p2.x - p1.x) * 0.45);
-        const d = "M " + p1.x + " " + p1.y + " C " + (p1.x + dx) + " " + p1.y + ", " + (p2.x - dx) + " " + p2.y + ", " + p2.x + " " + p2.y;
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", d);
+        path.setAttribute("d", connectorPath(rectFor(a), rectFor(b)));
         path.dataset.from = edge.fromId;
         path.dataset.to = edge.toId;
         svg.appendChild(path);
@@ -1065,11 +1196,35 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       return readCard(el);
     }
 
+    function applySelectionOrdering(connected, hasSel) {
+      root.querySelectorAll("[data-cv-card]").forEach(function (el) {
+        const id = el.dataset.cvId;
+        const isSelected = hasSel && selection.has(id);
+        const isConnected = hasSel && !isSelected && connected.has(id);
+        el.classList.toggle("cv-promoted", isSelected || isConnected);
+        if (!hasSel) {
+          el.style.order = "";
+        } else if (isSelected) {
+          el.style.order = "-20";
+        } else if (isConnected) {
+          el.style.order = "-10";
+        } else {
+          el.style.order = "";
+        }
+      });
+    }
+
+    function refreshSelection() {
+      applySelectionStyles();
+      requestAnimationFrame(drawLinks);
+    }
+
     function applySelectionStyles() {
       const hasSel = selection.size > 0;
       root.classList.toggle("cv-has-selection", hasSel);
       if (clearBtn) clearBtn.hidden = !hasSel;
       const connected = hasSel ? transitive(Array.from(selection)) : new Set();
+      applySelectionOrdering(connected, hasSel);
       root.querySelectorAll("[data-cv-card]").forEach(function (el) {
         const id = el.dataset.cvId;
         const isSelected = selection.has(id);
@@ -1099,6 +1254,64 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
         el.classList.toggle("cv-lane-hidden", !show);
       });
       requestAnimationFrame(drawLinks);
+    }
+
+    function cardKind(id) {
+      const card = root.querySelector('[data-cv-card][data-cv-id="' + cssEscape(id) + '"]');
+      return card && card.dataset.cvKind;
+    }
+
+    function selectedDomainCodes() {
+      const selected = new Set();
+      domainButtons.forEach(function (button) {
+        if (button.getAttribute("aria-pressed") !== "false") selected.add(button.dataset.cvDomainToggle);
+      });
+      return selected;
+    }
+
+    function connectedToSelectedDomains(requirementIds) {
+      const connected = new Set(requirementIds);
+      for (const edge of edges) {
+        const fromIsRequirement = requirementIds.has(edge.fromId);
+        const toIsRequirement = requirementIds.has(edge.toId);
+        if (!fromIsRequirement && !toIsRequirement) continue;
+        connected.add(edge.fromId);
+        connected.add(edge.toId);
+      }
+      for (const edge of edges) {
+        const fromKind = cardKind(edge.fromId);
+        const toKind = cardKind(edge.toId);
+        if (fromKind === "risk" && connected.has(edge.fromId) && toKind === "action") connected.add(edge.toId);
+        if (toKind === "risk" && connected.has(edge.toId) && fromKind === "action") connected.add(edge.fromId);
+      }
+      return connected;
+    }
+
+    function applyDomainVisibility() {
+      const selectedDomains = selectedDomainCodes();
+      const visibleRequirements = new Set();
+      root.querySelectorAll('[data-cv-card][data-cv-kind="requirement"]').forEach(function (card) {
+        const show = selectedDomains.has(card.dataset.cvDomain);
+        card.classList.toggle("cv-domain-hidden", !show);
+        if (show) visibleRequirements.add(card.dataset.cvId);
+      });
+      const connected = connectedToSelectedDomains(visibleRequirements);
+      root.querySelectorAll('[data-cv-card]:not([data-cv-kind="requirement"])').forEach(function (card) {
+        card.classList.toggle("cv-domain-hidden", !connected.has(card.dataset.cvId));
+      });
+      root.querySelectorAll('[data-cv-lane][data-cv-domain]').forEach(function (lane) {
+        lane.classList.toggle("cv-lane-hidden", !selectedDomains.has(lane.dataset.cvDomain));
+      });
+      requestAnimationFrame(drawLinks);
+    }
+
+    function setDomainVisibility(domainCode, show) {
+      if (!domainCode) return;
+      root.querySelectorAll('[data-cv-domain="' + cssEscape(domainCode) + '"]').forEach(function (el) {
+        if (el.matches && el.matches("[data-cv-lane]")) el.classList.toggle("cv-lane-hidden", !show);
+        else el.classList.toggle("cv-domain-hidden", !show);
+      });
+      applyDomainVisibility();
     }
 
     function escHtml(s) {
@@ -1183,7 +1396,7 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
         else { selection.clear(); selection.add(id); }
       }
       hideHover();
-      applySelectionStyles();
+      refreshSelection();
     });
     board.addEventListener("dblclick", function (event) {
       const target = event.target instanceof Element ? event.target : null;
@@ -1207,10 +1420,10 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
           if (selection.size === 1 && selection.has(id)) selection.clear();
           else { selection.clear(); selection.add(id); }
         }
-        applySelectionStyles();
+        refreshSelection();
       }
     });
-    if (clearBtn) clearBtn.addEventListener("click", function () { selection.clear(); applySelectionStyles(); });
+    if (clearBtn) clearBtn.addEventListener("click", function () { selection.clear(); refreshSelection(); });
     if (refreshBtn) refreshBtn.addEventListener("click", function () {
       try {
         const shared = globalThis.__pspfWorkshopVscode;
@@ -1248,6 +1461,14 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
         const showing = button.getAttribute("aria-pressed") !== "false";
         button.setAttribute("aria-pressed", showing ? "false" : "true");
         setLaneVisibility(kind, showing ? false : true);
+      });
+    });
+    domainButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        const domainCode = button.dataset.cvDomainToggle;
+        const showing = button.getAttribute("aria-pressed") !== "false";
+        button.setAttribute("aria-pressed", showing ? "false" : "true");
+        setDomainVisibility(domainCode, showing ? false : true);
       });
     });
     if (zoomOutBtn) zoomOutBtn.addEventListener("click", function () { setZoom(zoom - 0.1); });

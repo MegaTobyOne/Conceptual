@@ -10,6 +10,8 @@ test("posture brief includes evidence basis and excludes sensitive requirement s
 
   assert.match(brief, /OFFICIAL: Sensitive/);
   assert.match(brief, /## Evidence Basis/);
+  assert.match(brief, /## Strategy/);
+  assert.match(brief, /Focus cyber uplift on governance assurance/);
   assert.match(brief, /Requirements with current evidence: 1/);
   assert.match(brief, /Confirm next governance review date/);
   assert.doesNotMatch(brief, /Internal assessment working note/);
@@ -72,6 +74,35 @@ function briefFixture() {
     },
     "workshop"
   );
+  const strategy = withEnvelope(
+    "strategy",
+    {
+      entityType: "strategy",
+      title: "Cybersecurity Strategy",
+      scope: "Enterprise",
+      timeHorizon: "2026-2028",
+      owner: "CISO",
+      strategyStatement: "Focus cyber uplift on governance assurance.",
+      riskPostureStatement: "Reduce unmanaged governance risk while preserving delivery pace.",
+      frameworks: ["PSPF", "ISM"],
+      choices: [
+        {
+          id: "choice-governance-assurance",
+          statement: "Prioritise governance assurance",
+          summary: "Move assurance evidence into a regular review cadence.",
+          capabilityArea: "Governance",
+          targetPosture: "Quarterly review cadence operating.",
+          trend: "improving",
+          confidence: "medium",
+          outcomes: [],
+          references: []
+        }
+      ],
+      reviewCadence: "quarterly",
+      executiveSummary: "Governance assurance is the first uplift priority."
+    },
+    "workshop"
+  );
 
   return {
     generatedAt: "2026-05-11T00:00:00.000Z",
@@ -79,6 +110,7 @@ function briefFixture() {
     evidence: [evidence],
     actions: [action],
     risks: [risk],
+    strategies: [strategy],
     links: [
       withEnvelope(
         "link",

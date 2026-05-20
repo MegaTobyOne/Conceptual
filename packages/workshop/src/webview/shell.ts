@@ -132,6 +132,7 @@ export function shellHtml(title: string, body: string): string {
     header strong { display: block; font-size: 20px; letter-spacing: 0.005em; }
     header span { color: var(--muted); font-size: 12.5px; }
     main { max-width: 1180px; margin: 0 auto; padding: var(--pad-lg); }
+    main:has(.pspf-connected-view) { max-width: min(1760px, calc(100vw - 24px)); }
     main:has(.requirement-browser) { max-width: 1320px; }
     section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); margin-bottom: var(--gap); }
     section > h2:first-child { margin-top: 0; }
@@ -219,13 +220,70 @@ export function shellHtml(title: string, body: string): string {
   <script>
     const vscode = typeof acquireVsCodeApi === 'function' ? acquireVsCodeApi() : undefined;
     ${commandButtonAcknowledgementScript}
+    function pspfFormFields(form) {
+      const data = new FormData(form);
+      const fields = {};
+      for (const [key, value] of data.entries()) {
+        fields[key] = String(value);
+      }
+      return fields;
+    }
+    function pspfSerialiseForm(form) {
+      return JSON.stringify(pspfFormFields(form));
+    }
+    function pspfActiveEditorForm() {
+      return document.querySelector('form.form-grid');
+    }
+    function pspfIsDirtyForm(form) {
+      return form && form.dataset.initialValue !== undefined && form.dataset.initialValue !== pspfSerialiseForm(form);
+    }
+    function pspfPendingCommandPayload(button, command, fields) {
+      return {
+        command: 'confirmDirtyNavigation',
+        entityType: fields.entityType || '',
+        entityId: fields.entityId || '',
+        fields,
+        pendingCommand: command,
+        pendingEntityType: button.getAttribute('data-entity-type'),
+        pendingEntityId: button.getAttribute('data-entity-id'),
+        pendingRequirementId: button.getAttribute('data-requirement-id'),
+        pendingDirectionId: button.getAttribute('data-direction-id'),
+        pendingTagId: button.getAttribute('data-tag-id'),
+        pendingSavedViewId: button.getAttribute('data-saved-view-id'),
+        pendingSavedViewScope: button.getAttribute('data-saved-view-scope'),
+        pendingDirection: button.getAttribute('data-direction'),
+        pendingFilterText: document.querySelector('.requirement-browser__filter') instanceof HTMLInputElement ? document.querySelector('.requirement-browser__filter').value : ''
+      };
+    }
+    function pspfPostDirtyState(form) {
+      if (!vscode || !form) {
+        return;
+      }
+      const fields = pspfFormFields(form);
+      vscode.postMessage({
+        command: 'editorDirtyState',
+        entityType: fields.entityType || '',
+        entityId: fields.entityId || '',
+        isDirty: pspfIsDirtyForm(form),
+        fields
+      });
+    }
+    document.querySelectorAll('form.form-grid').forEach((form) => {
+      form.dataset.initialValue = pspfSerialiseForm(form);
+    });
     document.addEventListener('click', (event) => {
       const button = event.target instanceof HTMLElement ? event.target.closest('button[data-command]') : null;
       if (!button || !vscode) {
         return;
       }
-      pspfAcknowledgeCommandButton(button);
       const command = button.getAttribute('data-command');
+      const saveCommands = new Set(['saveEntity', 'saveAndCloseEntity', 'saveAndNextEntity']);
+      const activeForm = pspfActiveEditorForm();
+      if (command && !saveCommands.has(command) && pspfIsDirtyForm(activeForm)) {
+        vscode.postMessage(pspfPendingCommandPayload(button, command, pspfFormFields(activeForm)));
+        return;
+      }
+      pspfAcknowledgeCommandButton(button);
       if (command === 'openEntity') {
         vscode.postMessage({ command, entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') });
       }
@@ -271,11 +329,7 @@ export function shellHtml(title: string, body: string): string {
         if (!form) {
           return;
         }
-        const data = new FormData(form);
-        const fields = {};
-        for (const [key, value] of data.entries()) {
-          fields[key] = String(value);
-        }
+        const fields = pspfFormFields(form);
         vscode.postMessage({
           command,
           entityType: String(data.get('entityType') || ''),
@@ -286,6 +340,11 @@ export function shellHtml(title: string, body: string): string {
     });
     document.addEventListener('input', (event) => {
       const input = event.target instanceof HTMLInputElement ? event.target : null;
+      const editedForm = event.target instanceof HTMLElement ? event.target.closest('form.form-grid') : null;
+      if (editedForm) {
+        editedForm.dataset.dirty = String(pspfIsDirtyForm(editedForm));
+        pspfPostDirtyState(editedForm);
+      }
       const targetSelector = input?.getAttribute('data-filter-target');
       if (!input || !targetSelector) {
         return;

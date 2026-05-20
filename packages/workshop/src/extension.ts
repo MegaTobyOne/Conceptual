@@ -110,6 +110,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openPlanOfActionBoard", openPlanOfActionBoard),
     vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
     vscode.commands.registerCommand("pspf.workshop.openStrategyMap", openStrategyMap),
+    vscode.commands.registerCommand("pspf.workshop.editStrategySummary", editStrategySummary),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
     vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
@@ -234,6 +235,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openPlanOfActionBoard",
       "pspf.workshop.openConnectedView",
       "pspf.workshop.openStrategyMap",
+      "pspf.workshop.editStrategySummary",
       "pspf.workshop.openEvidenceReviewQueue",
       "pspf.workshop.openItemDetail",
       "pspf.workshop.registerDirection",
@@ -987,43 +989,6 @@ async function openMasterDashboard(): Promise<void> {
     no: directions.filter((direction) => direction.responseState === "no").length,
     "risk-managed": directions.filter((direction) => direction.responseState === "risk-managed").length
   };
-  const ecosystemRows = [
-    {
-      surface: "Core",
-      purpose: "Trust, validation, snapshots, import and export",
-      signal: `${requirements.length + evidence.length + actions.length + risks.length} working records`,
-      next: "Validate or snapshot",
-      action: `<button type="button" data-command="pspf.core.validateWorkspace">Validate</button>`
-    },
-    {
-      surface: "Workshop",
-      purpose: "Authoring, evidence linkage, decisions and reporting preparation",
-      signal: `${openActions.length} open actions, ${staleEvidence} evidence items to review`,
-      next: "Continue assurance work",
-      action: `<button type="button" data-command="pspf.workshop.openAssessmentDashboard">Open</button>`
-    },
-    {
-      surface: "Shop",
-      purpose: "Supplier, contract and spend context linked to assurance work",
-      signal: "Commercial context available through Shop forecast",
-      next: "Review funded actions and contract context",
-      action: `<button type="button" data-command="pspf.shop.openForecast">Forecast</button>`
-    },
-    {
-      surface: "Explorer",
-      purpose: "Redacted posture lens for sharing and assurance review",
-      signal: `${metPercentage}% requirements met, ${evidenceCoverage}% evidence coverage`,
-      next: "Export master bundle",
-      action: `<button type="button" data-command="pspf.core.exportBundle">Export</button>`
-    },
-    {
-      surface: "Pub",
-      purpose: "People, assignments and succession load-sharing",
-      signal: "Deferred beyond the current working slice",
-      next: "Keep as dashboard placeholder",
-      action: "Deferred"
-    }
-  ];
   const decisionLoopRows = [
     masterLoopRow(
       "Strategy, Risk and Architecture",
@@ -1161,7 +1126,6 @@ async function openMasterDashboard(): Promise<void> {
         <button type="button" data-command="pspf.core.exportBundle">Export Bundle</button>
       </div>
     </section>
-    ${recordTable("Extension Tiles", ecosystemRows, ["surface", "purpose", "signal", "next", "action"])}
     <section>
       <h2>Explorer Preview</h2>
       <p class="muted">This is the shareable posture slice that should survive outside your VS Code workspace: current PSPF status, evidence coverage, risk exposure, action pressure and reporting readiness.</p>
@@ -1395,6 +1359,10 @@ async function openStrategyMap(): Promise<void> {
       <p>${escapeHtml(strategy.strategyStatement)}</p>
       <h2>Risk Posture</h2>
       <p>${escapeHtml(strategy.riskPostureStatement)}</p>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.editStrategySummary">Edit strategy summary</button>
+        <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
+      </div>
     </section>
     <section>
       <h2>Strategic Choices</h2>
@@ -1479,6 +1447,116 @@ async function createDraftStrategy(): Promise<StrategyEntity | undefined> {
   await refreshWorkshopSurfaces();
   await vscode.window.showInformationMessage("Created draft Cybersecurity Strategy.");
   return strategy;
+}
+
+async function editStrategySummary(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const existing = allEntities.find(
+    (entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.recordStatus !== "deleted"
+  );
+  const strategy = existing ?? (await createDraftStrategy());
+  if (!strategy) {
+    return;
+  }
+
+  const title = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Strategy title",
+    value: strategy.title,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a strategy title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+  const scope = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Scope",
+    value: strategy.scope,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the strategy scope." : undefined)
+  });
+  if (!scope) {
+    return;
+  }
+  const timeHorizon = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Time horizon",
+    value: strategy.timeHorizon,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the time horizon." : undefined)
+  });
+  if (!timeHorizon) {
+    return;
+  }
+  const owner = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Owner",
+    value: strategy.owner ?? "",
+    ignoreFocusOut: true
+  });
+  if (owner === undefined) {
+    return;
+  }
+  const strategyStatement = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Short strategy statement for dashboards and copied briefs",
+    value: strategy.strategyStatement,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the strategy statement." : undefined)
+  });
+  if (!strategyStatement) {
+    return;
+  }
+  const riskPostureStatement = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Risk posture statement",
+    value: strategy.riskPostureStatement,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the risk posture statement." : undefined)
+  });
+  if (!riskPostureStatement) {
+    return;
+  }
+  const executiveSummary = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Short executive summary for copied briefs",
+    value: strategy.executiveSummary ?? "",
+    ignoreFocusOut: true
+  });
+  if (executiveSummary === undefined) {
+    return;
+  }
+  const frameworks = await vscode.window.showInputBox({
+    title: "Edit Strategy Summary",
+    prompt: "Frameworks, comma-separated",
+    value: strategy.frameworks.join(", "),
+    ignoreFocusOut: true
+  });
+  if (frameworks === undefined) {
+    return;
+  }
+
+  const updated: StrategyEntity = {
+    ...strategy,
+    title: title.trim(),
+    scope: scope.trim(),
+    timeHorizon: timeHorizon.trim(),
+    owner: trimOptional(owner),
+    strategyStatement: strategyStatement.trim(),
+    riskPostureStatement: riskPostureStatement.trim(),
+    executiveSummary: trimOptional(executiveSummary),
+    frameworks: frameworks
+      .split(",")
+      .map((framework) => framework.trim())
+      .filter((framework) => framework.length > 0),
+    updatedAt: new Date().toISOString()
+  };
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage("Strategy summary updated.");
 }
 
 function strategyChoiceCard(
@@ -2452,12 +2530,29 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
 }
 
 type SaveEntityMessage = {
-  readonly command?: "saveEntity" | "saveAndCloseEntity" | "saveAndNextEntity" | "openRequirementInEditor";
+  readonly command?:
+    | "saveEntity"
+    | "saveAndCloseEntity"
+    | "saveAndNextEntity"
+    | "openRequirementInEditor"
+    | "editorDirtyState"
+    | "confirmDirtyNavigation";
   readonly entityType?: string;
   readonly entityId?: string;
   readonly requirementId?: string;
   readonly filterText?: string;
   readonly fields?: Record<string, string>;
+  readonly isDirty?: boolean;
+  readonly pendingCommand?: string;
+  readonly pendingEntityType?: string;
+  readonly pendingEntityId?: string;
+  readonly pendingRequirementId?: string;
+  readonly pendingDirectionId?: string;
+  readonly pendingTagId?: string;
+  readonly pendingSavedViewId?: string;
+  readonly pendingSavedViewScope?: string;
+  readonly pendingDirection?: string;
+  readonly pendingFilterText?: string;
 };
 
 type RequirementBrowserOptions = {
@@ -2513,6 +2608,8 @@ async function openEntityEditor(
   let currentEntities = allEntities;
   let requirementFilterText = options.filterText ?? options.savedView?.filters.query ?? "";
   let requirementSavedView = options.savedView;
+  let hasUnsavedEditorChanges = false;
+  let unsavedEditorFields: Record<string, string> | undefined;
   const panel = vscode.window.createWebviewPanel(
     "pspfEntityDetail",
     shortWorkshopPanelTitle(currentEntity),
@@ -2536,10 +2633,50 @@ async function openEntityEditor(
         savedView: requirementSavedView
       })
     );
+    hasUnsavedEditorChanges = false;
+    unsavedEditorFields = undefined;
+  };
+  const saveCurrentEntity = async (fields: Record<string, string>): Promise<boolean> => {
+    const updated = await buildUpdatedEntity(currentEntity, fields);
+    if (!updated) {
+      return false;
+    }
+    await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+    await refreshWorkshopSurfaces();
+    currentEntity = updated;
+    hasUnsavedEditorChanges = false;
+    unsavedEditorFields = undefined;
+    return true;
+  };
+  const confirmDirtyEditorChanges = async (): Promise<boolean> => {
+    if (!hasUnsavedEditorChanges || !unsavedEditorFields) {
+      return true;
+    }
+    const choice = await vscode.window.showWarningMessage(
+      "You have unsaved changes in this editor. Save before continuing?",
+      { modal: true },
+      "Save",
+      "Discard",
+      "Cancel"
+    );
+    if (choice === "Cancel" || !choice) {
+      return false;
+    }
+    if (choice === "Save") {
+      return saveCurrentEntity(unsavedEditorFields);
+    }
+    hasUnsavedEditorChanges = false;
+    unsavedEditorFields = undefined;
+    return true;
   };
   if (entity.entityType === "requirement") {
     requirementWorkbenchController = {
       open: async (requirement, entities, options) => {
+        const canContinue = await confirmDirtyEditorChanges();
+        if (!canContinue) {
+          panel.reveal(vscode.ViewColumn.One, true);
+          return;
+        }
         await rememberRequirement(requirement);
         currentEntity = requirement;
         currentEntities = entities;
@@ -2556,7 +2693,139 @@ async function openEntityEditor(
     });
   }
   wireWorkshopPanelMessages(panel, refreshEditor);
+  const runPendingEditorCommand = async (message: SaveEntityMessage): Promise<void> => {
+    const command = message.pendingCommand;
+    if (!command) {
+      return;
+    }
+    if (command === "openRequirementInEditor" && message.pendingRequirementId) {
+      requirementFilterText = message.pendingFilterText ?? "";
+      const target = (await listAllEntities()).find(
+        (item): item is RequirementEntity =>
+          item.entityType === "requirement" &&
+          item.id === message.pendingRequirementId &&
+          item.recordStatus !== "deleted"
+      );
+      if (target) {
+        currentEntity = target;
+        await rememberRequirement(target);
+        await refreshEditor();
+      }
+      return;
+    }
+    if (
+      command === "openAdjacentRequirement" &&
+      message.pendingRequirementId &&
+      isRequirementNavigationDirection(message.pendingDirection)
+    ) {
+      await openAdjacentRequirement(message.pendingRequirementId, message.pendingDirection);
+      return;
+    }
+    if (command === "openEntity" && message.pendingEntityType && message.pendingEntityId) {
+      await openItemDetailForEntity(message.pendingEntityType, message.pendingEntityId);
+      return;
+    }
+    if (command === "recordChange") {
+      await recordSignificantChange(message.pendingEntityType, message.pendingEntityId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "applyTag" && message.pendingRequirementId) {
+      await applyTag(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "removeTag" && message.pendingRequirementId && message.pendingTagId) {
+      await removeTag(message.pendingRequirementId, message.pendingTagId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "attachEvidenceToRequirement" && message.pendingRequirementId) {
+      await attachEvidence(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "linkExistingEvidenceToRequirement" && message.pendingRequirementId) {
+      await linkExistingEvidence(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "createActionForRequirement" && message.pendingRequirementId) {
+      await createAction(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "linkExistingActionToRequirement" && message.pendingRequirementId) {
+      await linkExistingAction(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "createRiskForRequirement" && message.pendingRequirementId) {
+      await createRisk(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "linkExistingRiskToRequirement" && message.pendingRequirementId) {
+      await linkExistingRisk(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "linkExistingDirectionToRequirement" && message.pendingRequirementId) {
+      await linkExistingDirection(message.pendingRequirementId);
+      await refreshEditor();
+      return;
+    }
+    if (command === "mapRequirementToIsm" && message.pendingRequirementId) {
+      const requirement = (await listRequirements()).find((item) => item.id === message.pendingRequirementId);
+      if (requirement) {
+        await createRequirementControlMapping(requirement);
+        await refreshEditor();
+      }
+      return;
+    }
+    if (command === "refresh") {
+      await refreshEditor();
+      return;
+    }
+    if (command.startsWith("pspf.")) {
+      await vscode.commands.executeCommand(command);
+      await refreshEditor();
+    }
+  };
   panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
+    if (message.command === "editorDirtyState") {
+      if (message.entityType === currentEntity.entityType && message.entityId === currentEntity.id) {
+        hasUnsavedEditorChanges = Boolean(message.isDirty);
+        unsavedEditorFields = message.fields;
+      }
+      return;
+    }
+    if (message.command === "confirmDirtyNavigation") {
+      if (message.entityType !== currentEntity.entityType || message.entityId !== currentEntity.id || !message.fields) {
+        return;
+      }
+      const choice = await vscode.window.showWarningMessage(
+        "You have unsaved changes in this editor. Save before continuing?",
+        { modal: true },
+        "Save",
+        "Discard",
+        "Cancel"
+      );
+      if (choice === "Cancel" || !choice) {
+        return;
+      }
+      if (choice === "Save") {
+        const saved = await saveCurrentEntity(message.fields);
+        if (!saved) {
+          return;
+        }
+      } else {
+        hasUnsavedEditorChanges = false;
+        unsavedEditorFields = undefined;
+      }
+      await runPendingEditorCommand(message);
+      return;
+    }
     if (message.command === "openRequirementInEditor" && message.requirementId) {
       requirementFilterText = message.filterText ?? "";
       const target = (await listAllEntities()).find(
@@ -2581,8 +2850,7 @@ async function openEntityEditor(
     if (!updated) {
       return;
     }
-    await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
-    await refreshWorkshopSurfaces();
+    await saveCurrentEntity(message.fields ?? {});
     currentEntity = updated;
     if (message.command === "saveAndNextEntity") {
       if (updated.entityType === "requirement") {
@@ -2729,6 +2997,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.openMasterDashboard",
         "pspf.workshop.openPlanOfActionBoard",
         "pspf.workshop.openStrategyMap",
+        "pspf.workshop.editStrategySummary",
         "pspf.workshop.openEvidenceReviewQueue",
         "pspf.workshop.copyPostureBrief"
       ]);
@@ -4282,6 +4551,7 @@ async function copyPostureBrief(): Promise<void> {
   const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
   const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
   const directions = allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction");
+  const strategies = allEntities.filter((entity): entity is StrategyEntity => entity.entityType === "strategy");
   const brief = renderPostureBriefMarkdown({
     generatedAt: new Date(),
     requirements,
@@ -4290,6 +4560,7 @@ async function copyPostureBrief(): Promise<void> {
     risks,
     links,
     directions,
+    strategies,
     domains: PSPF_DOMAINS,
     sourceLabel: "PSPF Workshop"
   });
