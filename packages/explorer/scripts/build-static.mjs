@@ -112,6 +112,7 @@ const html = `<!doctype html>
     .donut { width: 210px; height: 210px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(#22c55e 0 var(--met), #f59e0b var(--met) var(--partial), #f87171 var(--partial) var(--not-met), #71717a var(--not-met) 100%); }
     .donut-centre { width: 126px; height: 126px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; text-align: center; border: 1px solid var(--border-soft); }
     .donut-centre strong { display: block; font-size: 30px; }
+    .completion-toggle { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 8px; color: #d4d4d8; font-size: 12px; }
     .legend { display: grid; gap: 6px; font-size: 13px; }
     .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--swatch); }
     .bar-list { display: grid; gap: 10px; }
@@ -2583,35 +2584,43 @@ function planningUrgencyRank(action) {
 function overview(requirements, collections) {
   const counts = statusCounts(requirements);
   const total = requirements.length;
+  const applicableTotal = requirements.filter((requirement) => requirement.assessmentStatus !== "not-applicable").length;
   const met = counts.met;
   const partial = counts["partially-met"] + counts["in-progress"] + counts["under-review"];
   const notMet = counts["not-met"];
-  const remaining = Math.max(total - met, 0);
-  const metEnd = percent(met, total);
-  const partialEnd = percent(met + partial, total);
-  const notMetEnd = percent(met + partial + notMet, total);
+  const notApplicable = counts["not-applicable"];
+  const remaining = Math.max(applicableTotal - met, 0);
+  const metEnd = percent(met, applicableTotal);
+  const partialEnd = percent(met + partial, applicableTotal);
+  const notMetEnd = percent(met + partial + notMet, applicableTotal);
+  const metEndAll = percent(met, total);
+  const partialEndAll = percent(met + partial, total);
+  const notMetEndAll = percent(met + partial + notMet, total);
   const statusTable = '<h3 class="visually-hidden">Compliance status table alternative</h3>' +
     table([
       { status: "Met", count: met },
       { status: "In progress, partial, or under review", count: partial },
       { status: "Not met", count: notMet },
-      { status: "Other", count: Math.max(total - met - partial - notMet, 0) }
+      { status: "Not applicable", count: notApplicable },
+      { status: "Other", count: Math.max(applicableTotal - met - partial - notMet, 0) }
     ], ["status", "count"]);
   return '<div class="overview-grid" aria-label="Posture overview">' +
     '<div class="panel-lite">' +
       '<h3>Compliance Status</h3>' +
+      '<label class="completion-toggle"><input type="checkbox" data-compliance-include-na> Include N/A</label>' +
       '<div class="donut-wrap">' +
-        '<div class="donut" role="img" aria-label="' + escapeHtml(metEnd + '% of requirements are met. ' + remaining + ' remaining.') + '" style="--met: ' + metEnd + '%; --partial: ' + partialEnd + '%; --not-met: ' + notMetEnd + '%;">' +
-          '<div class="donut-centre"><span><strong>' + metEnd + '%</strong>met</span></div>' +
+        '<div class="donut" role="img" data-compliance-donut data-ignore-met="' + metEnd + '" data-ignore-partial="' + partialEnd + '" data-ignore-not-met="' + notMetEnd + '" data-include-met="' + metEndAll + '" data-include-partial="' + partialEndAll + '" data-include-not-met="' + notMetEndAll + '" data-ignore-label="' + escapeHtml(metEnd + '% of applicable requirements are met. ' + remaining + ' applicable remaining. ' + notApplicable + ' N/A ignored.') + '" data-include-label="' + escapeHtml(metEndAll + '% of all requirements are met including N/A. ' + Math.max(total - met, 0) + ' remaining.') + '" aria-label="' + escapeHtml(metEnd + '% of applicable requirements are met. ' + remaining + ' applicable remaining. ' + notApplicable + ' N/A ignored.') + '" style="--met: ' + metEnd + '%; --partial: ' + partialEnd + '%; --not-met: ' + notMetEnd + '%;">' +
+          '<div class="donut-centre"><span><strong data-compliance-met-label>' + metEnd + '%</strong>met</span></div>' +
         '</div>' +
         '<div class="legend" aria-hidden="true">' +
           '<span style="--swatch: #22c55e;">Met: ' + met + '</span>' +
           '<span style="--swatch: #f59e0b;">In progress/partial/review: ' + partial + '</span>' +
           '<span style="--swatch: #f87171;">Not met: ' + notMet + '</span>' +
-          '<span style="--swatch: #71717a;">Other: ' + Math.max(total - met - partial - notMet, 0) + '</span>' +
+          '<span style="--swatch: #71717a;">N/A ignored: ' + notApplicable + '</span>' +
         '</div>' +
       '</div>' +
       statusTable +
+      '<script>document.querySelectorAll("[data-compliance-include-na]").forEach(function(input){input.addEventListener("change",function(){var panel=input.closest(".panel-lite");var donut=panel&&panel.querySelector("[data-compliance-donut]");var label=panel&&panel.querySelector("[data-compliance-met-label]");if(!donut||!label)return;var prefix=input.checked?"include":"ignore";donut.style.setProperty("--met",donut.dataset[prefix+"Met"]+"%");donut.style.setProperty("--partial",donut.dataset[prefix+"Partial"]+"%");donut.style.setProperty("--not-met",donut.dataset[prefix+"NotMet"]+"%");donut.setAttribute("aria-label",donut.dataset[prefix+"Label"]||"");label.textContent=(donut.dataset[prefix+"Met"]||"0")+"%";});});</script>' +
     '</div>' +
     '<div>' +
       '<h3>Domain Posture</h3>' + domainBars(requirements) +
@@ -2631,7 +2640,12 @@ function statusCounts(requirements) {
 function domainBars(requirements) {
   const byDomain = new Map();
   for (const requirement of requirements) {
-    const item = byDomain.get(requirement.domain) || { domain: requirement.domain, total: 0, met: 0 };
+    const item = byDomain.get(requirement.domain) || { domain: requirement.domain, total: 0, met: 0, notApplicable: 0 };
+    if (requirement.assessmentStatus === "not-applicable") {
+      item.notApplicable += 1;
+      byDomain.set(requirement.domain, item);
+      continue;
+    }
     item.total += 1;
     item.met += requirement.assessmentStatus === "met" ? 1 : 0;
     byDomain.set(requirement.domain, item);
@@ -2643,7 +2657,7 @@ function domainBars(requirements) {
   return '<div class="bar-list">' + rows.map((row) => {
     const value = percent(row.met, row.total);
     return '<div class="bar-row"><span>' + escapeHtml(row.domain) + '</span><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="--value: ' + value + '%;"></div></div><strong>' + value + '%</strong></div>';
-  }).join("") + '</div>' + table(rows.map((row) => ({ domain: row.domain, requirements: row.total, met: row.met, metPercentage: percent(row.met, row.total) + "%" })), ["domain", "requirements", "met", "metPercentage"]);
+  }).join("") + '</div>' + table(rows.map((row) => ({ domain: row.domain, requirements: row.total, notApplicable: row.notApplicable, met: row.met, metPercentage: percent(row.met, row.total) + "%" })), ["domain", "requirements", "notApplicable", "met", "metPercentage"]);
 }
 
 function attentionList(requirements, collections) {
@@ -2658,7 +2672,7 @@ function attentionList(requirements, collections) {
   const rows = requirements.filter((requirement) => {
     const evidenceIds = evidenceIdsByRequirement.get(requirement.id) || [];
     const hasCurrentEvidence = evidenceIds.some((id) => evidenceById.get(id) && evidenceById.get(id).freshness === "current");
-    return requirement.assessmentStatus !== "met" || !hasCurrentEvidence;
+    return requirement.assessmentStatus !== "not-applicable" && (requirement.assessmentStatus !== "met" || !hasCurrentEvidence);
   }).slice(0, 8).map((requirement) => {
     const evidenceIds = evidenceIdsByRequirement.get(requirement.id) || [];
     const hasCurrentEvidence = evidenceIds.some((id) => evidenceById.get(id) && evidenceById.get(id).freshness === "current");

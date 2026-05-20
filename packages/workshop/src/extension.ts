@@ -638,9 +638,27 @@ async function createAction(requirementId?: string): Promise<void> {
     return;
   }
 
+  const startDate = await vscode.window.showInputBox({
+    title: "Create Action",
+    prompt: "Start date, for example today or 1 Jul 2026. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (startDate === undefined) {
+    return;
+  }
+
+  const endDate = await vscode.window.showInputBox({
+    title: "Create Action",
+    prompt: "End date, for example 30 Sep 2026. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (endDate === undefined) {
+    return;
+  }
+
   const dueDate = await vscode.window.showInputBox({
     title: "Create Action",
-    prompt: "Due date, for example today or 30 Jun 2026. Press Enter to skip.",
+    prompt: "Due date or decision point, for example 30 Jun 2026. Press Enter to use the end date or skip.",
     ignoreFocusOut: true
   });
   if (dueDate === undefined) {
@@ -660,7 +678,9 @@ async function createAction(requirementId?: string): Promise<void> {
       entityType: "action",
       title: title.trim(),
       status: status.value,
-      dueDate: normaliseShortAuDateTime(dueDate)
+      startDate: normaliseShortAuDateTime(startDate),
+      endDate: normaliseShortAuDateTime(endDate),
+      dueDate: normaliseShortAuDateTime(dueDate) ?? normaliseShortAuDateTime(endDate)
     },
     "workshop"
   );
@@ -864,19 +884,25 @@ async function openAssessmentDashboard(): Promise<void> {
     .slice(0, 5);
   const domainRows = PSPF_DOMAINS.map((domain) => {
     const domainRequirements = requirements.filter((requirement) => requirement.domainId === domain.id);
+    const applicableRequirements = domainRequirements.filter((requirement) => !isNotApplicableRequirement(requirement));
     return {
       domain: domain.title,
-      requirements: domainRequirements.length,
-      evidenceGaps: domainRequirements.filter((requirement) => !evidenceRequirementIds.has(requirement.id)).length,
-      inProgress: domainRequirements.filter((requirement) => requirement.assessmentStatus === "in-progress").length,
-      met: domainRequirements.filter((requirement) => requirement.assessmentStatus === "met").length,
-      notMet: domainRequirements.filter(
+      requirements: applicableRequirements.length,
+      notApplicable: domainRequirements.length - applicableRequirements.length,
+      evidenceGaps: applicableRequirements.filter((requirement) => !evidenceRequirementIds.has(requirement.id)).length,
+      inProgress: applicableRequirements.filter((requirement) => requirement.assessmentStatus === "in-progress").length,
+      met: applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met").length,
+      notMet: applicableRequirements.filter(
         (requirement) => requirement.assessmentStatus === "not-met" || requirement.assessmentStatus === "partially-met"
       ).length
     };
   });
   const nextRequirements = requirements
-    .filter((requirement) => !evidenceRequirementIds.has(requirement.id) || requirement.assessmentStatus !== "met")
+    .filter(
+      (requirement) =>
+        !isNotApplicableRequirement(requirement) &&
+        (!evidenceRequirementIds.has(requirement.id) || requirement.assessmentStatus !== "met")
+    )
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
     .slice(0, 8)
     .map((requirement) => ({
@@ -922,7 +948,7 @@ async function openAssessmentDashboard(): Promise<void> {
       <p class="muted">Recent requirement: ${escapeHtml(recentRequirement?.title ?? "None selected yet")}</p>
     </section>
     ${recordTable("Validation Hints", validationHints, ["priority", "requirement", "hint"])}
-    ${recordTable("Domain Summary", domainRows, ["domain", "requirements", "evidenceGaps", "inProgress", "met", "notMet"])}
+    ${recordTable("Domain Summary", domainRows, ["domain", "requirements", "notApplicable", "evidenceGaps", "inProgress", "met", "notMet"])}
     ${recordTable("Action Impact — Top 5", actionImpactRows, ["title", "status", "urgency", "total", "postureUplift", "evidenceUplift", "riskReduction", "directionUplift", "explanation"])}
     ${recordTable("Directions", directionRows, ["reference", "title", "responseState", "sourceAuthority", "issuedAt"])}
     ${recordTable("Next Requirements To Review", nextRequirements, ["title", "domain", "status", "evidence"])}
@@ -968,10 +994,10 @@ async function openMasterDashboard(): Promise<void> {
   const blockedActions = openActions.filter((action) => action.impact?.urgency === "blocked").length;
   const openRisks = risks.filter((risk) => risk.status !== "closed");
   const highRisks = openRisks.filter((risk) => risk.likelihood * risk.impact >= 16).length;
-  const metRequirements = requirements.filter((requirement) => requirement.assessmentStatus === "met").length;
-  const evidenceCoverage =
-    requirements.length > 0 ? Math.round((evidenceRequirementIds.size / requirements.length) * 100) : 0;
-  const metPercentage = requirements.length > 0 ? Math.round((metRequirements / requirements.length) * 100) : 0;
+  const completion = buildRequirementCompletionMetrics(requirements, evidenceRequirementIds);
+  const metRequirements = completion.metApplicable;
+  const evidenceCoverage = completion.evidenceCoverageApplicable;
+  const metPercentage = completion.metPercentageApplicable;
   const staleEvidence = evidence.filter(
     (item) => item.freshness !== "current" || !linkedEvidenceIds.has(item.id)
   ).length;
@@ -1110,8 +1136,11 @@ async function openMasterDashboard(): Promise<void> {
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Digital management board for strategy, evidence, risk, action and reporting loops.</p>
       ${versionStrip()}
       <div class="grid">
-        ${metricCard("Requirements met", `${metPercentage}%`)}
-        ${metricCard("Evidence coverage", `${evidenceCoverage}%`)}
+        ${metricCard("Met, excl N/A", `${metPercentage}%`)}
+        ${metricCard("Evidence, excl N/A", `${evidenceCoverage}%`)}
+        ${metricCard("N/A excluded", completion.notApplicable)}
+        ${metricCard("Met, incl N/A", `${completion.metPercentageAll}%`)}
+        ${metricCard("Evidence, incl N/A", `${completion.evidenceCoverageAll}%`)}
         ${metricCard("Open actions", openActions.length)}
         ${metricCard("High risks", highRisks)}
         ${metricCard("Strategy choices", strategyChoices)}
@@ -1131,10 +1160,11 @@ async function openMasterDashboard(): Promise<void> {
       <p class="muted">This is the shareable posture slice that should survive outside your VS Code workspace: current PSPF status, evidence coverage, risk exposure, action pressure and reporting readiness.</p>
       <div class="grid">
         ${metricCard("Met", metRequirements)}
-        ${metricCard("Not yet met", Math.max(requirements.length - metRequirements, 0))}
+        ${metricCard("Not yet met", Math.max(completion.applicable - metRequirements, 0))}
         ${metricCard("Evidence to review", staleEvidence)}
         ${metricCard("Directions not set", directionResponses["not-set"])}
       </div>
+      <p class="muted">Compliance and evidence coverage ignore ${completion.notApplicable} not applicable requirement${completion.notApplicable === 1 ? "" : "s"}. Including N/A: ${completion.metPercentageAll}% met, ${completion.evidenceCoverageAll}% evidence coverage.</p>
     </section>
     ${recordTable("CISO Decision Loops", decisionLoopRows, ["loop", "maturity", "records", "signal", "question"])}
     ${recordTable("Strategy And Performance", strategyRows, ["choice", "capability", "trend", "confidence", "outcomes", "measures", "target"])}
@@ -1179,6 +1209,8 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
       stream: phase.title,
       status: label(task.status),
       urgency: label(task.urgency),
+      startDate: formatShortAuDateTime(task.startDate) ?? task.startDate,
+      endDate: formatShortAuDateTime(task.endDate) ?? task.endDate,
       dueDate: formatShortAuDateTime(task.dueDate) ?? "Not set",
       linkedRequirements: task.linkedRequirements,
       linkedRisks: task.linkedRisks,
@@ -1213,11 +1245,20 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
     <section>
       <h2>Timeline Preview</h2>
       <p class="muted">${escapeHtml(model.timelineStart)} to ${escapeHtml(model.timelineEnd)} · ${model.totalDays} days · adaptive width ${Math.round(model.dayWidth * 10) / 10}px/day</p>
+      ${renderPlanOfActionStatusFilters()}
       ${renderPlanOfActionTimeline(model)}
     </section>
-    ${recordTable("Action Worklist", taskRows, ["title", "stream", "status", "urgency", "dueDate", "linkedRequirements", "linkedRisks", "impact"])}
+    ${recordTable("Action Worklist", taskRows, ["title", "stream", "status", "urgency", "startDate", "endDate", "dueDate", "linkedRequirements", "linkedRisks", "impact"])}
+    ${planOfActionFilterScript()}
   `
   );
+}
+
+function renderPlanOfActionStatusFilters(): string {
+  return `<div class="form-actions poa-status-filters" data-poa-status-filters>
+    ${actionStatusItems.map((item) => `<button type="button" class="poa-status-filter" data-poa-status-filter="${escapeHtml(item.value)}" aria-pressed="true">${escapeHtml(item.label)}</button>`).join("")}
+    <button type="button" class="poa-status-filter" data-poa-status-filter="all">All</button>
+  </div>`;
 }
 
 function renderPlanOfActionTimeline(model: PlanOfActionBoardModel): string {
@@ -1245,15 +1286,49 @@ function renderPlanOfActionPhase(phase: PlanOfActionPhaseModel, timelineWidth: n
 function renderPlanOfActionTask(task: PlanOfActionTaskModel, timelineWidth: number): string {
   const barClass = `poa-bar poa-bar--${task.urgency}`;
   const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
-  return `<div class="poa-task">
+  return `<div class="poa-task" data-poa-task data-poa-status="${escapeHtml(task.status)}">
     <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
       <strong>${escapeHtml(task.title)}</strong>
-      <span>${escapeHtml(label(task.status))} · ${escapeHtml(label(task.urgency))}</span>
+      <span>${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
     </button>
     <div class="poa-track" style="width: ${timelineWidth}px;">
       <div class="${escapeHtml(barClass)}" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}">${barLabel}</div>
     </div>
   </div>`;
+}
+
+function planOfActionFilterScript(): string {
+  return `<script>
+(() => {
+  const root = document.querySelector('[data-poa-status-filters]');
+  if (!root) return;
+  const buttons = Array.from(root.querySelectorAll('[data-poa-status-filter]'));
+  const taskSelector = '[data-poa-task]';
+  function selectedStatuses() {
+    return new Set(buttons.filter((button) => button.dataset.poaStatusFilter !== 'all' && button.getAttribute('aria-pressed') !== 'false').map((button) => button.dataset.poaStatusFilter));
+  }
+  function applyFilters() {
+    const selected = selectedStatuses();
+    document.querySelectorAll(taskSelector).forEach((task) => {
+      task.hidden = !selected.has(task.dataset.poaStatus);
+    });
+  }
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const value = button.dataset.poaStatusFilter;
+      if (value === 'all') {
+        buttons.forEach((item) => {
+          if (item.dataset.poaStatusFilter !== 'all') item.setAttribute('aria-pressed', 'true');
+        });
+      } else {
+        button.setAttribute('aria-pressed', button.getAttribute('aria-pressed') === 'false' ? 'true' : 'false');
+      }
+      applyFilters();
+    });
+  });
+  applyFilters();
+})();
+</script>`;
 }
 
 function masterLoopRow(
@@ -1264,6 +1339,47 @@ function masterLoopRow(
   question: string
 ): { loop: string; maturity: string; records: number; signal: string; question: string } {
   return { loop, maturity, records, signal, question };
+}
+
+function buildRequirementCompletionMetrics(
+  requirements: readonly RequirementEntity[],
+  evidenceRequirementIds: ReadonlySet<string>
+): {
+  readonly total: number;
+  readonly applicable: number;
+  readonly notApplicable: number;
+  readonly metApplicable: number;
+  readonly metAll: number;
+  readonly metPercentageApplicable: number;
+  readonly metPercentageAll: number;
+  readonly evidenceCoverageApplicable: number;
+  readonly evidenceCoverageAll: number;
+} {
+  const applicableRequirements = requirements.filter((requirement) => !isNotApplicableRequirement(requirement));
+  const metApplicable = applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const metAll = requirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const evidenceCoveredApplicable = applicableRequirements.filter((requirement) =>
+    evidenceRequirementIds.has(requirement.id)
+  ).length;
+  return {
+    total: requirements.length,
+    applicable: applicableRequirements.length,
+    notApplicable: requirements.length - applicableRequirements.length,
+    metApplicable,
+    metAll,
+    metPercentageApplicable: percent(metApplicable, applicableRequirements.length),
+    metPercentageAll: percent(metAll, requirements.length),
+    evidenceCoverageApplicable: percent(evidenceCoveredApplicable, applicableRequirements.length),
+    evidenceCoverageAll: percent(evidenceRequirementIds.size, requirements.length)
+  };
+}
+
+function isNotApplicableRequirement(requirement: RequirementEntity): boolean {
+  return requirement.assessmentStatus === "not-applicable";
+}
+
+function percent(value: number, total: number): number {
+  return total > 0 ? Math.round((value / total) * 100) : 0;
 }
 
 async function openStrategyMap(): Promise<void> {
@@ -3073,7 +3189,15 @@ async function buildUpdatedEntity(
         await vscode.window.showWarningMessage("Select a valid Action status before saving.");
         return undefined;
       }
-      return { ...entity, title, status, dueDate: normaliseShortAuDateTime(fields.dueDate), updatedAt };
+      return {
+        ...entity,
+        title,
+        status,
+        startDate: normaliseShortAuDateTime(fields.startDate),
+        endDate: normaliseShortAuDateTime(fields.endDate),
+        dueDate: normaliseShortAuDateTime(fields.dueDate),
+        updatedAt
+      };
     }
     case "risk": {
       const title = fields.title?.trim();
@@ -3444,6 +3568,8 @@ function renderActionEditor(action: ActionEntity, allEntities: readonly V01Entit
     `
     ${inputField("title", "Title", action.title, true)}
     ${selectField("status", "Status", actionStatusItems, action.status)}
+    ${inputField("startDate", "Start date", formatShortAuDateTime(action.startDate) ?? "", false, "today or 1 Jul 2026")}
+    ${inputField("endDate", "End date", formatShortAuDateTime(action.endDate) ?? "", false, "30 Sep 2026")}
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
   `
   )}${readOnlyImpact}${commercialContextSection(action, allEntities)}`;

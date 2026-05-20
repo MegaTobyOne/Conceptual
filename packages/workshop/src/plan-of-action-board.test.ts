@@ -41,6 +41,34 @@ test("plan of action counts linked Requirements and Risks once", () => {
   assert.equal(model.metrics.linkedRisks, 1);
 });
 
+test("plan of action uses explicit Action start and end dates", () => {
+  const action = actionEntity({
+    title: "Schedule operating model idea",
+    startDate: "2026-07-01T00:00:00.000Z",
+    endDate: "2026-09-30T00:00:00.000Z",
+    dueDate: "2026-10-15T00:00:00.000Z"
+  });
+  const model = buildPlanOfActionBoardModel([action], { now: new Date("2026-05-20T00:00:00.000Z") });
+  const task = model.phases.flatMap((phase) => phase.tasks)[0];
+
+  assert.equal(task?.startDate, "2026-07-01");
+  assert.equal(task?.endDate, "2026-09-30");
+  assert.equal(task?.dueDate, "2026-10-15T00:00:00.000Z");
+});
+
+test("plan of action includes all Action statuses for graphical filtering", () => {
+  const actions = [
+    actionEntity({ title: "Idea", dueDate: "2026-06-01T00:00:00.000Z", status: "todo" }),
+    actionEntity({ title: "Finished", dueDate: "2026-06-02T00:00:00.000Z", status: "done" }),
+    actionEntity({ title: "Parked", dueDate: "2026-06-03T00:00:00.000Z", status: "cancelled" })
+  ];
+  const model = buildPlanOfActionBoardModel(actions, { now: new Date("2026-05-20T00:00:00.000Z") });
+  const tasks = model.phases.flatMap((phase) => phase.tasks);
+
+  assert.deepEqual(tasks.map((task) => task.status).sort(), ["cancelled", "done", "todo"]);
+  assert.equal(model.metrics.actions, 1);
+});
+
 test("plan of action caps long timeline width instead of using fixed day width", () => {
   const action = actionEntity({ title: "Long running uplift", dueDate: "2028-06-30T00:00:00.000Z" });
   const model = buildPlanOfActionBoardModel([action], {
@@ -66,10 +94,16 @@ test("task labels fit inside available bar width", () => {
 
 function actionEntity({
   title,
+  status = "in-progress",
+  startDate,
+  endDate,
   dueDate,
   riskReduction = 0
 }: {
   readonly title: string;
+  readonly status?: ActionEntity["status"];
+  readonly startDate?: string;
+  readonly endDate?: string;
   readonly dueDate: string;
   readonly riskReduction?: number;
 }): ActionEntity {
@@ -82,7 +116,9 @@ function actionEntity({
     updatedAt: "2026-05-20T00:00:00.000Z",
     sourceProduct: "workshop",
     recordStatus: "active",
-    status: "in-progress",
+    status,
+    startDate,
+    endDate,
     dueDate,
     impact: {
       postureUplift: 1,

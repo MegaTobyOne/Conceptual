@@ -64,6 +64,12 @@
                     "cancelled"
                 ]
             },
+            "startDate": {
+                "type": "string"
+            },
+            "endDate": {
+                "type": "string"
+            },
             "dueDate": {
                 "type": "string"
             },

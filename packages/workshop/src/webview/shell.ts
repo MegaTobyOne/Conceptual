@@ -183,6 +183,7 @@ export function shellHtml(title: string, body: string): string {
     .poa-phase__header span { color: var(--muted); font-size: 12px; line-height: 1.35; }
     .poa-phase__tasks { display: grid; gap: 7px; }
     .poa-task { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 10px; align-items: center; }
+    .poa-task[hidden] { display: none; }
     .poa-task__label { display: grid; gap: 2px; min-height: 34px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); background: var(--surface-strong); text-align: left; }
     .poa-task__label strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .poa-task__label span { color: var(--muted); font-size: 11px; }
@@ -192,6 +193,8 @@ export function shellHtml(title: string, body: string): string {
     .poa-bar--overdue { background: #b54708; }
     .poa-bar--due-soon { background: #1d4ed8; }
     .poa-bar--normal { background: #047857; }
+    .poa-status-filters { margin: 8px 0 12px; }
+    .poa-status-filter[aria-pressed="false"] { opacity: 0.55; }
     .workshop-sensitivity { margin: 0; padding: 8px var(--pad-lg); }
     .muted { color: var(--muted); }
     .version-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
