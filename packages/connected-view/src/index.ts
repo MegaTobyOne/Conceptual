@@ -511,7 +511,11 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   padding: 4px 10px; border-radius: var(--pspf-radius-pill, 999px);
   border: 1px solid var(--cv-border); background: var(--cv-surface-strong);
   color: var(--cv-text); font: inherit; cursor: pointer;
+  transform-origin: center;
+  transition: background-color var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)), border-color var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)), opacity var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)), transform var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1));
 }
+.cv-chip:hover { background: color-mix(in srgb, var(--cv-surface-strong) 82%, var(--cv-accent) 12%); border-color: color-mix(in srgb, var(--cv-accent) 45%, var(--cv-border)); }
+.cv-chip:active { transform: scale(var(--pspf-button-active-scale, 0.97)); }
 .cv-chip:focus-visible { outline: 2px solid var(--pspf-focus, var(--cv-accent)); outline-offset: 1px; }
 .cv-chip[aria-pressed="false"] { opacity: 0.55; }
 .cv-chip-label { color: var(--cv-muted); }
@@ -595,10 +599,12 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   border-radius: var(--pspf-radius, 6px);
   padding: 7px 9px;
   cursor: pointer;
-  transition: background var(--pspf-motion-standard, 120ms) var(--pspf-ease-standard, ease), border-color var(--pspf-motion-standard, 120ms) var(--pspf-ease-standard, ease), opacity 200ms ease;
+  transform-origin: center;
+  transition: background var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)), border-color var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)), box-shadow var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)), opacity var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)), transform var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1));
   outline: none;
 }
 .cv-card:hover { background: color-mix(in srgb, var(--cv-surface-strong) 85%, var(--cv-accent) 10%); }
+.cv-card:active { transform: scale(var(--pspf-button-active-scale, 0.97)); }
 .cv-card:focus-visible { outline: 2px solid var(--pspf-focus, var(--cv-accent)); outline-offset: 1px; }
 .cv-card-ref {
   font-size: 10.5px; color: var(--cv-muted);
@@ -639,8 +645,12 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   background: var(--cv-surface);
   color: var(--cv-text);
   cursor: pointer;
-  opacity: 0; transition: opacity 120ms ease;
+  opacity: 0;
+  transform-origin: center;
+  transition: background-color var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)), opacity var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1)), transform var(--pspf-motion-responsive, 180ms) var(--pspf-ease-responsive, cubic-bezier(0.16, 1, 0.3, 1));
 }
+.cv-card-open:hover { background: color-mix(in srgb, var(--cv-surface) 84%, var(--cv-accent) 12%); }
+.cv-card-open:active { transform: scale(var(--pspf-button-active-scale, 0.97)); }
 .cv-card:hover .cv-card-open,
 .cv-card.cv-selected .cv-card-open,
 .cv-card.cv-connected .cv-card-open { opacity: 1; }
@@ -707,7 +717,8 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 .cv-hover .cv-hover-empty { color: var(--cv-muted); font-style: italic; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cv-card, .cv-links path, .cv-card-open { transition: none; }
+  .cv-chip, .cv-card, .cv-links path, .cv-card-open { transition: none; }
+  .cv-chip:active, .cv-card:active, .cv-card-open:active { transform: none; }
 }
 @media (max-width: 900px) {
   .pspf-connected-view.layout-grouped .cv-board,

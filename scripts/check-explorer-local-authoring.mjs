@@ -144,6 +144,25 @@ try {
     .locator("#evidence")
     .evaluate((section) => section instanceof HTMLDetailsElement && section.open);
 
+  await page.locator("#local-evidence-reference").fill("");
+  await page.locator("#local-evidence-reference").blur();
+  const blurValidationFeedback = await page.evaluate(() => ({
+    invalid: document.querySelector("#local-evidence-reference")?.getAttribute("aria-invalid") === "true",
+    title: document.querySelector("#local-evidence-reference")?.getAttribute("title") || ""
+  }));
+
+  await page.locator("#local-evidence-reference").fill("https://example.gov.au/evidence/local-test");
+  await page.locator("#local-selected-status").selectOption("met");
+  await page.waitForFunction(
+    () =>
+      document.querySelector('[data-local-save-target="status"]')?.textContent?.includes("Saved") &&
+      document.querySelector('[data-local-save-target="status"]')?.getAttribute("data-state") === "saved"
+  );
+  const interactiveSaveFeedback = await page.evaluate(() => ({
+    text: document.querySelector('[data-local-save-target="status"]')?.textContent || "",
+    state: document.querySelector('[data-local-save-target="status"]')?.getAttribute("data-state") || ""
+  }));
+
   await page.evaluate(
     async ({ requirementId }) => {
       await globalThis.pspfExplorerSetLocalRequirementStatus(requirementId, "met");
@@ -476,6 +495,16 @@ try {
     ),
     check("Linked Context Open button opens full section", linkedContextOpenButton, "evidence section"),
     check("Storage status visible", storageStatusText?.includes("IndexedDB"), storageStatusText || "missing"),
+    check(
+      "Local field validation appears after blur",
+      blurValidationFeedback.invalid && blurValidationFeedback.title.includes("evidence reference"),
+      JSON.stringify(blurValidationFeedback)
+    ),
+    check(
+      "Local save feedback appears inline",
+      interactiveSaveFeedback.state === "saved" && interactiveSaveFeedback.text.includes("Saved"),
+      JSON.stringify(interactiveSaveFeedback)
+    ),
     check("Local Changes stays open after status save", localAuthoringOpenAfterStatusSave, "section focus"),
     check("Local Changes stays open after evidence save", localAuthoringOpenAfterEvidenceSave, "section focus"),
     check("Local Changes stays open after action save", localAuthoringOpenAfterActionSave, "section focus"),

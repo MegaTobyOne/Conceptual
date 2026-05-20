@@ -9,6 +9,12 @@ import {
 import { pill as shellPill } from "@pspf/webview-shell";
 import { escapeHtml, homeButton, homeShellHtml, shellHtml } from "./webview/shell.js";
 import {
+  buildPlanOfActionBoardModel,
+  type PlanOfActionBoardModel,
+  type PlanOfActionPhaseModel,
+  type PlanOfActionTaskModel
+} from "./plan-of-action-board.js";
+import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
   CHANGE_RECORD_STATUSES,
@@ -100,6 +106,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.linkExistingRisk", linkExistingRisk),
     vscode.commands.registerCommand("pspf.workshop.linkExistingDirection", linkExistingDirection),
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
+    vscode.commands.registerCommand("pspf.workshop.openMasterDashboard", openMasterDashboard),
+    vscode.commands.registerCommand("pspf.workshop.openPlanOfActionBoard", openPlanOfActionBoard),
     vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
     vscode.commands.registerCommand("pspf.workshop.openStrategyMap", openStrategyMap),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
@@ -222,6 +230,8 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openActionsList",
       "pspf.workshop.openRisksList",
       "pspf.workshop.openAssessmentDashboard",
+      "pspf.workshop.openMasterDashboard",
+      "pspf.workshop.openPlanOfActionBoard",
       "pspf.workshop.openConnectedView",
       "pspf.workshop.openStrategyMap",
       "pspf.workshop.openEvidenceReviewQueue",
@@ -358,6 +368,8 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openRisksList", "Risks", "Browse Risk records")}
         ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
+        ${homeButton("pspf.workshop.openMasterDashboard", "Master Dashboard", "Open the CISO decision board")}
+        ${homeButton("pspf.workshop.openPlanOfActionBoard", "Plan of Action", "Review workstreams, timing, and linked Actions")}
         ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
         ${homeButton("pspf.workshop.openStrategyMap", "Strategy Map", "Connect strategic choices to Requirements, Risks, Actions, and Directions")}
         ${homeButton("pspf.workshop.openChangeRecords", "Change records", "Review why important records changed")}
@@ -915,6 +927,379 @@ async function openAssessmentDashboard(): Promise<void> {
     ${recordTable("Latest Activity", recentActivity, ["type", "title", "created"])}
   `
   );
+}
+
+async function openMasterDashboard(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const enrichedEntities = enrichActionsWithImpact(allEntities);
+  const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+  const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence");
+  const actions = enrichedEntities.filter((entity): entity is ActionEntity => entity.entityType === "action");
+  const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const directions = allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction");
+  const changeRecords = allEntities.filter(
+    (entity): entity is ChangeRecordEntity => entity.entityType === "change-record"
+  );
+  const strategies = allEntities.filter(
+    (entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.recordStatus !== "deleted"
+  );
+  const evidenceRequirementIds = new Set(
+    links
+      .filter(
+        (link) => link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence"
+      )
+      .map((link) => link.fromId)
+  );
+  const linkedEvidenceIds = new Set(
+    links
+      .filter(
+        (link) => link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence"
+      )
+      .map((link) => link.toId)
+  );
+  const openActions = actions.filter((action) => !["done", "cancelled"].includes(action.status));
+  const overdueActions = openActions.filter((action) => action.impact?.urgency === "overdue").length;
+  const blockedActions = openActions.filter((action) => action.impact?.urgency === "blocked").length;
+  const openRisks = risks.filter((risk) => risk.status !== "closed");
+  const highRisks = openRisks.filter((risk) => risk.likelihood * risk.impact >= 16).length;
+  const metRequirements = requirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const evidenceCoverage =
+    requirements.length > 0 ? Math.round((evidenceRequirementIds.size / requirements.length) * 100) : 0;
+  const metPercentage = requirements.length > 0 ? Math.round((metRequirements / requirements.length) * 100) : 0;
+  const staleEvidence = evidence.filter(
+    (item) => item.freshness !== "current" || !linkedEvidenceIds.has(item.id)
+  ).length;
+  const strategy = strategies[0];
+  const strategyChoices = strategy?.choices.length ?? 0;
+  const strategyMeasures =
+    strategy?.choices.reduce(
+      (total, choice) =>
+        total + choice.outcomes.reduce((outcomeTotal, outcome) => outcomeTotal + outcome.measures.length, 0),
+      0
+    ) ?? 0;
+  const directionResponses: Record<DirectionResponseState, number> = {
+    "not-set": directions.filter((direction) => direction.responseState === "not-set").length,
+    yes: directions.filter((direction) => direction.responseState === "yes").length,
+    no: directions.filter((direction) => direction.responseState === "no").length,
+    "risk-managed": directions.filter((direction) => direction.responseState === "risk-managed").length
+  };
+  const ecosystemRows = [
+    {
+      surface: "Core",
+      purpose: "Trust, validation, snapshots, import and export",
+      signal: `${requirements.length + evidence.length + actions.length + risks.length} working records`,
+      next: "Validate or snapshot",
+      action: `<button type="button" data-command="pspf.core.validateWorkspace">Validate</button>`
+    },
+    {
+      surface: "Workshop",
+      purpose: "Authoring, evidence linkage, decisions and reporting preparation",
+      signal: `${openActions.length} open actions, ${staleEvidence} evidence items to review`,
+      next: "Continue assurance work",
+      action: `<button type="button" data-command="pspf.workshop.openAssessmentDashboard">Open</button>`
+    },
+    {
+      surface: "Shop",
+      purpose: "Supplier, contract and spend context linked to assurance work",
+      signal: "Commercial context available through Shop forecast",
+      next: "Review funded actions and contract context",
+      action: `<button type="button" data-command="pspf.shop.openForecast">Forecast</button>`
+    },
+    {
+      surface: "Explorer",
+      purpose: "Redacted posture lens for sharing and assurance review",
+      signal: `${metPercentage}% requirements met, ${evidenceCoverage}% evidence coverage`,
+      next: "Export master bundle",
+      action: `<button type="button" data-command="pspf.core.exportBundle">Export</button>`
+    },
+    {
+      surface: "Pub",
+      purpose: "People, assignments and succession load-sharing",
+      signal: "Deferred beyond the current working slice",
+      next: "Keep as dashboard placeholder",
+      action: "Deferred"
+    }
+  ];
+  const decisionLoopRows = [
+    masterLoopRow(
+      "Strategy, Risk and Architecture",
+      "GOV / RISK",
+      strategyChoices,
+      `${strategyMeasures} measures`,
+      "Why this control here, why now?"
+    ),
+    masterLoopRow(
+      "Governance, Metrics and Reporting",
+      "GOV",
+      directions.length,
+      `${directionResponses["not-set"]} Directions not set`,
+      "What needs AA, Audit Committee or CSO attention?"
+    ),
+    masterLoopRow(
+      "Systems, Authorisation and Operations",
+      "TECH / INFO",
+      requirements.length,
+      `${evidenceCoverage}% evidence coverage`,
+      "Which systems and controls can we stand behind?"
+    ),
+    masterLoopRow(
+      "Incident Management and Resilience",
+      "GOV / TECH / RISK",
+      changeRecords.length,
+      `${changeRecords.length} change records`,
+      "What did we learn and what changed?"
+    ),
+    masterLoopRow(
+      "People, Capability and Culture",
+      "GOV / PER / RISK",
+      openActions.length,
+      `${blockedActions} blocked actions`,
+      "Where does capability constrain uplift?"
+    )
+  ];
+  const streamRows = [
+    {
+      stream: "Assure evidence",
+      focus: "Close missing, stale, changed and unlinked evidence",
+      count: staleEvidence,
+      leadSurface: "Workshop Evidence Review",
+      action: `<button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Review</button>`
+    },
+    {
+      stream: "Reduce risk",
+      focus: "Treat high exposure and unresolved residual risk",
+      count: highRisks,
+      leadSurface: "Risks and Connected View",
+      action: `<button type="button" data-command="pspf.workshop.openConnectedView">Trace</button>`
+    },
+    {
+      stream: "Lift posture",
+      focus: "Progress overdue, blocked and high-impact Actions",
+      count: overdueActions + blockedActions,
+      leadSurface: "Action Impact",
+      action: `<button type="button" data-command="pspf.workshop.openAssessmentDashboard">Prioritise</button>`
+    },
+    {
+      stream: "Set direction",
+      focus: "Connect strategy choices, measures and PSPF hooks",
+      count: strategyChoices,
+      leadSurface: "Strategy Map",
+      action: `<button type="button" data-command="pspf.workshop.openStrategyMap">Map</button>`
+    },
+    {
+      stream: "Prepare reporting",
+      focus: "Create snapshot, export bundle and copy posture brief",
+      count: requirements.length,
+      leadSurface: "Core and Explorer",
+      action: `<button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>`
+    }
+  ];
+  const strategyRows = strategy
+    ? strategy.choices.map((choice) => ({
+        choice: choice.statement,
+        capability: choice.capabilityArea,
+        trend: label(choice.trend),
+        confidence: label(choice.confidence),
+        outcomes: choice.outcomes.length,
+        measures: choice.outcomes.reduce((total, outcome) => total + outcome.measures.length, 0),
+        target: choice.targetPosture
+      }))
+    : [];
+  const actionRows = openActions
+    .filter((action): action is ActionEntity & { impact: NonNullable<ActionEntity["impact"]> } =>
+      Boolean(action.impact)
+    )
+    .map((action) => ({
+      openEntityType: "action",
+      openEntityId: action.id,
+      title: action.title,
+      status: label(action.status),
+      urgency: label(action.impact.urgency),
+      total:
+        (action.impact.postureUplift ?? 0) +
+        (action.impact.evidenceUplift ?? 0) +
+        (action.impact.riskReduction ?? 0) +
+        (action.impact.directionUplift ?? 0),
+      dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set"
+    }))
+    .sort((left, right) => right.total - left.total)
+    .slice(0, 8);
+
+  const panel = vscode.window.createWebviewPanel(
+    "pspfMasterDashboard",
+    "PSPF Master Dashboard",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel);
+  panel.webview.html = shellHtml(
+    "PSPF Master Dashboard",
+    `
+    <section>
+      <p class="eyebrow">Rogue CISO PSPF</p>
+      <h1>Master Dashboard</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Digital management board for strategy, evidence, risk, action and reporting loops.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Requirements met", `${metPercentage}%`)}
+        ${metricCard("Evidence coverage", `${evidenceCoverage}%`)}
+        ${metricCard("Open actions", openActions.length)}
+        ${metricCard("High risks", highRisks)}
+        ${metricCard("Strategy choices", strategyChoices)}
+        ${metricCard("Report signals", changeRecords.length + directions.length)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
+        <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
+        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
+        <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
+        <button type="button" data-command="pspf.core.createSnapshot">Snapshot</button>
+        <button type="button" data-command="pspf.core.exportBundle">Export Bundle</button>
+      </div>
+    </section>
+    ${recordTable("Extension Tiles", ecosystemRows, ["surface", "purpose", "signal", "next", "action"])}
+    <section>
+      <h2>Explorer Preview</h2>
+      <p class="muted">This is the shareable posture slice that should survive outside your VS Code workspace: current PSPF status, evidence coverage, risk exposure, action pressure and reporting readiness.</p>
+      <div class="grid">
+        ${metricCard("Met", metRequirements)}
+        ${metricCard("Not yet met", Math.max(requirements.length - metRequirements, 0))}
+        ${metricCard("Evidence to review", staleEvidence)}
+        ${metricCard("Directions not set", directionResponses["not-set"])}
+      </div>
+    </section>
+    ${recordTable("CISO Decision Loops", decisionLoopRows, ["loop", "maturity", "records", "signal", "question"])}
+    ${recordTable("Strategy And Performance", strategyRows, ["choice", "capability", "trend", "confidence", "outcomes", "measures", "target"])}
+    ${recordTable("Plan Of Action Streams", streamRows, ["stream", "focus", "count", "leadSurface", "action"])}
+    <section>
+      <h2>Plan Of Action Board</h2>
+      <p class="muted">Open the workstream timeline for linked Actions, live status, evidence/risk context and reporting pressure.</p>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Open Plan of Action</button>
+      </div>
+    </section>
+    ${recordTable("Action Pressure", actionRows, ["title", "status", "urgency", "total", "dueDate"])}
+  `
+  );
+}
+
+async function openPlanOfActionBoard(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const model = buildPlanOfActionBoardModel(enrichActionsWithImpact(allEntities));
+  const panel = vscode.window.createWebviewPanel(
+    "pspfPlanOfActionBoard",
+    "PSPF Plan of Action",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    const refreshedEntities = await listAllEntities();
+    panel.webview.html = renderPlanOfActionBoard(
+      buildPlanOfActionBoardModel(enrichActionsWithImpact(refreshedEntities))
+    );
+  });
+  panel.webview.html = renderPlanOfActionBoard(model);
+}
+
+function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
+  const taskRows = model.phases.flatMap((phase) =>
+    phase.tasks.map((task) => ({
+      openEntityType: "action",
+      openEntityId: task.actionId,
+      title: task.title,
+      stream: phase.title,
+      status: label(task.status),
+      urgency: label(task.urgency),
+      dueDate: formatShortAuDateTime(task.dueDate) ?? "Not set",
+      linkedRequirements: task.linkedRequirements,
+      linkedRisks: task.linkedRisks,
+      impact: task.impactTotal
+    }))
+  );
+
+  return shellHtml(
+    "PSPF Plan of Action",
+    `
+    <section>
+      <p class="eyebrow">Master Dashboard Upgrade</p>
+      <h1>Plan of Action</h1>
+      <p class="muted">OFFICIAL: Sensitive · Derived from live Workshop Actions, linked evidence, risks, requirements and Directions.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Open actions", model.metrics.actions)}
+        ${metricCard("Blocked", model.metrics.blocked)}
+        ${metricCard("Overdue", model.metrics.overdue)}
+        ${metricCard("Due soon", model.metrics.dueSoon)}
+        ${metricCard("Linked requirements", model.metrics.linkedRequirements)}
+        ${metricCard("Linked risks", model.metrics.linkedRisks)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.createAction">Create action</button>
+        <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
+        <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
+        <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
+      </div>
+    </section>
+    <section>
+      <h2>Timeline Preview</h2>
+      <p class="muted">${escapeHtml(model.timelineStart)} to ${escapeHtml(model.timelineEnd)} · ${model.totalDays} days · adaptive width ${Math.round(model.dayWidth * 10) / 10}px/day</p>
+      ${renderPlanOfActionTimeline(model)}
+    </section>
+    ${recordTable("Action Worklist", taskRows, ["title", "stream", "status", "urgency", "dueDate", "linkedRequirements", "linkedRisks", "impact"])}
+  `
+  );
+}
+
+function renderPlanOfActionTimeline(model: PlanOfActionBoardModel): string {
+  if (model.metrics.actions === 0) {
+    return `<p class="muted">No open Actions are available yet. Create Actions or load the sample workspace to populate the Plan of Action.</p>`;
+  }
+  return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
+    ${model.phases.map((phase) => renderPlanOfActionPhase(phase, model.timelineWidth)).join("")}
+  </div>`;
+}
+
+function renderPlanOfActionPhase(phase: PlanOfActionPhaseModel, timelineWidth: number): string {
+  const tasks = phase.tasks.length
+    ? phase.tasks.map((task) => renderPlanOfActionTask(task, timelineWidth)).join("")
+    : `<p class="muted">No open Actions currently sit in this workstream.</p>`;
+  return `<div class="poa-phase">
+    <div class="poa-phase__header">
+      <strong>${escapeHtml(phase.title)}</strong>
+      <span>${escapeHtml(phase.summary)}</span>
+    </div>
+    <div class="poa-phase__tasks">${tasks}</div>
+  </div>`;
+}
+
+function renderPlanOfActionTask(task: PlanOfActionTaskModel, timelineWidth: number): string {
+  const barClass = `poa-bar poa-bar--${task.urgency}`;
+  const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
+  return `<div class="poa-task">
+    <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
+      <strong>${escapeHtml(task.title)}</strong>
+      <span>${escapeHtml(label(task.status))} · ${escapeHtml(label(task.urgency))}</span>
+    </button>
+    <div class="poa-track" style="width: ${timelineWidth}px;">
+      <div class="${escapeHtml(barClass)}" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}">${barLabel}</div>
+    </div>
+  </div>`;
+}
+
+function masterLoopRow(
+  loop: string,
+  maturity: string,
+  records: number,
+  signal: string,
+  question: string
+): { loop: string; maturity: string; records: number; signal: string; question: string } {
+  return { loop, maturity, records, signal, question };
 }
 
 async function openStrategyMap(): Promise<void> {
@@ -2332,6 +2717,29 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         await loadSampleWorkspace();
         panel.dispose();
         await openStrategyMap();
+      }
+      const allowedPanelCommands = new Set([
+        "pspf.core.validateWorkspace",
+        "pspf.core.createSnapshot",
+        "pspf.core.exportBundle",
+        "pspf.shop.openForecast",
+        "pspf.workshop.createAction",
+        "pspf.workshop.openAssessmentDashboard",
+        "pspf.workshop.openConnectedView",
+        "pspf.workshop.openMasterDashboard",
+        "pspf.workshop.openPlanOfActionBoard",
+        "pspf.workshop.openStrategyMap",
+        "pspf.workshop.openEvidenceReviewQueue",
+        "pspf.workshop.copyPostureBrief"
+      ]);
+      if (message.command && allowedPanelCommands.has(message.command)) {
+        try {
+          await vscode.commands.executeCommand(message.command);
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : String(error);
+          await vscode.window.showWarningMessage(`PSPF command is not available: ${detail}`);
+        }
+        await refreshPanel?.();
       }
     }
   );
