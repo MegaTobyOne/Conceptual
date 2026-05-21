@@ -195,9 +195,10 @@ export function shellHtml(title: string, body: string): string {
     .poa-task__label { display: grid; gap: 2px; min-height: 34px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); background: var(--surface-strong); text-align: left; }
     .poa-task__label strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .poa-task__label span { color: var(--muted); font-size: 11px; }
+    .poa-timeline-legend { display: inline-flex; align-items: center; gap: 7px; margin-top: 6px; padding: 3px 8px; border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--border)); border-radius: var(--radius-sm); color: var(--muted); background: color-mix(in srgb, var(--amber) 12%, var(--surface)); font-size: 11px; font-weight: 600; }
+    .poa-today-legend-line { display: inline-block; width: 0; height: 16px; border-left: 2px solid var(--amber); }
     .poa-track { position: relative; min-height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 0 1px, transparent 1px 28px), color-mix(in srgb, var(--surface-strong) 80%, transparent); overflow: hidden; }
     .poa-today-marker { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--amber); z-index: 2; pointer-events: none; }
-    .poa-today-marker span { position: absolute; top: 1px; left: 5px; padding: 1px 5px; border-radius: var(--radius-sm); color: var(--text); background: color-mix(in srgb, var(--amber) 24%, var(--surface)); border: 1px solid color-mix(in srgb, var(--amber) 55%, var(--border)); font-size: 10px; font-weight: 700; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.03em; }
     .poa-bar { position: absolute; top: 5px; height: 22px; display: flex; align-items: center; min-width: 18px; max-width: calc(100% - 2px); border-radius: 999px; padding: 0 8px; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; box-sizing: border-box; overflow: hidden; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24); }
     .poa-bar--blocked { background: #b42318; }
     .poa-bar--overdue { background: #b54708; }
@@ -312,6 +313,16 @@ export function shellHtml(title: string, body: string): string {
         const filterText = filterInput instanceof HTMLInputElement ? filterInput.value : '';
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id'), filterText });
       }
+      if (command === 'openRecordInEditor') {
+        const filterInput = document.querySelector('.requirement-browser__filter');
+        const filterText = filterInput instanceof HTMLInputElement ? filterInput.value : '';
+        vscode.postMessage({
+          command,
+          entityType: button.getAttribute('data-entity-type'),
+          entityId: button.getAttribute('data-entity-id'),
+          filterText
+        });
+      }
       if (command === 'openAdjacentRequirement') {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id'), direction: button.getAttribute('data-direction') });
       }
@@ -330,7 +341,7 @@ export function shellHtml(title: string, body: string): string {
       if (command === 'linkExistingEvidenceToRequirement' || command === 'linkExistingActionToRequirement' || command === 'linkExistingRiskToRequirement' || command === 'linkExistingDirectionToRequirement') {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
       }
-      if (command === 'createSavedView' || command === 'applySavedView' || command === 'editSavedView' || command === 'archiveSavedView') {
+      if (command === 'createSavedView' || command === 'applySavedView' || command === 'editSavedView' || command === 'editSavedViewFilters' || command === 'archiveSavedView') {
         vscode.postMessage({ command, savedViewId: button.getAttribute('data-saved-view-id'), savedViewScope: button.getAttribute('data-saved-view-scope') });
       }
       if (command === 'createStrategyDraft') {

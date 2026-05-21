@@ -2,7 +2,7 @@
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.26.0 with Core, Workshop, Shop, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.10.0`.
+The repository currently ships PSPF v1.27.0 with Core, Workshop, Shop, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.10.0`.
 
 ## Products
 
@@ -29,7 +29,19 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the v1.26 gate chain and writes `.tmp/release-readiness/v1.26.0-readiness-report.md`.
+`release:readiness` runs the v1.27 gate chain and writes `.tmp/release-readiness/v1.27.0-readiness-report.md`. The latest local run passed 17/17 tracked gates.
+
+## Current Workshop Slice
+
+Workshop is the main operator surface for evidence-backed assessment work. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
+
+Current v1.27 Workshop additions include:
+
+- Digital CISO Magazine: a generated `OFFICIAL: Sensitive` issue for share-ready CISO communication.
+- CISO Master Plan: an active roadmap view derived from Strategy, Plan of Action, Risks, Evidence, Shop dependencies, and staged initiative plans.
+- Roadmap initiative plans: operators can add idea/initiative work such as an AI Implementation plan with Design, Build, Verify, and Monitor stages; each stage remains editable as an Action and the case for action remains editable as Evidence.
+- Plan of Action: the execution worklist for Actions, with timeline filtering and a single Today legend for the timeline marker.
+- Saved views: Workshop saved views can be opened, renamed, archived, and edited so the saved filter definition can change over time.
 
 ## Manual Validation
 

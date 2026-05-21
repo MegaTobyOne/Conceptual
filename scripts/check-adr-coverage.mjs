@@ -218,6 +218,12 @@ const coverage = [
     "check:shop-coverage-dashboard",
     "package:check",
     "check:release-candidate"
+  ]),
+  adr("0063-v1-27-digital-ciso-magazine.md", "automated", [
+    "e2e:v1.27",
+    "check:ciso-magazine",
+    "check:brief-redaction",
+    "check:release-candidate"
   ])
 ];
 

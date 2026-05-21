@@ -425,6 +425,19 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 10. **Deferred-scope gate**: v1.26 does not add a scenario entity, finance reconciliation, actual spend import, formal approval workflow, taggable Spend Items or Actions, Pub assignment workflow, or new link verbs.
 11. **Regression gate**: `check:shop-coverage-dashboard`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.27 candidate gates (Digital CISO Magazine, per ADR 0063)
+
+1. **ADR gate**: ADR 0063 records the Digital CISO Magazine decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.27.0`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
+3. **Renderer gate**: `@pspf/brief-renderer` exports a deterministic CISO Magazine model plus Markdown and self-contained HTML renderers.
+4. **Issue-structure gate**: generated issues include cover hook, editor's note, posture snapshot, feature stories, attention required, action strip, commercial watch, CISO Master Plan article, reader actions, next issue, source metadata, and `OFFICIAL: Sensitive` labelling.
+5. **PSPF Domain extract gate**: `check:ciso-magazine` generates both all-domain and `INFO`-scoped issues from the standard sample bundle.
+6. **CISO Master Plan gate**: Workshop exposes a dedicated `CISO Master Plan` button and command that opens an active planning panel over Strategy, Plan of Action streams, phases, dependencies, risks, and Shop milestones; a copy action remains available for share/adapt workflows.
+7. **Redaction gate**: generated Markdown and HTML exclude restricted personal fields, sensitive assumptions, and non-public working notes; no external scripts or network assets are emitted.
+8. **Print/share gate**: generated HTML includes print CSS and Markdown remains suitable for email-body copy without requiring email sending.
+9. **Deferred-scope gate**: v1.27 does not add persisted Report Packs, canonical multi-plan entities, native PDF generation, email sending, subscriber management, RSS/feed publication, Pub people/assignment workflows, copyrighted comic artwork, or third-party comic trade dress.
+10. **Regression gate**: `check:ciso-magazine`, `check:brief-redaction`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

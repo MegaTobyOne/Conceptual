@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.10.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.26.0" as const;
+export const PSPF_SLICE_VERSION = "1.27.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
