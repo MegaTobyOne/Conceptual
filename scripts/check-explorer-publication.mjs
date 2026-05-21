@@ -8,6 +8,7 @@ import { PSPF_SLICE_VERSION, VERSION_AXES } from "../packages/contracts/dist/ind
 
 const root = process.cwd();
 const explorerPath = join(root, "packages", "explorer", "dist", "index.html");
+const sampleBundlePath = join(root, "packages", "explorer", "dist", "sample-bundle.json");
 const bundlePath = findBundlePath();
 const reportDirectory = join(root, ".tmp", "explorer-publication");
 await mkdir(reportDirectory, { recursive: true });
@@ -27,6 +28,13 @@ try {
 
   await page.goto(pathToFileURL(explorerPath).href);
   await page.waitForFunction(() => typeof globalThis.pspfExplorerRender === "function");
+  const firstOpenText = await page.locator("body").innerText();
+  const sampleBundlePresent = existsSync(sampleBundlePath);
+  const sampleBundle = sampleBundlePresent ? JSON.parse(readFileSyncText(sampleBundlePath)) : undefined;
+  const sampleDownloadHref = await page.locator('a[download="pspf-sample-bundle.json"]').first().getAttribute("href");
+  await page.getByRole("button", { name: "Load sample bundle" }).first().click();
+  await page.waitForSelector("#validation:not([hidden])");
+  const sampleLoadedFromButton = await page.locator("#welcome").isHidden();
   const bundle = JSON.parse(await readFileSyncText(bundlePath));
   const dataDirectory = join(dirname(bundlePath), "data");
   const byTagPath = join(dataDirectory, "indexes", "by-tag.json");
@@ -357,6 +365,22 @@ try {
   }, bundle);
 
   const checks = [
+    check(
+      "First open offers sample bundle",
+      firstOpenText.includes("Load sample bundle") && firstOpenText.includes("Download sample JSON"),
+      firstOpenText
+    ),
+    check(
+      "Explorer ships downloadable sample JSON",
+      sampleBundlePresent && sampleBundle?.manifest?.bundleType === "pspf-explorer-bundle",
+      sampleBundlePresent ? sampleBundle?.manifest?.bundleType || "missing bundle type" : "missing sample-bundle.json"
+    ),
+    check(
+      "Sample download points to bundled JSON",
+      sampleDownloadHref === "./sample-bundle.json",
+      sampleDownloadHref || "missing download href"
+    ),
+    check("Sample button loads Explorer", sampleLoadedFromButton, "welcome panel hidden after sample load"),
     check("No page errors", pageErrors.length === 0, pageErrors.join("; ")),
     check("No console errors", consoleErrors.length === 0, consoleErrors.join("; ")),
     check("Validation panel has no failed checks", validationFailures === 0, `${validationFailures} failed check(s)`),

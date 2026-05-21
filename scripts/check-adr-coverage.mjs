@@ -212,6 +212,12 @@ const coverage = [
     "check:explorer-publication",
     "check:schema-policy",
     "check:schema-coverage"
+  ]),
+  adr("0062-v1-26-shop-assurance-spend-scenario-planning.md", "automated", [
+    "e2e:v1.26",
+    "check:shop-coverage-dashboard",
+    "package:check",
+    "check:release-candidate"
   ])
 ];
 

@@ -74,6 +74,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0059 | v1.23 Connected View and commercial planning polish | accepted |
 | 0060 | v1.24 Workshop Cyber Strategy Map | accepted |
 | 0061 | v1.25 Workshop operational dashboards | accepted |
+| 0062 | v1.26 Shop assurance spend scenario planning | proposed |
 
 ## Template
 

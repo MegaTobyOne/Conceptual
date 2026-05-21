@@ -330,12 +330,20 @@ The v1.18 Shop Home/Forecast treatment should include linked-assurance coverage:
 Shop should answer practical commercial questions in plain language:
 - “What are we already committed to spend?”
 - “Which controls or actions depend on funding?”
+- “How much does this Requirement, tag, or funded Action cost to reach and sustain?”
+- “What changes if proposed work is included?”
 - “Where can we invest now to save money later?”
 - “Which savings assumptions are strong, weak, or unproven?”
 - “What is the expected payback period?”
 
+From v1.26, Shop should make assurance spend attribution a first-class forecast lens. Spend should be explorable by Requirement, Action, Requirement tag, domain, supplier, contract, cost centre, financial year, status, confidence, and savings type. Scenario controls should distinguish approved/committed baseline spend from proposed work without implying formal approval workflow or finance-led actuals reconciliation.
+
+The data-entry experience should bias operators toward forecastable, linked records: Spend Item entry should invite linked Requirements or Actions during creation, show missing-link and missing-assumption warnings inline, and preserve practical defaults such as financial year and cost centre. Forecast outputs should always disclose assumptions and confidence next to cost and savings figures.
+
 Recommended Shop graphics:
 - forecast spend by financial year,
+- scenario comparison for approved/committed versus proposed spend,
+- spend by Requirement, Action, and Requirement tag,
 - expected savings by financial year,
 - net benefit line or bar by period,
 - invest-now-save-later opportunity ranking,

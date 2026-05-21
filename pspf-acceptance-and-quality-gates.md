@@ -411,6 +411,20 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 9. **Deferred-scope gate**: v1.25 does not add new entity types, link verbs, schema axes, editable Explorer strategy, PMO scheduling, approvals, finance reconciliation, or editable Connected View.
 10. **Regression gate**: `e2e:v1.25`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.26 candidate gates (Shop assurance spend scenario planning, per ADR 0062)
+
+1. **ADR gate**: ADR 0062 records the Shop assurance spend attribution and scenario-planning decision before implementation starts.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.26.0`; schema, bundle, and API axes remain `1.10.0` unless a later implementation decision accepts new schema-bearing fields.
+3. **Attribution gate**: Shop can show forecast spend by Requirement, Action, Requirement tag, domain, supplier, contract, cost centre, financial year, and Spend Item status using existing links and active records.
+4. **No-double-counting gate**: headline scenario totals de-duplicate Spend Items, while grouped Requirement, Action, and tag rows disclose multi-linked spend and explain why grouped subtotals may exceed unique spend.
+5. **Scenario gate**: forecast views can switch between approved/committed baseline, approved only, and proposed-inclusive scenarios using existing Spend Item statuses; `spent` and `cancelled` are excluded from forward forecast totals by default.
+6. **Data-entry gate**: Spend Item create/edit prompts for forecast dates, amount, status, confidence, assumptions, cost centre, and linked Requirement or Action context, and surfaces quick fixes for missing links or weak forecast inputs.
+7. **Interrogation gate**: Shop Forecast filters compose across period, financial year, supplier, contract, cost centre, Requirement status, Action status, tag, confidence, savings type, and scenario without mutating source records.
+8. **Export gate**: filtered forecast exports include scenario comparison, spend by Requirement, spend by tag, spend by Action, expected savings, net forecast, confidence, and assumptions as CSV and Excel-compatible `.xls` tables.
+9. **Maturity-language gate**: Shop may describe cost to reach and sustain target posture only where linked Strategy, Essential Eight, Requirement, or Action data supports that claim; otherwise it labels the view as linked assurance spend and highlights missing target data.
+10. **Deferred-scope gate**: v1.26 does not add a scenario entity, finance reconciliation, actual spend import, formal approval workflow, taggable Spend Items or Actions, Pub assignment workflow, or new link verbs.
+11. **Regression gate**: `check:shop-coverage-dashboard`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

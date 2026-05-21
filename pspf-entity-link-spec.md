@@ -595,11 +595,17 @@ The projection should expose, at minimum:
 | `linkedRequirementIds` | string[] | requirements affected by the spend |
 | `linkedActionIds` | string[] | actions funded or enabled by the spend |
 | `linkedRiskIds` | string[] | risks reduced or avoided by the spend |
+| `linkedTagIds` | string[] | tags inherited from linked requirements for reporting, not direct spend-item tags |
+| `scenarioStatus` | string | baseline, proposed, or mixed status grouping derived from Spend Item statuses |
 | `explanation` | string[] | short facts explaining forecast and savings assumptions |
 
 The v1 forecast MUST be explainable and assumption-led. It should not imply accounting precision unless backed by source data. Recommended signals include contract renewal dates, supplier criticality, action impact, linked risk severity, evidence gaps, current manual effort, duplicate suppliers/contracts, contract optimisation opportunities, avoided incident/remediation cost, and requirements whose uplift depends on funding.
 
 Shop should show both gross spend and expected savings so a user can distinguish “cost to comply” from “investment that reduces future cost or risk”.
+
+From v1.26, Shop forecast projections should also support assurance spend attribution and lightweight scenario planning. Attribution may trace Spend Items directly linked to Requirements, Spend Items linked to Actions that are linked to Requirements, and Requirement tags inherited through `tagged-with` links. Headline totals MUST de-duplicate Spend Items within the active filter; rows grouped by Requirement, Action, or tag MUST make multi-linked spend visible so users do not mistake attributed totals for ledger totals.
+
+Scenario views are derived from existing Spend Item statuses. The baseline scenario includes approved and committed forecast spend; the proposed scenario adds proposed Spend Items; spent and cancelled items stay out of forward forecast totals unless a report explicitly labels them as historical or excluded context.
 
 ## Workforce entities
 

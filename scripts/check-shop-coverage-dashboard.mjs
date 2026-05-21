@@ -47,7 +47,14 @@ for (const requiredText of [
   "pspf.shop.linkSpendItemToContract",
   "Spend items needing contract funding links",
   "contract funds spend-item",
-  "isContractFundingLink"
+  "isContractFundingLink",
+  "deriveScenarioSummaries",
+  "deriveAssuranceSpend",
+  "Scenario comparison",
+  "Spend by Requirement, tag, and Action",
+  "Approved and committed baseline",
+  "Include proposed work",
+  "promptSpendItemAssuranceLink"
 ]) {
   assert.equal(shopExtension.includes(requiredText), true, `Shop coverage dashboard should mention ${requiredText}`);
 }
