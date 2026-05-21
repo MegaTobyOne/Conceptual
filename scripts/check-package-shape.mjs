@@ -72,6 +72,11 @@ const extensionPackages = [
     dependency: "tobyharvey.pspf-core",
     expectedCommands: [
       "pspf.pub.openHome",
+      "pspf.pub.loadSample",
+      "pspf.pub.newPerson",
+      "pspf.pub.newRole",
+      "pspf.pub.newAssignment",
+      "pspf.pub.recordRelationshipNote",
       "pspf.pub.openOrgChart",
       "pspf.pub.openPeople",
       "pspf.pub.openRoles",

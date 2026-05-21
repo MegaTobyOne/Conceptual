@@ -101,6 +101,15 @@ importers:
         specifier: workspace:*
         version: link:../reference-data
 
+  packages/pub:
+    dependencies:
+      '@pspf/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@pspf/webview-shell':
+        specifier: workspace:*
+        version: link:../webview-shell
+
   packages/reference-data:
     dependencies:
       '@pspf/contracts':

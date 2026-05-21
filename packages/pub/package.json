@@ -47,6 +47,26 @@
         "title": "PSPF: Open Pub"
       },
       {
+        "command": "pspf.pub.loadSample",
+        "title": "PSPF: Load Pub Sample"
+      },
+      {
+        "command": "pspf.pub.newPerson",
+        "title": "PSPF: New Pub Person"
+      },
+      {
+        "command": "pspf.pub.newRole",
+        "title": "PSPF: New Pub Role"
+      },
+      {
+        "command": "pspf.pub.newAssignment",
+        "title": "PSPF: New Pub Assignment"
+      },
+      {
+        "command": "pspf.pub.recordRelationshipNote",
+        "title": "PSPF: Record Pub Relationship Note"
+      },
+      {
         "command": "pspf.pub.openOrgChart",
         "title": "PSPF: Open Pub Organisation Chart"
       },
@@ -70,14 +90,24 @@
     "menus": {
       "view/title": [
         {
-          "command": "pspf.pub.openOrgChart",
+          "command": "pspf.pub.newPerson",
           "when": "view == pspfPub.homeView",
           "group": "navigation@1"
         },
         {
-          "command": "pspf.pub.openAssignments",
+          "command": "pspf.pub.recordRelationshipNote",
           "when": "view == pspfPub.homeView",
           "group": "navigation@2"
+        },
+        {
+          "command": "pspf.pub.openOrgChart",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "pspf.pub.openAssignments",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@4"
         }
       ]
     }
