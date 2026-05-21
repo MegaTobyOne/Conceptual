@@ -31,7 +31,8 @@ const axesByMinorVersion = new Map([
   [24, "1.10.0"],
   [25, "1.10.0"],
   [26, "1.10.0"],
-  [27, "1.10.0"]
+  [27, "1.10.0"],
+  [28, "1.10.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -44,6 +45,7 @@ const packagePaths = [
   "packages/core/package.json",
   "packages/explorer/package.json",
   "packages/ism-source-library/package.json",
+  "packages/pub/package.json",
   "packages/reference-data/package.json",
   "packages/shop/package.json",
   "packages/webview-shell/package.json",
@@ -66,61 +68,63 @@ assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleV
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
 const e2eScript =
-  minorVersion >= 27
-    ? "e2e:v1.27"
-    : minorVersion >= 26
-      ? "e2e:v1.26"
-      : minorVersion >= 25
-        ? "e2e:v1.25"
-        : minorVersion >= 24
-          ? "e2e:v1.24"
-          : minorVersion >= 23
-            ? "e2e:v1.23"
-            : minorVersion >= 22
-              ? "e2e:v1.22"
-              : minorVersion >= 21
-                ? "e2e:v1.21"
-                : minorVersion >= 20
-                  ? "e2e:v1.20"
-                  : minorVersion >= 19
-                    ? "e2e:v1.19"
-                    : minorVersion >= 18
-                      ? "e2e:v1.18"
-                      : minorVersion >= 17
-                        ? "e2e:v1.17"
-                        : minorVersion >= 16
-                          ? "e2e:v1.16"
-                          : minorVersion >= 14
-                            ? "e2e:v1.14"
-                            : minorVersion >= 13
-                              ? "e2e:v1.13"
-                              : minorVersion >= 12
-                                ? "e2e:v1.12"
-                                : minorVersion >= 11
-                                  ? "e2e:v1.11"
-                                  : minorVersion >= 10
-                                    ? "e2e:v1.10"
-                                    : /^1\.9\.\d+$/.test(expectedVersion)
-                                      ? "e2e:v1.9"
-                                      : /^1\.8\.\d+$/.test(expectedVersion)
-                                        ? "e2e:v1.8"
-                                        : /^1\.7\.\d+$/.test(expectedVersion)
-                                          ? "e2e:v1.7"
-                                          : /^1\.6\.\d+$/.test(expectedVersion)
-                                            ? "e2e:v1.6"
-                                            : /^1\.5\.\d+$/.test(expectedVersion)
-                                              ? "e2e:v1.5"
-                                              : /^1\.4\.\d+$/.test(expectedVersion)
-                                                ? "e2e:v1.4"
-                                                : /^1\.3\.\d+$/.test(expectedVersion)
-                                                  ? "e2e:v1.3"
-                                                  : /^1\.2\.\d+$/.test(expectedVersion)
-                                                    ? "e2e:v1.2"
-                                                    : isV11OrLaterRelease
-                                                      ? "e2e:v1.1"
-                                                      : isV1Release
-                                                        ? "e2e:v1.0"
-                                                        : "e2e:v0.9";
+  minorVersion >= 28
+    ? "e2e:v1.28"
+    : minorVersion >= 27
+      ? "e2e:v1.27"
+      : minorVersion >= 26
+        ? "e2e:v1.26"
+        : minorVersion >= 25
+          ? "e2e:v1.25"
+          : minorVersion >= 24
+            ? "e2e:v1.24"
+            : minorVersion >= 23
+              ? "e2e:v1.23"
+              : minorVersion >= 22
+                ? "e2e:v1.22"
+                : minorVersion >= 21
+                  ? "e2e:v1.21"
+                  : minorVersion >= 20
+                    ? "e2e:v1.20"
+                    : minorVersion >= 19
+                      ? "e2e:v1.19"
+                      : minorVersion >= 18
+                        ? "e2e:v1.18"
+                        : minorVersion >= 17
+                          ? "e2e:v1.17"
+                          : minorVersion >= 16
+                            ? "e2e:v1.16"
+                            : minorVersion >= 14
+                              ? "e2e:v1.14"
+                              : minorVersion >= 13
+                                ? "e2e:v1.13"
+                                : minorVersion >= 12
+                                  ? "e2e:v1.12"
+                                  : minorVersion >= 11
+                                    ? "e2e:v1.11"
+                                    : minorVersion >= 10
+                                      ? "e2e:v1.10"
+                                      : /^1\.9\.\d+$/.test(expectedVersion)
+                                        ? "e2e:v1.9"
+                                        : /^1\.8\.\d+$/.test(expectedVersion)
+                                          ? "e2e:v1.8"
+                                          : /^1\.7\.\d+$/.test(expectedVersion)
+                                            ? "e2e:v1.7"
+                                            : /^1\.6\.\d+$/.test(expectedVersion)
+                                              ? "e2e:v1.6"
+                                              : /^1\.5\.\d+$/.test(expectedVersion)
+                                                ? "e2e:v1.5"
+                                                : /^1\.4\.\d+$/.test(expectedVersion)
+                                                  ? "e2e:v1.4"
+                                                  : /^1\.3\.\d+$/.test(expectedVersion)
+                                                    ? "e2e:v1.3"
+                                                    : /^1\.2\.\d+$/.test(expectedVersion)
+                                                      ? "e2e:v1.2"
+                                                      : isV11OrLaterRelease
+                                                        ? "e2e:v1.1"
+                                                        : isV1Release
+                                                          ? "e2e:v1.0"
+                                                          : "e2e:v0.9";
 for (const scriptName of [
   e2eScript,
   "check:adr-coverage",
@@ -149,6 +153,7 @@ assert.equal(
 assert.equal(packageJson.scripts["e2e:v1.25"].includes("e2e:v1.24"), true, "e2e:v1.25 should include v1.24 gates");
 assert.equal(packageJson.scripts["e2e:v1.26"].includes("e2e:v1.25"), true, "e2e:v1.26 should include v1.25 gates");
 assert.equal(packageJson.scripts["e2e:v1.27"].includes("e2e:v1.26"), true, "e2e:v1.27 should include v1.26 gates");
+assert.equal(packageJson.scripts["e2e:v1.28"].includes("e2e:v1.27"), true, "e2e:v1.28 should include v1.27 gates");
 
 for (const requiredPath of [
   "scripts/check-adr-coverage.mjs",
@@ -186,6 +191,7 @@ for (const requiredPath of [
   "adr/0061-v1-25-workshop-operational-dashboards.md",
   "adr/0062-v1-26-shop-assurance-spend-scenario-planning.md",
   "adr/0063-v1-27-digital-ciso-magazine.md",
+  "adr/0064-v1-28-pub-marketplace-foundation.md",
   "pspf-reference-data-baseline-spec.md",
   "pspf-acceptance-and-quality-gates.md",
   "pspf-development-readiness-review.md",
@@ -210,7 +216,11 @@ for (const requiredText of [
 }
 
 const deferredPackages =
-  minorVersion >= 15 ? ["packages/pub/README.md"] : ["packages/shop/README.md", "packages/pub/README.md"];
+  minorVersion >= 28
+    ? []
+    : minorVersion >= 15
+      ? ["packages/pub/README.md"]
+      : ["packages/shop/README.md", "packages/pub/README.md"];
 for (const deferredPackage of deferredPackages) {
   const text = await readFile(join(root, deferredPackage), "utf8");
   assert.match(text, /deferred/i, `${deferredPackage} should remain a deferral note for ${expectedVersion}`);
@@ -1298,9 +1308,60 @@ if (isV1Release && minorVersion >= 27) {
     "check:gates should run the CISO Magazine gate"
   );
   assert.equal(
-    packageJson.scripts["release:readiness"].includes("e2e:v1.27"),
+    minorVersion === 27
+      ? packageJson.scripts["release:readiness"].includes("e2e:v1.27")
+      : packageJson.scripts[e2eScript].includes("e2e:v1.27"),
     true,
-    "release:readiness should run e2e:v1.27"
+    minorVersion === 27 ? "release:readiness should run e2e:v1.27" : `${e2eScript} should include e2e:v1.27`
+  );
+}
+
+if (isV1Release && minorVersion >= 28) {
+  const v128Adr = await readFile(join(root, "adr/0064-v1-28-pub-marketplace-foundation.md"), "utf8");
+  for (const requiredText of [
+    "Pub Marketplace foundation",
+    "tobyharvey.pspf-pub",
+    "hybrid",
+    "no Pub data is added to Explorer publication bundles",
+    "1.10.0"
+  ]) {
+    assert.equal(v128Adr.includes(requiredText), true, `v1.28 ADR should mention ${requiredText}`);
+  }
+  for (const requiredText of [
+    "v1.28 candidate gates (Pub Marketplace foundation, per ADR 0064)",
+    "PSPF_SLICE_VERSION` are `1.28.0`",
+    "Package-shape gate",
+    "Marketplace dry-run gate",
+    "Local-only boundary gate"
+  ]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+  const pubPackage = await readFile(join(root, "packages/pub/package.json"), "utf8");
+  for (const requiredText of [
+    "pspfPub.homeView",
+    "pspf.pub.openHome",
+    "pspf.pub.openOrgChart",
+    "pspf.pub.openPeople",
+    "pspf.pub.openRoles",
+    "pspf.pub.openAssignments",
+    "tobyharvey.pspf-core"
+  ]) {
+    assert.equal(pubPackage.includes(requiredText), true, `Pub package should mention ${requiredText}`);
+  }
+  const pubExtension = await readFile(join(root, "packages/pub/src/extension.ts"), "utf8");
+  for (const requiredText of [
+    "PSPF Pub",
+    "organisation chart",
+    "relationship log",
+    "no Explorer publication in v1.28",
+    "local-only people context"
+  ]) {
+    assert.equal(pubExtension.includes(requiredText), true, `Pub extension should mention ${requiredText}`);
+  }
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes("e2e:v1.28"),
+    true,
+    "release:readiness should run e2e:v1.28"
   );
 }
 

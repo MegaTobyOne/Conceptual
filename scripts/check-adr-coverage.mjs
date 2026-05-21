@@ -224,6 +224,12 @@ const coverage = [
     "check:ciso-magazine",
     "check:brief-redaction",
     "check:release-candidate"
+  ]),
+  adr("0064-v1-28-pub-marketplace-foundation.md", "automated", [
+    "e2e:v1.28",
+    "package:check",
+    "check:release-candidate",
+    "check:deployment-safety"
   ])
 ];
 

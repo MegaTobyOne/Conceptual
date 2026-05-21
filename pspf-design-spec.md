@@ -355,12 +355,38 @@ Recommended Shop graphics:
 
 Pub should focus on people, roles, capacity, and assignments. The visual emphasis should be on who is responsible, where responsibility is missing, and how work or accountability is distributed.
 
+From v1.28, Pub has a distinct people-and-relationships identity inside the PSPF family. It should feel operational, humane, and careful: useful for staff and stakeholder context without making sensitive person data feel publishable. The first surface should communicate that Pub is local-first and that relationship context, development notes, performance-management context, roster thinking, rotations, anniversaries, and team-event history stay local unless a later release explicitly opens a publication path.
+
 Core Pub page types:
 - people directory,
 - role detail,
+- team and organisation chart,
 - assignment board,
 - responsibility gaps,
-- linked actions and workload context.
+- linked actions and workload context,
+- relationship log,
+- roster and rotation opportunities.
+
+The organisation chart should be more than a static hierarchy. It should support compact action badges for upcoming actions, milestones, anniversaries, review dates, rotation windows, relationship follow-ups, and team events. Badges should be scannable, explainable on hover or focus, and linked back to the underlying role, team, requirement, direction, or action where possible.
+
+Pub should answer practical people and stakeholder questions in plain language:
+- "Who has a stake in protecting this information?"
+- "Which role, team, supplier, or customer relationship needs attention soon?"
+- "Where does a requirement, direction, or action depend on a role or team?"
+- "Where is responsibility missing, overloaded, duplicated, or fragile?"
+- "Which rotations or roster changes could improve resilience?"
+- "Which people or service-provider relationships need a planned check-in?"
+
+Recommended Pub graphics:
+- organisation chart with action, milestone, anniversary, and review badges,
+- responsibility coverage by Requirement, Direction, Action, team, and role,
+- assignment load by role and team,
+- upcoming people and stakeholder events timeline,
+- rotation and roster opportunity board,
+- relationship follow-up queue,
+- compliance contribution and sustainability view by functional outcome.
+
+Pub storage and publication cues should be explicit. Canonical responsibility records may become Core-backed in later slices, but sensitive person identity and relationship notes should remain local-only by default. Explorer publication should not render Pub data until a future ADR defines redaction, consent, schema, and review gates for role/team-only publication.
 
 ## Explorer design spec
 

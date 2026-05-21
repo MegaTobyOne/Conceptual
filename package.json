@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.27.0",
+  "version": "1.28.0",
   "private": true,
   "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
   "license": "MIT",
@@ -17,7 +17,7 @@
     "build": "pnpm -r --if-present build",
     "build:web-release": "pnpm build && node scripts/build-web-release.mjs",
     "bench:storage": "node scripts/bench-sqlite-engines.mjs",
-    "bundle:extensions": "pnpm build && pnpm exec esbuild packages/core/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --banner:js='import { createRequire as __pspfCreateRequire } from \"node:module\"; import { fileURLToPath as __pspfFileURLToPath } from \"node:url\"; import { dirname as __pspfDirname } from \"node:path\"; const require = __pspfCreateRequire(import.meta.url); const __filename = __pspfFileURLToPath(import.meta.url); const __dirname = __pspfDirname(__filename);' --outfile=packages/core/dist/extension.js && cp node_modules/sql.js/dist/sql-wasm.wasm packages/core/dist/sql-wasm.wasm && pnpm exec esbuild packages/workshop/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/workshop/dist/extension.js",
+    "bundle:extensions": "pnpm build && pnpm exec esbuild packages/core/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --banner:js='import { createRequire as __pspfCreateRequire } from \"node:module\"; import { fileURLToPath as __pspfFileURLToPath } from \"node:url\"; import { dirname as __pspfDirname } from \"node:path\"; const require = __pspfCreateRequire(import.meta.url); const __filename = __pspfFileURLToPath(import.meta.url); const __dirname = __pspfDirname(__filename);' --outfile=packages/core/dist/extension.js && cp node_modules/sql.js/dist/sql-wasm.wasm packages/core/dist/sql-wasm.wasm && pnpm exec esbuild packages/workshop/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/workshop/dist/extension.js && pnpm exec esbuild packages/pub/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/pub/dist/extension.js",
     "check:accessibility": "pnpm build && node scripts/check-accessibility.mjs",
     "check:backup-restore": "pnpm build && node scripts/backup-restore-dry-run.mjs",
     "check:core-storage-runtime": "pnpm build && node scripts/check-core-sqljs-runtime.mjs",
@@ -80,6 +80,7 @@
     "e2e:v1.25": "pnpm run e2e:v1.24 && pnpm run check:explorer-publication && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run package:check",
     "e2e:v1.26": "pnpm run e2e:v1.25 && pnpm run check:shop-coverage-dashboard && pnpm run package:check",
     "e2e:v1.27": "pnpm run e2e:v1.26 && pnpm run check:ciso-magazine && pnpm run package:check",
+    "e2e:v1.28": "pnpm run e2e:v1.27 && pnpm run package:check",
     "validate:export": "pnpm build && node scripts/validate-export.mjs",
     "validate:debug-workspace": "pnpm build && node scripts/validate-debug-workspace.mjs && node scripts/check-personal-data-exclusion.mjs",
     "lint": "pnpm lint:au && pnpm lint:ts && pnpm format:check",
@@ -90,7 +91,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm e2e:v1.27 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
+    "release:readiness": "pnpm e2e:v1.28 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
     "test": "pnpm build && pnpm -r --if-present test",
     "typecheck": "tsc -b tsconfig.json"
   },

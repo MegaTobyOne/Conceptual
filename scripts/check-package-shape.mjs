@@ -65,6 +65,19 @@ const extensionPackages = [
       "pspf.shop.linkSpendToAction",
       "pspf.shop.linkSpendToRequirement"
     ]
+  },
+  {
+    name: "Pub",
+    directory: "packages/pub",
+    dependency: "tobyharvey.pspf-core",
+    expectedCommands: [
+      "pspf.pub.openHome",
+      "pspf.pub.openOrgChart",
+      "pspf.pub.openPeople",
+      "pspf.pub.openRoles",
+      "pspf.pub.openAssignments",
+      "pspf.pub.openRelationshipLog"
+    ]
   }
 ];
 
@@ -145,6 +158,18 @@ for (const extensionPackage of extensionPackages) {
       "Shop contributes the Spend tree view"
     );
   }
+  if (extensionPackage.name === "Pub") {
+    assert.equal(
+      manifest.contributes?.viewsContainers?.activitybar?.some((container) => container.id === "pspfPub"),
+      true,
+      "Pub contributes an Activity Bar container"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfPub?.some((view) => view.id === "pspfPub.homeView" && view.type === "webview"),
+      true,
+      "Pub contributes the Home webview view"
+    );
+  }
   if (extensionPackage.dependency) {
     assert.equal(
       manifest.extensionDependencies?.includes(extensionPackage.dependency),
@@ -154,4 +179,4 @@ for (const extensionPackage of extensionPackages) {
   }
 }
 
-console.log("ok Core, Workshop, and Shop extension package shapes match the Marketplace deployment baseline");
+console.log("ok Core, Workshop, Shop, and Pub extension package shapes match the Marketplace deployment baseline");

@@ -118,7 +118,7 @@ The standing instruction is:
 
 Production releases are driven by `workflow_dispatch` from `main`, not by hand-cut tags:
 
-- **Marketplace**: run `Marketplace release` with `target=core|workshop|shop|both|all`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates `core/<version>`, `workshop/<version>`, and/or `shop/<version>` tags and GitHub releases as receipts. `both` remains Core+Workshop for compatibility with earlier runbooks; use `all` for Core+Workshop+Shop. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection; dry-run state is shown in the workflow run name and job summaries so a green dry run is not treated as a published extension. Marketplace Gallery verification waits 60 seconds between attempts because newly published versions can take several minutes to appear through the public API.
+- **Marketplace**: run `Marketplace release` with `target=core|workshop|shop|pub|both|all`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates `core/<version>`, `workshop/<version>`, `shop/<version>`, and/or `pub/<version>` tags and GitHub releases as receipts. `both` remains Core+Workshop for compatibility with earlier runbooks; use `all` for Core+Workshop+Shop+Pub. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection; dry-run state is shown in the workflow run name and job summaries so a green dry run is not treated as a published extension. Marketplace Gallery verification waits 60 seconds between attempts because newly published versions can take several minutes to appear through the public API.
 - **Explorer web**: run `Web release` with `target=production`. The workflow gates on the `production-web` environment and deploys to `tobyharvey.online` through the VentraIP composite action. Test deploys to `test.tobyharvey.online` still run automatically on push to `develop`.
 
 ### Pull request discipline
@@ -369,7 +369,7 @@ Marketplace and web deployment are separate channels. `VSCE_TOKEN` is used only 
 
 ## Shop and Pub CI/CD
 
-Shop is active from the v1.15+ commercial-planning slices and is released through the shared `marketplace.yml` workflow as `target=shop` or as part of `target=all`. Pub remains deferred; its package directory and future release target are still reserved so naming and tags do not drift.
+Shop is active from the v1.15+ commercial-planning slices and is released through the shared `marketplace.yml` workflow as `target=shop` or as part of `target=all`. Pub is active from the v1.28 Marketplace foundation slice and is released as `target=pub` or as part of `target=all` with receipt tags under `pub/<version>`.
 
 Shop uses the same monorepo checks as Core and Workshop, and Pub should follow the same pattern when it becomes active:
 
