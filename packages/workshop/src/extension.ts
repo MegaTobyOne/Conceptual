@@ -1,5 +1,11 @@
 import * as vscode from "vscode";
-import { renderPostureBriefMarkdown } from "@pspf/brief-renderer";
+import {
+  buildCisoMasterPlanModel,
+  renderCisoMagazineHtml,
+  renderCisoMagazineMarkdown,
+  renderCisoMasterPlanMarkdown,
+  renderPostureBriefMarkdown
+} from "@pspf/brief-renderer";
 import {
   buildConnectedViewModel,
   renderConnectedViewBodyHtml,
@@ -49,6 +55,7 @@ import {
   type SavedViewEntity,
   type SavedViewScope,
   type SourceControlEntity,
+  type SpendItemEntity,
   type StrategyEntity,
   type TagColour,
   type TagEntity,
@@ -112,6 +119,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
     vscode.commands.registerCommand("pspf.workshop.openStrategyMap", openStrategyMap),
     vscode.commands.registerCommand("pspf.workshop.editStrategySummary", editStrategySummary),
+    vscode.commands.registerCommand("pspf.workshop.createRoadmapInitiativePlan", createRoadmapInitiativePlan),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
     vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
@@ -126,7 +134,10 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.applyTag", applyTag),
     vscode.commands.registerCommand("pspf.workshop.removeTag", removeTag),
     vscode.commands.registerCommand("pspf.workshop.filterRequirementsByTag", filterRequirementsByTag),
-    vscode.commands.registerCommand("pspf.workshop.copyPostureBrief", copyPostureBrief)
+    vscode.commands.registerCommand("pspf.workshop.copyPostureBrief", copyPostureBrief),
+    vscode.commands.registerCommand("pspf.workshop.openCisoMagazine", openCisoMagazine),
+    vscode.commands.registerCommand("pspf.workshop.openCisoMasterPlan", openCisoMasterPlan),
+    vscode.commands.registerCommand("pspf.workshop.copyCisoMasterPlan", copyCisoMasterPlan)
   );
 }
 
@@ -187,12 +198,12 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       this.view.webview.html = homeShellHtml(
         "Action Needed",
         `
-        <section>
-          <h2>Workspace not ready</h2>
-          <p class="muted">${escapeHtml(message)}</p>
-          ${homeButton("pspf.core.initialiseWorkspace", "Initialise workspace")}
-        </section>
-      `
+            <section>
+              <h2>Workspace not ready</h2>
+              <p class="muted">${escapeHtml(message)}</p>
+              ${homeButton("pspf.core.initialiseWorkspace", "Initialise workspace")}
+            </section>
+          `
       );
     }
   }
@@ -238,6 +249,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openConnectedView",
       "pspf.workshop.openStrategyMap",
       "pspf.workshop.editStrategySummary",
+      "pspf.workshop.createRoadmapInitiativePlan",
       "pspf.workshop.openEvidenceReviewQueue",
       "pspf.workshop.openItemDetail",
       "pspf.workshop.registerDirection",
@@ -249,7 +261,10 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.manageSavedViews",
       "pspf.workshop.applyTag",
       "pspf.workshop.filterRequirementsByTag",
-      "pspf.workshop.copyPostureBrief"
+      "pspf.workshop.copyPostureBrief",
+      "pspf.workshop.openCisoMagazine",
+      "pspf.workshop.openCisoMasterPlan",
+      "pspf.workshop.copyCisoMasterPlan"
     ]);
 
     if (!allowedCommands.has(command)) {
@@ -374,7 +389,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
         ${homeButton("pspf.workshop.openMasterDashboard", "Master Dashboard", "Open the CISO decision board")}
         ${homeButton("pspf.workshop.openEssentialEightDashboard", "Essential Eight", "Track E8 posture, mappings, and uplift plan")}
-        ${homeButton("pspf.workshop.openPlanOfActionBoard", "Plan of Action", "Review workstreams, timing, and linked Actions")}
+        ${homeButton("pspf.workshop.openPlanOfActionBoard", "Plan of Action", "Manage the action worklist")}
         ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
         ${homeButton("pspf.workshop.openStrategyMap", "Strategy Map", "Connect strategic choices to Requirements, Risks, Actions, and Directions")}
         ${homeButton("pspf.workshop.openChangeRecords", "Change records", "Review why important records changed")}
@@ -387,6 +402,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.createRequirement", "Requirement")}
         ${homeButton("pspf.workshop.attachEvidence", "Add evidence")}
         ${homeButton("pspf.workshop.createAction", "Create action")}
+        ${homeButton("pspf.workshop.createRoadmapInitiativePlan", "Roadmap initiative", "Add staged idea work to the Master Plan")}
         ${homeButton("pspf.workshop.createRisk", "Create risk")}
         ${homeButton("pspf.workshop.registerDirection", "Direction")}
         ${homeButton("pspf.workshop.recordSignificantChange", "Change record")}
@@ -403,6 +419,9 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.exportBackupJson", "Export backup JSON")}
         ${homeButton("pspf.workshop.importBackupJson", "Import backup JSON")}
         ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
+        ${homeButton("pspf.workshop.openCisoMagazine", "Digital CISO Magazine", "Open the share-ready newsletter issue")}
+        ${homeButton("pspf.workshop.openCisoMasterPlan", "CISO Master Plan", "Open the roadmap across strategy, action, risk and spend")}
+        ${homeButton("pspf.workshop.copyCisoMasterPlan", "Copy CISO Master Plan", "Copy the adaptable master plan summary")}
       </div>
     </section>
     <section>
@@ -704,6 +723,92 @@ async function createAction(requirementId?: string): Promise<void> {
   );
 
   await upsertEntityWithRequirementLinks(action, links, requirements);
+}
+
+async function createRoadmapInitiativePlan(): Promise<void> {
+  await ensureCoreReady();
+  const title = await vscode.window.showInputBox({
+    title: "Create Roadmap Initiative Plan",
+    prompt: "Idea or initiative title, for example AI Implementation",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter an initiative title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+
+  const targetDate = await vscode.window.showInputBox({
+    title: "Create Roadmap Initiative Plan",
+    prompt: "Target date or decision point, for example 30 Sep 2026. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (targetDate === undefined) {
+    return;
+  }
+
+  const caseSummary = await vscode.window.showInputBox({
+    title: "Create Roadmap Initiative Plan",
+    prompt: "Evidence or case for action. Press Enter to create the staged plan without a note.",
+    ignoreFocusOut: true
+  });
+  if (caseSummary === undefined) {
+    return;
+  }
+
+  const initiativeTitle = title.trim();
+  const dueDate = normaliseShortAuDateTime(targetDate);
+  const stageNames = ["Design", "Build", "Verify", "Monitor"] as const;
+  const actions = stageNames.map((stage) =>
+    withEnvelope(
+      "action",
+      {
+        entityType: "action",
+        title: `${initiativeTitle} - ${stage}`,
+        status: "todo",
+        dueDate
+      },
+      "workshop"
+    )
+  );
+  const evidence = caseSummary.trim()
+    ? withEnvelope(
+        "evidence",
+        {
+          entityType: "evidence",
+          title: `Case for action: ${initiativeTitle}`,
+          evidenceType: "note",
+          reference: caseSummary.trim(),
+          freshness: "current"
+        },
+        "workshop"
+      )
+    : undefined;
+  const links = evidence
+    ? actions.map((action) =>
+        withEnvelope(
+          "link",
+          {
+            entityType: "link",
+            title: `${action.title} supported by ${evidence.title}`,
+            linkType: "supported-by",
+            fromId: action.id,
+            fromType: "action",
+            toId: evidence.id,
+            toType: "evidence"
+          },
+          "workshop"
+        )
+      )
+    : [];
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", [
+    ...actions,
+    ...(evidence ? [evidence] : []),
+    ...links
+  ]);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(`Created roadmap initiative plan: ${initiativeTitle}.`);
+  await openCisoMasterPlan();
 }
 
 async function createRisk(requirementId?: string): Promise<void> {
@@ -1157,6 +1262,9 @@ async function openMasterDashboard(): Promise<void> {
         <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
         <button type="button" data-command="pspf.core.createSnapshot">Snapshot</button>
         <button type="button" data-command="pspf.core.exportBundle">Export Bundle</button>
+        <button type="button" data-command="pspf.workshop.openCisoMagazine">Digital CISO Magazine</button>
+        <button type="button" data-command="pspf.workshop.openCisoMasterPlan">CISO Master Plan</button>
+        <button type="button" data-command="pspf.workshop.copyCisoMasterPlan">Copy CISO Master Plan</button>
       </div>
     </section>
     <section>
@@ -1289,7 +1397,8 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
     <section>
       <p class="eyebrow">Master Dashboard Upgrade</p>
       <h1>Plan of Action</h1>
-      <p class="muted">OFFICIAL: Sensitive · Derived from live Workshop Actions, linked evidence, risks, requirements and Directions.</p>
+      <p class="muted">OFFICIAL: Sensitive · Operational action worklist derived from live Workshop Actions, linked evidence, risks, requirements and Directions.</p>
+      <p>Use this board to manage execution: actions, status, urgency, dates, linked requirements, linked risks, and blockers. Use the CISO Master Plan when you need the broader roadmap across strategy, phases, dependencies and spend.</p>
       ${versionStrip()}
       <div class="grid">
         ${metricCard("Open actions", model.metrics.actions)}
@@ -1305,11 +1414,16 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
         <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
         <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
         <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
+        <button type="button" data-command="pspf.workshop.openCisoMasterPlan">CISO Master Plan</button>
       </div>
     </section>
     <section>
       <h2>Timeline Preview</h2>
       <p class="muted">${escapeHtml(model.timelineStart)} to ${escapeHtml(model.timelineEnd)} · ${model.totalDays} days · adaptive width ${Math.round(model.dayWidth * 10) / 10}px/day</p>
+      <div class="poa-timeline-legend" aria-label="Timeline legend">
+        <span class="poa-today-legend-line" aria-hidden="true"></span>
+        <span>Today: ${escapeHtml(model.today)}</span>
+      </div>
       ${renderPlanOfActionStatusFilters()}
       ${renderPlanOfActionTimeline(model)}
     </section>
@@ -1374,7 +1488,7 @@ function renderPlanOfActionTask(
 }
 
 function renderPlanOfActionTodayMarker(todayX: number, today: string): string {
-  return `<div class="poa-today-marker" style="left: ${todayX}px;" aria-hidden="true" title="Today: ${escapeHtml(today)}"><span>Today</span></div>`;
+  return `<div class="poa-today-marker" style="left: ${todayX}px;" aria-hidden="true" title="Today: ${escapeHtml(today)}"></div>`;
 }
 
 function planOfActionFilterScript(): string {
@@ -1939,14 +2053,13 @@ async function createDraftStrategy(): Promise<StrategyEntity | undefined> {
     {
       entityType: "strategy",
       title: "Cybersecurity Strategy",
-      scope: "Enterprise",
-      timeHorizon: "2026-2028",
-      effectiveAt: new Date().toISOString(),
+      scope: "Whole organisation",
+      timeHorizon: "12 months",
       owner: "CISO",
-      strategyStatement: "Define the organisation's cybersecurity choices and connect them to PSPF assurance work.",
+      strategyStatement: "Set the strategic direction for PSPF uplift and assurance.",
       riskPostureStatement:
-        "Set the target risk posture and track whether linked work is moving exposure in the right direction.",
-      frameworks: ["PSPF"],
+        "Risk posture will be refined as evidence, Actions, Requirements, and Directions are linked.",
+      frameworks: ["PSPF", "ISM", "Essential Eight"],
       reviewCadence: "quarterly",
       executiveSummary: "Draft strategy ready for leadership refinement.",
       assumptions: "Draft internal assumptions are sensitive and excluded from publication by default.",
@@ -2468,108 +2581,50 @@ async function openRequirementsList(): Promise<void> {
 
 async function openEvidenceList(): Promise<void> {
   await ensureCoreReady();
-  await openRecordListPanel(
-    "PSPF Evidence",
-    "Evidence",
-    "Browse evidence records and open one to update its reference, freshness, or links.",
-    async () =>
-      (await listAllEntities())
-        .filter(
-          (entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted"
-        )
-        .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }))
-        .map((evidence) => ({
-          openEntityType: "evidence",
-          openEntityId: evidence.id,
-          title: evidence.title,
-          type: label(evidence.evidenceType),
-          freshness: label(evidence.freshness),
-          reference: evidence.reference || "Not recorded"
-        })),
-    ["title", "type", "freshness", "reference"]
-  );
+  const allEntities = await listAllEntities();
+  const evidence = allEntities
+    .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted")
+    .sort(compareWorkbenchRecords);
+  const initialEvidence = evidence.at(0);
+  if (!initialEvidence) {
+    await vscode.window.showInformationMessage(
+      "No Evidence records found. Add evidence or load the sample workspace first."
+    );
+    return;
+  }
+  await openEntityEditor(initialEvidence, allEntities);
 }
 
 async function openActionsList(): Promise<void> {
   await ensureCoreReady();
-  await openRecordListPanel(
-    "PSPF Actions",
-    "Actions",
-    "Browse Action records, including status, urgency, and due date.",
-    async () =>
-      enrichActionsWithImpact(await listAllEntities())
-        .filter((entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted")
-        .sort(
-          (left, right) =>
-            (formatShortAuDateTime(left.dueDate) ?? "").localeCompare(formatShortAuDateTime(right.dueDate) ?? "") ||
-            left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" })
-        )
-        .map((action) => ({
-          openEntityType: "action",
-          openEntityId: action.id,
-          title: action.title,
-          status: label(action.status),
-          urgency: action.impact ? label(action.impact.urgency) : "normal",
-          dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set"
-        })),
-    ["title", "status", "urgency", "dueDate"]
-  );
+  const allEntities = enrichActionsWithImpact(await listAllEntities());
+  const actions = allEntities
+    .filter((entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted")
+    .sort(compareWorkbenchRecords);
+  const initialAction = actions.at(0);
+  if (!initialAction) {
+    await vscode.window.showInformationMessage(
+      "No Action records found. Create an Action or load the sample workspace first."
+    );
+    return;
+  }
+  await openEntityEditor(initialAction, allEntities);
 }
 
 async function openRisksList(): Promise<void> {
   await ensureCoreReady();
-  await openRecordListPanel(
-    "PSPF Risks",
-    "Risks",
-    "Browse Risk records by severity and open one to update treatment details.",
-    async () =>
-      (await listAllEntities())
-        .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
-        .sort(
-          (left, right) =>
-            right.likelihood * right.impact - left.likelihood * left.impact ||
-            left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" })
-        )
-        .map((risk) => ({
-          openEntityType: "risk",
-          openEntityId: risk.id,
-          title: risk.title,
-          status: label(risk.status),
-          likelihood: risk.likelihood,
-          impact: risk.impact,
-          severity: risk.likelihood * risk.impact
-        })),
-    ["title", "status", "likelihood", "impact", "severity"]
-  );
-}
-
-async function openRecordListPanel(
-  title: string,
-  heading: string,
-  description: string,
-  listRows: () => Promise<readonly object[]>,
-  fields: readonly string[]
-): Promise<void> {
-  const panel = vscode.window.createWebviewPanel("pspfWorkshopRecordList", title, vscode.ViewColumn.One, {
-    enableScripts: true
-  });
-  const refresh = async () => {
-    const rows = await listRows();
-    panel.webview.html = shellHtml(
-      title,
-      `
-      <section>
-        <h1>${escapeHtml(heading)}</h1>
-        <p class="muted">${escapeHtml(description)} · ${rows.length} record(s)</p>
-        ${versionStrip()}
-        <div class="form-actions"><button type="button" data-command="refresh">Refresh</button></div>
-      </section>
-      ${recordTable(heading, rows, fields)}
-    `
+  const allEntities = await listAllEntities();
+  const risks = allEntities
+    .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
+    .sort(compareWorkbenchRecords);
+  const initialRisk = risks.at(0);
+  if (!initialRisk) {
+    await vscode.window.showInformationMessage(
+      "No Risk records found. Create a Risk or load the sample workspace first."
     );
-  };
-  wireWorkshopPanelMessages(panel, refresh);
-  await refresh();
+    return;
+  }
+  await openEntityEditor(initialRisk, allEntities);
 }
 
 async function openItemDetail(): Promise<void> {
@@ -3421,6 +3476,20 @@ async function openEntityEditor(
       await openItemDetailForEntity(message.pendingEntityType, message.pendingEntityId);
       return;
     }
+    if (command === "openRecordInEditor" && message.pendingEntityType && message.pendingEntityId) {
+      const target = (await listAllEntities()).find(
+        (item): item is EditableWorkshopEntity =>
+          item.entityType === message.pendingEntityType &&
+          item.id === message.pendingEntityId &&
+          isEditableWorkshopEntity(item)
+      );
+      if (target) {
+        currentEntity = target;
+        requirementFilterText = message.pendingFilterText ?? "";
+        await refreshEditor();
+      }
+      return;
+    }
     if (command === "openEvidenceReference") {
       const reference =
         currentEntity.entityType === "evidence" ? message.fields?.reference : message.pendingEvidenceReference;
@@ -3541,6 +3610,18 @@ async function openEntityEditor(
       if (target) {
         currentEntity = target;
         await rememberRequirement(target);
+        await refreshEditor();
+      }
+      return;
+    }
+    if (message.command === "openRecordInEditor" && message.entityType && message.entityId) {
+      requirementFilterText = message.filterText ?? "";
+      const target = (await listAllEntities()).find(
+        (item): item is EditableWorkshopEntity =>
+          item.entityType === message.entityType && item.id === message.entityId && isEditableWorkshopEntity(item)
+      );
+      if (target) {
+        currentEntity = target;
         await refreshEditor();
       }
       return;
@@ -3714,9 +3795,13 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.openPlanOfActionBoard",
         "pspf.workshop.openStrategyMap",
         "pspf.workshop.editStrategySummary",
+        "pspf.workshop.createRoadmapInitiativePlan",
         "pspf.workshop.openEvidenceReviewQueue",
         "pspf.workshop.browseIsmSourceControls",
-        "pspf.workshop.copyPostureBrief"
+        "pspf.workshop.copyPostureBrief",
+        "pspf.workshop.openCisoMagazine",
+        "pspf.workshop.openCisoMasterPlan",
+        "pspf.workshop.copyCisoMasterPlan"
       ]);
       if (message.command && allowedPanelCommands.has(message.command)) {
         try {
@@ -3919,11 +4004,11 @@ function renderEntityEditor(
     case "requirement":
       return renderRequirementEditor(entity, allEntities, requirementOptions);
     case "evidence":
-      return renderEvidenceEditor(entity);
+      return renderEvidenceEditor(entity, allEntities, requirementOptions);
     case "action":
-      return renderActionEditor(entity, allEntities);
+      return renderActionEditor(entity, allEntities, requirementOptions);
     case "risk":
-      return renderRiskEditor(entity, allEntities);
+      return renderRiskEditor(entity, allEntities, requirementOptions);
     case "direction":
       return renderDirectionEditor(entity, allEntities);
     case "change-record":
@@ -4133,8 +4218,102 @@ function requirementNumberLabel(requirement: RequirementEntity): string {
   return match ? `Requirement ${match[1]}` : requirement.id;
 }
 
-function renderEvidenceEditor(evidence: EvidenceEntity): string {
-  return editorShell(
+type RecordWorkbenchEntity = EvidenceEntity | ActionEntity | RiskEntity;
+
+function recordWorkbenchShell(
+  entity: RecordWorkbenchEntity,
+  allEntities: readonly V01Entity[],
+  options: RequirementBrowserOptions,
+  editorContent: string
+): string {
+  return `<div class="requirement-browser">
+    ${recordWorkbenchNav(entity, allEntities, options)}
+    <div class="requirement-browser__content">${editorContent}</div>
+  </div>`;
+}
+
+function recordWorkbenchNav(
+  entity: RecordWorkbenchEntity,
+  allEntities: readonly V01Entity[],
+  options: RequirementBrowserOptions = {}
+): string {
+  const records = workbenchRecordsForType(entity.entityType, allEntities).sort(compareWorkbenchRecords);
+  const currentIndex = records.findIndex((candidate) => candidate.id === entity.id);
+  const position = currentIndex >= 0 ? `${currentIndex + 1} of ${records.length}` : `${records.length} total`;
+  const filterText = options.filterText?.trim() ?? "";
+  const heading = `${label(entity.entityType)}s`;
+  const items = records
+    .map((candidate) => recordWorkbenchNavItem(candidate, candidate.id === entity.id, filterText))
+    .join("");
+  return `<section class="requirement-browser__nav" aria-label="${escapeHtml(heading)} browser">
+    <h2>${escapeHtml(heading)}</h2>
+    <input class="requirement-browser__filter" type="search" aria-label="Filter ${escapeHtml(heading)}" placeholder="Filter by title, status, or reference" value="${escapeHtml(filterText)}" data-filter-target=".requirement-browser__item">
+    <div class="requirement-browser__list" role="list" aria-label="Scrollable ${escapeHtml(heading)} list">
+      ${items || `<p class="muted">No ${escapeHtml(heading)} found.</p>`}
+    </div>
+    <p class="muted">${escapeHtml(position)}</p>
+  </section>`;
+}
+
+function workbenchRecordsForType(
+  entityType: RecordWorkbenchEntity["entityType"],
+  allEntities: readonly V01Entity[]
+): RecordWorkbenchEntity[] {
+  return allEntities.filter(
+    (candidate): candidate is RecordWorkbenchEntity =>
+      candidate.entityType === entityType && candidate.recordStatus !== "deleted" && isRecordWorkbenchEntity(candidate)
+  );
+}
+
+function isRecordWorkbenchEntity(entity: V01Entity): entity is RecordWorkbenchEntity {
+  return entity.entityType === "evidence" || entity.entityType === "action" || entity.entityType === "risk";
+}
+
+function recordWorkbenchNavItem(entity: RecordWorkbenchEntity, isCurrent: boolean, filterText = ""): string {
+  const title = entity.title;
+  const meta = recordWorkbenchMeta(entity);
+  const searchText = `${title} ${meta} ${entity.id}`;
+  const normalisedFilter = filterText.toLocaleLowerCase("en-AU");
+  const hidden = normalisedFilter && !searchText.toLocaleLowerCase("en-AU").includes(normalisedFilter);
+  return `<button type="button" class="requirement-browser__item" role="listitem" title="${escapeHtml(title)}" aria-label="${escapeHtml(`${title}. ${meta}`)}" data-command="openRecordInEditor" data-entity-type="${escapeHtml(entity.entityType)}" data-entity-id="${escapeHtml(entity.id)}" data-search="${escapeHtml(searchText)}"${isCurrent ? ' aria-current="page"' : ""}${hidden ? " hidden" : ""}>
+    <span class="requirement-browser__number">${escapeHtml(title)}</span>
+    <span class="requirement-browser__meta">${escapeHtml(meta)}</span>
+  </button>`;
+}
+
+function recordWorkbenchMeta(entity: RecordWorkbenchEntity): string {
+  switch (entity.entityType) {
+    case "evidence":
+      return `${label(entity.evidenceType)} · ${label(entity.freshness)}`;
+    case "action":
+      return `${label(entity.status)} · ${formatShortAuDateTime(entity.dueDate) ?? "No due date"}`;
+    case "risk":
+      return `${label(entity.status)} · score ${entity.likelihood * entity.impact}`;
+  }
+}
+
+function compareWorkbenchRecords(left: RecordWorkbenchEntity, right: RecordWorkbenchEntity): number {
+  if (left.entityType === "action" && right.entityType === "action") {
+    return (
+      (formatShortAuDateTime(left.dueDate) ?? "").localeCompare(formatShortAuDateTime(right.dueDate) ?? "") ||
+      left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" })
+    );
+  }
+  if (left.entityType === "risk" && right.entityType === "risk") {
+    return (
+      right.likelihood * right.impact - left.likelihood * left.impact ||
+      left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" })
+    );
+  }
+  return left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" });
+}
+
+function renderEvidenceEditor(
+  evidence: EvidenceEntity,
+  allEntities: readonly V01Entity[],
+  browserOptions: RequirementBrowserOptions = {}
+): string {
+  const editorContent = editorShell(
     evidence,
     "Edit Evidence",
     `
@@ -4145,9 +4324,14 @@ function renderEvidenceEditor(evidence: EvidenceEntity): string {
     ${selectField("freshness", "Freshness", freshnessItems, evidence.freshness)}
   `
   );
+  return recordWorkbenchShell(evidence, allEntities, browserOptions, editorContent);
 }
 
-function renderActionEditor(action: ActionEntity, allEntities: readonly V01Entity[]): string {
+function renderActionEditor(
+  action: ActionEntity,
+  allEntities: readonly V01Entity[],
+  browserOptions: RequirementBrowserOptions = {}
+): string {
   const impact = action.impact;
   const readOnlyImpact = impact
     ? `
@@ -4164,7 +4348,7 @@ function renderActionEditor(action: ActionEntity, allEntities: readonly V01Entit
     </section>
   `
     : "";
-  return `${editorShell(
+  const editorContent = `${editorShell(
     action,
     "Edit Action",
     `
@@ -4175,11 +4359,16 @@ function renderActionEditor(action: ActionEntity, allEntities: readonly V01Entit
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
   `
   )}${readOnlyImpact}${commercialContextSection(action, allEntities)}`;
+  return recordWorkbenchShell(action, allEntities, browserOptions, editorContent);
 }
 
-function renderRiskEditor(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+function renderRiskEditor(
+  risk: RiskEntity,
+  allEntities: readonly V01Entity[],
+  browserOptions: RequirementBrowserOptions = {}
+): string {
   const scoreOptions = [1, 2, 3, 4, 5].map((value) => ({ label: String(value), value: String(value) }));
-  return `${editorShell(
+  const editorContent = `${editorShell(
     risk,
     "Edit Risk",
     `
@@ -4189,6 +4378,7 @@ function renderRiskEditor(risk: RiskEntity, allEntities: readonly V01Entity[]): 
     ${selectField("impact", "Impact", scoreOptions, String(risk.impact))}
   `
   )}${commercialContextSection(risk, allEntities)}`;
+  return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
 }
 
 function renderDirectionEditor(direction: DirectionEntity, allEntities: readonly V01Entity[]): string {
@@ -4672,6 +4862,14 @@ async function manageSavedViews(): Promise<void> {
           await refresh();
         }
       }
+      if (message.command === "editSavedViewFilters" && message.savedViewId) {
+        const savedView = (await listSavedViews(true)).find((item) => item.id === message.savedViewId);
+        if (savedView) {
+          await editWorkshopSavedView(savedView);
+          await refreshWorkshopSurfaces();
+          await refresh();
+        }
+      }
       if (message.command === "archiveSavedView" && message.savedViewId) {
         const savedView = (await listSavedViews(true)).find((item) => item.id === message.savedViewId);
         if (savedView) {
@@ -4708,8 +4906,8 @@ function renderSavedViewManager(savedViews: readonly SavedViewEntity[]): string 
       status: label(view.recordStatus),
       action:
         view.recordStatus === "archived"
-          ? `<span class="muted">Archived</span> <button type="button" data-command="editSavedView" data-saved-view-id="${escapeHtml(view.id)}">Rename</button>`
-          : `<button type="button" data-command="applySavedView" data-saved-view-id="${escapeHtml(view.id)}">Open view</button> <button type="button" data-command="editSavedView" data-saved-view-id="${escapeHtml(view.id)}">Rename</button> <button type="button" data-command="archiveSavedView" data-saved-view-id="${escapeHtml(view.id)}">Archive</button>`
+          ? `<span class="muted">Archived</span> <button type="button" data-command="editSavedViewFilters" data-saved-view-id="${escapeHtml(view.id)}">Edit view</button>`
+          : `<button type="button" data-command="applySavedView" data-saved-view-id="${escapeHtml(view.id)}">Open view</button> <button type="button" data-command="editSavedViewFilters" data-saved-view-id="${escapeHtml(view.id)}">Edit view</button> <button type="button" data-command="editSavedView" data-saved-view-id="${escapeHtml(view.id)}">Rename</button> <button type="button" data-command="archiveSavedView" data-saved-view-id="${escapeHtml(view.id)}">Archive</button>`
     }));
   return shellHtml(
     "PSPF Saved Views",
@@ -4830,6 +5028,99 @@ async function createOrEditWorkshopSavedView(
   await refreshWorkshopSurfaces();
   await vscode.window.showInformationMessage(`Created saved view: ${savedView.name}.`);
   return savedView;
+}
+
+async function editWorkshopSavedView(savedView: SavedViewEntity): Promise<SavedViewEntity | undefined> {
+  const savedViews = await listSavedViews(true);
+  const name = await vscode.window.showInputBox({
+    title: "Edit Saved View",
+    prompt: "Saved view name",
+    value: savedView.name,
+    ignoreFocusOut: true,
+    validateInput: (value) => validateSavedViewNameInput(value, savedViews, savedView.id, savedView.scope)
+  });
+  if (!name) {
+    return undefined;
+  }
+
+  const query = await vscode.window.showInputBox({
+    title: "Edit Saved View",
+    prompt: "Requirement search text. Clear this box to remove the search filter.",
+    value: savedView.filters.query ?? "",
+    ignoreFocusOut: true,
+    validateInput: (value) =>
+      value.length > SAVED_VIEW_LIMITS.queryMaxLength
+        ? `Use at most ${SAVED_VIEW_LIMITS.queryMaxLength} characters.`
+        : undefined
+  });
+  if (query === undefined) {
+    return undefined;
+  }
+
+  const statuses = await vscode.window.showQuickPick(
+    assessmentStatusItems.map((item) => ({
+      ...item,
+      picked: savedView.filters.assessmentStatuses?.includes(item.value)
+    })),
+    {
+      title: "Assessment statuses to include. Leave empty for all statuses.",
+      canPickMany: true,
+      ignoreFocusOut: true
+    }
+  );
+  if (statuses === undefined) {
+    return undefined;
+  }
+
+  const tags = await vscode.window.showQuickPick(
+    (await listTags(false)).map((tag) => ({
+      label: tagChipLabel(tag),
+      description: label(tag.colour),
+      picked: savedView.filters.tagIds?.includes(tag.id),
+      tag
+    })),
+    { title: "Tags to include. Leave empty for all tags.", canPickMany: true, ignoreFocusOut: true }
+  );
+  if (tags === undefined) {
+    return undefined;
+  }
+
+  const mode =
+    tags.length > 1
+      ? await vscode.window.showQuickPick(
+          [
+            {
+              label: "Any selected tag",
+              value: "any" as const,
+              picked: (savedView.filters.tagsMode ?? "any") === "any"
+            },
+            { label: "All selected tags", value: "all" as const, picked: savedView.filters.tagsMode === "all" }
+          ],
+          { title: "Tag filter mode", ignoreFocusOut: true }
+        )
+      : undefined;
+  if (tags.length > 1 && !mode) {
+    return undefined;
+  }
+
+  const cleanName = name.normalize("NFC").trim().replace(/\s+/g, " ");
+  const updated = {
+    ...savedView,
+    title: cleanName,
+    name: cleanName,
+    filters: {
+      ...savedView.filters,
+      query: trimOptional(query),
+      assessmentStatuses: statuses.map((item) => item.value),
+      tagIds: tags.map((item) => item.tag.id),
+      tagsMode: mode?.value ?? "any"
+    },
+    updatedAt: new Date().toISOString()
+  } satisfies SavedViewEntity;
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(`Updated saved view: ${updated.name}.`);
+  return updated;
 }
 
 function defaultSavedViewName(scope: SavedViewScope): string {
@@ -5289,28 +5580,145 @@ function tagChipLabel(tag: TagEntity | undefined): string {
 async function copyPostureBrief(): Promise<void> {
   await ensureCoreReady();
   const allEntities = await listAllEntities();
-  const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
-  const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence");
-  const actions = allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action");
-  const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
-  const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
-  const directions = allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction");
-  const strategies = allEntities.filter((entity): entity is StrategyEntity => entity.entityType === "strategy");
+  const input = buildShareArtefactInput(allEntities);
   const brief = renderPostureBriefMarkdown({
     generatedAt: new Date(),
-    requirements,
-    evidence,
-    actions,
-    risks,
-    links,
-    directions,
-    strategies,
+    requirements: input.requirements,
+    evidence: input.evidence,
+    actions: input.actions,
+    risks: input.risks,
+    links: input.links,
+    directions: input.directions,
+    strategies: input.strategies,
     domains: PSPF_DOMAINS,
     sourceLabel: "PSPF Workshop"
   });
 
   await vscode.env.clipboard.writeText(brief);
   await vscode.window.showInformationMessage("PSPF posture brief copied to clipboard.");
+}
+
+async function openCisoMagazine(): Promise<void> {
+  await ensureCoreReady();
+  const input = buildShareArtefactInput(await listAllEntities());
+  const html = renderCisoMagazineHtml(input);
+  const markdown = renderCisoMagazineMarkdown(input);
+  const panel = vscode.window.createWebviewPanel("pspfCisoMagazine", "Digital CISO Magazine", vscode.ViewColumn.One, {
+    enableScripts: false
+  });
+  panel.webview.html = html;
+  await vscode.env.clipboard.writeText(markdown);
+  await vscode.window.showInformationMessage("Digital CISO Magazine opened and email copy copied to clipboard.");
+}
+
+async function openCisoMasterPlan(): Promise<void> {
+  await ensureCoreReady();
+  const model = buildCisoMasterPlanModel(buildShareArtefactInput(await listAllEntities()));
+  const streamRows = model.streams.map((stream) => ({
+    stream: stream.title,
+    phase: stream.phase,
+    status: stream.status,
+    basis: stream.basis
+  }));
+  const phaseRows = model.phases.map((phase) => ({
+    phase: phase.title,
+    focus: phase.focus,
+    count: phase.count
+  }));
+  const dependencyRows = model.dependencies.map((dependency) => ({
+    dependency: dependency.title,
+    source: dependency.source,
+    status: dependency.status
+  }));
+  const initiativeRows = model.initiativePlans.flatMap((initiative) =>
+    initiative.stages.map((stage) => ({
+      openEntityType: "action",
+      openEntityId: stage.actionId,
+      initiative: initiative.title,
+      stage: stage.stage,
+      stageAction: stage.actionTitle,
+      status: stage.status,
+      dueDate: stage.dueDate ?? "Not set",
+      evidence: initiative.evidenceCount
+    }))
+  );
+  const initiativeEvidenceRows = model.initiativePlans.flatMap((initiative) =>
+    initiative.evidence.map((evidence) => ({
+      openEntityType: "evidence",
+      openEntityId: evidence.evidenceId,
+      initiative: initiative.title,
+      evidence: evidence.title,
+      freshness: evidence.freshness
+    }))
+  );
+  const panel = vscode.window.createWebviewPanel("pspfCisoMasterPlan", "CISO Master Plan", vscode.ViewColumn.One, {
+    enableScripts: true
+  });
+  wireWorkshopPanelMessages(panel, openCisoMasterPlan);
+  panel.webview.html = shellHtml(
+    "CISO Master Plan",
+    `
+    <section>
+      <p class="eyebrow">Active planning</p>
+      <h1>CISO Master Plan</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Strategic roadmap and planning narrative derived from Strategy, Plan of Action, risk movement, evidence work, and Shop dependencies.</p>
+      <p>Use this view to understand how the work fits together over time. Plan of Action remains the action worklist; this Master Plan groups the work into streams, phases, dependencies, investment focus, and executive planning.</p>
+      <p>Open each initiative stage to edit its title, stage wording, status, due date, and timing. Open the evidence rows to update the case for action as reality changes.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Streams", model.streams.length)}
+        ${metricCard("Initiatives", model.initiativePlans.length)}
+        ${metricCard("Phases", model.phases.length)}
+        ${metricCard("Dependencies", model.dependencies.length)}
+        ${metricCard("Horizon", model.horizon)}
+      </div>
+      <p>${escapeHtml(model.direction)}</p>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
+        <button type="button" data-command="pspf.workshop.createRoadmapInitiativePlan">Add initiative plan</button>
+        <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
+        <button type="button" data-command="pspf.workshop.openCisoMagazine">Digital CISO Magazine</button>
+        <button type="button" data-command="pspf.workshop.copyCisoMasterPlan">Copy plan</button>
+      </div>
+    </section>
+    ${recordTable("Plan Streams", streamRows, ["stream", "phase", "status", "basis"])}
+    ${recordTable("Roadmap Initiative Stages", initiativeRows, ["initiative", "stage", "stageAction", "status", "dueDate", "evidence"])}
+    ${recordTable("Roadmap Initiative Evidence", initiativeEvidenceRows, ["initiative", "evidence", "freshness"])}
+    ${recordTable("Plan Phases", phaseRows, ["phase", "focus", "count"])}
+    ${recordTable("Inputs And Dependencies", dependencyRows, ["dependency", "source", "status"])}
+  `
+  );
+}
+
+async function copyCisoMasterPlan(): Promise<void> {
+  await ensureCoreReady();
+  const plan = renderCisoMasterPlanMarkdown(buildShareArtefactInput(await listAllEntities()));
+  await vscode.env.clipboard.writeText(plan);
+  await vscode.window.showInformationMessage("CISO Master Plan copied to clipboard.");
+}
+
+function buildShareArtefactInput(allEntities: readonly V01Entity[]) {
+  return {
+    generatedAt: new Date(),
+    issueTitle: "Digital CISO Magazine",
+    issueNumber: `Issue ${PSPF_SLICE_VERSION}`,
+    periodLabel: formatDisplayDate(new Date()),
+    audience: "internal" as const,
+    domainScope: "all" as const,
+    requirements: allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement"),
+    evidence: allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence"),
+    actions: allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action"),
+    risks: allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk"),
+    links: allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link"),
+    domains: PSPF_DOMAINS,
+    directions: allEntities.filter((entity): entity is DirectionEntity => entity.entityType === "direction"),
+    strategies: allEntities.filter((entity): entity is StrategyEntity => entity.entityType === "strategy"),
+    changeRecords: allEntities.filter((entity): entity is ChangeRecordEntity => entity.entityType === "change-record"),
+    spendItems: allEntities.filter((entity): entity is SpendItemEntity => entity.entityType === "spend-item"),
+    sourceLabel: "PSPF Workshop",
+    bundleVersion: VERSION_AXES.bundleVersion,
+    schemaVersion: VERSION_AXES.schemaVersion
+  };
 }
 
 async function listAllEntities(): Promise<V01Entity[]> {

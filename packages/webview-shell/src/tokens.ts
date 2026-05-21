@@ -164,12 +164,15 @@ button[data-state="saving"] { opacity: 0.78; cursor: progress; }
 button[aria-busy="true"]::after,
 button[data-state="saving"]::after {
   content: "";
+  display: inline-block;
   width: var(--pspf-spinner-size);
   height: var(--pspf-spinner-size);
+  margin-left: var(--pspf-gap-sm);
   border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
   border-top-color: currentColor;
   border-radius: 50%;
   animation: pspf-spinner-spin 800ms linear infinite;
+  vertical-align: text-bottom;
 }
 button[data-state="saved"] { opacity: 0.86; }
 
@@ -206,12 +209,15 @@ a.pspf-button:focus-visible { outline: 2px solid var(--pspf-focus); outline-offs
 .pspf-button[aria-busy="true"]::after,
 .pspf-button[data-state="saving"]::after {
   content: "";
+  display: inline-block;
   width: var(--pspf-spinner-size);
   height: var(--pspf-spinner-size);
+  margin-left: var(--pspf-gap-sm);
   border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
   border-top-color: currentColor;
   border-radius: 50%;
   animation: pspf-spinner-spin 800ms linear infinite;
+  vertical-align: text-bottom;
 }
 .pspf-button[data-state="saved"] { opacity: 0.86; }
 .pspf-button--secondary,

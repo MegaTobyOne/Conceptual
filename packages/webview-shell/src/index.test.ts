@@ -1,7 +1,15 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 
-import { bannerHtml, cspNonce, pill, shellHtml, tokensCss, versionPill } from "./index.js";
+import {
+  bannerHtml,
+  commandButtonAcknowledgementScript,
+  cspNonce,
+  pill,
+  shellHtml,
+  tokensCss,
+  versionPill
+} from "./index.js";
 
 test("tokensCss includes shared root tokens for every surface", () => {
   for (const surface of ["extension", "explorer", "marketing"] as const) {
@@ -27,6 +35,18 @@ test("tokensCss marketing surface declares an explicit dark-scheme palette", () 
 test("tokensCss extension surface does NOT hardcode marketing colours", () => {
   const css = tokensCss("extension");
   assert.equal(css.includes("prefers-color-scheme"), false);
+});
+
+test("button acknowledgement waits before showing busy state", () => {
+  assert.match(commandButtonAcknowledgementScript, /setTimeout\(\(\) => \{/);
+  assert.match(commandButtonAcknowledgementScript, /\}, 450\);/);
+  assert.match(commandButtonAcknowledgementScript, /\}, 1400\);/);
+});
+
+test("button busy spinner renders as an inline indicator", () => {
+  const css = tokensCss("extension");
+  assert.match(css, /button\[aria-busy="true"\]::after[\s\S]*display: inline-block;/);
+  assert.match(css, /button\[aria-busy="true"\]::after[\s\S]*margin-left: var\(--pspf-gap-sm\);/);
 });
 
 test("shellHtml returns a full HTML document with required structure", () => {

@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -80,6 +80,11 @@
       {
         "command": "pspf.workshop.createAction",
         "title": "PSPF: Create Action"
+      },
+      {
+        "command": "pspf.workshop.createRoadmapInitiativePlan",
+        "title": "PSPF: Create Roadmap Initiative Plan",
+        "icon": "$(lightbulb)"
       },
       {
         "command": "pspf.workshop.createRisk",
@@ -210,6 +215,21 @@
       {
         "command": "pspf.workshop.copyPostureBrief",
         "title": "PSPF: Copy Posture Brief"
+      },
+      {
+        "command": "pspf.workshop.openCisoMagazine",
+        "title": "PSPF: Open Digital CISO Magazine",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "pspf.workshop.openCisoMasterPlan",
+        "title": "PSPF: Open CISO Master Plan",
+        "icon": "$(project)"
+      },
+      {
+        "command": "pspf.workshop.copyCisoMasterPlan",
+        "title": "PSPF: Copy CISO Master Plan",
+        "icon": "$(checklist)"
       }
     ],
     "menus": {
@@ -253,6 +273,16 @@
           "command": "pspf.workshop.openPlanOfActionBoard",
           "when": "view == pspfWorkshop.homeView",
           "group": "navigation@4.6"
+        },
+        {
+          "command": "pspf.workshop.openCisoMagazine",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.7"
+        },
+        {
+          "command": "pspf.workshop.openCisoMasterPlan",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.8"
         },
         {
           "command": "pspf.workshop.openConnectedView",
