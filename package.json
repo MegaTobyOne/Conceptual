@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.25.0",
+  "version": "1.26.0",
   "private": true,
   "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
   "license": "MIT",
@@ -77,6 +77,7 @@
     "e2e:v1.23": "pnpm run e2e:v1.22 && pnpm run check:adr-coverage && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run check:shop-coverage-dashboard",
     "e2e:v1.24": "pnpm run e2e:v1.23 && pnpm run check:explorer-publication && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run package:check",
     "e2e:v1.25": "pnpm run e2e:v1.24 && pnpm run check:explorer-publication && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run package:check",
+    "e2e:v1.26": "pnpm run e2e:v1.25 && pnpm run check:shop-coverage-dashboard && pnpm run package:check",
     "validate:export": "pnpm build && node scripts/validate-export.mjs",
     "validate:debug-workspace": "pnpm build && node scripts/validate-debug-workspace.mjs && node scripts/check-personal-data-exclusion.mjs",
     "lint": "pnpm lint:au && pnpm lint:ts && pnpm format:check",
@@ -87,7 +88,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm e2e:v1.25 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
+    "release:readiness": "pnpm e2e:v1.26 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
     "test": "pnpm build && pnpm -r --if-present test",
     "typecheck": "tsc -b tsconfig.json"
   },

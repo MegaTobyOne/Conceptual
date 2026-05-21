@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { POSTURE_BRIEF_BROWSER_SCRIPT } from "@pspf/brief-renderer";
@@ -8,7 +8,10 @@ import { tokensCss } from "@pspf/webview-shell";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const dist = join(root, "dist");
+const sampleBundleSource = join(root, "..", "contracts", "test-fixtures", "standard", "bundle.json");
+const sampleBundleJson = await readFile(sampleBundleSource, "utf8");
 await mkdir(dist, { recursive: true });
+await copyFile(sampleBundleSource, join(dist, "sample-bundle.json"));
 
 const html = `<!doctype html>
 <html lang="en-AU">
@@ -20,9 +23,10 @@ const html = `<!doctype html>
     ${tokensCss("explorer")}
     :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --pspf-text: #f7f2e8; --pspf-muted: #c5bcad; --pspf-surface: #141311; --pspf-surface-strong: #25221d; --pspf-surface-soft: #201e1a; --pspf-border: #454037; --pspf-border-strong: #36322b; --pspf-focus: #14b8a6; --pspf-primary: #0f766e; --pspf-primary-soft: #123f3b; --pspf-link: #bae6fd; --pspf-warn: #a16207; --pspf-warn-soft: #3d2c13; --pspf-danger: #f87171; --pspf-danger-soft: #7f1d1d; --pspf-ok: #22c55e; --pspf-ok-soft: #14532d; --bg: var(--pspf-surface); --surface: #1d1b17; --surface-strong: var(--pspf-surface-strong); --surface-soft: var(--pspf-surface-soft); --border: var(--pspf-border); --border-soft: var(--pspf-border-strong); --text: var(--pspf-text); --muted: var(--pspf-muted); --accent: var(--pspf-primary); --accent-strong: #14b8a6; --accent-soft: var(--pspf-primary-soft); --amber: var(--pspf-warn); --amber-soft: var(--pspf-warn-soft); }
     body { margin: 0; padding: 0; background: radial-gradient(circle at top left, rgba(20, 184, 166, 0.09), transparent 28rem), var(--bg); color: var(--text); }
-    header { background: linear-gradient(135deg, #242017 0%, #182c29 100%); color: var(--text); border-bottom: 1px solid var(--border); padding: 16px var(--pspf-pad-lg); display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+    [hidden] { display: none !important; }
+    header { background: linear-gradient(135deg, #242017 0%, #182c29 100%); color: var(--text); border-bottom: 1px solid var(--border); padding: 14px var(--pspf-pad-lg); display: flex; justify-content: space-between; gap: 16px; align-items: center; }
     .product-mark { display: grid; gap: 2px; }
-    .product-mark strong { font-size: 22px; letter-spacing: 0; }
+    .product-mark strong { font-size: 20px; letter-spacing: 0; }
     .product-mark span { color: #d7d0c2; font-size: 13px; }
     .header-trust { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: center; }
     main { width: min(1680px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0; }
@@ -46,6 +50,13 @@ const html = `<!doctype html>
     .mode-step.local { border-color: var(--accent-strong); background: var(--accent-soft); color: #ccfbf1; }
     .mode-step.export { border-color: #3f3f46; background: #202024; color: #d4d4d8; }
     .panel { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--pspf-radius); padding: var(--pspf-pad); margin-bottom: var(--pspf-pad); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset; }
+    .welcome-panel { border-color: rgba(20, 184, 166, 0.42); background: linear-gradient(180deg, rgba(18, 63, 59, 0.24), var(--surface)); padding: clamp(18px, 3vw, 28px); }
+    .welcome-panel h1 { margin: 0 0 8px; font-size: clamp(24px, 4vw, 38px); line-height: 1.1; }
+    .welcome-panel p { max-width: 68ch; margin: 0; color: #d7d0c2; }
+    .welcome-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; }
+    .welcome-actions a { border: 1px solid var(--accent-strong); background: var(--pspf-primary); color: #f0fdfa; border-radius: var(--pspf-radius); padding: 8px 12px; text-decoration: none; font-weight: 700; }
+    .welcome-actions a.secondary-link { background: var(--pspf-surface-strong); border-color: var(--pspf-border); color: var(--pspf-text); }
+    .welcome-actions span { color: var(--muted); font-size: 13px; }
     .snapshot-panel { border-color: rgba(20, 184, 166, 0.45); background: linear-gradient(180deg, rgba(18, 63, 59, 0.24), var(--surface)); }
     .section-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: var(--pspf-pad-sm); align-items: center; background: rgba(20, 19, 17, 0.92); border: 1px solid var(--border-soft); border-radius: var(--pspf-radius); padding: var(--pspf-pad-sm); margin: 0 0 var(--pspf-pad); backdrop-filter: blur(10px); }
     .section-nav a, .section-nav button { color: #e8dfcf; text-decoration: none; border: 1px solid var(--border-soft); background: var(--surface-soft); border-radius: var(--pspf-radius); padding: 6px 10px; font-size: 14px; white-space: nowrap; font-weight: 600; transform-origin: center; transition: background-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), border-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), transform var(--pspf-motion-responsive) var(--pspf-ease-responsive); }
@@ -139,15 +150,20 @@ const html = `<!doctype html>
     .connected-view-panel [data-cv-mount] { flex: 1 1 auto; display: flex; min-height: min(720px, calc(100vh - 280px)); }
     .connected-view-panel [data-cv-mount] > .pspf-connected-view { flex: 1 1 auto; }
     .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-    @media (max-width: 720px) { .overview-grid, .bar-row, .local-authoring-grid { grid-template-columns: 1fr; } .local-picker { position: static; } main { width: calc(100% - 32px); padding: 16px 0; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="from"], td[data-field="from"], th[data-field="to"], td[data-field="to"] { min-width: 16rem; } }
+    @media (max-width: 720px) { header { align-items: flex-start; flex-direction: column; } .header-trust { justify-content: flex-start; } .overview-grid, .bar-row, .local-authoring-grid { grid-template-columns: 1fr; } .local-picker { position: static; } main { width: calc(100% - 32px); padding: 16px 0; } table { min-width: 680px; } th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="control"], td[data-field="control"], th[data-field="from"], td[data-field="from"], th[data-field="to"], td[data-field="to"] { min-width: 16rem; } }
     ${CONNECTED_VIEW_STYLES}
   </style>
 </head>
 <body>
-  <header role="banner"><div class="product-mark"><strong>PSPF Explorer</strong><span>Portable assurance view · v${PSPF_SLICE_VERSION}</span></div><div class="header-trust"><span class="version-pill trust-pill">Remembered locally</span><span class="version-pill sensitive-pill">OFFICIAL: Sensitive</span><span class="version-pill">Schema ${VERSION_AXES.schemaVersion}</span><span class="version-pill">API ${VERSION_AXES.apiVersion}</span></div></header>
+  <header role="banner"><div class="product-mark"><strong>PSPF Explorer</strong><span>Review an exported assurance bundle · v${PSPF_SLICE_VERSION}</span></div><div class="header-trust"><span class="version-pill trust-pill">Browser-local review</span><span class="version-pill sensitive-pill">OFFICIAL: Sensitive</span></div></header>
   <div class="banner pspf-sensitivity-banner" role="status">OFFICIAL: Sensitive · TLP:AMBER+STRICT · Browser-local data stays on this device</div>
-  <div class="mode-strip pspf-mode-strip" aria-label="Explorer mode"><span class="mode-step pspf-mode-step baseline">Bundle baseline</span><span class="mode-step pspf-mode-step local">Local changes</span><span class="mode-step pspf-mode-step export">Export to Workshop</span></div>
+  <div class="mode-strip pspf-mode-strip" aria-label="Explorer mode" hidden><span class="mode-step pspf-mode-step baseline">Bundle baseline</span><span class="mode-step pspf-mode-step local">Local changes</span><span class="mode-step pspf-mode-step export">Export to Workshop</span></div>
   <main>
+    <section id="welcome" class="panel welcome-panel">
+      <h1>Try Explorer with sample data.</h1>
+      <p>Start with the sample bundle, or open a Workshop export when you have one. Explorer keeps any local notes in this browser until you export them back to Workshop.</p>
+      <div class="welcome-actions"><button type="button" id="load-sample-bundle">Load sample bundle</button><a class="secondary-link" href="./sample-bundle.json" download="pspf-sample-bundle.json">Download sample JSON</a><a class="secondary-link" href="#bundle-tools">Choose your own JSON</a></div>
+    </section>
     <nav class="section-nav" aria-label="Explorer sections" hidden>
       <a href="#summary">Overview</a>
       <a href="#local-authoring">Local Changes</a>
@@ -165,7 +181,7 @@ const html = `<!doctype html>
       <a href="#links">Relationships</a>
       <a href="#connected-view">Connected View</a>
       <a href="#validation">Bundle Validation</a>
-      <a href="#bundle-tools">Bundle Tools</a>
+      <a href="#bundle-tools">Open Bundle</a>
       <button type="button" id="close-all-sections">Close All</button>
     </nav>
     <section id="summary" class="panel" aria-live="polite" hidden></section>
@@ -196,11 +212,12 @@ const html = `<!doctype html>
     <details id="connected-view" class="panel" hidden></details>
     <details id="validation" class="panel" aria-live="polite" hidden></details>
     <details id="bundle-tools" class="panel snapshot-panel" open>
-      <summary><h2>Bundle Tools</h2></summary>
+      <summary><h2>Open a PSPF bundle</h2></summary>
       <div class="section-body">
-        <p class="muted">For loading a different export or checking test diagnostics. Explorer remembers the latest bundle locally for day-to-day review.</p>
+        <p class="muted">Load the sample bundle, or choose an exported bundle to review. Explorer remembers the latest bundle locally for day-to-day review.</p>
+        <div class="toolbar"><button type="button" id="load-sample-bundle-tools">Load sample bundle</button><a href="./sample-bundle.json" download="pspf-sample-bundle.json">Download sample JSON</a></div>
         <div class="version-strip" aria-label="PSPF version context"><span class="version-pill">PSPF v${PSPF_SLICE_VERSION}</span><span class="version-pill">Schema ${VERSION_AXES.schemaVersion}</span><span class="version-pill">Bundle ${VERSION_AXES.bundleVersion}</span><span class="version-pill">API ${VERSION_AXES.apiVersion}</span></div>
-        <p id="bundle-help" class="muted">Select the exported <code>bundle.json</code>. You can also select <code>data/manifest.json</code> with matching collection JSON files.</p>
+        <p id="bundle-help" class="muted">Select the exported <code>bundle.json</code>. Advanced users can also select <code>data/manifest.json</code> with matching collection JSON files.</p>
         <label for="bundle-files">Bundle JSON files</label>
         <input id="bundle-files" type="file" multiple accept="application/json,.json" aria-describedby="bundle-help">
       </div>
@@ -218,6 +235,10 @@ const html = `<!doctype html>
 const app = `const input = document.querySelector("#bundle-files");
 const summary = document.querySelector("#summary");
 const sectionNav = document.querySelector(".section-nav");
+const modeStrip = document.querySelector(".mode-strip");
+const welcomePanel = document.querySelector("#welcome");
+const sampleBundleButtons = Array.from(document.querySelectorAll("#load-sample-bundle, #load-sample-bundle-tools"));
+const bundledSampleBundle = ${sampleBundleJson};
 const explorerSearchPanel = document.querySelector("#explorer-search-panel");
 const explorerSearchInput = document.querySelector("#explorer-search");
 const explorerSearchStatus = document.querySelector("#explorer-search-status");
@@ -318,6 +339,27 @@ explorerSearchInput?.addEventListener("input", (event) => {
   renderLocalAuthoringSection();
   applyExplorerSearch();
 });
+
+for (const button of sampleBundleButtons) {
+  button.addEventListener("click", loadSampleBundle);
+}
+
+async function loadSampleBundle(event) {
+  const button = event?.currentTarget;
+  if (button) {
+    button.setAttribute("aria-busy", "true");
+  }
+  try {
+    const bundle = JSON.parse(JSON.stringify(bundledSampleBundle));
+    await render(bundle.manifest, bundle.collections || {});
+  } catch (error) {
+    alert("Download the sample JSON, then choose it with Bundle JSON files.");
+  } finally {
+    if (button) {
+      button.removeAttribute("aria-busy");
+    }
+  }
+}
 
 input.addEventListener("change", async () => {
   const files = Array.from(input.files || []);
@@ -440,6 +482,12 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
     to: entitiesById.get(link.toId) || label(link.toType),
     tagIds: tagIdsForRelationship(link, tagModel)
   }));
+  if (welcomePanel) {
+    welcomePanel.hidden = true;
+  }
+  if (modeStrip) {
+    modeStrip.hidden = false;
+  }
   sectionNav.hidden = false;
   summary.hidden = false;
   explorerSearchPanel.hidden = false;

@@ -14,6 +14,7 @@ import {
   type RiskEntity,
   type SpendItemEntity,
   type SupplierEntity,
+  type TagEntity,
   type V01Entity,
   sanitiseEntityForPublication,
   withEnvelope
@@ -116,6 +117,31 @@ interface SpendItemReportRow {
   readonly expectedSavings: number;
 }
 
+interface ScenarioSummary {
+  readonly label: string;
+  readonly description: string;
+  readonly itemCount: number;
+  readonly plannedSpend: number;
+  readonly forecastCost: number;
+  readonly expectedSavings: number;
+  readonly netForecast: number;
+  readonly lowConfidenceCount: number;
+  readonly unlinkedItemCount: number;
+}
+
+interface AssuranceSpendRow {
+  readonly scope: "Requirement" | "Action" | "Tag";
+  readonly title: string;
+  readonly secondary: string;
+  readonly itemCount: number;
+  readonly multiLinkedItemCount: number;
+  readonly plannedSpend: number;
+  readonly forecastCost: number;
+  readonly expectedSavings: number;
+  readonly netForecast: number;
+  readonly confidence: string;
+}
+
 interface SupplierManagementSignal {
   readonly supplier: SupplierRecord;
   readonly performanceMeasure: string;
@@ -172,6 +198,8 @@ interface CommercialCoverageDashboard {
   readonly supplierManagement: readonly SupplierManagementSignal[];
   readonly contractArtefacts: readonly ContractArtefactSignal[];
   readonly spendItemReport: readonly SpendItemReportRow[];
+  readonly scenarioSummaries: readonly ScenarioSummary[];
+  readonly assuranceSpend: readonly AssuranceSpendRow[];
   readonly savingSchedule: readonly SavingScheduleRow[];
   readonly efficiencyDividends: readonly EfficiencyDividendYear[];
 }
@@ -523,7 +551,31 @@ async function newSpendItem(): Promise<void> {
   await upsertShopEntities([spendItem]);
   shopStore = { ...store, spendItems: [...store.spendItems, spendItem] };
   await refreshViews();
+  await promptSpendItemAssuranceLink(spendItem);
   vscode.window.showInformationMessage(`Added spend item ${spendItem.title}.`);
+}
+
+async function promptSpendItemAssuranceLink(spendItem: SpendItemRecord): Promise<void> {
+  const answer = await vscode.window.showQuickPick(
+    [
+      { label: "Link to Requirement", targetType: "requirement" as const, labelText: "Requirement", skip: false },
+      { label: "Link to Action", targetType: "action" as const, labelText: "Action", skip: false },
+      { label: "Skip for now", targetType: "requirement" as const, labelText: "Requirement", skip: true }
+    ],
+    {
+      placeHolder: "Link this spend item to assurance work now?",
+      ignoreFocusOut: true,
+      canPickMany: false
+    }
+  );
+  if (!answer || answer.skip) {
+    return;
+  }
+  await linkCommercialRecord(spendItem, {
+    linkType: "supports",
+    targetType: answer.targetType,
+    label: answer.labelText
+  });
 }
 
 async function editSpendItem(spendItem: SpendItemRecord): Promise<void> {
@@ -1702,6 +1754,14 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
       .filter((entity): entity is ActionEntity => entity.entityType === "action")
       .map((action) => [action.id, action])
   );
+  const requirementById = new Map(
+    activeEntities
+      .filter((entity): entity is RequirementEntity => entity.entityType === "requirement")
+      .map((requirement) => [requirement.id, requirement])
+  );
+  const tagById = new Map(
+    activeEntities.filter((entity): entity is TagEntity => entity.entityType === "tag").map((tag) => [tag.id, tag])
+  );
   const riskById = new Map(
     activeEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk").map((risk) => [risk.id, risk])
   );
@@ -1778,9 +1838,228 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
     supplierManagement: deriveSupplierManagement(store),
     contractArtefacts: deriveContractArtefacts(store),
     spendItemReport: deriveSpendItemReport(store.spendItems),
+    scenarioSummaries: deriveScenarioSummaries(store.spendItems, links),
+    assuranceSpend: deriveAssuranceSpend(store.spendItems, links, requirementById, actionById, tagById),
     savingSchedule,
     efficiencyDividends: deriveEfficiencyDividends(savingSchedule)
   };
+}
+
+function deriveScenarioSummaries(
+  spendItems: readonly SpendItemRecord[],
+  links: readonly LinkEntity[]
+): ScenarioSummary[] {
+  const scenarios: Array<{
+    readonly label: string;
+    readonly description: string;
+    readonly statuses: readonly string[];
+  }> = [
+    {
+      label: "Approved and committed baseline",
+      description: "Approved and committed work only",
+      statuses: ["approved", "committed"]
+    },
+    { label: "Approved only", description: "Approved work before commitments", statuses: ["approved"] },
+    {
+      label: "Include proposed work",
+      description: "Baseline plus proposed ideas and options",
+      statuses: ["approved", "committed", "proposed"]
+    }
+  ];
+  return scenarios.map((scenario) => {
+    const items = spendItems.filter((item) => scenario.statuses.includes(item.status));
+    const totals = spendTotals(items);
+    return {
+      label: scenario.label,
+      description: scenario.description,
+      itemCount: items.length,
+      plannedSpend: totals.plannedSpend,
+      forecastCost: totals.forecastCost,
+      expectedSavings: totals.expectedSavings,
+      netForecast: totals.netForecast,
+      lowConfidenceCount: items.filter((item) => item.confidence === "low").length,
+      unlinkedItemCount: items.filter((item) => !hasAssuranceSpendLink(item, links)).length
+    };
+  });
+}
+
+function deriveAssuranceSpend(
+  spendItems: readonly SpendItemRecord[],
+  links: readonly LinkEntity[],
+  requirementById: ReadonlyMap<string, RequirementEntity>,
+  actionById: ReadonlyMap<string, ActionEntity>,
+  tagById: ReadonlyMap<string, TagEntity>
+): AssuranceSpendRow[] {
+  const forecastItems = forecastOnlyItems(spendItems);
+  const requirementGroups = new Map<string, SpendItemRecord[]>();
+  const actionGroups = new Map<string, SpendItemRecord[]>();
+  const tagGroups = new Map<string, SpendItemRecord[]>();
+
+  for (const item of forecastItems) {
+    const actionIds = linkedActionIdsForSpend(item, links);
+    for (const actionId of actionIds) {
+      addGroupedItem(actionGroups, actionId, item);
+    }
+
+    const requirementIds = linkedRequirementIdsForSpend(item, links, actionIds);
+    for (const requirementId of requirementIds) {
+      addGroupedItem(requirementGroups, requirementId, item);
+      for (const tagId of tagIdsForRequirement(requirementId, links)) {
+        addGroupedItem(tagGroups, tagId, item);
+      }
+    }
+  }
+
+  const rows = [
+    ...[...requirementGroups.entries()].map(([requirementId, items]) => {
+      const requirement = requirementById.get(requirementId);
+      return assuranceSpendRow(
+        "Requirement",
+        requirement?.title ?? requirementId,
+        requirement ? `${requirement.domainId} · ${formatToken(requirement.assessmentStatus)}` : "Missing Requirement",
+        items,
+        links
+      );
+    }),
+    ...[...tagGroups.entries()].map(([tagId, items]) => {
+      const tag = tagById.get(tagId);
+      return assuranceSpendRow("Tag", tag?.title ?? tagId, tag ? tag.label : "Missing tag", items, links);
+    }),
+    ...[...actionGroups.entries()].map(([actionId, items]) => {
+      const action = actionById.get(actionId);
+      return assuranceSpendRow(
+        "Action",
+        action?.title ?? actionId,
+        action ? formatToken(action.status) : "Missing Action",
+        items,
+        links
+      );
+    })
+  ];
+
+  return rows.sort(
+    (first, second) =>
+      scopeRank(first.scope) - scopeRank(second.scope) ||
+      second.forecastCost - first.forecastCost ||
+      first.title.localeCompare(second.title)
+  );
+}
+
+function assuranceSpendRow(
+  scope: AssuranceSpendRow["scope"],
+  title: string,
+  secondary: string,
+  items: readonly SpendItemRecord[],
+  links: readonly LinkEntity[]
+): AssuranceSpendRow {
+  const uniqueItems = uniqueSpendItems(items);
+  const totals = spendTotals(uniqueItems);
+  return {
+    scope,
+    title,
+    secondary,
+    itemCount: uniqueItems.length,
+    multiLinkedItemCount: uniqueItems.filter((item) => linkedAssuranceTargetCount(item, links) > 1).length,
+    plannedSpend: totals.plannedSpend,
+    forecastCost: totals.forecastCost,
+    expectedSavings: totals.expectedSavings,
+    netForecast: totals.netForecast,
+    confidence: mixedConfidence(uniqueItems)
+  };
+}
+
+function spendTotals(
+  items: readonly SpendItemRecord[]
+): Omit<ScenarioSummary, "label" | "description" | "itemCount" | "lowConfidenceCount" | "unlinkedItemCount"> {
+  const plannedSpend = items.reduce((total, item) => total + item.amount.amount, 0);
+  const forecastCost = items.reduce((total, item) => total + (item.forecastCost?.amount ?? item.amount.amount), 0);
+  const expectedSavings = items.reduce((total, item) => total + (item.expectedSavings?.amount ?? 0), 0);
+  return { plannedSpend, forecastCost, expectedSavings, netForecast: forecastCost - expectedSavings };
+}
+
+function linkedActionIdsForSpend(item: SpendItemRecord, links: readonly LinkEntity[]): Set<string> {
+  return new Set(
+    links
+      .filter((link) => isSpendAssuranceLink(link) && link.fromId === item.id && link.toType === "action")
+      .map((link) => link.toId)
+  );
+}
+
+function linkedRequirementIdsForSpend(
+  item: SpendItemRecord,
+  links: readonly LinkEntity[],
+  actionIds: ReadonlySet<string>
+): Set<string> {
+  const requirementIds = new Set(
+    links
+      .filter((link) => isSpendAssuranceLink(link) && link.fromId === item.id && link.toType === "requirement")
+      .map((link) => link.toId)
+  );
+  for (const link of links) {
+    if (
+      link.fromType === "requirement" &&
+      link.toType === "action" &&
+      link.linkType === "addressed-by" &&
+      actionIds.has(link.toId)
+    ) {
+      requirementIds.add(link.fromId);
+    }
+  }
+  return requirementIds;
+}
+
+function tagIdsForRequirement(requirementId: string, links: readonly LinkEntity[]): Set<string> {
+  return new Set(
+    links
+      .filter(
+        (link) =>
+          link.fromType === "requirement" &&
+          link.fromId === requirementId &&
+          link.toType === "tag" &&
+          link.linkType === "tagged-with"
+      )
+      .map((link) => link.toId)
+  );
+}
+
+function addGroupedItem(groups: Map<string, SpendItemRecord[]>, key: string, item: SpendItemRecord): void {
+  const existing = groups.get(key) ?? [];
+  if (!existing.some((candidate) => candidate.id === item.id)) {
+    groups.set(key, [...existing, item]);
+  }
+}
+
+function uniqueSpendItems(items: readonly SpendItemRecord[]): SpendItemRecord[] {
+  return [...new Map(items.map((item) => [item.id, item])).values()];
+}
+
+function hasAssuranceSpendLink(item: SpendItemRecord, links: readonly LinkEntity[]): boolean {
+  return links.some((link) => isSpendAssuranceLink(link) && link.fromId === item.id);
+}
+
+function linkedAssuranceTargetCount(item: SpendItemRecord, links: readonly LinkEntity[]): number {
+  return links.filter((link) => isSpendAssuranceLink(link) && link.fromId === item.id).length;
+}
+
+function mixedConfidence(items: readonly SpendItemRecord[]): string {
+  if (items.length === 0) {
+    return "Not set";
+  }
+  return items.reduce(
+    (current, item) => lowerConfidence(current, item.confidence ? formatToken(item.confidence) : "Medium"),
+    "High"
+  );
+}
+
+function scopeRank(scope: AssuranceSpendRow["scope"]): number {
+  switch (scope) {
+    case "Requirement":
+      return 0;
+    case "Tag":
+      return 1;
+    case "Action":
+      return 2;
+  }
 }
 
 function deriveSpendItemReport(spendItems: readonly SpendItemRecord[]): SpendItemReportRow[] {
@@ -2080,6 +2359,7 @@ function renderCompactForecastHtml(
     0
   );
   const nextDividend = dashboard.efficiencyDividends[0];
+  const proposedScenario = dashboard.scenarioSummaries.find((scenario) => scenario.label === "Include proposed work");
   return `<!doctype html>
 <html lang="en-AU">
 <head>
@@ -2119,6 +2399,7 @@ function renderCompactForecastHtml(
         <span class="pspf-pill">${nextForecast ? `${escapeHtml(nextForecast.financialYear)} net forecast ${escapeHtml(formatCurrency(nextForecast.netForecast))}` : "No spend forecast yet"}</span>
         <span class="pspf-pill">${nextMonth ? `${escapeHtml(nextMonth.monthLabel)} forecast ${escapeHtml(formatCurrency(nextMonth.forecastSpend))}` : "No monthly forecast yet"}</span>
         <span class="pspf-pill">${nextDividend ? `${escapeHtml(nextDividend.financialYear)} planned efficiency dividend ${escapeHtml(formatCurrency(nextDividend.plannedSaving))}` : "No planned efficiency dividend yet"}</span>
+        <span class="pspf-pill">${proposedScenario ? `Scenario net ${escapeHtml(formatCurrency(proposedScenario.netForecast))}` : "No scenario forecast yet"}</span>
     </div>
     <p><a href="${escapeHtml(commandUri("pspf.shop.openForecast", []))}">Open full forecast</a></p>
 </body>
@@ -2167,6 +2448,43 @@ function renderForecastHtml(
         <td>${escapeHtml(formatCurrency(year.expectedSavings))}</td>
         <td>${escapeHtml(formatCurrency(year.netForecast))}</td>
       </tr>`
+          )
+          .join("");
+  const scenarioRows =
+    dashboard.scenarioSummaries.length === 0
+      ? '<tr><td colspan="8">No scenario forecast yet.</td></tr>'
+      : dashboard.scenarioSummaries
+          .map(
+            (scenario) => `
+            <tr>
+                <td>${escapeHtml(scenario.label)}</td>
+                <td>${escapeHtml(scenario.description)}</td>
+                <td>${scenario.itemCount}</td>
+                <td>${escapeHtml(formatCurrency(scenario.plannedSpend))}</td>
+                <td>${escapeHtml(formatCurrency(scenario.forecastCost))}</td>
+                <td>${escapeHtml(formatCurrency(scenario.expectedSavings))}</td>
+                <td>${escapeHtml(formatCurrency(scenario.netForecast))}</td>
+                <td>${scenario.lowConfidenceCount} low confidence · ${scenario.unlinkedItemCount} need assurance links</td>
+            </tr>`
+          )
+          .join("");
+  const assuranceSpendRows =
+    dashboard.assuranceSpend.length === 0
+      ? '<tr><td colspan="9">Link spend items to Requirements or Actions to see assurance spend attribution.</td></tr>'
+      : dashboard.assuranceSpend
+          .map(
+            (row) => `
+            <tr>
+                <td>${escapeHtml(row.scope)}</td>
+                <td>${escapeHtml(row.title)}</td>
+                <td>${escapeHtml(row.secondary)}</td>
+                <td>${row.itemCount}</td>
+                <td>${row.multiLinkedItemCount}</td>
+                <td>${escapeHtml(formatCurrency(row.plannedSpend))}</td>
+                <td>${escapeHtml(formatCurrency(row.forecastCost))}</td>
+                <td>${escapeHtml(formatCurrency(row.expectedSavings))}</td>
+                <td>${escapeHtml(row.confidence)}</td>
+            </tr>`
           )
           .join("");
   const coverageRows = dashboard.coverage.map((group) => renderCoverageRow(group)).join("");
@@ -2370,6 +2688,22 @@ function renderForecastHtml(
         <div class="coverage">${coverageRows}</div>
     </section>
     <section>
+      <h2>Scenario comparison</h2>
+      <p class="muted">Compare approved work, the approved and committed baseline, and proposed-inclusive planning without changing source records.</p>
+      <table>
+        <thead><tr><th>Scenario</th><th>Description</th><th>Items</th><th>Planned spend</th><th>Forecast cost</th><th>Expected savings</th><th>Net forecast</th><th>Signals</th></tr></thead>
+        <tbody>${scenarioRows}</tbody>
+      </table>
+    </section>
+    <section>
+      <h2>Spend by Requirement, tag, and Action</h2>
+      <p class="muted">Headline totals de-duplicate spend items. Grouped rows show when the same spend item contributes to multiple assurance outcomes.</p>
+      <table>
+        <thead><tr><th>Scope</th><th>Name</th><th>Context</th><th>Items</th><th>Multi-linked</th><th>Planned spend</th><th>Forecast cost</th><th>Expected savings</th><th>Confidence</th></tr></thead>
+        <tbody>${assuranceSpendRows}</tbody>
+      </table>
+    </section>
+    <section>
         <h2>Spend items needing contract funding links</h2>
         <p class="muted">Spend items should be funded by a Contract through the existing <code>contract funds spend-item</code> relationship.</p>
         <table>
@@ -2488,6 +2822,56 @@ function renderForecastReportCsv(
         year.netForecast
       ])
     ]),
+    csvSection("Scenario comparison", [
+      [
+        "Scenario",
+        "Description",
+        "Items",
+        "Planned spend",
+        "Forecast cost",
+        "Expected savings",
+        "Net forecast",
+        "Low confidence items",
+        "Items needing assurance links"
+      ],
+      ...dashboard.scenarioSummaries.map((scenario) => [
+        scenario.label,
+        scenario.description,
+        scenario.itemCount,
+        scenario.plannedSpend,
+        scenario.forecastCost,
+        scenario.expectedSavings,
+        scenario.netForecast,
+        scenario.lowConfidenceCount,
+        scenario.unlinkedItemCount
+      ])
+    ]),
+    csvSection("Spend by Requirement tag and Action", [
+      [
+        "Scope",
+        "Name",
+        "Context",
+        "Items",
+        "Multi-linked items",
+        "Planned spend",
+        "Forecast cost",
+        "Expected savings",
+        "Net forecast",
+        "Confidence"
+      ],
+      ...dashboard.assuranceSpend.map((row) => [
+        row.scope,
+        row.title,
+        row.secondary,
+        row.itemCount,
+        row.multiLinkedItemCount,
+        row.plannedSpend,
+        row.forecastCost,
+        row.expectedSavings,
+        row.netForecast,
+        row.confidence
+      ])
+    ]),
     csvSection("Spend item report", [
       ["Spend item", "Financial year", "Cost centre", "Status", "Planned spend", "Forecast cost", "Expected savings"],
       ...dashboard.spendItemReport.map((item) => [
@@ -2544,6 +2928,8 @@ function renderForecastReportXls(
   return `<!doctype html><html><head><meta charset="utf-8"><title>Shop forecast report</title></head><body>
 ${htmlTable("Forecast spend by month", [["Month", "Financial year", "Items", "Forecast spend", "Planned saving"], ...monthlyForecast.map((month) => [month.monthLabel, month.financialYear, month.itemCount, month.forecastSpend, month.forecastSavings])])}
 ${htmlTable("Forecast spend by financial year", [["Financial year", "Items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast"], ...forecast.map((year) => [year.financialYear, year.itemCount, year.plannedSpend, year.forecastCost, year.expectedSavings, year.netForecast])])}
+${htmlTable("Scenario comparison", [["Scenario", "Description", "Items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast", "Low confidence items", "Items needing assurance links"], ...dashboard.scenarioSummaries.map((scenario) => [scenario.label, scenario.description, scenario.itemCount, scenario.plannedSpend, scenario.forecastCost, scenario.expectedSavings, scenario.netForecast, scenario.lowConfidenceCount, scenario.unlinkedItemCount])])}
+${htmlTable("Spend by Requirement tag and Action", [["Scope", "Name", "Context", "Items", "Multi-linked items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast", "Confidence"], ...dashboard.assuranceSpend.map((row) => [row.scope, row.title, row.secondary, row.itemCount, row.multiLinkedItemCount, row.plannedSpend, row.forecastCost, row.expectedSavings, row.netForecast, row.confidence])])}
 ${htmlTable("Spend item report", [["Spend item", "Financial year", "Cost centre", "Status", "Planned spend", "Forecast cost", "Expected savings"], ...dashboard.spendItemReport.map((item) => [item.title, item.financialYear, item.costCentre, item.status, item.amount, item.forecastCost, item.expectedSavings])])}
 ${htmlTable("Planned savings schedule", [["Spend item", "Financial year", "Cost centre", "From", "To", "Planned saving", "Saving type", "Confidence", "Replacement context"], ...dashboard.savingSchedule.map((saving) => [saving.spendItem.title, saving.financialYear, saving.spendItem.costCentre ?? "", saving.scheduledFrom, saving.scheduledTo, saving.plannedSaving, saving.savingsType, saving.confidence, saving.replacementContext])])}
 ${htmlTable("Planned efficiency dividends", [["Financial year", "Saving items", "Planned efficiency dividend", "Lowest confidence"], ...dashboard.efficiencyDividends.map((dividend) => [dividend.financialYear, dividend.itemCount, dividend.plannedSaving, dividend.confidence])])}
