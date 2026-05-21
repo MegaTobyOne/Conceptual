@@ -37,13 +37,13 @@ The design system should optimise for five outcomes:
 
 The ecosystem has four visible product surfaces plus one internal platform role:
 
-| Product | Role | Primary interaction style |
-|---|---|---|
-| Core | Shared platform administration | compact admin and integrity views |
-| Workshop | Deep editing, analysis, and assurance | dense working views, diagnostics, structured detail |
-| Shop | Supplier, contract, and spend workflows | operational list-detail workflows |
-| Pub | People, role, and assignment workflows | operational list-detail workflows |
-| Explorer | Public-facing or broadly shareable web app | narrative dashboards, summaries, and drill-in |
+| Product  | Role                                       | Primary interaction style                           |
+| -------- | ------------------------------------------ | --------------------------------------------------- |
+| Core     | Shared platform administration             | compact admin and integrity views                   |
+| Workshop | Deep editing, analysis, and assurance      | dense working views, diagnostics, structured detail |
+| Shop     | Supplier, contract, and spend workflows    | operational list-detail workflows                   |
+| Pub      | People, role, and assignment workflows     | operational list-detail workflows                   |
+| Explorer | Public-facing or broadly shareable web app | narrative dashboards, summaries, and drill-in       |
 
 Core, Workshop, Shop and Pub should feel like the same product family because they share entity model, command palette conventions, and visual language. Each ships as its own VS Code extension with its own Activity Bar entry. Explorer should feel recognisably related, but lighter, more presentation-ready, and more narrative in its framing.
 
@@ -92,17 +92,17 @@ The palette should use a neutral foundation with one disciplined accent. Teal is
 
 ### Primary colour roles
 
-| Token | Intent | Suggested direction |
-|---|---|---|
-| Background | Main canvas | warm off-white / warm charcoal |
-| Surface | Cards, panels, sidebars | slightly lifted neutral |
-| Text primary | Main reading text | deep charcoal / soft off-white |
-| Text muted | Supporting labels | medium neutral grey |
-| Accent primary | Primary actions, active state | deep teal |
-| Success | Positive state | moss / restrained green |
-| Warning | Attention state | warm amber-brown |
-| Error | Issue state | subdued berry-red |
-| Link / citation | Navigational trust cue | teal or teal-blue |
+| Token           | Intent                        | Suggested direction            |
+| --------------- | ----------------------------- | ------------------------------ |
+| Background      | Main canvas                   | warm off-white / warm charcoal |
+| Surface         | Cards, panels, sidebars       | slightly lifted neutral        |
+| Text primary    | Main reading text             | deep charcoal / soft off-white |
+| Text muted      | Supporting labels             | medium neutral grey            |
+| Accent primary  | Primary actions, active state | deep teal                      |
+| Success         | Positive state                | moss / restrained green        |
+| Warning         | Attention state               | warm amber-brown               |
+| Error           | Issue state                   | subdued berry-red              |
+| Link / citation | Navigational trust cue        | teal or teal-blue              |
 
 ### Contrast rules
 
@@ -182,12 +182,12 @@ VS Code guidance recommends using Activity Bar items as view containers and keep
 
 Recommended view containers (one Activity Bar entry per extension):
 
-| Container | Owning extension | Purpose |
-|---|---|---|
-| Core | `pspf-core` | platform health, config, snapshots, imports/exports |
-| Workshop | `pspf-workshop` | requirement, evidence, action, risk authoring; reporting preparation |
-| Shop | `pspf-shop` | suppliers, contracts, spend |
-| Pub | `pspf-pub` | people, roles, assignments |
+| Container | Owning extension | Purpose                                                              |
+| --------- | ---------------- | -------------------------------------------------------------------- |
+| Core      | `pspf-core`      | platform health, config, snapshots, imports/exports                  |
+| Workshop  | `pspf-workshop`  | requirement, evidence, action, risk authoring; reporting preparation |
+| Shop      | `pspf-shop`      | suppliers, contracts, spend                                          |
+| Pub       | `pspf-pub`       | people, roles, assignments                                           |
 
 Within each container, sub-views use direct nouns (`Requirements`, `Evidence`, `Actions`, `Risks`, `Reporting`, `Snapshots`, `Suppliers`, `Contracts`, `People`, `Roles`, `Assignments`). The earlier `Hearth`, `Trail`, `Lookout`, `Skylight` names are retired and MUST NOT appear in code, UI labels, settings, or product documentation outside historical ADRs and explicit retirement notes.
 
@@ -206,6 +206,7 @@ Within each container, sub-views use direct nouns (`Requirements`, `Evidence`, `
 Purpose: answer “what is the state of things?” at a glance.
 
 Typical ingredients:
+
 - status summary cards,
 - trend chips,
 - readiness indicators,
@@ -220,17 +221,37 @@ This pattern should appear in Explorer, the Workshop Reporting view, and the Cor
 Purpose: browse and work through a set of records.
 
 Typical layout:
+
 - searchable/filterable list on the left,
 - selected item detail in the main pane,
 - related evidence/links/history in a right rail or collapsible section.
 
 This pattern should dominate Workshop, Shop, and Pub.
 
+### Pattern 2a: Entity editor CRUD panel
+
+Purpose: create or edit structured records when the user needs to see related fields together before writing.
+
+Use an editor panel instead of chained quick prompts when a record has more than two or three fields, linked entities, local-only or sensitive fields, validation warnings, or a review-before-write decision. Keep native input boxes and quick picks for tiny actions, selectors, status changes, copy/export/open commands, and launchers.
+
+Typical layout:
+
+- one panel per record being created or edited,
+- all relevant fields visible in a predictable tab order,
+- required fields clearly marked by control semantics and validation,
+- linked records selected through controlled fields or pickers,
+- Save, Save and close, and Cancel actions in a consistent footer/action area,
+- validation messages near the field and summarised at the top when needed,
+- local-only or sensitive sections labelled inside the form.
+
+Create and Edit should share the same panel shape. Detail views should be read-only by default and expose an Edit action when the product owns that record. Pub Team Create/Edit proved the pilot; Shop Supplier, Contract, and Spend Item editors now use the same panel workflow, and Workshop entity editors already provide the richer version for assurance records. Successful pieces should be factored into shared editor helpers before wider migration.
+
 ### Pattern 3: Guided validation view
 
 Purpose: help the user move from assertion to defensible structured record.
 
 Typical elements:
+
 - current claim or status,
 - missing fields or warnings,
 - required evidence checklist,
@@ -244,6 +265,7 @@ This pattern is especially important for Workshop.
 Purpose: prepare material for executive or reporting consumption.
 
 Typical elements:
+
 - date and snapshot identity,
 - status by domain,
 - narrative summary,
@@ -263,18 +285,19 @@ Core is the product surface for platform administration, not for day-to-day doma
 
 Recommended Core views:
 
-| View | Purpose | Interaction style |
-|---|---|---|
-| Workspace | bootstrap, workspace structure, trust state | summary + actions |
-| Health | storage health, integrity, compatibility, product detection | summary + warnings |
-| Config | shared settings and policies | form + validation |
-| Snapshots | create, inspect, and manage snapshots | list-detail |
-| Exchange | import/export bundles and history | list-detail |
-| Diagnostics | migration, repair, and index tools | task-focused utility |
+| View        | Purpose                                                     | Interaction style    |
+| ----------- | ----------------------------------------------------------- | -------------------- |
+| Workspace   | bootstrap, workspace structure, trust state                 | summary + actions    |
+| Health      | storage health, integrity, compatibility, product detection | summary + warnings   |
+| Config      | shared settings and policies                                | form + validation    |
+| Snapshots   | create, inspect, and manage snapshots                       | list-detail          |
+| Exchange    | import/export bundles and history                           | list-detail          |
+| Diagnostics | migration, repair, and index tools                          | task-focused utility |
 
 ### Core content tone
 
 Core should speak in direct operational language, for example:
+
 - “Workspace initialised”
 - “Snapshot created”
 - “Schema upgrade required”
@@ -292,6 +315,7 @@ Workshop is the deep work surface for assurance, structured editing, diagnostics
 ### Workshop content priorities
 
 On any detail screen, the visual order should generally be:
+
 1. Current object identity and state.
 2. What is incomplete, risky, or stale.
 3. Evidence and linked records.
@@ -301,6 +325,7 @@ On any detail screen, the visual order should generally be:
 ### Workshop interaction cues
 
 Workshop should make uncertainty visible. Good examples:
+
 - “Status set, rationale missing”
 - “Evidence attached but older than 12 months”
 - “2 linked actions unresolved”
@@ -317,6 +342,7 @@ Shop should focus on supplier, contract, spend, and forecast workflows. The visu
 From v1.18, Shop has a distinct commercial-planning identity inside the PSPF family. It should use procurement amber/teal accents over neutral VS Code surfaces, with restrained panels and labelled status cues rather than colour-only signalling. The surface should feel practical and commercially alert: obligations, renewal windows, funding dependencies, expected savings, payback, and linked assurance impact should be easier to scan than raw compliance detail.
 
 Core Shop page types:
+
 - supplier directory,
 - supplier profile,
 - contract detail,
@@ -328,6 +354,7 @@ Core Shop page types:
 The v1.18 Shop Home/Forecast treatment should include linked-assurance coverage: commercial records without linked Requirements, Actions, or Risks; spend items that fund open Actions; suppliers associated with high-risk work; and contracts supporting Requirements.
 
 Shop should answer practical commercial questions in plain language:
+
 - “What are we already committed to spend?”
 - “Which controls or actions depend on funding?”
 - “How much does this Requirement, tag, or funded Action cost to reach and sustain?”
@@ -341,6 +368,7 @@ From v1.26, Shop should make assurance spend attribution a first-class forecast 
 The data-entry experience should bias operators toward forecastable, linked records: Spend Item entry should invite linked Requirements or Actions during creation, show missing-link and missing-assumption warnings inline, and preserve practical defaults such as financial year and cost centre. Forecast outputs should always disclose assumptions and confidence next to cost and savings figures.
 
 Recommended Shop graphics:
+
 - forecast spend by financial year,
 - scenario comparison for approved/committed versus proposed spend,
 - spend by Requirement, Action, and Requirement tag,
@@ -358,6 +386,7 @@ Pub should focus on people, roles, capacity, and assignments. The visual emphasi
 From v1.28, Pub has a distinct people-and-relationships identity inside the PSPF family. It should feel operational, humane, and careful: useful for staff and stakeholder context without making sensitive person data feel publishable. The first surface should communicate that Pub is local-first and that relationship context, development notes, performance-management context, roster thinking, rotations, anniversaries, and team-event history stay local unless a later release explicitly opens a publication path.
 
 Core Pub page types:
+
 - people directory,
 - role detail,
 - team and organisation chart,
@@ -367,19 +396,21 @@ Core Pub page types:
 - relationship log,
 - roster and rotation opportunities.
 
-The organisation chart should be more than a static hierarchy. It should support compact action badges for upcoming actions, milestones, anniversaries, review dates, rotation windows, relationship follow-ups, and team events. Badges should be scannable, explainable on hover or focus, and linked back to the underlying role, team, requirement, direction, or action where possible.
+The organisation chart should be more than a static hierarchy. It should support compact action badges for upcoming actions, milestones, anniversaries, review dates, rotation windows, relationship follow-ups, and team events. Badges should be scannable, explainable on hover or focus, and linked back to the underlying role, team, owned control, or owned control set where possible. Requirements, directions, and actions should be treated as downstream assurance context derived through mappings or linked views rather than as direct Pub ownership fields.
 
 Pub should answer practical people and stakeholder questions in plain language:
+
 - "Who has a stake in protecting this information?"
 - "Which role, team, supplier, or customer relationship needs attention soon?"
-- "Where does a requirement, direction, or action depend on a role or team?"
+- "Which team owns this control or control set, and which roles keep it sustainable?"
 - "Where is responsibility missing, overloaded, duplicated, or fragile?"
 - "Which rotations or roster changes could improve resilience?"
 - "Which people or service-provider relationships need a planned check-in?"
 
 Recommended Pub graphics:
+
 - organisation chart with action, milestone, anniversary, and review badges,
-- responsibility coverage by Requirement, Direction, Action, team, and role,
+- responsibility coverage by owned control, control set, team, and role,
 - assignment load by role and team,
 - upcoming people and stakeholder events timeline,
 - rotation and roster opportunity board,
@@ -401,6 +432,7 @@ Per ADR 0037, Workshop has its own identity variation as the system of record. W
 ### Explorer visual behaviour
 
 Explorer should feel more editorial and more presentational than the extensions:
+
 - larger headings,
 - more generous spacing,
 - clear story blocks,
@@ -422,19 +454,20 @@ The visible Explorer local-editing surface is named `Local Changes`. Internal co
 
 Recommended top-level pages:
 
-| Page | Purpose |
-|---|---|
-| Home | overall posture and recent changes |
-| Requirements | requirement status and drill-in |
-| Domains | grouped policy or capability views |
-| Evidence | evidence coverage and freshness |
-| Actions | remediation and delivery view |
-| Risks | linked risks and exposure summaries |
-| Reports | snapshot summaries and downloadable outputs |
+| Page         | Purpose                                     |
+| ------------ | ------------------------------------------- |
+| Home         | overall posture and recent changes          |
+| Requirements | requirement status and drill-in             |
+| Domains      | grouped policy or capability views          |
+| Evidence     | evidence coverage and freshness             |
+| Actions      | remediation and delivery view               |
+| Risks        | linked risks and exposure summaries         |
+| Reports      | snapshot summaries and downloadable outputs |
 
 ### Explorer content voice
 
 Explorer should explain status in clear language. For example:
+
 - “6 requirements need updated evidence”
 - “Reporting readiness has improved since the last snapshot”
 - “Two risks remain without agreed treatment”
@@ -497,6 +530,7 @@ Status chips are central to the design and should be consistent everywhere. Sugg
 ### Evidence badges
 
 Evidence badges should communicate both presence and quality, for example:
+
 - Missing
 - Attached
 - Partial
@@ -508,6 +542,7 @@ Evidence badges should communicate both presence and quality, for example:
 Trust is a product feature and should be visible.
 
 Every major object view should surface, in a quiet but obvious way:
+
 - last updated time,
 - who or what changed it,
 - source product,
@@ -522,12 +557,14 @@ Explorer should also surface source-aware trust markers such as snapshot date, e
 ### Voice and tone
 
 The writing style should be:
+
 - plain,
 - concise,
 - factual,
 - and specific.
 
 It should avoid:
+
 - bureaucratic padding,
 - abstract transformation language,
 - and overclaiming certainty.
@@ -535,6 +572,7 @@ It should avoid:
 ### Preferred writing patterns
 
 Use:
+
 - “Needs updated evidence” instead of “non-compliant artefact posture”
 - “Ready for reporting” instead of “assessment completeness condition achieved”
 - “Linked action overdue” instead of “remediation dependency delinquent”
@@ -543,10 +581,10 @@ Use:
 
 The product should support three content layers:
 
-| Layer | Purpose | Style |
-|---|---|---|
-| Summary | quick orientation | short, plain, scannable |
-| Working detail | operational decisions | structured, specific, linked |
+| Layer               | Purpose                         | Style                         |
+| ------------------- | ------------------------------- | ----------------------------- |
+| Summary             | quick orientation               | short, plain, scannable       |
+| Working detail      | operational decisions           | structured, specific, linked  |
 | Reporting narrative | executive or outward-facing use | concise, polished, contextual |
 
 ## Empty, loading, and error states
@@ -554,6 +592,7 @@ The product should support three content layers:
 ### Empty states
 
 Empty states should be helpful and specific. Good examples:
+
 - “No snapshots yet. Create a snapshot to preserve a reporting view.”
 - “No supplier links found. Add a supplier or import contract data.”
 - “No evidence attached. Add at least one source before marking this ready.”
@@ -577,6 +616,7 @@ Use the shared primitives for these states: `pspf-button`, `pspf-field`, `pspf-i
 ### Error states
 
 Errors should be actionable and safe. Use messages like:
+
 - “Export could not be completed”
 - “Workspace trust is required to continue”
 - “Schema version is not compatible with this product version”
@@ -588,6 +628,7 @@ Avoid dumping raw technical errors into the main workflow unless the user opens 
 VS Code guidance recommends restraint in the status bar and warns against excessive prominence. Status bar items should be short, global, and limited in number, while warnings or progress should be elevated only when necessary.
 
 Design rules:
+
 - Use at most one main platform status item.
 - Do not place sensitive detailed information in the status bar.
 - Use progress notifications for elevated tasks such as export or migration.
@@ -614,6 +655,7 @@ The ecosystem should meet WCAG AA contrast requirements for normal text and UI c
 The canonical implementation lives in `@pspf/webview-shell`. Extension webviews, Explorer, and public web surfaces should consume its token names or map their local surface-specific variables onto the same roles. New local primitive classes should be avoided unless the surface has a documented reason not to use the shared primitive.
 
 Canonical token groups:
+
 - colour/background/surface/text/accent/status
 - type scale
 - spacing scale
@@ -623,6 +665,7 @@ Canonical token groups:
 - motion timing
 
 Canonical primitive classes:
+
 - `pspf-button` with secondary, small, and danger variants for command actions.
 - `pspf-pill` with tone variants for status, version, and provenance chips.
 - `pspf-banner` and `pspf-sensitivity-banner` for warning, sensitivity, and trust notices.
@@ -633,6 +676,7 @@ Canonical primitive classes:
 Product surfaces may still keep narrow product aliases such as `--workshop-*` or `--shop-*`, but those aliases should resolve to `--pspf-*` tokens. Hardcoded local palettes, local `.pill` / `.version-pill` primitives, and one-off `.mode-step` styling are transitional only. The `check:design-drift` script guards against adding new drift while older surfaces are migrated.
 
 Canonical exchange labels:
+
 - Explorer mode strip: `Bundle baseline`, `Local changes`, `Export to Workshop`.
 - Workshop import review: `Plan, review, apply`.
 - Core and Workshop records: use `snapshot` for system-of-record point-in-time records.
@@ -642,6 +686,7 @@ Canonical exchange labels:
 ### Character of motion
 
 Motion should be minimal and informative rather than decorative. Use motion for:
+
 - expanding details,
 - switching list/detail state,
 - confirming exports or snapshots,
@@ -654,6 +699,7 @@ Avoid decorative motion or anything that makes the product feel theatrical.
 The family name and product names should be used clearly and consistently.
 
 Recommended pattern:
+
 - **Family name**: PSPF
 - **Product names**: Core, Workshop, Shop, Pub, Explorer
 - **Functional labels** where clarity matters most, especially in admin or setup surfaces
@@ -665,6 +711,7 @@ This preserves recognisability without compromising usability.
 ## Initial screen inventory
 
 ### Core
+
 - Workspace setup
 - Workspace health
 - Shared config
@@ -673,6 +720,7 @@ This preserves recognisability without compromising usability.
 - Diagnostics and repair
 
 ### Workshop
+
 - Requirement browser
 - Requirement detail
 - Evidence editor
@@ -681,6 +729,7 @@ This preserves recognisability without compromising usability.
 - Linked actions and risks
 
 ### Shop
+
 - Supplier list
 - Supplier detail
 - Contract detail
@@ -688,12 +737,14 @@ This preserves recognisability without compromising usability.
 - Linked requirement view
 
 ### Pub
+
 - People list
 - Role detail
 - Assignment board
 - Responsibility gap view
 
 ### Explorer
+
 - Home posture view
 - Requirement summary
 - Domain summary

@@ -2138,6 +2138,10 @@ async function openStrategyEditorPanel(strategy: StrategyEntity): Promise<void> 
     if (!command) {
       return;
     }
+    if (command === "closeEditor") {
+      panel.dispose();
+      return;
+    }
     if (command === "pspf.workshop.openStrategyMap") {
       panel.dispose();
       await openStrategyMap();
@@ -2198,6 +2202,10 @@ async function openStrategyEditorPanel(strategy: StrategyEntity): Promise<void> 
         currentStrategy = latest;
       }
       refresh();
+      return;
+    }
+    if (message.command === "closeEditor") {
+      panel.dispose();
       return;
     }
     if (message.command === "pspf.workshop.openStrategyMap") {
@@ -2300,6 +2308,7 @@ function renderStrategyEditorPanel(strategy: StrategyEntity): string {
           <div class="form-actions">
             <button type="button" data-command="saveEntity">Save strategy</button>
             <button type="button" data-command="saveAndCloseEntity">Save and view map</button>
+            <button type="button" data-command="closeEditor">Cancel</button>
           </div>
         </section>
       </form>
@@ -3496,6 +3505,10 @@ async function openEntityEditor(
       await openEvidenceReference(reference);
       return;
     }
+    if (command === "closeEditor") {
+      panel.dispose();
+      return;
+    }
     if (command === "recordChange") {
       await recordSignificantChange(message.pendingEntityType, message.pendingEntityId);
       await refreshEditor();
@@ -3628,6 +3641,10 @@ async function openEntityEditor(
     }
     if (message.command === "openEvidenceReference") {
       await openEvidenceReference(message.evidenceReference);
+      return;
+    }
+    if (message.command === "closeEditor") {
+      panel.dispose();
       return;
     }
     if (
@@ -4485,6 +4502,7 @@ function editorShell(
           <button type="button" data-command="saveEntity">Save</button>
           ${entity.entityType === "requirement" || entity.entityType === "direction" ? `<button type="button" data-command="saveAndNextEntity">Save and next</button>` : ""}
           <button type="button" data-command="saveAndCloseEntity">Save and close</button>
+          <button type="button" data-command="closeEditor">Cancel</button>
         </div>
       </form>
     </section>

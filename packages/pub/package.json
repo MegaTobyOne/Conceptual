@@ -2,7 +2,7 @@
   "name": "pspf-pub",
   "displayName": "PSPF Pub",
   "description": "PSPF people, role, team, assignment, and stakeholder relationship surface.",
-  "version": "1.28.0",
+  "version": "1.28.1",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -55,6 +55,18 @@
         "title": "PSPF: New Pub Person"
       },
       {
+        "command": "pspf.pub.newTeam",
+        "title": "PSPF: New Pub Team"
+      },
+      {
+        "command": "pspf.pub.openTeamDetail",
+        "title": "PSPF: Open Pub Team Detail"
+      },
+      {
+        "command": "pspf.pub.editTeam",
+        "title": "PSPF: Edit Pub Team"
+      },
+      {
         "command": "pspf.pub.newRole",
         "title": "PSPF: New Pub Role"
       },
@@ -73,6 +85,10 @@
       {
         "command": "pspf.pub.openPeople",
         "title": "PSPF: Open Pub People"
+      },
+      {
+        "command": "pspf.pub.openTeams",
+        "title": "PSPF: Open Pub Teams"
       },
       {
         "command": "pspf.pub.openRoles",
@@ -95,19 +111,29 @@
           "group": "navigation@1"
         },
         {
-          "command": "pspf.pub.recordRelationshipNote",
+          "command": "pspf.pub.newTeam",
           "when": "view == pspfPub.homeView",
           "group": "navigation@2"
         },
         {
-          "command": "pspf.pub.openOrgChart",
+          "command": "pspf.pub.openTeamDetail",
           "when": "view == pspfPub.homeView",
           "group": "navigation@3"
         },
         {
-          "command": "pspf.pub.openAssignments",
+          "command": "pspf.pub.recordRelationshipNote",
           "when": "view == pspfPub.homeView",
           "group": "navigation@4"
+        },
+        {
+          "command": "pspf.pub.openOrgChart",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@5"
+        },
+        {
+          "command": "pspf.pub.openAssignments",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@6"
         }
       ]
     }

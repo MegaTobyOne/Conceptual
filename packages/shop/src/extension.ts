@@ -204,6 +204,43 @@ interface CommercialCoverageDashboard {
   readonly efficiencyDividends: readonly EfficiencyDividendYear[];
 }
 
+type ShopEditorKind = "supplier" | "contract" | "spend-item";
+
+interface ShopEditorMessage {
+  readonly action?: string;
+  readonly entityType?: ShopEditorKind;
+  readonly entityId?: string;
+  readonly fields?: ShopEditorFields;
+}
+
+interface ShopEditorFields {
+  readonly name?: unknown;
+  readonly title?: unknown;
+  readonly supplierType?: unknown;
+  readonly supplierId?: unknown;
+  readonly status?: unknown;
+  readonly criticality?: unknown;
+  readonly primaryContact?: unknown;
+  readonly contractRef?: unknown;
+  readonly startsAt?: unknown;
+  readonly endsAt?: unknown;
+  readonly valueAmount?: unknown;
+  readonly serviceSummary?: unknown;
+  readonly spendType?: unknown;
+  readonly amount?: unknown;
+  readonly financialYear?: unknown;
+  readonly costCentre?: unknown;
+  readonly forecastStartAt?: unknown;
+  readonly forecastEndAt?: unknown;
+  readonly forecastCost?: unknown;
+  readonly expectedSavings?: unknown;
+  readonly savingsType?: unknown;
+  readonly paybackPeriodMonths?: unknown;
+  readonly confidence?: unknown;
+  readonly assumptions?: unknown;
+  readonly notes?: unknown;
+}
+
 let shopStore: ShopStore | undefined;
 let suppliersProvider: SupplierTreeProvider | undefined;
 let contractsProvider: ContractTreeProvider | undefined;
@@ -211,6 +248,7 @@ let spendProvider: SpendTreeProvider | undefined;
 let forecastProvider: ForecastViewProvider | undefined;
 let welcomeProvider: WelcomeTreeProvider | undefined;
 let forecastPanel: vscode.WebviewPanel | undefined;
+let editorPanel: vscode.WebviewPanel | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   suppliersProvider = new SupplierTreeProvider();
@@ -271,6 +309,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {
   shopStore = undefined;
+  editorPanel = undefined;
 }
 
 async function openHome(): Promise<void> {
@@ -338,77 +377,11 @@ async function loadSample(): Promise<void> {
 }
 
 async function newSupplier(): Promise<void> {
-  const name = await promptText("Supplier name");
-  if (!name) {
-    return;
-  }
-  const supplierType = await promptPick("Supplier type", SUPPLIER_TYPES);
-  if (!supplierType) {
-    return;
-  }
-  const status = await promptPick("Supplier status", SUPPLIER_STATUSES, "active");
-  if (!status) {
-    return;
-  }
-  const criticality = await promptPick("Criticality", CRITICALITIES, "medium");
-  if (!criticality) {
-    return;
-  }
-  const primaryContact = await promptOptionalText("Primary contact or role");
-  const notes = await promptOptionalText("Notes");
-
-  const supplier: SupplierRecord = {
-    ...newCommercialEnvelope("supplier"),
-    id: createShopId("SUP"),
-    entityType: "supplier",
-    name,
-    supplierType,
-    status,
-    criticality,
-    ...(primaryContact ? { primaryContact } : {}),
-    ...(notes ? { notes } : {})
-  };
-
-  const store = await loadStore();
-  await upsertShopEntities([supplier]);
-  shopStore = { ...store, suppliers: [...store.suppliers, supplier] };
-  await refreshViews();
-  vscode.window.showInformationMessage(`Added supplier ${supplier.name}.`);
+  await openShopEditor("supplier");
 }
 
 async function editSupplier(supplier: SupplierRecord): Promise<void> {
-  const name = await promptText("Supplier name", supplier.name);
-  if (!name) {
-    return;
-  }
-  const supplierType = await promptPick("Supplier type", SUPPLIER_TYPES, supplier.supplierType);
-  if (!supplierType) {
-    return;
-  }
-  const status = await promptPick("Supplier status", SUPPLIER_STATUSES, supplier.status);
-  if (!status) {
-    return;
-  }
-  const criticality = await promptPick("Criticality", CRITICALITIES, supplier.criticality);
-  if (!criticality) {
-    return;
-  }
-  const primaryContact = await promptOptionalText("Primary contact or role", supplier.primaryContact);
-  const notes = await promptOptionalText("Notes", supplier.notes);
-  const updated: SupplierRecord = {
-    ...supplier,
-    name,
-    supplierType,
-    status,
-    criticality,
-    updatedAt: new Date().toISOString(),
-    ...(primaryContact ? { primaryContact } : { primaryContact: undefined }),
-    ...(notes ? { notes } : { notes: undefined })
-  };
-  await upsertShopEntities([updated]);
-  shopStore = undefined;
-  await refreshViews();
-  vscode.window.showInformationMessage(`Updated supplier ${updated.name}.`);
+  await openShopEditor("supplier", supplier);
 }
 
 async function newContract(): Promise<void> {
@@ -417,142 +390,15 @@ async function newContract(): Promise<void> {
     vscode.window.showWarningMessage("Add a supplier before creating a contract.");
     return;
   }
-
-  const supplier = await promptSupplier(store.suppliers);
-  if (!supplier) {
-    return;
-  }
-  const title = await promptText("Contract title");
-  if (!title) {
-    return;
-  }
-  const status = await promptPick("Contract status", CONTRACT_STATUSES, "active");
-  if (!status) {
-    return;
-  }
-  const contractRef = await promptOptionalText("Contract reference");
-  const startsAt = await promptOptionalDate("Start date (YYYY-MM-DD)");
-  const endsAt = await promptOptionalDate("End date (YYYY-MM-DD)");
-  const valueAmount = await promptOptionalNumber("Contract value (AUD)");
-  const serviceSummary = await promptOptionalText("Service summary");
-
-  const contract: ContractRecord = {
-    ...newCommercialEnvelope("contract"),
-    id: createShopId("CTR"),
-    entityType: "contract",
-    supplierId: supplier.id,
-    title,
-    status,
-    ...(contractRef ? { contractRef } : {}),
-    ...(startsAt ? { startsAt } : {}),
-    ...(endsAt ? { endsAt } : {}),
-    ...(valueAmount === undefined ? {} : { value: { amount: valueAmount, currency: "AUD" } }),
-    ...(serviceSummary ? { serviceSummary } : {})
-  };
-
-  await upsertShopEntities([contract]);
-  shopStore = { ...store, contracts: [...store.contracts, contract] };
-  await refreshViews();
-  vscode.window.showInformationMessage(`Added contract ${contract.title}.`);
+  await openShopEditor("contract");
 }
 
 async function editContract(contract: ContractRecord): Promise<void> {
-  const store = await loadStore();
-  const supplier = await promptSupplier(store.suppliers, contract.supplierId);
-  if (!supplier) {
-    return;
-  }
-  const title = await promptText("Contract title", contract.title);
-  if (!title) {
-    return;
-  }
-  const status = await promptPick("Contract status", CONTRACT_STATUSES, contract.status);
-  if (!status) {
-    return;
-  }
-  const contractRef = await promptOptionalText("Contract reference", contract.contractRef);
-  const startsAt = await promptOptionalDate("Start date (YYYY-MM-DD)", contract.startsAt);
-  const endsAt = await promptOptionalDate("End date (YYYY-MM-DD)", contract.endsAt);
-  const valueAmount = await promptOptionalNumber("Contract value (AUD)", contract.value?.amount);
-  const serviceSummary = await promptOptionalText("Service summary", contract.serviceSummary);
-  const updated: ContractRecord = {
-    ...contract,
-    supplierId: supplier.id,
-    title,
-    status,
-    updatedAt: new Date().toISOString(),
-    ...(contractRef ? { contractRef } : { contractRef: undefined }),
-    ...(startsAt ? { startsAt } : { startsAt: undefined }),
-    ...(endsAt ? { endsAt } : { endsAt: undefined }),
-    ...(valueAmount === undefined ? { value: undefined } : { value: { amount: valueAmount, currency: "AUD" } }),
-    ...(serviceSummary ? { serviceSummary } : { serviceSummary: undefined })
-  };
-  await upsertShopEntities([updated]);
-  shopStore = undefined;
-  await refreshViews();
-  vscode.window.showInformationMessage(`Updated contract ${updated.title}.`);
+  await openShopEditor("contract", contract);
 }
 
 async function newSpendItem(): Promise<void> {
-  const title = await promptText("Spend item title");
-  if (!title) {
-    return;
-  }
-  const spendType = await promptPick("Spend type", SPEND_TYPES, "uplift");
-  if (!spendType) {
-    return;
-  }
-  const status = await promptPick("Spend status", SPEND_STATUSES, "proposed");
-  if (!status) {
-    return;
-  }
-  const amount = await promptRequiredNumber("Amount (AUD)");
-  if (amount === undefined) {
-    return;
-  }
-  const financialYear = await promptFinancialYear();
-  if (!financialYear) {
-    return;
-  }
-  const costCentre = await promptOptionalText("Cost centre", getDefaultCostCentre());
-  const forecastStartAt = await promptOptionalDate("Forecast start date (YYYY-MM-DD)");
-  const forecastEndAt = await promptOptionalDate("Forecast end date (YYYY-MM-DD)");
-  const forecastCost = await promptOptionalNumber("Forecast cost (AUD)");
-  const expectedSavings = await promptOptionalNumber("Expected savings (AUD)");
-  const savingsType =
-    expectedSavings === undefined ? undefined : await promptPick("Savings type", SAVINGS_TYPES, "efficiency");
-  const paybackPeriodMonths = await promptOptionalNumber("Payback period months");
-  const confidence = await promptPick("Confidence", CONFIDENCE_LEVELS, "medium");
-  const assumptions = await promptOptionalText("Assumptions");
-  const notes = await promptOptionalText("Notes");
-
-  const spendItem: SpendItemRecord = {
-    ...newCommercialEnvelope("spend-item"),
-    id: createShopId("SPD"),
-    entityType: "spend-item",
-    title,
-    spendType,
-    status,
-    amount: moneyAmount(amount),
-    financialYear,
-    ...(costCentre ? { costCentre } : {}),
-    ...(forecastStartAt ? { forecastStartAt } : {}),
-    ...(forecastEndAt ? { forecastEndAt } : {}),
-    ...(forecastCost === undefined ? {} : { forecastCost: moneyAmount(forecastCost) }),
-    ...(expectedSavings === undefined ? {} : { expectedSavings: moneyAmount(expectedSavings) }),
-    ...(savingsType ? { savingsType } : {}),
-    ...(paybackPeriodMonths === undefined ? {} : { paybackPeriodMonths }),
-    ...(confidence ? { confidence } : {}),
-    ...(assumptions ? { assumptions } : {}),
-    ...(notes ? { notes } : {})
-  };
-
-  const store = await loadStore();
-  await upsertShopEntities([spendItem]);
-  shopStore = { ...store, spendItems: [...store.spendItems, spendItem] };
-  await refreshViews();
-  await promptSpendItemAssuranceLink(spendItem);
-  vscode.window.showInformationMessage(`Added spend item ${spendItem.title}.`);
+  await openShopEditor("spend-item");
 }
 
 async function promptSpendItemAssuranceLink(spendItem: SpendItemRecord): Promise<void> {
@@ -579,64 +425,230 @@ async function promptSpendItemAssuranceLink(spendItem: SpendItemRecord): Promise
 }
 
 async function editSpendItem(spendItem: SpendItemRecord): Promise<void> {
-  const title = await promptText("Spend item title", spendItem.title);
+  await openShopEditor("spend-item", spendItem);
+}
+
+async function openShopEditor(
+  entityType: ShopEditorKind,
+  entity?: SupplierRecord | ContractRecord | SpendItemRecord
+): Promise<void> {
+  const store = await loadStore();
+  const title = shopEditorTitle(entityType, entity);
+  if (editorPanel) {
+    editorPanel.title = title;
+    editorPanel.reveal(vscode.ViewColumn.One);
+  } else {
+    editorPanel = vscode.window.createWebviewPanel("pspfShopEditor", title, vscode.ViewColumn.One, {
+      enableScripts: true
+    });
+    editorPanel.webview.onDidReceiveMessage((message: ShopEditorMessage) => {
+      void handleShopEditorMessage(message);
+    });
+    editorPanel.onDidDispose(() => {
+      editorPanel = undefined;
+    });
+  }
+  editorPanel.webview.html = renderShopEditorHtml(entityType, store, entity);
+}
+
+async function handleShopEditorMessage(message: ShopEditorMessage): Promise<void> {
+  if (message.action === "cancelShopRecord") {
+    editorPanel?.dispose();
+    return;
+  }
+  if (message.action !== "saveShopRecord" && message.action !== "saveAndCloseShopRecord") {
+    return;
+  }
+  const entityType = message.entityType;
+  if (!entityType) {
+    return;
+  }
+  const store = await loadStore();
+  const current = findShopRecord(store, entityType, message.entityId);
+  const parsed = buildShopRecordFromFields(entityType, message.fields ?? {}, current, store);
+  if (typeof parsed === "string") {
+    vscode.window.showWarningMessage(parsed);
+    return;
+  }
+
+  const wasExisting = Boolean(current);
+  await upsertShopEntities([parsed]);
+  shopStore = undefined;
+  await refreshViews();
+  if (message.action === "saveAndCloseShopRecord") {
+    editorPanel?.dispose();
+    if (!wasExisting && parsed.entityType === "spend-item") {
+      await promptSpendItemAssuranceLink(parsed);
+    }
+  } else {
+    await openShopEditor(parsed.entityType, parsed);
+  }
+  vscode.window.showInformationMessage(`Saved ${shopRecordLabel(parsed)}.`);
+}
+
+function findShopRecord(
+  store: ShopStore,
+  entityType: ShopEditorKind,
+  entityId: string | undefined
+): SupplierRecord | ContractRecord | SpendItemRecord | undefined {
+  if (!entityId) {
+    return undefined;
+  }
+  switch (entityType) {
+    case "supplier":
+      return store.suppliers.find((supplier) => supplier.id === entityId);
+    case "contract":
+      return store.contracts.find((contract) => contract.id === entityId);
+    case "spend-item":
+      return store.spendItems.find((spendItem) => spendItem.id === entityId);
+  }
+}
+
+function buildShopRecordFromFields(
+  entityType: ShopEditorKind,
+  fields: ShopEditorFields,
+  current: SupplierRecord | ContractRecord | SpendItemRecord | undefined,
+  store: ShopStore
+): SupplierRecord | ContractRecord | SpendItemRecord | string {
+  switch (entityType) {
+    case "supplier":
+      return buildSupplierFromFields(fields, current?.entityType === "supplier" ? current : undefined);
+    case "contract":
+      return buildContractFromFields(fields, current?.entityType === "contract" ? current : undefined, store);
+    case "spend-item":
+      return buildSpendItemFromFields(fields, current?.entityType === "spend-item" ? current : undefined);
+  }
+}
+
+function buildSupplierFromFields(fields: ShopEditorFields, current?: SupplierRecord): SupplierRecord | string {
+  const name = stringField(fields.name);
+  const supplierType = includedField(SUPPLIER_TYPES, fields.supplierType);
+  const status = includedField(SUPPLIER_STATUSES, fields.status);
+  const criticality = includedField(CRITICALITIES, fields.criticality);
+  if (!name) {
+    return "Supplier name is required.";
+  }
+  if (!supplierType || !status || !criticality) {
+    return "Supplier type, status, and criticality are required.";
+  }
+  return {
+    ...(current ?? newCommercialEnvelope("supplier")),
+    id: current?.id ?? createShopId("SUP"),
+    entityType: "supplier",
+    name,
+    supplierType,
+    status,
+    criticality,
+    updatedAt: new Date().toISOString(),
+    ...(optionalStringField(fields.primaryContact)
+      ? { primaryContact: optionalStringField(fields.primaryContact) }
+      : {}),
+    ...(optionalStringField(fields.notes) ? { notes: optionalStringField(fields.notes) } : {})
+  };
+}
+
+function buildContractFromFields(
+  fields: ShopEditorFields,
+  current: ContractRecord | undefined,
+  store: ShopStore
+): ContractRecord | string {
+  const supplierId = stringField(fields.supplierId);
+  const title = stringField(fields.title);
+  const status = includedField(CONTRACT_STATUSES, fields.status);
+  const valueAmount = optionalNumberField(fields.valueAmount);
+  if (!supplierId || !store.suppliers.some((supplier) => supplier.id === supplierId)) {
+    return "A valid supplier is required before saving a contract.";
+  }
   if (!title) {
-    return;
+    return "Contract title is required.";
   }
-  const spendType = await promptPick("Spend type", SPEND_TYPES, spendItem.spendType);
-  if (!spendType) {
-    return;
-  }
-  const status = await promptPick("Spend status", SPEND_STATUSES, spendItem.status);
   if (!status) {
-    return;
+    return "Contract status is required.";
   }
-  const amount = await promptRequiredNumber("Amount (AUD)", spendItem.amount.amount);
-  if (amount === undefined) {
-    return;
+  const startsAt = optionalDateField(fields.startsAt, "Start date");
+  if (startsAt.error) {
+    return startsAt.error;
   }
-  const financialYear = await promptFinancialYear(spendItem.financialYear);
-  if (!financialYear) {
-    return;
+  const endsAt = optionalDateField(fields.endsAt, "End date");
+  if (endsAt.error) {
+    return endsAt.error;
   }
-  const costCentre = await promptOptionalText("Cost centre", spendItem.costCentre ?? getDefaultCostCentre());
-  const forecastStartAt = await promptOptionalDate("Forecast start date (YYYY-MM-DD)", spendItem.forecastStartAt);
-  const forecastEndAt = await promptOptionalDate("Forecast end date (YYYY-MM-DD)", spendItem.forecastEndAt);
-  const forecastCost = await promptOptionalNumber("Forecast cost (AUD)", spendItem.forecastCost?.amount);
-  const expectedSavings = await promptOptionalNumber("Expected savings (AUD)", spendItem.expectedSavings?.amount);
-  const savingsType =
-    expectedSavings === undefined
-      ? undefined
-      : await promptPick("Savings type", SAVINGS_TYPES, spendItem.savingsType ?? "efficiency");
-  const paybackPeriodMonths = await promptOptionalNumber("Payback period months", spendItem.paybackPeriodMonths);
-  const confidence = await promptPick("Confidence", CONFIDENCE_LEVELS, spendItem.confidence ?? "medium");
-  const assumptions = await promptOptionalText("Assumptions", spendItem.assumptions);
-  const notes = await promptOptionalText("Notes", spendItem.notes);
-  const updated: SpendItemRecord = {
-    ...spendItem,
+  if (valueAmount.error) {
+    return valueAmount.error;
+  }
+  return {
+    ...(current ?? newCommercialEnvelope("contract")),
+    id: current?.id ?? createShopId("CTR"),
+    entityType: "contract",
+    supplierId,
+    title,
+    status,
+    updatedAt: new Date().toISOString(),
+    ...(optionalStringField(fields.contractRef) ? { contractRef: optionalStringField(fields.contractRef) } : {}),
+    ...(startsAt.value ? { startsAt: startsAt.value } : {}),
+    ...(endsAt.value ? { endsAt: endsAt.value } : {}),
+    ...(valueAmount.value === undefined ? {} : { value: moneyAmount(valueAmount.value) }),
+    ...(optionalStringField(fields.serviceSummary)
+      ? { serviceSummary: optionalStringField(fields.serviceSummary) }
+      : {})
+  };
+}
+
+function buildSpendItemFromFields(fields: ShopEditorFields, current?: SpendItemRecord): SpendItemRecord | string {
+  const title = stringField(fields.title);
+  const spendType = includedField(SPEND_TYPES, fields.spendType);
+  const status = includedField(SPEND_STATUSES, fields.status);
+  const amount = requiredNumberField(fields.amount, "Amount");
+  const financialYear = stringField(fields.financialYear);
+  const forecastCost = optionalNumberField(fields.forecastCost, "Forecast cost");
+  const expectedSavings = optionalNumberField(fields.expectedSavings, "Expected savings");
+  const paybackPeriodMonths = optionalNumberField(fields.paybackPeriodMonths, "Payback period months");
+  const savingsType = includedField(SAVINGS_TYPES, fields.savingsType);
+  const confidence = includedField(CONFIDENCE_LEVELS, fields.confidence);
+  if (!title) {
+    return "Spend item title is required.";
+  }
+  if (!spendType || !status) {
+    return "Spend type and status are required.";
+  }
+  if (amount.error) {
+    return amount.error;
+  }
+  if (validateFinancialYear(financialYear)) {
+    return "Financial year must use YYYY-YY.";
+  }
+  const forecastStartAt = optionalDateField(fields.forecastStartAt, "Forecast start date");
+  if (forecastStartAt.error) {
+    return forecastStartAt.error;
+  }
+  const forecastEndAt = optionalDateField(fields.forecastEndAt, "Forecast end date");
+  if (forecastEndAt.error) {
+    return forecastEndAt.error;
+  }
+  if (forecastCost.error || expectedSavings.error || paybackPeriodMonths.error) {
+    return forecastCost.error ?? expectedSavings.error ?? paybackPeriodMonths.error ?? "Enter a positive number.";
+  }
+  return {
+    ...(current ?? newCommercialEnvelope("spend-item")),
+    id: current?.id ?? createShopId("SPD"),
+    entityType: "spend-item",
     title,
     spendType,
     status,
-    amount: moneyAmount(amount),
+    amount: moneyAmount(amount.value),
     financialYear,
     updatedAt: new Date().toISOString(),
-    ...(costCentre ? { costCentre } : { costCentre: undefined }),
-    ...(forecastStartAt ? { forecastStartAt } : { forecastStartAt: undefined }),
-    ...(forecastEndAt ? { forecastEndAt } : { forecastEndAt: undefined }),
-    ...(forecastCost === undefined ? { forecastCost: undefined } : { forecastCost: moneyAmount(forecastCost) }),
-    ...(expectedSavings === undefined
-      ? { expectedSavings: undefined }
-      : { expectedSavings: moneyAmount(expectedSavings) }),
-    ...(savingsType ? { savingsType } : { savingsType: undefined }),
-    ...(paybackPeriodMonths === undefined ? { paybackPeriodMonths: undefined } : { paybackPeriodMonths }),
-    ...(confidence ? { confidence } : { confidence: undefined }),
-    ...(assumptions ? { assumptions } : { assumptions: undefined }),
-    ...(notes ? { notes } : { notes: undefined })
+    ...(optionalStringField(fields.costCentre) ? { costCentre: optionalStringField(fields.costCentre) } : {}),
+    ...(forecastStartAt.value ? { forecastStartAt: forecastStartAt.value } : {}),
+    ...(forecastEndAt.value ? { forecastEndAt: forecastEndAt.value } : {}),
+    ...(forecastCost.value === undefined ? {} : { forecastCost: moneyAmount(forecastCost.value) }),
+    ...(expectedSavings.value === undefined ? {} : { expectedSavings: moneyAmount(expectedSavings.value) }),
+    ...(savingsType ? { savingsType } : {}),
+    ...(paybackPeriodMonths.value === undefined ? {} : { paybackPeriodMonths: paybackPeriodMonths.value }),
+    ...(confidence ? { confidence } : {}),
+    ...(optionalStringField(fields.assumptions) ? { assumptions: optionalStringField(fields.assumptions) } : {}),
+    ...(optionalStringField(fields.notes) ? { notes: optionalStringField(fields.notes) } : {})
   };
-  await upsertShopEntities([updated]);
-  shopStore = undefined;
-  await refreshViews();
-  vscode.window.showInformationMessage(`Updated spend item ${updated.title}.`);
 }
 
 async function deleteRecord(entity: SupplierRecord | ContractRecord | SpendItemRecord): Promise<void> {
@@ -1286,115 +1298,6 @@ function sampleCommercialEnvelope(
   };
 }
 
-async function promptText(prompt: string, value?: string): Promise<string | undefined> {
-  const input = await vscode.window.showInputBox({
-    prompt,
-    value,
-    ignoreFocusOut: true,
-    validateInput: validateRequiredText
-  });
-  return cleanText(input);
-}
-
-async function promptOptionalText(prompt: string, value?: string): Promise<string | undefined> {
-  const input = await vscode.window.showInputBox({ prompt, value, ignoreFocusOut: true });
-  return cleanText(input);
-}
-
-async function promptPick<const Value extends string>(
-  placeHolder: string,
-  values: readonly Value[],
-  preferred?: Value
-): Promise<Value | undefined> {
-  const picks = values.map((value) => ({ label: formatToken(value), value }));
-  const selected = await vscode.window.showQuickPick(picks, {
-    placeHolder,
-    ignoreFocusOut: true,
-    canPickMany: false,
-    ...(preferred ? { activeItem: picks.find((pick) => pick.value === preferred) } : {})
-  });
-  return selected?.value;
-}
-
-async function promptSupplier(
-  suppliers: readonly SupplierRecord[],
-  selectedSupplierId?: string
-): Promise<SupplierRecord | undefined> {
-  const picks = suppliers.map((supplier) => ({
-    label: supplier.name,
-    description: formatToken(supplier.criticality),
-    supplier
-  }));
-  const selected = await vscode.window.showQuickPick(picks, {
-    placeHolder: "Supplier",
-    ignoreFocusOut: true,
-    canPickMany: false,
-    ...(selectedSupplierId ? { activeItem: picks.find((pick) => pick.supplier.id === selectedSupplierId) } : {})
-  });
-  return selected?.supplier;
-}
-
-async function promptOptionalDate(prompt: string, value?: string): Promise<string | undefined> {
-  const input = await vscode.window.showInputBox({
-    prompt,
-    value,
-    ignoreFocusOut: true,
-    validateInput: validateOptionalDate
-  });
-  return cleanText(input);
-}
-
-async function promptFinancialYear(value?: string): Promise<string | undefined> {
-  const currentYear = new Date().getFullYear();
-  const defaultValue = value ?? `${currentYear}-${String((currentYear + 1) % 100).padStart(2, "0")}`;
-  const input = await vscode.window.showInputBox({
-    prompt: "Financial year (YYYY-YY)",
-    value: defaultValue,
-    ignoreFocusOut: true,
-    validateInput: validateFinancialYear
-  });
-  return cleanText(input);
-}
-
-async function promptRequiredNumber(prompt: string, value?: number): Promise<number | undefined> {
-  const input = await vscode.window.showInputBox({
-    prompt,
-    value: value?.toString(),
-    ignoreFocusOut: true,
-    validateInput: validateRequiredNumber
-  });
-  return parseOptionalNumber(input);
-}
-
-async function promptOptionalNumber(prompt: string, value?: number): Promise<number | undefined> {
-  const input = await vscode.window.showInputBox({
-    prompt,
-    value: value?.toString(),
-    ignoreFocusOut: true,
-    validateInput: validateOptionalNumber
-  });
-  return parseOptionalNumber(input);
-}
-
-function validateRequiredText(value: string): string | undefined {
-  return value.trim().length > 0 ? undefined : "Enter a value.";
-}
-
-function validateRequiredNumber(value: string): string | undefined {
-  if (!value.trim()) {
-    return "Enter an amount.";
-  }
-  return validateOptionalNumber(value);
-}
-
-function validateOptionalNumber(value: string): string | undefined {
-  if (!value.trim()) {
-    return undefined;
-  }
-  const numberValue = Number(value.replace(/,/g, ""));
-  return Number.isFinite(numberValue) && numberValue >= 0 ? undefined : "Enter a positive number.";
-}
-
 function validateOptionalDate(value: string): string | undefined {
   if (!value.trim()) {
     return undefined;
@@ -1406,12 +1309,46 @@ function validateFinancialYear(value: string): string | undefined {
   return /^\d{4}-\d{2}$/.test(value.trim()) ? undefined : "Use YYYY-YY.";
 }
 
-function parseOptionalNumber(value: string | undefined): number | undefined {
-  const cleanValue = cleanText(value);
-  if (!cleanValue) {
-    return undefined;
+function stringField(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function optionalStringField(value: unknown): string | undefined {
+  return cleanText(typeof value === "string" ? value : undefined);
+}
+
+function includedField<const Value extends string>(values: readonly Value[], value: unknown): Value | undefined {
+  return isIncluded(values, value) ? value : undefined;
+}
+
+function requiredNumberField(value: unknown, labelText: string): { readonly value: number; readonly error?: string } {
+  const parsed = optionalNumberField(value, labelText);
+  if (parsed.error) {
+    return { value: 0, error: parsed.error };
   }
-  return Number(cleanValue.replace(/,/g, ""));
+  return parsed.value === undefined ? { value: 0, error: `${labelText} is required.` } : { value: parsed.value };
+}
+
+function optionalNumberField(
+  value: unknown,
+  labelText = "Number"
+): { readonly value?: number; readonly error?: string } {
+  const text = stringField(value);
+  if (!text) {
+    return {};
+  }
+  const parsed = Number(text.replace(/,/g, ""));
+  return Number.isFinite(parsed) && parsed >= 0
+    ? { value: parsed }
+    : { error: `${labelText} must be a positive number.` };
+}
+
+function optionalDateField(value: unknown, labelText: string): { readonly value?: string; readonly error?: string } {
+  const text = stringField(value);
+  if (!text) {
+    return {};
+  }
+  return validateOptionalDate(text) ? { error: `${labelText} must use YYYY-MM-DD.` } : { value: text };
 }
 
 function cleanText(value: string | undefined): string | undefined {
@@ -2337,6 +2274,218 @@ function urgencyRank(urgency: FundedAction["urgency"]): number {
     case "open":
       return 2;
   }
+}
+
+function renderShopEditorHtml(
+  entityType: ShopEditorKind,
+  store: ShopStore,
+  entity: SupplierRecord | ContractRecord | SpendItemRecord | undefined
+): string {
+  const heading = shopEditorTitle(entityType, entity);
+  return `<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    ${tokensCss("extension")}
+    :root { --shop-amber: var(--pspf-warn); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+    body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
+    main { max-width: 920px; margin: 0 auto; }
+    h1 { font-size: 1.35rem; margin: 0 0 8px; }
+    h2 { font-size: 1rem; margin: 0 0 8px; }
+    p { color: var(--pspf-muted); margin: 0 0 14px; }
+    .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: var(--pspf-gap-md) var(--pspf-pad); margin: 0 0 var(--pspf-pad); }
+    .eyebrow { color: var(--pspf-primary); font-size: var(--pspf-type-label); font-weight: 700; letter-spacing: var(--pspf-letter-label); text-transform: uppercase; margin: 0 0 4px; }
+    .panel { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-gap); margin: 0 0 var(--pspf-gap-md); }
+    .form-grid { display: grid; gap: 12px; }
+    .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    label { display: grid; gap: 5px; font-size: 0.88rem; }
+    input, select, textarea { box-sizing: border-box; width: 100%; border: 1px solid var(--vscode-input-border, var(--pspf-border)); border-radius: 6px; padding: 8px 10px; color: var(--vscode-input-foreground); background: var(--vscode-input-background); font: inherit; }
+    textarea { line-height: 1.45; resize: vertical; }
+    input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 1px; }
+    .form-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 12px; }
+    button { min-height: 38px; border: 1px solid var(--vscode-button-border, transparent); border-radius: 6px; padding: 8px 10px; color: var(--vscode-button-foreground); background: var(--vscode-button-background); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+    button:hover { background: var(--vscode-button-hoverBackground); }
+    .muted { color: var(--pspf-muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="masthead">
+      <p class="eyebrow">Commercial planning editor</p>
+      <h1>${escapeHtml(heading)}</h1>
+      <p>Shop records are Core-backed commercial planning records. Use this panel when related fields need to be reviewed together before saving.</p>
+    </section>
+    <form class="form-grid" data-entity-type="${escapeHtml(entityType)}" data-entity-id="${escapeHtml(entity?.id ?? "")}">
+      ${renderShopEditorFields(entityType, store, entity)}
+      <section class="panel">
+        <h2>Write action</h2>
+        <p class="muted">Save keeps the panel open. Save and close returns to the Shop views; new spend items can then be linked to assurance work.</p>
+        <div class="form-actions">
+          <button type="button" data-action="saveShopRecord">Save</button>
+          <button type="button" data-action="saveAndCloseShopRecord">Save and close</button>
+          <button type="button" data-action="cancelShopRecord">Cancel</button>
+        </div>
+      </section>
+    </form>
+  </main>
+  <script>
+    const vscode = acquireVsCodeApi();
+    document.querySelectorAll('button[data-action]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const form = button.closest('form');
+        if (!form) {
+          return;
+        }
+        const data = new FormData(form);
+        const fields = {};
+        for (const [key, value] of data.entries()) {
+          fields[key] = String(value);
+        }
+        button.setAttribute('aria-busy', 'true');
+        vscode.postMessage({
+          action: button.dataset.action,
+          entityType: form.dataset.entityType,
+          entityId: form.dataset.entityId,
+          fields
+        });
+        setTimeout(() => button.removeAttribute('aria-busy'), 800);
+      });
+    });
+  </script>
+</body>
+</html>`;
+}
+
+function renderShopEditorFields(
+  entityType: ShopEditorKind,
+  store: ShopStore,
+  entity: SupplierRecord | ContractRecord | SpendItemRecord | undefined
+): string {
+  switch (entityType) {
+    case "supplier":
+      return renderSupplierEditorFields(entity?.entityType === "supplier" ? entity : undefined);
+    case "contract":
+      return renderContractEditorFields(store, entity?.entityType === "contract" ? entity : undefined);
+    case "spend-item":
+      return renderSpendItemEditorFields(entity?.entityType === "spend-item" ? entity : undefined);
+  }
+}
+
+function renderSupplierEditorFields(supplier: SupplierRecord | undefined): string {
+  return `<section class="panel">
+    <h2>Supplier</h2>
+    ${inputControl("name", "Supplier name", supplier?.name ?? "", true, "1")}
+    <div class="two-col">
+      ${selectControl("supplierType", "Supplier type", SUPPLIER_TYPES, supplier?.supplierType ?? "service", "2")}
+      ${selectControl("status", "Status", SUPPLIER_STATUSES, supplier?.status ?? "active", "3")}
+      ${selectControl("criticality", "Criticality", CRITICALITIES, supplier?.criticality ?? "medium", "4")}
+      ${inputControl("primaryContact", "Primary contact or role", supplier?.primaryContact ?? "", false, "5")}
+    </div>
+    ${textareaControl("notes", "Notes", supplier?.notes ?? "", "6")}
+  </section>`;
+}
+
+function renderContractEditorFields(store: ShopStore, contract: ContractRecord | undefined): string {
+  const selectedSupplierId = contract?.supplierId ?? store.suppliers[0]?.id ?? "";
+  return `<section class="panel">
+    <h2>Contract</h2>
+    ${selectSupplierControl(store.suppliers, selectedSupplierId, "1")}
+    ${inputControl("title", "Contract title", contract?.title ?? "", true, "2")}
+    <div class="two-col">
+      ${selectControl("status", "Status", CONTRACT_STATUSES, contract?.status ?? "active", "3")}
+      ${inputControl("contractRef", "Contract reference", contract?.contractRef ?? "", false, "4")}
+      ${inputControl("startsAt", "Start date", contract?.startsAt ?? "", false, "5", "YYYY-MM-DD")}
+      ${inputControl("endsAt", "End date", contract?.endsAt ?? "", false, "6", "YYYY-MM-DD")}
+      ${inputControl("valueAmount", "Contract value (AUD)", contract?.value?.amount.toString() ?? "", false, "7", "0")}
+    </div>
+    ${textareaControl("serviceSummary", "Service summary", contract?.serviceSummary ?? "", "8")}
+  </section>`;
+}
+
+function renderSpendItemEditorFields(spendItem: SpendItemRecord | undefined): string {
+  const currentYear = new Date().getFullYear();
+  const defaultFinancialYear = `${currentYear}-${String((currentYear + 1) % 100).padStart(2, "0")}`;
+  return `<section class="panel">
+    <h2>Spend item</h2>
+    ${inputControl("title", "Spend item title", spendItem?.title ?? "", true, "1")}
+    <div class="two-col">
+      ${selectControl("spendType", "Spend type", SPEND_TYPES, spendItem?.spendType ?? "uplift", "2")}
+      ${selectControl("status", "Status", SPEND_STATUSES, spendItem?.status ?? "proposed", "3")}
+      ${inputControl("amount", "Amount (AUD)", spendItem?.amount.amount.toString() ?? "", true, "4", "0")}
+      ${inputControl("financialYear", "Financial year", spendItem?.financialYear ?? defaultFinancialYear, true, "5", "YYYY-YY")}
+      ${inputControl("costCentre", "Cost centre", spendItem?.costCentre ?? getDefaultCostCentre() ?? "", false, "6")}
+      ${selectControl("confidence", "Confidence", CONFIDENCE_LEVELS, spendItem?.confidence ?? "medium", "7")}
+    </div>
+  </section>
+  <section class="panel">
+    <h2>Forecast and savings</h2>
+    <div class="two-col">
+      ${inputControl("forecastStartAt", "Forecast start date", spendItem?.forecastStartAt ?? "", false, "8", "YYYY-MM-DD")}
+      ${inputControl("forecastEndAt", "Forecast end date", spendItem?.forecastEndAt ?? "", false, "9", "YYYY-MM-DD")}
+      ${inputControl("forecastCost", "Forecast cost (AUD)", spendItem?.forecastCost?.amount.toString() ?? "", false, "10", "0")}
+      ${inputControl("expectedSavings", "Expected savings (AUD)", spendItem?.expectedSavings?.amount.toString() ?? "", false, "11", "0")}
+      ${selectControl("savingsType", "Savings type", SAVINGS_TYPES, spendItem?.savingsType ?? "efficiency", "12")}
+      ${inputControl("paybackPeriodMonths", "Payback period months", spendItem?.paybackPeriodMonths?.toString() ?? "", false, "13", "0")}
+    </div>
+    ${textareaControl("assumptions", "Assumptions", spendItem?.assumptions ?? "", "14")}
+    ${textareaControl("notes", "Notes", spendItem?.notes ?? "", "15")}
+  </section>`;
+}
+
+function inputControl(
+  name: string,
+  labelText: string,
+  value: string,
+  required: boolean,
+  tabIndex: string,
+  placeholder = ""
+): string {
+  return `<label><span>${escapeHtml(labelText)}</span><input name="${escapeHtml(name)}" value="${escapeHtml(value)}" tabindex="${escapeHtml(tabIndex)}"${required ? " required" : ""}${placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ""}></label>`;
+}
+
+function textareaControl(name: string, labelText: string, value: string, tabIndex: string): string {
+  return `<label><span>${escapeHtml(labelText)}</span><textarea name="${escapeHtml(name)}" rows="4" tabindex="${escapeHtml(tabIndex)}">${escapeHtml(value)}</textarea></label>`;
+}
+
+function selectControl<Value extends string>(
+  name: string,
+  labelText: string,
+  values: readonly Value[],
+  selectedValue: Value,
+  tabIndex: string
+): string {
+  return `<label><span>${escapeHtml(labelText)}</span><select name="${escapeHtml(name)}" tabindex="${escapeHtml(tabIndex)}">${values.map((value) => `<option value="${escapeHtml(value)}"${value === selectedValue ? " selected" : ""}>${escapeHtml(formatToken(value))}</option>`).join("")}</select></label>`;
+}
+
+function selectSupplierControl(
+  suppliers: readonly SupplierRecord[],
+  selectedSupplierId: string,
+  tabIndex: string
+): string {
+  return `<label><span>Supplier</span><select name="supplierId" tabindex="${escapeHtml(tabIndex)}">${suppliers.map((supplier) => `<option value="${escapeHtml(supplier.id)}"${supplier.id === selectedSupplierId ? " selected" : ""}>${escapeHtml(supplier.name)}</option>`).join("")}</select></label>`;
+}
+
+function shopEditorTitle(
+  entityType: ShopEditorKind,
+  entity: SupplierRecord | ContractRecord | SpendItemRecord | undefined
+): string {
+  const action = entity ? "Edit" : "New";
+  switch (entityType) {
+    case "supplier":
+      return `${action} Supplier${entity?.entityType === "supplier" ? `: ${entity.name}` : ""}`;
+    case "contract":
+      return `${action} Contract${entity?.entityType === "contract" ? `: ${entity.title}` : ""}`;
+    case "spend-item":
+      return `${action} Spend Item${entity?.entityType === "spend-item" ? `: ${entity.title}` : ""}`;
+  }
+}
+
+function shopRecordLabel(entity: SupplierRecord | ContractRecord | SpendItemRecord): string {
+  return entity.entityType === "supplier"
+    ? `supplier ${entity.name}`
+    : `${formatToken(entity.entityType)} ${entity.title}`;
 }
 
 function renderCompactForecastHtml(
