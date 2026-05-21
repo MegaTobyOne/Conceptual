@@ -438,6 +438,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 9. **Deferred-scope gate**: v1.27 does not add persisted Report Packs, canonical multi-plan entities, native PDF generation, email sending, subscriber management, RSS/feed publication, Pub people/assignment workflows, copyrighted comic artwork, or third-party comic trade dress.
 10. **Regression gate**: `check:ciso-magazine`, `check:brief-redaction`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.28 candidate gates (Pub Marketplace foundation, per ADR 0064)
+
+1. **ADR gate**: ADR 0064 records the Pub Marketplace foundation decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.28.0`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
+3. **Package-shape gate**: `check-package-shape.mjs` validates Pub as a Marketplace extension with the `pspfPub` Activity Bar container, Home webview, Core extension dependency, and required `pspf.pub.*` commands.
+4. **Marketplace dry-run gate**: the Marketplace workflow supports `target=pub`, packages `pspf-pub-${version}.vsix`, verifies `tobyharvey.pspf-pub`, and creates the `pub/${version}` receipt tag after publish.
+5. **Local-only boundary gate**: no Pub data is added to Explorer publication bundles, Explorer schemas, sample exports, or public Explorer rendering in v1.28.
+6. **Product-copy gate**: README and the ecosystem page describe Pub as an installable local-first people, role, team, assignment, and stakeholder relationship surface, not as a published-data surface.
+7. **Deferred-scope gate**: full person CRUD, performance-management workflows, development records, roster planning, rotation planning, team-event history, relationship-note persistence, and Explorer Pub publication remain deferred to later Pub slices.
+8. **Regression gate**: `package:check`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

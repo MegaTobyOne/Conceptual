@@ -13,6 +13,7 @@ on:
           - core
           - workshop
           - shop
+          - pub
           - both
           - all
       dry_run:
@@ -44,9 +45,11 @@ jobs:
       publish_core: ${{ steps.targets.outputs.publish_core }}
       publish_workshop: ${{ steps.targets.outputs.publish_workshop }}
       publish_shop: ${{ steps.targets.outputs.publish_shop }}
+      publish_pub: ${{ steps.targets.outputs.publish_pub }}
       core_version: ${{ steps.versions.outputs.core_version }}
       workshop_version: ${{ steps.versions.outputs.workshop_version }}
       shop_version: ${{ steps.versions.outputs.shop_version }}
+      pub_version: ${{ steps.versions.outputs.pub_version }}
       dry_run: ${{ steps.targets.outputs.dry_run }}
     steps:
       - name: Refuse non-main dispatch
@@ -69,18 +72,21 @@ jobs:
           publish_core=false
           publish_workshop=false
           publish_shop=false
+          publish_pub=false
           case "$target" in
             core) publish_core=true ;;
             workshop) publish_workshop=true ;;
             shop) publish_shop=true ;;
+            pub) publish_pub=true ;;
             both) publish_core=true; publish_workshop=true ;;
-            all) publish_core=true; publish_workshop=true; publish_shop=true ;;
+            all) publish_core=true; publish_workshop=true; publish_shop=true; publish_pub=true ;;
             *) echo "Unknown target: $target" >&2; exit 1 ;;
           esac
           {
             echo "publish_core=$publish_core"
             echo "publish_workshop=$publish_workshop"
             echo "publish_shop=$publish_shop"
+            echo "publish_pub=$publish_pub"
             echo "dry_run=$dry"
           } >> "$GITHUB_OUTPUT"
           {
@@ -154,9 +160,11 @@ jobs:
           core_version=$(jq -r '.version' packages/core/package.json)
           workshop_version=$(jq -r '.version' packages/workshop/package.json)
           shop_version=$(jq -r '.version' packages/shop/package.json)
+          pub_version=$(jq -r '.version' packages/pub/package.json)
           echo "core_version=$core_version" >> "$GITHUB_OUTPUT"
           echo "workshop_version=$workshop_version" >> "$GITHUB_OUTPUT"
           echo "shop_version=$shop_version" >> "$GITHUB_OUTPUT"
+          echo "pub_version=$pub_version" >> "$GITHUB_OUTPUT"
 
       - name: Create VSIX output directory
         run: mkdir -p .tmp/vsix
@@ -193,6 +201,17 @@ jobs:
             --allow-missing-repository \
             --skip-license \
             --out "../../.tmp/vsix/pspf-shop-${{ steps.versions.outputs.shop_version }}.vsix"
+
+      - name: Package Pub VSIX
+        if: steps.targets.outputs.publish_pub == 'true'
+        working-directory: packages/pub
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 package \
+            --no-dependencies \
+            --allow-missing-repository \
+            --skip-license \
+            --out "../../.tmp/vsix/pspf-pub-${{ steps.versions.outputs.pub_version }}.vsix"
 
       - name: Upload VSIX artefact
         uses: actions/upload-artifact@v4
@@ -422,4 +441,78 @@ jobs:
             echo "## Shop receipt tag verified"
             echo ""
             echo "Found shop/${{ needs.build.outputs.shop_version }} on origin after Marketplace publication."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish-pub:
+    name: Publish Pub to Marketplace
+    needs: build
+    if: needs.build.outputs.publish_pub == 'true'
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download VSIX artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: pspf-marketplace-vsix
+          path: .tmp/vsix
+
+      - name: Dry-run summary
+        if: needs.build.outputs.dry_run == 'true'
+        run: |
+          echo "Dry run: skipping vsce publish, GitHub release, and tag for Pub."
+          ls -l .tmp/vsix
+          {
+            echo "## Pub Marketplace publication skipped"
+            echo ""
+            echo "This was a dry run. No Pub extension was published, no GitHub release was created, and no pub/${{ needs.build.outputs.pub_version }} receipt tag was created."
+            echo ""
+            echo "To publish Pub, rerun this workflow from main with target=pub or target=all and dry_run=false, then approve the marketplace environment gate."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish to VS Code Marketplace
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 publish \
+            --packagePath ".tmp/vsix/pspf-pub-${{ needs.build.outputs.pub_version }}.vsix" \
+            --pat "$VSCE_PAT"
+
+      - name: Verify Marketplace version
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          EXTENSION_ID: tobyharvey.pspf-pub
+          EXPECTED_VERSION: ${{ needs.build.outputs.pub_version }}
+        run: |
+          set -euo pipefail
+          node scripts/verify-marketplace-version.mjs
+          {
+            echo "## Pub Marketplace version verified"
+            echo ""
+            echo "Marketplace Gallery reports $EXTENSION_ID@$EXPECTED_VERSION."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tag and GitHub release
+        if: needs.build.outputs.dry_run != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pub/${{ needs.build.outputs.pub_version }}
+          name: Pub ${{ needs.build.outputs.pub_version }}
+          target_commitish: ${{ github.sha }}
+          files: .tmp/vsix/pspf-pub-${{ needs.build.outputs.pub_version }}.vsix
+          generate_release_notes: true
+
+      - name: Verify receipt tag
+        if: needs.build.outputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          git ls-remote --exit-code origin "refs/tags/pub/${{ needs.build.outputs.pub_version }}"
+          {
+            echo "## Pub receipt tag verified"
+            echo ""
+            echo "Found pub/${{ needs.build.outputs.pub_version }} on origin after Marketplace publication."
           } >> "$GITHUB_STEP_SUMMARY"

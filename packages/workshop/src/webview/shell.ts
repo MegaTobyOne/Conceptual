@@ -168,6 +168,15 @@ export function shellHtml(title: string, body: string): string {
     .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
     .strategy-editor__form { max-width: none; display: block; }
     .strategy-editor__form section { margin-bottom: var(--gap); }
+    .strategy-editor__layout { width: min(100%, 1480px); display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: var(--gap); align-items: start; }
+    .strategy-editor__nav { position: sticky; top: var(--pad); max-height: calc(100vh - 150px); overflow: auto; display: grid; align-content: start; gap: 7px; }
+    .strategy-editor__nav h2 { margin-bottom: 2px; }
+    .strategy-editor__nav-item { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; color: var(--text); background: var(--surface-strong); text-align: left; cursor: pointer; }
+    .strategy-editor__nav-item:hover { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 8%, var(--surface-strong)); }
+    .strategy-editor__nav-item[aria-current="page"] { border-color: var(--workshop-blue); box-shadow: inset 3px 0 0 var(--workshop-blue); }
+    .strategy-editor__nav-item--nested { margin-left: 12px; width: calc(100% - 12px); }
+    .strategy-editor__nav-item strong { display: block; color: var(--workshop-blue); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .strategy-editor__nav-item span { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.3; }
     .strategy-editor__two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; align-items: start; }
     .strategy-editor__field { margin-top: 12px; }
     .strategy-editor__field textarea { min-height: 10rem; }
@@ -217,6 +226,8 @@ export function shellHtml(title: string, body: string): string {
       .workshop-sensitivity { padding: 8px var(--pad); }
       .requirement-browser { grid-template-columns: 1fr; }
       .strategy-editor__two-col { grid-template-columns: 1fr; }
+      .strategy-editor__layout { grid-template-columns: 1fr; }
+      .strategy-editor__nav { position: static; max-height: none; }
       .requirement-browser__nav { position: static; max-height: none; }
       .requirement-browser__list { max-height: 320px; }
       .poa-task { grid-template-columns: 1fr; }
@@ -268,6 +279,7 @@ export function shellHtml(title: string, body: string): string {
         pendingSavedViewScope: button.getAttribute('data-saved-view-scope'),
         pendingDirection: button.getAttribute('data-direction'),
         pendingEvidenceReference: button.getAttribute('data-evidence-reference'),
+        pendingStrategyArea: button.getAttribute('data-strategy-area'),
         pendingFilterText: document.querySelector('.requirement-browser__filter') instanceof HTMLInputElement ? document.querySelector('.requirement-browser__filter').value : ''
       };
     }
@@ -347,6 +359,9 @@ export function shellHtml(title: string, body: string): string {
       if (command === 'createStrategyDraft') {
         vscode.postMessage({ command });
       }
+      if (command === 'openStrategyArea') {
+        vscode.postMessage({ command, strategyArea: button.getAttribute('data-strategy-area') });
+      }
       if (command === 'pspf.workshop.loadSampleWorkspace') {
         vscode.postMessage({ command });
       } else if (command && command.startsWith('pspf.')) {
@@ -365,6 +380,7 @@ export function shellHtml(title: string, body: string): string {
           command,
           entityType: String(fields.entityType || ''),
           entityId: String(fields.entityId || ''),
+          strategyArea: String(fields.strategyArea || ''),
           fields
         });
       }

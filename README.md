@@ -2,15 +2,15 @@
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.27.0 with Core, Workshop, Shop, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.10.0`.
+The repository currently ships PSPF v1.28.1 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.10.0`.
 
 ## Products
 
 - Core stores the workspace system of record in `.pspf/core/pspf-core.db`.
 - Workshop is the operator authoring and review surface.
 - Shop is the commercial planning surface for suppliers, contracts, spend items, and explainable forecasts.
+- Pub is the local-first people, role, team, assignment, and stakeholder relationship surface.
 - Explorer opens published master bundles and supports browser-local review/authoring round trips.
-- Pub remains deferred.
 
 ## Setup
 
@@ -29,7 +29,7 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the v1.27 gate chain and writes `.tmp/release-readiness/v1.27.0-readiness-report.md`. The latest local run passed 17/17 tracked gates.
+`release:readiness` runs the v1.28 gate chain and writes `.tmp/release-readiness/v1.28.1-readiness-report.md`.
 
 ## Current Workshop Slice
 
@@ -58,4 +58,8 @@ Open Explorer from [packages/explorer/dist/index.html](packages/explorer/dist/in
 
 ## Current Shop Slice
 
-Shop authoring is Core-backed and can link suppliers, contracts, and spend items to assurance Requirements, Actions, and Risks. The Shop Forecast view now includes a commercial coverage dashboard for unlinked records, near-term contract review, funded Actions, and supplier Risk links. Existing local Shop JSON can be imported explicitly; procurement import, finance reconciliation, approvals, and Pub integration remain deferred.
+Shop authoring is Core-backed and can link suppliers, contracts, and spend items to assurance Requirements, Actions, and Risks. The Shop Forecast view now includes a commercial coverage dashboard for unlinked records, near-term contract review, funded Actions, and supplier Risk links. Existing local Shop JSON can be imported explicitly; procurement import, finance reconciliation, and approvals remain deferred.
+
+## Current Pub Slice
+
+Pub is now a Marketplace-ready foundation extension. It provides the Activity Bar entry, Home view, and `pspf.pub.*` command namespace for later people, organisation chart, assignment, relationship, roster, and rotation workflows. Pub data is not added to Explorer publication bundles in v1.28; sensitive people and relationship context stays local-only by default.

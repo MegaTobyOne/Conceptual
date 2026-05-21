@@ -75,6 +75,8 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0060 | v1.24 Workshop Cyber Strategy Map | accepted |
 | 0061 | v1.25 Workshop operational dashboards | accepted |
 | 0062 | v1.26 Shop assurance spend scenario planning | proposed |
+| 0063 | v1.27 Digital CISO Magazine | proposed |
+| 0064 | v1.28 Pub Marketplace foundation | proposed |
 
 ## Template
 

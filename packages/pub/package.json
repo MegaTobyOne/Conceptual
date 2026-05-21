@@ -1,0 +1,149 @@
+{
+  "name": "pspf-pub",
+  "displayName": "PSPF Pub",
+  "description": "PSPF people, role, team, assignment, and stakeholder relationship surface.",
+  "version": "1.28.1",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MegaTobyOne/Conceptual.git",
+    "directory": "packages/pub"
+  },
+  "publisher": "tobyharvey",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionDependencies": [
+    "tobyharvey.pspf-core"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pspfPub",
+          "title": "PSPF Pub",
+          "icon": "resources/pub.svg"
+        }
+      ]
+    },
+    "views": {
+      "pspfPub": [
+        {
+          "type": "webview",
+          "id": "pspfPub.homeView",
+          "name": "Pub Home"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "pspf.pub.openHome",
+        "title": "PSPF: Open Pub"
+      },
+      {
+        "command": "pspf.pub.loadSample",
+        "title": "PSPF: Load Pub Sample"
+      },
+      {
+        "command": "pspf.pub.newPerson",
+        "title": "PSPF: New Pub Person"
+      },
+      {
+        "command": "pspf.pub.newTeam",
+        "title": "PSPF: New Pub Team"
+      },
+      {
+        "command": "pspf.pub.openTeamDetail",
+        "title": "PSPF: Open Pub Team Detail"
+      },
+      {
+        "command": "pspf.pub.editTeam",
+        "title": "PSPF: Edit Pub Team"
+      },
+      {
+        "command": "pspf.pub.newRole",
+        "title": "PSPF: New Pub Role"
+      },
+      {
+        "command": "pspf.pub.newAssignment",
+        "title": "PSPF: New Pub Assignment"
+      },
+      {
+        "command": "pspf.pub.recordRelationshipNote",
+        "title": "PSPF: Record Pub Relationship Note"
+      },
+      {
+        "command": "pspf.pub.openOrgChart",
+        "title": "PSPF: Open Pub Organisation Chart"
+      },
+      {
+        "command": "pspf.pub.openPeople",
+        "title": "PSPF: Open Pub People"
+      },
+      {
+        "command": "pspf.pub.openTeams",
+        "title": "PSPF: Open Pub Teams"
+      },
+      {
+        "command": "pspf.pub.openRoles",
+        "title": "PSPF: Open Pub Roles"
+      },
+      {
+        "command": "pspf.pub.openAssignments",
+        "title": "PSPF: Open Pub Assignments"
+      },
+      {
+        "command": "pspf.pub.openRelationshipLog",
+        "title": "PSPF: Open Pub Relationship Log"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pspf.pub.newPerson",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.pub.newTeam",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pspf.pub.openTeamDetail",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "pspf.pub.recordRelationshipNote",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@4"
+        },
+        {
+          "command": "pspf.pub.openOrgChart",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@5"
+        },
+        {
+          "command": "pspf.pub.openAssignments",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@6"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "dependencies": {
+    "@pspf/contracts": "workspace:*",
+    "@pspf/webview-shell": "workspace:*"
+  }
+}
