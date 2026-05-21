@@ -246,6 +246,8 @@ Typical layout:
 
 Create and Edit should share the same panel shape. Detail views should be read-only by default and expose an Edit action when the product owns that record. Pub Team Create/Edit proved the pilot; Shop Supplier, Contract, and Spend Item editors now use the same panel workflow, and Workshop entity editors already provide the richer version for assurance records. Successful pieces should be factored into shared editor helpers before wider migration.
 
+For nested or high-authority records, use staged editor areas inside the panel rather than one large form. A Strategy record should separate the stable frame (title, authority, executive summary, risk posture) from active working areas such as choices, constraints, individual outcomes, and measures. Saving a staged area should preserve untouched areas so operators can refine outcomes or constraints without accidentally changing executive context.
+
 ### Pattern 3: Guided validation view
 
 Purpose: help the user move from assertion to defensible structured record.
