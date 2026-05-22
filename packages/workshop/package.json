@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.28.1",
+  "version": "1.28.2",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -217,9 +217,24 @@
         "title": "PSPF: Copy Posture Brief"
       },
       {
+        "command": "pspf.workshop.openCisoNewsletterReview",
+        "title": "PSPF: Review Newsletter Content",
+        "icon": "$(checklist)"
+      },
+      {
         "command": "pspf.workshop.openCisoMagazine",
         "title": "PSPF: Open Digital CISO Magazine",
         "icon": "$(preview)"
+      },
+      {
+        "command": "pspf.workshop.copyCisoMagazine",
+        "title": "PSPF: Copy Digital CISO Magazine",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "pspf.workshop.exportCisoMagazine",
+        "title": "PSPF: Export Digital CISO Magazine",
+        "icon": "$(save)"
       },
       {
         "command": "pspf.workshop.openCisoMasterPlan",
@@ -273,6 +288,11 @@
           "command": "pspf.workshop.openPlanOfActionBoard",
           "when": "view == pspfWorkshop.homeView",
           "group": "navigation@4.6"
+        },
+        {
+          "command": "pspf.workshop.openCisoNewsletterReview",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.65"
         },
         {
           "command": "pspf.workshop.openCisoMagazine",

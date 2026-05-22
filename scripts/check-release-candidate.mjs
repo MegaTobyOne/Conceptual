@@ -1329,7 +1329,7 @@ if (isV1Release && minorVersion >= 28) {
   }
   for (const requiredText of [
     "v1.28 candidate gates (Pub Marketplace foundation, per ADR 0064)",
-    "PSPF_SLICE_VERSION` are `1.28.0`",
+    "PSPF_SLICE_VERSION` are `1.28.2`",
     "Package-shape gate",
     "Marketplace dry-run gate",
     "Local-only boundary gate"

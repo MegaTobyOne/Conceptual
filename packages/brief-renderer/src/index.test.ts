@@ -50,6 +50,8 @@ test("CISO magazine supports INFO scope and excludes sensitive working notes", (
   assert.match(markdown, /## CISO Master Plan/);
   assert.match(markdown, /Information has 1 requirement\(s\) and 1 action\(s\) needing attention/);
   assert.match(markdown, /Review portable media handling/);
+  assert.match(markdown, /Media register owner confirmed the register refresh is blocked by supplier evidence/);
+  assert.match(renderPostureBriefMarkdown(fixture), /latest update: .*Media register owner confirmed/);
   assert.match(plan, /# CISO Master Plan/);
   assert.match(plan, /## Streams/);
   assert.doesNotMatch(markdown, /Internal assessment working note/);
@@ -290,7 +292,13 @@ function magazineFixture() {
       entityType: "action",
       title: "Review portable media handling",
       status: "blocked",
-      dueDate: "30 Jun 2026"
+      dueDate: "30 Jun 2026",
+      commentary: [
+        {
+          createdAt: "2026-05-20T09:30:00.000Z",
+          text: "Media register owner confirmed the register refresh is blocked by supplier evidence."
+        }
+      ]
     },
     "workshop"
   );

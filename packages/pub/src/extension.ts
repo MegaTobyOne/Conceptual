@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
 import { tokensCss } from "@pspf/webview-shell";
 
-const PUB_STORE_VERSION = "1.0.0";
+const PUB_STORE_VERSION = "1.1.0";
 const PUB_STORE_PATH = [".pspf", "pub", "pub.json"] as const;
 const STAKEHOLDER_TYPES = ["staff", "service-provider", "customer", "partner", "other"] as const;
 const ASSIGNMENT_STATUSES = ["active", "planned", "rotating", "needs-backup"] as const;
@@ -45,6 +45,8 @@ interface PersonRecord {
   readonly stakeholderType: StakeholderType;
   readonly organisation: string;
   readonly currentRole: string;
+  readonly resumeUrl: string;
+  readonly resumeText: string;
   readonly nextMilestone: string;
   readonly nextAction: string;
   readonly notes: string;
@@ -54,13 +56,17 @@ interface RoleRecord {
   readonly id: string;
   readonly title: string;
   readonly teamId: string;
+  readonly reportsToRoleId: string;
   readonly functionalOutcome: string;
   readonly contribution: string;
+  readonly positionDescriptionUrl: string;
+  readonly positionDescriptionText: string;
 }
 
 interface TeamRecord {
   readonly id: string;
   readonly title: string;
+  readonly parentTeamId: string;
   readonly ownedControlRefs: readonly string[];
   readonly controlSetRefs: readonly string[];
   readonly responsibility: string;
@@ -74,6 +80,24 @@ interface SourceControlRecord {
   readonly controlId: string;
   readonly statement?: string;
   readonly profileTags?: readonly string[];
+}
+
+interface RequirementRecord {
+  readonly entityType: "requirement";
+  readonly id: string;
+  readonly title: string;
+  readonly assessmentStatus?: string;
+  readonly domainId?: string;
+}
+
+interface RequirementControlMappingRecord {
+  readonly entityType: "requirement-control-mapping";
+  readonly id: string;
+  readonly requirementId: string;
+  readonly sourceControlId: string;
+  readonly coverageQualifier?: string;
+  readonly applicabilityProfile?: string;
+  readonly confidence?: string;
 }
 
 interface AssignmentRecord {
@@ -102,7 +126,9 @@ interface PubWebviewMessage {
 }
 
 interface TeamEditorFields {
+  readonly [key: string]: unknown;
   readonly title?: unknown;
+  readonly parentTeamId?: unknown;
   readonly ownedControlRefs?: unknown;
   readonly additionalControlRefs?: unknown;
   readonly controlSetRefs?: unknown;
@@ -192,6 +218,8 @@ async function newPerson(): Promise<void> {
     "Internal team, supplier, customer, or partner"
   );
   const currentRole = await promptOptionalText("Current role or relationship", "Example: Security adviser");
+  const resumeUrl = await promptOptionalText("Resume link", "Local file path or URL to a resume/CV");
+  const resumeText = await promptOptionalText("Resume notes", "Optional pasted resume summary or capability notes");
   const nextMilestone = await promptOptionalText("Next milestone or anniversary", "Example: 2026-06-30 access review");
   const nextAction = await promptOptionalText("Next action", "Example: confirm rotation window");
   const notes = await promptOptionalText("Local notes", "Sensitive relationship context stays local-only");
@@ -203,6 +231,8 @@ async function newPerson(): Promise<void> {
     stakeholderType,
     organisation,
     currentRole,
+    resumeUrl,
+    resumeText,
     nextMilestone,
     nextAction,
     notes
@@ -226,18 +256,30 @@ async function newRole(): Promise<void> {
   if (!team) {
     return;
   }
+  const reportsToRole = await pickOptionalRole(store, "Reports to role");
   const functionalOutcome = await promptOptionalText("Functional outcome", "Example: Access review sustainability");
   const contribution = await promptOptionalText(
     "Compliance contribution",
     "How this role helps the team sustain owned controls"
+  );
+  const positionDescriptionUrl = await promptOptionalText(
+    "Position description link",
+    "Local file path or URL to the PD"
+  );
+  const positionDescriptionText = await promptOptionalText(
+    "Position description text",
+    "Optional pasted PD duties, accountabilities, or selection criteria"
   );
 
   const role: RoleRecord = {
     id: localId("ROL"),
     title,
     teamId: team.id,
+    reportsToRoleId: reportsToRole?.id ?? "",
     functionalOutcome,
-    contribution
+    contribution,
+    positionDescriptionUrl,
+    positionDescriptionText
   };
   await saveStore({ ...store, roles: [...store.roles, role] });
   await refreshHome();
@@ -267,6 +309,7 @@ async function editTeam(): Promise<void> {
 }
 
 async function openTeamEditor(team?: TeamRecord): Promise<void> {
+  const store = await loadStore();
   const sourceControls = await listSourceControls();
   const title = team ? `Edit Pub Team: ${team.title}` : "New Pub Team";
   if (teamEditorPanel) {
@@ -283,7 +326,7 @@ async function openTeamEditor(team?: TeamRecord): Promise<void> {
       teamEditorPanel = undefined;
     });
   }
-  teamEditorPanel.webview.html = renderTeamEditorHtml(team, sourceControls);
+  teamEditorPanel.webview.html = renderTeamEditorHtml(team, store, sourceControls);
 }
 
 async function handleTeamEditorMessage(message: PubWebviewMessage): Promise<void> {
@@ -295,19 +338,23 @@ async function handleTeamEditorMessage(message: PubWebviewMessage): Promise<void
     return;
   }
 
-  const team = parseTeamEditorFields(message.fields, message.teamId);
-  if (!team) {
+  const store = await loadStore();
+  const parsed = parseTeamEditorFields(message.fields, message.teamId, store);
+  if (!parsed) {
     vscode.window.showWarningMessage("Team title is required before saving.");
     return;
   }
+  const { team, roles, assignments, people } = parsed;
 
-  const store = await loadStore();
   const existing = store.teams.some((candidate) => candidate.id === team.id);
   await saveStore({
     ...store,
+    people,
     teams: existing
       ? store.teams.map((candidate) => (candidate.id === team.id ? team : candidate))
-      : [...store.teams, team]
+      : [...store.teams, team],
+    roles,
+    assignments
   });
   await refreshHome();
 
@@ -383,7 +430,7 @@ async function recordRelationshipNote(): Promise<void> {
   vscode.window.showInformationMessage(`Recorded Pub relationship note for ${person.displayName}.`);
 }
 
-async function openPubPanel(title: string, renderer: (store: PubStore) => string): Promise<void> {
+async function openPubPanel(title: string, renderer: (store: PubStore) => string | Promise<string>): Promise<void> {
   const store = await loadStore();
   if (activePanel) {
     activePanel.title = `PSPF Pub ${title}`;
@@ -399,7 +446,7 @@ async function openPubPanel(title: string, renderer: (store: PubStore) => string
       activePanel = undefined;
     });
   }
-  activePanel.webview.html = renderer(store);
+  activePanel.webview.html = await renderer(store);
 }
 
 class PubHomeViewProvider implements vscode.WebviewViewProvider {
@@ -480,12 +527,45 @@ function normaliseStore(store: Partial<PubStore>): PubStore {
   return {
     pubStoreVersion: typeof store.pubStoreVersion === "string" ? store.pubStoreVersion : PUB_STORE_VERSION,
     updatedAt: typeof store.updatedAt === "string" ? store.updatedAt : new Date().toISOString(),
-    people: Array.isArray(store.people) ? store.people : [],
+    people: normalisePeople(store),
     teams,
     roles: normaliseRoles(store, teams),
-    assignments: Array.isArray(store.assignments) ? store.assignments : [],
+    assignments: normaliseAssignments(store),
     relationshipNotes: Array.isArray(store.relationshipNotes) ? store.relationshipNotes : []
   };
+}
+
+function normalisePeople(store: Partial<PubStore>): readonly PersonRecord[] {
+  if (!Array.isArray(store.people)) {
+    return [];
+  }
+  return (store.people as readonly Partial<PersonRecord>[]).map((person) => ({
+    id: typeof person.id === "string" ? person.id : localId("PER"),
+    displayName: typeof person.displayName === "string" ? person.displayName : "Unnamed person",
+    stakeholderType: isStakeholderType(person.stakeholderType) ? person.stakeholderType : "staff",
+    organisation: typeof person.organisation === "string" ? person.organisation : "",
+    currentRole: typeof person.currentRole === "string" ? person.currentRole : "",
+    resumeUrl: typeof person.resumeUrl === "string" ? person.resumeUrl : "",
+    resumeText: typeof person.resumeText === "string" ? person.resumeText : "",
+    nextMilestone: typeof person.nextMilestone === "string" ? person.nextMilestone : "",
+    nextAction: typeof person.nextAction === "string" ? person.nextAction : "",
+    notes: typeof person.notes === "string" ? person.notes : ""
+  }));
+}
+
+function normaliseAssignments(store: Partial<PubStore>): readonly AssignmentRecord[] {
+  if (!Array.isArray(store.assignments)) {
+    return [];
+  }
+  return (store.assignments as readonly Partial<AssignmentRecord>[]).map((assignment) => ({
+    id: typeof assignment.id === "string" ? assignment.id : localId("ASM"),
+    personId: typeof assignment.personId === "string" ? assignment.personId : "",
+    roleId: typeof assignment.roleId === "string" ? assignment.roleId : "",
+    status: isAssignmentStatus(assignment.status) ? assignment.status : "active",
+    allocation: typeof assignment.allocation === "string" ? assignment.allocation : "",
+    reviewBy: typeof assignment.reviewBy === "string" ? assignment.reviewBy : "",
+    badge: typeof assignment.badge === "string" ? assignment.badge : ""
+  }));
 }
 
 function buildSampleStore(): PubStore {
@@ -496,6 +576,8 @@ function buildSampleStore(): PubStore {
       stakeholderType: "staff",
       organisation: "Information Security",
       currentRole: "Runs quarterly access review",
+      resumeUrl: "",
+      resumeText: "Access assurance, control operation, evidence review, and reviewer coordination.",
       nextMilestone: "2026-06-30 access review evidence",
       nextAction: "Confirm reviewer rotation",
       notes: "Local-only relationship context for planning coverage."
@@ -506,6 +588,8 @@ function buildSampleStore(): PubStore {
       stakeholderType: "service-provider",
       organisation: "External SOC provider",
       currentRole: "Supports monitoring and escalation",
+      resumeUrl: "",
+      resumeText: "Monitoring service delivery, escalation management, and service review participation.",
       nextMilestone: "2026-07-15 service review",
       nextAction: "Check escalation roster",
       notes: "Keep contact context local; publish role/team contribution only in a later slice if approved."
@@ -516,21 +600,30 @@ function buildSampleStore(): PubStore {
       id: "PUB-ROL-access-review-owner",
       title: "Access review owner",
       teamId: "PUB-TEM-information-security",
+      reportsToRoleId: "",
       functionalOutcome: "Sustained access review cadence",
-      contribution: "Keeps review evidence current and makes reviewer backup visible."
+      contribution: "Keeps review evidence current and makes reviewer backup visible.",
+      positionDescriptionUrl: "",
+      positionDescriptionText:
+        "Own quarterly access reviews, coordinate reviewers, retain evidence, and escalate exceptions."
     },
     {
       id: "PUB-ROL-monitoring-provider",
       title: "Monitoring service provider",
       teamId: "PUB-TEM-external-soc-provider",
+      reportsToRoleId: "PUB-ROL-access-review-owner",
       functionalOutcome: "Continuous monitoring coverage",
-      contribution: "Shows where supplier roster coverage contributes to sustainable monitoring."
+      contribution: "Shows where supplier roster coverage contributes to sustainable monitoring.",
+      positionDescriptionUrl: "",
+      positionDescriptionText:
+        "Maintain monitoring coverage, provide escalation support, and contribute evidence for service reviews."
     }
   ];
   const teams: readonly TeamRecord[] = [
     {
       id: "PUB-TEM-information-security",
       title: "Information Security",
+      parentTeamId: "",
       ownedControlRefs: ["ISM-1401", "ISM-1402"],
       controlSetRefs: ["Access control operations"],
       responsibility: "Owns access review control operation and reviewer backup coverage.",
@@ -539,6 +632,7 @@ function buildSampleStore(): PubStore {
     {
       id: "PUB-TEM-external-soc-provider",
       title: "External SOC provider",
+      parentTeamId: "PUB-TEM-information-security",
       ownedControlRefs: ["ISM-0988"],
       controlSetRefs: ["Monitoring and escalation"],
       responsibility: "Operates monitoring controls and escalation roster coverage.",
@@ -638,22 +732,33 @@ function renderHomeHtml(store: PubStore): string {
 }
 
 function renderOrgChartHtml(store: PubStore): string {
-  const rows = store.roles
-    .map((role) => {
-      const team = teamForRole(store, role);
-      const assignments = store.assignments.filter((assignment) => assignment.roleId === role.id);
-      const assignedPeople =
-        assignments.map((assignment) => personName(store, assignment.personId)).join(", ") || "No assignment";
-      const badges = assignments.map((assignment) => assignment.badge).filter(Boolean);
-      return `<tr><td>${escapeHtml(team?.title ?? "Unknown team")}</td><td>${escapeHtml(controlSummary(team))}</td><td>${escapeHtml(role.title)}</td><td>${escapeHtml(assignedPeople)}</td><td>${badges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join(" ") || "No badge"}</td><td>${escapeHtml(role.functionalOutcome)}</td></tr>`;
+  const teamDepth = teamDepthMap(store.teams);
+  const rows = [...store.teams]
+    .sort(
+      (left, right) =>
+        (teamDepth.get(left.id) ?? 0) - (teamDepth.get(right.id) ?? 0) || left.title.localeCompare(right.title)
+    )
+    .flatMap((team) => {
+      const teamRoles = store.roles.filter((role) => role.teamId === team.id);
+      return (teamRoles.length > 0 ? teamRoles : [blankRole(team.id)]).map((role) => {
+        const assignments = store.assignments.filter((assignment) => assignment.roleId === role.id);
+        const assignedPeople =
+          assignments.map((assignment) => personName(store, assignment.personId)).join(", ") || "No assignment";
+        const badges = assignments.map((assignment) => assignment.badge).filter(Boolean);
+        return `<tr><td>${escapeHtml(`${"  ".repeat(teamDepth.get(team.id) ?? 0)}${team.title}`)}</td><td>${escapeHtml(teamTitle(store, team.parentTeamId) || "Top level")}</td><td>${escapeHtml(controlSummary(team))}</td><td>${escapeHtml(role.title || "No role yet")}</td><td>${escapeHtml(roleTitle(store, role.reportsToRoleId) || "No reporting role")}</td><td>${escapeHtml(assignedPeople)}</td><td>${badges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join(" ") || "No badge"}</td><td>${escapeHtml(role.functionalOutcome)}</td></tr>`;
+      });
     })
     .join("");
   return pageHtml(
     "PSPF Pub Organisation Chart",
     sectionHtml(
       "Organisation chart",
-      "Local team-control ownership view with role, assignment, action, and sustainability badges. Person names stay local-only.",
-      tableHtml(["Team", "Owned controls", "Role", "Assigned", "Badges", "Functional outcome"], rows, 6)
+      "Local reporting structure from parent teams, role reporting lines, assignments, action badges, and control ownership. Person names stay local-only.",
+      tableHtml(
+        ["Team", "Parent", "Owned controls", "Role", "Reports to", "Assigned", "Badges", "Functional outcome"],
+        rows,
+        8
+      )
     )
   );
 }
@@ -675,7 +780,7 @@ function renderTeamsHtml(store: PubStore): string {
   );
 }
 
-function renderTeamDetailHtml(store: PubStore, teamId: string): string {
+async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<string> {
   const team = store.teams.find((candidate) => candidate.id === teamId);
   if (!team) {
     return pageHtml(
@@ -695,6 +800,7 @@ function renderTeamDetailHtml(store: PubStore, teamId: string): string {
       return `<tr><td>${escapeHtml(role.title)}</td><td>${escapeHtml(role.functionalOutcome)}</td><td>${escapeHtml(assignedPeople || "No assignment")}</td><td>${badges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join(" ") || "No badge"}</td><td>${escapeHtml(role.contribution)}</td></tr>`;
     })
     .join("");
+  const requirementRows = await teamRequirementRows(team);
   return pageHtml(
     `PSPF Pub ${team.title}`,
     `<main>
@@ -725,14 +831,52 @@ function renderTeamDetailHtml(store: PubStore, teamId: string): string {
         "Roles and person assignments stay in Pub local storage and explain how this team sustains its owned controls.",
         tableHtml(["Role", "Outcome", "Assigned", "Badges", "Contribution"], roleRows, 5)
       )}
+      ${sectionHtml(
+        "PSPF Requirements via ISM controls",
+        "This local view resolves team-owned ISM controls through Core Requirement-to-ISM mappings. It does not publish Pub team or person data.",
+        tableHtml(["Control", "Requirement", "Coverage", "Profile", "Confidence", "Status"], requirementRows, 6)
+      )}
     </main>`
   );
 }
 
-function renderTeamEditorHtml(team: TeamRecord | undefined, sourceControls: readonly SourceControlRecord[]): string {
+async function teamRequirementRows(team: TeamRecord): Promise<string> {
+  const [sourceControls, mappings, requirements] = await Promise.all([
+    listSourceControls(),
+    listRequirementControlMappings(),
+    listRequirements()
+  ]);
+  const ownedRefs = new Set(team.ownedControlRefs.map((ref) => ref.toLocaleUpperCase("en-AU")));
+  const sourceControlsById = new Map(sourceControls.map((sourceControl) => [sourceControl.id, sourceControl]));
+  const requirementsById = new Map(requirements.map((requirement) => [requirement.id, requirement]));
+  return mappings
+    .filter((mapping) => {
+      const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+      return sourceControl ? ownedRefs.has(sourceControl.controlId.toLocaleUpperCase("en-AU")) : false;
+    })
+    .map((mapping) => {
+      const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+      const requirement = requirementsById.get(mapping.requirementId);
+      return `<tr><td>${escapeHtml(sourceControl?.controlId ?? mapping.sourceControlId)}</td><td>${escapeHtml(requirement?.title ?? mapping.requirementId)}</td><td>${escapeHtml(label(mapping.coverageQualifier ?? "not-recorded"))}</td><td>${escapeHtml(mapping.applicabilityProfile ?? "Not recorded")}</td><td>${escapeHtml(label(mapping.confidence ?? "not-recorded"))}</td><td>${escapeHtml(label(requirement?.assessmentStatus ?? "not-recorded"))}</td></tr>`;
+    })
+    .join("");
+}
+
+function renderTeamEditorHtml(
+  team: TeamRecord | undefined,
+  store: PubStore,
+  sourceControls: readonly SourceControlRecord[]
+): string {
   const selectedControlRefs = new Set(team?.ownedControlRefs ?? []);
   const knownControlIds = new Set(sourceControls.map((sourceControl) => sourceControl.controlId));
   const localControlRefs = (team?.ownedControlRefs ?? []).filter((ref) => !knownControlIds.has(ref));
+  const teamRoles = team ? store.roles.filter((role) => role.teamId === team.id) : [];
+  const teamAssignments = store.assignments.filter((assignment) =>
+    teamRoles.some((role) => role.id === assignment.roleId)
+  );
+  const teamPeople = store.people.filter((person) =>
+    teamAssignments.some((assignment) => assignment.personId === person.id)
+  );
   return pageHtml(
     team ? `Edit Pub Team ${team.title}` : "New Pub Team",
     `<main>
@@ -749,12 +893,25 @@ function renderTeamEditorHtml(team: TeamRecord | undefined, sourceControls: read
             <input name="title" value="${escapeHtml(team?.title ?? "")}" required autofocus tabindex="1" />
           </label>
           <label>
+            <span>Parent team</span>
+            <select name="parentTeamId" tabindex="2">
+              <option value="">No parent team</option>
+              ${store.teams
+                .filter((candidate) => candidate.id !== team?.id)
+                .map(
+                  (candidate) =>
+                    `<option value="${escapeHtml(candidate.id)}"${candidate.id === team?.parentTeamId ? " selected" : ""}>${escapeHtml(candidate.title)}</option>`
+                )
+                .join("")}
+            </select>
+          </label>
+          <label>
             <span>Control ownership responsibility</span>
-            <textarea name="responsibility" tabindex="2" rows="4">${escapeHtml(team?.responsibility ?? "")}</textarea>
+            <textarea name="responsibility" tabindex="3" rows="4">${escapeHtml(team?.responsibility ?? "")}</textarea>
           </label>
           <label>
             <span>Owned control sets</span>
-            <textarea name="controlSetRefs" tabindex="3" rows="3" placeholder="E8 ML2, Access control operations">${escapeHtml((team?.controlSetRefs ?? []).join(", "))}</textarea>
+            <textarea name="controlSetRefs" tabindex="4" rows="3" placeholder="E8 ML2, Access control operations">${escapeHtml((team?.controlSetRefs ?? []).join(", "))}</textarea>
           </label>
         </section>
         <section class="panel">
@@ -766,6 +923,21 @@ function renderTeamEditorHtml(team: TeamRecord | undefined, sourceControls: read
             <span>Additional local control refs</span>
             <textarea name="additionalControlRefs" tabindex="${sourceControls.length + 4}" rows="3" placeholder="Comma-separated refs not in the ISM list">${escapeHtml(localControlRefs.join(", "))}</textarea>
           </label>
+        </section>
+        <section class="panel">
+          <h1>Roles and PDs</h1>
+          <p class="muted">Edit roles owned by this team. Add a new role by filling the blank role at the end.</p>
+          ${team ? [...teamRoles, blankRole(team.id)].map((role) => roleEditorFields(role, store)).join("") : `<p class="muted">Save the team before adding roles.</p>`}
+        </section>
+        <section class="panel">
+          <h1>Assignments</h1>
+          <p class="muted">Edit people-to-role coverage for this team. Add a new assignment by filling the blank row.</p>
+          ${team ? [...teamAssignments, blankAssignment(teamRoles[0]?.id ?? "")].map((assignment) => assignmentEditorFields(assignment, store, teamRoles)).join("") : `<p class="muted">Save the team before adding assignments.</p>`}
+        </section>
+        <section class="panel">
+          <h1>People and resumes</h1>
+          <p class="muted">Edit people currently assigned to this team. Add a new local person by filling the blank person at the end.</p>
+          ${team ? [...teamPeople, blankPerson()].map((person) => personEditorFields(person)).join("") : `<p class="muted">Save the team before adding people.</p>`}
         </section>
         <section class="panel">
           <h1>Local-only notes</h1>
@@ -784,6 +956,90 @@ function renderTeamEditorHtml(team: TeamRecord | undefined, sourceControls: read
   );
 }
 
+function roleEditorFields(role: RoleRecord, store: PubStore): string {
+  const isBlank = role.title.length === 0;
+  return `<fieldset class="nested-editor"><legend>${escapeHtml(isBlank ? "New role" : role.title)}</legend>
+    <input type="hidden" name="role.${escapeHtml(role.id)}.id" value="${escapeHtml(role.id)}" />
+    <label><span>Role title</span><input name="role.${escapeHtml(role.id)}.title" value="${escapeHtml(role.title)}" /></label>
+    <label><span>Reports to</span><select name="role.${escapeHtml(role.id)}.reportsToRoleId"><option value="">No reporting role</option>${store.roles
+      .filter((candidate) => candidate.id !== role.id)
+      .map(
+        (candidate) =>
+          `<option value="${escapeHtml(candidate.id)}"${candidate.id === role.reportsToRoleId ? " selected" : ""}>${escapeHtml(candidate.title)}</option>`
+      )
+      .join("")}</select></label>
+    <label><span>Functional outcome</span><textarea name="role.${escapeHtml(role.id)}.functionalOutcome" rows="2">${escapeHtml(role.functionalOutcome)}</textarea></label>
+    <label><span>Control contribution</span><textarea name="role.${escapeHtml(role.id)}.contribution" rows="2">${escapeHtml(role.contribution)}</textarea></label>
+    <label><span>PD link</span><input name="role.${escapeHtml(role.id)}.positionDescriptionUrl" value="${escapeHtml(role.positionDescriptionUrl)}" placeholder="Local file path or URL" /></label>
+    <label><span>PD text</span><textarea name="role.${escapeHtml(role.id)}.positionDescriptionText" rows="5">${escapeHtml(role.positionDescriptionText)}</textarea></label>
+  </fieldset>`;
+}
+
+function assignmentEditorFields(
+  assignment: AssignmentRecord,
+  store: PubStore,
+  teamRoles: readonly RoleRecord[]
+): string {
+  const isBlank = assignment.personId.length === 0 && assignment.roleId.length === 0;
+  return `<fieldset class="nested-editor"><legend>${escapeHtml(isBlank ? "New assignment" : personName(store, assignment.personId))}</legend>
+    <input type="hidden" name="assignment.${escapeHtml(assignment.id)}.id" value="${escapeHtml(assignment.id)}" />
+    <label><span>Person</span><select name="assignment.${escapeHtml(assignment.id)}.personId"><option value="">Select person</option>${store.people.map((person) => `<option value="${escapeHtml(person.id)}"${person.id === assignment.personId ? " selected" : ""}>${escapeHtml(person.displayName)}</option>`).join("")}</select></label>
+    <label><span>Role</span><select name="assignment.${escapeHtml(assignment.id)}.roleId"><option value="">Select role</option>${teamRoles.map((role) => `<option value="${escapeHtml(role.id)}"${role.id === assignment.roleId ? " selected" : ""}>${escapeHtml(role.title || "Untitled role")}</option>`).join("")}</select></label>
+    <label><span>Status</span><select name="assignment.${escapeHtml(assignment.id)}.status">${ASSIGNMENT_STATUSES.map((status) => `<option value="${escapeHtml(status)}"${status === assignment.status ? " selected" : ""}>${escapeHtml(label(status))}</option>`).join("")}</select></label>
+    <label><span>Allocation</span><input name="assignment.${escapeHtml(assignment.id)}.allocation" value="${escapeHtml(assignment.allocation)}" /></label>
+    <label><span>Review by</span><input name="assignment.${escapeHtml(assignment.id)}.reviewBy" value="${escapeHtml(assignment.reviewBy)}" /></label>
+    <label><span>Badge</span><input name="assignment.${escapeHtml(assignment.id)}.badge" value="${escapeHtml(assignment.badge)}" /></label>
+  </fieldset>`;
+}
+
+function personEditorFields(person: PersonRecord): string {
+  const isBlank = person.displayName.length === 0;
+  return `<fieldset class="nested-editor"><legend>${escapeHtml(isBlank ? "New person" : person.displayName)}</legend>
+    <input type="hidden" name="person.${escapeHtml(person.id)}.id" value="${escapeHtml(person.id)}" />
+    <label><span>Display name</span><input name="person.${escapeHtml(person.id)}.displayName" value="${escapeHtml(person.displayName)}" /></label>
+    <label><span>Stakeholder type</span><select name="person.${escapeHtml(person.id)}.stakeholderType">${STAKEHOLDER_TYPES.map((type) => `<option value="${escapeHtml(type)}"${type === person.stakeholderType ? " selected" : ""}>${escapeHtml(label(type))}</option>`).join("")}</select></label>
+    <label><span>Organisation</span><input name="person.${escapeHtml(person.id)}.organisation" value="${escapeHtml(person.organisation)}" /></label>
+    <label><span>Current role</span><input name="person.${escapeHtml(person.id)}.currentRole" value="${escapeHtml(person.currentRole)}" /></label>
+    <label><span>Resume link</span><input name="person.${escapeHtml(person.id)}.resumeUrl" value="${escapeHtml(person.resumeUrl)}" placeholder="Local file path or URL" /></label>
+    <label><span>Resume text</span><textarea name="person.${escapeHtml(person.id)}.resumeText" rows="5">${escapeHtml(person.resumeText)}</textarea></label>
+    <label><span>Next milestone</span><input name="person.${escapeHtml(person.id)}.nextMilestone" value="${escapeHtml(person.nextMilestone)}" /></label>
+    <label><span>Next action</span><input name="person.${escapeHtml(person.id)}.nextAction" value="${escapeHtml(person.nextAction)}" /></label>
+    <label><span>Notes</span><textarea name="person.${escapeHtml(person.id)}.notes" rows="3">${escapeHtml(person.notes)}</textarea></label>
+  </fieldset>`;
+}
+
+function blankRole(teamId: string): RoleRecord {
+  return {
+    id: localId("ROL"),
+    title: "",
+    teamId,
+    reportsToRoleId: "",
+    functionalOutcome: "",
+    contribution: "",
+    positionDescriptionUrl: "",
+    positionDescriptionText: ""
+  };
+}
+
+function blankAssignment(roleId: string): AssignmentRecord {
+  return { id: localId("ASM"), personId: "", roleId, status: "active", allocation: "", reviewBy: "", badge: "" };
+}
+
+function blankPerson(): PersonRecord {
+  return {
+    id: localId("PER"),
+    displayName: "",
+    stakeholderType: "staff",
+    organisation: "",
+    currentRole: "",
+    resumeUrl: "",
+    resumeText: "",
+    nextMilestone: "",
+    nextAction: "",
+    notes: ""
+  };
+}
+
 function controlCheckbox(
   sourceControl: SourceControlRecord,
   selectedControlRefs: ReadonlySet<string>,
@@ -797,7 +1053,7 @@ function renderPeopleHtml(store: PubStore): string {
   const rows = store.people
     .map(
       (person) =>
-        `<tr><td>${escapeHtml(person.displayName)}</td><td>${escapeHtml(person.stakeholderType)}</td><td>${escapeHtml(person.organisation)}</td><td>${escapeHtml(person.currentRole)}</td><td>${escapeHtml(person.nextAction || person.nextMilestone)}</td></tr>`
+        `<tr><td>${escapeHtml(person.displayName)}</td><td>${escapeHtml(label(person.stakeholderType))}</td><td>${escapeHtml(person.organisation)}</td><td>${escapeHtml(person.currentRole)}</td><td>${escapeHtml(person.resumeUrl || "Not linked")}</td><td>${escapeHtml(person.resumeText || "Not captured")}</td><td>${escapeHtml(person.nextAction || person.nextMilestone)}</td></tr>`
     )
     .join("");
   return pageHtml(
@@ -805,7 +1061,7 @@ function renderPeopleHtml(store: PubStore): string {
     sectionHtml(
       "People directory",
       "Local-only people and stakeholder context. Do not treat these display names as publishable data.",
-      tableHtml(["Name", "Type", "Organisation", "Role", "Next signal"], rows, 5)
+      tableHtml(["Name", "Type", "Organisation", "Role", "Resume link", "Resume text", "Next signal"], rows, 7)
     )
   );
 }
@@ -814,7 +1070,7 @@ function renderRolesHtml(store: PubStore): string {
   const rows = store.roles
     .map(
       (role) =>
-        `<tr><td>${escapeHtml(role.title)}</td><td>${escapeHtml(teamForRole(store, role)?.title ?? "Unknown team")}</td><td>${escapeHtml(controlSummary(teamForRole(store, role)))}</td><td>${escapeHtml(role.functionalOutcome)}</td><td>${escapeHtml(role.contribution)}</td></tr>`
+        `<tr><td>${escapeHtml(role.title)}</td><td>${escapeHtml(teamForRole(store, role)?.title ?? "Unknown team")}</td><td>${escapeHtml(roleTitle(store, role.reportsToRoleId) || "No reporting role")}</td><td>${escapeHtml(controlSummary(teamForRole(store, role)))}</td><td>${escapeHtml(role.positionDescriptionUrl || "Not linked")}</td><td>${escapeHtml(role.positionDescriptionText || "Not captured")}</td><td>${escapeHtml(role.functionalOutcome)}</td><td>${escapeHtml(role.contribution)}</td></tr>`
     )
     .join("");
   return pageHtml(
@@ -822,7 +1078,11 @@ function renderRolesHtml(store: PubStore): string {
     sectionHtml(
       "Role contribution",
       "Role contribution context shows how people help teams sustain owned controls and control sets.",
-      tableHtml(["Role", "Team", "Owned controls", "Outcome", "Contribution"], rows, 5)
+      tableHtml(
+        ["Role", "Team", "Reports to", "Owned controls", "PD link", "PD text", "Outcome", "Contribution"],
+        rows,
+        8
+      )
     )
   );
 }
@@ -892,9 +1152,11 @@ function pageHtml(title: string, body: string): string {
     .form-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 12px; }
     .editor-form { display: grid; gap: 14px; }
     label { display: grid; gap: 5px; margin-top: 10px; font-size: 0.86rem; }
-    input, textarea { box-sizing: border-box; width: 100%; border: 1px solid var(--vscode-input-border, var(--vscode-panel-border)); border-radius: 6px; padding: 8px 10px; color: var(--vscode-input-foreground); background: var(--vscode-input-background); font: inherit; }
+    input, textarea, select { box-sizing: border-box; width: 100%; border: 1px solid var(--vscode-input-border, var(--vscode-panel-border)); border-radius: 6px; padding: 8px 10px; color: var(--vscode-input-foreground); background: var(--vscode-input-background); font: inherit; }
     textarea { resize: vertical; line-height: 1.45; }
-    input:focus-visible, textarea:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 1px; }
+    input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 1px; }
+    fieldset.nested-editor { display: grid; gap: 8px; margin: 12px 0 0; padding: 12px; border: 1px solid var(--vscode-panel-border); border-radius: 8px; }
+    fieldset.nested-editor legend { padding: 0 6px; color: var(--vscode-descriptionForeground); font-weight: 650; }
     .checkbox-list { display: grid; gap: 6px; max-height: 18rem; overflow: auto; padding-right: 4px; }
     .checkbox-row { grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 8px; margin-top: 0; padding: 6px; border: 1px solid var(--vscode-panel-border); border-radius: 6px; background: var(--vscode-editor-background); }
     .checkbox-row input { width: auto; margin-top: 2px; }
@@ -923,17 +1185,20 @@ function pageHtml(title: string, body: string): string {
         return;
       }
       const data = new FormData(form);
+      const fields = {};
+      for (const [key, value] of data.entries()) {
+        if (Object.prototype.hasOwnProperty.call(fields, key)) {
+          const current = fields[key];
+          fields[key] = Array.isArray(current) ? [...current, value] : [current, value];
+        } else {
+          fields[key] = value;
+        }
+      }
+      fields.ownedControlRefs = data.getAll("ownedControlRefs");
       vscode.postMessage({
         action: button.dataset.action,
         teamId: form.dataset.teamId,
-        fields: {
-          title: data.get("title"),
-          ownedControlRefs: data.getAll("ownedControlRefs"),
-          additionalControlRefs: data.get("additionalControlRefs"),
-          controlSetRefs: data.get("controlSetRefs"),
-          responsibility: data.get("responsibility"),
-          notes: data.get("notes")
-        }
+        fields
       });
       setTimeout(() => button.removeAttribute("aria-busy"), 800);
     });
@@ -1011,6 +1276,20 @@ async function pickRole(store: PubStore, placeHolder: string): Promise<RoleRecor
   return selected?.role;
 }
 
+async function pickOptionalRole(store: PubStore, placeHolder: string): Promise<RoleRecord | undefined> {
+  if (store.roles.length === 0) {
+    return undefined;
+  }
+  const selected = await vscode.window.showQuickPick(
+    [
+      { label: "No reporting role", description: "Leave blank", role: undefined },
+      ...store.roles.map((role) => ({ label: role.title, description: teamForRole(store, role)?.title, role }))
+    ],
+    { placeHolder, ignoreFocusOut: true }
+  );
+  return selected?.role;
+}
+
 async function pickTeam(store: PubStore, placeHolder: string): Promise<TeamRecord | undefined> {
   const selected = await vscode.window.showQuickPick(
     store.teams.map((team) => ({ label: team.title, description: controlSummary(team), team })),
@@ -1019,25 +1298,116 @@ async function pickTeam(store: PubStore, placeHolder: string): Promise<TeamRecor
   return selected?.team;
 }
 
+interface TeamEditorResult {
+  readonly team: TeamRecord;
+  readonly roles: readonly RoleRecord[];
+  readonly assignments: readonly AssignmentRecord[];
+  readonly people: readonly PersonRecord[];
+}
+
 function parseTeamEditorFields(
   fields: TeamEditorFields | undefined,
-  teamId: string | undefined
-): TeamRecord | undefined {
+  teamId: string | undefined,
+  store: PubStore
+): TeamEditorResult | undefined {
   const title = stringField(fields?.title).trim();
   if (!title) {
     return undefined;
   }
+  const resolvedTeamId = teamId && teamId.trim().length > 0 ? teamId : localId("TEM");
   return {
-    id: teamId && teamId.trim().length > 0 ? teamId : localId("TEM"),
-    title,
-    ownedControlRefs: uniqueStrings([
-      ...stringArrayField(fields?.ownedControlRefs),
-      ...splitRefs(stringField(fields?.additionalControlRefs))
-    ]),
-    controlSetRefs: splitRefs(stringField(fields?.controlSetRefs)),
-    responsibility: stringField(fields?.responsibility).trim(),
-    notes: stringField(fields?.notes).trim()
+    team: {
+      id: resolvedTeamId,
+      title,
+      parentTeamId: stringField(fields?.parentTeamId),
+      ownedControlRefs: uniqueStrings([
+        ...stringArrayField(fields?.ownedControlRefs),
+        ...splitRefs(stringField(fields?.additionalControlRefs))
+      ]),
+      controlSetRefs: splitRefs(stringField(fields?.controlSetRefs)),
+      responsibility: stringField(fields?.responsibility).trim(),
+      notes: stringField(fields?.notes).trim()
+    },
+    people: parsePeopleEditorFields(fields, store),
+    roles: parseRoleEditorFields(fields, store, resolvedTeamId),
+    assignments: parseAssignmentEditorFields(fields, store)
   };
+}
+
+function parseRoleEditorFields(
+  fields: TeamEditorFields | undefined,
+  store: PubStore,
+  teamId: string
+): readonly RoleRecord[] {
+  const roleIds = formIndexedIds(fields, "role");
+  const editedRoleIds = new Set(roleIds);
+  const editedRoles = roleIds
+    .map((roleId) => ({
+      id: roleId,
+      title: stringField(fields?.[`role.${roleId}.title`]).trim(),
+      teamId,
+      reportsToRoleId: stringField(fields?.[`role.${roleId}.reportsToRoleId`]),
+      functionalOutcome: stringField(fields?.[`role.${roleId}.functionalOutcome`]).trim(),
+      contribution: stringField(fields?.[`role.${roleId}.contribution`]).trim(),
+      positionDescriptionUrl: stringField(fields?.[`role.${roleId}.positionDescriptionUrl`]).trim(),
+      positionDescriptionText: stringField(fields?.[`role.${roleId}.positionDescriptionText`]).trim()
+    }))
+    .filter((role) => role.title.length > 0);
+  return [...store.roles.filter((role) => !editedRoleIds.has(role.id)), ...editedRoles];
+}
+
+function parsePeopleEditorFields(fields: TeamEditorFields | undefined, store: PubStore): readonly PersonRecord[] {
+  const personIds = formIndexedIds(fields, "person");
+  const editedPersonIds = new Set(personIds);
+  const editedPeople = personIds
+    .map((personId): PersonRecord => {
+      const stakeholderType = fields?.[`person.${personId}.stakeholderType`];
+      return {
+        id: personId,
+        displayName: stringField(fields?.[`person.${personId}.displayName`]).trim(),
+        stakeholderType: isStakeholderType(stakeholderType) ? stakeholderType : "staff",
+        organisation: stringField(fields?.[`person.${personId}.organisation`]).trim(),
+        currentRole: stringField(fields?.[`person.${personId}.currentRole`]).trim(),
+        resumeUrl: stringField(fields?.[`person.${personId}.resumeUrl`]).trim(),
+        resumeText: stringField(fields?.[`person.${personId}.resumeText`]).trim(),
+        nextMilestone: stringField(fields?.[`person.${personId}.nextMilestone`]).trim(),
+        nextAction: stringField(fields?.[`person.${personId}.nextAction`]).trim(),
+        notes: stringField(fields?.[`person.${personId}.notes`]).trim()
+      };
+    })
+    .filter((person) => person.displayName.length > 0);
+  return [...store.people.filter((person) => !editedPersonIds.has(person.id)), ...editedPeople];
+}
+
+function parseAssignmentEditorFields(
+  fields: TeamEditorFields | undefined,
+  store: PubStore
+): readonly AssignmentRecord[] {
+  const assignmentIds = formIndexedIds(fields, "assignment");
+  const editedAssignmentIds = new Set(assignmentIds);
+  const editedAssignments = assignmentIds
+    .map((assignmentId): AssignmentRecord => {
+      const status = fields?.[`assignment.${assignmentId}.status`];
+      return {
+        id: assignmentId,
+        personId: stringField(fields?.[`assignment.${assignmentId}.personId`]),
+        roleId: stringField(fields?.[`assignment.${assignmentId}.roleId`]),
+        status: isAssignmentStatus(status) ? status : "active",
+        allocation: stringField(fields?.[`assignment.${assignmentId}.allocation`]).trim(),
+        reviewBy: stringField(fields?.[`assignment.${assignmentId}.reviewBy`]).trim(),
+        badge: stringField(fields?.[`assignment.${assignmentId}.badge`]).trim()
+      };
+    })
+    .filter((assignment) => assignment.personId.length > 0 && assignment.roleId.length > 0);
+  return [...store.assignments.filter((assignment) => !editedAssignmentIds.has(assignment.id)), ...editedAssignments];
+}
+
+function formIndexedIds(fields: TeamEditorFields | undefined, prefix: string): readonly string[] {
+  return uniqueStrings(
+    Object.keys(fields ?? {})
+      .map((key) => key.match(new RegExp(`^${prefix}\\.([^.]*)\\.`))?.[1] ?? "")
+      .filter(isNonEmptyString)
+  );
 }
 
 function stringField(value: unknown): string {
@@ -1060,6 +1430,27 @@ async function listSourceControls(): Promise<readonly SourceControlRecord[]> {
   }
 }
 
+async function listRequirements(): Promise<readonly RequirementRecord[]> {
+  try {
+    const entities = await vscode.commands.executeCommand<readonly unknown[]>("pspf.core.listEntities", "requirement");
+    return (entities ?? []).filter(isRequirementRecord);
+  } catch {
+    return [];
+  }
+}
+
+async function listRequirementControlMappings(): Promise<readonly RequirementControlMappingRecord[]> {
+  try {
+    const entities = await vscode.commands.executeCommand<readonly unknown[]>(
+      "pspf.core.listEntities",
+      "requirement-control-mapping"
+    );
+    return (entities ?? []).filter(isRequirementControlMappingRecord);
+  } catch {
+    return [];
+  }
+}
+
 function isSourceControlRecord(value: unknown): value is SourceControlRecord {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -1073,9 +1464,40 @@ function isSourceControlRecord(value: unknown): value is SourceControlRecord {
   );
 }
 
+function isRequirementRecord(value: unknown): value is RequirementRecord {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const candidate = value as Partial<RequirementRecord>;
+  return (
+    candidate.entityType === "requirement" && typeof candidate.id === "string" && typeof candidate.title === "string"
+  );
+}
+
+function isRequirementControlMappingRecord(value: unknown): value is RequirementControlMappingRecord {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const candidate = value as Partial<RequirementControlMappingRecord>;
+  return (
+    candidate.entityType === "requirement-control-mapping" &&
+    typeof candidate.id === "string" &&
+    typeof candidate.requirementId === "string" &&
+    typeof candidate.sourceControlId === "string"
+  );
+}
+
 function normaliseTeams(store: Partial<PubStore>): readonly TeamRecord[] {
   if (Array.isArray(store.teams)) {
-    return store.teams;
+    return (store.teams as readonly Partial<TeamRecord>[]).map((team) => ({
+      id: typeof team.id === "string" ? team.id : localId("TEM"),
+      title: typeof team.title === "string" ? team.title : "Untitled team",
+      parentTeamId: typeof team.parentTeamId === "string" ? team.parentTeamId : "",
+      ownedControlRefs: Array.isArray(team.ownedControlRefs) ? team.ownedControlRefs.filter(isNonEmptyString) : [],
+      controlSetRefs: Array.isArray(team.controlSetRefs) ? team.controlSetRefs.filter(isNonEmptyString) : [],
+      responsibility: typeof team.responsibility === "string" ? team.responsibility : "",
+      notes: typeof team.notes === "string" ? team.notes : ""
+    }));
   }
   const legacyRoles = Array.isArray(store.roles)
     ? (store.roles as readonly (Partial<RoleRecord> & { team?: string })[])
@@ -1084,6 +1506,7 @@ function normaliseTeams(store: Partial<PubStore>): readonly TeamRecord[] {
   return legacyTeamNames.map((teamName) => ({
     id: localId("TEM"),
     title: teamName,
+    parentTeamId: "",
     ownedControlRefs: [],
     controlSetRefs: [],
     responsibility: "",
@@ -1102,13 +1525,44 @@ function normaliseRoles(store: Partial<PubStore>, teams: readonly TeamRecord[]):
       typeof role.teamId === "string"
         ? role.teamId
         : (teams.find((team) => team.title === role.team)?.id ?? teams[0]?.id ?? ""),
+    reportsToRoleId: typeof role.reportsToRoleId === "string" ? role.reportsToRoleId : "",
     functionalOutcome: typeof role.functionalOutcome === "string" ? role.functionalOutcome : "",
-    contribution: typeof role.contribution === "string" ? role.contribution : ""
+    contribution: typeof role.contribution === "string" ? role.contribution : "",
+    positionDescriptionUrl: typeof role.positionDescriptionUrl === "string" ? role.positionDescriptionUrl : "",
+    positionDescriptionText: typeof role.positionDescriptionText === "string" ? role.positionDescriptionText : ""
   }));
 }
 
 function teamForRole(store: PubStore, role: RoleRecord): TeamRecord | undefined {
   return store.teams.find((team) => team.id === role.teamId);
+}
+
+function teamTitle(store: PubStore, teamId: string): string | undefined {
+  return store.teams.find((team) => team.id === teamId)?.title;
+}
+
+function roleTitle(store: PubStore, roleId: string): string | undefined {
+  return store.roles.find((role) => role.id === roleId)?.title;
+}
+
+function teamDepthMap(teams: readonly TeamRecord[]): ReadonlyMap<string, number> {
+  const byId = new Map(teams.map((team) => [team.id, team]));
+  const depthById = new Map<string, number>();
+  const resolveDepth = (team: TeamRecord, seen = new Set<string>()): number => {
+    if (depthById.has(team.id)) {
+      return depthById.get(team.id) ?? 0;
+    }
+    if (!team.parentTeamId || seen.has(team.id)) {
+      depthById.set(team.id, 0);
+      return 0;
+    }
+    const parent = byId.get(team.parentTeamId);
+    const depth = parent ? resolveDepth(parent, new Set([...seen, team.id])) + 1 : 0;
+    depthById.set(team.id, depth);
+    return depth;
+  };
+  teams.forEach((team) => resolveDepth(team));
+  return depthById;
 }
 
 function controlSummary(team: TeamRecord | undefined): string {
@@ -1117,6 +1571,14 @@ function controlSummary(team: TeamRecord | undefined): string {
   }
   const refs = [...team.ownedControlRefs, ...team.controlSetRefs];
   return refs.length === 0 ? "No controls recorded" : refs.join(", ");
+}
+
+function label(value: string): string {
+  return value
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toLocaleUpperCase("en-AU") + part.slice(1))
+    .join(" ");
 }
 
 function teamHealthBadges(store: PubStore, team: TeamRecord): string {
@@ -1146,6 +1608,14 @@ function uniqueStrings(values: readonly string[]): readonly string[] {
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
+}
+
+function isStakeholderType(value: unknown): value is StakeholderType {
+  return typeof value === "string" && STAKEHOLDER_TYPES.includes(value as StakeholderType);
+}
+
+function isAssignmentStatus(value: unknown): value is AssignmentStatus {
+  return typeof value === "string" && ASSIGNMENT_STATUSES.includes(value as AssignmentStatus);
 }
 
 function personName(store: PubStore, personId: string): string {
