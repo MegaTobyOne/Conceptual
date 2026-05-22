@@ -310,15 +310,17 @@ try {
     await globalThis.pspfExplorerRender(clone.manifest, collections);
     document.querySelector("#connected-view").open = true;
     await new Promise(requestAnimationFrame);
-    const requirementCard = document.querySelector('#connected-view [data-cv-kind="requirement"]');
+    const visibleElements = (selector) =>
+      Array.from(document.querySelectorAll(selector)).filter((element) => element.offsetParent !== null);
+    const requirementCard = visibleElements('#connected-view [data-cv-kind="requirement"]')[0];
     requirementCard?.click();
     await new Promise(requestAnimationFrame);
     const before = {
       cards: document.querySelectorAll("#connected-view [data-cv-card]").length,
       edges: document.querySelectorAll("#connected-view svg path").length,
       highlightedEdges: document.querySelectorAll("#connected-view svg path.cv-highlight").length,
-      selectedCards: document.querySelectorAll("#connected-view .cv-selected").length,
-      connectedCards: document.querySelectorAll("#connected-view .cv-connected").length,
+      selectedCards: visibleElements("#connected-view .cv-selected").length,
+      connectedCards: visibleElements("#connected-view .cv-connected").length,
       zoomControls: document.querySelectorAll(
         '#connected-view [data-cv-action="zoom-in"], #connected-view [data-cv-action="zoom-out"], #connected-view [data-cv-action="zoom-reset"]'
       ).length,
