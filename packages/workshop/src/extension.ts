@@ -67,6 +67,7 @@ import {
   isValidTagLabel,
   normaliseSavedViewName,
   normaliseTagLabel,
+  operatorLinkRuleForEndpoints,
   withEnvelope
 } from "@pspf/contracts";
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
@@ -6743,29 +6744,21 @@ async function linkExistingItemToRequirement(
 }
 
 function linkTypeForExistingItem(itemType: LinkableItemType): LinkEntity["linkType"] {
-  if (itemType === "direction") {
-    return "targets";
-  }
-  if (itemType === "evidence") {
-    return "supported-by";
-  }
-  if (itemType === "action") {
-    return "addressed-by";
-  }
-  return "exposed-by";
+  return existingItemOperatorRule(itemType).linkType;
 }
 
 function linkPhraseForExistingItem(itemType: LinkableItemType): string {
-  if (itemType === "direction") {
-    return "targeted by";
+  return existingItemOperatorRule(itemType).phrase;
+}
+
+function existingItemOperatorRule(itemType: LinkableItemType) {
+  const fromType = itemType === "direction" ? "direction" : "requirement";
+  const toType = itemType === "direction" ? "requirement" : itemType;
+  const rule = operatorLinkRuleForEndpoints(fromType, toType, "workshop");
+  if (!rule) {
+    throw new Error(`Missing Workshop operator link rule for ${fromType} to ${toType}`);
   }
-  if (itemType === "evidence") {
-    return "supported by";
-  }
-  if (itemType === "action") {
-    return "addressed by";
-  }
-  return "exposed by";
+  return rule;
 }
 
 function existingItemDescription(entity: LinkableExistingEntity, activeLinks: readonly LinkEntity[]): string {

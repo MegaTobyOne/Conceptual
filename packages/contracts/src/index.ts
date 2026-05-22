@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.10.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.28.2" as const;
+export const PSPF_SLICE_VERSION = "1.29.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -86,6 +86,154 @@ export type LinkType = (typeof LINK_TYPES)[number];
 export type PublicationPolicy = "public" | "internal" | "sensitive" | "restricted";
 
 export type SourceProduct = "core" | "workshop" | "explorer" | "shop";
+
+export interface OperatorLinkRule {
+  readonly id: string;
+  readonly sourceProduct: SourceProduct;
+  readonly linkType: LinkType;
+  readonly fromType: V01EntityType;
+  readonly toType: V01EntityType;
+  readonly label: string;
+  readonly phrase: string;
+}
+
+export const OPERATOR_LINK_RULES = [
+  {
+    id: "workshop-requirement-supported-by-evidence",
+    sourceProduct: "workshop",
+    linkType: "supported-by",
+    fromType: "requirement",
+    toType: "evidence",
+    label: "Link Requirement to Evidence",
+    phrase: "supported by"
+  },
+  {
+    id: "workshop-action-supported-by-evidence",
+    sourceProduct: "workshop",
+    linkType: "supported-by",
+    fromType: "action",
+    toType: "evidence",
+    label: "Link Action to Evidence",
+    phrase: "supported by"
+  },
+  {
+    id: "workshop-requirement-addressed-by-action",
+    sourceProduct: "workshop",
+    linkType: "addressed-by",
+    fromType: "requirement",
+    toType: "action",
+    label: "Link Requirement to Action",
+    phrase: "addressed by"
+  },
+  {
+    id: "workshop-requirement-exposed-by-risk",
+    sourceProduct: "workshop",
+    linkType: "exposed-by",
+    fromType: "requirement",
+    toType: "risk",
+    label: "Link Requirement to Risk",
+    phrase: "exposed by"
+  },
+  {
+    id: "workshop-direction-targets-requirement",
+    sourceProduct: "workshop",
+    linkType: "targets",
+    fromType: "direction",
+    toType: "requirement",
+    label: "Link Direction to Requirement",
+    phrase: "targets"
+  },
+  {
+    id: "workshop-change-record-changes-requirement",
+    sourceProduct: "workshop",
+    linkType: "changes",
+    fromType: "change-record",
+    toType: "requirement",
+    label: "Link Change Record to Requirement",
+    phrase: "changes"
+  },
+  {
+    id: "shop-supplier-supports-requirement",
+    sourceProduct: "shop",
+    linkType: "supports",
+    fromType: "supplier",
+    toType: "requirement",
+    label: "Link Supplier to Requirement",
+    phrase: "supports"
+  },
+  {
+    id: "shop-supplier-associated-with-risk",
+    sourceProduct: "shop",
+    linkType: "associated-with",
+    fromType: "supplier",
+    toType: "risk",
+    label: "Link Supplier to Risk",
+    phrase: "associated with"
+  },
+  {
+    id: "shop-contract-supports-requirement",
+    sourceProduct: "shop",
+    linkType: "supports",
+    fromType: "contract",
+    toType: "requirement",
+    label: "Link Contract to Requirement",
+    phrase: "supports"
+  },
+  {
+    id: "shop-contract-funds-spend-item",
+    sourceProduct: "shop",
+    linkType: "funds",
+    fromType: "contract",
+    toType: "spend-item",
+    label: "Link Contract to Spend Item",
+    phrase: "funds"
+  },
+  {
+    id: "shop-spend-item-supports-action",
+    sourceProduct: "shop",
+    linkType: "supports",
+    fromType: "spend-item",
+    toType: "action",
+    label: "Link Spend Item to Action",
+    phrase: "supports"
+  },
+  {
+    id: "shop-spend-item-supports-requirement",
+    sourceProduct: "shop",
+    linkType: "supports",
+    fromType: "spend-item",
+    toType: "requirement",
+    label: "Link Spend Item to Requirement",
+    phrase: "supports"
+  }
+] as const satisfies readonly OperatorLinkRule[];
+
+export function operatorLinkRuleFor(
+  fromType: V01EntityType,
+  linkType: LinkType,
+  toType: V01EntityType
+): OperatorLinkRule | undefined {
+  return OPERATOR_LINK_RULES.find(
+    (rule) => rule.fromType === fromType && rule.linkType === linkType && rule.toType === toType
+  );
+}
+
+export function operatorLinkRuleForEndpoints(
+  fromType: V01EntityType,
+  toType: V01EntityType,
+  sourceProduct?: SourceProduct
+): OperatorLinkRule | undefined {
+  return OPERATOR_LINK_RULES.find(
+    (rule) =>
+      rule.fromType === fromType &&
+      rule.toType === toType &&
+      (sourceProduct === undefined || rule.sourceProduct === sourceProduct)
+  );
+}
+
+export function operatorLinkRulesForSource(sourceProduct: SourceProduct): readonly OperatorLinkRule[] {
+  return OPERATOR_LINK_RULES.filter((rule) => rule.sourceProduct === sourceProduct);
+}
 
 export type RecordStatus = "active" | "archived" | "inactive" | "deleted";
 

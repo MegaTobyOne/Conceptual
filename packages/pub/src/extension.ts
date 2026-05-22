@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
-import { tokensCss } from "@pspf/webview-shell";
+import { commandButtonAcknowledgementScript, tokensCss } from "@pspf/webview-shell";
 
 const PUB_STORE_VERSION = "1.1.0";
 const PUB_STORE_PATH = [".pspf", "pub", "pub.json"] as const;
@@ -692,7 +692,7 @@ function renderHomeHtml(store: PubStore): string {
         <span class="tag">${store.teams.length} teams</span>
         <span class="tag">${store.roles.length} roles</span>
         <span class="tag">${store.assignments.length} assignments</span>
-        <span class="tag">no Explorer publication in v1.28</span>
+        <span class="tag">no Explorer publication in v1.29</span>
       </div>
     </section>
     <section class="grid two" aria-label="Pub action signals">
@@ -1128,7 +1128,7 @@ function pageHtml(title: string, body: string): string {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    ${tokensCss}
+    ${tokensCss("extension")}
     body { margin: 0; padding: 18px; color: var(--vscode-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); }
     main, .grid { display: grid; gap: 14px; }
     .grid.two { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
@@ -1169,17 +1169,17 @@ function pageHtml(title: string, body: string): string {
 </head>
 <body>${body}<script>
   const vscode = acquireVsCodeApi();
+  ${commandButtonAcknowledgementScript}
   document.querySelectorAll("button[data-command]").forEach((button) => {
     button.addEventListener("click", () => {
-      button.setAttribute("aria-busy", "true");
+      pspfAcknowledgeCommandButton(button);
       vscode.postMessage({ command: button.dataset.command });
-      setTimeout(() => button.removeAttribute("aria-busy"), 800);
     });
   });
   document.querySelectorAll("button[data-action]").forEach((button) => {
     button.addEventListener("click", () => {
       const form = button.closest("form");
-      button.setAttribute("aria-busy", "true");
+      pspfAcknowledgeCommandButton(button);
       if (!form) {
         vscode.postMessage({ action: button.dataset.action });
         return;
@@ -1200,7 +1200,6 @@ function pageHtml(title: string, body: string): string {
         teamId: form.dataset.teamId,
         fields
       });
-      setTimeout(() => button.removeAttribute("aria-busy"), 800);
     });
   });
 </script></body>

@@ -16,10 +16,11 @@ import {
   type SupplierEntity,
   type TagEntity,
   type V01Entity,
+  operatorLinkRuleFor,
   sanitiseEntityForPublication,
   withEnvelope
 } from "@pspf/contracts";
-import { tokensCss } from "@pspf/webview-shell";
+import { relationshipManagerHtml, tokensCss, type RelationshipManagerAction } from "@pspf/webview-shell";
 import { commandUri, escapeHtml, formatCurrency, formatToken } from "./webview/util.js";
 
 const SHOP_STORE_VERSION = "1.0.0";
@@ -281,23 +282,23 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.shop.editSpendItem", editSpendItem),
     vscode.commands.registerCommand("pspf.shop.deleteRecord", deleteRecord),
     vscode.commands.registerCommand("pspf.shop.linkSupplierToRequirement", (supplier: SupplierRecord) =>
-      linkCommercialRecord(supplier, { linkType: "supports", targetType: "requirement", label: "Requirement" })
+      linkCommercialRecord(supplier, commercialLinkSpec("supplier", "supports", "requirement"))
     ),
     vscode.commands.registerCommand("pspf.shop.linkSupplierToRisk", (supplier: SupplierRecord) =>
-      linkCommercialRecord(supplier, { linkType: "associated-with", targetType: "risk", label: "Risk" })
+      linkCommercialRecord(supplier, commercialLinkSpec("supplier", "associated-with", "risk"))
     ),
     vscode.commands.registerCommand("pspf.shop.linkContractToRequirement", (contract: ContractRecord) =>
-      linkCommercialRecord(contract, { linkType: "supports", targetType: "requirement", label: "Requirement" })
+      linkCommercialRecord(contract, commercialLinkSpec("contract", "supports", "requirement"))
     ),
     vscode.commands.registerCommand("pspf.shop.linkContractToSpendItem", (contract: ContractRecord) =>
-      linkCommercialRecord(contract, { linkType: "funds", targetType: "spend-item", label: "Spend item" })
+      linkCommercialRecord(contract, commercialLinkSpec("contract", "funds", "spend-item"))
     ),
     vscode.commands.registerCommand("pspf.shop.linkSpendItemToContract", linkSpendItemToContract),
     vscode.commands.registerCommand("pspf.shop.linkSpendToAction", (spendItem: SpendItemRecord) =>
-      linkCommercialRecord(spendItem, { linkType: "supports", targetType: "action", label: "Action" })
+      linkCommercialRecord(spendItem, commercialLinkSpec("spend-item", "supports", "action"))
     ),
     vscode.commands.registerCommand("pspf.shop.linkSpendToRequirement", (spendItem: SpendItemRecord) =>
-      linkCommercialRecord(spendItem, { linkType: "supports", targetType: "requirement", label: "Requirement" })
+      linkCommercialRecord(spendItem, commercialLinkSpec("spend-item", "supports", "requirement"))
     ),
     vscode.commands.registerCommand("pspf.shop.openForecast", openForecast),
     vscode.commands.registerCommand("pspf.shop.exportForecastCsv", () => exportForecastReport("csv")),
@@ -710,6 +711,25 @@ async function linkCommercialRecord(
   await upsertCoreEntities([link]);
   await refreshViews();
   vscode.window.showInformationMessage(`Linked ${commercialTitle(source)} to ${targetTitle(target)}.`);
+}
+
+function commercialLinkSpec(
+  fromType: CommercialSource["entityType"],
+  linkType: LinkType,
+  targetType: LinkableTarget["entityType"]
+): { readonly linkType: LinkType; readonly targetType: LinkableTarget["entityType"]; readonly label: string } {
+  const rule = operatorLinkRuleFor(fromType, linkType, targetType);
+  if (!rule) {
+    throw new Error(`Missing Shop operator link rule for ${fromType} ${linkType} ${targetType}`);
+  }
+  return { linkType: rule.linkType, targetType, label: commercialLinkTargetLabel(targetType) };
+}
+
+function commercialLinkTargetLabel(targetType: LinkableTarget["entityType"]): string {
+  if (targetType === "spend-item") {
+    return "Spend item";
+  }
+  return targetType.charAt(0).toUpperCase() + targetType.slice(1);
 }
 
 async function linkSpendItemToContract(spendItem: SpendItemRecord): Promise<void> {
@@ -2637,6 +2657,7 @@ function renderForecastHtml(
           )
           .join("");
   const coverageRows = dashboard.coverage.map((group) => renderCoverageRow(group)).join("");
+  const relationshipActions = renderAssuranceRelationshipActions(dashboard);
   const fundingCueRows =
     dashboard.uncontractedSpendItems.length === 0
       ? '<tr><td colspan="4">All spend items have a contract funding link.</td></tr>'
@@ -2836,6 +2857,7 @@ function renderForecastHtml(
         <h2>Assurance coverage</h2>
         <div class="coverage">${coverageRows}</div>
     </section>
+    ${relationshipActions}
     <section>
       <h2>Scenario comparison</h2>
       <p class="muted">Compare approved work, the approved and committed baseline, and proposed-inclusive planning without changing source records.</p>
@@ -3112,16 +3134,32 @@ function renderMonthBar(month: ForecastMonth, maxMonthlySpend: number): string {
 
 function renderCoverageRow(group: CoverageGroup): string {
   const unlinkedCount = group.unlinked.length;
-  const sample = group.unlinked[0];
-  const quickAction = sample
-    ? `<a href="${escapeHtml(commandUri(group.linkCommand, [sample]))}">Link ${escapeHtml(commercialTitle(sample))}</a>`
-    : "<span>All active records have coverage links.</span>";
   return `<div class="coverage-card">
         <strong>${group.linked}/${group.total}</strong>
         <span>${escapeHtml(group.label)} linked</span><br>
         <span>${unlinkedCount} unlinked</span><br>
-        ${quickAction}
+        <span>${unlinkedCount === 0 ? "All active records have coverage links." : "Use Relationship actions below."}</span>
     </div>`;
+}
+
+function renderAssuranceRelationshipActions(dashboard: CommercialCoverageDashboard): string {
+  const actions: RelationshipManagerAction[] = dashboard.coverage.map((group) => {
+    const sample = group.unlinked[0];
+    return {
+      label: sample ? `Link ${commercialTitle(sample)}` : "All linked",
+      fromLabel: group.label,
+      phrase: "needs assurance link",
+      toLabel: group.label === "Supplier Risk" ? "Risk" : "Requirement or Action",
+      href: sample ? commandUri(group.linkCommand, [sample]) : undefined,
+      disabledReason: "All active records linked"
+    };
+  });
+  return relationshipManagerHtml({
+    title: "Relationship actions",
+    description: "Quick actions use the shared relationship manager pattern and the canonical Shop relationship rules.",
+    actions,
+    emptyText: "No assurance relationship actions are available."
+  });
 }
 
 function getPublicationStatus(store: ShopStore): string {
