@@ -1393,6 +1393,9 @@ if (isV1Release && minorVersion >= 29) {
     "PSPF_SLICE_VERSION` are `1.29.0`",
     "UX coverage gate",
     "Relationship rule gate",
+    "Supplier, Contract, and Spend Item detail panels",
+    "Workshop uses it for Requirement relationship actions",
+    "Pub Person records expose local-only detail and edit panels",
     "Regression gate"
   ]) {
     assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);

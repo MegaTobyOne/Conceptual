@@ -27,13 +27,15 @@ The slice introduces a machine-checkable entity UX coverage matrix, a `check:ux-
 - Gate the coverage matrix with regression tests so future entity additions require UX decisions.
 - Centralise operator-editable relationship rules in contracts.
 - Route Shop and Workshop relationship-link affordances through the canonical rule lookup.
-- Add a shared relationship-manager renderer and prove it in the Shop assurance coverage flow.
+- Add a shared relationship-manager renderer and prove it in the Shop assurance coverage flow and Workshop Requirement relationship surfaces.
+- Route Shop Supplier, Contract, and Spend Item tree selection to read-only detail panels before editing, with shared relationship actions on each detail panel.
+- Add the first Pub CRUD completion proof point by giving Person records local-only detail and edit panels that cover all Person fields without introducing Explorer publication.
 
 ## Deferred
 
-- Full visual relationship manager UI across every module beyond the initial Shop proof point.
+- Full visual relationship manager UI across every module beyond the initial Shop forecast/detail and Workshop Requirement proof points.
 - Broad edit-panel simplification for Strategy, Requirement, Action, Shop, and Pub Team editors.
-- Pub full person/role/assignment/note CRUD completion.
+- Pub full role/assignment/note CRUD completion and broader People list row-level actions.
 - Explorer publication of Pub data.
 - New schema-bearing relationship fields or link verbs.
 

@@ -25,21 +25,24 @@ Plan for an ecosystem-wide consistency refactor, but deliver it as staged vertic
 
 - Completed foundation: canonical operator link rules now live in `@pspf/contracts` and are covered by contract tests.
 - Completed proof point: Shop link command wiring now resolves through the canonical rule lookup, with a Shop regression test.
-- Completed UI primitive: `@pspf/webview-shell` exposes a shared relationship-manager renderer, and Shop uses it for assurance coverage quick actions.
+- Completed UI primitive: `@pspf/webview-shell` exposes a shared relationship-manager renderer for command URIs and Workshop command buttons.
+- Completed rollout proof points: Shop uses the shared renderer for assurance coverage quick actions, and Workshop Requirement detail/editor surfaces use it for existing Evidence, Action, Risk, and Direction links.
 - Define allowed operator-editable link types and endpoint rules.
 - Build shared relationship list/add/remove/archive UI primitives.
-- Prove the pattern in Shop or Pub before touching the dense Workshop Requirement workbench.
+- Continue rollout beyond the Requirement proof point only after focused regression coverage exists for the target surface.
 
 ### Slice 3 - Detail-First Shop
 
-- Add detail views for Supplier, Contract, and Spend Item.
-- Keep the existing editor fields, but route list/tree selection to detail first.
-- Move Shop link commands into visible detail relationship sections.
+- Completed proof point: Supplier, Contract, and Spend Item tree selection opens a read-only detail panel before editing.
+- Completed field coverage: detail panels show the captured business fields and record metadata for the selected Shop record.
+- Completed relationship affordance: detail panels expose canonical Shop link commands through the shared relationship-manager renderer.
+- Continue with richer linked-record summaries after the first detail-first route stays covered by regression tests.
 
 ### Slice 4 - Pub CRUD Completion
 
+- Completed proof point: Person records now have local-only detail and edit panels covering display name, stakeholder type, organisation, role, resume context, next signals, and notes.
 - Split the large Team editor into ownership, roles, assignments, people, and notes sections.
-- Add detail/edit panels for Person, Role, Assignment, and Relationship Note.
+- Add detail/edit panels for Role, Assignment, and Relationship Note.
 - Keep all Pub sensitive records local-only.
 
 ### Slice 5 - Explorer/Workshop Pattern Alignment

@@ -16,6 +16,14 @@ test("Shop link commands use canonical operator link rules", async () => {
   assert.match(source, /commercialLinkSpec\("spend-item", "supports", "requirement"\)/);
   assert.match(source, /relationshipManagerHtml/);
   assert.match(source, /function renderAssuranceRelationshipActions/);
+  assert.match(source, /vscode\.commands\.registerCommand\("pspf\.shop\.openDetail", openShopDetail\)/);
+  assert.match(source, /function openShopDetail/);
+  assert.match(source, /function renderShopDetailHtml/);
+  assert.match(source, /function shopDetailRows/);
+  assert.match(source, /function shopDetailRelationshipActions/);
+  assert.match(source, /function shopRelationshipAction/);
+  assert.match(source, /"pspf\.shop\.openDetail"/);
+  assert.match(source, /this\.command = \{ command: openCommand, title: "Open detail", arguments: \[entity\] \}/);
   assert.doesNotMatch(source, /linkCommercialRecord\([^\n]+\{ linkType: "supports", targetType: "requirement"/);
   assert.doesNotMatch(source, /linkCommercialRecord\([^\n]+\{ linkType: "associated-with", targetType: "risk"/);
 });

@@ -58,6 +58,31 @@ test("relationshipManagerHtml renders escaped relationship actions", () => {
   assert.match(html, /All linked/);
 });
 
+test("relationshipManagerHtml renders escaped command-button actions", () => {
+  const html = relationshipManagerHtml({
+    title: "Relationships",
+    actions: [
+      {
+        label: "Link existing <evidence>",
+        fromLabel: "Requirement",
+        phrase: "supported by",
+        toLabel: "Evidence",
+        command: 'linkExistingEvidenceToRequirement"bad',
+        dataAttributes: {
+          "data-requirement-id": 'req-1"x',
+          onclick: "ignored"
+        }
+      }
+    ]
+  });
+
+  assert.match(html, /<button type="button"/);
+  assert.match(html, /data-command="linkExistingEvidenceToRequirement&quot;bad"/);
+  assert.match(html, /data-requirement-id="req-1&quot;x"/);
+  assert.doesNotMatch(html, /onclick/);
+  assert.match(html, /Link existing &lt;evidence&gt;/);
+});
+
 test("relationshipManagerHtml renders an empty state", () => {
   const html = relationshipManagerHtml({ title: "Relationships", actions: [], emptyText: "Nothing to link." });
 

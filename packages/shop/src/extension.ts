@@ -250,6 +250,7 @@ let forecastProvider: ForecastViewProvider | undefined;
 let welcomeProvider: WelcomeTreeProvider | undefined;
 let forecastPanel: vscode.WebviewPanel | undefined;
 let editorPanel: vscode.WebviewPanel | undefined;
+let detailPanel: vscode.WebviewPanel | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   suppliersProvider = new SupplierTreeProvider();
@@ -277,6 +278,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.shop.newSupplier", newSupplier),
     vscode.commands.registerCommand("pspf.shop.newContract", newContract),
     vscode.commands.registerCommand("pspf.shop.newSpendItem", newSpendItem),
+    vscode.commands.registerCommand("pspf.shop.openDetail", openShopDetail),
     vscode.commands.registerCommand("pspf.shop.editSupplier", editSupplier),
     vscode.commands.registerCommand("pspf.shop.editContract", editContract),
     vscode.commands.registerCommand("pspf.shop.editSpendItem", editSpendItem),
@@ -311,6 +313,7 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void {
   shopStore = undefined;
   editorPanel = undefined;
+  detailPanel = undefined;
 }
 
 async function openHome(): Promise<void> {
@@ -427,6 +430,25 @@ async function promptSpendItemAssuranceLink(spendItem: SpendItemRecord): Promise
 
 async function editSpendItem(spendItem: SpendItemRecord): Promise<void> {
   await openShopEditor("spend-item", spendItem);
+}
+
+async function openShopDetail(entity: SupplierRecord | ContractRecord | SpendItemRecord): Promise<void> {
+  const store = await loadStore();
+  const current = findShopRecord(store, entity.entityType, entity.id) ?? entity;
+  const title = `Shop ${formatToken(current.entityType)}: ${commercialTitle(current)}`;
+  if (detailPanel) {
+    detailPanel.title = title;
+    detailPanel.reveal(vscode.ViewColumn.One);
+  } else {
+    detailPanel = vscode.window.createWebviewPanel("pspfShopDetail", title, vscode.ViewColumn.One, {
+      enableScripts: false,
+      enableCommandUris: true
+    });
+    detailPanel.onDidDispose(() => {
+      detailPanel = undefined;
+    });
+  }
+  detailPanel.webview.html = renderShopDetailHtml(store, current);
 }
 
 async function openShopEditor(
@@ -1403,7 +1425,7 @@ class SupplierTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
           supplier.name,
           `${formatToken(supplier.supplierType)} - ${formatToken(supplier.status)} - ${formatToken(supplier.criticality)}`,
           "supplier",
-          "pspf.shop.editSupplier",
+          "pspf.shop.openDetail",
           supplier,
           "pspfShopSupplier"
         )
@@ -1435,7 +1457,7 @@ class ContractTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
         contract.title,
         `${supplier?.name ?? "Unknown supplier"} - ${formatToken(contract.status)}${value}`,
         "contract",
-        "pspf.shop.editContract",
+        "pspf.shop.openDetail",
         contract,
         "pspfShopContract"
       );
@@ -1466,7 +1488,7 @@ class SpendTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
           item.title,
           `${item.financialYear}${item.costCentre ? ` - ${item.costCentre}` : ""} - ${formatToken(item.status)} - ${formatCurrency(item.amount.amount, item.amount.currency)}`,
           "spend",
-          "pspf.shop.editSpendItem",
+          "pspf.shop.openDetail",
           item,
           "pspfShopSpendItem"
         )
@@ -1538,12 +1560,12 @@ class EntityTreeItem extends ShopTreeItem {
     label: string,
     description: string,
     iconName: "contract" | "spend" | "supplier",
-    editCommand: string,
+    openCommand: string,
     entity: SupplierRecord | ContractRecord | SpendItemRecord,
     contextValue: string
   ) {
     super(label, description, iconName);
-    this.command = { command: editCommand, title: "Edit", arguments: [entity] };
+    this.command = { command: openCommand, title: "Open detail", arguments: [entity] };
     this.contextValue = contextValue;
   }
 }
@@ -2506,6 +2528,196 @@ function shopRecordLabel(entity: SupplierRecord | ContractRecord | SpendItemReco
   return entity.entityType === "supplier"
     ? `supplier ${entity.name}`
     : `${formatToken(entity.entityType)} ${entity.title}`;
+}
+
+function renderShopDetailHtml(store: ShopStore, entity: SupplierRecord | ContractRecord | SpendItemRecord): string {
+  const heading = commercialTitle(entity);
+  const editCommand = shopDetailEditCommand(entity);
+  return `<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    ${tokensCss("extension")}
+    :root { --shop-amber: var(--pspf-warn); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+    body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
+    main { max-width: 920px; margin: 0 auto; }
+    h1 { font-size: 1.35rem; margin: 0 0 8px; }
+    h2 { font-size: 1rem; margin: 0 0 8px; }
+    p { color: var(--pspf-muted); margin: 0 0 14px; }
+    .masthead { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: var(--pspf-gap-md) var(--pspf-pad); margin: 0 0 var(--pspf-pad); }
+    .eyebrow { color: var(--pspf-primary); font-size: var(--pspf-type-label); font-weight: 700; letter-spacing: var(--pspf-letter-label); text-transform: uppercase; margin: 0 0 4px; }
+    .detail-actions { display: flex; flex-wrap: wrap; gap: var(--pspf-gap-sm); margin-top: var(--pspf-gap); }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--pspf-gap-sm); }
+    .detail-field { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-pad-sm); background: var(--pspf-surface-strong); min-width: 0; }
+    .detail-field span { display: block; color: var(--pspf-muted); font-size: var(--pspf-type-label); font-weight: 700; letter-spacing: var(--pspf-letter-label); text-transform: uppercase; }
+    .detail-field strong { display: block; margin-top: 4px; overflow-wrap: anywhere; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="masthead">
+      <p class="eyebrow">Commercial planning detail</p>
+      <h1>${escapeHtml(heading)}</h1>
+      <p>Review the Shop record before editing or linking it to assurance work.</p>
+      <div class="detail-actions">
+        <a class="pspf-button pspf-button--secondary" href="${escapeHtml(commandUri(editCommand, [entity]))}">Edit</a>
+        <a class="pspf-button pspf-button--secondary" href="${escapeHtml(commandUri("pspf.shop.deleteRecord", [entity]))}">Delete</a>
+        <a class="pspf-button pspf-button--secondary" href="${escapeHtml(commandUri("pspf.shop.openForecast", []))}">Open forecast</a>
+      </div>
+    </section>
+    <section class="pspf-section">
+      <h2>${escapeHtml(formatToken(entity.entityType))}</h2>
+      <div class="detail-grid">${shopDetailRows(entity, store).map(renderShopDetailField).join("")}</div>
+    </section>
+    <section class="pspf-section">
+      <h2>Record metadata</h2>
+      <div class="detail-grid">${shopMetadataRows(entity).map(renderShopDetailField).join("")}</div>
+    </section>
+    ${relationshipManagerHtml({
+      title: "Relationship actions",
+      description:
+        "Link this commercial record to assurance records using the shared relationship manager pattern and canonical Shop relationship rules.",
+      actions: shopDetailRelationshipActions(entity),
+      emptyText: "No relationship actions are available for this Shop record."
+    })}
+  </main>
+</body>
+</html>`;
+}
+
+function shopDetailRows(
+  entity: SupplierRecord | ContractRecord | SpendItemRecord,
+  store: ShopStore
+): readonly { readonly label: string; readonly value: string }[] {
+  switch (entity.entityType) {
+    case "supplier":
+      return [
+        { label: "Name", value: entity.name },
+        { label: "Supplier type", value: formatToken(entity.supplierType) },
+        { label: "Status", value: formatToken(entity.status) },
+        { label: "Criticality", value: formatToken(entity.criticality) },
+        { label: "Primary contact", value: entity.primaryContact ?? "Not recorded" },
+        { label: "Notes", value: entity.notes ?? "Not recorded" }
+      ];
+    case "contract": {
+      const supplier = store.suppliers.find((candidate) => candidate.id === entity.supplierId);
+      return [
+        { label: "Title", value: entity.title },
+        { label: "Supplier", value: supplier?.name ?? entity.supplierId },
+        { label: "Status", value: formatToken(entity.status) },
+        { label: "Contract reference", value: entity.contractRef ?? "Not recorded" },
+        { label: "Start date", value: entity.startsAt ?? "Not recorded" },
+        { label: "End date", value: entity.endsAt ?? "Not recorded" },
+        {
+          label: "Contract value",
+          value: entity.value ? formatCurrency(entity.value.amount, entity.value.currency) : "Not recorded"
+        },
+        { label: "Service summary", value: entity.serviceSummary ?? "Not recorded" }
+      ];
+    }
+    case "spend-item":
+      return [
+        { label: "Title", value: entity.title },
+        { label: "Spend type", value: formatToken(entity.spendType) },
+        { label: "Status", value: formatToken(entity.status) },
+        { label: "Amount", value: formatCurrency(entity.amount.amount, entity.amount.currency) },
+        { label: "Financial year", value: entity.financialYear },
+        { label: "Cost centre", value: entity.costCentre ?? "Not recorded" },
+        { label: "Confidence", value: formatToken(entity.confidence ?? "medium") },
+        { label: "Forecast start", value: entity.forecastStartAt ?? "Not recorded" },
+        { label: "Forecast end", value: entity.forecastEndAt ?? "Not recorded" },
+        {
+          label: "Forecast cost",
+          value: entity.forecastCost
+            ? formatCurrency(entity.forecastCost.amount, entity.forecastCost.currency)
+            : "Not recorded"
+        },
+        {
+          label: "Expected savings",
+          value: entity.expectedSavings
+            ? formatCurrency(entity.expectedSavings.amount, entity.expectedSavings.currency)
+            : "Not recorded"
+        },
+        { label: "Savings type", value: formatToken(entity.savingsType ?? "efficiency") },
+        { label: "Payback months", value: entity.paybackPeriodMonths?.toString() ?? "Not recorded" },
+        { label: "Assumptions", value: entity.assumptions ?? "Not recorded" },
+        { label: "Notes", value: entity.notes ?? "Not recorded" }
+      ];
+  }
+}
+
+function shopMetadataRows(
+  entity: SupplierRecord | ContractRecord | SpendItemRecord
+): readonly { readonly label: string; readonly value: string }[] {
+  return [
+    { label: "ID", value: entity.id },
+    { label: "Source product", value: formatToken(entity.sourceProduct) },
+    { label: "Record status", value: formatToken(entity.recordStatus) },
+    { label: "Schema version", value: entity.schemaVersion },
+    { label: "Created", value: entity.createdAt },
+    { label: "Updated", value: entity.updatedAt }
+  ];
+}
+
+function renderShopDetailField(row: { readonly label: string; readonly value: string }): string {
+  return `<div class="detail-field"><span>${escapeHtml(row.label)}</span><strong>${escapeHtml(row.value)}</strong></div>`;
+}
+
+function shopDetailEditCommand(entity: SupplierRecord | ContractRecord | SpendItemRecord): string {
+  switch (entity.entityType) {
+    case "supplier":
+      return "pspf.shop.editSupplier";
+    case "contract":
+      return "pspf.shop.editContract";
+    case "spend-item":
+      return "pspf.shop.editSpendItem";
+  }
+}
+
+function shopDetailRelationshipActions(
+  entity: SupplierRecord | ContractRecord | SpendItemRecord
+): RelationshipManagerAction[] {
+  switch (entity.entityType) {
+    case "supplier":
+      return [
+        shopRelationshipAction(entity, "supports", "requirement", "pspf.shop.linkSupplierToRequirement"),
+        shopRelationshipAction(entity, "associated-with", "risk", "pspf.shop.linkSupplierToRisk")
+      ];
+    case "contract":
+      return [
+        shopRelationshipAction(entity, "supports", "requirement", "pspf.shop.linkContractToRequirement"),
+        shopRelationshipAction(entity, "funds", "spend-item", "pspf.shop.linkContractToSpendItem")
+      ];
+    case "spend-item":
+      return [
+        shopRelationshipAction(entity, "funds", "contract", "pspf.shop.linkSpendItemToContract"),
+        shopRelationshipAction(entity, "supports", "action", "pspf.shop.linkSpendToAction"),
+        shopRelationshipAction(entity, "supports", "requirement", "pspf.shop.linkSpendToRequirement")
+      ];
+  }
+}
+
+function shopRelationshipAction(
+  entity: SupplierRecord | ContractRecord | SpendItemRecord,
+  linkType: LinkType,
+  toType: LinkableTarget["entityType"] | "contract",
+  command: string
+): RelationshipManagerAction {
+  const fromType = toType === "contract" ? "contract" : entity.entityType;
+  const targetType = toType === "contract" ? "spend-item" : toType;
+  const rule = operatorLinkRuleFor(fromType, linkType, targetType);
+  if (!rule) {
+    throw new Error(`Missing Shop operator link rule for ${fromType} ${linkType} ${targetType}`);
+  }
+  return {
+    label: rule.label,
+    fromLabel: formatToken(rule.fromType),
+    phrase: rule.phrase,
+    toLabel: formatToken(rule.toType),
+    href: commandUri(command, [entity])
+  };
 }
 
 function renderCompactForecastHtml(

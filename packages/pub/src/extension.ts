@@ -12,6 +12,8 @@ const ASSIGNMENT_STATUSES = ["active", "planned", "rotating", "needs-backup"] as
 const PUB_WEBVIEW_COMMANDS = new Set<string>([
   "pspf.pub.loadSample",
   "pspf.pub.newPerson",
+  "pspf.pub.openPersonDetail",
+  "pspf.pub.editPerson",
   "pspf.pub.newTeam",
   "pspf.pub.openTeamDetail",
   "pspf.pub.editTeam",
@@ -122,8 +124,11 @@ interface PubWebviewMessage {
   readonly command?: string;
   readonly action?: string;
   readonly teamId?: string;
-  readonly fields?: TeamEditorFields;
+  readonly personId?: string;
+  readonly fields?: PubEditorFields;
 }
+
+type PubEditorFields = TeamEditorFields & PersonEditorFields;
 
 interface TeamEditorFields {
   readonly [key: string]: unknown;
@@ -136,9 +141,22 @@ interface TeamEditorFields {
   readonly notes?: unknown;
 }
 
+interface PersonEditorFields {
+  readonly displayName?: unknown;
+  readonly stakeholderType?: unknown;
+  readonly organisation?: unknown;
+  readonly currentRole?: unknown;
+  readonly resumeUrl?: unknown;
+  readonly resumeText?: unknown;
+  readonly nextMilestone?: unknown;
+  readonly nextAction?: unknown;
+  readonly notes?: unknown;
+}
+
 let homeViewProvider: PubHomeViewProvider | undefined;
 let activePanel: vscode.WebviewPanel | undefined;
 let teamEditorPanel: vscode.WebviewPanel | undefined;
+let personEditorPanel: vscode.WebviewPanel | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   homeViewProvider = new PubHomeViewProvider();
@@ -154,6 +172,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.pub.openHome", openHome),
     vscode.commands.registerCommand("pspf.pub.loadSample", loadSample),
     vscode.commands.registerCommand("pspf.pub.newPerson", newPerson),
+    vscode.commands.registerCommand("pspf.pub.openPersonDetail", openPersonDetail),
+    vscode.commands.registerCommand("pspf.pub.editPerson", editPerson),
     vscode.commands.registerCommand("pspf.pub.newTeam", newTeam),
     vscode.commands.registerCommand("pspf.pub.openTeamDetail", openTeamDetail),
     vscode.commands.registerCommand("pspf.pub.editTeam", editTeam),
@@ -179,6 +199,7 @@ export function deactivate(): void {
   homeViewProvider = undefined;
   activePanel = undefined;
   teamEditorPanel = undefined;
+  personEditorPanel = undefined;
 }
 
 async function openHome(): Promise<void> {
@@ -240,6 +261,80 @@ async function newPerson(): Promise<void> {
   await saveStore({ ...store, people: [...store.people, person] });
   await refreshHome();
   vscode.window.showInformationMessage(`Added Pub person ${displayName}.`);
+}
+
+async function openPersonDetail(): Promise<void> {
+  const store = await loadStore();
+  const person = await pickPerson(store, "Open person detail");
+  if (!person) {
+    return;
+  }
+  await openPubPanel(`Person: ${person.displayName}`, (currentStore) =>
+    renderPersonDetailHtml(currentStore, person.id)
+  );
+}
+
+async function editPerson(): Promise<void> {
+  const store = await loadStore();
+  const person = await pickPerson(store, "Edit person");
+  if (!person) {
+    return;
+  }
+  await openPersonEditor(person);
+}
+
+async function openPersonEditor(person?: PersonRecord): Promise<void> {
+  const title = person ? `Edit Pub Person: ${person.displayName}` : "New Pub Person";
+  if (personEditorPanel) {
+    personEditorPanel.title = title;
+    personEditorPanel.reveal(vscode.ViewColumn.One);
+  } else {
+    personEditorPanel = vscode.window.createWebviewPanel("pspfPubPersonEditor", title, vscode.ViewColumn.One, {
+      enableScripts: true
+    });
+    personEditorPanel.webview.onDidReceiveMessage((message: PubWebviewMessage) => {
+      void handlePersonEditorMessage(message);
+    });
+    personEditorPanel.onDidDispose(() => {
+      personEditorPanel = undefined;
+    });
+  }
+  personEditorPanel.webview.html = renderPersonEditorHtml(person);
+}
+
+async function handlePersonEditorMessage(message: PubWebviewMessage): Promise<void> {
+  if (message.action === "cancelPerson") {
+    personEditorPanel?.dispose();
+    return;
+  }
+  if (message.action !== "savePerson" && message.action !== "saveAndClosePerson") {
+    return;
+  }
+
+  const store = await loadStore();
+  const person = parsePersonEditorFields(message.fields, message.personId);
+  if (!person) {
+    vscode.window.showWarningMessage("Person display name is required before saving.");
+    return;
+  }
+  const existing = store.people.some((candidate) => candidate.id === person.id);
+  await saveStore({
+    ...store,
+    people: existing
+      ? store.people.map((candidate) => (candidate.id === person.id ? person : candidate))
+      : [...store.people, person]
+  });
+  await refreshHome();
+
+  if (message.action === "saveAndClosePerson") {
+    personEditorPanel?.dispose();
+    await openPubPanel(`Person: ${person.displayName}`, (currentStore) =>
+      renderPersonDetailHtml(currentStore, person.id)
+    );
+  } else {
+    await openPersonEditor(person);
+  }
+  vscode.window.showInformationMessage(`Saved Pub person ${person.displayName}.`);
 }
 
 async function newRole(): Promise<void> {
@@ -716,6 +811,8 @@ function renderHomeHtml(store: PubStore): string {
         ${commandButton("pspf.pub.newTeam", "New team", "Add local team-owned controls")}
         ${commandButton("pspf.pub.newRole", "New role", "Attach a role to a team")}
         ${commandButton("pspf.pub.newPerson", "New person", "Add local-only person context")}
+        ${commandButton("pspf.pub.openPersonDetail", "Person detail", "Open one person with assignments and relationship notes")}
+        ${commandButton("pspf.pub.editPerson", "Edit person", "Update local-only person context")}
         ${commandButton("pspf.pub.newAssignment", "New assignment", "Assign a person to a role")}
         ${commandButton("pspf.pub.recordRelationshipNote", "Relationship note", "Record a local follow-up")}
         ${commandButton("pspf.pub.loadSample", "Load sample", "Replace current Pub data with sample records")}
@@ -1008,6 +1105,108 @@ function personEditorFields(person: PersonRecord): string {
   </fieldset>`;
 }
 
+function renderPersonDetailHtml(store: PubStore, personId: string): string {
+  const person = store.people.find((candidate) => candidate.id === personId);
+  if (!person) {
+    return pageHtml(
+      "PSPF Pub Person",
+      sectionHtml("Person not found", "This person exists only in Pub local storage and could not be resolved.", "")
+    );
+  }
+  const assignments = store.assignments.filter((assignment) => assignment.personId === person.id);
+  const assignmentRows = assignments
+    .map((assignment) => {
+      const role = store.roles.find((candidate) => candidate.id === assignment.roleId);
+      const team = role ? teamForRole(store, role) : undefined;
+      return `<tr><td>${escapeHtml(role?.title ?? "Unknown role")}</td><td>${escapeHtml(team?.title ?? "Unknown team")}</td><td>${escapeHtml(label(assignment.status))}</td><td>${escapeHtml(assignment.allocation || "Not recorded")}</td><td>${escapeHtml(assignment.reviewBy || "Not recorded")}</td><td>${escapeHtml(assignment.badge || "No badge")}</td></tr>`;
+    })
+    .join("");
+  const noteRows = store.relationshipNotes
+    .filter((note) => note.personId === person.id)
+    .map(
+      (note) =>
+        `<tr><td>${escapeHtml(formatDate(note.createdAt))}</td><td>${escapeHtml(note.summary)}</td><td>${escapeHtml(note.nextContactAt || "Not recorded")}</td></tr>`
+    )
+    .join("");
+  return pageHtml(
+    `PSPF Pub ${person.displayName}`,
+    `<main>
+      <section class="hero">
+        <p class="meta">Pub local-only person detail</p>
+        <h1>${escapeHtml(person.displayName)}</h1>
+        <p>${escapeHtml(person.currentRole || "No current role recorded yet.")}</p>
+        <div class="tags">
+          <span class="tag">${escapeHtml(label(person.stakeholderType))}</span>
+          <span class="tag">${escapeHtml(person.organisation || "No organisation recorded")}</span>
+          <span class="tag">local-only</span>
+        </div>
+      </section>
+      <section class="grid two" aria-label="Person local context">
+        ${summaryCard("Resume", escapeHtml(person.resumeUrl || person.resumeText || "No resume context recorded."))}
+        ${summaryCard("Next signal", escapeHtml(person.nextAction || person.nextMilestone || "No next signal recorded."))}
+        ${summaryCard("Local-only notes", escapeHtml(person.notes || "No local notes recorded."))}
+      </section>
+      <section class="panel" aria-label="Person actions">
+        <h1>Person actions</h1>
+        <div class="action-list compact">
+          ${commandButton("pspf.pub.editPerson", "Edit person", "Update local person fields")}
+          ${commandButton("pspf.pub.newAssignment", "New assignment", "Assign this person to a role")}
+          ${commandButton("pspf.pub.recordRelationshipNote", "Relationship note", "Record local follow-up context")}
+        </div>
+      </section>
+      ${sectionHtml(
+        "Assignments",
+        "Assignments connect this local person to Pub roles without publishing person identity.",
+        tableHtml(["Role", "Team", "Status", "Allocation", "Review by", "Badge"], assignmentRows, 6)
+      )}
+      ${sectionHtml(
+        "Relationship notes",
+        "Mini CRM notes for this person stay local-only by default.",
+        tableHtml(["Recorded", "Summary", "Next contact"], noteRows, 3)
+      )}
+    </main>`
+  );
+}
+
+function renderPersonEditorHtml(person: PersonRecord | undefined): string {
+  const current = person ?? blankPerson();
+  return pageHtml(
+    person ? `Edit Pub Person ${person.displayName}` : "New Pub Person",
+    `<main>
+      <section class="hero">
+        <p class="meta">Pub local-only CRUD pilot</p>
+        <h1>${person ? `Edit ${escapeHtml(person.displayName)}` : "New person"}</h1>
+        <p>Person detail stays in Pub local storage. Save writes to .pspf/pub/pub.json only.</p>
+      </section>
+      <form class="editor-form" data-person-id="${escapeHtml(person?.id ?? "")}">
+        <section class="panel">
+          <h1>Person details</h1>
+          <label><span>Display name</span><input name="displayName" value="${escapeHtml(current.displayName)}" required autofocus /></label>
+          <label><span>Stakeholder type</span><select name="stakeholderType">${STAKEHOLDER_TYPES.map((type) => `<option value="${escapeHtml(type)}"${type === current.stakeholderType ? " selected" : ""}>${escapeHtml(label(type))}</option>`).join("")}</select></label>
+          <label><span>Organisation</span><input name="organisation" value="${escapeHtml(current.organisation)}" /></label>
+          <label><span>Current role</span><input name="currentRole" value="${escapeHtml(current.currentRole)}" /></label>
+        </section>
+        <section class="panel">
+          <h1>Resume and signals</h1>
+          <label><span>Resume link</span><input name="resumeUrl" value="${escapeHtml(current.resumeUrl)}" placeholder="Local file path or URL" /></label>
+          <label><span>Resume text</span><textarea name="resumeText" rows="5">${escapeHtml(current.resumeText)}</textarea></label>
+          <label><span>Next milestone</span><input name="nextMilestone" value="${escapeHtml(current.nextMilestone)}" /></label>
+          <label><span>Next action</span><input name="nextAction" value="${escapeHtml(current.nextAction)}" /></label>
+        </section>
+        <section class="panel">
+          <h1>Local-only notes</h1>
+          <label><span>Notes</span><textarea name="notes" rows="5">${escapeHtml(current.notes)}</textarea></label>
+          <div class="form-actions">
+            <button type="button" data-action="savePerson"><span class="button-title">Save</span><span class="button-description">Write and keep editing</span></button>
+            <button type="button" data-action="saveAndClosePerson"><span class="button-title">Save and close</span><span class="button-description">Write, close, and open Person detail</span></button>
+            <button type="button" data-action="cancelPerson"><span class="button-title">Cancel</span><span class="button-description">Close without writing</span></button>
+          </div>
+        </section>
+      </form>
+    </main>`
+  );
+}
+
 function blankRole(teamId: string): RoleRecord {
   return {
     id: localId("ROL"),
@@ -1058,11 +1257,21 @@ function renderPeopleHtml(store: PubStore): string {
     .join("");
   return pageHtml(
     "PSPF Pub People",
-    sectionHtml(
-      "People directory",
-      "Local-only people and stakeholder context. Do not treat these display names as publishable data.",
-      tableHtml(["Name", "Type", "Organisation", "Role", "Resume link", "Resume text", "Next signal"], rows, 7)
-    )
+    `<main>
+      <section class="panel" aria-label="People actions">
+        <h1>People actions</h1>
+        <div class="action-list compact">
+          ${commandButton("pspf.pub.openPersonDetail", "Person detail", "Open a local person record")}
+          ${commandButton("pspf.pub.editPerson", "Edit person", "Update all person fields")}
+          ${commandButton("pspf.pub.newPerson", "New person", "Add local-only person context")}
+        </div>
+      </section>
+      ${sectionHtml(
+        "People directory",
+        "Local-only people and stakeholder context. Do not treat these display names as publishable data.",
+        tableHtml(["Name", "Type", "Organisation", "Role", "Resume link", "Resume text", "Next signal"], rows, 7)
+      )}
+    </main>`
   );
 }
 
@@ -1198,6 +1407,7 @@ function pageHtml(title: string, body: string): string {
       vscode.postMessage({
         action: button.dataset.action,
         teamId: form.dataset.teamId,
+        personId: form.dataset.personId,
         fields
       });
     });
@@ -1376,6 +1586,29 @@ function parsePeopleEditorFields(fields: TeamEditorFields | undefined, store: Pu
     })
     .filter((person) => person.displayName.length > 0);
   return [...store.people.filter((person) => !editedPersonIds.has(person.id)), ...editedPeople];
+}
+
+function parsePersonEditorFields(
+  fields: PersonEditorFields | undefined,
+  personId: string | undefined
+): PersonRecord | undefined {
+  const displayName = stringField(fields?.displayName).trim();
+  if (!displayName) {
+    return undefined;
+  }
+  const stakeholderType = fields?.stakeholderType;
+  return {
+    id: personId && personId.trim().length > 0 ? personId : localId("PER"),
+    displayName,
+    stakeholderType: isStakeholderType(stakeholderType) ? stakeholderType : "staff",
+    organisation: stringField(fields?.organisation).trim(),
+    currentRole: stringField(fields?.currentRole).trim(),
+    resumeUrl: stringField(fields?.resumeUrl).trim(),
+    resumeText: stringField(fields?.resumeText).trim(),
+    nextMilestone: stringField(fields?.nextMilestone).trim(),
+    nextAction: stringField(fields?.nextAction).trim(),
+    notes: stringField(fields?.notes).trim()
+  };
 }
 
 function parseAssignmentEditorFields(

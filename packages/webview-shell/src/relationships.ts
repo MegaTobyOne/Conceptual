@@ -4,6 +4,8 @@ export interface RelationshipManagerAction {
   readonly phrase: string;
   readonly toLabel: string;
   readonly href?: string;
+  readonly command?: string;
+  readonly dataAttributes?: Readonly<Record<string, string>>;
   readonly disabledReason?: string;
 }
 
@@ -22,6 +24,16 @@ function escapeAttribute(value: string): string {
   return escapeText(value).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
+function dataAttributesHtml(attributes: Readonly<Record<string, string>> | undefined): string {
+  if (!attributes) {
+    return "";
+  }
+  return Object.entries(attributes)
+    .filter(([name]) => /^data-[a-z0-9-]+$/.test(name))
+    .map(([name, value]) => ` ${name}="${escapeAttribute(value)}"`)
+    .join("");
+}
+
 export function relationshipManagerHtml(options: RelationshipManagerOptions): string {
   const description = options.description ? `<p class="pspf-muted">${escapeText(options.description)}</p>` : "";
   const actions = options.actions
@@ -29,7 +41,9 @@ export function relationshipManagerHtml(options: RelationshipManagerOptions): st
       const endpoint = `<span class="pspf-relationship-endpoints"><strong>${escapeText(action.fromLabel)}</strong> <span>${escapeText(action.phrase)}</span> <strong>${escapeText(action.toLabel)}</strong></span>`;
       const command = action.href
         ? `<a class="pspf-button pspf-button--secondary" href="${escapeAttribute(action.href)}">${escapeText(action.label)}</a>`
-        : `<span class="pspf-pill pspf-pill--neutral">${escapeText(action.disabledReason ?? "No action available")}</span>`;
+        : action.command
+          ? `<button type="button" class="pspf-button pspf-button--secondary" data-command="${escapeAttribute(action.command)}"${dataAttributesHtml(action.dataAttributes)}>${escapeText(action.label)}</button>`
+          : `<span class="pspf-pill pspf-pill--neutral">${escapeText(action.disabledReason ?? "No action available")}</span>`;
       return `<li class="pspf-relationship-action">${endpoint}${command}</li>`;
     })
     .join("");
