@@ -67,8 +67,10 @@ import {
   isValidTagLabel,
   normaliseSavedViewName,
   normaliseTagLabel,
+  operatorLinkRuleForEndpoints,
   withEnvelope
 } from "@pspf/contracts";
+import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
 
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
@@ -3971,6 +3973,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
       ${requirementNavigationStrip(requirement, allEntities)}
       <div class="form-actions"><button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Edit</button><button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(requirement.id)}">Apply tag</button><button type="button" data-command="recordChange" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Record significant change</button></div>
     </section>
+    ${renderRequirementRelationshipManager(requirement, allEntities)}
     ${recordTable("Tags", tagRows, ["title", "colour", "status", "action"])}
     ${recordTable("Directions Targeting This Requirement", directionRows, ["reference", "title", "responseState", "sourceAuthority"])}
     ${recordTable("Evidence", evidenceRows, ["title", "evidenceType", "freshness", "reference"])}
@@ -4888,17 +4891,14 @@ function renderRequirementEditor(
       <p class="muted">Add or open the linked records that drive this Requirement's assessment.</p>
       <div class="form-actions">
         <button type="button" data-command="attachEvidenceToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Add new evidence</button>
-        <button type="button" data-command="linkExistingEvidenceToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing evidence</button>
         <button type="button" data-command="createActionForRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Create action</button>
-        <button type="button" data-command="linkExistingActionToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing action</button>
         <button type="button" data-command="createRiskForRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Create risk</button>
-        <button type="button" data-command="linkExistingRiskToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing risk</button>
-        <button type="button" data-command="linkExistingDirectionToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing Direction</button>
         <button type="button" data-command="mapRequirementToIsm" data-requirement-id="${escapeHtml(requirement.id)}">Map ISM control</button>
         <button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(requirement.id)}">Apply tag</button>
         <button type="button" data-command="recordChange" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Record significant change</button>
       </div>
     </section>
+    ${renderRequirementRelationshipManager(requirement, allEntities)}
     ${recordTable("Tags", tagRows, ["title", "colour", "status", "action"])}
     ${recordTable("Directions Targeting This Requirement", directionRows, ["reference", "title", "responseState", "sourceAuthority"])}
     ${recordTable("Evidence", evidenceRows, ["title", "evidenceType", "freshness", "reference"])}
@@ -6592,6 +6592,12 @@ async function listAllEntities(): Promise<V01Entity[]> {
 type RequirementNavigationDirection = "previous" | "next";
 type LinkableItemType = "evidence" | "action" | "risk" | "direction";
 type LinkableExistingEntity = EvidenceEntity | ActionEntity | RiskEntity | DirectionEntity;
+const requirementRelationshipItemTypes = [
+  "evidence",
+  "action",
+  "risk",
+  "direction"
+] as const satisfies readonly LinkableItemType[];
 
 function isRequirementNavigationDirection(value: string | undefined): value is RequirementNavigationDirection {
   return value === "previous" || value === "next";
@@ -6743,29 +6749,82 @@ async function linkExistingItemToRequirement(
 }
 
 function linkTypeForExistingItem(itemType: LinkableItemType): LinkEntity["linkType"] {
-  if (itemType === "direction") {
-    return "targets";
-  }
-  if (itemType === "evidence") {
-    return "supported-by";
-  }
-  if (itemType === "action") {
-    return "addressed-by";
-  }
-  return "exposed-by";
+  return existingItemOperatorRule(itemType).linkType;
 }
 
 function linkPhraseForExistingItem(itemType: LinkableItemType): string {
-  if (itemType === "direction") {
-    return "targeted by";
+  return existingItemOperatorRule(itemType).phrase;
+}
+
+function existingItemOperatorRule(itemType: LinkableItemType) {
+  const fromType = itemType === "direction" ? "direction" : "requirement";
+  const toType = itemType === "direction" ? "requirement" : itemType;
+  const rule = operatorLinkRuleForEndpoints(fromType, toType, "workshop");
+  if (!rule) {
+    throw new Error(`Missing Workshop operator link rule for ${fromType} to ${toType}`);
   }
-  if (itemType === "evidence") {
-    return "supported by";
+  return rule;
+}
+
+function renderRequirementRelationshipManager(
+  requirement: RequirementEntity,
+  allEntities: readonly V01Entity[]
+): string {
+  const activeLinks = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const actions: RelationshipManagerAction[] = requirementRelationshipItemTypes.map((itemType) => {
+    const rule = existingItemOperatorRule(itemType);
+    const availableCount = unlinkedExistingItemCount(requirement.id, itemType, allEntities, activeLinks);
+    return {
+      label: `Link existing ${label(itemType)}`,
+      fromLabel: label(rule.fromType),
+      phrase: rule.phrase,
+      toLabel: label(rule.toType),
+      command: availableCount > 0 ? linkExistingCommandForItem(itemType) : undefined,
+      dataAttributes: { "data-requirement-id": requirement.id },
+      disabledReason: `No unlinked ${label(itemType).toLowerCase()} records available`
+    };
+  });
+
+  return relationshipManagerHtml({
+    title: "Relationship actions",
+    description:
+      "Link existing Workshop records using the shared relationship manager pattern and canonical operator rules.",
+    actions,
+    emptyText: "No Requirement relationship actions are available."
+  });
+}
+
+function unlinkedExistingItemCount(
+  requirementId: string,
+  itemType: LinkableItemType,
+  allEntities: readonly V01Entity[],
+  activeLinks: readonly LinkEntity[]
+): number {
+  const linkType = linkTypeForExistingItem(itemType);
+  const linkedIds = new Set(
+    activeLinks
+      .filter((link) => isExistingItemLinkForRequirement(link, requirementId, itemType, linkType))
+      .map((link) => (itemType === "direction" ? link.fromId : link.toId))
+  );
+  return allEntities.filter(
+    (entity): entity is LinkableExistingEntity =>
+      entity.entityType === itemType && entity.recordStatus !== "deleted" && !linkedIds.has(entity.id)
+  ).length;
+}
+
+function linkExistingCommandForItem(itemType: LinkableItemType): string {
+  switch (itemType) {
+    case "evidence":
+      return "linkExistingEvidenceToRequirement";
+    case "action":
+      return "linkExistingActionToRequirement";
+    case "risk":
+      return "linkExistingRiskToRequirement";
+    case "direction":
+      return "linkExistingDirectionToRequirement";
   }
-  if (itemType === "action") {
-    return "addressed by";
-  }
-  return "exposed by";
 }
 
 function existingItemDescription(entity: LinkableExistingEntity, activeLinks: readonly LinkEntity[]): string {

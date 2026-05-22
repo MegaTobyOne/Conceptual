@@ -1,6 +1,6 @@
 # PSPF Core
 
-Local-first tooling for Australian Government PSPF assurance work. Core, Workshop, Shop, and Explorer share one schema and one local store so that authoring, commercial planning, and publication stay aligned.
+Local-first tooling for Australian Government PSPF assurance work. Core, Workshop, Shop, Pub, and Explorer share one schema and one local store so that authoring, commercial planning, people context, and publication stay aligned.
 
 ## What this extension does
 
@@ -17,9 +17,10 @@ Core is the foundation for the rest of the PSPF ecosystem.
 
 - **Workshop** is the authoring surface and depends on Core.
 - **Shop** is the commercial planning surface and depends on Core.
+- **Pub** is the local-only people, role, assignment, and relationship context surface and depends on Core.
 - **Explorer** is a static web viewer that opens the JSON bundle Core produces.
 
-Install Core first, then add Workshop and Shop as needed.
+Install Core first, then add Workshop, Shop, and Pub as needed.
 
 ## Key commands
 

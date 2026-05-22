@@ -230,6 +230,12 @@ const coverage = [
     "package:check",
     "check:release-candidate",
     "check:deployment-safety"
+  ]),
+  adr("0065-v1-29-ux-consistency-and-relationship-manager.md", "automated", [
+    "e2e:v1.29",
+    "check:ux-coverage",
+    "check:release-candidate",
+    "check:gates"
   ])
 ];
 

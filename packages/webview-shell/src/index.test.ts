@@ -6,6 +6,7 @@ import {
   commandButtonAcknowledgementScript,
   cspNonce,
   pill,
+  relationshipManagerHtml,
   shellHtml,
   tokensCss,
   versionPill
@@ -23,8 +24,70 @@ test("tokensCss includes shared root tokens for every surface", () => {
     assert.match(css, /\.pspf-empty\b/);
     assert.match(css, /\.pspf-table\b/);
     assert.match(css, /\.pspf-section\b/);
+    assert.match(css, /\.pspf-relationship-actions\b/);
     assert.match(css, /pspf-skip-link/);
   }
+});
+
+test("relationshipManagerHtml renders escaped relationship actions", () => {
+  const html = relationshipManagerHtml({
+    title: "Relationships <draft>",
+    description: "Add links safely.",
+    actions: [
+      {
+        label: "Link supplier",
+        fromLabel: "Supplier <A>",
+        phrase: "supports",
+        toLabel: "Requirement & Risk",
+        href: "command:pspf.shop.link?x=1&y=2"
+      },
+      {
+        label: "No target",
+        fromLabel: "Contract",
+        phrase: "funds",
+        toLabel: "Spend item",
+        disabledReason: "All linked"
+      }
+    ]
+  });
+
+  assert.match(html, /Relationships &lt;draft&gt;/);
+  assert.match(html, /Supplier &lt;A&gt;/);
+  assert.match(html, /Requirement &amp; Risk/);
+  assert.match(html, /command:pspf.shop.link\?x=1&amp;y=2/);
+  assert.match(html, /All linked/);
+});
+
+test("relationshipManagerHtml renders escaped command-button actions", () => {
+  const html = relationshipManagerHtml({
+    title: "Relationships",
+    actions: [
+      {
+        label: "Link existing <evidence>",
+        fromLabel: "Requirement",
+        phrase: "supported by",
+        toLabel: "Evidence",
+        command: 'linkExistingEvidenceToRequirement"bad',
+        dataAttributes: {
+          "data-requirement-id": 'req-1"x',
+          onclick: "ignored"
+        }
+      }
+    ]
+  });
+
+  assert.match(html, /<button type="button"/);
+  assert.match(html, /data-command="linkExistingEvidenceToRequirement&quot;bad"/);
+  assert.match(html, /data-requirement-id="req-1&quot;x"/);
+  assert.doesNotMatch(html, /onclick/);
+  assert.match(html, /Link existing &lt;evidence&gt;/);
+});
+
+test("relationshipManagerHtml renders an empty state", () => {
+  const html = relationshipManagerHtml({ title: "Relationships", actions: [], emptyText: "Nothing to link." });
+
+  assert.match(html, /class="pspf-empty"/);
+  assert.match(html, /Nothing to link\./);
 });
 
 test("tokensCss marketing surface declares an explicit dark-scheme palette", () => {

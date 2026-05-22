@@ -2,7 +2,7 @@
   "name": "pspf-pub",
   "displayName": "PSPF Pub",
   "description": "PSPF people, role, team, assignment, and stakeholder relationship surface.",
-  "version": "1.28.2",
+  "version": "1.29.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -55,6 +55,14 @@
         "title": "PSPF: New Pub Person"
       },
       {
+        "command": "pspf.pub.openPersonDetail",
+        "title": "PSPF: Open Pub Person Detail"
+      },
+      {
+        "command": "pspf.pub.editPerson",
+        "title": "PSPF: Edit Pub Person"
+      },
+      {
         "command": "pspf.pub.newTeam",
         "title": "PSPF: New Pub Team"
       },
@@ -71,12 +79,36 @@
         "title": "PSPF: New Pub Role"
       },
       {
+        "command": "pspf.pub.openRoleDetail",
+        "title": "PSPF: Open Pub Role Detail"
+      },
+      {
+        "command": "pspf.pub.editRole",
+        "title": "PSPF: Edit Pub Role"
+      },
+      {
         "command": "pspf.pub.newAssignment",
         "title": "PSPF: New Pub Assignment"
       },
       {
+        "command": "pspf.pub.openAssignmentDetail",
+        "title": "PSPF: Open Pub Assignment Detail"
+      },
+      {
+        "command": "pspf.pub.editAssignment",
+        "title": "PSPF: Edit Pub Assignment"
+      },
+      {
         "command": "pspf.pub.recordRelationshipNote",
         "title": "PSPF: Record Pub Relationship Note"
+      },
+      {
+        "command": "pspf.pub.openRelationshipNoteDetail",
+        "title": "PSPF: Open Pub Relationship Note Detail"
+      },
+      {
+        "command": "pspf.pub.editRelationshipNote",
+        "title": "PSPF: Edit Pub Relationship Note"
       },
       {
         "command": "pspf.pub.openOrgChart",

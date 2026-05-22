@@ -327,6 +327,33 @@ input[aria-invalid="false"], select[aria-invalid="false"], textarea[aria-invalid
 .pspf-pill--ok { color: var(--pspf-ok); border-color: var(--pspf-ok); background: var(--pspf-ok-soft); }
 .pspf-pill--neutral { background: var(--pspf-neutral-soft); }
 
+.pspf-relationship-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--pspf-gap-sm);
+  margin: var(--pspf-gap) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pspf-relationship-action {
+  display: grid;
+  gap: var(--pspf-gap-sm);
+  align-content: start;
+  border: 1px solid var(--pspf-border);
+  border-radius: var(--pspf-radius);
+  background: var(--pspf-surface-strong);
+  padding: var(--pspf-gap);
+  min-width: 0;
+}
+.pspf-relationship-endpoints {
+  display: block;
+  color: var(--pspf-muted);
+  line-height: var(--pspf-line-body);
+}
+.pspf-relationship-endpoints strong {
+  color: var(--pspf-text);
+}
+
 .pspf-banner {
   border: 1px solid var(--pspf-border);
   border-left: 3px solid var(--pspf-primary);

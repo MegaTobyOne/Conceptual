@@ -2,7 +2,7 @@
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.28.2 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.10.0`.
+The repository currently ships PSPF v1.29.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.10.0`.
 
 ## Products
 
@@ -29,7 +29,7 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the v1.28 gate chain and writes `.tmp/release-readiness/v1.28.2-readiness-report.md`.
+`release:readiness` runs the v1.29 gate chain and writes `.tmp/release-readiness/v1.29.0-readiness-report.md`.
 
 ## Current Workshop Slice
 
@@ -62,4 +62,8 @@ Shop authoring is Core-backed and can link suppliers, contracts, and spend items
 
 ## Current Pub Slice
 
-Pub is now a Marketplace-ready foundation extension. It provides the Activity Bar entry, Home view, and `pspf.pub.*` command namespace for later people, organisation chart, assignment, relationship, roster, and rotation workflows. Pub data is not added to Explorer publication bundles in v1.28; sensitive people and relationship context stays local-only by default.
+Pub is now a Marketplace-ready local-only people and relationship surface. It provides the Activity Bar entry, Home view, Organisation Chart, Teams, People, Roles, Assignments, and Relationship Log views. v1.29 completes local detail/edit panels for Person, Role, Assignment, and Relationship Note records while keeping Pub data out of Explorer publication bundles.
+
+## Current UX Consistency Slice
+
+v1.29 adds the ecosystem UX coverage matrix and starts the shared relationship-manager foundation. Operator-editable relationship rules are now centralised in contracts and consumed by Shop and Workshop; Shop tree selection opens detail-first panels; Pub local records now have explicit list/detail/edit coverage decisions and local-only CRUD proof points.
