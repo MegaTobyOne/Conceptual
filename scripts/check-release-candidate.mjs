@@ -1395,7 +1395,7 @@ if (isV1Release && minorVersion >= 29) {
     "Relationship rule gate",
     "Supplier, Contract, and Spend Item detail panels",
     "Workshop uses it for Requirement relationship actions",
-    "Pub Person records expose local-only detail and edit panels",
+    "Pub Person, Role, Assignment, and Relationship Note records expose local-only detail and edit panels",
     "Regression gate"
   ]) {
     assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);

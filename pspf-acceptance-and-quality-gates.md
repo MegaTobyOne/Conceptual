@@ -458,9 +458,9 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 3. **UX coverage gate**: `check:ux-coverage` validates the entity UX coverage matrix and its regression tests for all contract entity types and Pub local record types.
 4. **Relationship rule gate**: `@pspf/contracts.OPERATOR_LINK_RULES` covers current Shop and Workshop operator-editable relationship commands with canonical endpoint, link type, label, and phrase metadata.
 5. **Relationship UI gate**: `@pspf/webview-shell.relationshipManagerHtml` renders escaped shared relationship actions for command URIs and Workshop command buttons; Shop uses it for assurance coverage quick actions and Supplier, Contract, and Spend Item detail panels; Workshop uses it for Requirement relationship actions.
-6. **Pub CRUD gate**: Pub Person records expose local-only detail and edit panels with complete Person field coverage; no Pub Person fields are added to Explorer publication.
-7. **Consumer gate**: Shop, Workshop, and Pub command tests prevent reverting to ad hoc hardcoded link rules, direct-to-edit Shop tree selection, bespoke Requirement relationship controls, or missing Person detail/edit panels.
-8. **Deferred-scope gate**: full relationship-manager rollout beyond the Shop forecast/detail and Workshop Requirement proof points, edit-panel simplification, Pub Role/Assignment/Relationship Note CRUD completion, Pub Explorer publication, and new schema-bearing relationship fields remain deferred.
+6. **Pub CRUD gate**: Pub Person, Role, Assignment, and Relationship Note records expose local-only detail and edit panels with complete field coverage; no Pub local record fields are added to Explorer publication.
+7. **Consumer gate**: Shop, Workshop, and Pub command tests prevent reverting to ad hoc hardcoded link rules, direct-to-edit Shop tree selection, bespoke Requirement relationship controls, or missing Pub local record detail/edit panels.
+8. **Deferred-scope gate**: full relationship-manager rollout beyond the Shop forecast/detail and Workshop Requirement proof points, edit-panel simplification, Pub Explorer publication, new schema-bearing relationship fields, and broader Pub list row-level actions remain deferred.
 9. **Regression gate**: `e2e:v1.29`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)

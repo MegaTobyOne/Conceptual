@@ -296,14 +296,14 @@
       "mutability": "local-only",
       "ownerSurface": "Pub",
       "list": "complete",
-      "detail": "partial",
+      "detail": "complete",
       "create": "complete",
-      "edit": "partial",
+      "edit": "complete",
       "delete": "missing",
       "relationships": "partial",
       "standard": "Local-only person detail/edit with assignments, notes, milestones, resume fields, and privacy boundary.",
-      "gap": "No full person edit/detail panel exists yet and delete/archive is not exposed.",
-      "nextSlice": "After Team editor split, add Pub Person detail and edit panels."
+      "gap": "Delete/archive and broader row-level list actions are not exposed.",
+      "nextSlice": "Define Pub delete/archive semantics before adding destructive actions."
     },
     {
       "entityType": "pub-team",
@@ -328,14 +328,14 @@
       "mutability": "local-only",
       "ownerSurface": "Pub",
       "list": "complete",
-      "detail": "partial",
+      "detail": "complete",
       "create": "complete",
-      "edit": "partial",
+      "edit": "complete",
       "delete": "missing",
       "relationships": "partial",
       "standard": "Role detail/edit with team ownership, reporting role, assignments, PD fields, and control contribution.",
-      "gap": "Role editing is mostly nested inside the Team editor.",
-      "nextSlice": "Extract Role editor from Team editor after Team ownership split."
+      "gap": "Delete/archive and broader row-level list actions are not exposed.",
+      "nextSlice": "Define Pub delete/archive semantics before adding destructive actions."
     },
     {
       "entityType": "pub-assignment",
@@ -344,14 +344,14 @@
       "mutability": "local-only",
       "ownerSurface": "Pub",
       "list": "complete",
-      "detail": "partial",
+      "detail": "complete",
       "create": "complete",
-      "edit": "partial",
+      "edit": "complete",
       "delete": "missing",
       "relationships": "partial",
       "standard": "Assignment detail/edit with person, role, status, allocation, review date, and badge fields.",
-      "gap": "Assignment editing is mostly nested inside the Team editor and lacks relationship-aware delete/archive.",
-      "nextSlice": "Extract Assignment editor after Person and Role details exist."
+      "gap": "Delete/archive and broader row-level list actions are not exposed.",
+      "nextSlice": "Define Pub delete/archive semantics before adding destructive actions."
     },
     {
       "entityType": "pub-relationship-note",
@@ -360,14 +360,14 @@
       "mutability": "local-only",
       "ownerSurface": "Pub",
       "list": "complete",
-      "detail": "partial",
+      "detail": "complete",
       "create": "complete",
-      "edit": "missing",
+      "edit": "complete",
       "delete": "missing",
       "relationships": "partial",
       "standard": "Relationship note detail/edit with timestamp, person, summary, next contact, and local-only warning.",
-      "gap": "Notes can be recorded but not edited or archived through a dedicated panel.",
-      "nextSlice": "Add relationship note detail/edit after Pub person detail exists."
+      "gap": "Delete/archive and broader row-level list actions are not exposed.",
+      "nextSlice": "Define Pub delete/archive semantics before adding destructive actions."
     }
   ]
 }

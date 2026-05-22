@@ -41,8 +41,11 @@ Plan for an ecosystem-wide consistency refactor, but deliver it as staged vertic
 ### Slice 4 - Pub CRUD Completion
 
 - Completed proof point: Person records now have local-only detail and edit panels covering display name, stakeholder type, organisation, role, resume context, next signals, and notes.
+- Completed proof point: Role records now have local-only detail and edit panels covering title, owning team, reporting role, functional outcome, contribution, PD link, and PD text.
+- Completed proof point: Assignment records now have local-only detail and edit panels covering person, role, status, allocation, review date, and action badge.
+- Completed proof point: Relationship Note records now have local-only detail and edit panels covering person, recorded date, summary, and next contact.
 - Split the large Team editor into ownership, roles, assignments, people, and notes sections.
-- Add detail/edit panels for Role, Assignment, and Relationship Note.
+- Pub local record detail/edit coverage is complete for Person, Role, Assignment, and Relationship Note.
 - Keep all Pub sensitive records local-only.
 
 ### Slice 5 - Explorer/Workshop Pattern Alignment

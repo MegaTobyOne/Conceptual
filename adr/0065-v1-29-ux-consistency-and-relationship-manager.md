@@ -30,12 +30,15 @@ The slice introduces a machine-checkable entity UX coverage matrix, a `check:ux-
 - Add a shared relationship-manager renderer and prove it in the Shop assurance coverage flow and Workshop Requirement relationship surfaces.
 - Route Shop Supplier, Contract, and Spend Item tree selection to read-only detail panels before editing, with shared relationship actions on each detail panel.
 - Add the first Pub CRUD completion proof point by giving Person records local-only detail and edit panels that cover all Person fields without introducing Explorer publication.
+- Extend the Pub CRUD completion proof point to Role records with local-only detail and edit panels covering all Role fields and assignment context.
+- Extend the Pub CRUD completion proof point to Assignment records with local-only detail and edit panels covering person, role, status, allocation, review date, and action badge.
+- Complete the Pub CRUD proof point by giving Relationship Note records local-only detail and edit panels covering person, recorded date, summary, and next contact.
 
 ## Deferred
 
 - Full visual relationship manager UI across every module beyond the initial Shop forecast/detail and Workshop Requirement proof points.
 - Broad edit-panel simplification for Strategy, Requirement, Action, Shop, and Pub Team editors.
-- Pub full role/assignment/note CRUD completion and broader People list row-level actions.
+- Broader People/Role/Assignment/Relationship Note list row-level actions.
 - Explorer publication of Pub data.
 - New schema-bearing relationship fields or link verbs.
 

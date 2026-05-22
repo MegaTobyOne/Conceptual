@@ -2,7 +2,7 @@
   "name": "pspf",
   "version": "1.29.0",
   "private": true,
-  "description": "Local-first PSPF Core, Workshop, and Explorer validation slice.",
+  "description": "Local-first PSPF Core, Workshop, Shop, Pub, and Explorer validation slice.",
   "license": "MIT",
   "repository": {
     "type": "git",
