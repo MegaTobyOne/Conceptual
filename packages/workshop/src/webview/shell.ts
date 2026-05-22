@@ -280,6 +280,8 @@ export function shellHtml(title: string, body: string): string {
         pendingDirection: button.getAttribute('data-direction'),
         pendingEvidenceReference: button.getAttribute('data-evidence-reference'),
         pendingStrategyArea: button.getAttribute('data-strategy-area'),
+        pendingChoiceIndex: button.getAttribute('data-choice-index'),
+        pendingOutcomeIndex: button.getAttribute('data-outcome-index'),
         pendingFilterText: document.querySelector('.requirement-browser__filter') instanceof HTMLInputElement ? document.querySelector('.requirement-browser__filter').value : ''
       };
     }
@@ -350,6 +352,9 @@ export function shellHtml(title: string, body: string): string {
       if (command === 'attachEvidenceToRequirement' || command === 'createActionForRequirement' || command === 'createRiskForRequirement' || command === 'mapRequirementToIsm') {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
       }
+      if (command === 'openIsmControlDetail' || command === 'attachEvidenceForIsmControl' || command === 'createActionForIsmControl' || command === 'createRiskForIsmControl') {
+        vscode.postMessage({ command, sourceControlId: button.getAttribute('data-source-control-id') });
+      }
       if (command === 'linkExistingEvidenceToRequirement' || command === 'linkExistingActionToRequirement' || command === 'linkExistingRiskToRequirement' || command === 'linkExistingDirectionToRequirement') {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
       }
@@ -361,6 +366,14 @@ export function shellHtml(title: string, body: string): string {
       }
       if (command === 'openStrategyArea') {
         vscode.postMessage({ command, strategyArea: button.getAttribute('data-strategy-area') });
+      }
+      if (command === 'addStrategyChoice' || command === 'addStrategyOutcome' || command === 'addStrategyMeasure' || command === 'linkStrategyRequirement' || command === 'mapStrategyRequirementToIsm') {
+        vscode.postMessage({
+          command,
+          strategyArea: button.getAttribute('data-strategy-area'),
+          choiceIndex: button.getAttribute('data-choice-index'),
+          outcomeIndex: button.getAttribute('data-outcome-index')
+        });
       }
       if (command === 'pspf.workshop.loadSampleWorkspace') {
         vscode.postMessage({ command });

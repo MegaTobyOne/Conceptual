@@ -1,6 +1,6 @@
 {
   "name": "@pspf/webview-shell",
-  "version": "1.28.1",
+  "version": "1.28.2",
   "private": true,
   "type": "module",
   "main": "dist/index.js",

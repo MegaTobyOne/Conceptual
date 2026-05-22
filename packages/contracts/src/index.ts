@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.10.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.28.1" as const;
+export const PSPF_SLICE_VERSION = "1.28.2" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -157,6 +157,11 @@ export interface ActionImpact {
   readonly explanation: readonly string[];
 }
 
+export interface ActionCommentaryEntry {
+  readonly createdAt: string;
+  readonly text: string;
+}
+
 export interface ActionEntity extends EntityEnvelope {
   readonly entityType: "action";
   readonly title: string;
@@ -164,6 +169,7 @@ export interface ActionEntity extends EntityEnvelope {
   readonly startDate?: string;
   readonly endDate?: string;
   readonly dueDate?: string;
+  readonly commentary?: readonly ActionCommentaryEntry[];
   readonly impact?: ActionImpact;
 }
 
@@ -702,21 +708,24 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   },
   {
     entityType: "action",
-    fields: publicFields(
-      "id",
-      "entityType",
-      "schemaVersion",
-      "title",
-      "createdAt",
-      "updatedAt",
-      "sourceProduct",
-      "recordStatus",
-      "status",
-      "startDate",
-      "endDate",
-      "dueDate",
-      "impact"
-    )
+    fields: [
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "status",
+        "startDate",
+        "endDate",
+        "dueDate",
+        "impact"
+      ),
+      { field: "commentary", publication: "sensitive" }
+    ]
   },
   {
     entityType: "risk",

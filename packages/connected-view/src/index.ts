@@ -448,7 +448,6 @@ export function renderConnectedViewBodyHtml(
   const mode = options.mode ?? "workshop";
   const defaultLayout = options.defaultLayout ?? (mode === "explorer" ? "compact" : "domains");
   const showDirections = options.showDirectionsLane ?? true;
-  const lanes = defaultLayout === "compact" ? model.compactLanes : model.groupedLanes;
   const nodesById = new Map(model.nodes.map((node) => [node.id, node]));
   const initialClass = defaultLayout === "compact" ? "layout-compact" : "layout-grouped";
 
@@ -459,7 +458,9 @@ export function renderConnectedViewBodyHtml(
     domains: model.domains
   });
 
-  const laneHtml = lanes.map((lane) => renderLaneHtml(lane, nodesById, mode)).join("");
+  const laneHtml = connectedViewRenderableLanes(model)
+    .map((lane) => renderLaneHtml(lane, nodesById, mode))
+    .join("");
 
   return `
 <div class="pspf-connected-view ${initialClass}" data-pspf-connected-view data-default-layout="${defaultLayout}" data-mode="${mode}">
@@ -498,6 +499,11 @@ export function renderConnectedViewBodyHtml(
   <div class="cv-hover" data-cv-hover hidden></div>
   <script type="application/json" data-cv-data>${dataPayload.replace(/</g, "\\u003c")}</script>
 </div>`;
+}
+
+function connectedViewRenderableLanes(model: ConnectedViewModel): readonly ConnectedViewLane[] {
+  const compactRequirementLane = model.compactLanes.find((lane) => lane.id === "lane-requirements");
+  return compactRequirementLane ? [...model.groupedLanes, compactRequirementLane] : model.groupedLanes;
 }
 
 function renderLaneHtml(
@@ -1011,7 +1017,8 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     const opts = options || {};
     const mode = opts.mode || "workshop";
     const defaultLayout = opts.defaultLayout || (mode === "explorer" ? "compact" : "domains");
-    const lanes = defaultLayout === "compact" ? model.compactLanes : model.groupedLanes;
+    const compactRequirementLane = (model.compactLanes || []).find(function (lane) { return lane.id === "lane-requirements"; });
+    const lanes = compactRequirementLane ? (model.groupedLanes || []).concat([compactRequirementLane]) : (model.groupedLanes || []);
     const nodesById = new Map(model.nodes.map(function (n) { return [n.id, n]; }));
     const initialClass = defaultLayout === "compact" ? "layout-compact" : "layout-grouped";
     const title = opts.title || "Connected View";

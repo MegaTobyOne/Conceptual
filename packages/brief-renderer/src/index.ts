@@ -79,10 +79,12 @@ export interface CisoMagazineAttentionItem {
 }
 
 export interface CisoMagazineActionItem {
+  readonly actionId: string;
   readonly title: string;
   readonly status: string;
   readonly dueDate?: string;
   readonly linkedRequirement?: string;
+  readonly latestUpdate?: string;
 }
 
 export interface CisoMagazineCommercialItem {
@@ -510,7 +512,7 @@ export function renderCisoMagazineMarkdown(input: CisoMagazineInput): string {
       ? ["- No open actions in this PSPF Domain scope."]
       : model.actionStrip.map(
           (item) =>
-            `- ${item.title} (${item.status}${item.dueDate ? `, due ${item.dueDate}` : ""}) - ${item.linkedRequirement ?? "No linked Requirement"}`
+            `- ${item.title} (${item.status}${item.dueDate ? `, due ${item.dueDate}` : ""}) - ${item.linkedRequirement ?? "No linked Requirement"}${item.latestUpdate ? `; latest update: ${item.latestUpdate}` : ""}`
         )),
     "",
     "## Commercial Watch",
@@ -616,7 +618,7 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
         "Action strip",
         model.actionStrip,
         (item) =>
-          `${item.title} (${item.status}${item.dueDate ? `, due ${item.dueDate}` : ""}) - ${item.linkedRequirement ?? "No linked Requirement"}`,
+          `${item.title} (${item.status}${item.dueDate ? `, due ${item.dueDate}` : ""}) - ${item.linkedRequirement ?? "No linked Requirement"}${item.latestUpdate ? `; latest update: ${item.latestUpdate}` : ""}`,
         "No open actions in this PSPF Domain scope.",
         "action-strip"
       )}
@@ -725,7 +727,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
       ? ["- None recorded."]
       : openActions.map(
           (action) =>
-            `- ${action.title} (${label(action.status)}${action.dueDate ? `, due ${action.dueDate}` : ""}) - ${requirementTitlesByTargetId.get(action.id) ?? "No linked requirement"}`
+            `- ${action.title} (${label(action.status)}${action.dueDate ? `, due ${action.dueDate}` : ""}) - ${requirementTitlesByTargetId.get(action.id) ?? "No linked requirement"}${latestActionCommentary(action) ? `; latest update: ${latestActionCommentary(action)}` : ""}`
         )),
     "",
     "## Open Risks",
@@ -808,7 +810,7 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "",
       "## Open Actions",
       "",
-      ...(openActions.length === 0 ? ["- None recorded."] : openActions.map((action) => "- " + action.title + " (" + label(action.status) + (action.dueDate ? ", due " + action.dueDate : "") + ") - " + (requirementTitlesByTargetId.get(action.id) || "No linked requirement"))),
+      ...(openActions.length === 0 ? ["- None recorded."] : openActions.map((action) => "- " + action.title + " (" + label(action.status) + (action.dueDate ? ", due " + action.dueDate : "") + ") - " + (requirementTitlesByTargetId.get(action.id) || "No linked requirement") + (latestActionCommentary(action) ? "; latest update: " + latestActionCommentary(action) : ""))),
       "",
       "## Open Risks",
       "",
@@ -873,6 +875,11 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
   }
   function label(value) {
     return String(value).replaceAll("-", " ").replace(/[A-Z]/g, (letter) => " " + letter.toLowerCase()).replace(/^./, (letter) => letter.toUpperCase());
+  }
+  function latestActionCommentary(action) {
+    const entries = [...(action.commentary || [])].filter((entry) => entry && entry.text).sort((left, right) => String(right.createdAt || "").localeCompare(String(left.createdAt || "")));
+    const latest = entries[0];
+    return latest ? formatDisplayDate(latest.createdAt) + " - " + latest.text : undefined;
   }
   function formatDisplayDate(value) {
     return value ? new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value)) : "unknown";
@@ -1077,11 +1084,20 @@ function buildActionStrip(
   return [...actions]
     .sort((left, right) => actionPriority(right) - actionPriority(left))
     .map((action) => ({
+      actionId: action.id,
       title: action.title,
       status: label(action.status),
       dueDate: action.dueDate,
-      linkedRequirement: requirementTitlesByTargetId.get(action.id)
+      linkedRequirement: requirementTitlesByTargetId.get(action.id),
+      latestUpdate: latestActionCommentary(action)
     }));
+}
+
+function latestActionCommentary(action: ActionEntity): string | undefined {
+  const latest = [...(action.commentary ?? [])]
+    .filter((entry) => entry.text.trim().length > 0)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0];
+  return latest ? `${formatDisplayDate(latest.createdAt)} - ${latest.text}` : undefined;
 }
 
 function actionPriority(action: ActionEntity): number {

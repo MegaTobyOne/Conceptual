@@ -248,6 +248,10 @@ Create and Edit should share the same panel shape. Detail views should be read-o
 
 For nested or high-authority records, use staged editor areas inside the panel rather than one large form. A Strategy record should separate the stable frame (title, authority, executive summary, risk posture) from active working areas such as choices, constraints, individual outcomes, and measures. Saving a staged area should preserve untouched areas so operators can refine outcomes or constraints without accidentally changing executive context.
 
+Strategy choices and outcomes are managed as nested Strategy areas. Operators can add choices, add outcomes under a choice, add measures under an outcome, and link Requirements to the choice or outcome that they support. ISM controls stay connected through Requirement-to-ISM mappings rather than direct Strategy-to-control links, so Strategy establishes intent and authority while Requirements remain the control-traceability anchor.
+
+ISM controls are the operational control hub. Workshop should let operators open a control detail view, see every PSPF Requirement mapped to that control, and create Evidence, Actions, and Risks through one of those mapped Requirements. Pub may use the same mappings read-only to show which PSPF Requirements a local team reaches through its owned controls; Pub team/person records remain local-only and are never published through the mapping.
+
 ### Pattern 3: Guided validation view
 
 Purpose: help the user move from assertion to defensible structured record.
@@ -399,6 +403,8 @@ Core Pub page types:
 - roster and rotation opportunities.
 
 The organisation chart should be more than a static hierarchy. It should support compact action badges for upcoming actions, milestones, anniversaries, review dates, rotation windows, relationship follow-ups, and team events. Badges should be scannable, explainable on hover or focus, and linked back to the underlying role, team, owned control, or owned control set where possible. Requirements, directions, and actions should be treated as downstream assurance context derived through mappings or linked views rather than as direct Pub ownership fields.
+
+Pub structure should be explicit enough to support people and performance management: teams may have parent teams, roles may report to other roles, roles may carry a position-description link and captured PD text, and people may carry a resume link plus captured resume or capability text. The Team editor is the primary local workbench for this slice and should let an operator edit team fields, team roles, assignments, and assigned people in one review-before-write panel.
 
 Pub should answer practical people and stakeholder questions in plain language:
 

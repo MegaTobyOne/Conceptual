@@ -337,8 +337,9 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **Selection gate**: clicking a card highlights its transitive connected chain; related Requirement cards in the chain receive a distinct visual emphasis; Cmd/Ctrl/Shift-click adds to selection; clicking the sole selected card clears it; Enter/Space replicate the click; double-click opens entity detail through the existing `openEntity` handler.
 7. **Edge and refresh gate**: edges are drawn as neutral SVG bezier curves between card edges; only the highlighted chain uses the accent colour; edges redraw on resize; the toolbar exposes `Clear selection` and `Refresh`, with Workshop refresh re-rendering from current workspace state and Explorer refresh reloading the static page.
 8. **Hover-details and redaction gate**: cards show only short reference and title by default; hover/focus details surface only short references, titles, domain codes, assessment status, action status, action impact urgency, risk likelihood/impact, direction response state, and direct linked neighbours; no restricted fields, free text, contact data, or personnel data are emitted.
-9. **Deferred-scope gate**: v1.20 does not add an editable Connected View, drag-to-link, edge filtering, impact-weighted layout, ISM control overlays, image/PDF export, multi-user cursors, or any new entity types, fields, link verbs, or compatibility axes.
-10. **Regression gate**: `e2e:v1.20`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
+9. **Connector geometry gate**: shared Connected View browser tests render both Workshop and Explorer layouts, toggle between grouped and compact lanes, apply zoom controls, and assert every SVG connector starts and ends on the visible source and target card edge.
+10. **Deferred-scope gate**: v1.20 does not add an editable Connected View, drag-to-link, edge filtering, impact-weighted layout, ISM control overlays, image/PDF export, multi-user cursors, or any new entity types, fields, link verbs, or compatibility axes.
+11. **Regression gate**: `e2e:v1.20`, `check:gates`, `check:schema-coverage`, `check:schema-policy`, `validate:debug-workspace`, `lint`, and `check:release-candidate` pass.
 
 ### v1.20.1 patch gates (Explorer Connected View hotfix, per ADR 0056)
 
@@ -435,13 +436,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **CISO Master Plan gate**: Workshop exposes a dedicated `CISO Master Plan` button and command that opens an active planning panel over Strategy, Plan of Action streams, phases, dependencies, risks, and Shop milestones; a copy action remains available for share/adapt workflows.
 7. **Redaction gate**: generated Markdown and HTML exclude restricted personal fields, sensitive assumptions, and non-public working notes; no external scripts or network assets are emitted.
 8. **Print/share gate**: generated HTML includes print CSS and Markdown remains suitable for email-body copy without requiring email sending.
-9. **Deferred-scope gate**: v1.27 does not add persisted Report Packs, canonical multi-plan entities, native PDF generation, email sending, subscriber management, RSS/feed publication, Pub people/assignment workflows, copyrighted comic artwork, or third-party comic trade dress.
-10. **Regression gate**: `check:ciso-magazine`, `check:brief-redaction`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+9. **Newsletter review and export gate**: Workshop exposes a newsletter content-review panel before publication, can copy or export the generated issue as Markdown or self-contained HTML, and can include latest timestamped Action commentary in internal newsletter and posture extracts while keeping commentary excluded from Explorer publication bundles by default.
+10. **Deferred-scope gate**: v1.27 does not add persisted Report Packs, canonical multi-plan entities, native PDF generation, email sending, subscriber management, RSS/feed publication, Pub people/assignment workflows, copyrighted comic artwork, or third-party comic trade dress.
+11. **Regression gate**: `check:ciso-magazine`, `check:brief-redaction`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
 ### v1.28 candidate gates (Pub Marketplace foundation, per ADR 0064)
 
 1. **ADR gate**: ADR 0064 records the Pub Marketplace foundation decision before release preparation completes.
-2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.28.0`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.28.2`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
 3. **Package-shape gate**: `check-package-shape.mjs` validates Pub as a Marketplace extension with the `pspfPub` Activity Bar container, Home webview, Core extension dependency, and required `pspf.pub.*` commands.
 4. **Marketplace dry-run gate**: the Marketplace workflow supports `target=pub`, packages `pspf-pub-${version}.vsix`, verifies `tobyharvey.pspf-pub`, and creates the `pub/${version}` receipt tag after publish.
 5. **Local-only boundary gate**: no Pub data is added to Explorer publication bundles, Explorer schemas, sample exports, or public Explorer rendering in v1.28.

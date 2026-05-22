@@ -34,8 +34,8 @@ Publication boundary:
 
 Versioning:
 
-- Product version target: `PSPF_SLICE_VERSION = "1.28.0"`.
-- Package version target: `1.28.0`.
+- Product version target: `PSPF_SLICE_VERSION = "1.28.2"`.
+- Package version target: `1.28.2`.
 - `VERSION_AXES` remains `schemaVersion = bundleVersion = apiVersion = "1.10.0"` because no new published schema-bearing Pub collection is introduced.
 
 ## Consequences

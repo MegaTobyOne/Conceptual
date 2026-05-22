@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
+import { randomUUID } from "node:crypto";
 import {
+  buildCisoMagazineModel,
   buildCisoMasterPlanModel,
   renderCisoMagazineHtml,
   renderCisoMagazineMarkdown,
@@ -70,6 +72,7 @@ import {
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
 
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
+const STRATEGY_REFERENCE_ROLES = ["drives", "addresses", "blocked-by", "evidenced-by", "monitors"] as const;
 let workshopContext: vscode.ExtensionContext | undefined;
 let homeViewProvider: WorkshopHomeViewProvider | undefined;
 let requirementWorkbenchController:
@@ -123,6 +126,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
     vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
+    vscode.commands.registerCommand("pspf.workshop.openIsmControlDetail", openIsmControlDetail),
     vscode.commands.registerCommand("pspf.workshop.createRequirementControlMapping", createRequirementControlMapping),
     vscode.commands.registerCommand("pspf.workshop.registerDirection", registerDirection),
     vscode.commands.registerCommand("pspf.workshop.updateDirectionResponse", updateDirectionResponse),
@@ -135,7 +139,10 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.removeTag", removeTag),
     vscode.commands.registerCommand("pspf.workshop.filterRequirementsByTag", filterRequirementsByTag),
     vscode.commands.registerCommand("pspf.workshop.copyPostureBrief", copyPostureBrief),
+    vscode.commands.registerCommand("pspf.workshop.openCisoNewsletterReview", openCisoNewsletterReview),
     vscode.commands.registerCommand("pspf.workshop.openCisoMagazine", openCisoMagazine),
+    vscode.commands.registerCommand("pspf.workshop.copyCisoMagazine", copyCisoMagazine),
+    vscode.commands.registerCommand("pspf.workshop.exportCisoMagazine", exportCisoMagazine),
     vscode.commands.registerCommand("pspf.workshop.openCisoMasterPlan", openCisoMasterPlan),
     vscode.commands.registerCommand("pspf.workshop.copyCisoMasterPlan", copyCisoMasterPlan)
   );
@@ -420,6 +427,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.importBackupJson", "Import backup JSON")}
         ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
         ${homeButton("pspf.workshop.openCisoMagazine", "Digital CISO Magazine", "Open the share-ready newsletter issue")}
+        ${homeButton("pspf.workshop.openCisoNewsletterReview", "Review newsletter", "Check generated content before export")}
         ${homeButton("pspf.workshop.openCisoMasterPlan", "CISO Master Plan", "Open the roadmap across strategy, action, risk and spend")}
         ${homeButton("pspf.workshop.copyCisoMasterPlan", "Copy CISO Master Plan", "Copy the adaptable master plan summary")}
       </div>
@@ -687,6 +695,15 @@ async function createAction(requirementId?: string): Promise<void> {
     return;
   }
 
+  const commentary = await vscode.window.showInputBox({
+    title: "Create Action",
+    prompt: "Initial commentary update for newsletter and posture extracts. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (commentary === undefined) {
+    return;
+  }
+
   const requirements = requirementId
     ? await requirementSelectionForScopedCommand(requirementId, "action")
     : await pickRequirementsForLinkedItem("action");
@@ -702,7 +719,8 @@ async function createAction(requirementId?: string): Promise<void> {
       status: status.value,
       startDate: normaliseShortAuDateTime(startDate),
       endDate: normaliseShortAuDateTime(endDate),
-      dueDate: normaliseShortAuDateTime(dueDate) ?? normaliseShortAuDateTime(endDate)
+      dueDate: normaliseShortAuDateTime(dueDate) ?? normaliseShortAuDateTime(endDate),
+      commentary: actionCommentaryEntries([], commentary, new Date().toISOString())
     },
     "workshop"
   );
@@ -2139,6 +2157,15 @@ async function openStrategyEditorPanel(strategy: StrategyEntity): Promise<void> 
     if (!command) {
       return;
     }
+    if (isStrategyManagementCommand(command)) {
+      await applyStrategyManagementCommand(command, {
+        ...message,
+        strategyArea: message.pendingStrategyArea,
+        choiceIndex: message.pendingChoiceIndex,
+        outcomeIndex: message.pendingOutcomeIndex
+      });
+      return;
+    }
     if (command === "closeEditor") {
       panel.dispose();
       return;
@@ -2157,6 +2184,25 @@ async function openStrategyEditorPanel(strategy: StrategyEntity): Promise<void> 
       await vscode.commands.executeCommand(command);
       refresh();
     }
+  };
+
+  const applyStrategyManagementCommand = async (command: string, message: SaveEntityMessage): Promise<void> => {
+    const result = await handleStrategyManagementCommand(currentStrategy, command, message, currentArea);
+    if (!result) {
+      return;
+    }
+    if (result.strategy) {
+      currentStrategy = result.strategy;
+      await vscode.commands.executeCommand("pspf.core.upsertEntity", currentStrategy);
+    }
+    if (result.area) {
+      currentArea = normaliseStrategyEditorArea(result.area, currentStrategy);
+    }
+    await refreshWorkshopSurfaces();
+    if (result.message) {
+      await vscode.window.showInformationMessage(result.message);
+    }
+    refresh();
   };
 
   panel.webview.onDidReceiveMessage(async (message: SaveEntityMessage) => {
@@ -2215,6 +2261,10 @@ async function openStrategyEditorPanel(strategy: StrategyEntity): Promise<void> 
       refresh();
       return;
     }
+    if (message.command && isStrategyManagementCommand(message.command)) {
+      await applyStrategyManagementCommand(message.command, message);
+      return;
+    }
     if (message.command === "closeEditor") {
       panel.dispose();
       return;
@@ -2245,6 +2295,7 @@ function renderStrategyEditorPanel(strategy: StrategyEntity, currentArea: string
         ${versionStrip()}
         <div class="form-actions">
           <button type="button" data-command="refresh">Refresh</button>
+          <button type="button" data-command="addStrategyChoice" data-strategy-area="${escapeHtml(currentArea)}">Add choice</button>
           <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
           <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
         </div>
@@ -2353,6 +2404,12 @@ function renderStrategyChoiceEditor(choice: StrategyEntity["choices"][number], c
     <p class="eyebrow">Choice context</p>
     <h2>Strategic Choice ${choiceIndex + 1}</h2>
     <p class="muted">Use this area for the intent, owner, target posture, rationale, and constraints behind this choice. Outcomes are edited separately.</p>
+    <div class="form-actions">
+      <button type="button" data-command="addStrategyOutcome" data-strategy-area="${escapeHtml(strategyChoiceArea(choiceIndex))}" data-choice-index="${choiceIndex}">Add outcome</button>
+      <button type="button" data-command="linkStrategyRequirement" data-strategy-area="${escapeHtml(strategyChoiceArea(choiceIndex))}" data-choice-index="${choiceIndex}">Link Requirement</button>
+      <button type="button" data-command="mapStrategyRequirementToIsm" data-strategy-area="${escapeHtml(strategyChoiceArea(choiceIndex))}" data-choice-index="${choiceIndex}">Map linked Requirement to ISM control</button>
+    </div>
+    ${strategyReferenceSummary(choice.references)}
     <div class="strategy-editor__two-col">
       ${strategyTextArea(`choice.${choiceIndex}.statement`, "Choice statement", choice.statement, 5)}
       ${strategyTextArea(`choice.${choiceIndex}.summary`, "Choice summary", choice.summary, 5)}
@@ -2379,6 +2436,12 @@ function renderStrategyOutcomeEditor(
     <p class="eyebrow">Outcome workspace</p>
     <h2>Outcome ${choiceIndex + 1}.${outcomeIndex + 1}</h2>
     <p class="muted">Use this area for active planning work. Saving here keeps other choices and the executive frame unchanged.</p>
+    <div class="form-actions">
+      <button type="button" data-command="addStrategyMeasure" data-strategy-area="${escapeHtml(strategyOutcomeArea(choiceIndex, outcomeIndex))}" data-choice-index="${choiceIndex}" data-outcome-index="${outcomeIndex}">Add measure</button>
+      <button type="button" data-command="linkStrategyRequirement" data-strategy-area="${escapeHtml(strategyOutcomeArea(choiceIndex, outcomeIndex))}" data-choice-index="${choiceIndex}" data-outcome-index="${outcomeIndex}">Link Requirement</button>
+      <button type="button" data-command="mapStrategyRequirementToIsm" data-strategy-area="${escapeHtml(strategyOutcomeArea(choiceIndex, outcomeIndex))}" data-choice-index="${choiceIndex}" data-outcome-index="${outcomeIndex}">Map linked Requirement to ISM control</button>
+    </div>
+    ${strategyReferenceSummary(outcome.references)}
     <div class="strategy-editor__two-col">
       ${strategyTextArea(`choice.${choiceIndex}.outcome.${outcomeIndex}.statement`, "Outcome statement", outcome.statement, 5)}
       ${strategyTextArea(`choice.${choiceIndex}.outcome.${outcomeIndex}.summary`, "Outcome summary", outcome.summary, 5)}
@@ -2422,6 +2485,350 @@ function normaliseStrategyEditorArea(area: string, strategy: StrategyEntity): st
     return area;
   }
   return "frame";
+}
+
+function strategyReferenceSummary(
+  references: readonly StrategyEntity["choices"][number]["references"][number][]
+): string {
+  if (references.length === 0) {
+    return `<p class="muted">No linked Requirements yet.</p>`;
+  }
+  const rows = references
+    .map(
+      (reference) =>
+        `<li>${shellPill(label(reference.role))} ${escapeHtml(label(reference.entityType))}: ${escapeHtml(reference.entityId)}</li>`
+    )
+    .join("");
+  return `<div class="strategy-editor__nested"><h3>Linked records</h3><ul>${rows}</ul></div>`;
+}
+
+type StrategyManagementResult = {
+  readonly strategy?: StrategyEntity;
+  readonly area?: string;
+  readonly message?: string;
+};
+
+function isStrategyManagementCommand(command: string): boolean {
+  return [
+    "addStrategyChoice",
+    "addStrategyOutcome",
+    "addStrategyMeasure",
+    "linkStrategyRequirement",
+    "mapStrategyRequirementToIsm"
+  ].includes(command);
+}
+
+async function handleStrategyManagementCommand(
+  strategy: StrategyEntity,
+  command: string,
+  message: SaveEntityMessage,
+  currentArea: string
+): Promise<StrategyManagementResult | undefined> {
+  switch (command) {
+    case "addStrategyChoice":
+      return addStrategyChoice(strategy);
+    case "addStrategyOutcome":
+      return addStrategyOutcome(strategy, strategyChoiceIndexFromMessage(message, currentArea));
+    case "addStrategyMeasure":
+      return addStrategyMeasure(strategy, strategyOutcomeLocationFromMessage(message, currentArea));
+    case "linkStrategyRequirement":
+      return linkStrategyRequirement(strategy, strategyReferenceLocationFromMessage(message, currentArea));
+    case "mapStrategyRequirementToIsm":
+      return mapStrategyRequirementToIsm(strategy, strategyReferenceLocationFromMessage(message, currentArea));
+  }
+  return undefined;
+}
+
+function addStrategyChoice(strategy: StrategyEntity): StrategyManagementResult {
+  const choiceIndex = strategy.choices.length;
+  const nextChoice: StrategyEntity["choices"][number] = {
+    id: `choice-${randomUUID()}`,
+    statement: "New strategic choice",
+    summary: "Describe why this choice matters and how it shapes assurance work.",
+    capabilityArea: "Capability area",
+    targetPosture: "Target posture to be defined.",
+    trend: "unknown",
+    confidence: "low",
+    outcomes: [],
+    references: []
+  };
+  return {
+    strategy: { ...strategy, choices: [...strategy.choices, nextChoice], updatedAt: new Date().toISOString() },
+    area: strategyChoiceArea(choiceIndex),
+    message: "Added Strategy choice."
+  };
+}
+
+function addStrategyOutcome(
+  strategy: StrategyEntity,
+  choiceIndex: number | undefined
+): StrategyManagementResult | undefined {
+  if (choiceIndex === undefined || !strategy.choices[choiceIndex]) {
+    vscode.window.showWarningMessage("Open a Strategy choice before adding an outcome.");
+    return undefined;
+  }
+  const outcomeIndex = strategy.choices[choiceIndex].outcomes.length;
+  const nextOutcome: StrategyEntity["choices"][number]["outcomes"][number] = {
+    id: `outcome-${randomUUID()}`,
+    statement: "New outcome",
+    summary: "Describe the intended outcome and the context it establishes.",
+    measures: [],
+    references: []
+  };
+  return {
+    strategy: {
+      ...strategy,
+      choices: strategy.choices.map((choice, index) =>
+        index === choiceIndex ? { ...choice, outcomes: [...choice.outcomes, nextOutcome] } : choice
+      ),
+      updatedAt: new Date().toISOString()
+    },
+    area: strategyOutcomeArea(choiceIndex, outcomeIndex),
+    message: "Added Strategy outcome."
+  };
+}
+
+function addStrategyMeasure(
+  strategy: StrategyEntity,
+  location: { readonly choiceIndex: number; readonly outcomeIndex: number } | undefined
+): StrategyManagementResult | undefined {
+  if (!location || !strategy.choices[location.choiceIndex]?.outcomes[location.outcomeIndex]) {
+    vscode.window.showWarningMessage("Open a Strategy outcome before adding a measure.");
+    return undefined;
+  }
+  const nextMeasure: StrategyEntity["choices"][number]["outcomes"][number]["measures"][number] = {
+    id: `measure-${randomUUID()}`,
+    title: "New measure",
+    measureClass: "capability",
+    baseline: "Not recorded",
+    current: "Not recorded",
+    target: "Target to be defined",
+    unit: "state",
+    trend: "unknown",
+    confidence: "low",
+    reviewCadence: "quarterly"
+  };
+  return {
+    strategy: {
+      ...strategy,
+      choices: strategy.choices.map((choice, choiceIndex) =>
+        choiceIndex === location.choiceIndex
+          ? {
+              ...choice,
+              outcomes: choice.outcomes.map((outcome, outcomeIndex) =>
+                outcomeIndex === location.outcomeIndex
+                  ? { ...outcome, measures: [...outcome.measures, nextMeasure] }
+                  : outcome
+              )
+            }
+          : choice
+      ),
+      updatedAt: new Date().toISOString()
+    },
+    area: strategyOutcomeArea(location.choiceIndex, location.outcomeIndex),
+    message: "Added Strategy measure."
+  };
+}
+
+async function linkStrategyRequirement(
+  strategy: StrategyEntity,
+  location: StrategyReferenceLocation | undefined
+): Promise<StrategyManagementResult | undefined> {
+  if (!location) {
+    vscode.window.showWarningMessage("Open a Strategy choice or outcome before linking a Requirement.");
+    return undefined;
+  }
+  const requirements = (await listAllEntities()).filter(
+    (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
+  );
+  if (requirements.length === 0) {
+    vscode.window.showWarningMessage("No active Requirements are available to link.");
+    return undefined;
+  }
+  const selected = await vscode.window.showQuickPick(
+    requirements.map((requirement) => ({
+      label: requirement.title,
+      description: domainName(requirement.domainId),
+      requirement
+    })),
+    { title: "Link Requirement to Strategy", placeHolder: "Requirement", ignoreFocusOut: true }
+  );
+  if (!selected) {
+    return undefined;
+  }
+  const role = await vscode.window.showQuickPick(
+    STRATEGY_REFERENCE_ROLES.map((value) => ({ label: label(value), value })),
+    { title: "Requirement role in this Strategy area", placeHolder: "Reference role", ignoreFocusOut: true }
+  );
+  if (!role) {
+    return undefined;
+  }
+  const reference: StrategyEntity["choices"][number]["references"][number] = {
+    entityType: "requirement",
+    entityId: selected.requirement.id,
+    role: role.value
+  };
+  const updated = upsertStrategyReference(strategy, location, reference);
+  if (!updated) {
+    vscode.window.showInformationMessage("That Requirement is already linked to this Strategy area.");
+    return undefined;
+  }
+  return {
+    strategy: updated,
+    area: strategyAreaForReferenceLocation(location),
+    message: `Linked Requirement to Strategy ${location.kind}.`
+  };
+}
+
+async function mapStrategyRequirementToIsm(
+  strategy: StrategyEntity,
+  location: StrategyReferenceLocation | undefined
+): Promise<StrategyManagementResult | undefined> {
+  if (!location) {
+    vscode.window.showWarningMessage(
+      "Open a Strategy choice or outcome before mapping a linked Requirement to an ISM control."
+    );
+    return undefined;
+  }
+  const requirementIds = strategyRequirementReferenceIds(strategy, location);
+  if (requirementIds.length === 0) {
+    vscode.window.showWarningMessage("Link at least one Requirement to this Strategy area before mapping controls.");
+    return undefined;
+  }
+  const requirements = (await listAllEntities()).filter(
+    (entity): entity is RequirementEntity =>
+      entity.entityType === "requirement" && entity.recordStatus !== "deleted" && requirementIds.includes(entity.id)
+  );
+  const selected = await vscode.window.showQuickPick(
+    requirements.map((requirement) => ({
+      label: requirement.title,
+      description: domainName(requirement.domainId),
+      requirement
+    })),
+    {
+      title: "Map linked Requirement to ISM control",
+      placeHolder: "Requirement carrying the control mapping",
+      ignoreFocusOut: true
+    }
+  );
+  if (!selected) {
+    return undefined;
+  }
+  await createRequirementControlMapping(selected.requirement);
+  return {
+    area: strategyAreaForReferenceLocation(location),
+    message: "Opened ISM control mapping for linked Requirement."
+  };
+}
+
+type StrategyReferenceLocation =
+  | { readonly kind: "choice"; readonly choiceIndex: number }
+  | { readonly kind: "outcome"; readonly choiceIndex: number; readonly outcomeIndex: number };
+
+function strategyChoiceIndexFromMessage(message: SaveEntityMessage, currentArea: string): number | undefined {
+  const explicit = parseNonNegativeInteger(message.choiceIndex);
+  if (explicit !== undefined) {
+    return explicit;
+  }
+  const area = message.strategyArea ?? currentArea;
+  const choiceMatch = area.match(/^choice\.(\d+)(?:\.outcome\.\d+)?$/);
+  return choiceMatch ? Number(choiceMatch[1]) : undefined;
+}
+
+function strategyOutcomeLocationFromMessage(
+  message: SaveEntityMessage,
+  currentArea: string
+): { readonly choiceIndex: number; readonly outcomeIndex: number } | undefined {
+  const explicitChoice = parseNonNegativeInteger(message.choiceIndex);
+  const explicitOutcome = parseNonNegativeInteger(message.outcomeIndex);
+  if (explicitChoice !== undefined && explicitOutcome !== undefined) {
+    return { choiceIndex: explicitChoice, outcomeIndex: explicitOutcome };
+  }
+  const area = message.strategyArea ?? currentArea;
+  const outcomeMatch = area.match(/^choice\.(\d+)\.outcome\.(\d+)$/);
+  return outcomeMatch ? { choiceIndex: Number(outcomeMatch[1]), outcomeIndex: Number(outcomeMatch[2]) } : undefined;
+}
+
+function strategyReferenceLocationFromMessage(
+  message: SaveEntityMessage,
+  currentArea: string
+): StrategyReferenceLocation | undefined {
+  const outcomeLocation = strategyOutcomeLocationFromMessage(message, currentArea);
+  if (outcomeLocation) {
+    return { kind: "outcome", ...outcomeLocation };
+  }
+  const choiceIndex = strategyChoiceIndexFromMessage(message, currentArea);
+  return choiceIndex === undefined ? undefined : { kind: "choice", choiceIndex };
+}
+
+function parseNonNegativeInteger(value: string | undefined): number | undefined {
+  if (value === undefined || !/^\d+$/.test(value)) {
+    return undefined;
+  }
+  return Number(value);
+}
+
+function upsertStrategyReference(
+  strategy: StrategyEntity,
+  location: StrategyReferenceLocation,
+  reference: StrategyEntity["choices"][number]["references"][number]
+): StrategyEntity | undefined {
+  let inserted = false;
+  const choices = strategy.choices.map((choice, choiceIndex) => {
+    if (choiceIndex !== location.choiceIndex) {
+      return choice;
+    }
+    if (location.kind === "choice") {
+      const references = appendStrategyReference(choice.references, reference);
+      inserted = references !== choice.references;
+      return { ...choice, references };
+    }
+    return {
+      ...choice,
+      outcomes: choice.outcomes.map((outcome, outcomeIndex) => {
+        if (outcomeIndex !== location.outcomeIndex) {
+          return outcome;
+        }
+        const references = appendStrategyReference(outcome.references, reference);
+        inserted = references !== outcome.references;
+        return { ...outcome, references };
+      })
+    };
+  });
+  return inserted ? { ...strategy, choices, updatedAt: new Date().toISOString() } : undefined;
+}
+
+function appendStrategyReference(
+  references: readonly StrategyEntity["choices"][number]["references"][number][],
+  reference: StrategyEntity["choices"][number]["references"][number]
+): readonly StrategyEntity["choices"][number]["references"][number][] {
+  return references.some(
+    (candidate) => candidate.entityType === reference.entityType && candidate.entityId === reference.entityId
+  )
+    ? references
+    : [...references, reference];
+}
+
+function strategyRequirementReferenceIds(
+  strategy: StrategyEntity,
+  location: StrategyReferenceLocation
+): readonly string[] {
+  const choice = strategy.choices[location.choiceIndex];
+  const references =
+    location.kind === "choice" ? choice?.references : choice?.outcomes[location.outcomeIndex]?.references;
+  return [
+    ...new Set(
+      (references ?? [])
+        .filter((reference) => reference.entityType === "requirement")
+        .map((reference) => reference.entityId)
+    )
+  ];
+}
+
+function strategyAreaForReferenceLocation(location: StrategyReferenceLocation): string {
+  return location.kind === "choice"
+    ? strategyChoiceArea(location.choiceIndex)
+    : strategyOutcomeArea(location.choiceIndex, location.outcomeIndex);
 }
 
 async function buildUpdatedStrategy(
@@ -2775,6 +3182,7 @@ async function browseIsmSourceControls(): Promise<void> {
   await ensureCoreReady();
   const sourceControls = await listSourceControls();
   const rows = sourceControls.map((sourceControl) => ({
+    action: `<button type="button" data-command="openIsmControlDetail" data-source-control-id="${escapeHtml(sourceControl.id)}">Open</button>`,
     controlId: sourceControl.controlId,
     title: sourceControl.title,
     profiles: sourceControl.profileTags.join(", "),
@@ -2786,8 +3194,9 @@ async function browseIsmSourceControls(): Promise<void> {
     "pspfIsmSourceControls",
     "PSPF ISM Source Controls",
     vscode.ViewColumn.One,
-    { enableScripts: false }
+    { enableScripts: true }
   );
+  wireWorkshopPanelMessages(panel, browseIsmSourceControls);
   panel.webview.html = shellHtml(
     "PSPF ISM Source Controls",
     `
@@ -2796,9 +3205,163 @@ async function browseIsmSourceControls(): Promise<void> {
       <p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0 · OSCAL release ${escapeHtml(sourceControls[0]?.provenance.oscalRelease ?? "not loaded")}.</p>
       ${versionStrip()}
     </section>
-    ${recordTable("Source Controls", rows, ["controlId", "title", "profiles", "release", "drift"])}
+    ${recordTable("Source Controls", rows, ["action", "controlId", "title", "profiles", "release", "drift"])}
   `
   );
+}
+
+async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = enrichActionsWithImpact(await listAllEntities());
+  const sourceControl = sourceControlId
+    ? allEntities.find(
+        (entity): entity is SourceControlEntity =>
+          entity.entityType === "source-control" && entity.id === sourceControlId
+      )
+    : await pickSourceControl();
+  if (!sourceControl) {
+    return;
+  }
+
+  const mappings = allEntities.filter(
+    (entity): entity is RequirementControlMappingEntity =>
+      entity.entityType === "requirement-control-mapping" &&
+      entity.recordStatus !== "deleted" &&
+      entity.sourceControlId === sourceControl.id
+  );
+  const mappedRequirementIds = new Set(mappings.map((mapping) => mapping.requirementId));
+  const requirementsById = new Map(
+    allEntities
+      .filter((entity): entity is RequirementEntity => entity.entityType === "requirement")
+      .map((requirement) => [requirement.id, requirement])
+  );
+  const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
+  const linkedWorkIds = new Set(
+    links
+      .filter((link) => mappedRequirementIds.has(link.fromId) && ["evidence", "action", "risk"].includes(link.toType))
+      .map((link) => link.toId)
+  );
+
+  const requirementRows = mappings.map((mapping) => {
+    const requirement = requirementsById.get(mapping.requirementId);
+    return {
+      openEntityType: "requirement-control-mapping",
+      openEntityId: mapping.id,
+      requirement: requirement?.title ?? mapping.requirementId,
+      domain: requirement ? domainName(requirement.domainId) : "Unknown",
+      status: requirement ? label(requirement.assessmentStatus) : "Unknown",
+      coverage: label(mapping.coverageQualifier),
+      profile: mapping.applicabilityProfile,
+      confidence: label(mapping.confidence),
+      reviewed: mapping.lastReviewedAt ? formatShortAuDateTime(mapping.lastReviewedAt) : "Not recorded"
+    };
+  });
+  const workRows = allEntities
+    .filter(
+      (entity): entity is EvidenceEntity | ActionEntity | RiskEntity =>
+        (entity.entityType === "evidence" || entity.entityType === "action" || entity.entityType === "risk") &&
+        linkedWorkIds.has(entity.id)
+    )
+    .map((entity) => ({
+      openEntityType: entity.entityType,
+      openEntityId: entity.id,
+      type: label(entity.entityType),
+      title: entity.title,
+      state: ismLinkedWorkState(entity),
+      linkedRequirement: linkedRequirementTitlesForWork(entity.id, links, requirementsById, mappedRequirementIds)
+    }));
+
+  const panel = vscode.window.createWebviewPanel(
+    "pspfIsmControlDetail",
+    shortWorkshopPanelTitle(sourceControl),
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => openIsmControlDetail(sourceControl.id));
+  panel.webview.html = shellHtml(
+    sourceControl.title,
+    `
+    <section>
+      <h1>${escapeHtml(sourceControl.controlId)}: ${escapeHtml(sourceControl.title)}</h1>
+      <p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0 · OSCAL release ${escapeHtml(sourceControl.provenance.oscalRelease)}.</p>
+      <p>${escapeHtml(sourceControl.statement)}</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Mapped Requirements", mappings.length)}
+        ${metricCard("Linked work records", workRows.length)}
+        ${metricCard("Profiles", sourceControl.profileTags.length)}
+        ${metricCard("Drift", statementChangeLabel(sourceControl.statementChangeStatus))}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.createRequirementControlMapping">Map Requirement</button>
+        <button type="button" data-command="attachEvidenceForIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Attach Evidence</button>
+        <button type="button" data-command="createActionForIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Create Action</button>
+        <button type="button" data-command="createRiskForIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Create Risk</button>
+        <button type="button" data-command="pspf.workshop.browseIsmSourceControls">All ISM controls</button>
+      </div>
+    </section>
+    ${recordTable("Requirements Mapped To This Control", requirementRows, ["requirement", "domain", "status", "coverage", "profile", "confidence", "reviewed"])}
+    ${recordTable("Work Linked Through Mapped Requirements", workRows, ["type", "title", "state", "linkedRequirement"])}
+  `
+  );
+}
+
+function ismLinkedWorkState(entity: EvidenceEntity | ActionEntity | RiskEntity): string {
+  switch (entity.entityType) {
+    case "evidence":
+      return label(entity.freshness);
+    case "action":
+      return label(entity.status);
+    case "risk":
+      return label(entity.status);
+  }
+}
+
+function linkedRequirementTitlesForWork(
+  entityId: string,
+  links: readonly LinkEntity[],
+  requirementsById: ReadonlyMap<string, RequirementEntity>,
+  mappedRequirementIds: ReadonlySet<string>
+): string {
+  const titles = links
+    .filter((link) => link.toId === entityId && mappedRequirementIds.has(link.fromId))
+    .map((link) => requirementsById.get(link.fromId)?.title)
+    .filter((title): title is string => Boolean(title));
+  return uniqueStrings(titles).join(", ") || "Not recorded";
+}
+
+async function pickMappedRequirementForSourceControl(
+  sourceControlId: string,
+  title: string
+): Promise<RequirementEntity | undefined> {
+  const allEntities = await listAllEntities();
+  const requirementIds = new Set(
+    allEntities
+      .filter(
+        (entity): entity is RequirementControlMappingEntity =>
+          entity.entityType === "requirement-control-mapping" &&
+          entity.recordStatus !== "deleted" &&
+          entity.sourceControlId === sourceControlId
+      )
+      .map((mapping) => mapping.requirementId)
+  );
+  const requirements = allEntities.filter(
+    (entity): entity is RequirementEntity =>
+      entity.entityType === "requirement" && entity.recordStatus !== "deleted" && requirementIds.has(entity.id)
+  );
+  if (requirements.length === 0) {
+    await vscode.window.showWarningMessage("Map this ISM control to at least one Requirement before linking work.");
+    return undefined;
+  }
+  const picked = await vscode.window.showQuickPick(
+    requirements.sort(compareRequirementsForPicker).map((requirement) => ({
+      label: requirement.title,
+      description: domainName(requirement.domainId),
+      requirement
+    })),
+    { title, placeHolder: "Requirement carrying this control", ignoreFocusOut: true }
+  );
+  return picked?.requirement;
 }
 
 async function createRequirementControlMapping(initialRequirement?: RequirementEntity): Promise<void> {
@@ -3425,6 +3988,8 @@ type SaveEntityMessage = {
   readonly entityType?: string;
   readonly entityId?: string;
   readonly strategyArea?: string;
+  readonly choiceIndex?: string;
+  readonly outcomeIndex?: string;
   readonly requirementId?: string;
   readonly filterText?: string;
   readonly fields?: Record<string, string>;
@@ -3441,6 +4006,8 @@ type SaveEntityMessage = {
   readonly pendingFilterText?: string;
   readonly pendingEvidenceReference?: string;
   readonly pendingStrategyArea?: string;
+  readonly pendingChoiceIndex?: string;
+  readonly pendingOutcomeIndex?: string;
   readonly evidenceReference?: string;
 };
 
@@ -3832,6 +4399,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       readonly entityType?: string;
       readonly entityId?: string;
       readonly requirementId?: string;
+      readonly sourceControlId?: string;
       readonly directionId?: string;
       readonly tagId?: string;
       readonly savedViewId?: string;
@@ -3907,6 +4475,39 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         const requirement = (await listRequirements()).find((item) => item.id === message.requirementId);
         if (requirement) {
           await createRequirementControlMapping(requirement);
+          await refreshPanel?.();
+        }
+      }
+      if (message.command === "openIsmControlDetail" && message.sourceControlId) {
+        await openIsmControlDetail(message.sourceControlId);
+      }
+      if (message.command === "attachEvidenceForIsmControl" && message.sourceControlId) {
+        const requirement = await pickMappedRequirementForSourceControl(
+          message.sourceControlId,
+          "Attach Evidence via ISM control"
+        );
+        if (requirement) {
+          await attachEvidence(requirement.id);
+          await refreshPanel?.();
+        }
+      }
+      if (message.command === "createActionForIsmControl" && message.sourceControlId) {
+        const requirement = await pickMappedRequirementForSourceControl(
+          message.sourceControlId,
+          "Create Action via ISM control"
+        );
+        if (requirement) {
+          await createAction(requirement.id);
+          await refreshPanel?.();
+        }
+      }
+      if (message.command === "createRiskForIsmControl" && message.sourceControlId) {
+        const requirement = await pickMappedRequirementForSourceControl(
+          message.sourceControlId,
+          "Create Risk via ISM control"
+        );
+        if (requirement) {
+          await createRisk(requirement.id);
           await refreshPanel?.();
         }
       }
@@ -4028,6 +4629,7 @@ async function buildUpdatedEntity(
         startDate: normaliseShortAuDateTime(fields.startDate),
         endDate: normaliseShortAuDateTime(fields.endDate),
         dueDate: normaliseShortAuDateTime(fields.dueDate),
+        commentary: actionCommentaryEntries(entity.commentary, fields.newCommentary, updatedAt),
         updatedAt
       };
     }
@@ -4503,8 +5105,9 @@ function renderActionEditor(
     ${inputField("startDate", "Start date", formatShortAuDateTime(action.startDate) ?? "", false, "today or 1 Jul 2026")}
     ${inputField("endDate", "End date", formatShortAuDateTime(action.endDate) ?? "", false, "30 Sep 2026")}
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
+    ${textareaField("newCommentary", "New commentary update", "")}
   `
-  )}${readOnlyImpact}${commercialContextSection(action, allEntities)}`;
+  )}${actionCommentaryHistorySection(action)}${readOnlyImpact}${commercialContextSection(action, allEntities)}`;
   return recordWorkbenchShell(action, allEntities, browserOptions, editorContent);
 }
 
@@ -4644,6 +5247,31 @@ function inputField(name: string, fieldLabel: string, value: string, required = 
 
 function textareaField(name: string, fieldLabel: string, value: string): string {
   return `<label>${escapeHtml(fieldLabel)}<textarea name="${escapeHtml(name)}" rows="4">${escapeHtml(value)}</textarea></label>`;
+}
+
+function actionCommentaryHistorySection(action: ActionEntity): string {
+  const entries = [...(action.commentary ?? [])].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  if (entries.length === 0) {
+    return `<section><h2>Commentary history</h2><p class="muted">No commentary updates recorded yet.</p></section>`;
+  }
+  const rows = entries.map((entry) => ({
+    createdAt: formatShortAuDateTime(entry.createdAt) ?? entry.createdAt,
+    update: entry.text
+  }));
+  return recordTable("Commentary History", rows, ["createdAt", "update"]);
+}
+
+function actionCommentaryEntries(
+  existing: readonly NonNullable<ActionEntity["commentary"]>[number][] | undefined,
+  newCommentary: string | undefined,
+  createdAt: string
+): ActionEntity["commentary"] | undefined {
+  const trimmed = newCommentary?.trim();
+  const entries = [...(existing ?? [])];
+  if (trimmed) {
+    entries.push({ createdAt, text: trimmed });
+  }
+  return entries.length > 0 ? entries : undefined;
 }
 
 function strategyTextArea(name: string, fieldLabel: string, value: string, rows: number): string {
@@ -5756,6 +6384,94 @@ async function openCisoMagazine(): Promise<void> {
   panel.webview.html = html;
   await vscode.env.clipboard.writeText(markdown);
   await vscode.window.showInformationMessage("Digital CISO Magazine opened and email copy copied to clipboard.");
+}
+
+async function openCisoNewsletterReview(): Promise<void> {
+  await ensureCoreReady();
+  const input = buildShareArtefactInput(await listAllEntities());
+  const model = buildCisoMagazineModel(input);
+  const actionRows = model.actionStrip.map((item) => ({
+    openEntityType: "action",
+    openEntityId: item.actionId,
+    title: item.title,
+    status: item.status,
+    dueDate: item.dueDate ?? "Not set",
+    linkedRequirement: item.linkedRequirement ?? "No linked Requirement",
+    latestUpdate: item.latestUpdate ?? "No commentary update"
+  }));
+  const storyRows = model.featureStories.map((story) => ({ title: story.title, body: story.body }));
+  const attentionRows = model.attentionItems.map((item) => ({
+    title: item.title,
+    domain: item.pspfDomainTitle,
+    reason: item.reason
+  }));
+  const panel = vscode.window.createWebviewPanel(
+    "pspfCisoNewsletterReview",
+    "Newsletter Content Review",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, openCisoNewsletterReview);
+  panel.webview.html = shellHtml(
+    "Newsletter Content Review",
+    `
+    <section>
+      <p class="eyebrow">OFFICIAL: Sensitive</p>
+      <h1>Newsletter Content Review</h1>
+      <p class="muted">${escapeHtml(model.issueNumber)} · ${escapeHtml(model.periodLabel)} · ${escapeHtml(model.pspfDomainTitle)} · generated ${escapeHtml(model.generatedAt)}</p>
+      <p>Review the generated newsletter inputs before copying or exporting. Action commentary appears as the latest timestamped update, so open any Action that needs a cleaner update before export.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Stories", model.featureStories.length)}
+        ${metricCard("Attention items", model.attentionItems.length)}
+        ${metricCard("Open actions", model.actionStrip.length)}
+        ${metricCard("Commercial watch", model.commercialWatch.length)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openCisoMagazine">Open magazine</button>
+        <button type="button" data-command="pspf.workshop.copyCisoMagazine">Copy Markdown</button>
+        <button type="button" data-command="pspf.workshop.exportCisoMagazine">Export file</button>
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
+      </div>
+    </section>
+    ${recordTable("Feature Stories", storyRows, ["title", "body"])}
+    ${recordTable("Attention Required", attentionRows, ["title", "domain", "reason"])}
+    ${recordTable("Action Strip", actionRows, ["title", "status", "dueDate", "linkedRequirement", "latestUpdate"])}
+  `
+  );
+}
+
+async function copyCisoMagazine(): Promise<void> {
+  await ensureCoreReady();
+  const markdown = renderCisoMagazineMarkdown(buildShareArtefactInput(await listAllEntities()));
+  await vscode.env.clipboard.writeText(markdown);
+  await vscode.window.showInformationMessage("Digital CISO Magazine Markdown copied to clipboard.");
+}
+
+async function exportCisoMagazine(): Promise<void> {
+  await ensureCoreReady();
+  const format = await vscode.window.showQuickPick(
+    [
+      { label: "Markdown", value: "md" as const },
+      { label: "HTML", value: "html" as const }
+    ],
+    { title: "Export Digital CISO Magazine", ignoreFocusOut: true }
+  );
+  if (!format) {
+    return;
+  }
+  const input = buildShareArtefactInput(await listAllEntities());
+  const content = format.value === "html" ? renderCisoMagazineHtml(input) : renderCisoMagazineMarkdown(input);
+  const target = await vscode.window.showSaveDialog({
+    defaultUri: vscode.Uri.file(`digital-ciso-magazine-${PSPF_SLICE_VERSION}.${format.value}`),
+    filters: format.value === "html" ? { HTML: ["html"] } : { Markdown: ["md"] },
+    saveLabel: "Export"
+  });
+  if (!target) {
+    return;
+  }
+  await vscode.workspace.fs.writeFile(target, new TextEncoder().encode(content));
+  await vscode.window.showInformationMessage(`Digital CISO Magazine exported to ${target.fsPath}.`);
 }
 
 async function openCisoMasterPlan(): Promise<void> {
