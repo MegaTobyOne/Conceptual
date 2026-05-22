@@ -517,6 +517,233 @@
         background: var(--surface-soft);
       }
 
+      /* How it works — data flow and entity diagrams */
+      .diagram-stack {
+        display: grid;
+        gap: clamp(20px, 3vw, 32px);
+      }
+
+      .diagram {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius);
+        background: color-mix(in srgb, var(--surface) 88%, transparent);
+        box-shadow: var(--shadow-sm);
+        padding: clamp(16px, 2.4vw, 24px);
+        display: grid;
+        gap: 14px;
+      }
+
+      .diagram-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .diagram-head h3 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(1.1rem, 2vw, 1.35rem);
+      }
+
+      .diagram-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        max-width: 56ch;
+      }
+
+      .diagram-svg {
+        width: 100%;
+        height: auto;
+        display: block;
+        overflow: visible;
+      }
+
+      /* SVG theming — keeps light/dark parity via CSS vars */
+      .diagram-svg .d-bg {
+        fill: var(--surface);
+        stroke: var(--border);
+      }
+      .diagram-svg .d-bg-soft {
+        fill: var(--surface-soft);
+        stroke: var(--border-soft);
+      }
+      .diagram-svg .d-bg-strong {
+        fill: var(--surface-strong);
+        stroke: var(--border);
+      }
+      .diagram-svg .d-source {
+        fill: color-mix(in srgb, var(--blue) 18%, var(--surface));
+        stroke: color-mix(in srgb, var(--blue) 60%, var(--border));
+      }
+      .diagram-svg .d-core {
+        fill: color-mix(in srgb, var(--teal) 18%, var(--surface));
+        stroke: color-mix(in srgb, var(--teal) 65%, var(--border));
+      }
+      .diagram-svg .d-workshop {
+        fill: color-mix(in srgb, var(--teal) 12%, var(--surface));
+        stroke: color-mix(in srgb, var(--teal) 50%, var(--border));
+      }
+      .diagram-svg .d-shop {
+        fill: color-mix(in srgb, var(--amber) 14%, var(--surface));
+        stroke: color-mix(in srgb, var(--amber) 55%, var(--border));
+      }
+      .diagram-svg .d-pub {
+        fill: color-mix(in srgb, var(--red) 14%, var(--surface));
+        stroke: color-mix(in srgb, var(--red) 55%, var(--border));
+      }
+      .diagram-svg .d-share {
+        fill: color-mix(in srgb, var(--amber) 18%, var(--surface));
+        stroke: color-mix(in srgb, var(--amber) 60%, var(--border));
+      }
+      .diagram-svg .d-bundle {
+        fill: color-mix(in srgb, var(--green) 16%, var(--surface));
+        stroke: color-mix(in srgb, var(--green) 60%, var(--border));
+      }
+      .diagram-svg text {
+        fill: var(--text);
+        font-family: var(--font-body);
+      }
+      .diagram-svg text.d-title {
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .diagram-svg text.d-sub {
+        fill: var(--muted);
+        font-size: 11px;
+      }
+      .diagram-svg text.d-id {
+        fill: var(--muted);
+        font-size: 10.5px;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+      }
+      .diagram-svg text.d-group {
+        fill: var(--faint);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .diagram-svg .d-edge {
+        fill: none;
+        stroke: color-mix(in srgb, var(--teal) 55%, var(--border));
+        stroke-width: 1.4;
+      }
+      .diagram-svg .d-edge.dashed {
+        stroke-dasharray: 4 3;
+        stroke: color-mix(in srgb, var(--muted) 70%, transparent);
+      }
+      .diagram-svg .d-edge.strong {
+        stroke-width: 2;
+        stroke: var(--teal);
+      }
+      .diagram-svg .d-boundary {
+        fill: none;
+        stroke: color-mix(in srgb, var(--amber) 70%, var(--border));
+        stroke-width: 1.4;
+        stroke-dasharray: 6 4;
+      }
+      .diagram-svg text.d-edge-label {
+        fill: var(--muted);
+        font-size: 10.5px;
+      }
+      .diagram-svg .d-marker {
+        fill: var(--teal);
+      }
+
+      .diagram-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .diagram-legend .swatch {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .diagram-legend .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        border: 1px solid var(--border);
+        display: inline-block;
+      }
+
+      .dot.d-source-dot {
+        background: color-mix(in srgb, var(--blue) 35%, var(--surface));
+        border-color: color-mix(in srgb, var(--blue) 60%, var(--border));
+      }
+      .dot.d-core-dot {
+        background: color-mix(in srgb, var(--teal) 35%, var(--surface));
+        border-color: color-mix(in srgb, var(--teal) 65%, var(--border));
+      }
+      .dot.d-shop-dot {
+        background: color-mix(in srgb, var(--amber) 30%, var(--surface));
+        border-color: color-mix(in srgb, var(--amber) 55%, var(--border));
+      }
+      .dot.d-pub-dot {
+        background: color-mix(in srgb, var(--red) 28%, var(--surface));
+        border-color: color-mix(in srgb, var(--red) 55%, var(--border));
+      }
+      .dot.d-bundle-dot {
+        background: color-mix(in srgb, var(--green) 30%, var(--surface));
+        border-color: color-mix(in srgb, var(--green) 60%, var(--border));
+      }
+      .dot.d-share-dot {
+        background: color-mix(in srgb, var(--amber) 35%, var(--surface));
+        border-color: color-mix(in srgb, var(--amber) 60%, var(--border));
+      }
+
+      .boundary-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr;
+      }
+
+      @media (min-width: 760px) {
+        .boundary-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .boundary-card {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-sm);
+        padding: 14px;
+        background: var(--surface);
+      }
+
+      .boundary-card.is-keep {
+        border-left: 3px solid var(--green);
+      }
+
+      .boundary-card.is-redact {
+        border-left: 3px solid var(--amber);
+      }
+
+      .boundary-card h4 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        font-family: var(--font-body);
+      }
+
+      .boundary-card ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .boundary-card ul li + li {
+        margin-top: 4px;
+      }
+
       section {
         padding: clamp(44px, 7vw, 88px) 0;
       }
@@ -796,6 +1023,7 @@
         <nav class="site-nav" aria-label="Section navigation">
           <a href="#products">Products</a>
           <a href="#workflow">Workflow</a>
+          <a href="#how-it-works">How it works</a>
           <a href="#links">Links</a>
         </nav>
         <div class="header-actions">
@@ -1055,6 +1283,307 @@
                 copyable posture brief.
               </p>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="how-it-works">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>How it works</h2>
+            <p>
+              The ecosystem is a small set of canonical entities that flow through a single local workspace and exit
+              through one validated JSON bundle. These diagrams show the lifecycle, the entity model, and what crosses
+              the publication boundary into Explorer.
+            </p>
+          </div>
+
+          <div class="diagram-stack">
+            <!-- Diagram 1: Data flow lifecycle -->
+            <figure class="diagram" aria-labelledby="diagram-flow-title">
+              <figcaption class="diagram-head">
+                <h3 id="diagram-flow-title">Data flow lifecycle</h3>
+                <p>
+                  Official sources stay separate from your assessment data. A single SQLite workspace is the system of
+                  record; one master JSON bundle is the only exchange artefact.
+                </p>
+              </figcaption>
+              <svg
+                class="diagram-svg"
+                viewBox="0 0 1100 360"
+                role="img"
+                aria-label="Data flow from official sources, through the local Core SQLite workspace authored by Workshop, Shop, and Pub, validated and snapshotted, then exported as a master JSON bundle that Explorer reads in the browser."
+              >
+                <defs>
+                  <marker id="d-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                    <path class="d-marker" d="M0,0 L10,5 L0,10 z" />
+                  </marker>
+                </defs>
+
+                <!-- Group labels -->
+                <text class="d-group" x="120" y="30">Authoritative sources</text>
+                <text class="d-group" x="430" y="30">Local workspace (your machine)</text>
+                <text class="d-group" x="900" y="30">Publication</text>
+
+                <!-- Sources column -->
+                <rect class="d-source" x="40" y="50" width="200" height="58" rx="8" />
+                <text class="d-title" x="60" y="76">PSPF policy</text>
+                <text class="d-sub" x="60" y="94">requirement statements</text>
+
+                <rect class="d-source" x="40" y="124" width="200" height="58" rx="8" />
+                <text class="d-title" x="60" y="150">ISM OSCAL snapshot</text>
+                <text class="d-sub" x="60" y="168">controls, mappings</text>
+
+                <rect class="d-source" x="40" y="198" width="200" height="58" rx="8" />
+                <text class="d-title" x="60" y="224">Essential Eight</text>
+                <text class="d-sub" x="60" y="242">maturity reference</text>
+
+                <!-- Boundary: official vs local -->
+                <line class="d-boundary" x1="290" y1="50" x2="290" y2="310" />
+                <text class="d-edge-label" x="296" y="60">read-only reference →</text>
+
+                <!-- Core SQLite -->
+                <rect class="d-core" x="340" y="120" width="220" height="100" rx="10" />
+                <text class="d-title" x="360" y="148">Core workspace</text>
+                <text class="d-sub" x="360" y="166">SQLite system of record</text>
+                <text class="d-id" x="360" y="184">Domain · Requirement · Evidence</text>
+                <text class="d-id" x="360" y="200">Action · Risk · Direction · Link</text>
+
+                <!-- Authoring surfaces -->
+                <rect class="d-workshop" x="600" y="60" width="170" height="58" rx="8" />
+                <text class="d-title" x="618" y="86">Workshop</text>
+                <text class="d-sub" x="618" y="104">authoring &amp; assessment</text>
+
+                <rect class="d-shop" x="600" y="138" width="170" height="58" rx="8" />
+                <text class="d-title" x="618" y="164">Shop</text>
+                <text class="d-sub" x="618" y="182">suppliers · contracts · spend</text>
+
+                <rect class="d-pub" x="600" y="216" width="170" height="58" rx="8" />
+                <text class="d-title" x="618" y="242">Pub</text>
+                <text class="d-sub" x="618" y="260">people · roles · assignments</text>
+
+                <!-- Validate + snapshot stage -->
+                <rect class="d-bg-soft" x="340" y="248" width="220" height="62" rx="8" />
+                <text class="d-title" x="360" y="274">Validate &amp; snapshot</text>
+                <text class="d-sub" x="360" y="292">writer lock · schema · redaction</text>
+
+                <!-- Publication boundary -->
+                <line class="d-boundary" x1="820" y1="50" x2="820" y2="310" />
+                <text class="d-edge-label" x="826" y="60">publication boundary →</text>
+
+                <!-- Master bundle -->
+                <rect class="d-bundle" x="850" y="120" width="210" height="100" rx="10" />
+                <text class="d-title" x="870" y="148">Master JSON bundle</text>
+                <text class="d-sub" x="870" y="166">manifest + entities + links</text>
+                <text class="d-id" x="870" y="184">schemaVersion · bundleVersion</text>
+                <text class="d-id" x="870" y="200">redacted by default</text>
+
+                <!-- Explorer -->
+                <rect class="d-share" x="850" y="248" width="210" height="62" rx="8" />
+                <text class="d-title" x="870" y="274">Explorer (browser)</text>
+                <text class="d-sub" x="870" y="292">posture · records · Connected View</text>
+
+                <!-- Edges: sources → core -->
+                <path class="d-edge dashed" d="M240,79 C300,79 310,170 340,170" marker-end="url(#d-arrow)" />
+                <path class="d-edge dashed" d="M240,153 C300,153 310,170 340,170" marker-end="url(#d-arrow)" />
+                <path class="d-edge dashed" d="M240,227 C300,227 310,180 340,180" marker-end="url(#d-arrow)" />
+
+                <!-- Edges: core ↔ surfaces -->
+                <path class="d-edge" d="M560,140 C580,140 580,89 600,89" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M600,89 C580,89 580,150 560,150" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M560,170 L600,167" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M600,167 L560,170" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M560,200 C580,200 580,245 600,245" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M600,245 C580,245 580,210 560,210" marker-end="url(#d-arrow)" />
+
+                <!-- Edges: core → validate -->
+                <path class="d-edge strong" d="M450,220 L450,248" marker-end="url(#d-arrow)" />
+
+                <!-- Edges: validate → bundle, bundle → explorer -->
+                <path class="d-edge strong" d="M560,278 C700,278 720,170 850,170" marker-end="url(#d-arrow)" />
+                <path class="d-edge strong" d="M955,220 L955,248" marker-end="url(#d-arrow)" />
+
+                <!-- Backup loop -->
+                <path class="d-edge dashed" d="M850,200 C760,330 500,340 450,310" marker-end="url(#d-arrow)" />
+                <text class="d-edge-label" x="610" y="338">backup restore (validated review path)</text>
+              </svg>
+              <div class="diagram-legend" aria-hidden="true">
+                <span class="swatch"><span class="dot d-source-dot"></span> Authoritative sources</span>
+                <span class="swatch"><span class="dot d-core-dot"></span> Core workspace</span>
+                <span class="swatch"><span class="dot d-shop-dot"></span> Shop</span>
+                <span class="swatch"><span class="dot d-pub-dot"></span> Pub</span>
+                <span class="swatch"><span class="dot d-bundle-dot"></span> Master JSON bundle</span>
+                <span class="swatch"><span class="dot d-share-dot"></span> Explorer</span>
+              </div>
+            </figure>
+
+            <!-- Diagram 2: Entity model -->
+            <figure class="diagram" aria-labelledby="diagram-entity-title">
+              <figcaption class="diagram-head">
+                <h3 id="diagram-entity-title">Entity model</h3>
+                <p>
+                  Every record has a stable prefixed ID and a typed link to other records. Domain anchors the
+                  assessment; Requirement is the hub; Evidence, Action, Risk, and Direction carry the assurance work.
+                </p>
+              </figcaption>
+              <svg
+                class="diagram-svg"
+                viewBox="0 0 1100 460"
+                role="img"
+                aria-label="Entity model showing Domain leading to Requirement, with Evidence, Action, Risk, and Direction linked to Requirement. ISM controls map in from official sources. Shop adds Supplier, Contract, and Spend. Pub adds Person, Role, Team, and Assignment. Tags and Links connect across the model."
+              >
+                <!-- Core hub -->
+                <rect class="d-core" x="430" y="195" width="240" height="78" rx="10" />
+                <text class="d-title" x="450" y="222">Requirement</text>
+                <text class="d-id" x="450" y="240">REQ-*</text>
+                <text class="d-sub" x="450" y="258">assessment status · effectiveness</text>
+
+                <!-- Domain -->
+                <rect class="d-core" x="430" y="80" width="240" height="62" rx="10" />
+                <text class="d-title" x="450" y="106">Domain</text>
+                <text class="d-id" x="450" y="124">DOM-*</text>
+                <text class="d-sub" x="552" y="106">policy grouping</text>
+
+                <!-- ISM -->
+                <rect class="d-source" x="430" y="0" width="240" height="50" rx="8" />
+                <text class="d-title" x="450" y="22">ISM control</text>
+                <text class="d-id" x="450" y="40">ISM-*</text>
+                <text class="d-sub" x="552" y="22">from OSCAL snapshot</text>
+
+                <!-- Evidence -->
+                <rect class="d-workshop" x="60" y="130" width="200" height="62" rx="10" />
+                <text class="d-title" x="78" y="156">Evidence</text>
+                <text class="d-id" x="78" y="174">EVD-*</text>
+                <text class="d-sub" x="180" y="156">freshness · verification</text>
+
+                <!-- Action -->
+                <rect class="d-workshop" x="60" y="218" width="200" height="62" rx="10" />
+                <text class="d-title" x="78" y="244">Action</text>
+                <text class="d-id" x="78" y="262">ACT-*</text>
+                <text class="d-sub" x="180" y="244">status · priority</text>
+
+                <!-- Risk -->
+                <rect class="d-workshop" x="840" y="130" width="200" height="62" rx="10" />
+                <text class="d-title" x="858" y="156">Risk</text>
+                <text class="d-id" x="858" y="174">RSK-*</text>
+                <text class="d-sub" x="958" y="156">treatment status</text>
+
+                <!-- Direction -->
+                <rect class="d-workshop" x="840" y="218" width="200" height="62" rx="10" />
+                <text class="d-title" x="858" y="244">Direction</text>
+                <text class="d-id" x="858" y="262">DIR-*</text>
+                <text class="d-sub" x="958" y="244">scope · cadence</text>
+
+                <!-- Shop cluster (bottom-left) -->
+                <rect class="d-bg-soft" x="40" y="320" width="320" height="120" rx="10" />
+                <text class="d-group" x="56" y="338">Shop · commercial</text>
+                <rect class="d-shop" x="58" y="350" width="92" height="42" rx="6" />
+                <text class="d-title" x="68" y="368">Supplier</text>
+                <text class="d-id" x="68" y="384">SUP-*</text>
+                <rect class="d-shop" x="156" y="350" width="92" height="42" rx="6" />
+                <text class="d-title" x="166" y="368">Contract</text>
+                <text class="d-id" x="166" y="384">CON-*</text>
+                <rect class="d-shop" x="254" y="350" width="92" height="42" rx="6" />
+                <text class="d-title" x="264" y="368">Spend</text>
+                <text class="d-id" x="264" y="384">SPD-*</text>
+                <rect class="d-shop" x="58" y="398" width="288" height="34" rx="6" />
+                <text class="d-sub" x="68" y="420">linked to Requirement / Action for assurance context</text>
+
+                <!-- Pub cluster (bottom-right) -->
+                <rect class="d-bg-soft" x="740" y="320" width="320" height="120" rx="10" />
+                <text class="d-group" x="756" y="338">Pub · workforce (local only)</text>
+                <rect class="d-pub" x="758" y="350" width="92" height="42" rx="6" />
+                <text class="d-title" x="768" y="368">Person</text>
+                <text class="d-id" x="768" y="384">PER-*</text>
+                <rect class="d-pub" x="856" y="350" width="92" height="42" rx="6" />
+                <text class="d-title" x="866" y="368">Team</text>
+                <text class="d-id" x="866" y="384">TEM-*</text>
+                <rect class="d-pub" x="954" y="350" width="92" height="42" rx="6" />
+                <text class="d-title" x="964" y="368">Role</text>
+                <text class="d-id" x="964" y="384">ROL-*</text>
+                <rect class="d-pub" x="758" y="398" width="288" height="34" rx="6" />
+                <text class="d-sub" x="768" y="420">Assignment (ASM-*) — never crosses to Explorer</text>
+
+                <!-- Tag (centre-bottom) -->
+                <rect class="d-bg-soft" x="430" y="370" width="240" height="56" rx="10" />
+                <text class="d-title" x="450" y="396">Tag · Link</text>
+                <text class="d-sub" x="450" y="414">tagged-with · derived-from · supports</text>
+
+                <!-- Edges -->
+                <!-- Domain → Requirement -->
+                <path class="d-edge strong" d="M550,142 L550,195" marker-end="url(#d-arrow)" />
+                <text class="d-edge-label" x="556" y="170">groups</text>
+
+                <!-- ISM → Requirement (maps) -->
+                <path class="d-edge dashed" d="M550,50 L550,80" marker-end="url(#d-arrow)" />
+                <text class="d-edge-label" x="556" y="68">maps</text>
+
+                <!-- Evidence → Requirement -->
+                <path class="d-edge" d="M260,161 C340,161 380,225 430,225" marker-end="url(#d-arrow)" />
+                <text class="d-edge-label" x="300" y="190">supports</text>
+
+                <!-- Action → Requirement -->
+                <path class="d-edge" d="M260,249 C340,249 380,245 430,245" marker-end="url(#d-arrow)" />
+                <text class="d-edge-label" x="300" y="270">addresses</text>
+
+                <!-- Requirement → Risk -->
+                <path class="d-edge" d="M670,225 C720,225 780,161 840,161" marker-end="url(#d-arrow)" />
+                <text class="d-edge-label" x="720" y="190">raised-by</text>
+
+                <!-- Requirement → Direction -->
+                <path class="d-edge" d="M670,245 C720,245 780,249 840,249" marker-end="url(#d-arrow)" />
+                <text class="d-edge-label" x="720" y="270">governed-by</text>
+
+                <!-- Shop cluster → Requirement / Action -->
+                <path class="d-edge dashed" d="M200,350 C200,310 240,300 260,280" marker-end="url(#d-arrow)" />
+
+                <!-- Pub cluster → Action (assignment) -->
+                <path class="d-edge dashed" d="M900,350 C900,310 880,300 840,260" marker-end="url(#d-arrow)" />
+                <text class="d-edge-label" x="800" y="318">assigned-to (local)</text>
+
+                <!-- Tag → Requirement -->
+                <path class="d-edge dashed" d="M550,370 L550,273" marker-end="url(#d-arrow)" />
+              </svg>
+              <div class="diagram-legend" aria-hidden="true">
+                <span class="swatch"><span class="dot d-source-dot"></span> Reference (ISM)</span>
+                <span class="swatch"><span class="dot d-core-dot"></span> Core hub (Domain · Requirement)</span>
+                <span class="swatch"><span class="dot d-shop-dot"></span> Shop entities</span>
+                <span class="swatch"><span class="dot d-pub-dot"></span> Pub entities (local-only)</span>
+              </div>
+            </figure>
+
+            <!-- Diagram 3: Publication boundary -->
+            <figure class="diagram" aria-labelledby="diagram-boundary-title">
+              <figcaption class="diagram-head">
+                <h3 id="diagram-boundary-title">Publication boundary</h3>
+                <p>
+                  Every field declares a publication policy. Anything personal or restricted stays local; only labelled
+                  references and assurance-relevant context cross to Explorer.
+                </p>
+              </figcaption>
+              <div class="boundary-grid">
+                <div class="boundary-card is-keep">
+                  <h4>Crosses to Explorer</h4>
+                  <ul>
+                    <li>Domain, Requirement, Evidence summaries, Action status, Risk and Direction records</li>
+                    <li>ISM mappings and Essential Eight references</li>
+                    <li>Supplier and contract identifiers used as assurance context</li>
+                    <li>Tags, saved views, and link relationships</li>
+                    <li>Posture brief content (already redacted)</li>
+                  </ul>
+                </div>
+                <div class="boundary-card is-redact">
+                  <h4>Stays local (never exported)</h4>
+                  <ul>
+                    <li>Person names, emails, and any personal contact data</li>
+                    <li>Assignment records (<code>ASM-*</code>) and team membership</li>
+                    <li>Restricted-field values and non-public free text</li>
+                    <li>Internal-only notes flagged as sensitive</li>
+                    <li>Workspace SQLite file and snapshot history</li>
+                  </ul>
+                </div>
+              </div>
+            </figure>
           </div>
         </div>
       </section>
