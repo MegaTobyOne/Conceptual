@@ -107,10 +107,7 @@ function navHtml(nav: readonly HomePanelNavItem[] | undefined): string {
     return "";
   }
   const items = nav
-    .map(
-      (item) =>
-        `<a class="home-nav__item" href="#${escapeAttr(item.href)}">${escapeText(item.label)}</a>`
-    )
+    .map((item) => `<a class="home-nav__item" href="#${escapeAttr(item.href)}">${escapeText(item.label)}</a>`)
     .join("");
   return `<nav class="home-nav" aria-label="Sections">${items}</nav>`;
 }
@@ -330,9 +327,7 @@ export function homeMetricCard(label: string, value: number | string): string {
  * shell's bundled script forwards clicks via `vscode.postMessage`.
  */
 export function homeActionButton(command: string, text: string, description?: string): string {
-  const descriptionHtml = description
-    ? `<span class="button-description">${escapeText(description)}</span>`
-    : "";
+  const descriptionHtml = description ? `<span class="button-description">${escapeText(description)}</span>` : "";
   return `<button type="button" data-command="${escapeAttr(command)}"><span class="button-title">${escapeText(text)}</span>${descriptionHtml}</button>`;
 }
 

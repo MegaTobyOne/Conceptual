@@ -2079,10 +2079,6 @@ function summaryCard(title: string, body: string): string {
   return `<article class="card"><h2>${escapeHtml(title)}</h2><p>${body}</p></article>`;
 }
 
-function foundationCard(title: string, body: string): string {
-  return `<article class="card"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(body)}</p></article>`;
-}
-
 function commandButton(command: string, text: string, description?: string): string {
   const descriptionHtml = description ? `<span class="button-description">${escapeHtml(description)}</span>` : "";
   return `<button type="button" data-command="${escapeHtml(command)}"><span class="button-title">${escapeHtml(text)}</span>${descriptionHtml}</button>`;

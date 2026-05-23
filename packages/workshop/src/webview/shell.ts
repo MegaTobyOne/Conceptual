@@ -1,5 +1,10 @@
 import { PSPF_SLICE_VERSION } from "@pspf/contracts";
-import { commandButtonAcknowledgementScript, homeActionButton, homePanelShellHtml, tokensCss } from "@pspf/webview-shell";
+import {
+  commandButtonAcknowledgementScript,
+  homeActionButton,
+  homePanelShellHtml,
+  tokensCss
+} from "@pspf/webview-shell";
 
 /**
  * Workshop webview chrome wrappers.

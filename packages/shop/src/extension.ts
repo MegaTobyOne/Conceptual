@@ -1578,7 +1578,13 @@ function renderShopHomeHtml(store: ShopStore): string {
   </div>`;
 
   const body = [
-    homeSection({ id: "overview", hero: true, eyebrow: "Commercial planning", heading: "Shop workspace", body: heroBody }),
+    homeSection({
+      id: "overview",
+      hero: true,
+      eyebrow: "Commercial planning",
+      heading: "Shop workspace",
+      body: heroBody
+    }),
     homeSection({ id: "create", eyebrow: "Author", heading: "Create records", body: createBody }),
     homeSection({ id: "forecast", eyebrow: "Review", heading: "Forecast & savings", body: forecastBody }),
     homeSection({ id: "data", eyebrow: "Data", heading: "Sample & import", body: dataBody })
