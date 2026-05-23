@@ -60,4 +60,26 @@ assert.equal(
   "Requirement workbench navigation should honour saved-view filters"
 );
 
+assert.equal(
+  workshopExtension.includes("function renderIsmSourceControlsBrowser"),
+  true,
+  "Workshop should render a dedicated ISM Source Controls browser"
+);
+for (const requiredText of [
+  'id="ism-control-search"',
+  'id="ism-profile-filter"',
+  'id="ism-drift-filter"',
+  'data-sort="controlId"',
+  'data-sort="title"',
+  'data-sort="profiles"',
+  'id="ism-result-count"',
+  '"pspf.workshop.createRequirementControlMapping"'
+]) {
+  assert.equal(
+    workshopExtension.includes(requiredText),
+    true,
+    `ISM Source Controls browser should include ${requiredText}`
+  );
+}
+
 console.log("ok Workshop Requirement navigation stays on the reusable workbench");

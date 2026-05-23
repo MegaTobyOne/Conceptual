@@ -209,6 +209,30 @@ export function shellHtml(title: string, body: string): string {
     function pspfActiveEditorForm() {
       return document.querySelector('form.form-grid');
     }
+    function pspfWebviewState() {
+      return vscode?.getState?.() || {};
+    }
+    function pspfUpdateWebviewState(patch) {
+      if (!vscode?.setState) {
+        return;
+      }
+      vscode.setState({ ...pspfWebviewState(), ...patch });
+    }
+    function pspfBrowserListKey(list) {
+      return list.getAttribute('aria-label') || 'workbench-list';
+    }
+    function pspfRestoreBrowserScroll() {
+      const list = document.querySelector('.requirement-browser__list');
+      if (!(list instanceof HTMLElement)) {
+        return;
+      }
+      const state = pspfWebviewState();
+      const scrollByKey = state.browserScrollByKey || {};
+      const top = scrollByKey[pspfBrowserListKey(list)];
+      if (typeof top === 'number') {
+        list.scrollTop = top;
+      }
+    }
     function pspfIsDirtyForm(form) {
       return form && form.dataset.initialValue !== undefined && form.dataset.initialValue !== pspfSerialiseForm(form);
     }
@@ -249,6 +273,18 @@ export function shellHtml(title: string, body: string): string {
     }
     document.querySelectorAll('form.form-grid').forEach((form) => {
       form.dataset.initialValue = pspfSerialiseForm(form);
+    });
+    requestAnimationFrame(pspfRestoreBrowserScroll);
+    document.querySelectorAll('.requirement-browser__list').forEach((list) => {
+      if (!(list instanceof HTMLElement)) {
+        return;
+      }
+      list.addEventListener('scroll', () => {
+        const state = pspfWebviewState();
+        const browserScrollByKey = { ...(state.browserScrollByKey || {}) };
+        browserScrollByKey[pspfBrowserListKey(list)] = list.scrollTop;
+        pspfUpdateWebviewState({ browserScrollByKey });
+      }, { passive: true });
     });
     document.addEventListener('click', (event) => {
       const button = event.target instanceof HTMLElement ? event.target.closest('button[data-command]') : null;

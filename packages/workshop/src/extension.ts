@@ -306,7 +306,9 @@ async function buildHomeModel(): Promise<WorkshopHomeModel> {
   const allEntities = await listAllEntities();
   const enrichedEntities = enrichActionsWithImpact(allEntities);
   const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
-  const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence");
+  const evidence = allEntities
+    .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence")
+    .sort(compareEvidenceRecords);
   const actions = enrichedEntities.filter((entity): entity is ActionEntity => entity.entityType === "action");
   const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
   const links = allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link");
@@ -3129,7 +3131,7 @@ async function openEvidenceList(): Promise<void> {
   const allEntities = await listAllEntities();
   const evidence = allEntities
     .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted")
-    .sort(compareWorkbenchRecords);
+    .sort(compareEvidenceRecords);
   const initialEvidence = evidence.at(0);
   if (!initialEvidence) {
     await vscode.window.showInformationMessage(
@@ -3182,15 +3184,7 @@ async function openItemDetail(): Promise<void> {
 
 async function browseIsmSourceControls(): Promise<void> {
   await ensureCoreReady();
-  const sourceControls = await listSourceControls();
-  const rows = sourceControls.map((sourceControl) => ({
-    action: `<button type="button" data-command="openIsmControlDetail" data-source-control-id="${escapeHtml(sourceControl.id)}">Open</button>`,
-    controlId: sourceControl.controlId,
-    title: sourceControl.title,
-    profiles: sourceControl.profileTags.join(", "),
-    release: sourceControl.provenance.oscalRelease,
-    drift: statementChangeLabel(sourceControl.statementChangeStatus)
-  }));
+  const sourceControls = [...(await listSourceControls())].sort(compareSourceControlsForBrowser);
 
   const panel = vscode.window.createWebviewPanel(
     "pspfIsmSourceControls",
@@ -3206,10 +3200,184 @@ async function browseIsmSourceControls(): Promise<void> {
       <h1>ISM Source Controls</h1>
       <p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0 · OSCAL release ${escapeHtml(sourceControls[0]?.provenance.oscalRelease ?? "not loaded")}.</p>
       ${versionStrip()}
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.createRequirementControlMapping">Map Requirement</button>
+        <button type="button" data-command="pspf.workshop.openEssentialEightDashboard">Essential Eight</button>
+      </div>
     </section>
-    ${recordTable("Source Controls", rows, ["action", "controlId", "title", "profiles", "release", "drift"])}
+    ${renderIsmSourceControlsBrowser(sourceControls)}
   `
   );
+}
+
+function compareSourceControlsForBrowser(left: SourceControlEntity, right: SourceControlEntity): number {
+  return (
+    left.controlId.localeCompare(right.controlId, "en-AU", { numeric: true }) ||
+    left.title.localeCompare(right.title, "en-AU") ||
+    left.id.localeCompare(right.id, "en-AU")
+  );
+}
+
+function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEntity[]): string {
+  const profiles = uniqueStrings(sourceControls.flatMap((sourceControl) => sourceControl.profileTags)).sort(
+    (left, right) => left.localeCompare(right, "en-AU", { numeric: true })
+  );
+  const driftLabels = uniqueStrings(
+    sourceControls.map((sourceControl) => statementChangeLabel(sourceControl.statementChangeStatus))
+  ).sort((left, right) => left.localeCompare(right, "en-AU"));
+  const releaseCount = uniqueStrings(
+    sourceControls.map((sourceControl) => sourceControl.provenance.oscalRelease)
+  ).length;
+  const changedCount = sourceControls.filter(
+    (sourceControl) => sourceControl.statementChangeStatus !== "unchanged"
+  ).length;
+  const rows = sourceControls.map(renderIsmSourceControlBrowserRow).join("");
+
+  return `<section class="ism-browser" id="ism-source-controls">
+    <div class="grid">
+      ${metricCard("Source controls", sourceControls.length)}
+      ${metricCard("Profiles", profiles.length)}
+      ${metricCard("OSCAL releases", releaseCount)}
+      ${metricCard("Drift markers", changedCount)}
+    </div>
+    <div class="ism-browser__toolbar" role="search" aria-label="Filter ISM source controls">
+      <label>
+        <span>Search controls</span>
+        <input id="ism-control-search" type="search" placeholder="Control ID, title, statement, profile, release" autocomplete="off">
+      </label>
+      <label>
+        <span>Profile</span>
+        <select id="ism-profile-filter">
+          <option value="">All profiles</option>
+          ${profiles.map((profile) => `<option value="${escapeHtml(profile)}">${escapeHtml(profile)}</option>`).join("")}
+        </select>
+      </label>
+      <label>
+        <span>Drift</span>
+        <select id="ism-drift-filter">
+          <option value="">All drift states</option>
+          ${driftLabels.map((drift) => `<option value="${escapeHtml(drift)}">${escapeHtml(drift)}</option>`).join("")}
+        </select>
+      </label>
+      <button type="button" id="ism-clear-filters">Clear filters</button>
+    </div>
+    <p class="muted" id="ism-result-count">Showing ${sourceControls.length} of ${sourceControls.length} controls.</p>
+    <div class="table-wrap ism-browser__table" tabindex="0" aria-label="Searchable ISM source controls table">
+      <table id="ism-controls-table">
+        <thead>
+          <tr>
+            <th data-field="action">Open</th>
+            <th data-field="controlId"><button type="button" data-sort="controlId">Control ID</button></th>
+            <th data-field="title"><button type="button" data-sort="title">Title</button></th>
+            <th data-field="profiles"><button type="button" data-sort="profiles">Profiles</button></th>
+            <th data-field="release"><button type="button" data-sort="release">Release</button></th>
+            <th data-field="drift"><button type="button" data-sort="drift">Drift</button></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    ${ismSourceControlsBrowserScript(sourceControls.length)}
+  </section>`;
+}
+
+function renderIsmSourceControlBrowserRow(sourceControl: SourceControlEntity): string {
+  const profiles = sourceControl.profileTags.join(", ");
+  const drift = statementChangeLabel(sourceControl.statementChangeStatus);
+  const release = sourceControl.provenance.oscalRelease;
+  const searchText = [sourceControl.controlId, sourceControl.title, sourceControl.statement, profiles, release, drift]
+    .join(" ")
+    .toLocaleLowerCase("en-AU");
+  return `<tr data-search="${escapeHtml(searchText)}" data-profile="${escapeHtml(profiles)}" data-drift="${escapeHtml(drift)}" data-control-id="${escapeHtml(sourceControl.controlId)}" data-title="${escapeHtml(sourceControl.title)}" data-profiles="${escapeHtml(profiles)}" data-release="${escapeHtml(release)}">
+    <td data-field="action"><button type="button" data-command="openIsmControlDetail" data-source-control-id="${escapeHtml(sourceControl.id)}">Open</button></td>
+    <td data-field="controlId"><strong>${escapeHtml(sourceControl.controlId)}</strong></td>
+    <td data-field="title">${escapeHtml(sourceControl.title)}<br><span class="muted">${escapeHtml(sourceControl.statement)}</span></td>
+    <td data-field="profiles">${escapeHtml(profiles || "Not tagged")}</td>
+    <td data-field="release">${escapeHtml(release)}</td>
+    <td data-field="drift">${escapeHtml(drift)}</td>
+  </tr>`;
+}
+
+function ismSourceControlsBrowserScript(totalCount: number): string {
+  return `<style>
+    .ism-browser__toolbar { display: grid; grid-template-columns: minmax(18rem, 2fr) minmax(12rem, 1fr) minmax(10rem, 1fr) auto; gap: 0.75rem; align-items: end; margin: 1rem 0; }
+    .ism-browser__toolbar label { display: grid; gap: 0.3rem; }
+    .ism-browser__toolbar span { color: var(--vscode-descriptionForeground); font-size: 0.82rem; }
+    .ism-browser__toolbar input, .ism-browser__toolbar select { width: 100%; box-sizing: border-box; }
+    .ism-browser__table table { min-width: 980px; }
+    .ism-browser__table th button { width: 100%; color: inherit; background: transparent; border: 0; padding: 0; font: inherit; text-align: left; cursor: pointer; }
+    .ism-browser__table th button::after { content: " ↕"; color: var(--vscode-descriptionForeground); }
+    .ism-browser__table th button[aria-sort="ascending"]::after { content: " ↑"; }
+    .ism-browser__table th button[aria-sort="descending"]::after { content: " ↓"; }
+    .ism-browser__table td[data-field="title"] { min-width: 24rem; }
+    @media (max-width: 760px) { .ism-browser__toolbar { grid-template-columns: 1fr; } }
+  </style>
+  <script>
+    (() => {
+      const searchInput = document.getElementById('ism-control-search');
+      const profileFilter = document.getElementById('ism-profile-filter');
+      const driftFilter = document.getElementById('ism-drift-filter');
+      const clearButton = document.getElementById('ism-clear-filters');
+      const count = document.getElementById('ism-result-count');
+      const table = document.getElementById('ism-controls-table');
+      const body = table?.querySelector('tbody');
+      const rows = body ? Array.from(body.querySelectorAll('tr')) : [];
+      let currentSort = { key: 'controlId', direction: 'ascending' };
+
+      function rowText(row, name) {
+        const attrName = 'data-' + name.replace(/[A-Z]/g, (letter) => '-' + letter.toLowerCase());
+        return row.getAttribute(attrName) || '';
+      }
+      function applyFilters() {
+        const query = searchInput instanceof HTMLInputElement ? searchInput.value.trim().toLocaleLowerCase('en-AU') : '';
+        const profile = profileFilter instanceof HTMLSelectElement ? profileFilter.value : '';
+        const drift = driftFilter instanceof HTMLSelectElement ? driftFilter.value : '';
+        let visible = 0;
+        for (const row of rows) {
+          const matchesQuery = !query || rowText(row, 'search').includes(query);
+          const matchesProfile = !profile || rowText(row, 'profile').split(', ').includes(profile);
+          const matchesDrift = !drift || rowText(row, 'drift') === drift;
+          const isVisible = matchesQuery && matchesProfile && matchesDrift;
+          row.hidden = !isVisible;
+          if (isVisible) visible += 1;
+        }
+        if (count) {
+          count.textContent = 'Showing ' + visible + ' of ${totalCount} controls.';
+        }
+      }
+      function sortRows(key) {
+        if (!body) return;
+        const direction = currentSort.key === key && currentSort.direction === 'ascending' ? 'descending' : 'ascending';
+        currentSort = { key, direction };
+        const multiplier = direction === 'ascending' ? 1 : -1;
+        for (const button of table?.querySelectorAll('button[data-sort]') || []) {
+          button.removeAttribute('aria-sort');
+        }
+        const button = table?.querySelector('button[data-sort="' + key + '"]');
+        button?.setAttribute('aria-sort', direction);
+        rows
+          .slice()
+          .sort((left, right) => multiplier * rowText(left, key).localeCompare(rowText(right, key), 'en-AU', { numeric: true }))
+          .forEach((row) => body.appendChild(row));
+      }
+      searchInput?.addEventListener('input', applyFilters);
+      profileFilter?.addEventListener('change', applyFilters);
+      driftFilter?.addEventListener('change', applyFilters);
+      clearButton?.addEventListener('click', () => {
+        if (searchInput instanceof HTMLInputElement) searchInput.value = '';
+        if (profileFilter instanceof HTMLSelectElement) profileFilter.value = '';
+        if (driftFilter instanceof HTMLSelectElement) driftFilter.value = '';
+        applyFilters();
+        searchInput?.focus();
+      });
+      table?.querySelectorAll('button[data-sort]').forEach((button) => {
+        button.addEventListener('click', () => sortRows(button.getAttribute('data-sort') || 'controlId'));
+      });
+      sortRows('controlId');
+      applyFilters();
+    })();
+  </script>`;
 }
 
 async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
@@ -3849,7 +4017,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
   const linkedIds = new Set(outboundLinks.map((link) => link.toId));
   const evidence = allEntities.filter(
     (entity): entity is EvidenceEntity => entity.entityType === "evidence" && linkedIds.has(entity.id)
-  );
+  ).sort(compareEvidenceRecords);
   const evidenceRows = evidence.map((item) => ({
     openEntityType: "evidence",
     openEntityId: item.id,
@@ -4548,6 +4716,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.createRoadmapInitiativePlan",
         "pspf.workshop.openEvidenceReviewQueue",
         "pspf.workshop.browseIsmSourceControls",
+        "pspf.workshop.createRequirementControlMapping",
         "pspf.workshop.copyPostureBrief",
         "pspf.workshop.openCisoMagazine",
         "pspf.workshop.openCisoMasterPlan",
@@ -4788,6 +4957,7 @@ function renderRequirementEditor(
   const enrichedEntities = enrichActionsWithImpact(allEntities);
   const evidenceRows = allEntities
     .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && linkedIds.has(entity.id))
+    .sort(compareEvidenceRecords)
     .map((item) => ({
       openEntityType: "evidence",
       openEntityId: item.id,
@@ -5041,6 +5211,9 @@ function recordWorkbenchMeta(entity: RecordWorkbenchEntity): string {
 }
 
 function compareWorkbenchRecords(left: RecordWorkbenchEntity, right: RecordWorkbenchEntity): number {
+  if (left.entityType === "evidence" && right.entityType === "evidence") {
+    return compareEvidenceRecords(left, right);
+  }
   if (left.entityType === "action" && right.entityType === "action") {
     return (
       (formatShortAuDateTime(left.dueDate) ?? "").localeCompare(formatShortAuDateTime(right.dueDate) ?? "") ||
@@ -5054,6 +5227,16 @@ function compareWorkbenchRecords(left: RecordWorkbenchEntity, right: RecordWorkb
     );
   }
   return left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" });
+}
+
+function compareEvidenceRecords(left: EvidenceEntity, right: EvidenceEntity): number {
+  return (
+    left.title.localeCompare(right.title, "en-AU", { numeric: true, sensitivity: "base" }) ||
+    label(left.evidenceType).localeCompare(label(right.evidenceType), "en-AU", { sensitivity: "base" }) ||
+    label(left.freshness).localeCompare(label(right.freshness), "en-AU", { sensitivity: "base" }) ||
+    left.reference.localeCompare(right.reference, "en-AU", { numeric: true, sensitivity: "base" }) ||
+    left.id.localeCompare(right.id, "en-AU", { numeric: true, sensitivity: "base" })
+  );
 }
 
 function renderEvidenceEditor(
@@ -5085,6 +5268,7 @@ function renderActionEditor(
     ? `
     <section>
       <h2>Action Impact</h2>
+      <p class="muted">Calculated from linked Requirements, Evidence, Risks, Directions, status, and due date.</p>
       <div class="grid">
         ${metricCard("Urgency", label(impact.urgency))}
         ${metricCard("Posture uplift", impact.postureUplift)}
@@ -5092,7 +5276,13 @@ function renderActionEditor(
         ${metricCard("Risk reduction", impact.riskReduction)}
         ${metricCard("Direction uplift", impact.directionUplift ?? 0)}
       </div>
-      <p class="muted">${escapeHtml((impact.explanation ?? []).join("; ") || "No linked impact signals")}</p>
+      <p class="muted"><strong>Why this score:</strong> ${escapeHtml((impact.explanation ?? []).join("; ") || "No linked impact signals")}</p>
+      <p class="muted">To change impact, edit this Action's status or due date, then manage the linked records that drive the score.</p>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openConnectedView">Trace links</button>
+        <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Review evidence</button>
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan actions</button>
+      </div>
     </section>
   `
     : "";
@@ -6030,7 +6220,9 @@ async function openWorkshopEvidenceReviewSavedView(savedView: SavedViewEntity): 
   await ensureCoreReady();
   const allEntities = await listAllEntities();
   const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
-  const evidence = allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence");
+  const evidence = allEntities
+    .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence")
+    .sort(compareEvidenceRecords);
   const links = allEntities.filter(
     (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
   );
@@ -6073,6 +6265,7 @@ async function openWorkshopEvidenceReviewSavedView(savedView: SavedViewEntity): 
   const evidenceRows = [...linkedEvidenceIds]
     .map((evidenceId) => evidenceById.get(evidenceId))
     .filter((item): item is EvidenceEntity => item !== undefined && item.freshness !== "current")
+    .sort(compareEvidenceRecords)
     .map((item) => ({
       openEntityType: "evidence",
       openEntityId: item.id,

@@ -454,14 +454,15 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 ### v1.29 candidate gates (UX consistency and relationship manager foundation, per ADR 0065)
 
 1. **ADR gate**: ADR 0065 records the UX consistency and relationship manager foundation decision before release preparation completes.
-2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.29.1`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
-3. **UX coverage gate**: `check:ux-coverage` validates the entity UX coverage matrix and its regression tests for all contract entity types and Pub local record types.
-4. **Relationship rule gate**: `@pspf/contracts.OPERATOR_LINK_RULES` covers current Shop and Workshop operator-editable relationship commands with canonical endpoint, link type, label, and phrase metadata.
-5. **Relationship UI gate**: `@pspf/webview-shell.relationshipManagerHtml` renders escaped shared relationship actions for command URIs and Workshop command buttons; Shop uses it for assurance coverage quick actions and Supplier, Contract, and Spend Item detail panels; Workshop uses it for Requirement relationship actions.
-6. **Pub CRUD gate**: Pub Person, Role, Assignment, and Relationship Note records expose local-only detail and edit panels with complete field coverage; no Pub local record fields are added to Explorer publication.
-7. **Consumer gate**: Shop, Workshop, and Pub command tests prevent reverting to ad hoc hardcoded link rules, direct-to-edit Shop tree selection, bespoke Requirement relationship controls, or missing Pub local record detail/edit panels.
-8. **Deferred-scope gate**: full relationship-manager rollout beyond the Shop forecast/detail and Workshop Requirement proof points, edit-panel simplification, Pub Explorer publication, new schema-bearing relationship fields, and broader Pub list row-level actions remain deferred.
-9. **Regression gate**: `e2e:v1.29`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.29.2`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
+3. **Export-format direction gate**: ADR 0066 records that PowerPoint and document exports are generated communication artefacts derived from existing brief/report models, not new system-of-record data or schema-bearing entities.
+4. **UX coverage gate**: `check:ux-coverage` validates the entity UX coverage matrix and its regression tests for all contract entity types and Pub local record types.
+5. **Relationship rule gate**: `@pspf/contracts.OPERATOR_LINK_RULES` covers current Shop and Workshop operator-editable relationship commands with canonical endpoint, link type, label, and phrase metadata.
+6. **Relationship UI gate**: `@pspf/webview-shell.relationshipManagerHtml` renders escaped shared relationship actions for command URIs and Workshop command buttons; Shop uses it for assurance coverage quick actions and Supplier, Contract, and Spend Item detail panels; Workshop uses it for Requirement relationship actions.
+7. **Pub CRUD gate**: Pub Person, Role, Assignment, and Relationship Note records expose local-only detail and edit panels with complete field coverage; no Pub local record fields are added to Explorer publication.
+8. **Consumer gate**: Shop, Workshop, and Pub command tests prevent reverting to ad hoc hardcoded link rules, direct-to-edit Shop tree selection, bespoke Requirement relationship controls, or missing Pub local record detail/edit panels.
+9. **Deferred-scope gate**: full relationship-manager rollout beyond the Shop forecast/detail and Workshop Requirement proof points, edit-panel simplification, Pub Explorer publication, new schema-bearing relationship fields, native PPTX/DOCX generation commands, and broader Pub list row-level actions remain deferred.
+10. **Regression gate**: `e2e:v1.29`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 

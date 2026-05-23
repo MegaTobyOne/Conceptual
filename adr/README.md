@@ -78,6 +78,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0063 | v1.27 Digital CISO Magazine | proposed |
 | 0064 | v1.28 Pub Marketplace foundation | proposed |
 | 0065 | v1.29 UX consistency and relationship manager foundation | proposed |
+| 0066 | v1.29.2 generated slide and document export direction | proposed |
 
 ## Template
 
