@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.29.0",
+  "version": "1.29.1",
   "private": true,
   "type": "module",
   "license": "MIT",

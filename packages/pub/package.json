@@ -2,7 +2,7 @@
   "name": "pspf-pub",
   "displayName": "PSPF Pub",
   "description": "PSPF people, role, team, assignment, and stakeholder relationship surface.",
-  "version": "1.29.0",
+  "version": "1.29.1",
   "private": true,
   "type": "module",
   "license": "MIT",

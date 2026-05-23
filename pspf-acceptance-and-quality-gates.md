@@ -454,7 +454,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 ### v1.29 candidate gates (UX consistency and relationship manager foundation, per ADR 0065)
 
 1. **ADR gate**: ADR 0065 records the UX consistency and relationship manager foundation decision before release preparation completes.
-2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.29.0`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.29.1`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
 3. **UX coverage gate**: `check:ux-coverage` validates the entity UX coverage matrix and its regression tests for all contract entity types and Pub local record types.
 4. **Relationship rule gate**: `@pspf/contracts.OPERATOR_LINK_RULES` covers current Shop and Workshop operator-editable relationship commands with canonical endpoint, link type, label, and phrase metadata.
 5. **Relationship UI gate**: `@pspf/webview-shell.relationshipManagerHtml` renders escaped shared relationship actions for command URIs and Workshop command buttons; Shop uses it for assurance coverage quick actions and Supplier, Contract, and Spend Item detail panels; Workshop uses it for Requirement relationship actions.
