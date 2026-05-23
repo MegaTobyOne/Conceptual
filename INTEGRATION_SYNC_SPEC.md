@@ -1,369 +1,311 @@
-# Rogue CISO External Integration and Local Sync Specification
+# PSPF External Risk Source Integration Planning Specification
 
-**Date**: 30 April 2026
-**Status**: Phase 1 implementation in progress (manual risk sync live)
+**Date**: 23 May 2026  
+**Status**: v1.30 planning proposal  
 **Audience**: Product owner, CISO, delivery lead, engineering
 
 ## 1. Purpose
 
-Define a safe, optional integration module that allows PSPF Users to connect to external system-of-record endpoints, fetch published JSON data, compare it with local data, and upsert selected changes into the local datastore.
+Define a safe, optional integration capability that lets PSPF operators fetch risk records from an external system of record, preview deterministic local changes, and apply selected creates or updates into the PSPF Core datastore.
 
-This specification is explicitly read-only toward external systems. No write-back capability is included.
+This capability is read-only toward external systems. PSPF never writes back to the source system in this tranche.
 
-## 2. Problem Statement
+## 2. Planning Position
 
-PSPF Users currently maintain local governance datasets that can drift from enterprise systems of record.
+The current candidate is **v1.30 external risk source integration**.
 
-Common examples:
+The integration belongs in **Workshop + Core**, not Explorer:
 
-- Risks managed in an external Risk API.
-- Actions and service work tracked in Service Management platforms (changes, requests, incidents).
-- Technology system metadata maintained in infrastructure or CMDB tools.
+- Workshop is the operator decision surface and system-of-record workflow.
+- Core owns persistence, validation, writer lock, migration safety, and audit evidence.
+- Explorer remains a portable review and local-authoring surface and must not gain runtime API integrations.
 
-The product need is to keep local data consistent and aligned without replacing upstream systems.
+Initial scope should be deliberately narrow: a named 6clicks risk adapter, manual preview, explicit apply, local audit ledger, and no scheduled sync.
 
-## 3. Scope
+## 3. Problem Statement
 
-In scope:
+PSPF operators often have risk records in another system of record, such as an enterprise GRC platform, risk API, service management tool, or a controlled JSON endpoint. Without a guided import path, local PSPF risk data can drift from authoritative enterprise records or require manual re-keying.
 
-- Optional connection profiles to external REST endpoints.
-- Read-only fetch from published API endpoints.
-- Entity mapping and normalisation into Rogue CISO schema.
-- Deterministic compare and preview before apply.
-- Local upsert (add new, update existing) with field-level policy controls.
-- Sync run ledger and audit evidence.
-- User-facing Integration Workspace for configuration and operations.
+The product need is to source external risks into PSPF while preserving PSPF's local-first, sensitive-by-default, defensible assurance posture.
 
-Out of scope:
+## 4. Scope
+
+In scope for the first tranche:
+
+- Optional 6clicks risk source profile.
+- Operator-initiated connectivity test.
+- Operator-initiated fetch of published risk JSON over HTTPS.
+- Normalisation into a canonical incoming risk payload.
+- Deterministic matching against existing PSPF `risk` records.
+- Preview-first reconciliation with field-level differences.
+- Explicit apply into local Core storage.
+- External reference metadata attached to locally created or updated risks.
+- Sync run ledger and redacted diagnostics.
+- Risk workflow panel for configuration, preview, and apply.
+
+Out of scope for the first tranche:
 
 - Any outbound write-back to source systems.
-- Bi-directional conflict resolution with external updates.
-- Real-time streaming/webhook ingestion in initial release.
-- Multi-user orchestration features beyond current local-first model.
+- Real-time streaming, webhooks, scheduled sync, or background polling.
+- Multi-user orchestration or remote collaboration.
+- External Actions, technology systems, suppliers, contracts, spend items, or Pub records.
+- Local delete based on source absence.
+- Automatic apply without preview.
+- Explorer runtime integration with external systems.
+- New Explorer publication behaviour unless the chosen metadata becomes part of canonical exported `risk` records.
 
-## 4. Design Principles
+## 5. Design Principles
 
-1. Read-only external posture: connectors can fetch only.
-2. Preview-first safety: no silent bulk changes.
-3. Deterministic matching: every upsert decision must be explainable.
-4. Local-first durability: preserve existing storage guarantees and migration safety.
-5. Incremental adoption: start with risk sync, then action and systems.
-6. Defensible governance: every sync run is auditable.
+1. **Read-only external posture**: connectors fetch only and expose no create, update, or delete operation against external systems.
+2. **Preview-first safety**: no external data changes local records until the operator reviews the proposed result and confirms apply.
+3. **Explainable matching**: every proposed create, update, ambiguous match, and rejection has a reason.
+4. **Local-first durability**: all authoritative PSPF writes go through Core and the existing writer-lock/concurrency model.
+5. **Sensitive-by-default**: secrets never enter the datastore, logs, bundles, snapshots, or diagnostics.
+6. **Incremental adoption**: risk import first; other entity types only after the risk path proves safe and useful.
+7. **Auditability**: every run produces enough local evidence to answer what changed, when, from which source, and by whom.
 
-## 5. User Outcomes
+## 6. User Outcomes
 
-1. Users can trust their local risk/action/system records are aligned to system-of-record data.
-2. Users can review and approve proposed changes before they are applied.
-3. Users can prove what changed, when, and from which source.
-4. Users can operate integrations without affecting external systems.
+1. Operators can connect PSPF to an approved external risk source without giving PSPF write-back authority.
+2. Operators can preview new and changed risks before committing them locally.
+3. Operators can preserve local PSPF-only fields while updating source-authoritative fields.
+4. Operators can prove the origin and decision trail for imported risk records.
+5. Operators can operate the integration without weakening Explorer's portable, no-runtime-egress posture.
 
-## 6. Functional Requirements
+## 7. Functional Requirements
 
-## 6.1 Integration Source Registry
+### 7.1 Integration Source Registry
 
-Users can define and manage source profiles with:
+Operators can define and manage risk source profiles with:
 
-- Source name and source type.
-- Base URL and endpoint definitions.
-- Authentication mode and secret reference.
-- Entity scopes (`risk`, `action`, `technologySystem`, and future scopes).
-- Sync policy defaults (preview mode, apply policy, timeout, retry).
-- Enable/disable status.
+- Source name.
+- Source type: initially `6clicks-risk`.
+- Base URL and risk endpoint path.
+- Authentication mode and secret reference. MVP supports API key header and bearer token authentication.
+- Enabled/disabled status.
+- Timeout and bounded retry settings.
+- Optional endpoint allow-list policy.
+- Mapping version.
+- Default apply policy: `safe-update`.
 
-Source profiles must never store raw secrets in the datastore. Secret values must be stored in VS Code SecretStorage and referenced by key.
+Source profiles must never store raw secrets in Core storage. Secret values must be stored in VS Code `SecretStorage` and referenced by stable secret keys.
 
-## 6.2 Connector Adapter Contract
+### 7.2 Connector Adapter Contract
 
-Each source adapter must implement:
+Each risk source adapter must implement:
 
 - Connectivity test.
-- Paged fetch for each configured entity scope.
-- Optional incremental fetch (`since`, cursor, or watermark).
-- Mapping of source records to canonical integration payloads.
-- Error classification (auth, network, schema, rate-limit, unexpected).
+- Paged or single-page fetch of risk records.
+- Optional incremental fetch marker where the source supports it, but no scheduled sync in this tranche.
+- Mapping of source records to canonical incoming risk payloads.
+- Error classification: `auth`, `network`, `schema`, `rate-limit`, `timeout`, and `unexpected`.
+- Diagnostic redaction for tokens, keys, cookies, and sensitive headers.
 
-Connectors are read-only by design and must not expose any external create/update/delete operations.
+Connectors must be read-only by design and must not include external mutation methods.
 
-## 6.3 Canonical Integration Payload
+### 7.3 Canonical Incoming Risk Payload
 
-Every incoming record must be normalised to a canonical payload with:
-
-- `sourceId`
-- `entityType`
-- `remoteId`
-- `remoteUpdatedAt` (or equivalent version marker)
-- `payload` (normalised fields)
-- `rawHash` (integrity and change detection)
-
-Records missing `remoteId` or equivalent stable identifier are treated as non-upsertable and require manual review.
-
-## 6.4 Matching and Identity Resolution
-
-Matching order:
-
-1. Existing external reference mapping (`sourceId` + `remoteId`).
-2. Deterministic secondary key rules per entity type.
-3. Ambiguous state requiring user confirmation.
-
-Secondary key examples:
-
-- Risk: normalised title + owner + category.
-- Action: normalised title + source ticket/reference + status family.
-- Technology system: normalised name + system identifier/classification.
-
-## 6.5 Diff and Reconciliation
-
-Compare output must classify each remote record as:
-
-- `new`: no local match found.
-- `changed`: local match found with field-level differences.
-- `unchanged`: match found with no mapped differences.
-- `ambiguous`: multiple plausible matches or low-confidence match.
-- `error`: payload invalid or mapping failure.
-
-Users must be able to inspect field-by-field differences for `changed` records.
-
-## 6.6 Local Upsert Execution
-
-Apply modes:
-
-- `add-only`: create new records only.
-- `safe-update`: create new and update source-authoritative fields only.
-- `full-mapped-update`: create new and update all mapped fields.
-
-Rules:
-
-- Upsert writes to local datastore only.
-- Use existing concurrency-safe update patterns.
-- Preserve non-authoritative local fields where policy requires.
-- Relationship links are resolved in a second pass after entity upsert.
-- Unresolved relationships are logged as deferred link actions.
-
-No local delete based on source absence is allowed in initial release.
-
-## 6.7 Sync Run Ledger and Audit
-
-Each run must persist:
-
-- Source profile used.
-- Initiator and trigger type (manual/scheduled).
-- Start and finish times.
-- Entity scope counts (fetched, new, changed, unchanged, ambiguous, errors, applied).
-- Applied mode and policy version.
-- Error summary and detailed diagnostics.
-
-The ledger supports governance reporting and troubleshooting.
-
-## 6.8 Scheduling and Incremental Sync (Post-MVP)
-
-Initial release supports manual runs only.
-
-Post-MVP supports scheduled runs with:
-
-- Per-source schedule.
-- Incremental sync where API supports it.
-- Backoff and retry policy.
-- Fail-safe behaviour: failed scheduled runs never auto-apply partial changes.
-
-## 7. Data Model Delta
-
-Additive changes only.
-
-New core structures:
-
-- `integrationSources: IntegrationSource[]`
-- `integrationSyncProfiles: IntegrationSyncProfile[]`
-- `integrationSyncRuns: IntegrationSyncRun[]`
-
-Extend relevant entities (risk/action/technologySystem and future types) with optional external reference metadata:
-
-- `externalRefs?: ExternalReference[]`
-
-Suggested types:
+Every incoming risk record is normalised before matching:
 
 ```typescript
-interface ExternalReference {
+interface IncomingRiskRecord {
   sourceId: string;
   remoteId: string;
   remoteUpdatedAt?: string;
-  lastSyncedAt: string;
-  mappingVersion: string;
-  confidence?: 'high' | 'medium' | 'low';
-}
-
-interface IntegrationSource {
-  id: string;
-  name: string;
-  type: 'risk-api' | 'service-management' | 'systems-api' | 'custom-rest';
-  baseUrl: string;
-  auth: {
-    mode: 'api-key-header' | 'bearer-token' | 'oauth-client-credentials';
-    secretRef: string;
-    headerName?: string;
-    tokenUrl?: string;
-    clientId?: string;
-    audience?: string;
+  remoteUrl?: string;
+  rawHash: string;
+  payload: {
+    title: string;
+    description?: string;
+    category?: string;
+    ownerRef?: string;
+    likelihood?: string;
+    impact?: string;
+    rating?: string;
+    status?: string;
+    treatment?: string;
+    notes?: string;
   };
-  scopes: Array<'risk' | 'action' | 'technologySystem'>;
-  enabled: boolean;
-  createdDate: string;
-  modifiedDate: string;
-}
-
-interface IntegrationSyncProfile {
-  id: string;
-  sourceId: string;
-  entityType: 'risk' | 'action' | 'technologySystem';
-  mappingVersion: string;
-  applyPolicy: 'add-only' | 'safe-update' | 'full-mapped-update';
-  fieldAuthority: Record<string, 'source' | 'local' | 'manual'>;
-  matchRulesVersion: string;
-  enabled: boolean;
-  createdDate: string;
-  modifiedDate: string;
-}
-
-interface IntegrationSyncRun {
-  id: string;
-  sourceId: string;
-  status: 'previewed' | 'applied' | 'failed' | 'cancelled';
-  trigger: 'manual' | 'scheduled';
-  scopes: Array<'risk' | 'action' | 'technologySystem'>;
-  startedAt: string;
-  completedAt?: string;
-  stats: {
-    fetched: number;
-    new: number;
-    changed: number;
-    unchanged: number;
-    ambiguous: number;
-    errors: number;
-    appliedCreates: number;
-    appliedUpdates: number;
-    deferredLinks: number;
-  };
-  applyMode?: 'add-only' | 'safe-update' | 'full-mapped-update';
-  diagnostics?: string[];
 }
 ```
 
+Records missing a stable `remoteId` are non-upsertable and appear in preview as `error` or `manual-review`.
+
+### 7.4 Matching and Identity Resolution
+
+Matching order:
+
+1. Existing risk external reference matching `sourceId + remoteId`.
+2. Deterministic secondary key: normalised title plus category or owner reference where available.
+3. Ambiguous state requiring explicit operator selection or exclusion.
+
+No low-confidence match is auto-applied.
+
+### 7.5 Diff and Reconciliation
+
+Preview classifies each incoming record as:
+
+- `new`: no local match found.
+- `changed`: one local match found and mapped fields differ.
+- `unchanged`: one local match found and mapped fields are equivalent.
+- `ambiguous`: multiple plausible matches or insufficient match confidence.
+- `error`: payload invalid, mapping failed, or required identifier absent.
+
+Changed records must show field-by-field differences and identify whether each field is source-authoritative or local-protected.
+
+### 7.6 Local Apply Execution
+
+Apply modes:
+
+- `add-only`: create new risks only.
+- `safe-update`: create new risks and update source-authoritative mapped fields only.
+- `full-mapped-update`: create new risks and update all mapped fields allowed by policy.
+
+Recommended default: `safe-update`.
+
+Rules:
+
+- Apply writes only to the local Core datastore.
+- Apply uses existing Core write APIs, validation, writer lock, and transaction patterns.
+- Local-protected fields are preserved unless the operator explicitly chooses a policy that allows overwrite.
+- Ambiguous and error records are never auto-applied.
+- Source absence never deletes local risks.
+- Mid-apply failure records partial progress and supports deterministic replay or manual remediation.
+
+### 7.7 External Reference Metadata
+
+Imported or updated risks should carry source reference metadata as integration metadata rather than general-purpose public entity identity.
+
+Proposed shape:
+
+```typescript
+interface ExternalRiskReference {
+  sourceId: string;
+  remoteId: string;
+  remoteUpdatedAt?: string;
+  remoteUrl?: string;
+  lastSyncedAt: string;
+  mappingVersion: string;
+  rawHash: string;
+  confidence: 'high' | 'medium' | 'low';
+}
+```
+
+This metadata is not a general `externalRefs` expansion for operational entities. Explorer, posture briefs, and generated reports may show only the source label and last source update time unless a later ADR deliberately expands the publication policy. Any persisted field still requires contract, schema, redaction, fixture, and migration review.
+
+### 7.8 Sync Run Ledger and Audit
+
+Each run persists a local ledger entry with:
+
+- Source profile used.
+- Initiator and trigger type.
+- Start and finish times.
+- Status: `previewed`, `applied`, `failed`, or `cancelled`.
+- Counts: fetched, new, changed, unchanged, ambiguous, errors, applied creates, applied updates.
+- Apply mode and mapping version.
+- Redacted diagnostic summary.
+- Optional detailed record decisions, stored locally only.
+
+Ledger details should be sensitive by default and excluded from default Explorer publication unless explicitly designed otherwise.
+
 ## 8. Architecture Fit
 
-The design aligns with existing layer boundaries.
+Recommended ownership:
 
-- `src/domain`: integration types, matching and diff rules, policy evaluation.
-- `src/storage`: additive schema support, migration, and run ledger persistence.
-- `src/commands`: orchestration commands (`test`, `preview`, `apply`, `view-runs`).
-- `src/views`: Integration Workspace webview and status surfaces.
-- `src/utils`: connector diagnostics and resilient HTTP helpers.
+- `packages/contracts`: canonical types only if persisted in Core or exported in bundles.
+- `packages/core`: storage, migrations, validation, write APIs, run ledger, and import transaction execution.
+- `packages/workshop`: Risk Source panel UI, commands, preview/review/apply orchestration, and SecretStorage prompts.
+- `packages/webview-shell`: shared UI components if the preview table or diff panel should be reused.
 
-No VS Code API imports in domain modules.
+No VS Code API imports should enter pure contracts or domain helpers. Secret access remains in extension-host code.
 
-## 9. Integration Workspace Decision
+## 9. UX Direction
 
-Decision: introduce a dedicated Integration Workspace.
+Introduce a Workshop-owned **Risk Source** panel inside the existing Risk workflows.
 
-Rationale:
+Suggested layout:
 
-1. Sync configuration and reconciliation are operationally distinct from normal entity editing.
-2. Preview/diff/apply interactions need focused controls and guardrails.
-3. Keeping this in a dedicated workspace avoids overloading Data Workspace and reduces accidental changes.
+- Source profile section: enabled state, last run status, and run history.
+- Preview section: source configuration, test result, mapping policy, preview table, and field diff drawer.
+- Sticky action bar: `Test Connection`, `Run Preview`, `Apply Selected`.
 
-Proposed UX pattern (aligned to Data Workspace v2 conventions):
+Preview should default to showing only `new`, `changed`, `ambiguous`, and `error` rows. `unchanged` rows should be available but visually quiet.
 
-- Left panel:
-  - Source profiles.
-  - Scope filters.
-  - Run history list with status chips.
-- Right panel:
-  - Source configuration form.
-  - Mapping and authority policy controls.
-  - Preview diff table with per-record and per-field details.
-  - Sticky action bar: `Test Connection`, `Run Preview`, `Apply Upsert`.
+The apply action requires explicit confirmation and displays the number of creates and updates that will be written. Local PSPF-owned fields must not be overwritten unless the user explicitly consents to each overwrite policy in the Risk panel.
 
-For MVP delivery speed, launch this as a standalone workspace command and keep Data Workspace integration to contextual links only.
+## 10. Command Surface
 
-## 10. Command Surface (Proposed)
+Proposed commands:
 
-- `rogue.openIntegrationWorkspace`
-- `rogue.createIntegrationSource`
-- `rogue.testIntegrationSource`
-- `rogue.previewIntegrationSync`
-- `rogue.applyIntegrationSync`
-- `rogue.viewIntegrationSyncRuns`
+- `pspf.workshop.openRiskSourcePanel`
+- `pspf.workshop.createRiskSource`
+- `pspf.workshop.testRiskSource`
+- `pspf.workshop.previewRiskSourceImport`
+- `pspf.workshop.applyRiskSourceImport`
+- `pspf.workshop.viewRiskSourceRuns`
 
-## 11. Non-Functional Requirements
+Core API additions should remain smaller than the command surface and expose only the storage and apply primitives Workshop needs.
 
-- Backward compatibility: additive migration only; no existing data loss.
-- Safety: no writes to external systems under any code path.
-- Reliability: retries with bounded backoff for transient fetch failures.
-- Performance: handle typical enterprise payloads with paging and incremental fetch.
-- Auditability: full run ledger and deterministic decision trail.
-- Accessibility: keyboard-operable diff and apply workflow in webview.
+## 11. Security and Governance Requirements
 
-## 12. Security and Governance Requirements
+1. Secrets stored only in VS Code `SecretStorage`.
+2. HTTPS-only source endpoints by default.
+3. Optional endpoint allow-listing for regulated environments.
+4. No token, key, cookie, auth header, or raw response body in logs by default.
+5. Explicit operator confirmation before any apply.
+6. No external write-back code path.
+7. Workspace Trust required for testing, previewing, or applying source imports.
+8. Diagnostics must use the existing PSPF error and diagnostics model.
 
-1. Secrets stored only in VS Code SecretStorage.
-2. Endpoint allow-listing option for regulated environments.
-3. TLS-only remote endpoints by default.
-4. Diagnostic redaction for tokens, keys, and sensitive headers.
-5. Explicit user confirmation before any apply operation.
-
-## 13. Risk Controls and Failure Behaviour
+## 12. Failure Behaviour
 
 - Auth failure: fail run, no local changes.
-- Schema mismatch: isolate failed records, continue preview for valid records.
+- Network failure: fail or partially fetch according to adapter policy, no local changes unless apply was already explicitly started.
+- Schema mismatch: isolate invalid records and continue preview for valid records.
 - Ambiguous matches: never auto-apply.
-- Mid-apply failure: record partial progress and provide deterministic replay option.
-- Concurrency conflict on local updates: mark as conflict and exclude from auto-apply.
+- Writer lock held: preview may run read-only if allowed; apply fails with the existing writer-lock error path.
+- Mid-apply failure: record partial progress, failed record IDs, and replay guidance.
+- Concurrency conflict: exclude affected records from auto-apply and show conflict diagnostics.
 
-## 14. Acceptance Criteria
+## 13. Candidate v1.30 Acceptance Gates
 
-1. A user can configure a Risk API source, test connectivity, preview differences, and apply local upsert without external write-back.
-2. Preview clearly separates new, changed, unchanged, ambiguous, and error records.
-3. Applied changes are reflected in local entities with external reference metadata attached.
-4. Sync run ledger records complete operational details and diagnostics.
-5. No existing workflows regress, and migration preserves all pre-existing data.
+1. A trusted Workshop operator can create a 6clicks risk source profile with a SecretStorage-backed API key header or bearer token credential reference and no raw secret in Core storage, workspace settings, logs, snapshots, or bundles.
+2. `Test Connection` performs a read-only HTTPS request and classifies auth, network, schema, rate-limit, timeout, and unexpected failures.
+3. `Run Preview` fetches fixture risk records and classifies them into `new`, `changed`, `unchanged`, `ambiguous`, and `error` with field-level diffs for changed records.
+4. `Apply Selected` writes only confirmed new/changed risk records through Core, preserves local PSPF-owned fields unless the user has explicitly consented to the overwrite policy, and never writes to the external source.
+5. Imported risks carry integration metadata; Explorer and generated outputs expose only source label and last source update time, with redaction tests proving no other integration metadata leaks.
+6. Sync run ledger entries record run status, counts, apply mode, mapping version, and redacted diagnostics.
+7. Regression gates pass: `typecheck`, `lint`, `check:gates`, `validate:debug-workspace`, and release-readiness checks selected for the active release line.
 
-## 15. Phased Delivery Plan
+## 14. Decisions Required
 
-Phase 1 (MVP): Risk API manual preview and apply
+1. **6clicks payload contract**: choose the sample payload that becomes the contract test source.
+2. **Protected fields**: define the local PSPF-owned risk fields that source data can propose to change only after explicit user consent.
+3. **Consent model**: decide whether overwrite consent is per field, per run, per source profile, or a combination.
+4. **Run ledger storage**: decide whether the ledger is canonical Core data, local operational log data, or a hybrid.
+5. **Source label**: decide the exact Explorer/report label for 6clicks-originated risks.
+6. **Last updated semantics**: decide whether Explorer shows external `remoteUpdatedAt`, local `lastSyncedAt`, or both as a single human-friendly value.
 
-- Source registry.
-- One risk adapter.
-- Compare and upsert for risk records.
-- Integration Workspace baseline and run ledger.
+## 15. Proposed Planning Path
 
-Phase 2: Service Management actions integration
+1. Product decision workshop: answer the remaining decisions above and record them in a new ADR.
+2. Contract sketch: model the smallest persisted metadata and ledger shape, including publication policy.
+3. Fixture-first prototype: add a static 6clicks risk JSON fixture and implement preview classification without network access.
+4. Secret and connector spike: add SecretStorage-backed credential handling and a read-only HTTPS fetch adapter.
+5. Core apply path: write creates/updates through existing Core APIs with transaction and writer-lock coverage.
+6. Workshop UI: build the preview/apply surface with field diffs and explicit confirmation.
+7. Gates: add contract, redaction, fixture, and no-write-back tests before release readiness.
 
-- Action adapter for changes/requests/incidents mapping.
-- Action field authority policies.
-- Deferred link handling and richer status mapping.
+## 16. Later Phases
 
-Phase 3: Technology systems integration
+Later tranches can consider:
 
-- Systems adapter.
-- Two-pass relationship reconciliation for systems and components.
+- Named adapters for common GRC platforms.
+- External Action sourcing.
+- Technology system or CMDB sourcing.
+- Scheduled preview-only checks.
+- Incremental cursors or watermarks.
+- Richer match confirmation workflows.
+- Operator-managed source field mapping.
 
-Phase 4: Scheduling and incremental sync
-
-- Scheduled runs.
-- Incremental watermark/cursor support.
-- Operational tuning and diagnostics refinement.
-
-## 16. Open Questions
-
-1. Which source systems and auth modes should be first-class in v1 versus custom REST profile only?
-2. What default field authority policy should apply for each entity type?
-3. Should `safe-update` be the default apply mode for all profiles?
-4. Which local fields are always protected from source overwrite?
-5. What run history retention policy is acceptable for local storage size and audit needs?
-
-## 17. Implementation Readiness Checklist
-
-- Spec approved by product owner and engineering.
-- Data model delta reviewed for migration safety.
-- Secret handling design validated against extension security posture.
-- Risk adapter sample payload and mapping fixtures prepared.
-- UX wireframe for Integration Workspace validated against look-and-feel standard.
-- Test plan drafted: unit, command, webview contracts, migration fixtures.
+These should remain deferred until the risk import path is proven against real operator data.

@@ -4015,9 +4015,9 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     (entity): entity is LinkEntity => entity.entityType === "link" && entity.toId === requirement.id
   );
   const linkedIds = new Set(outboundLinks.map((link) => link.toId));
-  const evidence = allEntities.filter(
-    (entity): entity is EvidenceEntity => entity.entityType === "evidence" && linkedIds.has(entity.id)
-  ).sort(compareEvidenceRecords);
+  const evidence = allEntities
+    .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && linkedIds.has(entity.id))
+    .sort(compareEvidenceRecords);
   const evidenceRows = evidence.map((item) => ({
     openEntityType: "evidence",
     openEntityId: item.id,
