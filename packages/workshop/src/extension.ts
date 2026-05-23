@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   buildCisoMagazineModel,
   buildCisoMasterPlanModel,
@@ -52,6 +52,7 @@ import {
   type RequirementEntity,
   type RequirementControlMappingEntity,
   type RiskEntity,
+  type RiskIntegrationMetadata,
   type RiskStatus,
   SAVED_VIEW_LIMITS,
   type SavedViewEntity,
@@ -74,6 +75,11 @@ import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/w
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
 
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
+const riskSourceProfileKey = "pspf.workshop.riskSourceProfile.v1";
+const riskSourcePreviewKey = "pspf.workshop.riskSourcePreview.v1";
+const riskSourceRunsKey = "pspf.workshop.riskSourceRuns.v1";
+const riskSourceSecretKey = "pspf.workshop.6clicksRiskSource.credential";
+const riskSourceConfigFile = "integrations.json";
 const STRATEGY_REFERENCE_ROLES = ["drives", "addresses", "blocked-by", "evidenced-by", "monitors"] as const;
 let workshopContext: vscode.ExtensionContext | undefined;
 let homeViewProvider: WorkshopHomeViewProvider | undefined;
@@ -109,6 +115,12 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.attachEvidence", attachEvidence),
     vscode.commands.registerCommand("pspf.workshop.createAction", createAction),
     vscode.commands.registerCommand("pspf.workshop.createRisk", createRisk),
+    vscode.commands.registerCommand("pspf.workshop.openRiskSourcePanel", openRiskSourcePanel),
+    vscode.commands.registerCommand("pspf.workshop.configureRiskSource", configureRiskSource),
+    vscode.commands.registerCommand("pspf.workshop.testRiskSource", testRiskSource),
+    vscode.commands.registerCommand("pspf.workshop.previewRiskSourceImport", previewRiskSourceImport),
+    vscode.commands.registerCommand("pspf.workshop.applyRiskSourceImport", applyRiskSourceImport),
+    vscode.commands.registerCommand("pspf.workshop.viewRiskSourceRuns", viewRiskSourceRuns),
     vscode.commands.registerCommand("pspf.workshop.openRequirementsList", openRequirementsList),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceList", openEvidenceList),
     vscode.commands.registerCommand("pspf.workshop.openActionsList", openActionsList),
@@ -898,6 +910,656 @@ async function createRisk(requirementId?: string): Promise<void> {
   );
 
   await upsertEntityWithRequirementLinks(risk, links, requirements);
+}
+
+type RiskSourceAuthMode = "api-key-header" | "bearer-token";
+
+type RiskSourceProfile = {
+  readonly source: "6clicks";
+  readonly sourceLabel: string;
+  readonly baseUrl?: string;
+  readonly endpointPath: string;
+  readonly authMode: RiskSourceAuthMode;
+  readonly apiKeyHeaderName?: string;
+  readonly secretRef: string;
+  readonly mappingVersion: "6clicks-risk-v1";
+  readonly applyPolicy: "safe-update";
+  readonly updatedAt: string;
+};
+
+type IncomingRiskRecord = {
+  readonly sourceId: string;
+  readonly remoteId: string;
+  readonly remoteUpdatedAt?: string;
+  readonly rawHash: string;
+  readonly payload: {
+    readonly title: string;
+    readonly status: RiskStatus;
+    readonly likelihood: number;
+    readonly impact: number;
+  };
+};
+
+type RiskSourcePreviewDecision = {
+  readonly classification: "new" | "changed" | "unchanged" | "ambiguous" | "error";
+  readonly reason: string;
+  readonly incoming?: IncomingRiskRecord;
+  readonly localRiskId?: string;
+  readonly differences: readonly RiskSourceDifference[];
+};
+
+type RiskSourceDifference = {
+  readonly field: "title" | "status" | "likelihood" | "impact";
+  readonly localValue: string;
+  readonly sourceValue: string;
+};
+
+type RiskSourcePreview = {
+  readonly profile: RiskSourceProfile;
+  readonly generatedAt: string;
+  readonly decisions: readonly RiskSourcePreviewDecision[];
+};
+
+type RiskSourceRun = {
+  readonly id: string;
+  readonly sourceLabel: string;
+  readonly status: "previewed" | "applied" | "failed";
+  readonly startedAt: string;
+  readonly completedAt: string;
+  readonly fetched: number;
+  readonly new: number;
+  readonly changed: number;
+  readonly unchanged: number;
+  readonly ambiguous: number;
+  readonly errors: number;
+  readonly appliedCreates: number;
+  readonly appliedUpdates: number;
+  readonly diagnostics?: readonly string[];
+};
+
+const sixClicksFixtureRecords = [
+  {
+    id: "6c-risk-001",
+    updated_at: "2026-05-20T04:00:00.000Z",
+    title: "Legacy identity controls need review",
+    status: "open",
+    likelihood: 4,
+    impact: 4
+  },
+  {
+    id: "6c-risk-002",
+    updated_at: "2026-05-21T06:30:00.000Z",
+    title: "Supplier assurance evidence is incomplete",
+    status: "monitored",
+    likelihood: 3,
+    impact: 4
+  }
+] as const;
+
+async function openRiskSourcePanel(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel("pspfRiskSourcePanel", "PSPF Risk Source", vscode.ViewColumn.One, {
+    enableScripts: true
+  });
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = await renderRiskSourcePanel();
+  });
+  panel.webview.html = await renderRiskSourcePanel();
+}
+
+async function configureRiskSource(): Promise<void> {
+  const context = requireWorkshopContext();
+  const current = readRiskSourceProfile();
+  const baseUrl = await vscode.window.showInputBox({
+    title: "Configure 6clicks Risk Source",
+    prompt: "6clicks base URL. Leave blank to use the built-in fixture for local validation.",
+    value: current?.baseUrl ?? "",
+    ignoreFocusOut: true
+  });
+  if (baseUrl === undefined) {
+    return;
+  }
+  const endpointPath = await vscode.window.showInputBox({
+    title: "Configure 6clicks Risk Source",
+    prompt: "Risk endpoint path",
+    value: current?.endpointPath ?? "/api/v1/risks",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter an endpoint path." : undefined)
+  });
+  if (!endpointPath) {
+    return;
+  }
+  const authMode = await vscode.window.showQuickPick(
+    [
+      { label: "API key header", value: "api-key-header" as const },
+      { label: "Bearer token", value: "bearer-token" as const }
+    ],
+    { title: "Select 6clicks auth mode", ignoreFocusOut: true }
+  );
+  if (!authMode) {
+    return;
+  }
+  const apiKeyHeaderName =
+    authMode.value === "api-key-header"
+      ? await vscode.window.showInputBox({
+          title: "Configure 6clicks Risk Source",
+          prompt: "API key header name",
+          value: current?.apiKeyHeaderName ?? "x-api-key",
+          ignoreFocusOut: true,
+          validateInput: (value) => (value.trim().length === 0 ? "Enter an API key header name." : undefined)
+        })
+      : undefined;
+  if (authMode.value === "api-key-header" && !apiKeyHeaderName) {
+    return;
+  }
+  const secret = await vscode.window.showInputBox({
+    title: "Configure 6clicks Risk Source",
+    prompt: authMode.value === "api-key-header" ? "API key" : "Bearer token",
+    password: true,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the credential value." : undefined)
+  });
+  if (!secret) {
+    return;
+  }
+  await context.secrets.store(riskSourceSecretKey, secret.trim());
+  const profile: RiskSourceProfile = {
+    source: "6clicks",
+    sourceLabel: "6clicks",
+    baseUrl: trimOptional(baseUrl),
+    endpointPath: endpointPath.trim(),
+    authMode: authMode.value,
+    apiKeyHeaderName: apiKeyHeaderName?.trim(),
+    secretRef: riskSourceSecretKey,
+    mappingVersion: "6clicks-risk-v1",
+    applyPolicy: "safe-update",
+    updatedAt: new Date().toISOString()
+  };
+  await context.workspaceState.update(riskSourceProfileKey, profile);
+  await writeRiskSourceConfig(profile);
+  await vscode.window.showInformationMessage("6clicks risk source profile saved.");
+  await openRiskSourcePanel();
+}
+
+async function testRiskSource(): Promise<void> {
+  const profile = ensureRiskSourceProfile();
+  try {
+    const records = await fetchSixClicksRiskRecords(profile);
+    await vscode.window.showInformationMessage(`6clicks risk source returned ${records.length} risk records.`);
+  } catch (error) {
+    await vscode.window.showWarningMessage(`6clicks risk source test failed: ${errorMessage(error)}`);
+  }
+}
+
+async function previewRiskSourceImport(): Promise<void> {
+  await ensureCoreReady();
+  const profile = ensureRiskSourceProfile();
+  const startedAt = new Date().toISOString();
+  try {
+    const incoming = await fetchSixClicksRiskRecords(profile);
+    const allEntities = await listAllEntities();
+    const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+    const decisions = buildRiskSourcePreviewDecisions(profile, incoming, risks);
+    const preview: RiskSourcePreview = { profile, generatedAt: new Date().toISOString(), decisions };
+    await requireWorkshopContext().workspaceState.update(riskSourcePreviewKey, preview);
+    await appendRiskSourceRun({
+      id: `RUN-${randomUUID()}`,
+      sourceLabel: profile.sourceLabel,
+      status: "previewed",
+      startedAt,
+      completedAt: new Date().toISOString(),
+      fetched: incoming.length,
+      ...riskSourceDecisionCounts(decisions),
+      appliedCreates: 0,
+      appliedUpdates: 0
+    });
+    await vscode.window.showInformationMessage(`6clicks preview ready: ${riskSourcePreviewSummary(decisions)}.`);
+    await openRiskSourcePanel();
+  } catch (error) {
+    await appendRiskSourceRun({
+      id: `RUN-${randomUUID()}`,
+      sourceLabel: profile.sourceLabel,
+      status: "failed",
+      startedAt,
+      completedAt: new Date().toISOString(),
+      fetched: 0,
+      new: 0,
+      changed: 0,
+      unchanged: 0,
+      ambiguous: 0,
+      errors: 1,
+      appliedCreates: 0,
+      appliedUpdates: 0,
+      diagnostics: [errorMessage(error)]
+    });
+    await vscode.window.showWarningMessage(`6clicks preview failed: ${errorMessage(error)}`);
+  }
+}
+
+async function applyRiskSourceImport(): Promise<void> {
+  await ensureCoreReady();
+  const preview = readRiskSourcePreview();
+  if (!preview) {
+    await vscode.window.showWarningMessage("Run a 6clicks risk preview before applying.");
+    return;
+  }
+  const applicable = preview.decisions.filter(
+    (decision) => decision.incoming && ["new", "changed"].includes(decision.classification)
+  );
+  if (applicable.length === 0) {
+    await vscode.window.showInformationMessage("No new or changed 6clicks risks are ready to apply.");
+    return;
+  }
+  const changed = applicable.filter((decision) => decision.classification === "changed");
+  const overwriteChoice =
+    changed.length > 0
+      ? await vscode.window.showWarningMessage(
+          `${changed.length} matched risks have source field differences. Local PSPF-owned fields are preserved unless you explicitly apply source values for this run.`,
+          { modal: true },
+          "Preserve local fields",
+          "Apply source values"
+        )
+      : "Preserve local fields";
+  if (!overwriteChoice) {
+    return;
+  }
+  const applySourceValues = overwriteChoice === "Apply source values";
+  const allEntities = await listAllEntities();
+  const riskById = new Map(
+    allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk").map((risk) => [risk.id, risk])
+  );
+  const appliedAt = new Date().toISOString();
+  const entities = applicable.flatMap((decision): RiskEntity[] => {
+    if (!decision.incoming) {
+      return [];
+    }
+    const integration = riskIntegrationMetadata(preview.profile, decision.incoming, appliedAt);
+    if (decision.classification === "new") {
+      return [
+        withEnvelope(
+          "risk",
+          {
+            entityType: "risk",
+            title: decision.incoming.payload.title,
+            status: decision.incoming.payload.status,
+            likelihood: decision.incoming.payload.likelihood,
+            impact: decision.incoming.payload.impact,
+            integration
+          },
+          "workshop"
+        )
+      ];
+    }
+    const existing = decision.localRiskId ? riskById.get(decision.localRiskId) : undefined;
+    if (!existing) {
+      return [];
+    }
+    return [
+      {
+        ...existing,
+        ...(applySourceValues
+          ? {
+              title: decision.incoming.payload.title,
+              status: decision.incoming.payload.status,
+              likelihood: decision.incoming.payload.likelihood,
+              impact: decision.incoming.payload.impact
+            }
+          : {}),
+        integration,
+        updatedAt: appliedAt
+      }
+    ];
+  });
+  if (entities.length === 0) {
+    await vscode.window.showWarningMessage("No 6clicks risks could be applied from the current preview.");
+    return;
+  }
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", entities);
+  const appliedCreates = applicable.filter((decision) => decision.classification === "new").length;
+  const appliedUpdates = applicable.filter((decision) => decision.classification === "changed").length;
+  await appendRiskSourceRun({
+    id: `RUN-${randomUUID()}`,
+    sourceLabel: preview.profile.sourceLabel,
+    status: "applied",
+    startedAt: appliedAt,
+    completedAt: new Date().toISOString(),
+    fetched: preview.decisions.filter((decision) => decision.incoming).length,
+    ...riskSourceDecisionCounts(preview.decisions),
+    appliedCreates,
+    appliedUpdates,
+    diagnostics: applySourceValues
+      ? ["User consented to apply source values for changed risks in this run."]
+      : undefined
+  });
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(
+    `Applied 6clicks risk import: ${appliedCreates} created, ${appliedUpdates} updated.`
+  );
+  await openRiskSourcePanel();
+}
+
+async function viewRiskSourceRuns(): Promise<void> {
+  await openRiskSourcePanel();
+}
+
+function requireWorkshopContext(): vscode.ExtensionContext {
+  if (!workshopContext) {
+    throw new Error("PSPF Workshop context is not ready.");
+  }
+  return workshopContext;
+}
+
+function readRiskSourceProfile(): RiskSourceProfile | undefined {
+  return workshopContext?.workspaceState.get<RiskSourceProfile>(riskSourceProfileKey);
+}
+
+function ensureRiskSourceProfile(): RiskSourceProfile {
+  const profile = readRiskSourceProfile();
+  if (!profile) {
+    throw new Error("Configure the 6clicks risk source before running this action.");
+  }
+  return profile;
+}
+
+function readRiskSourcePreview(): RiskSourcePreview | undefined {
+  return workshopContext?.workspaceState.get<RiskSourcePreview>(riskSourcePreviewKey);
+}
+
+function readRiskSourceRuns(): readonly RiskSourceRun[] {
+  return workshopContext?.workspaceState.get<readonly RiskSourceRun[]>(riskSourceRunsKey) ?? [];
+}
+
+async function writeRiskSourceConfig(profile: RiskSourceProfile): Promise<void> {
+  const configDirectoryUri = riskSourceConfigDirectoryUri();
+  const configUri = riskSourceConfigUri();
+  if (!configDirectoryUri || !configUri) {
+    return;
+  }
+  await vscode.workspace.fs.createDirectory(configDirectoryUri);
+  const body = {
+    version: 1,
+    integrations: [
+      {
+        type: "6clicks-risk",
+        source: profile.source,
+        sourceLabel: profile.sourceLabel,
+        baseUrl: profile.baseUrl,
+        endpointPath: profile.endpointPath,
+        authMode: profile.authMode,
+        apiKeyHeaderName: profile.apiKeyHeaderName,
+        secretRef: profile.secretRef,
+        mappingVersion: profile.mappingVersion,
+        applyPolicy: profile.applyPolicy,
+        updatedAt: profile.updatedAt
+      }
+    ]
+  };
+  await vscode.workspace.fs.writeFile(configUri, new TextEncoder().encode(`${JSON.stringify(body, null, 2)}\n`));
+}
+
+function riskSourceConfigUri(): vscode.Uri | undefined {
+  const directoryUri = riskSourceConfigDirectoryUri();
+  return directoryUri ? vscode.Uri.joinPath(directoryUri, riskSourceConfigFile) : undefined;
+}
+
+function riskSourceConfigDirectoryUri(): vscode.Uri | undefined {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  return workspaceFolder ? vscode.Uri.joinPath(workspaceFolder.uri, ".pspf", "config") : undefined;
+}
+
+function riskSourceConfigDisplayPath(): string {
+  const uri = riskSourceConfigUri();
+  return uri ? uri.fsPath : `.pspf/config/${riskSourceConfigFile}`;
+}
+
+async function appendRiskSourceRun(run: RiskSourceRun): Promise<void> {
+  const context = requireWorkshopContext();
+  await context.workspaceState.update(riskSourceRunsKey, [run, ...readRiskSourceRuns()].slice(0, 25));
+}
+
+async function fetchSixClicksRiskRecords(profile: RiskSourceProfile): Promise<readonly IncomingRiskRecord[]> {
+  if (!profile.baseUrl) {
+    return sixClicksFixtureRecords.map((record) => normaliseSixClicksRiskRecord(profile, record));
+  }
+  const secret = await requireWorkshopContext().secrets.get(profile.secretRef);
+  if (!secret) {
+    throw new Error("Credential is missing from SecretStorage. Reconfigure the risk source.");
+  }
+  const url = new URL(profile.endpointPath, profile.baseUrl.endsWith("/") ? profile.baseUrl : `${profile.baseUrl}/`);
+  const headers: Record<string, string> = { accept: "application/json" };
+  if (profile.authMode === "bearer-token") {
+    headers.authorization = `Bearer ${secret}`;
+  } else {
+    headers[profile.apiKeyHeaderName ?? "x-api-key"] = secret;
+  }
+  const response = await fetch(url, { method: "GET", headers });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} ${response.statusText}`.trim());
+  }
+  const body = (await response.json()) as unknown;
+  const records = Array.isArray(body)
+    ? body
+    : isRecord(body) && Array.isArray(body.data)
+      ? body.data
+      : isRecord(body) && Array.isArray(body.risks)
+        ? body.risks
+        : undefined;
+  if (!records) {
+    throw new Error("6clicks response did not contain a risk array.");
+  }
+  return records.map((record) => normaliseSixClicksRiskRecord(profile, record));
+}
+
+function normaliseSixClicksRiskRecord(profile: RiskSourceProfile, record: unknown): IncomingRiskRecord {
+  if (!isRecord(record)) {
+    throw new Error("6clicks risk record is not an object.");
+  }
+  const remoteId = stringField(record, "id") ?? stringField(record, "risk_id") ?? stringField(record, "uuid");
+  const title = stringField(record, "title") ?? stringField(record, "name") ?? stringField(record, "summary");
+  if (!remoteId || !title) {
+    throw new Error("6clicks risk record is missing id or title.");
+  }
+  const status = normaliseRiskStatus(stringField(record, "status"));
+  const likelihood = normaliseRiskScore(record.likelihood ?? record.likelihood_score ?? record.inherent_likelihood);
+  const impact = normaliseRiskScore(record.impact ?? record.impact_score ?? record.inherent_impact);
+  return {
+    sourceId: profile.source,
+    remoteId,
+    remoteUpdatedAt:
+      stringField(record, "updated_at") ?? stringField(record, "updatedAt") ?? stringField(record, "modified_at"),
+    rawHash: hashStableJson(record),
+    payload: { title: title.trim(), status, likelihood, impact }
+  };
+}
+
+function buildRiskSourcePreviewDecisions(
+  profile: RiskSourceProfile,
+  incoming: readonly IncomingRiskRecord[],
+  risks: readonly RiskEntity[]
+): readonly RiskSourcePreviewDecision[] {
+  return incoming.map((record) => {
+    const externalMatches = risks.filter(
+      (risk) => risk.integration?.source === profile.source && risk.integration.remoteId === record.remoteId
+    );
+    const secondaryMatches = risks.filter(
+      (risk) => normaliseMatchText(risk.title) === normaliseMatchText(record.payload.title)
+    );
+    const matches = externalMatches.length > 0 ? externalMatches : secondaryMatches;
+    if (matches.length > 1) {
+      return {
+        classification: "ambiguous",
+        reason: "Multiple local risks match this 6clicks record.",
+        incoming: record,
+        differences: []
+      };
+    }
+    const match = matches.at(0);
+    if (!match) {
+      return { classification: "new", reason: "No local match found.", incoming: record, differences: [] };
+    }
+    const differences = riskSourceDifferences(match, record);
+    return {
+      classification: differences.length > 0 ? "changed" : "unchanged",
+      reason:
+        differences.length > 0 ? "Mapped source fields differ from the local risk." : "Mapped source fields match.",
+      incoming: record,
+      localRiskId: match.id,
+      differences
+    };
+  });
+}
+
+function riskSourceDifferences(risk: RiskEntity, incoming: IncomingRiskRecord): readonly RiskSourceDifference[] {
+  const candidates: readonly RiskSourceDifference[] = [
+    { field: "title", localValue: risk.title, sourceValue: incoming.payload.title },
+    { field: "status", localValue: risk.status, sourceValue: incoming.payload.status },
+    { field: "likelihood", localValue: String(risk.likelihood), sourceValue: String(incoming.payload.likelihood) },
+    { field: "impact", localValue: String(risk.impact), sourceValue: String(incoming.payload.impact) }
+  ];
+  return candidates.filter((item) => item.localValue !== item.sourceValue);
+}
+
+function riskIntegrationMetadata(
+  profile: RiskSourceProfile,
+  incoming: IncomingRiskRecord,
+  lastSyncedAt: string
+): RiskIntegrationMetadata {
+  return {
+    source: profile.source,
+    sourceLabel: profile.sourceLabel,
+    remoteId: incoming.remoteId,
+    remoteUpdatedAt: incoming.remoteUpdatedAt,
+    lastSyncedAt,
+    authMode: profile.authMode,
+    rawHash: incoming.rawHash
+  };
+}
+
+function riskSourceDecisionCounts(decisions: readonly RiskSourcePreviewDecision[]): {
+  readonly new: number;
+  readonly changed: number;
+  readonly unchanged: number;
+  readonly ambiguous: number;
+  readonly errors: number;
+} {
+  return {
+    new: decisions.filter((decision) => decision.classification === "new").length,
+    changed: decisions.filter((decision) => decision.classification === "changed").length,
+    unchanged: decisions.filter((decision) => decision.classification === "unchanged").length,
+    ambiguous: decisions.filter((decision) => decision.classification === "ambiguous").length,
+    errors: decisions.filter((decision) => decision.classification === "error").length
+  };
+}
+
+function riskSourcePreviewSummary(decisions: readonly RiskSourcePreviewDecision[]): string {
+  const counts = riskSourceDecisionCounts(decisions);
+  return `${counts.new} new, ${counts.changed} changed, ${counts.unchanged} unchanged, ${counts.ambiguous} ambiguous, ${counts.errors} errors`;
+}
+
+async function renderRiskSourcePanel(): Promise<string> {
+  const profile = readRiskSourceProfile();
+  const preview = readRiskSourcePreview();
+  const runs = readRiskSourceRuns();
+  const profileRows = profile
+    ? [
+        {
+          source: profile.sourceLabel,
+          mode: profile.baseUrl ? "HTTPS" : "Built-in fixture",
+          auth: profile.authMode,
+          endpoint: profile.baseUrl ? `${profile.baseUrl}${profile.endpointPath}` : "Fixture records",
+          policy: profile.applyPolicy,
+          updated: formatShortAuDateTime(profile.updatedAt) ?? profile.updatedAt
+        }
+      ]
+    : [];
+  const previewRows = preview
+    ? preview.decisions.map((decision) => ({
+        state: label(decision.classification),
+        title: decision.incoming?.payload.title ?? "Not available",
+        local: decision.localRiskId ?? "New record",
+        differences: decision.differences.map((difference) => difference.field).join(", ") || "None",
+        reason: decision.reason
+      }))
+    : [];
+  const runRows = runs.map((run) => ({
+    status: label(run.status),
+    completed: formatShortAuDateTime(run.completedAt) ?? run.completedAt,
+    fetched: run.fetched,
+    new: run.new,
+    changed: run.changed,
+    applied: `${run.appliedCreates}/${run.appliedUpdates}`,
+    diagnostics: run.diagnostics?.join("; ") ?? "None"
+  }));
+  return shellHtml(
+    "PSPF Risk Source",
+    `
+    <section>
+      <p class="eyebrow">Risk workflow</p>
+      <h1>6clicks Risk Source</h1>
+      <p class="muted">Fetch published 6clicks risk data, preview local PSPF changes, then apply only after explicit confirmation. External systems remain read-only.</p>
+      <p class="muted">Non-secret settings are mirrored to ${escapeHtml(riskSourceConfigDisplayPath())}. Credentials remain in VS Code SecretStorage.</p>
+      ${versionStrip()}
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.configureRiskSource">Configure source</button>
+        <button type="button" data-command="pspf.workshop.testRiskSource">Test connection</button>
+        <button type="button" data-command="pspf.workshop.previewRiskSourceImport">Run preview</button>
+        <button type="button" data-command="pspf.workshop.applyRiskSourceImport">Apply selected</button>
+        <button type="button" data-command="refresh">Refresh</button>
+      </div>
+    </section>
+    ${profile ? recordTable("Source Profile", profileRows, ["source", "mode", "auth", "endpoint", "policy", "updated"]) : `<section><h2>Source Profile</h2><p class="muted">No 6clicks risk source profile configured yet.</p></section>`}
+    ${
+      preview
+        ? `<section><h2>Preview Summary</h2><div class="grid">${Object.entries(
+            riskSourceDecisionCounts(preview.decisions)
+          )
+            .map(([key, value]) => metricCard(label(key), value))
+            .join(
+              ""
+            )}</div><p class="muted">Generated ${escapeHtml(formatShortAuDateTime(preview.generatedAt) ?? preview.generatedAt)}. Changed records preserve local fields unless the apply step receives explicit consent.</p></section>`
+        : ""
+    }
+    ${recordTable("Preview Decisions", previewRows, ["state", "title", "local", "differences", "reason"])}
+    ${recordTable("Run History", runRows, ["status", "completed", "fetched", "new", "changed", "applied", "diagnostics"])}
+  `
+  );
+}
+
+function normaliseRiskStatus(value: string | undefined): RiskStatus {
+  const normalised = value?.trim().toLocaleLowerCase("en-AU");
+  if (normalised === "closed" || normalised === "resolved") {
+    return "closed";
+  }
+  if (normalised === "monitored" || normalised === "accepted" || normalised === "treated") {
+    return "monitored";
+  }
+  return "open";
+}
+
+function normaliseRiskScore(value: unknown): number {
+  const score = typeof value === "number" ? value : Number(String(value ?? "").trim());
+  return isScore(score) ? score : 3;
+}
+
+function normaliseMatchText(value: string): string {
+  return value.normalize("NFC").trim().replace(/\s+/g, " ").toLocaleLowerCase("en-AU");
+}
+
+function hashStableJson(value: unknown): string {
+  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stringField(record: Record<string, unknown>, field: string): string | undefined {
+  const value = record[field];
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 async function linkExistingEvidence(requirementId?: string): Promise<void> {
@@ -4714,6 +5376,12 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.openStrategyMap",
         "pspf.workshop.editStrategySummary",
         "pspf.workshop.createRoadmapInitiativePlan",
+        "pspf.workshop.openRiskSourcePanel",
+        "pspf.workshop.configureRiskSource",
+        "pspf.workshop.testRiskSource",
+        "pspf.workshop.previewRiskSourceImport",
+        "pspf.workshop.applyRiskSourceImport",
+        "pspf.workshop.viewRiskSourceRuns",
         "pspf.workshop.openEvidenceReviewQueue",
         "pspf.workshop.browseIsmSourceControls",
         "pspf.workshop.createRequirementControlMapping",
@@ -5316,8 +5984,31 @@ function renderRiskEditor(
     ${selectField("likelihood", "Likelihood", scoreOptions, String(risk.likelihood))}
     ${selectField("impact", "Impact", scoreOptions, String(risk.impact))}
   `
-  )}${commercialContextSection(risk, allEntities)}`;
+  )}${riskSourceMetadataSection(risk)}${commercialContextSection(risk, allEntities)}`;
   return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
+}
+
+function riskSourceMetadataSection(risk: RiskEntity): string {
+  const integration = risk.integration;
+  const rows = integration
+    ? [
+        {
+          source: integration.sourceLabel,
+          lastUpdated: formatShortAuDateTime(integration.remoteUpdatedAt ?? integration.lastSyncedAt) ?? "Not recorded",
+          remoteId: integration.remoteId
+        }
+      ]
+    : [];
+  return `
+    <section>
+      <h2>Risk Source</h2>
+      <p class="muted">6clicks integration metadata is retained locally. Explorer and generated outputs show only the source and last source update.</p>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openRiskSourcePanel">Open Risk Source panel</button>
+      </div>
+      ${integration ? recordTable("Source Metadata", rows, ["source", "lastUpdated", "remoteId"]) : `<p class="muted">This Risk is not linked to an external source.</p>`}
+    </section>
+  `;
 }
 
 function renderDirectionEditor(direction: DirectionEntity, allEntities: readonly V01Entity[]): string {

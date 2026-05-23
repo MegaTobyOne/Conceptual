@@ -464,6 +464,18 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 9. **Deferred-scope gate**: full relationship-manager rollout beyond the Shop forecast/detail and Workshop Requirement proof points, edit-panel simplification, Pub Explorer publication, new schema-bearing relationship fields, native PPTX/DOCX generation commands, and broader Pub list row-level actions remain deferred.
 10. **Regression gate**: `e2e:v1.29`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.30 candidate gates (6clicks risk source integration, per ADR 0067)
+
+1. **ADR gate**: ADR 0067 records the v1.30 6clicks risk source integration decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.30.0`; schema, bundle, and API axes are `1.11.0`; `schemas/explorer-bundle/1.11.0/` is published and earlier schema directories remain immutable.
+3. **6clicks source gate**: Workshop exposes a Risk Source panel and commands for configuring, testing, previewing, applying, and viewing runs for the named `6clicks-risk` source.
+4. **Configuration gate**: non-secret source settings are mirrored to `.pspf/config/integrations.json`; API key header and bearer token credentials are stored only in VS Code `SecretStorage`; no raw secret is stored in Core data, workspace settings, logs, snapshots, or bundles.
+5. **Preview gate**: the fixture-backed preview classifies 6clicks records as new, changed, unchanged, ambiguous, or error with field-level differences for changed records.
+6. **Consent gate**: applying changed risks preserves local PSPF-owned fields unless the operator explicitly consents to applying source values for the run.
+7. **Publication metadata gate**: imported risks keep integration metadata locally, but Explorer bundles and generated outputs expose only source label and last source update.
+8. **Deferred-scope gate**: external write-back, scheduled sync, webhooks, external Actions, technology systems, commercial records, Pub records, operator-managed field mapping, and Explorer runtime integration remain deferred.
+9. **Regression gate**: `e2e:v1.30`, `check:risk-source-integration`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

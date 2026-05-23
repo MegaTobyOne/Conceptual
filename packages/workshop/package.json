@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.29.2",
+  "version": "1.30.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -89,6 +89,31 @@
       {
         "command": "pspf.workshop.createRisk",
         "title": "PSPF: Create Risk"
+      },
+      {
+        "command": "pspf.workshop.openRiskSourcePanel",
+        "title": "PSPF: Open Risk Source Panel",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "pspf.workshop.configureRiskSource",
+        "title": "PSPF: Configure 6clicks Risk Source"
+      },
+      {
+        "command": "pspf.workshop.testRiskSource",
+        "title": "PSPF: Test 6clicks Risk Source"
+      },
+      {
+        "command": "pspf.workshop.previewRiskSourceImport",
+        "title": "PSPF: Preview 6clicks Risk Import"
+      },
+      {
+        "command": "pspf.workshop.applyRiskSourceImport",
+        "title": "PSPF: Apply 6clicks Risk Import"
+      },
+      {
+        "command": "pspf.workshop.viewRiskSourceRuns",
+        "title": "PSPF: View Risk Source Runs"
       },
       {
         "command": "pspf.workshop.openRequirementsList",

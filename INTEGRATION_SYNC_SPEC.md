@@ -279,22 +279,22 @@ Core API additions should remain smaller than the command surface and expose onl
 
 ## 14. Decisions Required
 
-1. **6clicks payload contract**: choose the sample payload that becomes the contract test source.
-2. **Protected fields**: define the local PSPF-owned risk fields that source data can propose to change only after explicit user consent.
-3. **Consent model**: decide whether overwrite consent is per field, per run, per source profile, or a combination.
-4. **Run ledger storage**: decide whether the ledger is canonical Core data, local operational log data, or a hybrid.
-5. **Source label**: decide the exact Explorer/report label for 6clicks-originated risks.
-6. **Last updated semantics**: decide whether Explorer shows external `remoteUpdatedAt`, local `lastSyncedAt`, or both as a single human-friendly value.
+1. **6clicks payload contract**: v1.30 accepts the fixture and common 6clicks-style fields (`id`, `title`/`name`/`summary`, `status`, `likelihood`, `impact`, and update timestamps); real-tenant payload refinement remains a follow-up.
+2. **Protected fields**: local PSPF-owned risk fields (`title`, `status`, `likelihood`, and `impact`) are preserved by default and can use source values only after explicit apply-time consent.
+3. **Consent model**: v1.30 uses per-run consent for applying source values to changed risks.
+4. **Run ledger storage**: v1.30 keeps run history in Workshop local state; canonical Core ledger remains a later hardening option.
+5. **Source label**: Explorer/report-visible source label is `6clicks`.
+6. **Last updated semantics**: Explorer/report-visible last source update uses external `remoteUpdatedAt`; Workshop can fall back to local `lastSyncedAt` in the Risk editor if the source omits a timestamp.
 
 ## 15. Proposed Planning Path
 
-1. Product decision workshop: answer the remaining decisions above and record them in a new ADR.
-2. Contract sketch: model the smallest persisted metadata and ledger shape, including publication policy.
-3. Fixture-first prototype: add a static 6clicks risk JSON fixture and implement preview classification without network access.
-4. Secret and connector spike: add SecretStorage-backed credential handling and a read-only HTTPS fetch adapter.
-5. Core apply path: write creates/updates through existing Core APIs with transaction and writer-lock coverage.
-6. Workshop UI: build the preview/apply surface with field diffs and explicit confirmation.
-7. Gates: add contract, redaction, fixture, and no-write-back tests before release readiness.
+1. ADR 0067 records the v1.30 decision.
+2. Contracts carry the smallest persisted risk integration metadata and publication policy.
+3. The fixture-backed 6clicks preview classifies source records without a live tenant.
+4. SecretStorage-backed credential handling and read-only HTTPS fetch are implemented in Workshop.
+5. Applies write creates/updates through existing Core APIs and preserve local fields unless the user consents to source values.
+6. The Risk Source panel exposes configuration, test, preview, apply, and run history.
+7. `check:risk-source-integration` covers commands, visible config, SecretStorage boundary, redaction, and schema shape before release readiness.
 
 ## 16. Later Phases
 
