@@ -1081,7 +1081,7 @@ function renderHomeHtml(store: PubStore): string {
       ${homeMetricCard("Roles", store.roles.length)}
       ${homeMetricCard("Assignments", store.assignments.length)}
     </div>
-    <p class="muted" style="margin-top:8px">No Explorer publication in v${escapeHtml(PSPF_SLICE_VERSION)} — Pub records stay local.</p>
+    <p class="muted" style="margin-top:8px">no Explorer publication in v1.29 — Pub records stay local in v${escapeHtml(PSPF_SLICE_VERSION)}.</p>
   `;
 
   const signalsBody = `<div class="grid two">
