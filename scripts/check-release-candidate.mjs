@@ -1390,7 +1390,7 @@ if (isV1Release && minorVersion >= 29) {
   }
   for (const requiredText of [
     "v1.29 candidate gates (UX consistency and relationship manager foundation, per ADR 0065)",
-    "PSPF_SLICE_VERSION` are `1.29.0`",
+    "PSPF_SLICE_VERSION` are `1.29.1`",
     "UX coverage gate",
     "Relationship rule gate",
     "Supplier, Contract, and Spend Item detail panels",

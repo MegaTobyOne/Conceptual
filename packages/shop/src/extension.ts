@@ -20,7 +20,15 @@ import {
   sanitiseEntityForPublication,
   withEnvelope
 } from "@pspf/contracts";
-import { relationshipManagerHtml, tokensCss, type RelationshipManagerAction } from "@pspf/webview-shell";
+import {
+  homeActionButton,
+  homeMetricCard,
+  homePanelShellHtml,
+  homeSection,
+  relationshipManagerHtml,
+  tokensCss,
+  type RelationshipManagerAction
+} from "@pspf/webview-shell";
 import { commandUri, escapeHtml, formatCurrency, formatToken } from "./webview/util.js";
 
 const SHOP_STORE_VERSION = "1.0.0";
@@ -247,7 +255,7 @@ let suppliersProvider: SupplierTreeProvider | undefined;
 let contractsProvider: ContractTreeProvider | undefined;
 let spendProvider: SpendTreeProvider | undefined;
 let forecastProvider: ForecastViewProvider | undefined;
-let welcomeProvider: WelcomeTreeProvider | undefined;
+let homeProvider: ShopHomeViewProvider | undefined;
 let forecastPanel: vscode.WebviewPanel | undefined;
 let editorPanel: vscode.WebviewPanel | undefined;
 let detailPanel: vscode.WebviewPanel | undefined;
@@ -257,7 +265,7 @@ export function activate(context: vscode.ExtensionContext): void {
   contractsProvider = new ContractTreeProvider();
   spendProvider = new SpendTreeProvider();
   forecastProvider = new ForecastViewProvider();
-  welcomeProvider = new WelcomeTreeProvider();
+  homeProvider = new ShopHomeViewProvider();
 
   const statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 80);
   statusItem.text = `$(briefcase) PSPF Shop v${PSPF_SLICE_VERSION}`;
@@ -269,7 +277,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerTreeDataProvider("pspfShop.suppliersView", suppliersProvider),
     vscode.window.registerTreeDataProvider("pspfShop.contractsView", contractsProvider),
     vscode.window.registerTreeDataProvider("pspfShop.spendView", spendProvider),
-    vscode.window.registerTreeDataProvider("pspfShop.welcomeView", welcomeProvider),
+    vscode.window.registerWebviewViewProvider("pspfShop.homeView", homeProvider),
     vscode.window.registerWebviewViewProvider("pspfShop.forecastView", forecastProvider),
     statusItem,
     vscode.commands.registerCommand("pspf.shop.openHome", openHome),
@@ -318,6 +326,7 @@ export function deactivate(): void {
 
 async function openHome(): Promise<void> {
   await vscode.commands.executeCommand("workbench.view.extension.pspfShop");
+  await vscode.commands.executeCommand("pspfShop.homeView.focus");
   await refreshViews();
 }
 
@@ -806,7 +815,7 @@ async function refreshViews(): Promise<void> {
   contractsProvider?.refresh();
   spendProvider?.refresh();
   forecastProvider?.refresh();
-  welcomeProvider?.refresh();
+  homeProvider?.refresh();
   if (forecastPanel) {
     await openForecast();
   }
@@ -1496,38 +1505,106 @@ class SpendTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
   }
 }
 
-class WelcomeTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
-  private readonly changedEmitter = new vscode.EventEmitter<ShopTreeItem | undefined | null | void>();
-  readonly onDidChangeTreeData = this.changedEmitter.event;
+class ShopHomeViewProvider implements vscode.WebviewViewProvider {
+  private view: vscode.WebviewView | undefined;
+
+  resolveWebviewView(webviewView: vscode.WebviewView): void {
+    this.view = webviewView;
+    webviewView.webview.options = { enableScripts: true, enableCommandUris: true };
+    webviewView.webview.onDidReceiveMessage((message: { command?: string }) => {
+      if (typeof message?.command === "string" && SHOP_HOME_ALLOWED_COMMANDS.has(message.command)) {
+        void vscode.commands.executeCommand(message.command);
+      }
+    });
+    void this.render();
+  }
 
   refresh(): void {
-    this.changedEmitter.fire();
+    void this.render();
   }
 
-  getTreeItem(element: ShopTreeItem): vscode.TreeItem {
-    return element;
+  private async render(): Promise<void> {
+    if (!this.view) {
+      return;
+    }
+    const store = await loadStore();
+    this.view.webview.html = renderShopHomeHtml(store);
   }
+}
 
-  getChildren(): ShopTreeItem[] {
-    return [
-      new CommandTreeItem("Open Shop", "Focus the Shop activity views", "pspf.shop.openHome", "home"),
-      new CommandTreeItem(
-        "Load sample",
-        "Replace Core-backed Shop data with sample records",
-        "pspf.shop.loadSample",
-        "sample"
-      ),
-      new CommandTreeItem(
-        "Import local JSON",
-        "Import .pspf/shop/shop.json records into Core",
-        "pspf.shop.importLocalStore",
-        "sample"
-      ),
-      new CommandTreeItem("New supplier", "Capture a supplier", "pspf.shop.newSupplier", "supplier"),
-      new CommandTreeItem("New contract", "Capture a supplier contract", "pspf.shop.newContract", "contract"),
-      new CommandTreeItem("New spend item", "Capture planned or forecast spend", "pspf.shop.newSpendItem", "spend")
-    ];
-  }
+const SHOP_HOME_ALLOWED_COMMANDS: ReadonlySet<string> = new Set([
+  "pspf.shop.openHome",
+  "pspf.shop.loadSample",
+  "pspf.shop.importLocalStore",
+  "pspf.shop.newSupplier",
+  "pspf.shop.newContract",
+  "pspf.shop.newSpendItem",
+  "pspf.shop.openForecast",
+  "pspf.shop.exportForecastCsv",
+  "pspf.shop.exportForecastXls"
+]);
+
+function renderShopHomeHtml(store: ShopStore): string {
+  const supplierCount = store.suppliers.length;
+  const contractCount = store.contracts.length;
+  const spendCount = store.spendItems.length;
+  const axes = `Schema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
+
+  const heroBody = `
+    <p class="muted">${axes}</p>
+    <p>Shop is the commercial planning surface for suppliers, contracts, and spend items. Use the Suppliers, Contracts, and Spend panels below to browse records; this Home tab is for quick capture and forecast review.</p>
+    <div class="grid" role="list">
+      ${homeMetricCard("Suppliers", supplierCount)}
+      ${homeMetricCard("Contracts", contractCount)}
+      ${homeMetricCard("Spend items", spendCount)}
+    </div>
+  `;
+
+  const createBody = `<div class="action-list">
+    ${homeActionButton("pspf.shop.newSupplier", "New supplier", "Capture a supplier")}
+    ${homeActionButton("pspf.shop.newContract", "New contract", "Capture a supplier contract")}
+    ${homeActionButton("pspf.shop.newSpendItem", "New spend item", "Capture planned or forecast spend")}
+  </div>`;
+
+  const forecastBody = `<div class="action-list compact">
+    ${homeActionButton("pspf.shop.openForecast", "Open forecast", "Open the full forecast panel")}
+    ${homeActionButton("pspf.shop.exportForecastCsv", "Export CSV", "Save forecast as CSV")}
+    ${homeActionButton("pspf.shop.exportForecastXls", "Export XLS", "Save forecast as XLS")}
+  </div>`;
+
+  const dataBody = `<div class="action-list compact">
+    ${homeActionButton("pspf.shop.loadSample", "Load sample", "Replace current Shop data with sample records")}
+    ${homeActionButton("pspf.shop.importLocalStore", "Import local JSON", "Import .pspf/shop/shop.json records into Core")}
+  </div>`;
+
+  const body = [
+    homeSection({
+      id: "overview",
+      hero: true,
+      eyebrow: "Commercial planning",
+      heading: "Shop workspace",
+      body: heroBody
+    }),
+    homeSection({ id: "create", eyebrow: "Author", heading: "Create records", body: createBody }),
+    homeSection({ id: "forecast", eyebrow: "Review", heading: "Forecast & savings", body: forecastBody }),
+    homeSection({ id: "data", eyebrow: "Data", heading: "Sample & import", body: dataBody })
+  ].join("");
+
+  return homePanelShellHtml({
+    extensionLabel: "PSPF Shop",
+    title: "PSPF Shop",
+    tagline: "Commercial planning",
+    version: PSPF_SLICE_VERSION,
+    accent: "amber",
+    sensitivityBanner: "OFFICIAL: Sensitive · Local workspace writes stay in Shop until you snapshot or export.",
+    nav: [
+      { href: "overview", label: "Overview" },
+      { href: "create", label: "Create" },
+      { href: "forecast", label: "Forecast" },
+      { href: "data", label: "Data" }
+    ],
+    body
+  });
 }
 
 class ShopTreeItem extends vscode.TreeItem {
@@ -1540,18 +1617,6 @@ class ShopTreeItem extends vscode.TreeItem {
     this.description = description;
     this.tooltip = description;
     this.iconPath = new vscode.ThemeIcon(iconFor(iconName));
-  }
-}
-
-class CommandTreeItem extends ShopTreeItem {
-  constructor(
-    label: string,
-    description: string,
-    commandId: string,
-    iconName: "contract" | "home" | "sample" | "spend" | "supplier"
-  ) {
-    super(label, description, iconName);
-    this.command = { command: commandId, title: label };
   }
 }
 

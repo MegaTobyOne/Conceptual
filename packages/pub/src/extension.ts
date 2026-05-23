@@ -3,7 +3,14 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
-import { commandButtonAcknowledgementScript, tokensCss } from "@pspf/webview-shell";
+import {
+  commandButtonAcknowledgementScript,
+  homeActionButton,
+  homeMetricCard,
+  homePanelShellHtml,
+  homeSection,
+  tokensCss
+} from "@pspf/webview-shell";
 
 const PUB_STORE_VERSION = "1.1.0";
 const PUB_STORE_PATH = [".pspf", "pub", "pub.json"] as const;
@@ -1058,65 +1065,97 @@ function buildSampleStore(): PubStore {
 }
 
 function renderHomeHtml(store: PubStore): string {
-  const axes = `Schema ${VERSION_AXES.schemaVersion} - Bundle ${VERSION_AXES.bundleVersion} - API ${VERSION_AXES.apiVersion}`;
+  const axes = `Schema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
   const upcomingBadges = deriveUpcomingBadges(store);
-  return pageHtml(
-    "PSPF Pub",
-    `<main>
-    <section class="hero">
-      <p class="meta">PSPF Pub v${escapeHtml(PSPF_SLICE_VERSION)} - ${escapeHtml(axes)}</p>
-      <h1>People, roles, teams, assignments, and stakeholder relationships</h1>
-      <p>Pub is the local-only people context surface for understanding who has a stake in protecting information, where responsibility needs attention, how the organisation chart supports assurance work, and which relationship log entries need follow-up.</p>
-      <div class="tags">
-        <span class="tag">${store.people.length} people</span>
-        <span class="tag">${store.teams.length} teams</span>
-        <span class="tag">${store.roles.length} roles</span>
-        <span class="tag">${store.assignments.length} assignments</span>
-        <span class="tag">no Explorer publication in v1.29</span>
-      </div>
-    </section>
-    <section class="grid two" aria-label="Pub action signals">
-      ${summaryCard("Upcoming badges", upcomingBadges.length === 0 ? "Load sample data or add assignments to see action, review, rotation, and anniversary signals." : upcomingBadges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join(""))}
-      ${summaryCard("Local-only boundary", "Person display names, relationship notes, development context, performance context, and assignment-to-person mappings stay in .pspf/pub/pub.json and are not added to Explorer bundles.")}
-    </section>
-    <section class="panel" aria-label="Pub primary actions">
-      <h1>Core Pub actions</h1>
-      <div class="action-list">
-        ${commandButton("pspf.pub.openTeams", "Teams", "Review local team control ownership")}
-        ${commandButton("pspf.pub.openTeamDetail", "Team detail", "Open one team with roles, assignments, gaps, and notes")}
-        ${commandButton("pspf.pub.editTeam", "Edit team", "Update local team ownership and responsibility")}
-        ${commandButton("pspf.pub.openOrgChart", "Organisation chart", "See teams, roles, owned controls, and assignment badges")}
-        ${commandButton("pspf.pub.openAssignments", "Assignments", "Review people-to-role coverage")}
-        ${commandButton("pspf.pub.openRelationshipLog", "Relationship log", "Review stakeholder follow-up notes")}
-      </div>
-    </section>
-    <section class="panel" aria-label="Pub creation actions">
-      <h1>Create local records</h1>
-      <div class="action-list compact">
-        ${commandButton("pspf.pub.newTeam", "New team", "Add local team-owned controls")}
-        ${commandButton("pspf.pub.newRole", "New role", "Attach a role to a team")}
-        ${commandButton("pspf.pub.openRoleDetail", "Role detail", "Open one role with team and assignment coverage")}
-        ${commandButton("pspf.pub.editRole", "Edit role", "Update local role contribution and PD context")}
-        ${commandButton("pspf.pub.newPerson", "New person", "Add local-only person context")}
-        ${commandButton("pspf.pub.openPersonDetail", "Person detail", "Open one person with assignments and relationship notes")}
-        ${commandButton("pspf.pub.editPerson", "Edit person", "Update local-only person context")}
-        ${commandButton("pspf.pub.newAssignment", "New assignment", "Assign a person to a role")}
-        ${commandButton("pspf.pub.openAssignmentDetail", "Assignment detail", "Open one person-to-role assignment")}
-        ${commandButton("pspf.pub.editAssignment", "Edit assignment", "Update local assignment coverage")}
-        ${commandButton("pspf.pub.recordRelationshipNote", "Relationship note", "Record a local follow-up")}
-        ${commandButton("pspf.pub.openRelationshipNoteDetail", "Note detail", "Open one local relationship note")}
-        ${commandButton("pspf.pub.editRelationshipNote", "Edit note", "Update local relationship follow-up context")}
-        ${commandButton("pspf.pub.loadSample", "Load sample", "Replace current Pub data with sample records")}
-      </div>
-    </section>
-    <section class="grid" aria-label="Pub foundation areas">
-      ${foundationCard("Organisation chart", "Role, team, milestone, anniversary, and action badges for upcoming work and sustainability signals.")}
-      ${foundationCard("Team control ownership", "Teams own controls and control sets; roles and assignments explain who helps sustain that ownership.")}
-      ${foundationCard("Relationship context", "Staff, service providers, customers, relationship notes, team events, and stakeholder history kept local by default.")}
-      ${foundationCard("Assignments and rotations", "Assignment boards, roster opportunities, staff rotations, and role contribution views for future implementation.")}
-    </section>
-  </main>`
-  );
+  const upcomingBody =
+    upcomingBadges.length === 0
+      ? `<p class="muted">Load sample data or add assignments to see action, review, rotation, and anniversary signals.</p>`
+      : `<div class="tags">${upcomingBadges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("")}</div>`;
+
+  const heroBody = `
+    <p class="muted">${escapeHtml(axes)}</p>
+    <p>Pub is the local-only people context surface: who has a stake in protecting information, where responsibility needs attention, how the organisation chart supports assurance work, and which relationship log entries need follow-up.</p>
+    <div class="grid" role="list">
+      ${homeMetricCard("People", store.people.length)}
+      ${homeMetricCard("Teams", store.teams.length)}
+      ${homeMetricCard("Roles", store.roles.length)}
+      ${homeMetricCard("Assignments", store.assignments.length)}
+    </div>
+    <p class="muted" style="margin-top:8px">no Explorer publication in v1.29 — Pub records stay local in v${escapeHtml(PSPF_SLICE_VERSION)}.</p>
+  `;
+
+  const signalsBody = `<div class="grid two">
+    <div class="metric"><span>Upcoming badges</span><strong style="font-size:13px;font-weight:500;line-height:1.4;letter-spacing:0">${upcomingBody}</strong></div>
+    <div class="metric"><span>Local-only boundary</span><strong style="font-size:13px;font-weight:500;line-height:1.4;letter-spacing:0">Person display names, relationship notes, development context, performance context, and assignment-to-person mappings stay in <code>.pspf/pub/pub.json</code> and never enter Explorer bundles.</strong></div>
+  </div>`;
+
+  const coreActions = `<div class="action-list">
+    ${homeActionButton("pspf.pub.openTeams", "Teams", "Review local team control ownership")}
+    ${homeActionButton("pspf.pub.openTeamDetail", "Team detail", "Open one team with roles, assignments, gaps, and notes")}
+    ${homeActionButton("pspf.pub.editTeam", "Edit team", "Update local team ownership and responsibility")}
+    ${homeActionButton("pspf.pub.openOrgChart", "Organisation chart", "See teams, roles, owned controls, and assignment badges")}
+    ${homeActionButton("pspf.pub.openAssignments", "Assignments", "Review people-to-role coverage")}
+    ${homeActionButton("pspf.pub.openRelationshipLog", "Relationship log", "Review stakeholder follow-up notes")}
+  </div>`;
+
+  const createActions = `<div class="action-list compact">
+    ${homeActionButton("pspf.pub.newTeam", "New team", "Add local team-owned controls")}
+    ${homeActionButton("pspf.pub.newRole", "New role", "Attach a role to a team")}
+    ${homeActionButton("pspf.pub.openRoleDetail", "Role detail", "Open one role with team and assignment coverage")}
+    ${homeActionButton("pspf.pub.editRole", "Edit role", "Update local role contribution and PD context")}
+    ${homeActionButton("pspf.pub.newPerson", "New person", "Add local-only person context")}
+    ${homeActionButton("pspf.pub.openPersonDetail", "Person detail", "Open one person with assignments and relationship notes")}
+    ${homeActionButton("pspf.pub.editPerson", "Edit person", "Update local-only person context")}
+    ${homeActionButton("pspf.pub.newAssignment", "New assignment", "Assign a person to a role")}
+    ${homeActionButton("pspf.pub.openAssignmentDetail", "Assignment detail", "Open one person-to-role assignment")}
+    ${homeActionButton("pspf.pub.editAssignment", "Edit assignment", "Update local assignment coverage")}
+    ${homeActionButton("pspf.pub.recordRelationshipNote", "Relationship note", "Record a local follow-up")}
+    ${homeActionButton("pspf.pub.openRelationshipNoteDetail", "Note detail", "Open one local relationship note")}
+    ${homeActionButton("pspf.pub.editRelationshipNote", "Edit note", "Update local relationship follow-up context")}
+    ${homeActionButton("pspf.pub.loadSample", "Load sample", "Replace current Pub data with sample records")}
+  </div>`;
+
+  const foundationBody = `<div class="grid two">
+    ${homeFoundationCard("Organisation chart", "Role, team, milestone, anniversary, and action badges for upcoming work and sustainability signals.")}
+    ${homeFoundationCard("Team control ownership", "Teams own controls and control sets; roles and assignments explain who helps sustain that ownership.")}
+    ${homeFoundationCard("Relationship context", "Staff, service providers, customers, relationship notes, team events, and stakeholder history kept local by default.")}
+    ${homeFoundationCard("Assignments and rotations", "Assignment boards, roster opportunities, staff rotations, and role contribution views for future implementation.")}
+  </div>`;
+
+  const body = [
+    homeSection({
+      id: "overview",
+      hero: true,
+      eyebrow: "Local people context",
+      heading: "People, roles, teams, assignments, and stakeholder relationships",
+      body: heroBody
+    }),
+    homeSection({ id: "signals", eyebrow: "Now", heading: "Action signals", body: signalsBody }),
+    homeSection({ id: "actions", eyebrow: "Browse", heading: "Core Pub actions", body: coreActions }),
+    homeSection({ id: "create", eyebrow: "Author", heading: "Create local records", body: createActions }),
+    homeSection({ id: "foundation", eyebrow: "Reference", heading: "Pub foundation areas", body: foundationBody })
+  ].join("");
+
+  return homePanelShellHtml({
+    extensionLabel: "PSPF Pub",
+    title: "PSPF Pub",
+    tagline: "Local-only people context",
+    version: PSPF_SLICE_VERSION,
+    accent: "red",
+    sensitivityBanner: "OFFICIAL: Sensitive · Pub data stays on this workspace and is never exported to Explorer.",
+    nav: [
+      { href: "overview", label: "Overview" },
+      { href: "signals", label: "Signals" },
+      { href: "actions", label: "Browse" },
+      { href: "create", label: "Create" },
+      { href: "foundation", label: "Reference" }
+    ],
+    body
+  });
+}
+
+function homeFoundationCard(title: string, body: string): string {
+  return `<article class="metric"><span>${escapeHtml(title)}</span><strong style="font-size:13px;font-weight:500;line-height:1.4;letter-spacing:0">${escapeHtml(body)}</strong></article>`;
 }
 
 function renderOrgChartHtml(store: PubStore): string {
@@ -2038,10 +2077,6 @@ function tableHtml(headers: readonly string[], rows: string, emptyColumnCount: n
 
 function summaryCard(title: string, body: string): string {
   return `<article class="card"><h2>${escapeHtml(title)}</h2><p>${body}</p></article>`;
-}
-
-function foundationCard(title: string, body: string): string {
-  return `<article class="card"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(body)}</p></article>`;
 }
 
 function commandButton(command: string, text: string, description?: string): string {

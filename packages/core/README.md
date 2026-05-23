@@ -2,6 +2,8 @@
 
 Local-first tooling for Australian Government PSPF assurance work. Core, Workshop, Shop, Pub, and Explorer share one schema and one local store so that authoring, commercial planning, people context, and publication stay aligned.
 
+> **Accent:** Core teal · System of record
+
 ## What this extension does
 
 PSPF Core is the local **system of record**. It runs entirely inside VS Code, holds the workspace in a local SQLite database at `.pspf/core/pspf-core.db`, and enforces a single-writer lock so only one editing session touches the data at a time.

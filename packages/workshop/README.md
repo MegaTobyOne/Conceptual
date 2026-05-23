@@ -2,6 +2,8 @@
 
 Local-first tooling for Australian Government PSPF assurance work. Core, Workshop, Shop, Pub, and Explorer share one schema and one local store so that authoring, commercial planning, people context, and publication stay aligned.
 
+> **Accent:** Workshop blue · Authoring surface
+
 ## What this extension does
 
 PSPF Workshop is the day-to-day **authoring surface** inside VS Code. It opens screen-based views for each entity type, talks to Core through a typed contract, and provides rapid editing and review flows for the assessment loop.

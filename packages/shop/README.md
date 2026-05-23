@@ -2,6 +2,8 @@
 
 Local-first tooling for Australian Government PSPF assurance work. Core, Workshop, Shop, Pub, and Explorer share one schema and one local store so that authoring, commercial planning, people context, and publication stay aligned.
 
+> **Accent:** Shop amber · Commercial planning
+
 ## What this extension does
 
 PSPF Shop is the **commercial planning surface** for suppliers, contracts, spend items, and derived spend forecast review. It links commercial obligations to the controls and risks they affect, so assurance and procurement stay in step.

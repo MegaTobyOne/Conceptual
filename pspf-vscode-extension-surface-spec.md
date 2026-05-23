@@ -166,11 +166,11 @@ Suggested views under Shop:
 
 | View ID | Type | Purpose |
 |---|---|---|
+| `pspfShop.homeView` | WebviewView | Shop Home landing panel with overview metrics and quick-create / forecast / sample actions |
 | `pspfShop.suppliersView` | Tree View | suppliers grouped by criticality/status |
 | `pspfShop.contractsView` | Tree View | contracts grouped by supplier/renewal/status |
 | `pspfShop.spendView` | Tree View | spend items grouped by financial year/status |
 | `pspfShop.forecastView` | WebviewView | spend forecast, savings opportunities, payback, and investment timeline |
-| `pspfShop.welcomeView` | Welcome view | empty-state guidance |
 
 ## Commands
 
