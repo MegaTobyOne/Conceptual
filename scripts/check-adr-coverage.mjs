@@ -246,6 +246,12 @@ const coverage = [
     "check:risk-source-integration",
     "check:release-candidate",
     "check:gates"
+  ]),
+  adr("0068-v1-31-6clicks-risk-source-hardening.md", "automated", [
+    "e2e:v1.31",
+    "check:risk-source-integration",
+    "check:release-candidate",
+    "check:gates"
   ])
 ];
 

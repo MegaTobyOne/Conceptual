@@ -1,7 +1,7 @@
 # PSPF External Risk Source Integration Planning Specification
 
-**Date**: 23 May 2026  
-**Status**: v1.30 planning proposal  
+**Date**: 24 May 2026  
+**Status**: v1.31 hardening plan  
 **Audience**: Product owner, CISO, delivery lead, engineering
 
 ## 1. Purpose
@@ -12,7 +12,7 @@ This capability is read-only toward external systems. PSPF never writes back to 
 
 ## 2. Planning Position
 
-The current candidate is **v1.30 external risk source integration**.
+The current candidate is **v1.31 6clicks risk source hardening**.
 
 The integration belongs in **Workshop + Core**, not Explorer:
 
@@ -20,7 +20,9 @@ The integration belongs in **Workshop + Core**, not Explorer:
 - Core owns persistence, validation, writer lock, migration safety, and audit evidence.
 - Explorer remains a portable review and local-authoring surface and must not gain runtime API integrations.
 
-Initial scope should be deliberately narrow: a named 6clicks risk adapter, manual preview, explicit apply, local audit ledger, and no scheduled sync.
+Initial scope remains deliberately narrow: a named 6clicks risk adapter, explicit fixture/live source mode, manual preview, explicit apply, local run logs, and no scheduled sync.
+
+Write-back to 6clicks and operator-managed field mapping are not under consideration for this integration line unless a later product decision explicitly reopens them.
 
 ## 3. Problem Statement
 
@@ -84,7 +86,8 @@ Operators can define and manage risk source profiles with:
 - Authentication mode and secret reference. MVP supports API key header and bearer token authentication.
 - Enabled/disabled status.
 - Timeout and bounded retry settings.
-- Optional endpoint allow-list policy.
+- Source mode: `fixture` or `live`.
+- Bounded timeout for live HTTPS requests.
 - Mapping version.
 - Default apply policy: `safe-update`.
 
@@ -96,7 +99,7 @@ Each risk source adapter must implement:
 
 - Connectivity test.
 - Paged or single-page fetch of risk records.
-- Optional incremental fetch marker where the source supports it, but no scheduled sync in this tranche.
+- Explicit fixture mode using named built-in validation data and no credential.
 - Mapping of source records to canonical incoming risk payloads.
 - Error classification: `auth`, `network`, `schema`, `rate-limit`, `timeout`, and `unexpected`.
 - Diagnostic redaction for tokens, keys, cookies, and sensitive headers.
@@ -250,7 +253,7 @@ Core API additions should remain smaller than the command surface and expose onl
 
 1. Secrets stored only in VS Code `SecretStorage`.
 2. HTTPS-only source endpoints by default.
-3. Optional endpoint allow-listing for regulated environments.
+3. Live mode requires HTTPS, an endpoint path, a supported auth mode, and a SecretStorage credential reference.
 4. No token, key, cookie, auth header, or raw response body in logs by default.
 5. Explicit operator confirmation before any apply.
 6. No external write-back code path.
@@ -267,34 +270,37 @@ Core API additions should remain smaller than the command surface and expose onl
 - Mid-apply failure: record partial progress, failed record IDs, and replay guidance.
 - Concurrency conflict: exclude affected records from auto-apply and show conflict diagnostics.
 
-## 13. Candidate v1.30 Acceptance Gates
+## 13. Candidate v1.31 Acceptance Gates
 
-1. A trusted Workshop operator can create a 6clicks risk source profile with a SecretStorage-backed API key header or bearer token credential reference and no raw secret in Core storage, workspace settings, logs, snapshots, or bundles.
-2. `Test Connection` performs a read-only HTTPS request and classifies auth, network, schema, rate-limit, timeout, and unexpected failures.
-3. `Run Preview` fetches fixture risk records and classifies them into `new`, `changed`, `unchanged`, `ambiguous`, and `error` with field-level diffs for changed records.
-4. `Apply Selected` writes only confirmed new/changed risk records through Core, preserves local PSPF-owned fields unless the user has explicitly consented to the overwrite policy, and never writes to the external source.
-5. Imported risks carry integration metadata; Explorer and generated outputs expose only source label and last source update time, with redaction tests proving no other integration metadata leaks.
-6. Sync run ledger entries record run status, counts, apply mode, mapping version, and redacted diagnostics.
-7. Regression gates pass: `typecheck`, `lint`, `check:gates`, `validate:debug-workspace`, and release-readiness checks selected for the active release line.
+1. A trusted Workshop operator can create a 6clicks risk source profile with explicit `fixture` or `live` source mode.
+2. Fixture mode is credential-free, tenant-free, and backed by named built-in validation data.
+3. Live mode requires an `https://` base URL, endpoint path, auth mode, SecretStorage-backed API key header or bearer token credential reference, and bounded timeout.
+4. `Test Connection` performs a read-only live request or fixture load and classifies auth, network, schema, rate-limit, timeout, and unexpected failures without exposing credentials.
+5. `Run Preview` fetches fixture risk variants and classifies valid rows into `new`, `changed`, `unchanged`, or `ambiguous`, while invalid rows remain visible as `error` decisions.
+6. `Apply Selected` requires operator selection, writes only selected new/changed risk records through Core, preserves local PSPF-owned fields unless the user has explicitly consented to the overwrite policy, and never writes to the external source.
+7. Local run logs under `.pspf/logs/risk-source-runs/` record run status, source mode, counts, apply mode, mapping version, and redacted diagnostics.
+8. Imported risks carry integration metadata; Explorer and generated outputs expose only source label and last source update time, with redaction tests proving no other integration metadata leaks.
+9. Regression gates pass: `typecheck`, `lint`, `check:gates`, `validate:debug-workspace`, and release-readiness checks selected for the active release line.
 
 ## 14. Decisions Required
 
-1. **6clicks payload contract**: v1.30 accepts the fixture and common 6clicks-style fields (`id`, `title`/`name`/`summary`, `status`, `likelihood`, `impact`, and update timestamps); real-tenant payload refinement remains a follow-up.
-2. **Protected fields**: local PSPF-owned risk fields (`title`, `status`, `likelihood`, and `impact`) are preserved by default and can use source values only after explicit apply-time consent.
-3. **Consent model**: v1.30 uses per-run consent for applying source values to changed risks.
-4. **Run ledger storage**: v1.30 keeps run history in Workshop local state; canonical Core ledger remains a later hardening option.
-5. **Source label**: Explorer/report-visible source label is `6clicks`.
-6. **Last updated semantics**: Explorer/report-visible last source update uses external `remoteUpdatedAt`; Workshop can fall back to local `lastSyncedAt` in the Risk editor if the source omits a timestamp.
+1. **6clicks payload contract**: v1.31 accepts the fixture and common 6clicks-style fields (`id`/`risk_id`/`uuid`, `title`/`name`/`summary`, `status`, `likelihood`, `impact`, and update timestamps); real-tenant payload refinement remains deterministic adapter hardening rather than operator mapping.
+2. **Source mode**: v1.31 requires explicit `fixture` or `live` mode; blank base URL no longer silently selects fixture behaviour.
+3. **Protected fields**: local PSPF-owned risk fields (`title`, `status`, `likelihood`, and `impact`) are preserved by default and can use source values only after explicit apply-time consent.
+4. **Consent model**: v1.31 uses per-run consent for applying source values to changed risks plus per-record selection before apply.
+5. **Run ledger storage**: v1.31 writes redacted local logs under `.pspf/logs/risk-source-runs/`; canonical Core ledger remains out of scope.
+6. **Source label**: Explorer/report-visible source label is `6clicks`.
+7. **Last updated semantics**: Explorer/report-visible last source update uses external `remoteUpdatedAt`; Workshop can fall back to local `lastSyncedAt` in the Risk editor if the source omits a timestamp.
 
 ## 15. Proposed Planning Path
 
-1. ADR 0067 records the v1.30 decision.
+1. ADR 0068 records the v1.31 hardening decision.
 2. Contracts carry the smallest persisted risk integration metadata and publication policy.
 3. The fixture-backed 6clicks preview classifies source records without a live tenant.
 4. SecretStorage-backed credential handling and read-only HTTPS fetch are implemented in Workshop.
 5. Applies write creates/updates through existing Core APIs and preserve local fields unless the user consents to source values.
 6. The Risk Source panel exposes configuration, test, preview, apply, and run history.
-7. `check:risk-source-integration` covers commands, visible config, SecretStorage boundary, redaction, and schema shape before release readiness.
+7. `check:risk-source-integration` covers commands, visible config, explicit source mode, HTTPS live validation, credential-free fixture mode, local run logs, selected apply, SecretStorage boundary, redaction, and schema shape before release readiness.
 
 ## 16. Later Phases
 
@@ -306,6 +312,5 @@ Later tranches can consider:
 - Scheduled preview-only checks.
 - Incremental cursors or watermarks.
 - Richer match confirmation workflows.
-- Operator-managed source field mapping.
 
 These should remain deferred until the risk import path is proven against real operator data.

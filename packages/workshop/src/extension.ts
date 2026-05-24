@@ -259,6 +259,12 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.attachEvidence",
       "pspf.workshop.createAction",
       "pspf.workshop.createRisk",
+      "pspf.workshop.openRiskSourcePanel",
+      "pspf.workshop.configureRiskSource",
+      "pspf.workshop.testRiskSource",
+      "pspf.workshop.previewRiskSourceImport",
+      "pspf.workshop.applyRiskSourceImport",
+      "pspf.workshop.viewRiskSourceRuns",
       "pspf.workshop.openRequirementsList",
       "pspf.workshop.openEvidenceList",
       "pspf.workshop.openActionsList",
@@ -417,6 +423,17 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openStrategyMap", "Strategy Map", "Connect strategic choices to Requirements, Risks, Actions, and Directions")}
         ${homeButton("pspf.workshop.openChangeRecords", "Change records", "Review why important records changed")}
         ${homeButton("pspf.workshop.manageSavedViews", "Saved views", "Save and reopen Workshop Requirement filters")}
+      </div>
+    </section>
+    <section>
+      <h2>Integrations</h2>
+      <div class="action-list compact">
+        ${homeButton("pspf.workshop.openRiskSourcePanel", "Risk Source", "Review 6clicks source status, previews, and runs")}
+        ${homeButton("pspf.workshop.configureRiskSource", "Configure source", "Choose fixture or live 6clicks mode")}
+        ${homeButton("pspf.workshop.testRiskSource", "Test source", "Validate the current Risk Source connection")}
+        ${homeButton("pspf.workshop.previewRiskSourceImport", "Preview risks", "Fetch and review source risks before applying")}
+        ${homeButton("pspf.workshop.applyRiskSourceImport", "Apply selected", "Apply selected new or changed source risks")}
+        ${homeButton("pspf.workshop.viewRiskSourceRuns", "View source runs", "Open recent Risk Source run history")}
       </div>
     </section>
     <section>
@@ -913,17 +930,22 @@ async function createRisk(requirementId?: string): Promise<void> {
 }
 
 type RiskSourceAuthMode = "api-key-header" | "bearer-token";
+type RiskSourceMetadataAuthMode = RiskSourceAuthMode | "none";
+type RiskSourceMode = "fixture" | "live";
 
 type RiskSourceProfile = {
   readonly source: "6clicks";
   readonly sourceLabel: string;
+  readonly sourceMode: RiskSourceMode;
+  readonly fixtureName?: "6clicks-risk-v1";
   readonly baseUrl?: string;
   readonly endpointPath: string;
-  readonly authMode: RiskSourceAuthMode;
+  readonly authMode?: RiskSourceAuthMode;
   readonly apiKeyHeaderName?: string;
-  readonly secretRef: string;
+  readonly secretRef?: string;
   readonly mappingVersion: "6clicks-risk-v1";
   readonly applyPolicy: "safe-update";
+  readonly timeoutMs: number;
   readonly updatedAt: string;
 };
 
@@ -939,6 +961,17 @@ type IncomingRiskRecord = {
     readonly impact: number;
   };
 };
+
+type IncomingRiskRecordError = {
+  readonly error: true;
+  readonly sourceId: string;
+  readonly remoteId?: string;
+  readonly sourceTitle?: string;
+  readonly reason: string;
+  readonly rawHash: string;
+};
+
+type IncomingRiskResult = IncomingRiskRecord | IncomingRiskRecordError;
 
 type RiskSourcePreviewDecision = {
   readonly classification: "new" | "changed" | "unchanged" | "ambiguous" | "error";
@@ -963,6 +996,7 @@ type RiskSourcePreview = {
 type RiskSourceRun = {
   readonly id: string;
   readonly sourceLabel: string;
+  readonly sourceMode: RiskSourceMode;
   readonly status: "previewed" | "applied" | "failed";
   readonly startedAt: string;
   readonly completedAt: string;
@@ -974,6 +1008,7 @@ type RiskSourceRun = {
   readonly errors: number;
   readonly appliedCreates: number;
   readonly appliedUpdates: number;
+  readonly logPath?: string;
   readonly diagnostics?: readonly string[];
 };
 
@@ -993,6 +1028,29 @@ const sixClicksFixtureRecords = [
     status: "monitored",
     likelihood: 3,
     impact: 4
+  },
+  {
+    risk_id: "6c-risk-003",
+    modified_at: "2026-05-22T01:10:00.000Z",
+    name: "Privileged access recertification is overdue",
+    status: "accepted",
+    likelihood_score: "3",
+    impact_score: "5"
+  },
+  {
+    uuid: "6c-risk-004",
+    updatedAt: "2026-05-22T03:15:00.000Z",
+    summary: "Cloud backup recovery evidence needs retesting",
+    status: "resolved",
+    inherent_likelihood: 2,
+    inherent_impact: 4
+  },
+  {
+    updated_at: "2026-05-22T05:45:00.000Z",
+    title: "Fixture row missing a stable source identifier",
+    status: "open",
+    likelihood: 3,
+    impact: 3
   }
 ] as const;
 
@@ -1010,11 +1068,33 @@ async function openRiskSourcePanel(): Promise<void> {
 async function configureRiskSource(): Promise<void> {
   const context = requireWorkshopContext();
   const current = readRiskSourceProfile();
+  const sourceMode = await vscode.window.showQuickPick(
+    [
+      { label: "Fixture", description: "Use built-in non-tenant validation data", value: "fixture" as const },
+      { label: "Live 6clicks", description: "Fetch from an HTTPS 6clicks endpoint", value: "live" as const }
+    ],
+    { title: "Select 6clicks source mode", ignoreFocusOut: true }
+  );
+  if (!sourceMode) {
+    return;
+  }
   const baseUrl = await vscode.window.showInputBox({
     title: "Configure 6clicks Risk Source",
-    prompt: "6clicks base URL. Leave blank to use the built-in fixture for local validation.",
+    prompt:
+      sourceMode.value === "live"
+        ? "6clicks HTTPS base URL. Live mode requires https://."
+        : "Fixture mode does not use a tenant URL.",
     value: current?.baseUrl ?? "",
-    ignoreFocusOut: true
+    ignoreFocusOut: true,
+    validateInput: (value) => {
+      if (sourceMode.value === "fixture" && value.trim().length > 0) {
+        return "Fixture mode must not set a live base URL.";
+      }
+      if (sourceMode.value === "live") {
+        return validateRiskSourceBaseUrl(value.trim());
+      }
+      return undefined;
+    }
   });
   if (baseUrl === undefined) {
     return;
@@ -1029,18 +1109,21 @@ async function configureRiskSource(): Promise<void> {
   if (!endpointPath) {
     return;
   }
-  const authMode = await vscode.window.showQuickPick(
-    [
-      { label: "API key header", value: "api-key-header" as const },
-      { label: "Bearer token", value: "bearer-token" as const }
-    ],
-    { title: "Select 6clicks auth mode", ignoreFocusOut: true }
-  );
-  if (!authMode) {
+  const authMode =
+    sourceMode.value === "live"
+      ? await vscode.window.showQuickPick(
+          [
+            { label: "API key header", value: "api-key-header" as const },
+            { label: "Bearer token", value: "bearer-token" as const }
+          ],
+          { title: "Select 6clicks auth mode", ignoreFocusOut: true }
+        )
+      : undefined;
+  if (sourceMode.value === "live" && !authMode) {
     return;
   }
   const apiKeyHeaderName =
-    authMode.value === "api-key-header"
+    authMode?.value === "api-key-header"
       ? await vscode.window.showInputBox({
           title: "Configure 6clicks Risk Source",
           prompt: "API key header name",
@@ -1049,32 +1132,42 @@ async function configureRiskSource(): Promise<void> {
           validateInput: (value) => (value.trim().length === 0 ? "Enter an API key header name." : undefined)
         })
       : undefined;
-  if (authMode.value === "api-key-header" && !apiKeyHeaderName) {
+  if (authMode?.value === "api-key-header" && !apiKeyHeaderName) {
     return;
   }
-  const secret = await vscode.window.showInputBox({
-    title: "Configure 6clicks Risk Source",
-    prompt: authMode.value === "api-key-header" ? "API key" : "Bearer token",
-    password: true,
-    ignoreFocusOut: true,
-    validateInput: (value) => (value.trim().length === 0 ? "Enter the credential value." : undefined)
-  });
-  if (!secret) {
-    return;
+  if (sourceMode.value === "live" && authMode) {
+    const secret = await vscode.window.showInputBox({
+      title: "Configure 6clicks Risk Source",
+      prompt: authMode.value === "api-key-header" ? "API key" : "Bearer token",
+      password: true,
+      ignoreFocusOut: true,
+      validateInput: (value) => (value.trim().length === 0 ? "Enter the credential value." : undefined)
+    });
+    if (!secret) {
+      return;
+    }
+    await context.secrets.store(riskSourceSecretKey, secret.trim());
   }
-  await context.secrets.store(riskSourceSecretKey, secret.trim());
   const profile: RiskSourceProfile = {
     source: "6clicks",
     sourceLabel: "6clicks",
+    sourceMode: sourceMode.value,
+    fixtureName: sourceMode.value === "fixture" ? "6clicks-risk-v1" : undefined,
     baseUrl: trimOptional(baseUrl),
     endpointPath: endpointPath.trim(),
-    authMode: authMode.value,
+    authMode: authMode?.value,
     apiKeyHeaderName: apiKeyHeaderName?.trim(),
-    secretRef: riskSourceSecretKey,
+    secretRef: sourceMode.value === "live" ? riskSourceSecretKey : undefined,
     mappingVersion: "6clicks-risk-v1",
     applyPolicy: "safe-update",
+    timeoutMs: 15_000,
     updatedAt: new Date().toISOString()
   };
+  const diagnostics = validateRiskSourceProfile(profile);
+  if (diagnostics.length > 0) {
+    await vscode.window.showWarningMessage(`6clicks risk source profile is incomplete: ${diagnostics.join("; ")}`);
+    return;
+  }
   await context.workspaceState.update(riskSourceProfileKey, profile);
   await writeRiskSourceConfig(profile);
   await vscode.window.showInformationMessage("6clicks risk source profile saved.");
@@ -1085,7 +1178,10 @@ async function testRiskSource(): Promise<void> {
   const profile = ensureRiskSourceProfile();
   try {
     const records = await fetchSixClicksRiskRecords(profile);
-    await vscode.window.showInformationMessage(`6clicks risk source returned ${records.length} risk records.`);
+    const errors = records.filter(isIncomingRiskError).length;
+    await vscode.window.showInformationMessage(
+      `6clicks risk source returned ${records.length - errors} valid risk records and ${errors} rejected records.`
+    );
   } catch (error) {
     await vscode.window.showWarningMessage(`6clicks risk source test failed: ${errorMessage(error)}`);
   }
@@ -1105,6 +1201,7 @@ async function previewRiskSourceImport(): Promise<void> {
     await appendRiskSourceRun({
       id: `RUN-${randomUUID()}`,
       sourceLabel: profile.sourceLabel,
+      sourceMode: profile.sourceMode,
       status: "previewed",
       startedAt,
       completedAt: new Date().toISOString(),
@@ -1119,6 +1216,7 @@ async function previewRiskSourceImport(): Promise<void> {
     await appendRiskSourceRun({
       id: `RUN-${randomUUID()}`,
       sourceLabel: profile.sourceLabel,
+      sourceMode: profile.sourceMode,
       status: "failed",
       startedAt,
       completedAt: new Date().toISOString(),
@@ -1130,7 +1228,7 @@ async function previewRiskSourceImport(): Promise<void> {
       errors: 1,
       appliedCreates: 0,
       appliedUpdates: 0,
-      diagnostics: [errorMessage(error)]
+      diagnostics: [classifyRiskSourceError(error)]
     });
     await vscode.window.showWarningMessage(`6clicks preview failed: ${errorMessage(error)}`);
   }
@@ -1143,11 +1241,33 @@ async function applyRiskSourceImport(): Promise<void> {
     await vscode.window.showWarningMessage("Run a 6clicks risk preview before applying.");
     return;
   }
-  const applicable = preview.decisions.filter(
+  const applicableDecisions = preview.decisions.filter(
     (decision) => decision.incoming && ["new", "changed"].includes(decision.classification)
   );
-  if (applicable.length === 0) {
+  if (applicableDecisions.length === 0) {
     await vscode.window.showInformationMessage("No new or changed 6clicks risks are ready to apply.");
+    return;
+  }
+  const selected = await vscode.window.showQuickPick(
+    applicableDecisions.map((decision) => ({
+      label: decision.incoming?.payload.title ?? "Untitled risk",
+      description: label(decision.classification),
+      detail: decision.reason,
+      picked: true,
+      decision
+    })),
+    {
+      title: "Select 6clicks risks to apply",
+      canPickMany: true,
+      ignoreFocusOut: true
+    }
+  );
+  if (!selected) {
+    return;
+  }
+  const applicable = selected.map((item) => item.decision);
+  if (applicable.length === 0) {
+    await vscode.window.showInformationMessage("No 6clicks risks selected for apply.");
     return;
   }
   const changed = applicable.filter((decision) => decision.classification === "changed");
@@ -1220,6 +1340,7 @@ async function applyRiskSourceImport(): Promise<void> {
   await appendRiskSourceRun({
     id: `RUN-${randomUUID()}`,
     sourceLabel: preview.profile.sourceLabel,
+    sourceMode: preview.profile.sourceMode,
     status: "applied",
     startedAt: appliedAt,
     completedAt: new Date().toISOString(),
@@ -1250,13 +1371,18 @@ function requireWorkshopContext(): vscode.ExtensionContext {
 }
 
 function readRiskSourceProfile(): RiskSourceProfile | undefined {
-  return workshopContext?.workspaceState.get<RiskSourceProfile>(riskSourceProfileKey);
+  const profile = workshopContext?.workspaceState.get<RiskSourceProfile>(riskSourceProfileKey);
+  return profile ? normaliseRiskSourceProfile(profile) : undefined;
 }
 
 function ensureRiskSourceProfile(): RiskSourceProfile {
   const profile = readRiskSourceProfile();
   if (!profile) {
     throw new Error("Configure the 6clicks risk source before running this action.");
+  }
+  const diagnostics = validateRiskSourceProfile(profile);
+  if (diagnostics.length > 0) {
+    throw new Error(`Fix the 6clicks risk source profile before running this action: ${diagnostics.join("; ")}`);
   }
   return profile;
 }
@@ -1283,6 +1409,8 @@ async function writeRiskSourceConfig(profile: RiskSourceProfile): Promise<void> 
         type: "6clicks-risk",
         source: profile.source,
         sourceLabel: profile.sourceLabel,
+        sourceMode: profile.sourceMode,
+        fixtureName: profile.fixtureName,
         baseUrl: profile.baseUrl,
         endpointPath: profile.endpointPath,
         authMode: profile.authMode,
@@ -1290,6 +1418,7 @@ async function writeRiskSourceConfig(profile: RiskSourceProfile): Promise<void> 
         secretRef: profile.secretRef,
         mappingVersion: profile.mappingVersion,
         applyPolicy: profile.applyPolicy,
+        timeoutMs: profile.timeoutMs,
         updatedAt: profile.updatedAt
       }
     ]
@@ -1312,29 +1441,198 @@ function riskSourceConfigDisplayPath(): string {
   return uri ? uri.fsPath : `.pspf/config/${riskSourceConfigFile}`;
 }
 
-async function appendRiskSourceRun(run: RiskSourceRun): Promise<void> {
-  const context = requireWorkshopContext();
-  await context.workspaceState.update(riskSourceRunsKey, [run, ...readRiskSourceRuns()].slice(0, 25));
+function riskSourceLogDirectoryUri(): vscode.Uri | undefined {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  return workspaceFolder ? vscode.Uri.joinPath(workspaceFolder.uri, ".pspf", "logs", "risk-source-runs") : undefined;
 }
 
-async function fetchSixClicksRiskRecords(profile: RiskSourceProfile): Promise<readonly IncomingRiskRecord[]> {
-  if (!profile.baseUrl) {
-    return sixClicksFixtureRecords.map((record) => normaliseSixClicksRiskRecord(profile, record));
+function riskSourceRunLogUri(runId: string): vscode.Uri | undefined {
+  const directoryUri = riskSourceLogDirectoryUri();
+  return directoryUri ? vscode.Uri.joinPath(directoryUri, `${runId}.json`) : undefined;
+}
+
+function riskSourceRunLogDisplayPath(runId: string): string {
+  const uri = riskSourceRunLogUri(runId);
+  return uri ? uri.fsPath : `.pspf/logs/risk-source-runs/${runId}.json`;
+}
+
+async function appendRiskSourceRun(run: RiskSourceRun): Promise<void> {
+  const context = requireWorkshopContext();
+  const runWithLog = {
+    ...run,
+    logPath: riskSourceRunLogDisplayPath(run.id),
+    diagnostics: redactDiagnostics(run.diagnostics)
+  };
+  await context.workspaceState.update(riskSourceRunsKey, [runWithLog, ...readRiskSourceRuns()].slice(0, 25));
+  await writeRiskSourceRunLog(runWithLog);
+}
+
+async function writeRiskSourceRunLog(run: RiskSourceRun): Promise<void> {
+  const directoryUri = riskSourceLogDirectoryUri();
+  const logUri = riskSourceRunLogUri(run.id);
+  if (!directoryUri || !logUri) {
+    return;
+  }
+  await vscode.workspace.fs.createDirectory(directoryUri);
+  const body = {
+    ...run,
+    diagnostics: redactDiagnostics(run.diagnostics)
+  };
+  await vscode.workspace.fs.writeFile(logUri, new TextEncoder().encode(`${JSON.stringify(body, null, 2)}\n`));
+}
+
+function normaliseRiskSourceProfile(profile: RiskSourceProfile): RiskSourceProfile {
+  const sourceMode = profile.sourceMode ?? (profile.baseUrl ? "live" : "fixture");
+  return {
+    ...profile,
+    sourceMode,
+    fixtureName: sourceMode === "fixture" ? (profile.fixtureName ?? "6clicks-risk-v1") : undefined,
+    timeoutMs: profile.timeoutMs ?? 15_000
+  };
+}
+
+function validateRiskSourceProfile(profile: RiskSourceProfile): readonly string[] {
+  const diagnostics: string[] = [];
+  if (profile.source !== "6clicks") {
+    diagnostics.push("source must be 6clicks");
+  }
+  if (profile.sourceMode === "fixture") {
+    if (profile.baseUrl) {
+      diagnostics.push("fixture mode must not set a live base URL");
+    }
+    if (profile.secretRef) {
+      diagnostics.push("fixture mode must not require a credential");
+    }
+    return diagnostics;
+  }
+  if (profile.sourceMode !== "live") {
+    diagnostics.push("source mode must be fixture or live");
+    return diagnostics;
+  }
+  const baseUrlError = validateRiskSourceBaseUrl(profile.baseUrl ?? "");
+  if (baseUrlError) {
+    diagnostics.push(baseUrlError);
+  }
+  if (!profile.endpointPath.trim()) {
+    diagnostics.push("endpoint path is required");
+  }
+  if (!profile.authMode) {
+    diagnostics.push("auth mode is required for live mode");
+  }
+  if (profile.authMode === "api-key-header" && !profile.apiKeyHeaderName?.trim()) {
+    diagnostics.push("API key header name is required for API key auth");
+  }
+  if (!profile.secretRef) {
+    diagnostics.push("SecretStorage credential reference is required for live mode");
+  }
+  if (!Number.isInteger(profile.timeoutMs) || profile.timeoutMs < 1_000 || profile.timeoutMs > 60_000) {
+    diagnostics.push("timeout must be between 1000 and 60000 ms");
+  }
+  return diagnostics;
+}
+
+function validateRiskSourceBaseUrl(value: string): string | undefined {
+  if (value.trim().length === 0) {
+    return "Live mode requires a base URL.";
+  }
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? undefined : "Live mode requires an https:// base URL.";
+  } catch {
+    return "Enter a valid https:// base URL.";
+  }
+}
+
+function riskSourceLiveUrl(profile: RiskSourceProfile): URL {
+  const baseUrl = profile.baseUrl;
+  if (!baseUrl) {
+    throw new Error("Live mode requires a base URL.");
+  }
+  const url = new URL(profile.endpointPath, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
+  if (url.protocol !== "https:") {
+    throw new Error("Live mode requires an https:// endpoint.");
+  }
+  return url;
+}
+
+function redactDiagnostics(diagnostics: readonly string[] | undefined): readonly string[] | undefined {
+  return diagnostics?.map((diagnostic) =>
+    diagnostic
+      .replace(/(bearer\s+)[A-Za-z0-9._~+/=-]+/gi, "$1[redacted]")
+      .replace(/(api[-_ ]?key\s*[:=]\s*)[^\s,;]+/gi, "$1[redacted]")
+      .replace(/(token\s*[:=]\s*)[^\s,;]+/gi, "$1[redacted]")
+      .replace(/(authorization\s*[:=]\s*)[^\s,;]+/gi, "$1[redacted]")
+  );
+}
+
+function classifyRiskSourceError(error: unknown): string {
+  const message = errorMessage(error);
+  if (/AbortError|timeout/i.test(message)) {
+    return `timeout: ${message}`;
+  }
+  if (/auth|401|403/i.test(message)) {
+    return `auth: ${message}`;
+  }
+  if (/429|rate/i.test(message)) {
+    return `rate-limit: ${message}`;
+  }
+  if (/schema|array|object|missing/i.test(message)) {
+    return `schema: ${message}`;
+  }
+  if (/fetch|network|ENOTFOUND|ECONN/i.test(message)) {
+    return `network: ${message}`;
+  }
+  return `unexpected: ${message}`;
+}
+
+function riskSourceHttpErrorCategory(status: number): string {
+  if (status === 401 || status === 403) {
+    return "auth";
+  }
+  if (status === 429) {
+    return "rate-limit";
+  }
+  if (status >= 500) {
+    return "network";
+  }
+  return "unexpected";
+}
+
+function isIncomingRiskError(record: IncomingRiskResult): record is IncomingRiskRecordError {
+  return "error" in record && record.error === true;
+}
+
+function riskSourceMetadataAuthMode(profile: RiskSourceProfile): RiskSourceMetadataAuthMode {
+  return profile.sourceMode === "fixture" ? "none" : (profile.authMode ?? "none");
+}
+
+async function fetchSixClicksRiskRecords(profile: RiskSourceProfile): Promise<readonly IncomingRiskResult[]> {
+  if (profile.sourceMode === "fixture") {
+    return normaliseSixClicksRiskRecords(profile, sixClicksFixtureRecords);
+  }
+  if (!profile.secretRef) {
+    throw new Error("Live source credential reference is missing. Reconfigure the risk source.");
   }
   const secret = await requireWorkshopContext().secrets.get(profile.secretRef);
   if (!secret) {
     throw new Error("Credential is missing from SecretStorage. Reconfigure the risk source.");
   }
-  const url = new URL(profile.endpointPath, profile.baseUrl.endsWith("/") ? profile.baseUrl : `${profile.baseUrl}/`);
+  const url = riskSourceLiveUrl(profile);
   const headers: Record<string, string> = { accept: "application/json" };
   if (profile.authMode === "bearer-token") {
     headers.authorization = `Bearer ${secret}`;
   } else {
     headers[profile.apiKeyHeaderName ?? "x-api-key"] = secret;
   }
-  const response = await fetch(url, { method: "GET", headers });
+  const abort = new AbortController();
+  const timeout = setTimeout(() => abort.abort(), profile.timeoutMs);
+  const response = await fetch(url, { method: "GET", headers, signal: abort.signal }).finally(() => {
+    clearTimeout(timeout);
+  });
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} ${response.statusText}`.trim());
+    throw new Error(
+      `${riskSourceHttpErrorCategory(response.status)}: HTTP ${response.status} ${response.statusText}`.trim()
+    );
   }
   const body = (await response.json()) as unknown;
   const records = Array.isArray(body)
@@ -1347,7 +1645,32 @@ async function fetchSixClicksRiskRecords(profile: RiskSourceProfile): Promise<re
   if (!records) {
     throw new Error("6clicks response did not contain a risk array.");
   }
-  return records.map((record) => normaliseSixClicksRiskRecord(profile, record));
+  return normaliseSixClicksRiskRecords(profile, records);
+}
+
+function normaliseSixClicksRiskRecords(
+  profile: RiskSourceProfile,
+  records: readonly unknown[]
+): readonly IncomingRiskResult[] {
+  return records.map((record) => {
+    try {
+      return normaliseSixClicksRiskRecord(profile, record);
+    } catch (error) {
+      const sourceRecord = isRecord(record) ? record : {};
+      return {
+        error: true,
+        sourceId: profile.source,
+        remoteId:
+          stringField(sourceRecord, "id") ?? stringField(sourceRecord, "risk_id") ?? stringField(sourceRecord, "uuid"),
+        sourceTitle:
+          stringField(sourceRecord, "title") ??
+          stringField(sourceRecord, "name") ??
+          stringField(sourceRecord, "summary"),
+        reason: errorMessage(error),
+        rawHash: hashStableJson(record)
+      } satisfies IncomingRiskRecordError;
+    }
+  });
 }
 
 function normaliseSixClicksRiskRecord(profile: RiskSourceProfile, record: unknown): IncomingRiskRecord {
@@ -1374,10 +1697,17 @@ function normaliseSixClicksRiskRecord(profile: RiskSourceProfile, record: unknow
 
 function buildRiskSourcePreviewDecisions(
   profile: RiskSourceProfile,
-  incoming: readonly IncomingRiskRecord[],
+  incoming: readonly IncomingRiskResult[],
   risks: readonly RiskEntity[]
 ): readonly RiskSourcePreviewDecision[] {
   return incoming.map((record) => {
+    if (isIncomingRiskError(record)) {
+      return {
+        classification: "error",
+        reason: record.reason,
+        differences: []
+      };
+    }
     const externalMatches = risks.filter(
       (risk) => risk.integration?.source === profile.source && risk.integration.remoteId === record.remoteId
     );
@@ -1430,7 +1760,7 @@ function riskIntegrationMetadata(
     remoteId: incoming.remoteId,
     remoteUpdatedAt: incoming.remoteUpdatedAt,
     lastSyncedAt,
-    authMode: profile.authMode,
+    authMode: riskSourceMetadataAuthMode(profile),
     rawHash: incoming.rawHash
   };
 }
@@ -1464,8 +1794,8 @@ async function renderRiskSourcePanel(): Promise<string> {
     ? [
         {
           source: profile.sourceLabel,
-          mode: profile.baseUrl ? "HTTPS" : "Built-in fixture",
-          auth: profile.authMode,
+          mode: label(profile.sourceMode),
+          auth: profile.authMode ?? "None",
           endpoint: profile.baseUrl ? `${profile.baseUrl}${profile.endpointPath}` : "Fixture records",
           policy: profile.applyPolicy,
           updated: formatShortAuDateTime(profile.updatedAt) ?? profile.updatedAt
@@ -1483,11 +1813,13 @@ async function renderRiskSourcePanel(): Promise<string> {
     : [];
   const runRows = runs.map((run) => ({
     status: label(run.status),
+    mode: label(run.sourceMode),
     completed: formatShortAuDateTime(run.completedAt) ?? run.completedAt,
     fetched: run.fetched,
     new: run.new,
     changed: run.changed,
     applied: `${run.appliedCreates}/${run.appliedUpdates}`,
+    log: run.logPath ?? "Not written",
     diagnostics: run.diagnostics?.join("; ") ?? "None"
   }));
   return shellHtml(
@@ -1520,7 +1852,7 @@ async function renderRiskSourcePanel(): Promise<string> {
         : ""
     }
     ${recordTable("Preview Decisions", previewRows, ["state", "title", "local", "differences", "reason"])}
-    ${recordTable("Run History", runRows, ["status", "completed", "fetched", "new", "changed", "applied", "diagnostics"])}
+    ${recordTable("Run History", runRows, ["status", "mode", "completed", "fetched", "new", "changed", "applied", "log", "diagnostics"])}
   `
   );
 }

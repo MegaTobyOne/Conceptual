@@ -476,6 +476,18 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 8. **Deferred-scope gate**: external write-back, scheduled sync, webhooks, external Actions, technology systems, commercial records, Pub records, operator-managed field mapping, and Explorer runtime integration remain deferred.
 9. **Regression gate**: `e2e:v1.30`, `check:risk-source-integration`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.31 candidate gates (6clicks risk source hardening, per ADR 0068)
+
+1. **ADR gate**: ADR 0068 records the v1.31 6clicks risk source hardening decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.31.0`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
+3. **Explicit source-mode gate**: 6clicks profiles declare `sourceMode` as `fixture` or `live`; fixture mode is credential-free and tenant-free, while live mode requires an `https://` base URL, endpoint path, auth mode, SecretStorage credential reference, and bounded timeout.
+4. **Local log gate**: preview and apply runs write redacted local run logs under `.pspf/logs/risk-source-runs/` with source mode, run status, counts, apply counts, mapping version, and diagnostics that do not expose raw credentials or response bodies.
+5. **Fixture hardening gate**: built-in fixture data covers common 6clicks-style field variants and rejected rows; preview keeps rejected rows as `error` decisions while valid rows remain reviewable.
+6. **Selected-apply gate**: applying a preview requires operator selection from new and changed records; ambiguous and error rows are excluded from apply.
+7. **Non-goal gate**: write-back to 6clicks and operator-managed field mapping are not under consideration for this integration line unless a later product decision explicitly reopens them.
+8. **Deferred-scope gate**: endpoint allow-listing, scheduled sync, background polling, webhooks, incremental cursors, additional source adapters, external Actions, technology systems, commercial records, Pub records, and Explorer runtime integration remain out of scope.
+9. **Regression gate**: `e2e:v1.31`, `check:risk-source-integration`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

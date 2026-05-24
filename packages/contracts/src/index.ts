@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.11.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.30.0" as const;
+export const PSPF_SLICE_VERSION = "1.31.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -329,7 +329,7 @@ export interface RiskIntegrationMetadata {
   readonly remoteId: string;
   readonly remoteUpdatedAt?: string;
   readonly lastSyncedAt: string;
-  readonly authMode: "api-key-header" | "bearer-token";
+  readonly authMode: "api-key-header" | "bearer-token" | "none";
   readonly rawHash: string;
 }
 

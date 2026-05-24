@@ -23,12 +23,58 @@ for (const requiredText of [
   "secrets.get(profile.secretRef)",
   ".pspf",
   "integrations.json",
+  "sourceMode",
+  "fixtureName",
+  "validateRiskSourceProfile",
+  "validateRiskSourceBaseUrl",
+  "riskSourceLiveUrl",
+  "riskSourceLogDirectoryUri",
+  "risk-source-runs",
+  "writeRiskSourceRunLog",
+  "redactDiagnostics",
+  "isIncomingRiskError",
+  "Select 6clicks risks to apply",
   "writeRiskSourceConfig",
   "6clicks-risk-v1",
   "Apply source values"
 ]) {
   assert.equal(workshopExtension.includes(requiredText), true, `Workshop integration should mention ${requiredText}`);
 }
+
+for (const homePanelText of [
+  "<h2>Integrations</h2>",
+  'homeButton("pspf.workshop.openRiskSourcePanel", "Risk Source"',
+  'homeButton("pspf.workshop.configureRiskSource", "Configure source"',
+  'homeButton("pspf.workshop.testRiskSource", "Test source"',
+  'homeButton("pspf.workshop.previewRiskSourceImport", "Preview risks"',
+  'homeButton("pspf.workshop.applyRiskSourceImport", "Apply selected"',
+  'homeButton("pspf.workshop.viewRiskSourceRuns", "View source runs"'
+]) {
+  assert.equal(workshopExtension.includes(homePanelText), true, `Workshop home panel should surface ${homePanelText}`);
+}
+
+assert.equal(workshopExtension.includes('value: "fixture" as const'), true, "Workshop should expose fixture mode");
+assert.equal(workshopExtension.includes('value: "live" as const'), true, "Workshop should expose live mode");
+assert.equal(
+  workshopExtension.includes('url.protocol === "https:"'),
+  true,
+  "Workshop should require HTTPS for live 6clicks sources"
+);
+assert.equal(
+  workshopExtension.includes('sourceMode.value === "live" ? riskSourceSecretKey : undefined'),
+  true,
+  "Workshop should keep fixture mode credential-free"
+);
+assert.equal(
+  workshopExtension.includes("canPickMany: true"),
+  true,
+  "Workshop apply should require operator record selection"
+);
+assert.equal(
+  /allow-?list/i.test(workshopExtension),
+  false,
+  "Workshop v1.31 should not introduce endpoint allow-listing"
+);
 
 for (const command of [
   "pspf.workshop.openRiskSourcePanel",
@@ -60,6 +106,7 @@ assert.equal(
 assert.equal(contracts.includes("rawHash: entity.integration.rawHash"), false, "rawHash must not publish");
 assert.equal(contracts.includes("authMode: entity.integration.authMode"), false, "authMode must not publish");
 assert.equal(contracts.includes("remoteId: entity.integration.remoteId"), false, "remoteId must not publish");
+assert.equal(contracts.includes('"none"'), true, "contracts should allow fixture-mode local auth metadata");
 
 const integrationSchema = riskSchema.items.properties.integration;
 assert.equal(integrationSchema.type, "object", "risk integration schema should be an object");
@@ -75,4 +122,4 @@ assert.deepEqual(
   "published risk integration schema should expose only source label and source update"
 );
 
-console.log("ok v1.30 risk source integration config, commands, redaction, and schema are covered");
+console.log("ok v1.31 risk source integration hardening, config, commands, redaction, and schema are covered");

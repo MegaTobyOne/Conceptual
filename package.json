@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.30.0",
+  "version": "1.31.0",
   "private": true,
   "description": "Local-first PSPF Core, Workshop, Shop, Pub, and Explorer validation slice.",
   "license": "MIT",
@@ -85,6 +85,7 @@
     "e2e:v1.28": "pnpm run e2e:v1.27 && pnpm run package:check",
     "e2e:v1.29": "pnpm run e2e:v1.28 && pnpm run check:ux-coverage && pnpm run package:check",
     "e2e:v1.30": "pnpm run e2e:v1.29 && pnpm run check:risk-source-integration && pnpm run package:check",
+    "e2e:v1.31": "pnpm run e2e:v1.30 && pnpm run check:risk-source-integration && pnpm run package:check",
     "validate:export": "pnpm build && node scripts/validate-export.mjs",
     "validate:debug-workspace": "pnpm build && node scripts/validate-debug-workspace.mjs && node scripts/check-personal-data-exclusion.mjs",
     "lint": "pnpm lint:au && pnpm lint:ts && pnpm format:check",
@@ -95,7 +96,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm e2e:v1.30 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
+    "release:readiness": "pnpm e2e:v1.31 && pnpm check:gates && pnpm validate:debug-workspace && pnpm lint && pnpm check:release-candidate && node scripts/release-readiness.mjs",
     "test": "pnpm build && pnpm -r --if-present test",
     "typecheck": "tsc -b tsconfig.json"
   },
