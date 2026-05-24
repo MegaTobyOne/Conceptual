@@ -63,6 +63,19 @@ test("CISO magazine supports INFO scope and excludes sensitive working notes", (
   assert.match(html, /OFFICIAL: Sensitive/);
 });
 
+test("CISO magazine tolerates malformed spend money fields", () => {
+  const fixture = magazineFixture();
+  fixture.spendItems = [
+    { ...fixture.spendItems[0], amount: undefined } as unknown as (typeof fixture.spendItems)[number]
+  ];
+
+  const model = buildCisoMagazineModel(fixture);
+  const markdown = renderCisoMagazineMarkdown(fixture);
+
+  assert.equal(model.commercialWatch[0]?.amount, "Not recorded");
+  assert.match(markdown, /Not recorded/);
+});
+
 test("CISO Master Plan includes staged idea and initiative plans", () => {
   const evidence = withEnvelope(
     "evidence",

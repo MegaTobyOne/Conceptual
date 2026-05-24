@@ -1461,7 +1461,7 @@ class ContractTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
     }
     return store.contracts.map((contract) => {
       const supplier = store.suppliers.find((candidate) => candidate.id === contract.supplierId);
-      const value = contract.value ? ` - ${formatCurrency(contract.value.amount, contract.value.currency)}` : "";
+      const value = contract.value ? ` - ${formatMoneyAmount(contract.value)}` : "";
       return new EntityTreeItem(
         contract.title,
         `${supplier?.name ?? "Unknown supplier"} - ${formatToken(contract.status)}${value}`,
@@ -1495,7 +1495,7 @@ class SpendTreeProvider implements vscode.TreeDataProvider<ShopTreeItem> {
       (item) =>
         new EntityTreeItem(
           item.title,
-          `${item.financialYear}${item.costCentre ? ` - ${item.costCentre}` : ""} - ${formatToken(item.status)} - ${formatCurrency(item.amount.amount, item.amount.currency)}`,
+          `${item.financialYear}${item.costCentre ? ` - ${item.costCentre}` : ""} - ${formatToken(item.status)} - ${formatMoneyAmount(item.amount)}`,
           "spend",
           "pspf.shop.openDetail",
           item,
@@ -1671,9 +1671,9 @@ function deriveForecast(spendItems: readonly SpendItemRecord[]): ForecastYear[] 
       netForecast: 0,
       itemCount: 0
     };
-    const plannedSpend = existing.plannedSpend + item.amount.amount;
-    const forecastCost = existing.forecastCost + (item.forecastCost?.amount ?? item.amount.amount);
-    const expectedSavings = existing.expectedSavings + (item.expectedSavings?.amount ?? 0);
+    const plannedSpend = existing.plannedSpend + moneyAmountValue(item.amount);
+    const forecastCost = existing.forecastCost + (moneyAmountValue(item.forecastCost) || moneyAmountValue(item.amount));
+    const expectedSavings = existing.expectedSavings + moneyAmountValue(item.expectedSavings);
     byYear.set(item.financialYear, {
       financialYear: item.financialYear,
       plannedSpend,
@@ -1693,7 +1693,7 @@ function deriveForecastMonths(spendItems: readonly SpendItemRecord[]): ForecastM
     if (months.length === 0) {
       continue;
     }
-    const monthlySpend = (item.forecastCost?.amount ?? item.amount.amount) / months.length;
+    const monthlySpend = (moneyAmountValue(item.forecastCost) || moneyAmountValue(item.amount)) / months.length;
     for (const month of months) {
       const existing = byMonth.get(month.monthKey) ?? {
         monthKey: month.monthKey,
@@ -1706,7 +1706,7 @@ function deriveForecastMonths(spendItems: readonly SpendItemRecord[]): ForecastM
       byMonth.set(month.monthKey, {
         ...existing,
         forecastSpend: existing.forecastSpend + monthlySpend,
-        forecastSavings: existing.forecastSavings + (item.expectedSavings?.amount ?? 0) / months.length,
+        forecastSavings: existing.forecastSavings + moneyAmountValue(item.expectedSavings) / months.length,
         itemCount: existing.itemCount + 1
       });
     }
@@ -2015,9 +2015,12 @@ function assuranceSpendRow(
 function spendTotals(
   items: readonly SpendItemRecord[]
 ): Omit<ScenarioSummary, "label" | "description" | "itemCount" | "lowConfidenceCount" | "unlinkedItemCount"> {
-  const plannedSpend = items.reduce((total, item) => total + item.amount.amount, 0);
-  const forecastCost = items.reduce((total, item) => total + (item.forecastCost?.amount ?? item.amount.amount), 0);
-  const expectedSavings = items.reduce((total, item) => total + (item.expectedSavings?.amount ?? 0), 0);
+  const plannedSpend = items.reduce((total, item) => total + moneyAmountValue(item.amount), 0);
+  const forecastCost = items.reduce(
+    (total, item) => total + (moneyAmountValue(item.forecastCost) || moneyAmountValue(item.amount)),
+    0
+  );
+  const expectedSavings = items.reduce((total, item) => total + moneyAmountValue(item.expectedSavings), 0);
   return { plannedSpend, forecastCost, expectedSavings, netForecast: forecastCost - expectedSavings };
 }
 
@@ -2118,16 +2121,16 @@ function deriveSpendItemReport(spendItems: readonly SpendItemRecord[]): SpendIte
       financialYear: item.financialYear,
       costCentre: item.costCentre ?? "",
       status: formatToken(item.status),
-      amount: item.amount.amount,
-      forecastCost: item.forecastCost?.amount ?? item.amount.amount,
-      expectedSavings: item.expectedSavings?.amount ?? 0
+      amount: moneyAmountValue(item.amount),
+      forecastCost: moneyAmountValue(item.forecastCost) || moneyAmountValue(item.amount),
+      expectedSavings: moneyAmountValue(item.expectedSavings)
     }));
 }
 
 function deriveSavingSchedule(store: ShopStore, links: readonly LinkEntity[]): SavingScheduleRow[] {
   const contractById = new Map(store.contracts.map((contract) => [contract.id, contract]));
   return forecastOnlyItems(store.spendItems)
-    .filter((item) => (item.expectedSavings?.amount ?? 0) > 0)
+    .filter((item) => moneyAmountValue(item.expectedSavings) > 0)
     .map((item) => {
       const linkedContracts = links
         .filter(
@@ -2145,7 +2148,7 @@ function deriveSavingSchedule(store: ShopStore, links: readonly LinkEntity[]): S
         financialYear: item.financialYear,
         scheduledFrom: item.forecastStartAt ?? `FY ${item.financialYear}`,
         scheduledTo: item.forecastEndAt ?? `FY ${item.financialYear}`,
-        plannedSaving: item.expectedSavings?.amount ?? 0,
+        plannedSaving: moneyAmountValue(item.expectedSavings),
         savingsType: item.savingsType ? formatToken(item.savingsType) : "Efficiency",
         confidence: item.confidence ? formatToken(item.confidence) : "Medium",
         replacementContext: replacementContext(linkedContracts)
@@ -2520,7 +2523,7 @@ function renderSpendItemEditorFields(spendItem: SpendItemRecord | undefined): st
     <div class="two-col">
       ${selectControl("spendType", "Spend type", SPEND_TYPES, spendItem?.spendType ?? "uplift", "2")}
       ${selectControl("status", "Status", SPEND_STATUSES, spendItem?.status ?? "proposed", "3")}
-      ${inputControl("amount", "Amount (AUD)", spendItem?.amount.amount.toString() ?? "", true, "4", "0")}
+      ${inputControl("amount", "Amount (AUD)", moneyInputValue(spendItem?.amount), true, "4", "0")}
       ${inputControl("financialYear", "Financial year", spendItem?.financialYear ?? defaultFinancialYear, true, "5", "YYYY-YY")}
       ${inputControl("costCentre", "Cost centre", spendItem?.costCentre ?? getDefaultCostCentre() ?? "", false, "6")}
       ${selectControl("confidence", "Confidence", CONFIDENCE_LEVELS, spendItem?.confidence ?? "medium", "7")}
@@ -2531,8 +2534,8 @@ function renderSpendItemEditorFields(spendItem: SpendItemRecord | undefined): st
     <div class="two-col">
       ${inputControl("forecastStartAt", "Forecast start date", spendItem?.forecastStartAt ?? "", false, "8", "YYYY-MM-DD")}
       ${inputControl("forecastEndAt", "Forecast end date", spendItem?.forecastEndAt ?? "", false, "9", "YYYY-MM-DD")}
-      ${inputControl("forecastCost", "Forecast cost (AUD)", spendItem?.forecastCost?.amount.toString() ?? "", false, "10", "0")}
-      ${inputControl("expectedSavings", "Expected savings (AUD)", spendItem?.expectedSavings?.amount.toString() ?? "", false, "11", "0")}
+      ${inputControl("forecastCost", "Forecast cost (AUD)", moneyInputValue(spendItem?.forecastCost), false, "10", "0")}
+      ${inputControl("expectedSavings", "Expected savings (AUD)", moneyInputValue(spendItem?.expectedSavings), false, "11", "0")}
       ${selectControl("savingsType", "Savings type", SAVINGS_TYPES, spendItem?.savingsType ?? "efficiency", "12")}
       ${inputControl("paybackPeriodMonths", "Payback period months", spendItem?.paybackPeriodMonths?.toString() ?? "", false, "13", "0")}
     </div>
@@ -2677,7 +2680,7 @@ function shopDetailRows(
         { label: "End date", value: entity.endsAt ?? "Not recorded" },
         {
           label: "Contract value",
-          value: entity.value ? formatCurrency(entity.value.amount, entity.value.currency) : "Not recorded"
+          value: entity.value ? formatMoneyAmount(entity.value) : "Not recorded"
         },
         { label: "Service summary", value: entity.serviceSummary ?? "Not recorded" }
       ];
@@ -2687,7 +2690,7 @@ function shopDetailRows(
         { label: "Title", value: entity.title },
         { label: "Spend type", value: formatToken(entity.spendType) },
         { label: "Status", value: formatToken(entity.status) },
-        { label: "Amount", value: formatCurrency(entity.amount.amount, entity.amount.currency) },
+        { label: "Amount", value: formatMoneyAmount(entity.amount) },
         { label: "Financial year", value: entity.financialYear },
         { label: "Cost centre", value: entity.costCentre ?? "Not recorded" },
         { label: "Confidence", value: formatToken(entity.confidence ?? "medium") },
@@ -2695,15 +2698,11 @@ function shopDetailRows(
         { label: "Forecast end", value: entity.forecastEndAt ?? "Not recorded" },
         {
           label: "Forecast cost",
-          value: entity.forecastCost
-            ? formatCurrency(entity.forecastCost.amount, entity.forecastCost.currency)
-            : "Not recorded"
+          value: entity.forecastCost ? formatMoneyAmount(entity.forecastCost) : "Not recorded"
         },
         {
           label: "Expected savings",
-          value: entity.expectedSavings
-            ? formatCurrency(entity.expectedSavings.amount, entity.expectedSavings.currency)
-            : "Not recorded"
+          value: entity.expectedSavings ? formatMoneyAmount(entity.expectedSavings) : "Not recorded"
         },
         { label: "Savings type", value: formatToken(entity.savingsType ?? "efficiency") },
         { label: "Payback months", value: entity.paybackPeriodMonths?.toString() ?? "Not recorded" },
@@ -3459,6 +3458,26 @@ function getWorkspaceUri(fileName: string): vscode.Uri | undefined {
 
 function moneyAmount(amount: number, currency = "AUD"): MoneyAmount {
   return { amount, currency };
+}
+
+function moneyInputValue(value: MoneyAmount | undefined): string {
+  const amount = moneyAmountNumber(value);
+  return amount === undefined ? "" : amount.toString();
+}
+
+function moneyAmountValue(value: MoneyAmount | undefined): number {
+  return moneyAmountNumber(value) ?? 0;
+}
+
+function moneyAmountNumber(value: MoneyAmount | undefined): number | undefined {
+  return typeof value?.amount === "number" && Number.isFinite(value.amount) ? value.amount : undefined;
+}
+
+function formatMoneyAmount(value: MoneyAmount | undefined): string {
+  return formatCurrency(
+    moneyAmountValue(value),
+    typeof value?.currency === "string" && value.currency ? value.currency : "AUD"
+  );
 }
 
 function iconFor(iconName: "contract" | "home" | "info" | "sample" | "spend" | "supplier"): string {

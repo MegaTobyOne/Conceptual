@@ -454,14 +454,39 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 ### v1.29 candidate gates (UX consistency and relationship manager foundation, per ADR 0065)
 
 1. **ADR gate**: ADR 0065 records the UX consistency and relationship manager foundation decision before release preparation completes.
-2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.29.1`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
-3. **UX coverage gate**: `check:ux-coverage` validates the entity UX coverage matrix and its regression tests for all contract entity types and Pub local record types.
-4. **Relationship rule gate**: `@pspf/contracts.OPERATOR_LINK_RULES` covers current Shop and Workshop operator-editable relationship commands with canonical endpoint, link type, label, and phrase metadata.
-5. **Relationship UI gate**: `@pspf/webview-shell.relationshipManagerHtml` renders escaped shared relationship actions for command URIs and Workshop command buttons; Shop uses it for assurance coverage quick actions and Supplier, Contract, and Spend Item detail panels; Workshop uses it for Requirement relationship actions.
-6. **Pub CRUD gate**: Pub Person, Role, Assignment, and Relationship Note records expose local-only detail and edit panels with complete field coverage; no Pub local record fields are added to Explorer publication.
-7. **Consumer gate**: Shop, Workshop, and Pub command tests prevent reverting to ad hoc hardcoded link rules, direct-to-edit Shop tree selection, bespoke Requirement relationship controls, or missing Pub local record detail/edit panels.
-8. **Deferred-scope gate**: full relationship-manager rollout beyond the Shop forecast/detail and Workshop Requirement proof points, edit-panel simplification, Pub Explorer publication, new schema-bearing relationship fields, and broader Pub list row-level actions remain deferred.
-9. **Regression gate**: `e2e:v1.29`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.29.2`; schema, bundle, and API axes remain `1.10.0`; no new schema directory is introduced.
+3. **Export-format direction gate**: ADR 0066 records that PowerPoint and document exports are generated communication artefacts derived from existing brief/report models, not new system-of-record data or schema-bearing entities.
+4. **UX coverage gate**: `check:ux-coverage` validates the entity UX coverage matrix and its regression tests for all contract entity types and Pub local record types.
+5. **Relationship rule gate**: `@pspf/contracts.OPERATOR_LINK_RULES` covers current Shop and Workshop operator-editable relationship commands with canonical endpoint, link type, label, and phrase metadata.
+6. **Relationship UI gate**: `@pspf/webview-shell.relationshipManagerHtml` renders escaped shared relationship actions for command URIs and Workshop command buttons; Shop uses it for assurance coverage quick actions and Supplier, Contract, and Spend Item detail panels; Workshop uses it for Requirement relationship actions.
+7. **Pub CRUD gate**: Pub Person, Role, Assignment, and Relationship Note records expose local-only detail and edit panels with complete field coverage; no Pub local record fields are added to Explorer publication.
+8. **Consumer gate**: Shop, Workshop, and Pub command tests prevent reverting to ad hoc hardcoded link rules, direct-to-edit Shop tree selection, bespoke Requirement relationship controls, or missing Pub local record detail/edit panels.
+9. **Deferred-scope gate**: full relationship-manager rollout beyond the Shop forecast/detail and Workshop Requirement proof points, edit-panel simplification, Pub Explorer publication, new schema-bearing relationship fields, native PPTX/DOCX generation commands, and broader Pub list row-level actions remain deferred.
+10. **Regression gate**: `e2e:v1.29`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
+### v1.30 candidate gates (6clicks risk source integration, per ADR 0067)
+
+1. **ADR gate**: ADR 0067 records the v1.30 6clicks risk source integration decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.30.0`; schema, bundle, and API axes are `1.11.0`; `schemas/explorer-bundle/1.11.0/` is published and earlier schema directories remain immutable.
+3. **6clicks source gate**: Workshop exposes a Risk Source panel and commands for configuring, testing, previewing, applying, and viewing runs for the named `6clicks-risk` source.
+4. **Configuration gate**: non-secret source settings are mirrored to `.pspf/config/integrations.json`; API key header and bearer token credentials are stored only in VS Code `SecretStorage`; no raw secret is stored in Core data, workspace settings, logs, snapshots, or bundles.
+5. **Preview gate**: the fixture-backed preview classifies 6clicks records as new, changed, unchanged, ambiguous, or error with field-level differences for changed records.
+6. **Consent gate**: applying changed risks preserves local PSPF-owned fields unless the operator explicitly consents to applying source values for the run.
+7. **Publication metadata gate**: imported risks keep integration metadata locally, but Explorer bundles and generated outputs expose only source label and last source update.
+8. **Deferred-scope gate**: external write-back, scheduled sync, webhooks, external Actions, technology systems, commercial records, Pub records, operator-managed field mapping, and Explorer runtime integration remain deferred.
+9. **Regression gate**: `e2e:v1.30`, `check:risk-source-integration`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
+### v1.31 candidate gates (6clicks risk source hardening, per ADR 0068)
+
+1. **ADR gate**: ADR 0068 records the v1.31 6clicks risk source hardening decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.31.0`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
+3. **Explicit source-mode gate**: 6clicks profiles declare `sourceMode` as `fixture` or `live`; fixture mode is credential-free and tenant-free, while live mode requires an `https://` base URL, endpoint path, auth mode, SecretStorage credential reference, and bounded timeout.
+4. **Local log gate**: preview and apply runs write redacted local run logs under `.pspf/logs/risk-source-runs/` with source mode, run status, counts, apply counts, mapping version, and diagnostics that do not expose raw credentials or response bodies.
+5. **Fixture hardening gate**: built-in fixture data covers common 6clicks-style field variants and rejected rows; preview keeps rejected rows as `error` decisions while valid rows remain reviewable.
+6. **Selected-apply gate**: applying a preview requires operator selection from new and changed records; ambiguous and error rows are excluded from apply.
+7. **Non-goal gate**: write-back to 6clicks and operator-managed field mapping are not under consideration for this integration line unless a later product decision explicitly reopens them.
+8. **Deferred-scope gate**: endpoint allow-listing, scheduled sync, background polling, webhooks, incremental cursors, additional source adapters, external Actions, technology systems, commercial records, Pub records, and Explorer runtime integration remain out of scope.
+9. **Regression gate**: `e2e:v1.31`, `check:risk-source-integration`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 

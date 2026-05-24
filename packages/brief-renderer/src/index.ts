@@ -1134,7 +1134,11 @@ function buildNextIssueTeaser(pspfDomainTitle: string, riskCount: number, spendC
 }
 
 function formatMoney(value: SpendItemEntity["amount"]): string {
-  return new Intl.NumberFormat("en-AU", { style: "currency", currency: value.currency }).format(value.amount);
+  if (!value || typeof value.amount !== "number" || !Number.isFinite(value.amount)) {
+    return "Not recorded";
+  }
+  const currency = typeof value.currency === "string" && value.currency ? value.currency : "AUD";
+  return new Intl.NumberFormat("en-AU", { style: "currency", currency }).format(value.amount);
 }
 
 function renderHtmlListPanel<T>(

@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.10.0",
-  bundleVersion: "1.10.0",
-  apiVersion: "1.10.0"
+  schemaVersion: "1.11.0",
+  bundleVersion: "1.11.0",
+  apiVersion: "1.11.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.29.1" as const;
+export const PSPF_SLICE_VERSION = "1.31.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -323,12 +323,23 @@ export interface ActionEntity extends EntityEnvelope {
 
 export type RiskStatus = "open" | "monitored" | "closed";
 
+export interface RiskIntegrationMetadata {
+  readonly source: "6clicks";
+  readonly sourceLabel: string;
+  readonly remoteId: string;
+  readonly remoteUpdatedAt?: string;
+  readonly lastSyncedAt: string;
+  readonly authMode: "api-key-header" | "bearer-token" | "none";
+  readonly rawHash: string;
+}
+
 export interface RiskEntity extends EntityEnvelope {
   readonly entityType: "risk";
   readonly title: string;
   readonly status: RiskStatus;
   readonly likelihood: number;
   readonly impact: number;
+  readonly integration?: RiskIntegrationMetadata;
 }
 
 export interface LinkEntity extends EntityEnvelope {
@@ -877,19 +888,22 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   },
   {
     entityType: "risk",
-    fields: publicFields(
-      "id",
-      "entityType",
-      "schemaVersion",
-      "title",
-      "createdAt",
-      "updatedAt",
-      "sourceProduct",
-      "recordStatus",
-      "status",
-      "likelihood",
-      "impact"
-    )
+    fields: [
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "status",
+        "likelihood",
+        "impact"
+      ),
+      { field: "integration", publication: "sensitive" }
+    ]
   },
   {
     entityType: "snapshot",
@@ -1805,6 +1819,13 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
       const { rationale: _rationale, constraints: _constraints, ...publicChoice } = choice as StrategicChoice;
       return publicChoice;
     });
+  }
+
+  if (entity.entityType === "risk" && entity.integration) {
+    output.integration = {
+      sourceLabel: entity.integration.sourceLabel,
+      remoteUpdatedAt: entity.integration.remoteUpdatedAt
+    };
   }
 
   return output as unknown as V01Entity;

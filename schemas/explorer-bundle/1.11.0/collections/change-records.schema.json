@@ -1,0 +1,120 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.11.0/collections/change-records.schema.json",
+    "title": "PSPF Explorer Change Records Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "changeType",
+            "status",
+            "persistence",
+            "source",
+            "summary",
+            "raisedAt"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^CHG-"
+            },
+            "entityType": {
+                "const": "change-record"
+            },
+            "schemaVersion": {
+                "const": "1.11.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+            },
+            "summary": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+            },
+            "changeType": {
+                "enum": [
+                    "priority",
+                    "direction",
+                    "scope",
+                    "timeline",
+                    "dependency",
+                    "risk-response",
+                    "posture",
+                    "other"
+                ]
+            },
+            "status": {
+                "enum": [
+                    "proposed",
+                    "active",
+                    "resolved",
+                    "absorbed",
+                    "withdrawn"
+                ]
+            },
+            "persistence": {
+                "enum": [
+                    "temporary",
+                    "persistent"
+                ]
+            },
+            "source": {
+                "enum": [
+                    "executive-direction",
+                    "risk-event",
+                    "compliance-event",
+                    "operational",
+                    "external-trigger",
+                    "other"
+                ]
+            },
+            "raisedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "effectiveAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "reviewDueAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            }
+        }
+    }
+}

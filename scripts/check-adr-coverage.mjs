@@ -236,6 +236,22 @@ const coverage = [
     "check:ux-coverage",
     "check:release-candidate",
     "check:gates"
+  ]),
+  adr("0066-v1-29-2-generated-slide-and-document-export-direction.md", "manual", [
+    "check:release-candidate",
+    "release:readiness"
+  ]),
+  adr("0067-v1-30-6clicks-risk-source-integration.md", "automated", [
+    "e2e:v1.30",
+    "check:risk-source-integration",
+    "check:release-candidate",
+    "check:gates"
+  ]),
+  adr("0068-v1-31-6clicks-risk-source-hardening.md", "automated", [
+    "e2e:v1.31",
+    "check:risk-source-integration",
+    "check:release-candidate",
+    "check:gates"
   ])
 ];
 
