@@ -6,17 +6,12 @@ import {
   PSPF_SLICE_VERSION,
   VERSION_AXES,
   type ActionEntity,
-  type ContractEntity,
   type LinkEntity,
-  type LinkType,
   type MoneyAmount,
   type RequirementEntity,
   type RiskEntity,
-  type SpendItemEntity,
-  type SupplierEntity,
   type TagEntity,
   type V01Entity,
-  operatorLinkRuleFor,
   sanitiseEntityForPublication,
   withEnvelope
 } from "@pspf/contracts";
@@ -29,6 +24,16 @@ import {
   tokensCss,
   type RelationshipManagerAction
 } from "@pspf/webview-shell";
+import {
+  commercialLinkSpec,
+  shopDetailRelationshipActions,
+  type CommercialLinkSpec,
+  type CommercialSource,
+  type ContractRecord,
+  type LinkableTarget,
+  type SpendItemRecord,
+  type SupplierRecord
+} from "./relationship-rules.js";
 import { commandUri, escapeHtml, formatCurrency, formatToken } from "./webview/util.js";
 
 const SHOP_STORE_VERSION = "1.0.0";
@@ -73,12 +78,6 @@ interface ShopStore {
   readonly contracts: readonly ContractRecord[];
   readonly spendItems: readonly SpendItemRecord[];
 }
-
-type SupplierRecord = SupplierEntity;
-type ContractRecord = ContractEntity;
-type SpendItemRecord = SpendItemEntity;
-type LinkableTarget = RequirementEntity | ActionEntity | RiskEntity | SpendItemRecord;
-type CommercialSource = SupplierRecord | ContractRecord | SpendItemRecord;
 
 interface ForecastYear {
   readonly financialYear: string;
@@ -699,10 +698,7 @@ async function deleteRecord(entity: SupplierRecord | ContractRecord | SpendItemR
   vscode.window.showInformationMessage(`Deleted ${label}.`);
 }
 
-async function linkCommercialRecord(
-  source: CommercialSource,
-  spec: { readonly linkType: LinkType; readonly targetType: LinkableTarget["entityType"]; readonly label: string }
-): Promise<void> {
+async function linkCommercialRecord(source: CommercialSource, spec: CommercialLinkSpec): Promise<void> {
   const targets = await listActiveTargets(spec.targetType);
   if (targets.length === 0) {
     vscode.window.showWarningMessage(`No active ${spec.label.toLowerCase()} records are available to link.`);
@@ -742,25 +738,6 @@ async function linkCommercialRecord(
   await upsertCoreEntities([link]);
   await refreshViews();
   vscode.window.showInformationMessage(`Linked ${commercialTitle(source)} to ${targetTitle(target)}.`);
-}
-
-function commercialLinkSpec(
-  fromType: CommercialSource["entityType"],
-  linkType: LinkType,
-  targetType: LinkableTarget["entityType"]
-): { readonly linkType: LinkType; readonly targetType: LinkableTarget["entityType"]; readonly label: string } {
-  const rule = operatorLinkRuleFor(fromType, linkType, targetType);
-  if (!rule) {
-    throw new Error(`Missing Shop operator link rule for ${fromType} ${linkType} ${targetType}`);
-  }
-  return { linkType: rule.linkType, targetType, label: commercialLinkTargetLabel(targetType) };
-}
-
-function commercialLinkTargetLabel(targetType: LinkableTarget["entityType"]): string {
-  if (targetType === "spend-item") {
-    return "Spend item";
-  }
-  return targetType.charAt(0).toUpperCase() + targetType.slice(1);
 }
 
 async function linkSpendItemToContract(spendItem: SpendItemRecord): Promise<void> {
@@ -2738,50 +2715,6 @@ function shopDetailEditCommand(entity: SupplierRecord | ContractRecord | SpendIt
     case "spend-item":
       return "pspf.shop.editSpendItem";
   }
-}
-
-function shopDetailRelationshipActions(
-  entity: SupplierRecord | ContractRecord | SpendItemRecord
-): RelationshipManagerAction[] {
-  switch (entity.entityType) {
-    case "supplier":
-      return [
-        shopRelationshipAction(entity, "supports", "requirement", "pspf.shop.linkSupplierToRequirement"),
-        shopRelationshipAction(entity, "associated-with", "risk", "pspf.shop.linkSupplierToRisk")
-      ];
-    case "contract":
-      return [
-        shopRelationshipAction(entity, "supports", "requirement", "pspf.shop.linkContractToRequirement"),
-        shopRelationshipAction(entity, "funds", "spend-item", "pspf.shop.linkContractToSpendItem")
-      ];
-    case "spend-item":
-      return [
-        shopRelationshipAction(entity, "funds", "contract", "pspf.shop.linkSpendItemToContract"),
-        shopRelationshipAction(entity, "supports", "action", "pspf.shop.linkSpendToAction"),
-        shopRelationshipAction(entity, "supports", "requirement", "pspf.shop.linkSpendToRequirement")
-      ];
-  }
-}
-
-function shopRelationshipAction(
-  entity: SupplierRecord | ContractRecord | SpendItemRecord,
-  linkType: LinkType,
-  toType: LinkableTarget["entityType"] | "contract",
-  command: string
-): RelationshipManagerAction {
-  const fromType = toType === "contract" ? "contract" : entity.entityType;
-  const targetType = toType === "contract" ? "spend-item" : toType;
-  const rule = operatorLinkRuleFor(fromType, linkType, targetType);
-  if (!rule) {
-    throw new Error(`Missing Shop operator link rule for ${fromType} ${linkType} ${targetType}`);
-  }
-  return {
-    label: rule.label,
-    fromLabel: formatToken(rule.fromType),
-    phrase: rule.phrase,
-    toLabel: formatToken(rule.toType),
-    href: commandUri(command, [entity])
-  };
 }
 
 function renderCompactForecastHtml(

@@ -52,7 +52,11 @@
       },
       {
         "command": "pspf.workshop.loadSampleWorkspace",
-        "title": "PSPF: Load Sample Workspace"
+        "title": "PSPF: Load Enterprise Sample Workspace"
+      },
+      {
+        "command": "pspf.workshop.loadHomeSampleWorkspace",
+        "title": "PSPF: Load Home Sample Workspace"
       },
       {
         "command": "pspf.workshop.importBundle",

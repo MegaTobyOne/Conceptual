@@ -14,6 +14,7 @@
     "@pspf/brief-renderer": "workspace:*",
     "@pspf/connected-view": "workspace:*",
     "@pspf/contracts": "workspace:*",
+    "@pspf/reference-data": "workspace:*",
     "@pspf/webview-shell": "workspace:*"
   }
 }

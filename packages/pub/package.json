@@ -75,6 +75,10 @@
         "title": "PSPF: Edit Pub Team"
       },
       {
+        "command": "pspf.pub.exportTeamScopeBrief",
+        "title": "PSPF: Export Pub Team Scope Brief"
+      },
+      {
         "command": "pspf.pub.newRole",
         "title": "PSPF: New Pub Role"
       },

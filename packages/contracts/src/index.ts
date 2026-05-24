@@ -1334,7 +1334,6 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     PSPF_DOMAINS.find((domain) => domain.code === "information") ?? PSPF_DOMAINS[1] ?? PSPF_DOMAINS[0]!;
   const personnelDomain =
     PSPF_DOMAINS.find((domain) => domain.code === "personnel") ?? PSPF_DOMAINS[2] ?? PSPF_DOMAINS[0]!;
-  const sourceControl = options.sourceControls?.[0];
 
   const requirementGovernance: RequirementEntity = sampleEntity(
     "requirement",
@@ -1730,29 +1729,874 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     )
   ];
 
-  if (sourceControl) {
-    entities.push(
-      sampleEntity("requirement-control-mapping", "MAP-00000000-0000-4000-8000-000000000801", timestamp, {
-        entityType: "requirement-control-mapping",
-        title: `${requirementGovernance.title} mapped to ${sourceControl.controlId}`,
-        requirementId: requirementGovernance.id,
-        sourceControlId: sourceControl.id,
-        coverageQualifier: "primary",
-        applicabilityProfile: "official-sensitive",
+  entities.push(
+    ...buildSampleMappings(
+      enterpriseSampleMappingSeeds(requirementGovernance, requirementInformation, requirementPersonnel),
+      options.sourceControls,
+      timestamp
+    )
+  );
+
+  return entities;
+}
+
+/**
+ * Backwards-compatible alias. New code should call
+ * `buildEnterpriseSampleWorkspaceEntities` (or the new home variant) directly.
+ * @deprecated Use `buildEnterpriseSampleWorkspaceEntities` instead.
+ */
+export const buildEnterpriseSampleWorkspaceEntities = buildSampleWorkspaceEntities;
+
+/**
+ * Builds a privacy-safe "Home & small business" sample workspace covering the
+ * 15 reference home-control areas. Each Requirement carries a short channelling
+ * sentence in its `summary` field linking the area back to PSPF / ISM / Cyber
+ * Foundations language. Mappings are mostly `compensating` with `low`/`medium`
+ * confidence to reflect that home environments adapt enterprise controls.
+ */
+export function buildHomeSampleWorkspaceEntities(options: SampleWorkspaceOptions = {}): V01Entity[] {
+  const timestamp = options.timestamp ?? "2026-05-11T00:00:00.000Z";
+  const governanceDomain = PSPF_DOMAINS.find((domain) => domain.code === "governance") ?? PSPF_DOMAINS[0]!;
+  const informationDomain =
+    PSPF_DOMAINS.find((domain) => domain.code === "information") ?? PSPF_DOMAINS[1] ?? PSPF_DOMAINS[0]!;
+  const personnelDomain =
+    PSPF_DOMAINS.find((domain) => domain.code === "personnel") ?? PSPF_DOMAINS[2] ?? PSPF_DOMAINS[0]!;
+  const physicalDomain =
+    PSPF_DOMAINS.find((domain) => domain.code === "physical") ?? PSPF_DOMAINS[3] ?? informationDomain;
+
+  // 15 home reference control areas. Each becomes a Requirement whose
+  // `summary` carries the PSPF/ISM/Foundations channelling sentence.
+  interface HomeArea {
+    readonly idSuffix: string;
+    readonly title: string;
+    readonly assessmentStatus: AssessmentStatus;
+    readonly domainId: string;
+    readonly summary: string;
+  }
+  const homeAreas: readonly HomeArea[] = [
+    {
+      idSuffix: "701",
+      title: "Asset inventory for household devices and accounts",
+      assessmentStatus: "in-progress",
+      domainId: informationDomain.id,
+      summary:
+        "Channels PSPF Information Security domain and ISM 'Asset identification' principle: know which devices and accounts are in scope before applying protections."
+    },
+    {
+      idSuffix: "702",
+      title: "Classify what matters most in the household",
+      assessmentStatus: "partially-met",
+      domainId: informationDomain.id,
+      summary:
+        "Channels PSPF sensitivity and classifications policy and ISM 'Business criticality rating identification' principle: decide what data and accounts matter most so protections match value."
+    },
+    {
+      idSuffix: "703",
+      title: "Patch devices, browsers, and key apps",
+      assessmentStatus: "in-progress",
+      domainId: informationDomain.id,
+      summary:
+        "Channels Essential Eight 'Patch applications' and 'Patch operating systems' and ISM 'Vulnerability management' principle: keep devices current to close common exploitation paths."
+    },
+    {
+      idSuffix: "704",
+      title: "Multi-factor authentication on important sign-ins",
+      assessmentStatus: "partially-met",
+      domainId: personnelDomain.id,
+      summary:
+        "Channels Essential Eight 'Multi-factor authentication' and ISM 'Identity, credential and access management' principle: protect important sign-ins with a second factor."
+    },
+    {
+      idSuffix: "705",
+      title: "Use a standard account for daily activity",
+      assessmentStatus: "partially-met",
+      domainId: personnelDomain.id,
+      summary:
+        "Channels Essential Eight 'Restrict administrative privileges' and ISM 'Least privilege access' principle: keep daily activity on a non-administrator account."
+    },
+    {
+      idSuffix: "706",
+      title: "Install software only from trusted sources",
+      assessmentStatus: "in-progress",
+      domainId: informationDomain.id,
+      summary:
+        "Channels Essential Eight 'Application control' and ISM 'Trustworthy software' principle: prefer official stores and signed installers; avoid unknown executables."
+    },
+    {
+      idSuffix: "707",
+      title: "Harden browsers and risky defaults",
+      assessmentStatus: "in-progress",
+      domainId: informationDomain.id,
+      summary:
+        "Channels Essential Eight 'User application hardening' and ISM 'Secure configuration management' principle: lock down browser plug-ins, macros, and risky defaults."
+    },
+    {
+      idSuffix: "708",
+      title: "Separate guest, IoT, and work network traffic",
+      assessmentStatus: "not-started",
+      domainId: informationDomain.id,
+      summary:
+        "Channels ISM 'Network segmentation and segregation' principle: keep guest, IoT, and work devices on separated network segments where possible."
+    },
+    {
+      idSuffix: "709",
+      title: "Encrypt devices and sensitive backups",
+      assessmentStatus: "partially-met",
+      domainId: informationDomain.id,
+      summary:
+        "Channels PSPF Information Security domain and ISM 'Data protection' and 'Cryptographic agility' principles: encrypt devices at rest and protect sensitive backups."
+    },
+    {
+      idSuffix: "710",
+      title: "Hold offline or versioned backups of irreplaceable data",
+      assessmentStatus: "in-progress",
+      domainId: informationDomain.id,
+      summary:
+        "Channels Essential Eight 'Regular backups' and ISM 'Regular and proven backups' principle: keep tested, offline or versioned copies of family data that cannot be recreated."
+    },
+    {
+      idSuffix: "711",
+      title: "Keep enough logs to investigate problems",
+      assessmentStatus: "not-started",
+      domainId: informationDomain.id,
+      summary:
+        "Channels ISM 'Centralised event logging' principle: keep sign-in and device records sufficient to investigate something that goes wrong."
+    },
+    {
+      idSuffix: "712",
+      title: "Cyber awareness for the household",
+      assessmentStatus: "in-progress",
+      domainId: personnelDomain.id,
+      summary:
+        "Channels PSPF awareness obligations and ISM 'Cyber security awareness training' principle: keep household members aware of common scams and clear on reporting paths."
+    },
+    {
+      idSuffix: "713",
+      title: "Tailor protections for children and dependants",
+      assessmentStatus: "partially-met",
+      domainId: personnelDomain.id,
+      summary:
+        "Channels ISM 'Cyber security and safety' principle: tailor content filtering, age-appropriate access, and supervision for children's devices."
+    },
+    {
+      idSuffix: "714",
+      title: "Separate work and personal accounts on shared devices",
+      assessmentStatus: "in-progress",
+      domainId: personnelDomain.id,
+      summary:
+        "Channels ISM 'Secure administration' and 'Identity, credential and access management' principles: separate work and personal accounts, and harden working-from-home setups."
+    },
+    {
+      idSuffix: "715",
+      title: "Prefer trusted vendors and review their data handling",
+      assessmentStatus: "not-started",
+      domainId: governanceDomain.id,
+      summary:
+        "Channels ISM 'Supplier cyber security assurance' and 'Cyber supply chain security' principles: prefer trusted suppliers and check how they handle household data."
+    }
+  ];
+  void physicalDomain; // reserved for future home-physical examples
+
+  const requirements: RequirementEntity[] = homeAreas.map((area) =>
+    sampleEntity("requirement", `REQ-00000000-0000-4000-8000-000000000${area.idSuffix}`, timestamp, {
+      entityType: "requirement",
+      title: area.title,
+      domainId: area.domainId,
+      assessmentStatus: area.assessmentStatus,
+      summary: area.summary
+    })
+  );
+  const reqById = new Map(requirements.map((r) => [r.id, r] as const));
+  const reqByArea = (suffix: string) => reqById.get(`REQ-00000000-0000-4000-8000-000000000${suffix}`)!;
+
+  // Evidence (4 items, mixed freshness)
+  const evidenceInventory: EvidenceEntity = sampleEntity(
+    "evidence",
+    "EVD-00000000-0000-4000-8000-000000000721",
+    timestamp,
+    {
+      entityType: "evidence",
+      title: "Household device and account inventory",
+      evidenceType: "document",
+      reference: "sample/home-inventory.csv",
+      freshness: "current"
+    }
+  );
+  const evidenceMfa: EvidenceEntity = sampleEntity("evidence", "EVD-00000000-0000-4000-8000-000000000722", timestamp, {
+    entityType: "evidence",
+    title: "MFA enrolment screenshot for primary accounts",
+    evidenceType: "document",
+    reference: "sample/home-mfa-enrolment.pdf",
+    freshness: "current"
+  });
+  const evidenceBackup: EvidenceEntity = sampleEntity(
+    "evidence",
+    "EVD-00000000-0000-4000-8000-000000000723",
+    timestamp,
+    {
+      entityType: "evidence",
+      title: "Backup restore test note",
+      evidenceType: "note",
+      reference: "sample/home-backup-restore-note.txt",
+      freshness: "stale"
+    }
+  );
+  const evidenceAwareness: EvidenceEntity = sampleEntity(
+    "evidence",
+    "EVD-00000000-0000-4000-8000-000000000724",
+    timestamp,
+    {
+      entityType: "evidence",
+      title: "Family scam-awareness checklist",
+      evidenceType: "document",
+      reference: "sample/home-awareness-checklist.pdf",
+      freshness: "current"
+    }
+  );
+
+  // Actions (5 items)
+  const actionPatch: ActionEntity = sampleEntity("action", "ACT-00000000-0000-4000-8000-000000000731", timestamp, {
+    entityType: "action",
+    title: "Turn on automatic updates for all household devices",
+    status: "in-progress",
+    dueDate: "2026-06-30T00:00:00.000Z"
+  });
+  const actionMfa: ActionEntity = sampleEntity("action", "ACT-00000000-0000-4000-8000-000000000732", timestamp, {
+    entityType: "action",
+    title: "Enrol MFA on email, banking, and government accounts",
+    status: "in-progress",
+    dueDate: "2026-06-15T00:00:00.000Z"
+  });
+  const actionBackup: ActionEntity = sampleEntity("action", "ACT-00000000-0000-4000-8000-000000000733", timestamp, {
+    entityType: "action",
+    title: "Test a backup restore and document the result",
+    status: "todo",
+    dueDate: "2026-07-31T00:00:00.000Z"
+  });
+  const actionSegmentation: ActionEntity = sampleEntity(
+    "action",
+    "ACT-00000000-0000-4000-8000-000000000734",
+    timestamp,
+    {
+      entityType: "action",
+      title: "Move IoT devices to a separate Wi-Fi network",
+      status: "todo",
+      dueDate: "2026-08-31T00:00:00.000Z"
+    }
+  );
+  const actionKids: ActionEntity = sampleEntity("action", "ACT-00000000-0000-4000-8000-000000000735", timestamp, {
+    entityType: "action",
+    title: "Review content filtering and screen-time on children's devices",
+    status: "in-progress",
+    dueDate: "2026-06-01T00:00:00.000Z"
+  });
+
+  // Risks (3 items)
+  const riskUnpatched: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000741", timestamp, {
+    entityType: "risk",
+    title: "Unpatched home devices exploited by commodity malware",
+    status: "open",
+    likelihood: 3,
+    impact: 3
+  });
+  const riskBackup: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000742", timestamp, {
+    entityType: "risk",
+    title: "Family photos and records lost without proven backups",
+    status: "open",
+    likelihood: 2,
+    impact: 4
+  });
+  const riskScam: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000743", timestamp, {
+    entityType: "risk",
+    title: "Household member falls for phishing or banking scam",
+    status: "monitored",
+    likelihood: 3,
+    impact: 3
+  });
+
+  // Strategy with three pragmatic choices
+  const strategy: StrategyEntity = sampleEntity("strategy", "STR-00000000-0000-4000-8000-000000000701", timestamp, {
+    entityType: "strategy",
+    title: "Home & small business cyber plan",
+    scope: "Home & small business",
+    timeHorizon: "2026",
+    effectiveAt: "2026-07-01T00:00:00.000Z",
+    owner: "Household lead",
+    strategyStatement:
+      "Apply the Cyber Foundations in a household-friendly order: know what you have, protect important accounts, and stay recoverable.",
+    riskPostureStatement:
+      "Reduce likelihood and impact of common commodity attacks (phishing, ransomware, account takeover) for the household and any home-run business activity.",
+    frameworks: ["Cyber Foundations", "Essential Eight", "ISM"],
+    reviewCadence: "quarterly",
+    executiveSummary:
+      "Three home-friendly priorities channel PSPF, ISM, and Essential Eight ideas into practical household actions.",
+    assumptions: "Internal household assumptions excluded from publication.",
+    choices: [
+      {
+        id: "choice-home-foundations",
+        statement: "Know what you have and keep it current.",
+        summary: "Asset inventory, classification, patching, and trusted software keep the baseline healthy.",
+        capabilityArea: "Foundations",
+        targetPosture:
+          "Current asset inventory, classified data, and automatic updates on every household device by 2026-12-31.",
+        executiveOwner: "Household lead",
+        trend: "improving",
         confidence: "medium",
-        lastReviewedAt: "2026-05-11T00:00:00.000Z",
-        reviewBy: "Sample assurance role",
-        rationale: "Internal sample mapping rationale excluded from publication.",
+        rationale: "Internal rationale excluded from publication.",
+        references: [
+          { entityType: "requirement", entityId: reqByArea("701").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("702").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("703").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("706").id, role: "drives" },
+          { entityType: "action", entityId: actionPatch.id, role: "addresses" }
+        ],
+        outcomes: [
+          {
+            id: "outcome-home-foundations-current",
+            statement: "Devices and accounts are inventoried and kept current.",
+            summary: "Patch and inventory cadence is visible at a household level.",
+            references: [
+              { entityType: "requirement", entityId: reqByArea("703").id, role: "evidenced-by" },
+              { entityType: "action", entityId: actionPatch.id, role: "addresses" }
+            ],
+            measures: [
+              {
+                id: "measure-home-patch-cadence",
+                title: "Devices on automatic updates",
+                measureClass: "capability",
+                baseline: "Mixed",
+                current: "Most devices",
+                target: "All household devices",
+                unit: "devices",
+                trend: "improving",
+                confidence: "medium",
+                reviewCadence: "quarterly"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "choice-home-accounts",
+        statement: "Protect important sign-ins and shared devices.",
+        summary: "MFA, least privilege, browser hardening, and account separation reduce account takeover risk.",
+        capabilityArea: "Accounts and devices",
+        targetPosture:
+          "MFA on email, banking, and government accounts; daily activity on standard accounts by 2026-09-30.",
+        executiveOwner: "Household lead",
+        trend: "improving",
+        confidence: "medium",
+        references: [
+          { entityType: "requirement", entityId: reqByArea("704").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("705").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("707").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("714").id, role: "drives" },
+          { entityType: "risk", entityId: riskScam.id, role: "blocked-by" },
+          { entityType: "action", entityId: actionMfa.id, role: "addresses" }
+        ],
+        outcomes: [
+          {
+            id: "outcome-home-mfa-coverage",
+            statement: "Important sign-ins are protected by MFA.",
+            summary: "MFA is enrolled and recovery paths are documented.",
+            references: [
+              { entityType: "requirement", entityId: reqByArea("704").id, role: "evidenced-by" },
+              { entityType: "action", entityId: actionMfa.id, role: "addresses" }
+            ],
+            measures: [
+              {
+                id: "measure-home-mfa-coverage",
+                title: "Important accounts with MFA",
+                measureClass: "capability",
+                baseline: "Some",
+                current: "Most",
+                target: "All important accounts",
+                unit: "accounts",
+                trend: "improving",
+                confidence: "medium",
+                reviewCadence: "quarterly"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "choice-home-resilience",
+        statement: "Stay recoverable and ready when things go wrong.",
+        summary: "Backups, logging, network separation, and awareness prepare the household to recover.",
+        capabilityArea: "Resilience and awareness",
+        targetPosture:
+          "Tested offline backup, separated IoT network, and family awareness checklist refreshed annually.",
+        executiveOwner: "Household lead",
+        trend: "steady",
+        confidence: "low",
+        references: [
+          { entityType: "requirement", entityId: reqByArea("708").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("709").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("710").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("711").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("712").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("713").id, role: "drives" },
+          { entityType: "requirement", entityId: reqByArea("715").id, role: "drives" },
+          { entityType: "risk", entityId: riskBackup.id, role: "blocked-by" },
+          { entityType: "risk", entityId: riskUnpatched.id, role: "blocked-by" },
+          { entityType: "action", entityId: actionBackup.id, role: "addresses" },
+          { entityType: "action", entityId: actionSegmentation.id, role: "addresses" },
+          { entityType: "action", entityId: actionKids.id, role: "addresses" }
+        ],
+        outcomes: [
+          {
+            id: "outcome-home-backup-tested",
+            statement: "A backup restore has been tested in the last twelve months.",
+            summary: "Restore test is documented and dated.",
+            references: [
+              { entityType: "requirement", entityId: reqByArea("710").id, role: "evidenced-by" },
+              { entityType: "action", entityId: actionBackup.id, role: "addresses" }
+            ],
+            measures: [
+              {
+                id: "measure-home-backup-restore",
+                title: "Months since last tested restore",
+                measureClass: "exposure",
+                baseline: "Not tested",
+                current: "Test scheduled",
+                target: "≤ 12 months",
+                unit: "months",
+                trend: "improving",
+                confidence: "low",
+                reviewCadence: "quarterly"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  });
+
+  const entities: V01Entity[] = [
+    strategy,
+    ...requirements,
+    evidenceInventory,
+    evidenceMfa,
+    evidenceBackup,
+    evidenceAwareness,
+    actionPatch,
+    actionMfa,
+    actionBackup,
+    actionSegmentation,
+    actionKids,
+    riskUnpatched,
+    riskBackup,
+    riskScam,
+    // Evidence links
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000751",
+      timestamp,
+      "Asset inventory requirement supported by household inventory",
+      "supported-by",
+      reqByArea("701"),
+      evidenceInventory
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000752",
+      timestamp,
+      "MFA requirement supported by enrolment screenshot",
+      "supported-by",
+      reqByArea("704"),
+      evidenceMfa
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000753",
+      timestamp,
+      "Backup requirement supported by restore test note",
+      "supported-by",
+      reqByArea("710"),
+      evidenceBackup
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000754",
+      timestamp,
+      "Awareness requirement supported by family checklist",
+      "supported-by",
+      reqByArea("712"),
+      evidenceAwareness
+    ),
+    // Action links
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000755",
+      timestamp,
+      "Patch requirement addressed by automatic-updates action",
+      "addressed-by",
+      reqByArea("703"),
+      actionPatch
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000756",
+      timestamp,
+      "MFA requirement addressed by enrolment action",
+      "addressed-by",
+      reqByArea("704"),
+      actionMfa
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000757",
+      timestamp,
+      "Backup requirement addressed by restore-test action",
+      "addressed-by",
+      reqByArea("710"),
+      actionBackup
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000758",
+      timestamp,
+      "Network segmentation requirement addressed by IoT split action",
+      "addressed-by",
+      reqByArea("708"),
+      actionSegmentation
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000759",
+      timestamp,
+      "Kids-devices requirement addressed by content-filtering action",
+      "addressed-by",
+      reqByArea("713"),
+      actionKids
+    ),
+    // Risk links
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000760",
+      timestamp,
+      "Patching risk treated by automatic-updates action",
+      "addressed-by",
+      riskUnpatched,
+      actionPatch
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000761",
+      timestamp,
+      "Backup-loss risk treated by restore-test action",
+      "addressed-by",
+      riskBackup,
+      actionBackup
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000762",
+      timestamp,
+      "Scam risk treated by awareness checklist",
+      "supported-by",
+      riskScam,
+      evidenceAwareness
+    )
+  ];
+
+  entities.push(...buildSampleMappings(homeSampleMappingSeeds(reqByArea), options.sourceControls, timestamp));
+
+  return entities;
+}
+
+// === Sample mapping helpers =================================================
+
+interface SampleMappingSeed {
+  readonly idSuffix: string;
+  readonly requirementId: string;
+  readonly requirementTitle: string;
+  readonly controlId: string;
+  readonly qualifier: CoverageQualifier;
+  readonly applicabilityProfile: string;
+  readonly confidence: MappingConfidence;
+  readonly rationale: string;
+  readonly reviewBy?: string;
+}
+
+function buildSampleMappings(
+  seeds: readonly SampleMappingSeed[],
+  sourceControls: readonly SourceControlEntity[] | undefined,
+  timestamp: string
+): RequirementControlMappingEntity[] {
+  if (!sourceControls || sourceControls.length === 0) {
+    return [];
+  }
+  const byControlId = new Map(sourceControls.map((sc) => [sc.controlId, sc] as const));
+  const mappings: RequirementControlMappingEntity[] = [];
+  for (const seed of seeds) {
+    const control = byControlId.get(seed.controlId);
+    if (!control) {
+      continue;
+    }
+    mappings.push(
+      sampleEntity("requirement-control-mapping", `MAP-00000000-0000-4000-8000-${seed.idSuffix}`, timestamp, {
+        entityType: "requirement-control-mapping",
+        title: `${seed.requirementTitle} mapped to ${control.controlId}`,
+        requirementId: seed.requirementId,
+        sourceControlId: control.id,
+        coverageQualifier: seed.qualifier,
+        applicabilityProfile: seed.applicabilityProfile,
+        confidence: seed.confidence,
+        lastReviewedAt: timestamp,
+        reviewBy: seed.reviewBy ?? "Sample data curator",
+        rationale: seed.rationale,
         provenance: {
           author: "sample-workspace",
           createdAt: timestamp,
-          oscalRelease: sourceControl.provenance.oscalRelease
+          oscalRelease: control.provenance.oscalRelease
         }
       })
     );
   }
+  return mappings;
+}
 
-  return entities;
+function enterpriseSampleMappingSeeds(
+  requirementGovernance: RequirementEntity,
+  requirementInformation: RequirementEntity,
+  requirementPersonnel: RequirementEntity
+): readonly SampleMappingSeed[] {
+  const profile = "official-sensitive";
+  const reviewBy = "Sample data curator";
+  return [
+    // Governance requirement → governance and assurance principles
+    {
+      idSuffix: "000000000801",
+      requirementId: requirementGovernance.id,
+      requirementTitle: requirementGovernance.title,
+      controlId: "ism-principle-gov-01",
+      qualifier: "primary",
+      applicabilityProfile: profile,
+      confidence: "high",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000802",
+      requirementId: requirementGovernance.id,
+      requirementTitle: requirementGovernance.title,
+      controlId: "ism-principle-gov-02",
+      qualifier: "primary",
+      applicabilityProfile: profile,
+      confidence: "high",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000803",
+      requirementId: requirementGovernance.id,
+      requirementTitle: requirementGovernance.title,
+      controlId: "ism-principle-gov-04",
+      qualifier: "partial",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000804",
+      requirementId: requirementGovernance.id,
+      requirementTitle: requirementGovernance.title,
+      controlId: "ism-principle-gov-06",
+      qualifier: "partial",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000805",
+      requirementId: requirementGovernance.id,
+      requirementTitle: requirementGovernance.title,
+      controlId: "ism-principle-gov-07",
+      qualifier: "partial",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000806",
+      requirementId: requirementGovernance.id,
+      requirementTitle: requirementGovernance.title,
+      controlId: "ism-principle-gov-11",
+      qualifier: "compensating",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    // Information requirement → data-protection and configuration principles
+    {
+      idSuffix: "000000000807",
+      requirementId: requirementInformation.id,
+      requirementTitle: requirementInformation.title,
+      controlId: "ism-principle-pro-08",
+      qualifier: "primary",
+      applicabilityProfile: profile,
+      confidence: "high",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000808",
+      requirementId: requirementInformation.id,
+      requirementTitle: requirementInformation.title,
+      controlId: "ism-principle-pro-17",
+      qualifier: "primary",
+      applicabilityProfile: profile,
+      confidence: "high",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000809",
+      requirementId: requirementInformation.id,
+      requirementTitle: requirementInformation.title,
+      controlId: "ism-principle-pro-04",
+      qualifier: "partial",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000810",
+      requirementId: requirementInformation.id,
+      requirementTitle: requirementInformation.title,
+      controlId: "ism-principle-ide-03",
+      qualifier: "partial",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000811",
+      requirementId: requirementInformation.id,
+      requirementTitle: requirementInformation.title,
+      controlId: "ism-principle-pro-09",
+      qualifier: "compensating",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    // Personnel requirement → identity, access, and awareness principles
+    {
+      idSuffix: "000000000812",
+      requirementId: requirementPersonnel.id,
+      requirementTitle: requirementPersonnel.title,
+      controlId: "ism-principle-pro-12",
+      qualifier: "primary",
+      applicabilityProfile: profile,
+      confidence: "high",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000813",
+      requirementId: requirementPersonnel.id,
+      requirementTitle: requirementPersonnel.title,
+      controlId: "ism-principle-pro-13",
+      qualifier: "primary",
+      applicabilityProfile: profile,
+      confidence: "high",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000814",
+      requirementId: requirementPersonnel.id,
+      requirementTitle: requirementPersonnel.title,
+      controlId: "ism-principle-pro-05",
+      qualifier: "partial",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000815",
+      requirementId: requirementPersonnel.id,
+      requirementTitle: requirementPersonnel.title,
+      controlId: "ism-principle-pro-14",
+      qualifier: "compensating",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    },
+    {
+      idSuffix: "000000000816",
+      requirementId: requirementPersonnel.id,
+      requirementTitle: requirementPersonnel.title,
+      controlId: "ism-principle-gov-12",
+      qualifier: "partial",
+      applicabilityProfile: profile,
+      confidence: "medium",
+      rationale: "Internal rationale excluded from publication.",
+      reviewBy
+    }
+  ];
+}
+
+function homeSampleMappingSeeds(reqByArea: (suffix: string) => RequirementEntity): readonly SampleMappingSeed[] {
+  const profile = "home-and-small-business";
+  const reviewBy = "Sample data curator";
+  const seed = (
+    idSuffix: string,
+    suffix: string,
+    controlId: string,
+    qualifier: CoverageQualifier,
+    confidence: MappingConfidence
+  ): SampleMappingSeed => {
+    const req = reqByArea(suffix);
+    return {
+      idSuffix,
+      requirementId: req.id,
+      requirementTitle: req.title,
+      controlId,
+      qualifier,
+      applicabilityProfile: profile,
+      confidence,
+      rationale: "Internal home-context rationale excluded from publication.",
+      reviewBy
+    };
+  };
+  return [
+    // 701 Asset inventory
+    seed("000000000771", "701", "ism-principle-ide-01", "primary", "medium"),
+    seed("000000000772", "701", "ism-principle-ide-05", "partial", "low"),
+    // 702 Classify
+    seed("000000000773", "702", "ism-principle-ide-02", "primary", "medium"),
+    seed("000000000774", "702", "ism-principle-ide-03", "partial", "low"),
+    // 703 Patch
+    seed("000000000775", "703", "ism-principle-pro-06", "primary", "medium"),
+    // 704 MFA
+    seed("000000000776", "704", "ism-principle-pro-13", "primary", "medium"),
+    // 705 Least privilege
+    seed("000000000777", "705", "ism-principle-pro-12", "primary", "medium"),
+    // 706 Application control
+    seed("000000000778", "706", "ism-principle-pro-07", "compensating", "low"),
+    // 707 Browser hardening
+    seed("000000000779", "707", "ism-principle-pro-04", "compensating", "low"),
+    // 708 Network segmentation
+    seed("000000000780", "708", "ism-principle-pro-18", "compensating", "low"),
+    // 709 Encryption
+    seed("000000000781", "709", "ism-principle-pro-08", "primary", "medium"),
+    seed("000000000782", "709", "ism-principle-pro-17", "partial", "low"),
+    // 710 Backups
+    seed("000000000783", "710", "ism-principle-pro-10", "primary", "medium"),
+    // 711 Logging
+    seed("000000000784", "711", "ism-principle-det-01", "compensating", "low"),
+    // 712 Awareness
+    seed("000000000785", "712", "ism-principle-pro-14", "primary", "medium"),
+    // 713 Kids devices
+    seed("000000000786", "713", "ism-principle-gov-13", "compensating", "low"),
+    seed("000000000787", "713", "ism-principle-pro-15", "compensating", "low"),
+    // 714 BYO/WFH
+    seed("000000000788", "714", "ism-principle-pro-05", "compensating", "low"),
+    seed("000000000789", "714", "ism-principle-pro-13", "partial", "low"),
+    // 715 Vendor/FOCI
+    seed("000000000790", "715", "ism-principle-gov-11", "primary", "medium"),
+    seed("000000000791", "715", "ism-principle-pro-16", "partial", "low")
+  ];
 }
 
 function sampleEntity<EntityType extends V01EntityType>(
