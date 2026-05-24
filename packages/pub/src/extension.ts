@@ -24,6 +24,7 @@ const PUB_WEBVIEW_COMMANDS = new Set<string>([
   "pspf.pub.newTeam",
   "pspf.pub.openTeamDetail",
   "pspf.pub.editTeam",
+  "pspf.pub.exportTeamScopeBrief",
   "pspf.pub.newRole",
   "pspf.pub.openRoleDetail",
   "pspf.pub.editRole",
@@ -83,6 +84,7 @@ interface TeamRecord {
   readonly title: string;
   readonly parentTeamId: string;
   readonly ownedControlRefs: readonly string[];
+  readonly ownedRequirementRefs: readonly string[];
   readonly controlSetRefs: readonly string[];
   readonly responsibility: string;
   readonly notes: string;
@@ -156,6 +158,8 @@ interface TeamEditorFields {
   readonly parentTeamId?: unknown;
   readonly ownedControlRefs?: unknown;
   readonly additionalControlRefs?: unknown;
+  readonly ownedRequirementRefs?: unknown;
+  readonly additionalRequirementRefs?: unknown;
   readonly controlSetRefs?: unknown;
   readonly responsibility?: unknown;
   readonly notes?: unknown;
@@ -226,6 +230,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.pub.newTeam", newTeam),
     vscode.commands.registerCommand("pspf.pub.openTeamDetail", openTeamDetail),
     vscode.commands.registerCommand("pspf.pub.editTeam", editTeam),
+    vscode.commands.registerCommand("pspf.pub.exportTeamScopeBrief", exportTeamScopeBrief),
     vscode.commands.registerCommand("pspf.pub.newRole", newRole),
     vscode.commands.registerCommand("pspf.pub.openRoleDetail", openRoleDetail),
     vscode.commands.registerCommand("pspf.pub.editRole", editRole),
@@ -536,9 +541,169 @@ async function editTeam(): Promise<void> {
   await openTeamEditor(team);
 }
 
+async function exportTeamScopeBrief(): Promise<void> {
+  const store = await loadStore();
+  const team = await pickTeam(store, "Export team scope brief");
+  if (!team) {
+    return;
+  }
+  const [sourceControls, requirements, mappings] = await Promise.all([
+    listSourceControls(),
+    listRequirements(),
+    listRequirementControlMappings()
+  ]);
+  const markdown = renderTeamScopeBriefMarkdown(team, store, sourceControls, requirements, mappings);
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    void vscode.window.showErrorMessage("Open a workspace folder before exporting a Pub team scope brief.");
+    return;
+  }
+  const fileName = `team-${slugify(team.title) || team.id.toLocaleLowerCase("en-AU")}-scope-brief.md`;
+  const exportPath = join(workspaceFolder.uri.fsPath, ".pspf", "pub", "exports", fileName);
+  await mkdir(dirname(exportPath), { recursive: true });
+  await writeFile(exportPath, markdown, "utf8");
+  const document = await vscode.workspace.openTextDocument(exportPath);
+  await vscode.window.showTextDocument(document, { preview: false });
+  const action = await vscode.window.showInformationMessage(
+    `Team scope brief exported to ${join(".pspf", "pub", "exports", fileName)}.`,
+    "Copy to clipboard"
+  );
+  if (action === "Copy to clipboard") {
+    await vscode.env.clipboard.writeText(markdown);
+    void vscode.window.showInformationMessage("Team scope brief copied to clipboard.");
+  }
+}
+
+function renderTeamScopeBriefMarkdown(
+  team: TeamRecord,
+  store: PubStore,
+  sourceControls: readonly SourceControlRecord[],
+  requirements: readonly RequirementRecord[],
+  mappings: readonly RequirementControlMappingRecord[]
+): string {
+  const generatedAt = new Date().toISOString();
+  const sourceControlsByControlId = new Map(
+    sourceControls.map((sourceControl) => [sourceControl.controlId.toLocaleUpperCase("en-AU"), sourceControl])
+  );
+  const sourceControlsById = new Map(sourceControls.map((sourceControl) => [sourceControl.id, sourceControl]));
+  const requirementsById = new Map(requirements.map((requirement) => [requirement.id, requirement]));
+
+  const lines: string[] = [];
+  lines.push(`# Team scope brief: ${team.title}`);
+  lines.push("");
+  lines.push(
+    `_Generated ${generatedAt} from PSPF Pub local data. Person names and relationship notes are not included._`
+  );
+  lines.push("");
+  lines.push("## Responsibility");
+  lines.push("");
+  lines.push(team.responsibility || "_No responsibility recorded yet._");
+  lines.push("");
+
+  if (team.controlSetRefs.length > 0) {
+    lines.push("## Owned control sets");
+    lines.push("");
+    for (const ref of team.controlSetRefs) {
+      lines.push(`- ${ref}`);
+    }
+    lines.push("");
+  }
+
+  lines.push("## Owned ISM controls");
+  lines.push("");
+  if (team.ownedControlRefs.length === 0) {
+    lines.push("_No ISM controls are linked to this team yet._");
+  } else {
+    lines.push("| Control | Title |");
+    lines.push("| --- | --- |");
+    for (const ref of team.ownedControlRefs) {
+      const sourceControl = sourceControlsByControlId.get(ref.toLocaleUpperCase("en-AU"));
+      lines.push(`| ${ref} | ${sourceControl?.title ?? "Not found in Core"} |`);
+    }
+  }
+  lines.push("");
+
+  lines.push("## Directly linked PSPF requirements");
+  lines.push("");
+  if (team.ownedRequirementRefs.length === 0) {
+    lines.push("_No PSPF requirements are directly linked to this team yet._");
+  } else {
+    lines.push("| Requirement | Title | Status |");
+    lines.push("| --- | --- | --- |");
+    for (const ref of team.ownedRequirementRefs) {
+      const requirement = requirementsById.get(ref);
+      lines.push(
+        `| ${ref} | ${requirement?.title ?? "Not found in Core"} | ${label(requirement?.assessmentStatus ?? "not-recorded")} |`
+      );
+    }
+  }
+  lines.push("");
+
+  const ownedRefsUpper = new Set(team.ownedControlRefs.map((ref) => ref.toLocaleUpperCase("en-AU")));
+  const mappedRows = mappings.filter((mapping) => {
+    const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+    return sourceControl ? ownedRefsUpper.has(sourceControl.controlId.toLocaleUpperCase("en-AU")) : false;
+  });
+  lines.push("## PSPF requirements via mapped ISM controls");
+  lines.push("");
+  if (mappedRows.length === 0) {
+    lines.push("_No Core Requirement-to-ISM mappings resolve from this team's owned controls._");
+  } else {
+    lines.push("| Control | Requirement | Coverage | Profile | Confidence |");
+    lines.push("| --- | --- | --- | --- | --- |");
+    for (const mapping of mappedRows) {
+      const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+      const requirement = requirementsById.get(mapping.requirementId);
+      lines.push(
+        `| ${sourceControl?.controlId ?? mapping.sourceControlId} | ${requirement?.title ?? mapping.requirementId} | ${label(mapping.coverageQualifier ?? "not-recorded")} | ${mapping.applicabilityProfile ?? "Not recorded"} | ${label(mapping.confidence ?? "not-recorded")} |`
+      );
+    }
+  }
+  lines.push("");
+
+  const teamRoles = store.roles.filter((role) => role.teamId === team.id);
+  lines.push("## Roles supporting this team");
+  lines.push("");
+  if (teamRoles.length === 0) {
+    lines.push("_No roles are recorded for this team yet._");
+  } else {
+    lines.push("| Role | Outcome | Assignments |");
+    lines.push("| --- | --- | --- |");
+    for (const role of teamRoles) {
+      const assignmentCount = store.assignments.filter((assignment) => assignment.roleId === role.id).length;
+      lines.push(
+        `| ${role.title} | ${role.functionalOutcome || "_Not recorded_"} | ${assignmentCount} ${assignmentCount === 1 ? "assignment" : "assignments"} |`
+      );
+    }
+  }
+  lines.push("");
+
+  if (team.notes) {
+    lines.push("## Local-only notes");
+    lines.push("");
+    lines.push(team.notes);
+    lines.push("");
+  }
+
+  lines.push("---");
+  lines.push("");
+  lines.push(
+    "_Redaction: Pub person names, person identifiers, and relationship notes are local-only and are not included in this brief. Share this Markdown file directly with the team to inform their scope and goals._"
+  );
+  lines.push("");
+  return lines.join("\n");
+}
+
+function slugify(value: string): string {
+  return value
+    .toLocaleLowerCase("en-AU")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 async function openTeamEditor(team?: TeamRecord): Promise<void> {
   const store = await loadStore();
-  const sourceControls = await listSourceControls();
+  const [sourceControls, requirements] = await Promise.all([listSourceControls(), listRequirements()]);
   const title = team ? `Edit Pub Team: ${team.title}` : "New Pub Team";
   if (teamEditorPanel) {
     teamEditorPanel.title = title;
@@ -554,7 +719,7 @@ async function openTeamEditor(team?: TeamRecord): Promise<void> {
       teamEditorPanel = undefined;
     });
   }
-  teamEditorPanel.webview.html = renderTeamEditorHtml(team, store, sourceControls);
+  teamEditorPanel.webview.html = renderTeamEditorHtml(team, store, sourceControls, requirements);
 }
 
 async function handleTeamEditorMessage(message: PubWebviewMessage): Promise<void> {
@@ -1012,6 +1177,7 @@ function buildSampleStore(): PubStore {
       title: "Information Security",
       parentTeamId: "",
       ownedControlRefs: ["ISM-1401", "ISM-1402"],
+      ownedRequirementRefs: ["REQ-PSPF-2025-008"],
       controlSetRefs: ["Access control operations"],
       responsibility: "Owns access review control operation and reviewer backup coverage.",
       notes: "Team ownership is local-only until a future Pub publication ADR defines redaction and review gates."
@@ -1021,6 +1187,7 @@ function buildSampleStore(): PubStore {
       title: "External SOC provider",
       parentTeamId: "PUB-TEM-information-security",
       ownedControlRefs: ["ISM-0988"],
+      ownedRequirementRefs: [],
       controlSetRefs: ["Monitoring and escalation"],
       responsibility: "Operates monitoring controls and escalation roster coverage.",
       notes: "Service-provider responsibility context stays local-only by default."
@@ -1228,6 +1395,7 @@ async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<st
     })
     .join("");
   const requirementRows = await teamRequirementRows(team);
+  const directRequirementRows = await teamDirectRequirementRows(team);
   return pageHtml(
     `PSPF Pub ${team.title}`,
     `<main>
@@ -1237,6 +1405,7 @@ async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<st
         <p>${escapeHtml(team.responsibility || "No responsibility recorded yet.")}</p>
         <div class="tags">
           ${team.ownedControlRefs.map((ref) => `<span class="tag">${escapeHtml(ref)}</span>`).join("")}
+          ${team.ownedRequirementRefs.map((ref) => `<span class="tag">${escapeHtml(ref)}</span>`).join("")}
           ${team.controlSetRefs.map((ref) => `<span class="tag">${escapeHtml(ref)}</span>`).join("")}
         </div>
       </section>
@@ -1248,6 +1417,7 @@ async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<st
         <h1>Team actions</h1>
         <div class="action-list compact">
           ${commandButton("pspf.pub.editTeam", "Edit team", "Update local control ownership")}
+          ${commandButton("pspf.pub.exportTeamScopeBrief", "Share scope brief", "Export this team's scope and goals as Markdown")}
           ${commandButton("pspf.pub.newRole", "New role", "Add role coverage for a team")}
           ${commandButton("pspf.pub.newAssignment", "New assignment", "Assign a person to a role")}
           ${commandButton("pspf.pub.recordRelationshipNote", "Relationship note", "Record local follow-up context")}
@@ -1259,12 +1429,31 @@ async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<st
         tableHtml(["Role", "Outcome", "Assigned", "Badges", "Contribution"], roleRows, 5)
       )}
       ${sectionHtml(
+        "Directly linked PSPF requirements",
+        "PSPF requirements the team is explicitly accountable for. Use these to frame the team's scope and goals when sharing.",
+        tableHtml(["Requirement", "Title", "Status"], directRequirementRows, 3)
+      )}
+      ${sectionHtml(
         "PSPF Requirements via ISM controls",
         "This local view resolves team-owned ISM controls through Core Requirement-to-ISM mappings. It does not publish Pub team or person data.",
         tableHtml(["Control", "Requirement", "Coverage", "Profile", "Confidence", "Status"], requirementRows, 6)
       )}
     </main>`
   );
+}
+
+async function teamDirectRequirementRows(team: TeamRecord): Promise<string> {
+  if (team.ownedRequirementRefs.length === 0) {
+    return "";
+  }
+  const requirements = await listRequirements();
+  const requirementsById = new Map(requirements.map((requirement) => [requirement.id, requirement]));
+  return team.ownedRequirementRefs
+    .map((ref) => {
+      const requirement = requirementsById.get(ref);
+      return `<tr><td>${escapeHtml(ref)}</td><td>${escapeHtml(requirement?.title ?? "Not found in Core")}</td><td>${escapeHtml(label(requirement?.assessmentStatus ?? "not-recorded"))}</td></tr>`;
+    })
+    .join("");
 }
 
 async function teamRequirementRows(team: TeamRecord): Promise<string> {
@@ -1292,11 +1481,15 @@ async function teamRequirementRows(team: TeamRecord): Promise<string> {
 function renderTeamEditorHtml(
   team: TeamRecord | undefined,
   store: PubStore,
-  sourceControls: readonly SourceControlRecord[]
+  sourceControls: readonly SourceControlRecord[],
+  requirements: readonly RequirementRecord[]
 ): string {
   const selectedControlRefs = new Set(team?.ownedControlRefs ?? []);
   const knownControlIds = new Set(sourceControls.map((sourceControl) => sourceControl.controlId));
   const localControlRefs = (team?.ownedControlRefs ?? []).filter((ref) => !knownControlIds.has(ref));
+  const selectedRequirementRefs = new Set(team?.ownedRequirementRefs ?? []);
+  const knownRequirementIds = new Set(requirements.map((requirement) => requirement.id));
+  const localRequirementRefs = (team?.ownedRequirementRefs ?? []).filter((ref) => !knownRequirementIds.has(ref));
   const teamRoles = team ? store.roles.filter((role) => role.teamId === team.id) : [];
   const teamAssignments = store.assignments.filter((assignment) =>
     teamRoles.some((role) => role.id === assignment.roleId)
@@ -1304,6 +1497,11 @@ function renderTeamEditorHtml(
   const teamPeople = store.people.filter((person) =>
     teamAssignments.some((assignment) => assignment.personId === person.id)
   );
+  const controlsBase = 5;
+  const additionalControlsTab = controlsBase + sourceControls.length;
+  const requirementsBase = additionalControlsTab + 1;
+  const additionalRequirementsTab = requirementsBase + requirements.length;
+  const notesTab = additionalRequirementsTab + 1;
   return pageHtml(
     team ? `Edit Pub Team ${team.title}` : "New Pub Team",
     `<main>
@@ -1344,11 +1542,22 @@ function renderTeamEditorHtml(
         <section class="panel">
           <h1>Owned ISM controls</h1>
           <div class="checkbox-list">
-            ${sourceControls.length === 0 ? `<p class="muted">No ISM source controls are available from Core yet. Add local refs below.</p>` : sourceControls.map((sourceControl, index) => controlCheckbox(sourceControl, selectedControlRefs, index + 4)).join("")}
+            ${sourceControls.length === 0 ? `<p class="muted">No ISM source controls are available from Core yet. Add local refs below.</p>` : sourceControls.map((sourceControl, index) => controlCheckbox(sourceControl, selectedControlRefs, controlsBase + index)).join("")}
           </div>
           <label>
             <span>Additional local control refs</span>
-            <textarea name="additionalControlRefs" tabindex="${sourceControls.length + 4}" rows="3" placeholder="Comma-separated refs not in the ISM list">${escapeHtml(localControlRefs.join(", "))}</textarea>
+            <textarea name="additionalControlRefs" tabindex="${additionalControlsTab}" rows="3" placeholder="Comma-separated refs not in the ISM list">${escapeHtml(localControlRefs.join(", "))}</textarea>
+          </label>
+        </section>
+        <section class="panel">
+          <h1>Linked PSPF requirements</h1>
+          <p class="muted">Tick the PSPF requirements this team is accountable for. Use this to make the team's scope and goals explicit, separate from the ISM controls they operate.</p>
+          <div class="checkbox-list">
+            ${requirements.length === 0 ? `<p class="muted">No PSPF requirements are available from Core yet. Add local refs below.</p>` : requirements.map((requirement, index) => requirementCheckbox(requirement, selectedRequirementRefs, requirementsBase + index)).join("")}
+          </div>
+          <label>
+            <span>Additional local requirement refs</span>
+            <textarea name="additionalRequirementRefs" tabindex="${additionalRequirementsTab}" rows="3" placeholder="Comma-separated refs not in the PSPF list">${escapeHtml(localRequirementRefs.join(", "))}</textarea>
           </label>
         </section>
         <section class="panel">
@@ -1370,12 +1579,12 @@ function renderTeamEditorHtml(
           <h1>Local-only notes</h1>
           <label>
             <span>Notes</span>
-            <textarea name="notes" tabindex="${sourceControls.length + 5}" rows="5">${escapeHtml(team?.notes ?? "")}</textarea>
+            <textarea name="notes" tabindex="${notesTab}" rows="5">${escapeHtml(team?.notes ?? "")}</textarea>
           </label>
           <div class="form-actions">
-            <button type="button" data-action="saveTeam" tabindex="${sourceControls.length + 6}"><span class="button-title">Save</span><span class="button-description">Write and keep editing</span></button>
-            <button type="button" data-action="saveAndCloseTeam" tabindex="${sourceControls.length + 7}"><span class="button-title">Save and close</span><span class="button-description">Write, close, and open Team detail</span></button>
-            <button type="button" data-action="cancelTeam" tabindex="${sourceControls.length + 8}"><span class="button-title">Cancel</span><span class="button-description">Close without writing</span></button>
+            <button type="button" data-action="saveTeam" tabindex="${notesTab + 1}"><span class="button-title">Save</span><span class="button-description">Write and keep editing</span></button>
+            <button type="button" data-action="saveAndCloseTeam" tabindex="${notesTab + 2}"><span class="button-title">Save and close</span><span class="button-description">Write, close, and open Team detail</span></button>
+            <button type="button" data-action="cancelTeam" tabindex="${notesTab + 3}"><span class="button-title">Cancel</span><span class="button-description">Close without writing</span></button>
           </div>
         </section>
       </form>
@@ -1865,6 +2074,15 @@ function controlCheckbox(
   return `<label class="checkbox-row"><input type="checkbox" name="ownedControlRefs" value="${escapeHtml(sourceControl.controlId)}" tabindex="${tabIndex}"${checked} /><span><strong>${escapeHtml(sourceControl.controlId)}</strong> ${escapeHtml(sourceControl.title)}</span></label>`;
 }
 
+function requirementCheckbox(
+  requirement: RequirementRecord,
+  selectedRequirementRefs: ReadonlySet<string>,
+  tabIndex: number
+): string {
+  const checked = selectedRequirementRefs.has(requirement.id) ? " checked" : "";
+  return `<label class="checkbox-row"><input type="checkbox" name="ownedRequirementRefs" value="${escapeHtml(requirement.id)}" tabindex="${tabIndex}"${checked} /><span><strong>${escapeHtml(requirement.id)}</strong> ${escapeHtml(requirement.title)}</span></label>`;
+}
+
 function renderPeopleHtml(store: PubStore): string {
   const rows = store.people
     .map(
@@ -2204,6 +2422,10 @@ function parseTeamEditorFields(
         ...stringArrayField(fields?.ownedControlRefs),
         ...splitRefs(stringField(fields?.additionalControlRefs))
       ]),
+      ownedRequirementRefs: uniqueStrings([
+        ...stringArrayField(fields?.ownedRequirementRefs),
+        ...splitRefs(stringField(fields?.additionalRequirementRefs))
+      ]),
       controlSetRefs: splitRefs(stringField(fields?.controlSetRefs)),
       responsibility: stringField(fields?.responsibility).trim(),
       notes: stringField(fields?.notes).trim()
@@ -2461,6 +2683,9 @@ function normaliseTeams(store: Partial<PubStore>): readonly TeamRecord[] {
       title: typeof team.title === "string" ? team.title : "Untitled team",
       parentTeamId: typeof team.parentTeamId === "string" ? team.parentTeamId : "",
       ownedControlRefs: Array.isArray(team.ownedControlRefs) ? team.ownedControlRefs.filter(isNonEmptyString) : [],
+      ownedRequirementRefs: Array.isArray(team.ownedRequirementRefs)
+        ? team.ownedRequirementRefs.filter(isNonEmptyString)
+        : [],
       controlSetRefs: Array.isArray(team.controlSetRefs) ? team.controlSetRefs.filter(isNonEmptyString) : [],
       responsibility: typeof team.responsibility === "string" ? team.responsibility : "",
       notes: typeof team.notes === "string" ? team.notes : ""
@@ -2475,6 +2700,7 @@ function normaliseTeams(store: Partial<PubStore>): readonly TeamRecord[] {
     title: teamName,
     parentTeamId: "",
     ownedControlRefs: [],
+    ownedRequirementRefs: [],
     controlSetRefs: [],
     responsibility: "",
     notes: "Migrated from the previous role-level team field."

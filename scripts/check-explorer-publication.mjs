@@ -8,7 +8,7 @@ import { PSPF_SLICE_VERSION, VERSION_AXES } from "../packages/contracts/dist/ind
 
 const root = process.cwd();
 const explorerPath = join(root, "packages", "explorer", "dist", "index.html");
-const sampleBundlePath = join(root, "packages", "explorer", "dist", "sample-bundle.json");
+const sampleBundlePath = join(root, "packages", "explorer", "dist", "sample-bundle-enterprise.json");
 const bundlePath = findBundlePath();
 const reportDirectory = join(root, ".tmp", "explorer-publication");
 await mkdir(reportDirectory, { recursive: true });
@@ -31,8 +31,11 @@ try {
   const firstOpenText = await page.locator("body").innerText();
   const sampleBundlePresent = existsSync(sampleBundlePath);
   const sampleBundle = sampleBundlePresent ? JSON.parse(readFileSyncText(sampleBundlePath)) : undefined;
-  const sampleDownloadHref = await page.locator('a[download="pspf-sample-bundle.json"]').first().getAttribute("href");
-  await page.getByRole("button", { name: "Load sample bundle" }).first().click();
+  const sampleDownloadHref = await page
+    .locator('a[download="pspf-sample-bundle-enterprise.json"]')
+    .first()
+    .getAttribute("href");
+  await page.getByRole("button", { name: "Load enterprise sample" }).first().click();
   await page.waitForSelector("#validation:not([hidden])");
   const sampleLoadedFromButton = await page.locator("#welcome").isHidden();
   const bundle = JSON.parse(await readFileSyncText(bundlePath));
@@ -369,17 +372,19 @@ try {
   const checks = [
     check(
       "First open offers sample bundle",
-      firstOpenText.includes("Load sample bundle") && firstOpenText.includes("Download sample JSON"),
+      firstOpenText.includes("Load enterprise sample") && firstOpenText.includes("Download enterprise JSON"),
       firstOpenText
     ),
     check(
       "Explorer ships downloadable sample JSON",
       sampleBundlePresent && sampleBundle?.manifest?.bundleType === "pspf-explorer-bundle",
-      sampleBundlePresent ? sampleBundle?.manifest?.bundleType || "missing bundle type" : "missing sample-bundle.json"
+      sampleBundlePresent
+        ? sampleBundle?.manifest?.bundleType || "missing bundle type"
+        : "missing sample-bundle-enterprise.json"
     ),
     check(
       "Sample download points to bundled JSON",
-      sampleDownloadHref === "./sample-bundle.json",
+      sampleDownloadHref === "./sample-bundle-enterprise.json",
       sampleDownloadHref || "missing download href"
     ),
     check("Sample button loads Explorer", sampleLoadedFromButton, "welcome panel hidden after sample load"),

@@ -1,17 +1,109 @@
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { POSTURE_BRIEF_BROWSER_SCRIPT } from "@pspf/brief-renderer";
 import { CONNECTED_VIEW_STYLES, CONNECTED_VIEW_BROWSER_SCRIPT } from "@pspf/connected-view";
-import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
+import {
+  PSPF_SLICE_VERSION,
+  VERSION_AXES,
+  buildSampleWorkspaceEntities,
+  buildHomeSampleWorkspaceEntities,
+  sanitiseEntityForPublication
+} from "@pspf/contracts";
+import { ISM_SOURCE_CONTROLS, PSPF_BASELINE_DOMAINS } from "@pspf/reference-data";
 import { tokensCss } from "@pspf/webview-shell";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const dist = join(root, "dist");
-const sampleBundleSource = join(root, "..", "contracts", "test-fixtures", "standard", "bundle.json");
-const sampleBundleJson = await readFile(sampleBundleSource, "utf8");
 await mkdir(dist, { recursive: true });
-await copyFile(sampleBundleSource, join(dist, "sample-bundle.json"));
+
+const ENTITY_TYPE_TO_COLLECTION = {
+  domain: "domains",
+  requirement: "requirements",
+  evidence: "evidence",
+  action: "actions",
+  risk: "risks",
+  snapshot: "snapshots",
+  link: "links",
+  tag: "tags",
+  "saved-view": "saved-views",
+  "source-control": "source-controls",
+  "requirement-control-mapping": "requirement-control-mappings",
+  direction: "directions",
+  "change-record": "change-records",
+  supplier: "suppliers",
+  contract: "contracts",
+  "spend-item": "spend-items",
+  strategy: "strategies",
+  posture: "posture"
+};
+
+function assembleSampleBundle(rawEntities, label) {
+  const now = new Date().toISOString();
+  const entities = rawEntities.map((entity) => {
+    const withTimestamps = {
+      createdAt: entity.createdAt ?? now,
+      updatedAt: entity.updatedAt ?? now,
+      recordStatus: entity.recordStatus ?? "active",
+      sourceProduct: entity.sourceProduct ?? "core",
+      schemaVersion: entity.schemaVersion ?? VERSION_AXES.schemaVersion,
+      ...entity
+    };
+    return sanitiseEntityForPublication(withTimestamps);
+  });
+  const collections = {};
+  for (const entity of entities) {
+    const collection = ENTITY_TYPE_TO_COLLECTION[entity.entityType];
+    if (!collection) continue;
+    (collections[collection] ??= []).push(entity);
+  }
+  const manifestCollections = Object.entries(collections).map(([name, items]) => ({
+    name,
+    path: "./collections/" + name + ".json",
+    count: items.length
+  }));
+  return {
+    manifest: {
+      bundleType: "pspf-explorer-bundle",
+      bundleVersion: VERSION_AXES.bundleVersion,
+      schemaVersion: VERSION_AXES.schemaVersion,
+      apiVersion: VERSION_AXES.apiVersion,
+      generatedAt: now,
+      generator: { product: "pspf-explorer", profile: "sample-" + label },
+      security: { classification: "OFFICIAL: Sensitive", redactionProfile: "explorer-default" },
+      collections: manifestCollections
+    },
+    collections
+  };
+}
+
+function buildSampleBundleFor(variant) {
+  const sample =
+    variant === "home"
+      ? buildHomeSampleWorkspaceEntities({ sourceControls: ISM_SOURCE_CONTROLS })
+      : buildSampleWorkspaceEntities({ sourceControls: ISM_SOURCE_CONTROLS });
+
+  const referencedDomainIds = new Set(
+    sample.filter((entity) => entity.entityType === "requirement" && entity.domainId).map((entity) => entity.domainId)
+  );
+  const domains = PSPF_BASELINE_DOMAINS.filter((domain) => referencedDomainIds.has(domain.id));
+
+  const referencedControlIds = new Set(
+    sample.filter((entity) => entity.entityType === "requirement-control-mapping").map((entity) => entity.controlId)
+  );
+  const sourceControls = ISM_SOURCE_CONTROLS.filter((control) => referencedControlIds.has(control.id));
+
+  return assembleSampleBundle([...domains, ...sourceControls, ...sample], variant);
+}
+
+const enterpriseBundle = buildSampleBundleFor("enterprise");
+const homeBundle = buildSampleBundleFor("home");
+const enterpriseBundleJson = JSON.stringify(enterpriseBundle, null, 2);
+const homeBundleJson = JSON.stringify(homeBundle, null, 2);
+await writeFile(join(dist, "sample-bundle-enterprise.json"), enterpriseBundleJson + "\n", "utf8");
+await writeFile(join(dist, "sample-bundle-home.json"), homeBundleJson + "\n", "utf8");
+// Back-compat: alias enterprise as the default sample-bundle.json.
+await writeFile(join(dist, "sample-bundle.json"), enterpriseBundleJson + "\n", "utf8");
 
 const html = `<!doctype html>
 <html lang="en-AU">
@@ -162,7 +254,7 @@ const html = `<!doctype html>
     <section id="welcome" class="panel welcome-panel">
       <h1>Try Explorer with sample data.</h1>
       <p>Start with the sample bundle, or open a Workshop export when you have one. Explorer keeps any local notes in this browser until you export them back to Workshop.</p>
-      <div class="welcome-actions"><button type="button" id="load-sample-bundle">Load sample bundle</button><a class="secondary-link" href="./sample-bundle.json" download="pspf-sample-bundle.json">Download sample JSON</a><a class="secondary-link" href="#bundle-tools">Choose your own JSON</a></div>
+      <div class="welcome-actions"><button type="button" id="load-sample-bundle" data-sample-variant="enterprise">Load enterprise sample</button><button type="button" id="load-sample-bundle-home" data-sample-variant="home">Load home sample</button><a class="secondary-link" href="./sample-bundle-enterprise.json" download="pspf-sample-bundle-enterprise.json">Download enterprise JSON</a><a class="secondary-link" href="./sample-bundle-home.json" download="pspf-sample-bundle-home.json">Download home JSON</a><a class="secondary-link" href="#bundle-tools">Choose your own JSON</a></div>
     </section>
     <nav class="section-nav" aria-label="Explorer sections" hidden>
       <a href="#summary">Overview</a>
@@ -215,7 +307,7 @@ const html = `<!doctype html>
       <summary><h2>Open a PSPF bundle</h2></summary>
       <div class="section-body">
         <p class="muted">Load the sample bundle, or choose an exported bundle to review. Explorer remembers the latest bundle locally for day-to-day review.</p>
-        <div class="toolbar"><button type="button" id="load-sample-bundle-tools">Load sample bundle</button><a href="./sample-bundle.json" download="pspf-sample-bundle.json">Download sample JSON</a></div>
+        <div class="toolbar"><button type="button" id="load-sample-bundle-tools" data-sample-variant="enterprise">Load enterprise sample</button><button type="button" id="load-sample-bundle-tools-home" data-sample-variant="home">Load home sample</button><a href="./sample-bundle-enterprise.json" download="pspf-sample-bundle-enterprise.json">Download enterprise JSON</a><a href="./sample-bundle-home.json" download="pspf-sample-bundle-home.json">Download home JSON</a></div>
         <div class="version-strip" aria-label="PSPF version context"><span class="version-pill">PSPF v${PSPF_SLICE_VERSION}</span><span class="version-pill">Schema ${VERSION_AXES.schemaVersion}</span><span class="version-pill">Bundle ${VERSION_AXES.bundleVersion}</span><span class="version-pill">API ${VERSION_AXES.apiVersion}</span></div>
         <p id="bundle-help" class="muted">Select the exported <code>bundle.json</code>. Advanced users can also select <code>data/manifest.json</code> with matching collection JSON files.</p>
         <label for="bundle-files">Bundle JSON files</label>
@@ -237,8 +329,8 @@ const summary = document.querySelector("#summary");
 const sectionNav = document.querySelector(".section-nav");
 const modeStrip = document.querySelector(".mode-strip");
 const welcomePanel = document.querySelector("#welcome");
-const sampleBundleButtons = Array.from(document.querySelectorAll("#load-sample-bundle, #load-sample-bundle-tools"));
-const bundledSampleBundle = ${sampleBundleJson};
+const sampleBundleButtons = Array.from(document.querySelectorAll("[data-sample-variant]"));
+const bundledSampleBundles = { enterprise: ${enterpriseBundleJson}, home: ${homeBundleJson} };
 const explorerSearchPanel = document.querySelector("#explorer-search-panel");
 const explorerSearchInput = document.querySelector("#explorer-search");
 const explorerSearchStatus = document.querySelector("#explorer-search-status");
@@ -350,7 +442,9 @@ async function loadSampleBundle(event) {
     button.setAttribute("aria-busy", "true");
   }
   try {
-    const bundle = JSON.parse(JSON.stringify(bundledSampleBundle));
+    const variant = button?.getAttribute("data-sample-variant") || "enterprise";
+    const source = bundledSampleBundles[variant] || bundledSampleBundles.enterprise;
+    const bundle = JSON.parse(JSON.stringify(source));
     await render(bundle.manifest, bundle.collections || {});
   } catch (error) {
     alert("Download the sample JSON, then choose it with Bundle JSON files.");

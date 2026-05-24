@@ -44,6 +44,7 @@ import {
   type DirectionEntity,
   type DirectionResponseState,
   buildSampleWorkspaceEntities,
+  buildHomeSampleWorkspaceEntities,
   enrichActionsWithImpact,
   type EvidenceEntity,
   type EvidenceFreshness,
@@ -109,6 +110,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.createRequirement", createRequirement),
     vscode.commands.registerCommand("pspf.workshop.openWelcome", openWelcome),
     vscode.commands.registerCommand("pspf.workshop.loadSampleWorkspace", loadSampleWorkspace),
+    vscode.commands.registerCommand("pspf.workshop.loadHomeSampleWorkspace", loadHomeSampleWorkspace),
     vscode.commands.registerCommand("pspf.workshop.importBundle", importBundle),
     vscode.commands.registerCommand("pspf.workshop.exportBackupJson", exportBackupJson),
     vscode.commands.registerCommand("pspf.workshop.importBackupJson", importBackupJson),
@@ -255,6 +257,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.exportBackupJson",
       "pspf.workshop.importBackupJson",
       "pspf.workshop.loadSampleWorkspace",
+      "pspf.workshop.loadHomeSampleWorkspace",
       "pspf.workshop.createRequirement",
       "pspf.workshop.attachEvidence",
       "pspf.workshop.createAction",
@@ -469,7 +472,8 @@ function renderHomeView(model: WorkshopHomeModel): string {
       <h2>Panel</h2>
       <div class="action-list compact">
         ${homeButton("pspf.workshop.home.refresh", "Refresh")}
-        ${homeButton("pspf.workshop.loadSampleWorkspace", "Load sample")}
+        ${homeButton("pspf.workshop.loadSampleWorkspace", "Load enterprise sample", "Load the full-featured AU government enterprise sample workspace")}
+        ${homeButton("pspf.workshop.loadHomeSampleWorkspace", "Load home sample", "Load the home and small business sample workspace")}
       </div>
     </section>
   `
@@ -484,7 +488,16 @@ async function openWelcome(): Promise<void> {
   const actions = allEntities.filter((entity) => entity.entityType === "action").length;
   const directions = allEntities.filter((entity) => entity.entityType === "direction").length;
   const rows = [
-    { step: "Load sample", command: "PSPF: Load Sample Workspace", outcome: "Adds a privacy-safe assurance scenario" },
+    {
+      step: "Load enterprise sample",
+      command: "PSPF: Load Enterprise Sample Workspace",
+      outcome: "Adds a privacy-safe AU government enterprise scenario"
+    },
+    {
+      step: "Load home sample",
+      command: "PSPF: Load Home Sample Workspace",
+      outcome: "Adds a home and small business scenario"
+    },
     {
       step: "Review posture",
       command: "PSPF: Open Assessment Dashboard",
@@ -530,13 +543,25 @@ async function openWelcome(): Promise<void> {
 }
 
 async function loadSampleWorkspace(): Promise<void> {
+  await loadSampleWorkspaceVariant("enterprise");
+}
+
+async function loadHomeSampleWorkspace(): Promise<void> {
+  await loadSampleWorkspaceVariant("home");
+}
+
+async function loadSampleWorkspaceVariant(variant: "enterprise" | "home"): Promise<void> {
   await ensureCoreReady();
   const sourceControls = await listSourceControls();
-  const entities = buildSampleWorkspaceEntities({ sourceControls });
+  const entities =
+    variant === "home"
+      ? buildHomeSampleWorkspaceEntities({ sourceControls })
+      : buildSampleWorkspaceEntities({ sourceControls });
   await vscode.commands.executeCommand("pspf.core.upsertEntities", entities);
   await refreshWorkshopSurfaces();
+  const label = variant === "home" ? "home and small business" : "enterprise";
   const action = await vscode.window.showInformationMessage(
-    `PSPF sample workspace loaded: ${entities.length} record(s).`,
+    `PSPF ${label} sample workspace loaded: ${entities.length} record(s).`,
     "Open Welcome",
     "Open Dashboard"
   );
@@ -2987,7 +3012,8 @@ async function openStrategyMap(): Promise<void> {
         ${versionStrip()}
         <div class="form-actions">
           <button type="button" data-command="createStrategyDraft">Create draft strategy</button>
-          <button type="button" data-command="pspf.workshop.loadSampleWorkspace">Load sample workspace</button>
+          <button type="button" data-command="pspf.workshop.loadSampleWorkspace">Load enterprise sample workspace</button>
+          <button type="button" data-command="pspf.workshop.loadHomeSampleWorkspace">Load home sample workspace</button>
         </div>
       </section>
     `
@@ -5691,6 +5717,11 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       }
       if (message.command === "pspf.workshop.loadSampleWorkspace") {
         await loadSampleWorkspace();
+        panel.dispose();
+        await openStrategyMap();
+      }
+      if (message.command === "pspf.workshop.loadHomeSampleWorkspace") {
+        await loadHomeSampleWorkspace();
         panel.dispose();
         await openStrategyMap();
       }
