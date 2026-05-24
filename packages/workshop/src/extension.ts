@@ -69,10 +69,16 @@ import {
   isValidTagLabel,
   normaliseSavedViewName,
   normaliseTagLabel,
-  operatorLinkRuleForEndpoints,
   withEnvelope
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
+import {
+  existingItemOperatorRule,
+  linkPhraseForExistingItem,
+  linkTypeForExistingItem,
+  requirementRelationshipItemTypes,
+  type LinkableItemType
+} from "./relationship-rules.js";
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
 
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
@@ -7837,14 +7843,7 @@ async function listAllEntities(): Promise<V01Entity[]> {
 }
 
 type RequirementNavigationDirection = "previous" | "next";
-type LinkableItemType = "evidence" | "action" | "risk" | "direction";
 type LinkableExistingEntity = EvidenceEntity | ActionEntity | RiskEntity | DirectionEntity;
-const requirementRelationshipItemTypes = [
-  "evidence",
-  "action",
-  "risk",
-  "direction"
-] as const satisfies readonly LinkableItemType[];
 
 function isRequirementNavigationDirection(value: string | undefined): value is RequirementNavigationDirection {
   return value === "previous" || value === "next";
@@ -7993,24 +7992,6 @@ async function linkExistingItemToRequirement(
   await vscode.commands.executeCommand("pspf.core.upsertEntities", links);
   await refreshWorkshopSurfaces();
   await rememberRequirement(requirement);
-}
-
-function linkTypeForExistingItem(itemType: LinkableItemType): LinkEntity["linkType"] {
-  return existingItemOperatorRule(itemType).linkType;
-}
-
-function linkPhraseForExistingItem(itemType: LinkableItemType): string {
-  return existingItemOperatorRule(itemType).phrase;
-}
-
-function existingItemOperatorRule(itemType: LinkableItemType) {
-  const fromType = itemType === "direction" ? "direction" : "requirement";
-  const toType = itemType === "direction" ? "requirement" : itemType;
-  const rule = operatorLinkRuleForEndpoints(fromType, toType, "workshop");
-  if (!rule) {
-    throw new Error(`Missing Workshop operator link rule for ${fromType} to ${toType}`);
-  }
-  return rule;
 }
 
 function renderRequirementRelationshipManager(
