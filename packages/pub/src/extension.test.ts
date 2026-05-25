@@ -111,3 +111,14 @@ test("Pub Relationship Note CRUD remains local-only", async () => {
   assert.match(source, /Save writes to \.pspf\/pub\/pub\.json only/);
   assert.match(source, /no Explorer publication in v1\.29/);
 });
+
+test("Pub Organisation Chart renders a graphic team and role view", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /function renderOrgChartGraphic\(store: PubStore/);
+  assert.match(source, /class="org-chart-graphic"/);
+  assert.match(source, /class="org-team-node"/);
+  assert.match(source, /class="org-role-card"/);
+  assert.match(source, /class="org-assignment-chip"/);
+  assert.match(source, /Organisation chart detail/);
+});

@@ -479,7 +479,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 ### v1.31 candidate gates (6clicks risk source hardening, per ADR 0068)
 
 1. **ADR gate**: ADR 0068 records the v1.31 6clicks risk source hardening decision before release preparation completes.
-2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.31.0`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.31.1`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
 3. **Explicit source-mode gate**: 6clicks profiles declare `sourceMode` as `fixture` or `live`; fixture mode is credential-free and tenant-free, while live mode requires an `https://` base URL, endpoint path, auth mode, SecretStorage credential reference, and bounded timeout.
 4. **Local log gate**: preview and apply runs write redacted local run logs under `.pspf/logs/risk-source-runs/` with source mode, run status, counts, apply counts, mapping version, and diagnostics that do not expose raw credentials or response bodies.
 5. **Fixture hardening gate**: built-in fixture data covers common 6clicks-style field variants and rejected rows; preview keeps rejected rows as `error` decisions while valid rows remain reviewable.

@@ -330,10 +330,6 @@ async function openHome(): Promise<void> {
 }
 
 async function openForecast(): Promise<void> {
-  const store = await loadStore();
-  const forecast = deriveForecast(store.spendItems);
-  const monthlyForecast = deriveForecastMonths(store.spendItems);
-  const dashboard = await deriveCoverageDashboard(store);
   if (forecastPanel) {
     forecastPanel.reveal(vscode.ViewColumn.One);
   } else {
@@ -345,7 +341,18 @@ async function openForecast(): Promise<void> {
       forecastPanel = undefined;
     });
   }
-  forecastPanel.webview.html = renderForecastHtml(store, forecast, monthlyForecast, dashboard, "panel");
+  try {
+    const store = await loadStore();
+    const forecast = deriveForecast(store.spendItems);
+    const monthlyForecast = deriveForecastMonths(store.spendItems);
+    const dashboard = await deriveCoverageDashboard(store);
+    forecastPanel.webview.html = renderForecastHtml(store, forecast, monthlyForecast, dashboard, "panel");
+  } catch (error) {
+    forecastPanel.webview.html = renderShopUnavailableHtml("Shop Forecast", error, [
+      { command: "pspf.shop.openForecast", label: "Retry forecast" },
+      { command: "pspf.shop.openHome", label: "Open Shop Home" }
+    ]);
+  }
 }
 
 async function exportForecastReport(format: "csv" | "xls"): Promise<void> {
@@ -1504,8 +1511,16 @@ class ShopHomeViewProvider implements vscode.WebviewViewProvider {
     if (!this.view) {
       return;
     }
-    const store = await loadStore();
-    this.view.webview.html = renderShopHomeHtml(store);
+    try {
+      const store = await loadStore();
+      this.view.webview.html = renderShopHomeHtml(store);
+    } catch (error) {
+      this.view.webview.html = renderShopUnavailableHtml("Shop Home", error, [
+        { command: "pspf.shop.openHome", label: "Retry Shop Home" },
+        { command: "pspf.shop.importLocalStore", label: "Import local JSON" },
+        { command: "pspf.shop.loadSample", label: "Load sample" }
+      ]);
+    }
   }
 }
 
@@ -1629,12 +1644,60 @@ class ForecastViewProvider implements vscode.WebviewViewProvider {
     if (!this.view) {
       return;
     }
-    const store = await loadStore();
-    const forecast = deriveForecast(store.spendItems);
-    const monthlyForecast = deriveForecastMonths(store.spendItems);
-    const dashboard = await deriveCoverageDashboard(store);
-    this.view.webview.html = renderCompactForecastHtml(store, forecast, monthlyForecast, dashboard);
+    try {
+      const store = await loadStore();
+      const forecast = deriveForecast(store.spendItems);
+      const monthlyForecast = deriveForecastMonths(store.spendItems);
+      const dashboard = await deriveCoverageDashboard(store);
+      this.view.webview.html = renderCompactForecastHtml(store, forecast, monthlyForecast, dashboard);
+    } catch (error) {
+      this.view.webview.html = renderShopUnavailableHtml("Shop Forecast", error, [
+        { command: "pspf.shop.openForecast", label: "Open full forecast" },
+        { command: "pspf.shop.openHome", label: "Open Shop Home" }
+      ]);
+    }
   }
+}
+
+function renderShopUnavailableHtml(
+  title: string,
+  error: unknown,
+  actions: readonly { readonly command: string; readonly label: string }[]
+): string {
+  const actionLinks = actions
+    .map((action) => `<a href="${escapeHtml(commandUri(action.command, []))}">${escapeHtml(action.label)}</a>`)
+    .join(" ");
+  return `<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    ${tokensCss("extension")}
+    body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
+    main { max-width: 780px; }
+    .panel { border: 1px solid var(--pspf-border); border-left: 4px solid var(--pspf-warn); border-radius: var(--pspf-radius); padding: var(--pspf-pad); }
+    .eyebrow { color: var(--pspf-primary); font-size: var(--pspf-type-label); font-weight: 700; letter-spacing: var(--pspf-letter-label); text-transform: uppercase; margin: 0 0 4px; }
+    h1 { font-size: 1.2rem; margin: 0 0 8px; }
+    p { color: var(--pspf-muted); margin: 0 0 12px; }
+    code { color: var(--pspf-text); }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <p class="eyebrow">Commercial planning</p>
+    <h1>${escapeHtml(title)} needs a refresh</h1>
+    <p>Core validation and integrity can still be OK here. Shop could not render this derived commercial view, usually because one Shop record has an unexpected display value.</p>
+    <p><code>${escapeHtml(errorMessage(error))}</code></p>
+    <div class="actions">${actionLinks}</div>
+  </main>
+</body>
+</html>`;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown Shop rendering error";
 }
 
 function deriveForecast(spendItems: readonly SpendItemRecord[]): ForecastYear[] {

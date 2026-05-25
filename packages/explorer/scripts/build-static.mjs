@@ -360,10 +360,7 @@ let currentLocalOverlays = new Map();
 let currentLocalEvidenceReferences = [];
 let currentLocalActions = [];
 let currentLocalRisks = [];
-let currentSavedViews = [];
 let localSaveFeedback;
-let activeSavedViewId = "";
-let activeRelationshipsSavedViewId = "";
 let currentLocalRequirementId;
 let currentLocalRequirementFilter = "";
 let currentLocalRequirements = [];
@@ -378,7 +375,6 @@ const localStoreName = "requirement-status-overlays";
 const localEvidenceStoreName = "requirement-evidence-references";
 const localActionStoreName = "requirement-actions";
 const localRiskStoreName = "requirement-risks";
-const localSavedViewStoreName = "requirement-saved-views";
 const rememberedBundleStoreName = "remembered-bundles";
 const rememberedBundleKey = "latest";
 const tagFilterSessionKey = "pspf:explorer:tag-filter";
@@ -425,7 +421,6 @@ sectionNav.addEventListener("click", (event) => {
 explorerSearchInput?.addEventListener("input", (event) => {
   currentExplorerSearch = String(event.currentTarget?.value || "");
   currentLocalRequirementFilter = currentExplorerSearch;
-  activeSavedViewId = "";
   persistRequirementFilterState();
   shouldSnapLocalSelectionToSearch = true;
   renderLocalAuthoringSection();
@@ -497,8 +492,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   currentLocalEvidenceReferences = await loadLocalEvidenceReferences(currentBundleKey);
   currentLocalActions = await loadLocalActions(currentBundleKey);
   currentLocalRisks = await loadLocalRisks(currentBundleKey);
-  currentSavedViews = await loadSavedViews(currentBundleKey);
-  const collections = applyLocalEdits(currentBaselineCollections, currentLocalOverlays, currentLocalEvidenceReferences, currentLocalActions, currentLocalRisks, currentSavedViews);
+  const collections = applyLocalEdits(currentBaselineCollections, currentLocalOverlays, currentLocalEvidenceReferences, currentLocalActions, currentLocalRisks);
   currentCollections = collections;
   const posture = collections.posture && collections.posture[0] ? collections.posture[0] : {};
   const validation = await validateBundle(manifest, currentBaselineCollections, collectionTexts);
@@ -522,16 +516,19 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   currentLocalRequirements = requirements;
   const evidence = (collections.evidence || []).map((item) => ({
     ...item,
-    requirements: titleList(relationshipSummary.requirementsByEvidence.get(item.id), requirementsById)
+    requirements: titleList(relationshipSummary.requirementsByEvidence.get(item.id), requirementsById),
+    tagIds: tagIdsForRequirementIds(relationshipSummary.requirementsByEvidence.get(item.id), tagModel)
   }));
   const actions = (collections.actions || []).map((item) => ({
     ...item,
     dueDate: formatShortDate(item.dueDate) || item.dueDate,
-    requirements: titleList(relationshipSummary.requirementsByAction.get(item.id), requirementsById)
+    requirements: titleList(relationshipSummary.requirementsByAction.get(item.id), requirementsById),
+    tagIds: tagIdsForRequirementIds(relationshipSummary.requirementsByAction.get(item.id), tagModel)
   }));
   const risks = (collections.risks || []).map((item) => ({
     ...item,
-    requirements: titleList(relationshipSummary.requirementsByRisk.get(item.id), requirementsById)
+    requirements: titleList(relationshipSummary.requirementsByRisk.get(item.id), requirementsById),
+    tagIds: tagIdsForRequirementIds(relationshipSummary.requirementsByRisk.get(item.id), tagModel)
   }));
   const sourceControls = (collections["source-controls"] || []).map((item) => ({
     controlId: item.controlId,
@@ -614,19 +611,19 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderLocalAuthoringSection();
 
   requirementsSection.hidden = false;
-  renderExplorerSection(requirementsSection, "Requirements", savedViewsPanel() + requirementStatusFilterPanel() + tagFilterPanel(tagModel) + table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "tags", "evidence", "actions", "risks"]));
+  renderExplorerSection(requirementsSection, "Requirements", requirementStatusFilterPanel() + tagFilterPanel(tagModel) + table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "tags", "evidence", "actions", "risks"]));
 
   evidenceSection.hidden = false;
-  renderExplorerSection(evidenceSection, "Evidence", table(evidence, ["title", "evidenceType", "freshness", "requirements", "reference"]));
+  renderExplorerSection(evidenceSection, "Evidence", tagFilterPanel(tagModel) + table(evidence, ["title", "evidenceType", "freshness", "requirements", "reference"]));
 
   actionsSection.hidden = false;
-  renderExplorerSection(actionsSection, "Actions", table(actions, ["title", "status", "dueDate", "requirements"]));
+  renderExplorerSection(actionsSection, "Actions", tagFilterPanel(tagModel) + table(actions, ["title", "status", "dueDate", "requirements"]));
 
   actionImpactSection.hidden = false;
   renderExplorerSection(actionImpactSection, "Action Impact ranking", '<p class="muted">Derived from linked requirements, evidence, risks, and Directions. Scoring is explainable and deterministic.</p>' + actionImpactTable(collections));
 
   risksSection.hidden = false;
-  renderExplorerSection(risksSection, "Risks", table(risks, ["title", "status", "likelihood", "impact", "requirements"]));
+  renderExplorerSection(risksSection, "Risks", tagFilterPanel(tagModel) + table(risks, ["title", "status", "likelihood", "impact", "requirements"]));
 
   strategySection.hidden = false;
   renderExplorerSection(strategySection, "Cyber Strategy", strategyPanel(collections, entitiesById));
@@ -655,146 +652,16 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderExplorerSection(ismCoverageSection, "ISM Coverage", table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"]));
 
   linksSection.hidden = false;
-  renderExplorerSection(linksSection, "Relationships Board", relationshipSavedViewsPanel() + tagFilterPanel(tagModel) + table(relationships, ["title", "relationship", "from", "to"]));
+  renderExplorerSection(linksSection, "Relationships Board", tagFilterPanel(tagModel) + table(relationships, ["title", "relationship", "from", "to"]));
 
   connectedViewSection.hidden = false;
   renderConnectedViewExplorerSection(collections);
 
   bindTagFilterControls();
   bindRequirementStatusFilterControls();
-  bindSavedViewControls();
-  bindRelationshipSavedViewControls();
   applyTagFilter();
   applyRequirementStatusFilter();
   applyExplorerSearch();
-}
-
-function applyExplorerSearch() {
-  if (explorerSearchInput instanceof HTMLInputElement && explorerSearchInput.value !== currentExplorerSearch) {
-    explorerSearchInput.value = currentExplorerSearch;
-  }
-  if (currentLocalRequirementFilter !== currentExplorerSearch) {
-    currentLocalRequirementFilter = currentExplorerSearch;
-    renderLocalAuthoringSection();
-  }
-  const query = normaliseSearchText(currentExplorerSearch);
-  const searchableSections = Array.from(document.querySelectorAll("details.panel")).filter((section) => section !== localAuthoringSection && section !== validationSection);
-  let visibleRows = 0;
-  let totalRows = 0;
-  for (const section of searchableSections) {
-    const rows = Array.from(section.querySelectorAll("tbody tr"));
-    let sectionMatches = false;
-    for (const row of rows) {
-      totalRows += 1;
-      const matchesTagFilter = row.dataset.tagFilterHidden !== "true";
-      const matchesStatusFilter = row.dataset.statusFilterHidden !== "true";
-      const matches = matchesTagFilter && matchesStatusFilter && (!query || normaliseSearchText(row.textContent).includes(query));
-      row.hidden = !matches;
-      if (matches) {
-        visibleRows += 1;
-        sectionMatches = true;
-      }
-    }
-    const empty = section.querySelector(".explorer-search-empty");
-    if (empty) {
-      empty.remove();
-    }
-    if (query && rows.length > 0 && !sectionMatches) {
-      section.querySelector(".section-body")?.insertAdjacentHTML("beforeend", '<p class="muted explorer-search-empty">No matching rows in this section.</p>');
-    }
-    if (query && sectionMatches && section instanceof HTMLDetailsElement) {
-      section.open = true;
-    }
-  }
-  const localMatches = matchingLocalRequirements(currentLocalRequirements).length;
-  if (query && localMatches > 0 && localAuthoringSection instanceof HTMLDetailsElement) {
-    localAuthoringSection.open = true;
-  }
-  if (!explorerSearchStatus) {
-    return;
-  }
-  explorerSearchStatus.textContent = query ? visibleRows + " of " + totalRows + " rows match · " + localMatches + " Local Changes requirement(s)" : "Search loaded records";
-}
-
-function normaliseSearchText(value) {
-  return String(value || "").toLowerCase().replace(/\\s+/g, " ").trim();
-}
-
-function renderExplorerSection(section, heading, body, open = false) {
-  const shouldOpen = section.open || open;
-  section.innerHTML = '<summary><h2>' + escapeHtml(heading) + '</h2></summary><div class="section-body">' + body + '</div>';
-  section.open = shouldOpen;
-}
-
-function renderConnectedViewExplorerSection(collections) {
-  const hasRendered = connectedViewSection.dataset.connectedViewRendered === "true";
-  const shouldOpen = hasRendered ? connectedViewSection.open : true;
-  connectedViewSection.classList.add("connected-view-panel");
-  connectedViewSection.dataset.connectedViewRendered = "true";
-  connectedViewSection.innerHTML = '<summary><h2>Connected View</h2></summary><div class="section-body"><p class="muted">Trace the chain across Directions, Requirements, Risks, and Actions. Hover for details, click to highlight the connected chain, Cmd/Ctrl-click to add to selection, and use Refresh to reload this section.</p><div data-cv-mount></div></div>';
-  connectedViewSection.open = shouldOpen;
-  const mount = connectedViewSection.querySelector("[data-cv-mount]");
-  const api = globalThis.pspfConnectedView;
-  if (!mount || !api || typeof api.renderInto !== "function") {
-    connectedViewSection.querySelector(".section-body")?.insertAdjacentHTML("beforeend", '<p class="muted">Connected View could not initialise. Reload the page and open the latest PSPF JSON again.</p>');
-    return;
-  }
-  api.renderInto(mount, {
-    requirements: collections.requirements || [],
-    risks: collections.risks || [],
-    actions: collections.actions || [],
-    directions: collections.directions || [],
-    links: collections.links || [],
-    domains: collections.domains || []
-  }, { mode: "explorer", defaultLayout: "compact", title: "Connected View", subtitle: "Directions \u00b7 Requirements \u00b7 Risks \u00b7 Actions" });
-}
-
-function strategyPanel(collections, entitiesById) {
-  const strategies = collections.strategies || [];
-  if (strategies.length === 0) {
-    return '<p class="muted">No published Strategy record in this bundle.</p>';
-  }
-  const strategy = strategies[0];
-  const choiceCards = (strategy.choices || []).map((choice) => '<article class="metric">' +
-    '<span>' + escapeHtml(choice.capabilityArea || "Strategic choice") + '</span>' +
-    '<strong style="font-size:18px;line-height:1.25;">' + escapeHtml(choice.statement || "Untitled choice") + '</strong>' +
-    '<p>' + escapeHtml(choice.summary || "") + '</p>' +
-    '<p class="muted">Trend: ' + escapeHtml(label(choice.trend || "unknown")) + ' · Confidence: ' + escapeHtml(label(choice.confidence || "low")) + '</p>' +
-    '<p>' + escapeHtml(choice.targetPosture || "") + '</p>' +
-    '<h3>Linked records</h3>' + strategyReferenceList(choice.references || [], entitiesById) +
-    '<h3>Outcomes</h3>' + (choice.outcomes || []).map((outcome) => '<p><strong>' + escapeHtml(outcome.statement || "Outcome") + '</strong><br><span class="muted">' + escapeHtml(outcome.summary || "") + '</span></p>').join("") +
-  '</article>').join("");
-  const choiceRows = (strategy.choices || []).map((choice) => ({
-    choice: choice.statement,
-    capability: choice.capabilityArea,
-    trend: label(choice.trend || "unknown"),
-    confidence: label(choice.confidence || "low"),
-    outcomes: (choice.outcomes || []).length,
-    linkedRecords: (choice.references || []).length,
-    target: choice.targetPosture
-  }));
-  const measureRows = (strategy.choices || []).flatMap((choice) => (choice.outcomes || []).flatMap((outcome) => (outcome.measures || []).map((measure) => ({
-    choice: choice.statement,
-    outcome: outcome.statement,
-    measure: measure.title,
-    class: label(measure.measureClass || "capability"),
-    current: measure.current || "Not recorded",
-    target: measure.target || "Not recorded",
-    trend: label(measure.trend || "unknown"),
-    confidence: label(measure.confidence || "low")
-  }))));
-  return '<p class="muted">Executive strategy view links choices and outcomes to published Requirements, Risks, Actions, and Directions.</p>' +
-    '<div class="grid">' +
-      metric("Scope", strategy.scope || "Not recorded") +
-      metric("Time horizon", strategy.timeHorizon || "Not recorded") +
-      metric("Choices", (strategy.choices || []).length) +
-      metric("Frameworks", (strategy.frameworks || []).join(", ") || "Not recorded") +
-    '</div>' +
-    '<h3>Strategy Statement</h3><p>' + escapeHtml(strategy.strategyStatement || "") + '</p>' +
-    '<h3>Risk Posture</h3><p>' + escapeHtml(strategy.riskPostureStatement || "") + '</p>' +
-    '<div class="grid">' + choiceCards + '</div>' +
-    '<h3>Choice Summary</h3>' + table(choiceRows, ["choice", "capability", "trend", "confidence", "outcomes", "linkedRecords", "target"]) +
-    '<h3>Posture Measures</h3>' + table(measureRows, ["choice", "outcome", "measure", "class", "current", "target", "trend", "confidence"]);
 }
 
 function strategyReferenceList(references, entitiesById) {
@@ -834,6 +701,10 @@ function tagIdsForRelationship(link, tagModel) {
   return [];
 }
 
+function tagIdsForRequirementIds(requirementIds, tagModel) {
+  return [...new Set((requirementIds || []).flatMap((requirementId) => tagModel.idsByRequirement.get(requirementId) || []))];
+}
+
 function tagFilterPanel(tagModel) {
   if (tagModel.tags.length === 0) {
     return '<p class="muted">No active tags in this bundle.</p>';
@@ -842,62 +713,15 @@ function tagFilterPanel(tagModel) {
   return '<div class="tag-filter" role="group" aria-label="Tag filter"><div class="toolbar"><strong>Tag filter</strong><select class="tag-filter-mode" aria-label="Tag filter mode"><option value="any"' + (currentTagFilterMode === "any" ? ' selected' : '') + '>Any selected tag</option><option value="all"' + (currentTagFilterMode === "all" ? ' selected' : '') + '>All selected tags</option></select><button type="button" class="secondary tag-filter-clear">Clear tags</button></div><div class="tag-filter-options">' + options + '</div></div>';
 }
 
-function savedViewsPanel() {
-  const activeSavedViews = savedViewsForScope("explorer-requirements");
-  const options = ['<option value="">Saved views</option>'].concat(activeSavedViews.map((view) => '<option value="' + escapeHtml(view.id) + '"' + (view.id === activeSavedViewId ? ' selected' : '') + '>' + escapeHtml(view.name) + '</option>')).join("");
-  const active = activeSavedViews.find((view) => view.id === activeSavedViewId);
-  return '<div class="tag-filter saved-view-filter" role="group" aria-label="Saved views"><div class="toolbar"><strong>Saved views</strong><select id="saved-view-picker" aria-label="Saved views">' + options + '</select><button type="button" id="save-requirements-view">Save view</button><button type="button" class="secondary" id="rename-requirements-view"' + (active ? '' : ' disabled') + '>Rename</button><button type="button" class="secondary" id="archive-requirements-view"' + (active ? '' : ' disabled') + '>Archive</button><button type="button" class="secondary" id="clear-requirements-view">Clear active view</button></div><p class="muted" id="saved-view-status">' + escapeHtml(active ? 'Active view: ' + active.name + ' · ' + savedViewSummary(active) : activeSavedViews.length + ' saved view(s) available') + '</p></div>';
-}
-
-function relationshipSavedViewsPanel() {
-  const activeSavedViews = savedViewsForScope("explorer-relationships");
-  const options = ['<option value="">Saved views</option>'].concat(activeSavedViews.map((view) => '<option value="' + escapeHtml(view.id) + '"' + (view.id === activeRelationshipsSavedViewId ? ' selected' : '') + '>' + escapeHtml(view.name) + '</option>')).join("");
-  const active = activeSavedViews.find((view) => view.id === activeRelationshipsSavedViewId);
-  return '<div class="tag-filter saved-view-filter" role="group" aria-label="Relationship saved views"><div class="toolbar"><strong>Relationship views</strong><select id="relationship-saved-view-picker" aria-label="Relationship saved views">' + options + '</select><button type="button" id="save-relationships-view">Save view</button><button type="button" class="secondary" id="rename-relationships-view"' + (active ? '' : ' disabled') + '>Rename</button><button type="button" class="secondary" id="archive-relationships-view"' + (active ? '' : ' disabled') + '>Archive</button><button type="button" class="secondary" id="clear-relationships-view">Clear active view</button></div><p class="muted" id="relationship-saved-view-status">' + escapeHtml(active ? 'Active view: ' + active.name + ' · ' + savedViewSummary(active) : activeSavedViews.length + ' saved relationship view(s) available') + '</p></div>';
-}
-
-function savedViewsForScope(scope) {
-  return currentSavedViews
-    .filter((view) => view.recordStatus !== "archived" && view.recordStatus !== "deleted" && (view.scope === scope || scope === "explorer-requirements" && view.scope === "requirements"))
-    .sort((left, right) => String(left.name).localeCompare(String(right.name), "en-AU", { sensitivity: "base" }));
-}
-
 function requirementStatusFilterPanel() {
   const options = assessmentStatuses.map((status) => '<label><input type="checkbox" class="requirement-status-filter-checkbox" value="' + escapeHtml(status) + '"' + (currentRequirementStatusFilter.has(status) ? ' checked' : '') + '> ' + escapeHtml(label(status)) + '</label>').join("");
   return '<div class="tag-filter" role="group" aria-label="Requirement status filter"><div class="toolbar"><strong>Status filter</strong><button type="button" class="secondary requirement-status-filter-clear">Clear statuses</button></div><div class="tag-filter-options">' + options + '</div></div>';
-}
-
-function bindSavedViewControls() {
-  document.querySelector("#save-requirements-view")?.addEventListener("click", saveCurrentRequirementsView);
-  document.querySelector("#rename-requirements-view")?.addEventListener("click", renameActiveRequirementsView);
-  document.querySelector("#archive-requirements-view")?.addEventListener("click", archiveActiveRequirementsView);
-  document.querySelector("#clear-requirements-view")?.addEventListener("click", clearActiveRequirementsView);
-  document.querySelector("#saved-view-picker")?.addEventListener("change", async (event) => {
-    const view = currentSavedViews.find((item) => item.id === event.currentTarget.value);
-    if (view) {
-      await applySavedView(view.id);
-    }
-  });
-}
-
-function bindRelationshipSavedViewControls() {
-  document.querySelector("#save-relationships-view")?.addEventListener("click", saveCurrentRelationshipsView);
-  document.querySelector("#rename-relationships-view")?.addEventListener("click", renameActiveRelationshipsView);
-  document.querySelector("#archive-relationships-view")?.addEventListener("click", archiveActiveRelationshipsView);
-  document.querySelector("#clear-relationships-view")?.addEventListener("click", clearActiveRelationshipsView);
-  document.querySelector("#relationship-saved-view-picker")?.addEventListener("change", async (event) => {
-    const view = currentSavedViews.find((item) => item.id === event.currentTarget.value);
-    if (view) {
-      await applyRelationshipsSavedView(view.id);
-    }
-  });
 }
 
 function bindRequirementStatusFilterControls() {
   document.querySelectorAll(".requirement-status-filter-checkbox").forEach((input) => {
     input.addEventListener("change", () => {
       currentRequirementStatusFilter = new Set(Array.from(document.querySelectorAll(".requirement-status-filter-checkbox:checked")).map((item) => item.value));
-      activeSavedViewId = "";
       persistRequirementFilterState();
       syncRequirementStatusFilterControls();
       applyRequirementStatusFilter();
@@ -907,7 +731,6 @@ function bindRequirementStatusFilterControls() {
   document.querySelectorAll(".requirement-status-filter-clear").forEach((button) => {
     button.addEventListener("click", () => {
       currentRequirementStatusFilter = new Set();
-      activeSavedViewId = "";
       persistRequirementFilterState();
       syncRequirementStatusFilterControls();
       applyRequirementStatusFilter();
@@ -937,264 +760,22 @@ function loadRequirementFilterState() {
     const stored = JSON.parse(sessionStorage.getItem(requirementFilterSessionKey) || "null");
     currentRequirementStatusFilter = new Set(Array.isArray(stored?.assessmentStatuses) ? stored.assessmentStatuses : []);
     currentExplorerSearch = typeof stored?.query === "string" ? stored.query : currentExplorerSearch;
-    activeSavedViewId = typeof stored?.activeSavedViewId === "string" ? stored.activeSavedViewId : "";
   } catch {
     currentRequirementStatusFilter = new Set();
-    activeSavedViewId = "";
   }
 }
 
 function persistRequirementFilterState() {
   sessionStorage.setItem(requirementFilterSessionKey, JSON.stringify({
     query: currentExplorerSearch,
-    assessmentStatuses: [...currentRequirementStatusFilter],
-    activeSavedViewId
+    assessmentStatuses: [...currentRequirementStatusFilter]
   }));
-}
-
-async function saveCurrentRequirementsView(nameOverride = undefined) {
-  const name = nameOverride === undefined ? prompt("Saved view name", suggestedSavedViewName()) : nameOverride;
-  await saveCurrentScopedView("explorer-requirements", name, "requirements");
-}
-
-async function saveCurrentRelationshipsView(nameOverride = undefined) {
-  const name = nameOverride === undefined ? prompt("Relationship view name", suggestedSavedViewName("Relationships view")) : nameOverride;
-  await saveCurrentScopedView("explorer-relationships", name, "relationships");
-}
-
-async function saveCurrentScopedView(scope, name, target) {
-  const cleanName = normaliseSavedViewDisplayName(name);
-  if (!cleanName) {
-    return;
-  }
-  if (currentSavedViews.some((view) => view.recordStatus !== "deleted" && view.scope === scope && normaliseSavedViewName(view.name) === normaliseSavedViewName(cleanName))) {
-    alert("A saved view with that name already exists.");
-    return;
-  }
-  const timestamp = new Date().toISOString();
-  const id = "SVW-" + crypto.randomUUID();
-  const savedView = {
-    key: currentBundleKey + "::" + id,
-    bundleKey: currentBundleKey,
-    id,
-    entityType: "saved-view",
-    schemaVersion: "${VERSION_AXES.schemaVersion}",
-    title: cleanName,
-    name: cleanName,
-    scope,
-    filters: currentSavedViewFilters(),
-    presentation: target === "relationships"
-      ? { sortKey: "title", sortDirection: "asc", visibleColumns: ["title", "relationship", "from", "to", "tags"] }
-      : { sortKey: "title", sortDirection: "asc", visibleColumns: ["title", "assessmentStatus", "tags", "evidence", "actions", "risks"] },
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    sourceProduct: "explorer",
-    recordStatus: "active"
-  };
-  await saveSavedView(savedView);
-  if (target === "relationships") {
-    activeRelationshipsSavedViewId = id;
-  } else {
-    activeSavedViewId = id;
-  }
-  persistRequirementFilterState();
-  await render(currentManifest, currentBaselineCollections);
-}
-
-async function applySavedView(savedViewId) {
-  const view = currentSavedViews.find((item) => item.id === savedViewId && item.recordStatus !== "archived" && item.recordStatus !== "deleted");
-  if (!view) {
-    return;
-  }
-  const filters = view.filters || {};
-  currentExplorerSearch = filters.query || "";
-  currentLocalRequirementFilter = currentExplorerSearch;
-  currentRequirementStatusFilter = new Set(Array.isArray(filters.assessmentStatuses) ? filters.assessmentStatuses : []);
-  currentTagFilterIds = new Set(Array.isArray(filters.tagIds) ? filters.tagIds.filter((id) => (currentCollections?.tags || []).some((tag) => tag.id === id && tag.recordStatus !== "deleted")) : []);
-  currentTagFilterMode = filters.tagsMode === "all" ? "all" : "any";
-  activeSavedViewId = view.id;
-  persistTagFilterState();
-  persistRequirementFilterState();
-  if (explorerSearchInput instanceof HTMLInputElement) {
-    explorerSearchInput.value = currentExplorerSearch;
-  }
-  syncTagFilterControls();
-  syncRequirementStatusFilterControls();
-  applyTagFilter();
-  applyRequirementStatusFilter();
-  applyExplorerSearch();
-  requirementsSection.open = true;
-}
-
-async function applyRelationshipsSavedView(savedViewId) {
-  const view = currentSavedViews.find((item) => item.id === savedViewId && item.scope === "explorer-relationships" && item.recordStatus !== "archived" && item.recordStatus !== "deleted");
-  if (!view) {
-    return;
-  }
-  await applySavedViewFilters(view);
-  activeRelationshipsSavedViewId = view.id;
-  linksSection.open = true;
-}
-
-async function applySavedViewFilters(view) {
-  const filters = view.filters || {};
-  currentExplorerSearch = filters.query || "";
-  currentLocalRequirementFilter = currentExplorerSearch;
-  currentRequirementStatusFilter = new Set(Array.isArray(filters.assessmentStatuses) ? filters.assessmentStatuses : []);
-  currentTagFilterIds = new Set(Array.isArray(filters.tagIds) ? filters.tagIds.filter((id) => (currentCollections?.tags || []).some((tag) => tag.id === id && tag.recordStatus !== "deleted")) : []);
-  currentTagFilterMode = filters.tagsMode === "all" ? "all" : "any";
-  persistTagFilterState();
-  persistRequirementFilterState();
-  if (explorerSearchInput instanceof HTMLInputElement) {
-    explorerSearchInput.value = currentExplorerSearch;
-  }
-  syncTagFilterControls();
-  syncRequirementStatusFilterControls();
-  applyTagFilter();
-  applyRequirementStatusFilter();
-  applyExplorerSearch();
-}
-
-async function renameActiveRequirementsView() {
-  const view = currentSavedViews.find((item) => item.id === activeSavedViewId);
-  if (!view) {
-    return;
-  }
-  const name = prompt("Rename saved view", view.name);
-  const cleanName = normaliseSavedViewDisplayName(name);
-  if (!cleanName) {
-    return;
-  }
-  if (currentSavedViews.some((item) => item.id !== view.id && item.recordStatus !== "deleted" && item.scope === view.scope && normaliseSavedViewName(item.name) === normaliseSavedViewName(cleanName))) {
-    alert("A saved view with that name already exists.");
-    return;
-  }
-  await saveSavedView({ ...view, name: cleanName, title: cleanName, updatedAt: new Date().toISOString() });
-  await render(currentManifest, currentBaselineCollections);
-}
-
-async function renameActiveRelationshipsView() {
-  const view = currentSavedViews.find((item) => item.id === activeRelationshipsSavedViewId);
-  if (!view) {
-    return;
-  }
-  const name = prompt("Rename relationship view", view.name);
-  const cleanName = normaliseSavedViewDisplayName(name);
-  if (!cleanName) {
-    return;
-  }
-  if (currentSavedViews.some((item) => item.id !== view.id && item.recordStatus !== "deleted" && item.scope === view.scope && normaliseSavedViewName(item.name) === normaliseSavedViewName(cleanName))) {
-    alert("A saved view with that name already exists.");
-    return;
-  }
-  await saveSavedView({ ...view, name: cleanName, title: cleanName, updatedAt: new Date().toISOString() });
-  await render(currentManifest, currentBaselineCollections);
-}
-
-async function archiveActiveRelationshipsView() {
-  const view = currentSavedViews.find((item) => item.id === activeRelationshipsSavedViewId);
-  if (!view) {
-    return;
-  }
-  if (!confirm("Archive this saved view?")) {
-    return;
-  }
-  await saveSavedView({ ...view, recordStatus: "archived", updatedAt: new Date().toISOString() });
-  activeRelationshipsSavedViewId = "";
-  await render(currentManifest, currentBaselineCollections);
-}
-
-async function clearActiveRelationshipsView() {
-  activeRelationshipsSavedViewId = "";
-  currentExplorerSearch = "";
-  currentLocalRequirementFilter = "";
-  currentTagFilterIds = new Set();
-  currentTagFilterMode = "any";
-  persistTagFilterState();
-  persistRequirementFilterState();
-  await render(currentManifest, currentBaselineCollections);
-}
-
-async function archiveActiveRequirementsView() {
-  const view = currentSavedViews.find((item) => item.id === activeSavedViewId);
-  if (!view) {
-    return;
-  }
-  if (!confirm("Archive this saved view?")) {
-    return;
-  }
-  await saveSavedView({ ...view, recordStatus: "archived", updatedAt: new Date().toISOString() });
-  activeSavedViewId = "";
-  persistRequirementFilterState();
-  await render(currentManifest, currentBaselineCollections);
-}
-
-async function clearActiveRequirementsView() {
-  activeSavedViewId = "";
-  currentExplorerSearch = "";
-  currentLocalRequirementFilter = "";
-  currentRequirementStatusFilter = new Set();
-  currentTagFilterIds = new Set();
-  currentTagFilterMode = "any";
-  persistTagFilterState();
-  persistRequirementFilterState();
-  await render(currentManifest, currentBaselineCollections);
-}
-
-function currentSavedViewFilters() {
-  const filters = {};
-  const query = String(currentExplorerSearch || "").trim();
-  if (query) {
-    filters.query = query.slice(0, 120);
-  }
-  if (currentRequirementStatusFilter.size > 0) {
-    filters.assessmentStatuses = [...currentRequirementStatusFilter].filter((status) => assessmentStatuses.includes(status));
-  }
-  if (currentTagFilterIds.size > 0) {
-    filters.tagIds = [...currentTagFilterIds];
-    filters.tagsMode = currentTagFilterMode === "all" ? "all" : "any";
-  }
-  return filters;
-}
-
-function savedViewSummary(view) {
-  const filters = view.filters || {};
-  const parts = [];
-  if (filters.query) {
-    parts.push('Search: "' + filters.query + '"');
-  }
-  if ((filters.assessmentStatuses || []).length > 0) {
-    parts.push("Status: " + filters.assessmentStatuses.map(label).join(", "));
-  }
-  if ((filters.tagIds || []).length > 0) {
-    parts.push(filters.tagIds.length + " tag(s) " + label(filters.tagsMode || "any"));
-  }
-  return parts.length > 0 ? parts.join(" · ") : "No filters";
-}
-
-function suggestedSavedViewName(fallback = "Requirements view") {
-  if (currentRequirementStatusFilter.size > 0) {
-    return [...currentRequirementStatusFilter].map(label).join(", ");
-  }
-  if (currentTagFilterIds.size > 0) {
-    return "Tagged requirements";
-  }
-  return currentExplorerSearch ? "Search: " + currentExplorerSearch.slice(0, 40) : fallback;
-}
-
-function normaliseSavedViewDisplayName(value) {
-  return String(value || "").normalize("NFC").trim().replace(/\\s+/g, " ").slice(0, 60);
-}
-
-function normaliseSavedViewName(value) {
-  return normaliseSavedViewDisplayName(value).toLocaleLowerCase("en-AU");
 }
 
 function bindTagFilterControls() {
   document.querySelectorAll(".tag-filter-checkbox").forEach((input) => {
     input.addEventListener("change", () => {
       currentTagFilterIds = new Set(Array.from(document.querySelectorAll(".tag-filter-checkbox:checked")).map((item) => item.value));
-      activeSavedViewId = "";
       persistTagFilterState();
       persistRequirementFilterState();
       syncTagFilterControls();
@@ -1205,7 +786,6 @@ function bindTagFilterControls() {
   document.querySelectorAll(".tag-filter-mode").forEach((select) => {
     select.addEventListener("change", () => {
       currentTagFilterMode = select.value === "all" ? "all" : "any";
-      activeSavedViewId = "";
       persistTagFilterState();
       persistRequirementFilterState();
       syncTagFilterControls();
@@ -1217,7 +797,6 @@ function bindTagFilterControls() {
     button.addEventListener("click", () => {
       currentTagFilterIds = new Set();
       currentTagFilterMode = "any";
-      activeSavedViewId = "";
       persistTagFilterState();
       persistRequirementFilterState();
       syncTagFilterControls();
@@ -1238,7 +817,7 @@ function syncTagFilterControls() {
 
 function applyTagFilter() {
   const selected = [...currentTagFilterIds];
-  for (const row of document.querySelectorAll("#requirements tbody tr, #links tbody tr")) {
+  for (const row of document.querySelectorAll("tbody tr[data-tag-ids]")) {
     const rowTags = String(row.dataset.tagIds || "").split(",").filter(Boolean);
     const matches = selected.length === 0 || (currentTagFilterMode === "all" ? selected.every((id) => rowTags.includes(id)) : selected.some((id) => rowTags.includes(id)));
     row.dataset.tagFilterHidden = matches ? "false" : "true";
@@ -1601,7 +1180,6 @@ function bindLocalAuthoringControls() {
   localAuthoringSection.querySelector("#local-clear-search")?.addEventListener("click", () => {
     currentExplorerSearch = "";
     currentLocalRequirementFilter = "";
-    activeSavedViewId = "";
     persistRequirementFilterState();
     if (explorerSearchInput instanceof HTMLInputElement) {
       explorerSearchInput.value = "";
@@ -1888,7 +1466,7 @@ function localStatusConflicts() {
   return conflicts;
 }
 
-function applyLocalEdits(collections, overlays, evidenceReferences, localActions, localRisks, savedViews) {
+function applyLocalEdits(collections, overlays, evidenceReferences, localActions, localRisks) {
   const clone = cloneCollections(collections);
   clone.requirements = (clone.requirements || []).map((requirement) => {
     const overlay = overlays.get(requirement.id);
@@ -1929,11 +1507,6 @@ function applyLocalEdits(collections, overlays, evidenceReferences, localActions
       clone.links = [...(clone.links || []), materialised.link];
     }
   }
-  const savedViewEntities = (savedViews || []).filter((view) => view.recordStatus !== "archived" && view.recordStatus !== "deleted").map(materialiseSavedView);
-  clone["saved-views"] = [
-    ...(clone["saved-views"] || []).filter((view) => !savedViewEntities.some((localView) => localView.id === view.id)),
-    ...savedViewEntities
-  ];
   clone.posture = (clone.posture || []).map((posture) => ({
     ...posture,
     updatedAt: new Date().toISOString(),
@@ -1947,11 +1520,6 @@ function applyLocalEdits(collections, overlays, evidenceReferences, localActions
     directionCount: (clone.directions || []).length
   }));
   return clone;
-}
-
-function materialiseSavedView(record) {
-  const { key, bundleKey, ...entity } = record;
-  return entity;
 }
 
 async function addLocalRisk(requirementId, title, status, likelihood, impact) {
@@ -2262,10 +1830,6 @@ function openLocalDb() {
         const store = db.createObjectStore(localRiskStoreName, { keyPath: "key" });
         store.createIndex("bundleKey", "bundleKey", { unique: false });
       }
-      if (!db.objectStoreNames.contains(localSavedViewStoreName)) {
-        const store = db.createObjectStore(localSavedViewStoreName, { keyPath: "key" });
-        store.createIndex("bundleKey", "bundleKey", { unique: false });
-      }
       if (!db.objectStoreNames.contains(rememberedBundleStoreName)) {
         db.createObjectStore(rememberedBundleStoreName, { keyPath: "key" });
       }
@@ -2370,29 +1934,6 @@ async function saveLocalRisk(record) {
   });
 }
 
-async function loadSavedViews(bundleKey) {
-  const db = await openLocalDb();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(localSavedViewStoreName, "readonly");
-    const store = transaction.objectStore(localSavedViewStoreName);
-    const index = store.index("bundleKey");
-    const request = index.getAll(bundleKey);
-    request.addEventListener("success", () => resolve(request.result.sort((left, right) => left.name.localeCompare(right.name, "en-AU", { sensitivity: "base" }))));
-    request.addEventListener("error", () => reject(request.error));
-    transaction.addEventListener("complete", () => db.close());
-  });
-}
-
-async function saveSavedView(record) {
-  const db = await openLocalDb();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(localSavedViewStoreName, "readwrite");
-    transaction.objectStore(localSavedViewStoreName).put(record);
-    transaction.addEventListener("complete", () => { db.close(); resolve(); });
-    transaction.addEventListener("error", () => reject(transaction.error));
-  });
-}
-
 async function loadLocalActions(bundleKey) {
   const db = await openLocalDb();
   return new Promise((resolve, reject) => {
@@ -2485,7 +2026,6 @@ async function resetLocalData(bundleKey) {
   await resetLocalEvidenceReferences(bundleKey);
   await resetLocalActions(bundleKey);
   await resetLocalRisks(bundleKey);
-  await resetSavedViews(bundleKey);
 }
 
 async function resetLocalActions(bundleKey) {
@@ -2494,10 +2034,6 @@ async function resetLocalActions(bundleKey) {
 
 async function resetLocalRisks(bundleKey) {
   await resetObjectStoreByBundleKey(localRiskStoreName, bundleKey);
-}
-
-async function resetSavedViews(bundleKey) {
-  await resetObjectStoreByBundleKey(localSavedViewStoreName, bundleKey);
 }
 
 async function resetObjectStoreByBundleKey(storeName, bundleKey) {
@@ -2990,12 +2526,6 @@ globalThis.pspfExplorerSetLocalRequirementStatus = setLocalRequirementStatus;
 globalThis.pspfExplorerAddLocalEvidenceReference = addLocalEvidenceReference;
 globalThis.pspfExplorerAddLocalAction = addLocalAction;
 globalThis.pspfExplorerAddLocalRisk = addLocalRisk;
-globalThis.pspfExplorerSaveCurrentRequirementsView = saveCurrentRequirementsView;
-globalThis.pspfExplorerSaveRequirementsView = saveCurrentRequirementsView;
-globalThis.pspfExplorerSaveRelationshipsView = saveCurrentRelationshipsView;
-globalThis.pspfExplorerApplySavedView = applySavedView;
-globalThis.pspfExplorerApplyRelationshipsSavedView = applyRelationshipsSavedView;
-globalThis.pspfExplorerSavedViews = () => currentSavedViews.map(materialiseSavedView);
 globalThis.pspfExplorerExportLocalBundle = exportLocalAuthoringBundle;
 globalThis.pspfExplorerSetIncludeComplianceHistory = (value) => { includeComplianceHistoryInExport = Boolean(value); };
 globalThis.pspfExplorerResetLocalData = () => resetLocalData(currentBundleKey);

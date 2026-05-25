@@ -73,6 +73,7 @@ import {
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import {
+  buildRelationshipConsequence,
   existingItemOperatorRule,
   linkPhraseForExistingItem,
   linkTypeForExistingItem,
@@ -4003,7 +4004,12 @@ function strategyReferenceList(
   return `<ul>${rows}</ul>`;
 }
 
-async function openConnectedView(): Promise<void> {
+interface ConnectedViewOpenOptions {
+  readonly initialSelectionIds?: readonly string[];
+  readonly revealMessage?: string;
+}
+
+async function openConnectedView(options: ConnectedViewOpenOptions = {}): Promise<void> {
   await ensureCoreReady();
   const panel = vscode.window.createWebviewPanel("pspfConnectedView", "PSPF Connected View", vscode.ViewColumn.One, {
     enableScripts: false
@@ -4034,7 +4040,9 @@ async function openConnectedView(): Promise<void> {
       mode: "workshop",
       defaultLayout: "domains",
       title: "Connected View",
-      subtitle: "Directions · Requirements · Risks · Actions"
+      subtitle: "Directions · Requirements · Risks · Actions",
+      initialSelectionIds: options.initialSelectionIds,
+      revealMessage: options.revealMessage
     });
 
     panel.webview.html = shellHtml(
@@ -7992,6 +8000,27 @@ async function linkExistingItemToRequirement(
   await vscode.commands.executeCommand("pspf.core.upsertEntities", links);
   await refreshWorkshopSurfaces();
   await rememberRequirement(requirement);
+  const consequence = buildRelationshipConsequence({
+    requirement,
+    itemType,
+    linkedItems: picked.map(({ entity }) => entity),
+    allEntities,
+    newLinks: links
+  });
+  const action = await vscode.window.showInformationMessage(
+    `${consequence.title}: ${consequence.summary}`,
+    "Reveal in Connected View",
+    "Open Requirement"
+  );
+  if (action === "Reveal in Connected View") {
+    await openConnectedView({
+      initialSelectionIds: consequence.connectedViewFocusIds,
+      revealMessage: consequence.title
+    });
+  }
+  if (action === "Open Requirement") {
+    await openItemDetailForEntity("requirement", requirement.id);
+  }
 }
 
 function renderRequirementRelationshipManager(
@@ -8009,6 +8038,7 @@ function renderRequirementRelationshipManager(
       fromLabel: label(rule.fromType),
       phrase: rule.phrase,
       toLabel: label(rule.toType),
+      helpText: relationshipActionHelpText(itemType),
       command: availableCount > 0 ? linkExistingCommandForItem(itemType) : undefined,
       dataAttributes: { "data-requirement-id": requirement.id },
       disabledReason: `No unlinked ${label(itemType).toLowerCase()} records available`
@@ -8022,6 +8052,19 @@ function renderRequirementRelationshipManager(
     actions,
     emptyText: "No Requirement relationship actions are available."
   });
+}
+
+function relationshipActionHelpText(itemType: LinkableItemType): string {
+  switch (itemType) {
+    case "evidence":
+      return "Closes evidence gaps and strengthens the posture brief trail.";
+    case "action":
+      return "Adds remediation context and may change Action Impact priority.";
+    case "risk":
+      return "Adds risk context to the Requirement story and Connected View chain.";
+    case "direction":
+      return "Shows why this Requirement matters for current direction response.";
+  }
 }
 
 function unlinkedExistingItemCount(

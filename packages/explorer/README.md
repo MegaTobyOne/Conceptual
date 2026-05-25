@@ -7,7 +7,7 @@ Local-first tooling for Australian Government PSPF assurance work. Core, Worksho
 PSPF Explorer is a portable, static web interface that reads a curated JSON bundle exported by **PSPF Core** and renders it for review. Reviewers open it in a browser to see posture without touching the source workspace.
 
 - Posture donut, compact status table, and collapsible sections.
-- Action Impact, ISM coverage, saved views, tag filters, "Why This Changed", and Plan Lens.
+- Action Impact, ISM coverage, tag filtering on lists, "Why This Changed", and Plan Lens.
 - Readable relationship tables.
 - Short AU dates, compact unresolved IDs, and OFFICIAL: Sensitive / TLP:AMBER+STRICT handling cues.
 - Copyable posture brief for handing to reviewers.

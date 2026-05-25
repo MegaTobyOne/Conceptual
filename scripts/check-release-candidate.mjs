@@ -1504,7 +1504,7 @@ if (isV1Release && minorVersion >= 31) {
   }
   for (const requiredText of [
     "v1.31 candidate gates (6clicks risk source hardening, per ADR 0068)",
-    "PSPF_SLICE_VERSION` are `1.31.0`",
+    `PSPF_SLICE_VERSION\` are \`${expectedVersion}\``,
     "Explicit source-mode gate",
     "Local log gate",
     "Fixture hardening gate",

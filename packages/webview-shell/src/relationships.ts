@@ -3,6 +3,7 @@ export interface RelationshipManagerAction {
   readonly fromLabel: string;
   readonly phrase: string;
   readonly toLabel: string;
+  readonly helpText?: string;
   readonly href?: string;
   readonly command?: string;
   readonly dataAttributes?: Readonly<Record<string, string>>;
@@ -39,12 +40,13 @@ export function relationshipManagerHtml(options: RelationshipManagerOptions): st
   const actions = options.actions
     .map((action) => {
       const endpoint = `<span class="pspf-relationship-endpoints"><strong>${escapeText(action.fromLabel)}</strong> <span>${escapeText(action.phrase)}</span> <strong>${escapeText(action.toLabel)}</strong></span>`;
+      const help = action.helpText ? `<p class="pspf-muted">${escapeText(action.helpText)}</p>` : "";
       const command = action.href
         ? `<a class="pspf-button pspf-button--secondary" href="${escapeAttribute(action.href)}">${escapeText(action.label)}</a>`
         : action.command
           ? `<button type="button" class="pspf-button pspf-button--secondary" data-command="${escapeAttribute(action.command)}"${dataAttributesHtml(action.dataAttributes)}>${escapeText(action.label)}</button>`
           : `<span class="pspf-pill pspf-pill--neutral">${escapeText(action.disabledReason ?? "No action available")}</span>`;
-      return `<li class="pspf-relationship-action">${endpoint}${command}</li>`;
+      return `<li class="pspf-relationship-action">${endpoint}${help}${command}</li>`;
     })
     .join("");
 

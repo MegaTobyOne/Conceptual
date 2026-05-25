@@ -1327,6 +1327,7 @@ function homeFoundationCard(title: string, body: string): string {
 
 function renderOrgChartHtml(store: PubStore): string {
   const teamDepth = teamDepthMap(store.teams);
+  const graphic = renderOrgChartGraphic(store, teamDepth);
   const rows = [...store.teams]
     .sort(
       (left, right) =>
@@ -1345,16 +1346,93 @@ function renderOrgChartHtml(store: PubStore): string {
     .join("");
   return pageHtml(
     "PSPF Pub Organisation Chart",
-    sectionHtml(
+    `<main>${sectionHtml(
       "Organisation chart",
       "Local reporting structure from parent teams, role reporting lines, assignments, action badges, and control ownership. Person names stay local-only.",
+      graphic
+    )}${sectionHtml(
+      "Organisation chart detail",
+      "Supporting table for scanning controls, reporting lines, assignments, and outcomes.",
       tableHtml(
         ["Team", "Parent", "Owned controls", "Role", "Reports to", "Assigned", "Badges", "Functional outcome"],
         rows,
         8
       )
-    )
+    )}</main>`
   );
+}
+
+function renderOrgChartGraphic(store: PubStore, teamDepth: ReadonlyMap<string, number>): string {
+  if (store.teams.length === 0) {
+    return `<div class="org-chart-empty">No Pub teams yet. Load the sample or add teams, roles, and assignments to build the chart.</div>`;
+  }
+  const teamIds = new Set(store.teams.map((team) => team.id));
+  const rootTeams = store.teams
+    .filter((team) => !team.parentTeamId || !teamIds.has(team.parentTeamId))
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
+  return `<div class="org-chart-graphic" role="tree" aria-label="Pub organisation chart graphic view">${rootTeams
+    .map((team) => renderOrgChartTeamNode(store, team, teamDepth, new Set<string>()))
+    .join("")}</div>`;
+}
+
+function renderOrgChartTeamNode(
+  store: PubStore,
+  team: TeamRecord,
+  teamDepth: ReadonlyMap<string, number>,
+  seenTeamIds: ReadonlySet<string>
+): string {
+  const nextSeenTeamIds = new Set([...seenTeamIds, team.id]);
+  const childTeams = store.teams
+    .filter((candidate) => candidate.parentTeamId === team.id && !nextSeenTeamIds.has(candidate.id))
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
+  const teamRoles = store.roles
+    .filter((role) => role.teamId === team.id)
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
+  const roleCards = teamRoles.length
+    ? teamRoles.map((role) => renderOrgChartRoleCard(store, role)).join("")
+    : `<article class="org-role-card org-role-card--empty"><strong>No role yet</strong><span>Add roles to show coverage and reporting lines.</span></article>`;
+  const childHtml = childTeams.length
+    ? `<div class="org-child-teams" role="group">${childTeams
+        .map((childTeam) => renderOrgChartTeamNode(store, childTeam, teamDepth, nextSeenTeamIds))
+        .join("")}</div>`
+    : "";
+
+  return `<article class="org-team-node" role="treeitem" aria-level="${(teamDepth.get(team.id) ?? 0) + 1}">
+    <div class="org-team-card">
+      <div class="org-team-heading"><span class="org-node-kicker">Team</span><h2>${escapeHtml(team.title)}</h2></div>
+      <p>${escapeHtml(team.responsibility || "No responsibility recorded")}</p>
+      <div class="tags">${teamOrgTags(team)}</div>
+      <div class="org-role-grid">${roleCards}</div>
+    </div>
+    ${childHtml}
+  </article>`;
+}
+
+function renderOrgChartRoleCard(store: PubStore, role: RoleRecord): string {
+  const assignments = store.assignments
+    .filter((assignment) => assignment.roleId === role.id)
+    .sort((left, right) => personName(store, left.personId).localeCompare(personName(store, right.personId), "en-AU"));
+  const assignmentHtml = assignments.length
+    ? assignments.map((assignment) => renderOrgChartAssignmentChip(store, assignment)).join("")
+    : `<span class="org-assignment-chip org-assignment-chip--gap">No assignment</span>`;
+  const reportsTo = roleTitle(store, role.reportsToRoleId);
+  return `<article class="org-role-card">
+    <div class="org-role-heading"><strong>${escapeHtml(role.title)}</strong>${reportsTo ? `<span>Reports to ${escapeHtml(reportsTo)}</span>` : `<span>No reporting role</span>`}</div>
+    <p>${escapeHtml(role.functionalOutcome || role.contribution || "No functional outcome recorded")}</p>
+    <div class="org-assignment-row">${assignmentHtml}</div>
+  </article>`;
+}
+
+function renderOrgChartAssignmentChip(store: PubStore, assignment: AssignmentRecord): string {
+  const details = [label(assignment.status), assignment.allocation, assignment.badge].filter(isNonEmptyString).join(" · ");
+  return `<span class="org-assignment-chip"><strong>${escapeHtml(personName(store, assignment.personId))}</strong><small>${escapeHtml(details || "Assigned")}</small></span>`;
+}
+
+function teamOrgTags(team: TeamRecord): string {
+  const tags = [controlSummary(team), ...team.ownedRequirementRefs.map((reference) => `Requirement ${reference}`)].filter(
+    isNonEmptyString
+  );
+  return tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
 }
 
 function renderTeamsHtml(store: PubStore): string {
@@ -2216,6 +2294,22 @@ function pageHtml(title: string, body: string): string {
     .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
     .tag, .badge { display: inline-flex; align-items: center; border: 1px solid var(--vscode-panel-border); border-radius: 999px; padding: 4px 8px; white-space: nowrap; }
     .badge { margin: 2px 4px 2px 0; color: var(--vscode-editor-foreground); background: color-mix(in srgb, var(--vscode-editor-background) 78%, #c45a64 22%); }
+    .org-chart-graphic { display: grid; gap: 18px; margin-top: 14px; overflow-x: auto; padding: 2px 2px 8px; }
+    .org-chart-empty { margin-top: 12px; border: 1px dashed var(--vscode-panel-border); border-radius: 8px; padding: 18px; color: var(--vscode-descriptionForeground); }
+    .org-team-node { display: grid; gap: 14px; min-width: min(980px, 100%); }
+    .org-team-card { position: relative; display: grid; gap: 12px; border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 72%, #c45a64 28%); border-radius: 10px; padding: 14px; background: color-mix(in srgb, var(--vscode-editor-background) 82%, #c45a64 18%); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+    .org-team-heading, .org-role-heading { display: grid; gap: 3px; }
+    .org-team-heading h2 { margin: 0; font-size: 1.05rem; }
+    .org-node-kicker, .org-role-heading span, .org-assignment-chip small { color: var(--vscode-descriptionForeground); font-size: 0.76rem; }
+    .org-role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+    .org-role-card { display: grid; gap: 8px; min-height: 118px; border: 1px solid var(--vscode-panel-border); border-radius: 8px; padding: 10px; background: var(--vscode-sideBar-background); }
+    .org-role-card--empty { border-style: dashed; color: var(--vscode-descriptionForeground); }
+    .org-assignment-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+    .org-assignment-chip { display: inline-grid; gap: 1px; max-width: 100%; border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 62%, #c45a64 38%); border-radius: 999px; padding: 5px 9px; background: color-mix(in srgb, var(--vscode-editor-background) 72%, #c45a64 28%); }
+    .org-assignment-chip strong, .org-assignment-chip small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .org-assignment-chip--gap { color: var(--vscode-descriptionForeground); background: transparent; border-style: dashed; }
+    .org-child-teams { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-left: 22px; padding-left: 22px; border-left: 2px solid color-mix(in srgb, var(--vscode-panel-border) 70%, #c45a64 30%); }
+    .org-child-teams > .org-team-node::before { content: ""; position: absolute; width: 22px; border-top: 2px solid color-mix(in srgb, var(--vscode-panel-border) 70%, #c45a64 30%); transform: translate(-23px, 28px); }
     .action-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
     .action-list.compact { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
     button { width: 100%; min-width: 0; border: 1px solid var(--vscode-button-border, transparent); border-radius: 6px; padding: 8px 10px; color: var(--vscode-button-foreground); background: var(--vscode-button-background); font: inherit; text-align: left; cursor: pointer; }
