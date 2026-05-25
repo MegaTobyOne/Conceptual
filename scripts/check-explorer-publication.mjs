@@ -316,7 +316,11 @@ try {
     const visibleElements = (selector) =>
       Array.from(document.querySelectorAll(selector)).filter((element) => element.offsetParent !== null);
     const uniqueVisibleCvIds = (selector) =>
-      new Set(visibleElements(selector).map((element) => element.dataset.cvId).filter(Boolean)).size;
+      new Set(
+        visibleElements(selector)
+          .map((element) => element.dataset.cvId)
+          .filter(Boolean)
+      ).size;
     const requirementCard = visibleElements('#connected-view [data-cv-kind="requirement"]')[0];
     requirementCard?.click();
     await new Promise(requestAnimationFrame);
