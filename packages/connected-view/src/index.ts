@@ -433,6 +433,8 @@ export interface ConnectedViewRenderOptions {
   readonly title?: string;
   readonly subtitle?: string;
   readonly showDirectionsLane?: boolean;
+  readonly initialSelectionIds?: readonly string[];
+  readonly revealMessage?: string;
 }
 
 /**
@@ -455,7 +457,9 @@ export function renderConnectedViewBodyHtml(
     edges: model.edges,
     grouped: model.groupedLanes,
     compact: model.compactLanes,
-    domains: model.domains
+    domains: model.domains,
+    initialSelectionIds: options.initialSelectionIds ?? [],
+    revealMessage: options.revealMessage ?? ""
   });
 
   const laneHtml = connectedViewRenderableLanes(model)
@@ -496,6 +500,7 @@ export function renderConnectedViewBodyHtml(
     ${laneHtml}
     <svg class="cv-links" aria-hidden="true" data-cv-links></svg>
   </div>
+  <div class="cv-selection-summary" data-cv-selection-summary hidden></div>
   <div class="cv-hover" data-cv-hover hidden></div>
   <script type="application/json" data-cv-data>${dataPayload.replace(/</g, "\\u003c")}</script>
 </div>`;
@@ -804,6 +809,19 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--cv-accent) 45%, transparent));
 }
 
+.cv-selection-summary {
+  margin-top: 10px;
+  border: 1px solid color-mix(in srgb, var(--cv-accent) 45%, var(--cv-border));
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--cv-accent) 10%, var(--cv-surface));
+  color: var(--cv-text);
+  font-size: 12px;
+}
+.cv-selection-summary[hidden] { display: none; }
+.cv-selection-summary strong { display: block; margin-bottom: 3px; font-size: 12.5px; }
+.cv-selection-summary span { color: var(--cv-muted); }
+
 .cv-hover {
   position: absolute;
   width: 280px; max-width: calc(100% - 8px); max-height: 360px; overflow: auto;
@@ -1024,7 +1042,7 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     const title = opts.title || "Connected View";
     const subtitle = opts.subtitle || "Requirements \u2194 Risks \u2194 Actions";
     const showDirections = opts.showDirectionsLane !== false;
-    const dataPayload = JSON.stringify({ edges: model.edges, grouped: model.groupedLanes, compact: model.compactLanes, domains: model.domains }).replace(/</g, "\\u003c");
+    const dataPayload = JSON.stringify({ edges: model.edges, grouped: model.groupedLanes, compact: model.compactLanes, domains: model.domains, initialSelectionIds: opts.initialSelectionIds || [], revealMessage: opts.revealMessage || "" }).replace(/</g, "\\u003c");
     const domainControls = model.domains.map(function (domain) {
       return '<button type="button" class="cv-chip cv-chip-domain" data-cv-domain-toggle="' + escAttr(domain.code) + '" aria-pressed="true">' + esc(domain.code.toUpperCase()) + '</button>';
     }).join("");
@@ -1051,6 +1069,7 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
         '</div>' +
       '</header>' +
       '<div class="cv-board" data-cv-board>' + laneHtml + '<svg class="cv-links" aria-hidden="true" data-cv-links></svg></div>' +
+      '<div class="cv-selection-summary" data-cv-selection-summary hidden></div>' +
       '<div class="cv-hover" data-cv-hover hidden></div>' +
       '<script type="application/json" data-cv-data>' + dataPayload + '<\/script>' +
       '</div>';
@@ -1076,10 +1095,13 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     let data;
     try { data = JSON.parse(dataNode.textContent || "{}"); } catch (e) { return; }
     const edges = Array.isArray(data.edges) ? data.edges : [];
+    const initialSelectionIds = Array.isArray(data.initialSelectionIds) ? data.initialSelectionIds.filter(Boolean) : [];
+    const revealMessage = typeof data.revealMessage === "string" ? data.revealMessage : "";
 
     const board = root.querySelector("[data-cv-board]");
     const svg = root.querySelector("[data-cv-links]");
     const hoverEl = root.querySelector("[data-cv-hover]");
+    const summaryEl = root.querySelector("[data-cv-selection-summary]");
     const clearBtn = root.querySelector('[data-cv-action="clear"].cv-chip-clear');
     const refreshBtn = root.querySelector('[data-cv-action="refresh"]');
     const layoutBtn = root.querySelector('[data-cv-action="toggle-layout"]');
@@ -1256,7 +1278,29 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
           p.classList.toggle("cv-highlight", hasSel && inChain);
         });
       }
+      updateSelectionSummary(connected, hasSel);
       if (hasSel) scrollSelectionIntoView(connected);
+    }
+
+    function updateSelectionSummary(connected, hasSel) {
+      if (!summaryEl) return;
+      if (!hasSel) {
+        summaryEl.hidden = true;
+        summaryEl.innerHTML = "";
+        return;
+      }
+      const counts = { direction: 0, requirement: 0, risk: 0, action: 0 };
+      connected.forEach(function (id) {
+        const info = nodeInfo(id);
+        if (info && Object.prototype.hasOwnProperty.call(counts, info.kind)) counts[info.kind] += 1;
+      });
+      const parts = [];
+      if (counts.direction) parts.push(counts.direction + " Direction" + (counts.direction === 1 ? "" : "s"));
+      if (counts.requirement) parts.push(counts.requirement + " Requirement" + (counts.requirement === 1 ? "" : "s"));
+      if (counts.risk) parts.push(counts.risk + " Risk" + (counts.risk === 1 ? "" : "s"));
+      if (counts.action) parts.push(counts.action + " Action" + (counts.action === 1 ? "" : "s"));
+      summaryEl.innerHTML = '<strong>Selected chain</strong><span>' + escHtml(parts.join(" · ") || "No connected records") + (revealMessage ? " · " + escHtml(revealMessage) : "") + '</span>';
+      summaryEl.hidden = false;
     }
 
     function setZoom(next) {
@@ -1537,6 +1581,9 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
 
     window.addEventListener("resize", drawLinks);
     if (typeof ResizeObserver === "function") new ResizeObserver(drawLinks).observe(board);
+    initialSelectionIds.forEach(function (id) {
+      if (root.querySelector('[data-cv-card][data-cv-id="' + cssEscape(id) + '"]')) selection.add(id);
+    });
     requestAnimationFrame(drawLinks);
   }
 

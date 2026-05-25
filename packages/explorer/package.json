@@ -1,6 +1,6 @@
 {
   "name": "pspf-explorer",
-  "version": "1.31.0",
+  "version": "1.31.2",
   "private": true,
   "type": "module",
   "description": "Static PSPF Explorer publication-mode application.",

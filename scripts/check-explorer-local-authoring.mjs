@@ -30,7 +30,7 @@ try {
   const bundle = normaliseBundleForActiveVersion(JSON.parse(readFileSyncText(bundlePath)));
   await page.evaluate(async (value) => {
     const db = await new Promise((resolve, reject) => {
-      const request = indexedDB.open("pspf-explorer-local-v1", 6);
+      const request = indexedDB.open("pspf-explorer-local-v1", 7);
       request.addEventListener("success", () => resolve(request.result));
       request.addEventListener("error", () => reject(request.error));
     });

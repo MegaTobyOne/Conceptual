@@ -2,7 +2,7 @@
   "name": "pspf-shop",
   "displayName": "PSPF Shop",
   "description": "PSPF commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.",
-  "version": "1.31.0",
+  "version": "1.31.2",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -224,7 +224,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
-    "test": "node --test dist/**/*.test.js"
+    "test": "node --test dist/*.test.js dist/**/*.test.js"
   },
   "dependencies": {
     "@pspf/contracts": "workspace:*",

@@ -73,6 +73,7 @@ import {
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import {
+  buildRelationshipConsequence,
   existingItemOperatorRule,
   linkPhraseForExistingItem,
   linkTypeForExistingItem,
@@ -4003,7 +4004,12 @@ function strategyReferenceList(
   return `<ul>${rows}</ul>`;
 }
 
-async function openConnectedView(): Promise<void> {
+interface ConnectedViewOpenOptions {
+  readonly initialSelectionIds?: readonly string[];
+  readonly revealMessage?: string;
+}
+
+async function openConnectedView(options: ConnectedViewOpenOptions = {}): Promise<void> {
   await ensureCoreReady();
   const panel = vscode.window.createWebviewPanel("pspfConnectedView", "PSPF Connected View", vscode.ViewColumn.One, {
     enableScripts: false
@@ -4034,7 +4040,9 @@ async function openConnectedView(): Promise<void> {
       mode: "workshop",
       defaultLayout: "domains",
       title: "Connected View",
-      subtitle: "Directions · Requirements · Risks · Actions"
+      subtitle: "Directions · Requirements · Risks · Actions",
+      initialSelectionIds: options.initialSelectionIds,
+      revealMessage: options.revealMessage
     });
 
     panel.webview.html = shellHtml(
@@ -4055,6 +4063,24 @@ async function openConnectedView(): Promise<void> {
 
 async function openEvidenceReviewQueue(): Promise<void> {
   await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel(
+    "pspfEvidenceReviewQueue",
+    "PSPF Evidence Review Queue",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  panel.webview.options = { enableScripts: true };
+
+  const render = async (): Promise<void> => {
+    const model = await buildEvidenceReviewQueueModel();
+    panel.webview.html = shellHtml("PSPF Evidence Review Queue", renderEvidenceReviewQueue(model));
+  };
+
+  wireWorkshopPanelMessages(panel, render);
+  await render();
+}
+
+async function buildEvidenceReviewQueueModel(): Promise<EvidenceReviewQueueModel> {
   const allEntities = await listAllEntities();
   const enrichedEntities = enrichActionsWithImpact(allEntities);
   const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
@@ -4065,34 +4091,48 @@ async function openEvidenceReviewQueue(): Promise<void> {
   );
   const evidenceRequirementIds = new Set(supportedByLinks.map((link) => link.fromId));
   const linkedEvidenceIds = new Set(supportedByLinks.map((link) => link.toId));
-  const missingEvidence = requirements
+  const requirementsById = new Map(requirements.map((requirement) => [requirement.id, requirement]));
+  const requirementIdsByEvidenceId = new Map<string, string[]>();
+  for (const link of supportedByLinks) {
+    requirementIdsByEvidenceId.set(link.toId, [...(requirementIdsByEvidenceId.get(link.toId) ?? []), link.fromId]);
+  }
+  const missingEvidence: EvidenceReviewCard[] = requirements
     .filter((requirement) => !evidenceRequirementIds.has(requirement.id))
     .map((requirement) => ({
       openEntityType: "requirement",
       openEntityId: requirement.id,
+      requirementId: requirement.id,
       title: requirement.title,
       domain: domainName(requirement.domainId),
-      status: label(requirement.assessmentStatus)
+      status: label(requirement.assessmentStatus),
+      reason: "No linked evidence",
+      priority: evidenceReviewRequirementPriority(requirement)
     }));
-  const ageingEvidence = evidence
+  const ageingEvidence: EvidenceReviewCard[] = evidence
     .filter((item) => item.freshness !== "current")
     .map((item) => ({
       openEntityType: "evidence",
       openEntityId: item.id,
       title: item.title,
       freshness: label(item.freshness),
-      reference: item.reference
+      reference: item.reference,
+      requirementContext: evidenceRequirementContext(item, requirementIdsByEvidenceId, requirementsById),
+      reason: evidenceFreshnessReason(item.freshness),
+      priority: evidenceFreshnessPriority(item.freshness)
     }));
-  const unlinkedEvidence = evidence
+  const unlinkedEvidence: EvidenceReviewCard[] = evidence
     .filter((item) => !linkedEvidenceIds.has(item.id))
     .map((item) => ({
       openEntityType: "evidence",
       openEntityId: item.id,
       title: item.title,
       freshness: label(item.freshness),
-      reference: item.reference
+      reference: item.reference,
+      requirementContext: "Not linked to a Requirement",
+      reason: "Useful evidence is not supporting a decision yet",
+      priority: item.freshness === "current" ? "Medium" : "High"
     }));
-  const urgentActions = enrichedEntities
+  const urgentActions: EvidenceReviewCard[] = enrichedEntities
     .filter((entity): entity is ActionEntity => entity.entityType === "action")
     .filter((action) => action.impact?.urgency === "blocked" || action.impact?.urgency === "overdue")
     .map((action) => ({
@@ -4101,37 +4141,412 @@ async function openEvidenceReviewQueue(): Promise<void> {
       title: action.title,
       urgency: action.impact ? label(action.impact.urgency) : "",
       status: label(action.status),
-      dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set"
+      dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set",
+      reason:
+        action.impact?.urgency === "blocked"
+          ? "Blocked work needs evidence context"
+          : "Overdue work needs a fresh assurance signal",
+      priority: action.impact?.urgency === "blocked" ? "Critical" : "High"
     }));
 
-  const panel = vscode.window.createWebviewPanel(
-    "pspfEvidenceReviewQueue",
-    "PSPF Evidence Review Queue",
-    vscode.ViewColumn.One,
-    { enableScripts: false }
-  );
-  panel.webview.options = { enableScripts: true };
-  wireWorkshopPanelMessages(panel);
-  panel.webview.html = shellHtml(
-    "PSPF Evidence Review Queue",
-    `
+  return { missingEvidence, ageingEvidence, unlinkedEvidence, urgentActions };
+}
+
+function renderEvidenceReviewQueue(model: EvidenceReviewQueueModel): string {
+  const totalWork =
+    model.missingEvidence.length +
+    model.ageingEvidence.length +
+    model.unlinkedEvidence.length +
+    model.urgentActions.length;
+  const currentSignals = model.unlinkedEvidence.filter((item) => item.freshness === "Current").length;
+  return `
+    ${evidenceReviewQueueStyles()}
     <section>
+      <p class="eyebrow">Evidence review</p>
       <h1>Evidence Review Queue</h1>
-      <p class="muted">OFFICIAL: Sensitive · Review missing, ageing, stale, expired, unknown, and unlinked evidence.</p>
+      <p class="muted">OFFICIAL: Sensitive · Review missing, ageing, stale, expired, unknown, and unlinked evidence. Capture the missing signal, open the source, or copy a short review summary for the next assurance conversation.</p>
       ${versionStrip()}
       <div class="grid">
-        ${metricCard("Missing evidence", missingEvidence.length)}
-        ${metricCard("Needs freshness review", ageingEvidence.length)}
-        ${metricCard("Unlinked evidence", unlinkedEvidence.length)}
-        ${metricCard("Urgent actions", urgentActions.length)}
+        ${metricCard("Queue items", totalWork)}
+        ${metricCard("Missing evidence", model.missingEvidence.length)}
+        ${metricCard("Freshness review", model.ageingEvidence.length)}
+        ${metricCard("Ready signals", currentSignals)}
       </div>
+      <div class="form-actions evidence-review-actions">
+        <button type="button" data-evidence-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-evidence-filter="missing">Missing</button>
+        <button type="button" data-evidence-filter="freshness">Freshness</button>
+        <button type="button" data-evidence-filter="unlinked">Unlinked</button>
+        <button type="button" data-evidence-filter="actions">Actions</button>
+        <button type="button" data-command="pspf.workshop.attachEvidence">Add evidence</button>
+        <button type="button" data-command="copyEvidenceReviewSummary">Copy summary</button>
+        <button type="button" data-command="refresh">Refresh</button>
+      </div>
+      <p class="muted" data-evidence-review-count></p>
     </section>
-    ${recordTable("Urgent Actions (Blocked or Overdue)", urgentActions, ["title", "urgency", "status", "dueDate"])}
-    ${recordTable("Requirements Missing Evidence", missingEvidence, ["title", "domain", "status"])}
-    ${recordTable("Evidence Needing Freshness Review", ageingEvidence, ["title", "freshness", "reference"])}
-    ${recordTable("Unlinked Evidence", unlinkedEvidence, ["title", "freshness", "reference"])}
-  `
+    <section class="evidence-review-board" aria-label="Evidence review work queue">
+      ${evidenceReviewCardGroup("Missing evidence", "Capture a source against these Requirements.", "missing", model.missingEvidence)}
+      ${evidenceReviewCardGroup("Freshness review", "Open the reference, confirm currency, then update the evidence record.", "freshness", model.ageingEvidence)}
+      ${evidenceReviewCardGroup("Unlinked evidence", "Connect useful records to Requirements so they count in assurance decisions.", "unlinked", model.unlinkedEvidence)}
+      ${evidenceReviewCardGroup("Action pressure", "Blocked or overdue Actions often need stronger evidence context.", "actions", model.urgentActions)}
+    </section>
+    ${evidenceReviewQueueScript()}
+  `;
+}
+
+type EvidenceReviewPriority = "Critical" | "High" | "Medium";
+type EvidenceReviewCardKind = "missing" | "freshness" | "unlinked" | "actions";
+
+interface EvidenceReviewCard {
+  readonly openEntityType: "requirement" | "evidence" | "action";
+  readonly openEntityId: string;
+  readonly title: string;
+  readonly reason: string;
+  readonly priority: EvidenceReviewPriority;
+  readonly requirementId?: string;
+  readonly domain?: string;
+  readonly status?: string;
+  readonly freshness?: string;
+  readonly reference?: string;
+  readonly requirementContext?: string;
+  readonly urgency?: string;
+  readonly dueDate?: string;
+}
+
+interface EvidenceReviewQueueModel {
+  readonly missingEvidence: readonly EvidenceReviewCard[];
+  readonly ageingEvidence: readonly EvidenceReviewCard[];
+  readonly unlinkedEvidence: readonly EvidenceReviewCard[];
+  readonly urgentActions: readonly EvidenceReviewCard[];
+}
+
+function evidenceReviewCardGroup(
+  title: string,
+  description: string,
+  kind: EvidenceReviewCardKind,
+  rows: readonly EvidenceReviewCard[]
+): string {
+  const cards =
+    rows.length > 0
+      ? rows.map((row) => evidenceReviewCard(kind, row)).join("")
+      : `<p class="muted">Nothing waiting here.</p>`;
+  return `<div class="evidence-review-lane" data-evidence-lane="${kind}">
+    <div class="evidence-review-lane__header">
+      <div><h2>${escapeHtml(title)}</h2><p class="muted">${escapeHtml(description)}</p></div>
+      ${shellPill(String(rows.length))}
+    </div>
+    <div class="evidence-review-cards">${cards}</div>
+  </div>`;
+}
+
+function evidenceReviewCard(kind: EvidenceReviewCardKind, row: EvidenceReviewCard): string {
+  const search = [row.title, row.reason, row.priority, row.status, row.freshness, row.domain, row.requirementContext]
+    .filter(Boolean)
+    .join(" ")
+    .toLocaleLowerCase("en-AU");
+  return `<article class="evidence-review-card" data-evidence-card data-kind="${kind}" data-priority="${escapeHtml(row.priority)}" data-search="${escapeHtml(search)}">
+    <div class="evidence-review-card__top">
+      <span class="evidence-review-priority evidence-review-priority--${escapeHtml(row.priority.toLocaleLowerCase("en-AU"))}">${escapeHtml(row.priority)}</span>
+      <span class="muted">${escapeHtml(row.freshness ?? row.status ?? row.urgency ?? row.domain ?? "Review")}</span>
+    </div>
+    <h3>${escapeHtml(row.title)}</h3>
+    <p>${escapeHtml(row.reason)}</p>
+    <p class="muted">${escapeHtml(row.requirementContext ?? row.domain ?? row.dueDate ?? row.reference ?? "No extra context")}</p>
+    <div class="form-actions">
+      ${evidenceReviewOpenButton(row)}
+      ${kind === "missing" && row.requirementId ? `<button type="button" data-command="attachEvidenceToRequirement" data-requirement-id="${escapeHtml(row.requirementId)}">Add evidence</button><button type="button" data-command="linkExistingEvidenceToRequirement" data-requirement-id="${escapeHtml(row.requirementId)}">Link existing</button>` : ""}
+      ${row.reference ? evidenceReferenceButton(row.reference) : ""}
+    </div>
+  </article>`;
+}
+
+function evidenceReviewOpenButton(row: EvidenceReviewCard): string {
+  return `<button type="button" data-command="openEntity" data-entity-type="${escapeHtml(row.openEntityType)}" data-entity-id="${escapeHtml(row.openEntityId)}">Open</button>`;
+}
+
+function evidenceReviewQueueStyles(): string {
+  return `<style>
+    .evidence-review-actions { align-items: center; margin-top: 14px; }
+    .evidence-review-actions [aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 12%, var(--surface-strong)); }
+    .evidence-review-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; background: transparent; border: 0; padding: 0; }
+    .evidence-review-lane { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: color-mix(in srgb, var(--surface) 92%, var(--workshop-blue)); }
+    .evidence-review-lane[hidden] { display: none; }
+    .evidence-review-lane__header { display: flex; justify-content: space-between; gap: 10px; align-items: start; margin-bottom: 10px; }
+    .evidence-review-lane__header p { margin: 2px 0 0; }
+    .evidence-review-cards { display: grid; gap: 10px; }
+    .evidence-review-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--surface-strong); }
+    .evidence-review-card[hidden] { display: none; }
+    .evidence-review-card h3 { margin: 8px 0 6px; font-size: 14px; }
+    .evidence-review-card p { margin: 0 0 8px; }
+    .evidence-review-card__top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .evidence-review-priority { border: 1px solid var(--border); border-radius: 999px; padding: 2px 7px; font-size: 11px; font-weight: 700; }
+    .evidence-review-priority--critical { border-color: var(--vscode-errorForeground); color: var(--vscode-errorForeground); }
+    .evidence-review-priority--high { border-color: var(--amber); color: var(--amber); }
+    @media (max-width: 720px) { .evidence-review-board { grid-template-columns: 1fr; } }
+  </style>`;
+}
+
+function evidenceReviewQueueScript(): string {
+  return `<script>
+    (() => {
+      const buttons = Array.from(document.querySelectorAll('[data-evidence-filter]'));
+      const cards = Array.from(document.querySelectorAll('[data-evidence-card]'));
+      const lanes = Array.from(document.querySelectorAll('[data-evidence-lane]'));
+      const count = document.querySelector('[data-evidence-review-count]');
+      function applyFilter(kind) {
+        let visible = 0;
+        for (const card of cards) {
+          const matches = kind === 'all' || card.getAttribute('data-kind') === kind;
+          card.hidden = !matches;
+          if (matches) visible += 1;
+        }
+        for (const lane of lanes) {
+          const laneKind = lane.getAttribute('data-evidence-lane');
+          lane.hidden = kind !== 'all' && laneKind !== kind;
+        }
+        for (const button of buttons) button.setAttribute('aria-pressed', String(button.getAttribute('data-evidence-filter') === kind));
+        if (count) count.textContent = visible + ' visible review item' + (visible === 1 ? '' : 's');
+      }
+      buttons.forEach((button) => button.addEventListener('click', () => applyFilter(button.getAttribute('data-evidence-filter') || 'all')));
+      applyFilter('all');
+    })();
+  </script>`;
+}
+
+async function copyEvidenceReviewQueueSummary(): Promise<void> {
+  const model = await buildEvidenceReviewQueueModel();
+  const summary = evidenceReviewQueueMarkdown(model);
+  await vscode.env.clipboard.writeText(summary);
+  await vscode.window.showInformationMessage("Evidence review summary copied to clipboard.");
+}
+
+function evidenceReviewQueueMarkdown(model: EvidenceReviewQueueModel): string {
+  const lines = [
+    "# Evidence Review Queue",
+    "",
+    `- Missing evidence: ${model.missingEvidence.length}`,
+    `- Needs freshness review: ${model.ageingEvidence.length}`,
+    `- Unlinked evidence: ${model.unlinkedEvidence.length}`,
+    `- Urgent actions: ${model.urgentActions.length}`,
+    ""
+  ];
+  const topItems = [
+    ...model.missingEvidence,
+    ...model.ageingEvidence,
+    ...model.unlinkedEvidence,
+    ...model.urgentActions
+  ]
+    .slice(0, 8)
+    .map((item) => `- ${item.priority}: ${item.title} (${item.reason})`);
+  return [...lines, "## Next review items", ...(topItems.length > 0 ? topItems : ["- No review items waiting."])].join(
+    "\n"
   );
+}
+
+function evidenceRequirementContext(
+  evidence: EvidenceEntity,
+  requirementIdsByEvidenceId: ReadonlyMap<string, readonly string[]>,
+  requirementsById: ReadonlyMap<string, RequirementEntity>
+): string {
+  const requirements = (requirementIdsByEvidenceId.get(evidence.id) ?? [])
+    .map((id) => requirementsById.get(id)?.title)
+    .filter((title): title is string => Boolean(title));
+  return requirements.length > 0 ? requirements.slice(0, 3).join("; ") : "No linked Requirement";
+}
+
+function evidenceReviewRequirementPriority(requirement: RequirementEntity): EvidenceReviewPriority {
+  return requirement.assessmentStatus === "not-met" || requirement.assessmentStatus === "partially-met"
+    ? "High"
+    : "Medium";
+}
+
+function evidenceFreshnessPriority(freshness: EvidenceFreshness): EvidenceReviewPriority {
+  return freshness === "expired" || freshness === "stale" ? "High" : "Medium";
+}
+
+function evidenceFreshnessReason(freshness: EvidenceFreshness): string {
+  switch (freshness) {
+    case "expired":
+      return "Expired evidence should be replaced before it is relied on.";
+    case "stale":
+      return "Stale evidence needs a current confirmation.";
+    case "unknown":
+      return "Freshness is unknown, so the assurance signal is weak.";
+    case "current":
+      return "Evidence is current.";
+  }
+  return "Freshness needs review.";
+}
+
+async function copyRequirementBrief(requirementId: string): Promise<void> {
+  const allEntities = enrichActionsWithImpact(await listAllEntities());
+  const requirement = allEntities.find(
+    (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.id === requirementId
+  );
+  if (!requirement) {
+    await vscode.window.showWarningMessage("This Requirement could not be found.");
+    return;
+  }
+  const outboundLinks = allEntities.filter(
+    (entity): entity is LinkEntity =>
+      entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.fromId === requirement.id
+  );
+  const linkedIds = new Set(outboundLinks.map((link) => link.toId));
+  const evidence = allEntities.filter(
+    (entity): entity is EvidenceEntity => entity.entityType === "evidence" && linkedIds.has(entity.id)
+  );
+  const actions = allEntities.filter(
+    (entity): entity is ActionEntity => entity.entityType === "action" && linkedIds.has(entity.id)
+  );
+  const risks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && linkedIds.has(entity.id)
+  );
+  const mappings = allEntities.filter(
+    (entity): entity is RequirementControlMappingEntity =>
+      entity.entityType === "requirement-control-mapping" &&
+      entity.recordStatus !== "deleted" &&
+      entity.requirementId === requirement.id
+  );
+  const currentEvidence = evidence.filter((item) => item.freshness === "current").length;
+  const urgentActions = actions.filter(
+    (action) => action.impact?.urgency === "blocked" || action.impact?.urgency === "overdue"
+  ).length;
+  const openRisks = risks.filter((risk) => risk.status !== "closed").length;
+  const brief = [
+    "# Requirement Brief",
+    "",
+    `- Requirement: ${requirement.title}`,
+    `- Domain: ${domainName(requirement.domainId)}`,
+    `- Assessment: ${label(requirement.assessmentStatus)}`,
+    `- Evidence: ${evidence.length} linked, ${currentEvidence} current`,
+    `- Actions: ${actions.length} linked, ${urgentActions} urgent`,
+    `- Risks: ${risks.length} linked, ${openRisks} open`,
+    `- ISM mappings: ${mappings.length}`,
+    "",
+    "OFFICIAL: Sensitive · Review before sharing outside the local assurance team."
+  ].join("\n");
+  await vscode.env.clipboard.writeText(brief);
+  await vscode.window.showInformationMessage("Requirement brief copied to clipboard.");
+}
+
+async function copyEvidenceBrief(evidenceId: string): Promise<void> {
+  const allEntities = await listAllEntities();
+  const evidence = allEntities.find(
+    (entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.id === evidenceId
+  );
+  if (!evidence) {
+    await vscode.window.showWarningMessage("This Evidence record could not be found.");
+    return;
+  }
+  const requirements = linkedRequirementsForEvidence(evidence, allEntities);
+  const brief = [
+    "# Evidence Brief",
+    "",
+    `- Evidence: ${evidence.title}`,
+    `- Type: ${label(evidence.evidenceType)}`,
+    `- Freshness: ${label(evidence.freshness)}`,
+    `- Linked Requirements: ${requirements.length}`,
+    `- Reference recorded: ${evidence.reference.trim().length > 0 ? "Yes" : "No"}`,
+    "",
+    ...requirements
+      .slice(0, 8)
+      .map(
+        (requirement) =>
+          `- Supports: ${requirement.title} (${domainName(requirement.domainId)} · ${label(requirement.assessmentStatus)})`
+      ),
+    "",
+    "OFFICIAL: Sensitive · Review before sharing outside the local assurance team."
+  ].join("\n");
+  await vscode.env.clipboard.writeText(brief);
+  await vscode.window.showInformationMessage("Evidence brief copied to clipboard.");
+}
+
+async function linkEvidenceToRequirements(evidenceId: string): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const evidence = allEntities.find(
+    (entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.id === evidenceId
+  );
+  if (!evidence) {
+    await vscode.window.showWarningMessage("This Evidence record could not be found.");
+    return;
+  }
+  const linkedRequirementIds = new Set(
+    linkedRequirementsForEvidence(evidence, allEntities).map((requirement) => requirement.id)
+  );
+  const candidates = allEntities
+    .filter(
+      (entity): entity is RequirementEntity =>
+        entity.entityType === "requirement" && entity.recordStatus !== "deleted" && !linkedRequirementIds.has(entity.id)
+    )
+    .sort(compareRequirementsForPicker);
+  if (candidates.length === 0) {
+    await vscode.window.showInformationMessage(
+      "This Evidence record is already linked to every available Requirement."
+    );
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    candidates.map((requirement) => ({
+      label: requirement.title,
+      description: `${domainName(requirement.domainId)} · ${label(requirement.assessmentStatus)}`,
+      requirement
+    })),
+    {
+      title: "Link Evidence To Requirements",
+      placeHolder: "Select one or more Requirements this Evidence supports",
+      canPickMany: true,
+      ignoreFocusOut: true
+    }
+  );
+  if (!picked || picked.length === 0) {
+    return;
+  }
+  const links = picked.map(({ requirement }) =>
+    withEnvelope(
+      "link",
+      {
+        entityType: "link",
+        title: `${requirement.title} supported by ${evidence.title}`,
+        linkType: "supported-by",
+        fromId: requirement.id,
+        fromType: "requirement",
+        toId: evidence.id,
+        toType: "evidence"
+      },
+      "workshop"
+    )
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", links);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(
+    `Linked Evidence to ${picked.length} Requirement${picked.length === 1 ? "" : "s"}.`
+  );
+}
+
+function linkedRequirementsForEvidence(
+  evidence: EvidenceEntity,
+  allEntities: readonly V01Entity[]
+): RequirementEntity[] {
+  const requirementIds = new Set(
+    allEntities
+      .filter(
+        (entity): entity is LinkEntity =>
+          entity.entityType === "link" &&
+          entity.recordStatus !== "deleted" &&
+          entity.linkType === "supported-by" &&
+          entity.fromType === "requirement" &&
+          entity.toType === "evidence" &&
+          entity.toId === evidence.id
+      )
+      .map((link) => link.fromId)
+  );
+  return allEntities
+    .filter(
+      (entity): entity is RequirementEntity =>
+        entity.entityType === "requirement" && entity.recordStatus !== "deleted" && requirementIds.has(entity.id)
+    )
+    .sort(compareRequirementsForPicker);
 }
 
 async function openRequirementsList(): Promise<void> {
@@ -5398,6 +5813,19 @@ async function openEntityEditor(
       await openEvidenceReference(reference);
       return;
     }
+    if (command === "copyRequirementBrief" && message.pendingRequirementId) {
+      await copyRequirementBrief(message.pendingRequirementId);
+      return;
+    }
+    if (command === "copyEvidenceBrief" && message.pendingEntityId) {
+      await copyEvidenceBrief(message.pendingEntityId);
+      return;
+    }
+    if (command === "linkEvidenceToRequirements" && message.pendingEntityId) {
+      await linkEvidenceToRequirements(message.pendingEntityId);
+      await refreshEditor();
+      return;
+    }
     if (command === "closeEditor") {
       panel.dispose();
       return;
@@ -5614,6 +6042,23 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         await openEvidenceReference(message.evidenceReference);
         return;
       }
+      if (message.command === "copyEvidenceReviewSummary") {
+        await copyEvidenceReviewQueueSummary();
+        return;
+      }
+      if (message.command === "copyRequirementBrief" && message.requirementId) {
+        await copyRequirementBrief(message.requirementId);
+        return;
+      }
+      if (message.command === "copyEvidenceBrief" && message.entityId) {
+        await copyEvidenceBrief(message.entityId);
+        return;
+      }
+      if (message.command === "linkEvidenceToRequirements" && message.entityId) {
+        await linkEvidenceToRequirements(message.entityId);
+        await refreshPanel?.();
+        return;
+      }
       if (
         message.command === "openAdjacentRequirement" &&
         message.requirementId &&
@@ -5737,6 +6182,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.core.exportBundle",
         "pspf.shop.openForecast",
         "pspf.workshop.createAction",
+        "pspf.workshop.attachEvidence",
         "pspf.workshop.openAssessmentDashboard",
         "pspf.workshop.openConnectedView",
         "pspf.workshop.openMasterDashboard",
@@ -5992,37 +6438,39 @@ function renderRequirementEditor(
   );
   const linkedIds = new Set(outboundLinks.map((link) => link.toId));
   const enrichedEntities = enrichActionsWithImpact(allEntities);
-  const evidenceRows = allEntities
+  const evidenceItems = allEntities
     .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && linkedIds.has(entity.id))
-    .sort(compareEvidenceRecords)
-    .map((item) => ({
-      openEntityType: "evidence",
-      openEntityId: item.id,
-      title: item.title,
-      evidenceType: label(item.evidenceType),
-      freshness: label(item.freshness),
-      reference: item.reference
-    }));
-  const actionRows = enrichedEntities
+    .sort(compareEvidenceRecords);
+  const evidenceRows = evidenceItems.map((item) => ({
+    openEntityType: "evidence",
+    openEntityId: item.id,
+    title: item.title,
+    evidenceType: label(item.evidenceType),
+    freshness: label(item.freshness),
+    reference: item.reference
+  }));
+  const actionItems = enrichedEntities
     .filter((entity): entity is ActionEntity => entity.entityType === "action" && linkedIds.has(entity.id))
-    .map((action) => ({
-      openEntityType: "action",
-      openEntityId: action.id,
-      title: action.title,
-      status: label(action.status),
-      urgency: action.impact ? label(action.impact.urgency) : "normal",
-      dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set"
-    }));
-  const riskRows = allEntities
+    .sort(compareWorkbenchRecords);
+  const actionRows = actionItems.map((action) => ({
+    openEntityType: "action",
+    openEntityId: action.id,
+    title: action.title,
+    status: label(action.status),
+    urgency: action.impact ? label(action.impact.urgency) : "normal",
+    dueDate: formatShortAuDateTime(action.dueDate) ?? "Not set"
+  }));
+  const riskItems = allEntities
     .filter((entity): entity is RiskEntity => entity.entityType === "risk" && linkedIds.has(entity.id))
-    .map((risk) => ({
-      openEntityType: "risk",
-      openEntityId: risk.id,
-      title: risk.title,
-      status: label(risk.status),
-      likelihood: risk.likelihood,
-      impact: risk.impact
-    }));
+    .sort(compareWorkbenchRecords);
+  const riskRows = riskItems.map((risk) => ({
+    openEntityType: "risk",
+    openEntityId: risk.id,
+    title: risk.title,
+    status: label(risk.status),
+    likelihood: risk.likelihood,
+    impact: risk.impact
+  }));
   const tagsById = new Map(
     allEntities
       .filter((entity): entity is TagEntity => entity.entityType === "tag" && entity.recordStatus !== "deleted")
@@ -6093,16 +6541,23 @@ function renderRequirementEditor(
     isBaseline ? "Official PSPF baseline title and domain are locked." : undefined,
     requirementNavigationStrip(requirement, allEntities)
   )}
+    ${requirementWorkbenchStyles()}
     <section>
       <h2>Requirement Workbench</h2>
       <p class="muted">Add or open the linked records that drive this Requirement's assessment.</p>
+      ${requirementSignalCards(requirement, evidenceItems, actionItems, riskItems, mappingRows.length)}
       <div class="form-actions">
         <button type="button" data-command="attachEvidenceToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Add new evidence</button>
+        <button type="button" data-command="linkExistingEvidenceToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing evidence</button>
         <button type="button" data-command="createActionForRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Create action</button>
+        <button type="button" data-command="linkExistingActionToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing action</button>
         <button type="button" data-command="createRiskForRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Create risk</button>
+        <button type="button" data-command="linkExistingRiskToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link existing risk</button>
         <button type="button" data-command="mapRequirementToIsm" data-requirement-id="${escapeHtml(requirement.id)}">Map ISM control</button>
+        <button type="button" data-command="linkExistingDirectionToRequirement" data-requirement-id="${escapeHtml(requirement.id)}">Link Direction</button>
         <button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(requirement.id)}">Apply tag</button>
         <button type="button" data-command="recordChange" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Record significant change</button>
+        <button type="button" data-command="copyRequirementBrief" data-requirement-id="${escapeHtml(requirement.id)}">Copy brief</button>
       </div>
     </section>
     ${renderRequirementRelationshipManager(requirement, allEntities)}
@@ -6117,7 +6572,47 @@ function renderRequirementEditor(
   return `<div class="requirement-browser">
     ${requirementBrowserNav(requirement, allEntities, browserOptions)}
     <div class="requirement-browser__content">${editorContent}</div>
+    ${requirementBrowserScript()}
   </div>`;
+}
+
+function requirementSignalCards(
+  requirement: RequirementEntity,
+  evidence: readonly EvidenceEntity[],
+  actions: readonly ActionEntity[],
+  risks: readonly RiskEntity[],
+  ismMappings: number
+): string {
+  const staleEvidence = evidence.filter((item) => item.freshness !== "current").length;
+  const urgentActions = actions.filter(
+    (action) => action.impact?.urgency === "blocked" || action.impact?.urgency === "overdue"
+  ).length;
+  const openRisks = risks.filter((risk) => risk.status !== "closed").length;
+  const evidenceTone = evidence.length === 0 ? "Needs capture" : staleEvidence > 0 ? "Needs freshness" : "Supported";
+  return `<div class="requirement-signals" aria-label="Requirement signals">
+    ${requirementSignalCard("Assessment", label(requirement.assessmentStatus), domainName(requirement.domainId))}
+    ${requirementSignalCard("Evidence", `${evidence.length}`, evidenceTone)}
+    ${requirementSignalCard("Actions", `${actions.length}`, urgentActions > 0 ? `${urgentActions} urgent` : "No urgent action")}
+    ${requirementSignalCard("Risks", `${risks.length}`, openRisks > 0 ? `${openRisks} open` : "No open risks")}
+    ${requirementSignalCard("ISM", `${ismMappings}`, ismMappings > 0 ? "Mapped" : "Map a control")}
+  </div>`;
+}
+
+function requirementSignalCard(labelText: string, value: string, detail: string): string {
+  return `<div class="requirement-signal"><span>${escapeHtml(labelText)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(detail)}</small></div>`;
+}
+
+function requirementWorkbenchStyles(): string {
+  return `<style>
+    .requirement-signals { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
+    .requirement-signal { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 10px; background: var(--surface-strong); }
+    .requirement-signal span { display: block; color: var(--muted); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .requirement-signal strong { display: block; margin-top: 5px; font-size: 18px; line-height: 1.1; }
+    .requirement-signal small { display: block; margin-top: 4px; color: var(--muted); line-height: 1.3; }
+    .requirement-browser__filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .requirement-browser__filters button[aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 12%, var(--surface-strong)); }
+    .requirement-browser__count { margin: 0; }
+  </style>`;
 }
 
 function requirementBrowserNav(
@@ -6142,16 +6637,21 @@ function requirementBrowserNav(
   const currentIndex = requirements.findIndex((candidate) => candidate.id === requirement.id);
   const position = currentIndex >= 0 ? `${currentIndex + 1} of ${requirements.length}` : `${requirements.length} total`;
   const filterText = options.filterText?.trim() ?? "";
+  const statusCounts = requirementStatusCounts(requirements);
   const items = requirements
     .map((candidate) => requirementBrowserNavItem(candidate, candidate.id === requirement.id, filterText))
     .join("");
   return `<section class="requirement-browser__nav" aria-label="Requirement browser">
     <h2>Requirements</h2>
-    <input class="requirement-browser__filter" type="search" aria-label="Filter requirements" placeholder="Filter by title, domain, or status" value="${escapeHtml(filterText)}" data-filter-target=".requirement-browser__item">
+    <input class="requirement-browser__filter" type="search" aria-label="Filter requirements" placeholder="Filter by title, domain, or status" value="${escapeHtml(filterText)}">
+    <div class="requirement-browser__filters" aria-label="Requirement status filters">
+      <button type="button" data-requirement-status-filter="all" aria-pressed="true">All ${requirements.length}</button>
+      ${assessmentStatusItems.map((item) => `<button type="button" data-requirement-status-filter="${escapeHtml(item.value)}">${escapeHtml(item.label)} ${statusCounts.get(item.value) ?? 0}</button>`).join("")}
+    </div>
     <div class="requirement-browser__list" role="list" aria-label="Scrollable Requirements list">
       ${items || '<p class="muted">No Requirements found.</p>'}
     </div>
-    <p class="muted">${escapeHtml(position)}</p>
+    <p class="muted requirement-browser__count" data-requirement-browser-count>${escapeHtml(position)}</p>
   </section>`;
 }
 
@@ -6162,10 +6662,48 @@ function requirementBrowserNavItem(requirement: RequirementEntity, isCurrent: bo
   const searchText = `${title} ${domain} ${status} ${requirement.id}`;
   const normalisedFilter = filterText.toLocaleLowerCase("en-AU");
   const hidden = normalisedFilter && !searchText.toLocaleLowerCase("en-AU").includes(normalisedFilter);
-  return `<button type="button" class="requirement-browser__item" role="listitem" title="${escapeHtml(title)}" aria-label="${escapeHtml(`${requirementNumberLabel(requirement)}. ${title}. ${domain}. ${status}`)}" data-command="openRequirementInEditor" data-requirement-id="${escapeHtml(requirement.id)}" data-search="${escapeHtml(searchText)}"${isCurrent ? ' aria-current="page"' : ""}${hidden ? " hidden" : ""}>
+  return `<button type="button" class="requirement-browser__item" role="listitem" title="${escapeHtml(title)}" aria-label="${escapeHtml(`${requirementNumberLabel(requirement)}. ${title}. ${domain}. ${status}`)}" data-command="openRequirementInEditor" data-requirement-id="${escapeHtml(requirement.id)}" data-status="${escapeHtml(requirement.assessmentStatus)}" data-search="${escapeHtml(searchText)}"${isCurrent ? ' aria-current="page"' : ""}${hidden ? " hidden" : ""}>
     <span class="requirement-browser__number">${escapeHtml(requirementNumberLabel(requirement))}</span>
     <span class="requirement-browser__meta">${escapeHtml(domain)} · ${escapeHtml(status)}</span>
   </button>`;
+}
+
+function requirementStatusCounts(requirements: readonly RequirementEntity[]): Map<AssessmentStatus, number> {
+  const counts = new Map<AssessmentStatus, number>();
+  for (const requirement of requirements) {
+    counts.set(requirement.assessmentStatus, (counts.get(requirement.assessmentStatus) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function requirementBrowserScript(): string {
+  return `<script>
+    (() => {
+      const input = document.querySelector('.requirement-browser__filter');
+      const buttons = Array.from(document.querySelectorAll('[data-requirement-status-filter]'));
+      const items = Array.from(document.querySelectorAll('.requirement-browser__item'));
+      const count = document.querySelector('[data-requirement-browser-count]');
+      function applyRequirementFilters() {
+        const query = input instanceof HTMLInputElement ? input.value.trim().toLocaleLowerCase('en-AU') : '';
+        const selected = buttons.find((button) => button.getAttribute('aria-pressed') === 'true')?.getAttribute('data-requirement-status-filter') || 'all';
+        let visible = 0;
+        for (const item of items) {
+          const search = (item.getAttribute('data-search') || item.textContent || '').toLocaleLowerCase('en-AU');
+          const status = item.getAttribute('data-status') || '';
+          const matches = (!query || search.includes(query)) && (selected === 'all' || status === selected);
+          item.hidden = !matches;
+          if (matches) visible += 1;
+        }
+        if (count) count.textContent = visible + ' visible of ' + items.length + ' Requirements';
+      }
+      input?.addEventListener('input', applyRequirementFilters);
+      buttons.forEach((button) => button.addEventListener('click', () => {
+        buttons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+        applyRequirementFilters();
+      }));
+      applyRequirementFilters();
+    })();
+  </script>`;
 }
 
 function requirementNumberLabel(requirement: RequirementEntity): string {
@@ -6281,7 +6819,15 @@ function renderEvidenceEditor(
   allEntities: readonly V01Entity[],
   browserOptions: RequirementBrowserOptions = {}
 ): string {
-  const editorContent = editorShell(
+  const linkedRequirements = linkedRequirementsForEvidence(evidence, allEntities);
+  const requirementRows = linkedRequirements.map((requirement) => ({
+    openEntityType: "requirement",
+    openEntityId: requirement.id,
+    title: requirement.title,
+    domain: domainName(requirement.domainId),
+    status: label(requirement.assessmentStatus)
+  }));
+  const editorContent = `${editorShell(
     evidence,
     "Edit Evidence",
     `
@@ -6291,8 +6837,51 @@ function renderEvidenceEditor(
     <div class="form-actions">${evidenceReferenceButton(evidence.reference)}</div>
     ${selectField("freshness", "Freshness", freshnessItems, evidence.freshness)}
   `
-  );
+  )}
+    ${evidenceWorkbenchStyles()}
+    <section>
+      <h2>Evidence Workbench</h2>
+      <p class="muted">Use this record as an assurance signal: keep the source fresh, link it to the Requirements it supports, and copy a short brief for review conversations.</p>
+      ${evidenceSignalCards(evidence, linkedRequirements)}
+      <div class="form-actions">
+        ${evidenceReferenceButton(evidence.reference)}
+        <button type="button" data-command="linkEvidenceToRequirements" data-entity-id="${escapeHtml(evidence.id)}">Link Requirement</button>
+        <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Review queue</button>
+        <button type="button" data-command="pspf.workshop.openConnectedView">Trace links</button>
+        <button type="button" data-command="copyEvidenceBrief" data-entity-id="${escapeHtml(evidence.id)}">Copy brief</button>
+      </div>
+    </section>
+    ${recordTable("Requirements Supported By This Evidence", requirementRows, ["title", "domain", "status"])}
+  `;
   return recordWorkbenchShell(evidence, allEntities, browserOptions, editorContent);
+}
+
+function evidenceSignalCards(evidence: EvidenceEntity, linkedRequirements: readonly RequirementEntity[]): string {
+  const needsAttention =
+    evidence.freshness === "expired" || evidence.freshness === "stale" || evidence.freshness === "unknown";
+  const notMetCount = linkedRequirements.filter(
+    (requirement) => requirement.assessmentStatus === "not-met" || requirement.assessmentStatus === "partially-met"
+  ).length;
+  return `<div class="evidence-signals" aria-label="Evidence signals">
+    ${evidenceSignalCard("Freshness", label(evidence.freshness), needsAttention ? "Review source" : "Ready to rely on")}
+    ${evidenceSignalCard("Type", label(evidence.evidenceType), evidence.reference.trim().length > 0 ? "Reference recorded" : "Reference missing")}
+    ${evidenceSignalCard("Requirements", String(linkedRequirements.length), linkedRequirements.length > 0 ? "Linked into assurance" : "Link to Requirements")}
+    ${evidenceSignalCard("Assessment pressure", String(notMetCount), notMetCount > 0 ? "Supports open gaps" : "No open gap links")}
+  </div>`;
+}
+
+function evidenceSignalCard(labelText: string, value: string, detail: string): string {
+  return `<div class="evidence-signal"><span>${escapeHtml(labelText)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(detail)}</small></div>`;
+}
+
+function evidenceWorkbenchStyles(): string {
+  return `<style>
+    .evidence-signals { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin: 12px 0; }
+    .evidence-signal { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 10px; background: var(--surface-strong); }
+    .evidence-signal span { display: block; color: var(--muted); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .evidence-signal strong { display: block; margin-top: 5px; font-size: 18px; line-height: 1.1; }
+    .evidence-signal small { display: block; margin-top: 4px; color: var(--muted); line-height: 1.3; }
+  </style>`;
 }
 
 function renderActionEditor(
@@ -7992,6 +8581,27 @@ async function linkExistingItemToRequirement(
   await vscode.commands.executeCommand("pspf.core.upsertEntities", links);
   await refreshWorkshopSurfaces();
   await rememberRequirement(requirement);
+  const consequence = buildRelationshipConsequence({
+    requirement,
+    itemType,
+    linkedItems: picked.map(({ entity }) => entity),
+    allEntities,
+    newLinks: links
+  });
+  const action = await vscode.window.showInformationMessage(
+    `${consequence.title}: ${consequence.summary}`,
+    "Reveal in Connected View",
+    "Open Requirement"
+  );
+  if (action === "Reveal in Connected View") {
+    await openConnectedView({
+      initialSelectionIds: consequence.connectedViewFocusIds,
+      revealMessage: consequence.title
+    });
+  }
+  if (action === "Open Requirement") {
+    await openItemDetailForEntity("requirement", requirement.id);
+  }
 }
 
 function renderRequirementRelationshipManager(
@@ -8009,6 +8619,7 @@ function renderRequirementRelationshipManager(
       fromLabel: label(rule.fromType),
       phrase: rule.phrase,
       toLabel: label(rule.toType),
+      helpText: relationshipActionHelpText(itemType),
       command: availableCount > 0 ? linkExistingCommandForItem(itemType) : undefined,
       dataAttributes: { "data-requirement-id": requirement.id },
       disabledReason: `No unlinked ${label(itemType).toLowerCase()} records available`
@@ -8022,6 +8633,19 @@ function renderRequirementRelationshipManager(
     actions,
     emptyText: "No Requirement relationship actions are available."
   });
+}
+
+function relationshipActionHelpText(itemType: LinkableItemType): string {
+  switch (itemType) {
+    case "evidence":
+      return "Closes evidence gaps and strengthens the posture brief trail.";
+    case "action":
+      return "Adds remediation context and may change Action Impact priority.";
+    case "risk":
+      return "Adds risk context to the Requirement story and Connected View chain.";
+    case "direction":
+      return "Shows why this Requirement matters for current direction response.";
+  }
 }
 
 function unlinkedExistingItemCount(

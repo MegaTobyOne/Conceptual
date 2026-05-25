@@ -39,6 +39,7 @@ test("relationshipManagerHtml renders escaped relationship actions", () => {
         fromLabel: "Supplier <A>",
         phrase: "supports",
         toLabel: "Requirement & Risk",
+        helpText: "Shows why this supplier matters <now>.",
         href: "command:pspf.shop.link?x=1&y=2"
       },
       {
@@ -54,6 +55,7 @@ test("relationshipManagerHtml renders escaped relationship actions", () => {
   assert.match(html, /Relationships &lt;draft&gt;/);
   assert.match(html, /Supplier &lt;A&gt;/);
   assert.match(html, /Requirement &amp; Risk/);
+  assert.match(html, /Shows why this supplier matters &lt;now&gt;\./);
   assert.match(html, /command:pspf.shop.link\?x=1&amp;y=2/);
   assert.match(html, /All linked/);
 });

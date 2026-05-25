@@ -5,6 +5,7 @@ import { join } from "node:path";
 
 const root = process.cwd();
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+const checkGatesScript = `${packageJson.scripts["check:gates"] || ""} ${packageJson.scripts["check:gates:run"] || ""}`;
 const expectedVersion = packageJson.version;
 const versionMatch = expectedVersion.match(/^(\d+)\.(\d+)\.(\d+)$/);
 assert.ok(versionMatch, `root package version should be semver, got ${expectedVersion}`);
@@ -147,7 +148,7 @@ for (const scriptName of [
   assert.equal(typeof packageJson.scripts[scriptName], "string", `root package should define ${scriptName}`);
 }
 assert.equal(
-  packageJson.scripts["check:gates"].includes("check-adr-coverage.mjs"),
+  checkGatesScript.includes("check-adr-coverage.mjs"),
   true,
   "check:gates should run ADR coverage before release gates"
 );
@@ -1317,7 +1318,7 @@ if (isV1Release && minorVersion >= 27) {
     assert.equal(briefRenderer.includes(requiredText), true, `CISO Magazine renderer should mention ${requiredText}`);
   }
   assert.equal(
-    packageJson.scripts["check:gates"].includes("check-ciso-magazine.mjs"),
+    checkGatesScript.includes("check-ciso-magazine.mjs"),
     true,
     "check:gates should run the CISO Magazine gate"
   );
@@ -1504,7 +1505,7 @@ if (isV1Release && minorVersion >= 31) {
   }
   for (const requiredText of [
     "v1.31 candidate gates (6clicks risk source hardening, per ADR 0068)",
-    "PSPF_SLICE_VERSION` are `1.31.0`",
+    `PSPF_SLICE_VERSION\` are \`${expectedVersion}\``,
     "Explicit source-mode gate",
     "Local log gate",
     "Fixture hardening gate",

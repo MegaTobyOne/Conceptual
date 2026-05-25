@@ -37,13 +37,56 @@ test("buildConnectedViewModel orients supported links into a traceable chain", (
 test("renderConnectedViewBodyHtml exposes per-domain controls", () => {
   const html = renderConnectedViewBodyHtml(buildConnectedViewModel(sampleInput()), {
     mode: "workshop",
-    defaultLayout: "domains"
+    defaultLayout: "domains",
+    initialSelectionIds: ["REQ-GOV", "ACT-1"],
+    revealMessage: "New relationship added"
   });
 
   assert.match(html, /data-cv-domain-toggle="governance"/);
   assert.match(html, /data-cv-domain-toggle="technology"/);
   assert.match(html, /data-cv-domain="governance"/);
   assert.match(html, /data-cv-action="toggle-not-applicable"/);
+  assert.match(html, /"initialSelectionIds":\["REQ-GOV","ACT-1"\]/);
+  assert.match(html, /"revealMessage":"New relationship added"/);
+});
+
+test("browser runtime applies initial selection and renders chain summary", async () => {
+  const model = buildConnectedViewModel(sampleInput());
+  const body = renderConnectedViewBodyHtml(model, {
+    mode: "workshop",
+    defaultLayout: "domains",
+    initialSelectionIds: ["REQ-GOV"],
+    revealMessage: "Relationship effect"
+  });
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+    await page.setContent(
+      `<!doctype html><html><head><style>${CONNECTED_VIEW_STYLES}</style></head><body>${body}<script>${CONNECTED_VIEW_BROWSER_SCRIPT}</script></body></html>`
+    );
+    await page.evaluate(() =>
+      (globalThis as typeof globalThis & { pspfConnectedView?: { initAll: () => void } }).pspfConnectedView?.initAll()
+    );
+    await waitForConnectedViewFrames(page);
+
+    assert.equal(
+      await page
+        .locator('[data-cv-card][data-cv-id="REQ-GOV"]:visible')
+        .evaluate((node) => node.classList.contains("cv-selected")),
+      true
+    );
+    assert.equal(await page.locator("[data-cv-links] path.cv-highlight").count(), 4);
+    await assertConnectedViewPathsMeetCards(page);
+    const summary = await page.locator("[data-cv-selection-summary]").textContent();
+    assert.match(summary ?? "", /Selected chain/);
+    assert.match(summary ?? "", /1 Direction/);
+    assert.match(summary ?? "", /2 Requirements/);
+    assert.match(summary ?? "", /1 Risk/);
+    assert.match(summary ?? "", /1 Action/);
+    assert.match(summary ?? "", /Relationship effect/);
+  } finally {
+    await browser.close();
+  }
 });
 
 test("buildConnectedViewConnectorPath anchors horizontal and wrapped lanes on stable sides", () => {
