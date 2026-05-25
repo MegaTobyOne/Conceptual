@@ -1424,14 +1424,17 @@ function renderOrgChartRoleCard(store: PubStore, role: RoleRecord): string {
 }
 
 function renderOrgChartAssignmentChip(store: PubStore, assignment: AssignmentRecord): string {
-  const details = [label(assignment.status), assignment.allocation, assignment.badge].filter(isNonEmptyString).join(" · ");
+  const details = [label(assignment.status), assignment.allocation, assignment.badge]
+    .filter(isNonEmptyString)
+    .join(" · ");
   return `<span class="org-assignment-chip"><strong>${escapeHtml(personName(store, assignment.personId))}</strong><small>${escapeHtml(details || "Assigned")}</small></span>`;
 }
 
 function teamOrgTags(team: TeamRecord): string {
-  const tags = [controlSummary(team), ...team.ownedRequirementRefs.map((reference) => `Requirement ${reference}`)].filter(
-    isNonEmptyString
-  );
+  const tags = [
+    controlSummary(team),
+    ...team.ownedRequirementRefs.map((reference) => `Requirement ${reference}`)
+  ].filter(isNonEmptyString);
   return tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
 }
 

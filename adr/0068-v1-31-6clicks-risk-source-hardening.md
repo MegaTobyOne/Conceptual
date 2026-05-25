@@ -25,8 +25,8 @@ The slice provides:
 
 Versioning:
 
-- Product version target: `PSPF_SLICE_VERSION = "1.31.1"`.
-- Package version target: `1.31.1`.
+- Product version target: `PSPF_SLICE_VERSION = "1.31.2"`.
+- Package version target: `1.31.2`.
 - `VERSION_AXES` remains `schemaVersion = bundleVersion = apiVersion = "1.11.0"` because this slice adds no published bundle fields and no Explorer schema change.
 
 ## Non-goals

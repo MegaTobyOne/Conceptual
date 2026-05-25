@@ -307,6 +307,15 @@ export function shellHtml(title: string, body: string): string {
         const fields = form ? pspfFormFields(form) : undefined;
         vscode.postMessage({ command, evidenceReference: fields?.reference || button.getAttribute('data-evidence-reference') });
       }
+      if (command === 'copyEvidenceReviewSummary') {
+        vscode.postMessage({ command });
+      }
+      if (command === 'copyRequirementBrief') {
+        vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
+      }
+      if (command === 'copyEvidenceBrief' || command === 'linkEvidenceToRequirements') {
+        vscode.postMessage({ command, entityId: button.getAttribute('data-entity-id') });
+      }
       if (command === 'openRequirementInEditor') {
         const filterInput = document.querySelector('.requirement-browser__filter');
         const filterText = filterInput instanceof HTMLInputElement ? filterInput.value : '';

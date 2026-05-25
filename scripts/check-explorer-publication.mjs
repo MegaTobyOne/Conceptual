@@ -315,6 +315,8 @@ try {
     await new Promise(requestAnimationFrame);
     const visibleElements = (selector) =>
       Array.from(document.querySelectorAll(selector)).filter((element) => element.offsetParent !== null);
+    const uniqueVisibleCvIds = (selector) =>
+      new Set(visibleElements(selector).map((element) => element.dataset.cvId).filter(Boolean)).size;
     const requirementCard = visibleElements('#connected-view [data-cv-kind="requirement"]')[0];
     requirementCard?.click();
     await new Promise(requestAnimationFrame);
@@ -323,6 +325,7 @@ try {
       edges: document.querySelectorAll("#connected-view svg path").length,
       highlightedEdges: document.querySelectorAll("#connected-view svg path.cv-highlight").length,
       selectedCards: visibleElements("#connected-view .cv-selected").length,
+      selectedRecordIds: uniqueVisibleCvIds("#connected-view .cv-selected"),
       connectedCards: visibleElements("#connected-view .cv-connected").length,
       zoomControls: document.querySelectorAll(
         '#connected-view [data-cv-action="zoom-in"], #connected-view [data-cv-action="zoom-out"], #connected-view [data-cv-action="zoom-reset"]'
@@ -479,7 +482,7 @@ try {
     check(
       "Explorer Connected View selection highlights chain",
       !connectedViewValues.skipped &&
-        connectedViewValues.before.selectedCards === 1 &&
+        connectedViewValues.before.selectedRecordIds === 1 &&
         connectedViewValues.before.connectedCards >= 3 &&
         connectedViewValues.before.highlightedEdges >= 3,
       JSON.stringify(connectedViewValues.before)

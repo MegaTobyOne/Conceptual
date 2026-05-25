@@ -66,7 +66,8 @@ export function buildRelationshipConsequence(input: {
     }
   }
   const requirements = input.allEntities.filter(
-    (entity): entity is RequirementEntity => entity.entityType === "requirement" && affectedRequirementIds.has(entity.id)
+    (entity): entity is RequirementEntity =>
+      entity.entityType === "requirement" && affectedRequirementIds.has(entity.id)
   );
   const affectedDomainCount = new Set(requirements.map((requirement) => requirement.domainId)).size;
   const previouslySupportedRequirementIds = new Set(

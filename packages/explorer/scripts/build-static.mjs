@@ -360,6 +360,7 @@ let currentLocalOverlays = new Map();
 let currentLocalEvidenceReferences = [];
 let currentLocalActions = [];
 let currentLocalRisks = [];
+let currentLocalSavedViews = [];
 let localSaveFeedback;
 let currentLocalRequirementId;
 let currentLocalRequirementFilter = "";
@@ -375,6 +376,7 @@ const localStoreName = "requirement-status-overlays";
 const localEvidenceStoreName = "requirement-evidence-references";
 const localActionStoreName = "requirement-actions";
 const localRiskStoreName = "requirement-risks";
+const localSavedViewStoreName = "saved-views";
 const rememberedBundleStoreName = "remembered-bundles";
 const rememberedBundleKey = "latest";
 const tagFilterSessionKey = "pspf:explorer:tag-filter";
@@ -492,7 +494,8 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   currentLocalEvidenceReferences = await loadLocalEvidenceReferences(currentBundleKey);
   currentLocalActions = await loadLocalActions(currentBundleKey);
   currentLocalRisks = await loadLocalRisks(currentBundleKey);
-  const collections = applyLocalEdits(currentBaselineCollections, currentLocalOverlays, currentLocalEvidenceReferences, currentLocalActions, currentLocalRisks);
+  currentLocalSavedViews = await loadLocalSavedViews(currentBundleKey);
+  const collections = applyLocalEdits(currentBaselineCollections, currentLocalOverlays, currentLocalEvidenceReferences, currentLocalActions, currentLocalRisks, currentLocalSavedViews);
   currentCollections = collections;
   const posture = collections.posture && collections.posture[0] ? collections.posture[0] : {};
   const validation = await validateBundle(manifest, currentBaselineCollections, collectionTexts);
@@ -664,6 +667,68 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   applyExplorerSearch();
 }
 
+function renderExplorerSection(section, title, bodyHtml) {
+  if (!section) {
+    return;
+  }
+  section.innerHTML = '<summary>' + escapeHtml(title) + '</summary><div class="section-body">' + bodyHtml + '</div>';
+}
+
+function renderConnectedViewExplorerSection(collections) {
+  if (!connectedViewSection) {
+    return;
+  }
+  connectedViewSection.innerHTML = '<summary>Connected View</summary><div class="section-body"><p class="muted">Trace published Directions, Requirements, Risks, and Actions without writing to this browser.</p><div data-cv-mount></div></div>';
+  const mount = connectedViewSection.querySelector('[data-cv-mount]');
+  const api = globalThis.pspfConnectedView;
+  if (api && typeof api.renderInto === "function") {
+    api.renderInto(
+      mount,
+      {
+        directions: collections.directions || [],
+        requirements: collections.requirements || [],
+        risks: collections.risks || [],
+        actions: collections.actions || [],
+        links: collections.links || [],
+        domains: collections.domains || []
+      },
+      { mode: "explorer", defaultLayout: "compact" }
+    );
+    return;
+  }
+  if (mount) {
+    mount.innerHTML = '<p class="muted">Connected View runtime is not available for this bundle.</p>';
+  }
+}
+
+function strategyPanel(collections, entitiesById) {
+  const strategies = collections.strategies || [];
+  if (strategies.length === 0) {
+    return '<p class="muted">No published Strategy records are included in this bundle.</p>';
+  }
+  const summaryRows = strategies.map((strategy) => ({
+    title: strategy.title,
+    scope: strategy.scope || "Not recorded",
+    horizon: strategy.timeHorizon || "Not recorded",
+    cadence: label(strategy.reviewCadence || "not-recorded"),
+    frameworks: (strategy.frameworks || []).join(", ") || "Not recorded",
+    choices: (strategy.choices || []).length
+  }));
+  const choiceRows = strategies.flatMap((strategy) =>
+    (strategy.choices || []).map((choice) => ({
+      strategy: strategy.title,
+      choice: choice.statement,
+      capability: choice.capabilityArea || "Not recorded",
+      target: choice.targetPosture || "Not recorded",
+      trend: label(choice.trend || "unknown"),
+      confidence: label(choice.confidence || "medium"),
+      outcomes: (choice.outcomes || []).length,
+      links: strategyReferenceList(choice.references || [], entitiesById)
+    }))
+  );
+  return table(summaryRows, ["title", "scope", "horizon", "cadence", "frameworks", "choices"]) + table(choiceRows, ["strategy", "choice", "capability", "target", "trend", "confidence", "outcomes", "links"]);
+}
+
 function strategyReferenceList(references, entitiesById) {
   if (references.length === 0) {
     return '<p class="muted">No linked records.</p>';
@@ -772,6 +837,81 @@ function persistRequirementFilterState() {
   }));
 }
 
+async function saveRequirementsView(name) {
+  const savedView = buildSavedView(name, "explorer-requirements", ["id", "title", "domainId", "assessmentStatus", "tags", "evidence", "actions", "risks"]);
+  await saveLocalSavedView(savedView);
+  currentLocalSavedViews = await loadLocalSavedViews(currentBundleKey);
+  currentCollections = applyLocalEdits(currentBaselineCollections, currentLocalOverlays, currentLocalEvidenceReferences, currentLocalActions, currentLocalRisks, currentLocalSavedViews);
+  return savedView;
+}
+
+async function saveRelationshipsView(name) {
+  const savedView = buildSavedView(name, "explorer-relationships", ["relationship", "from", "to", "tags"]);
+  await saveLocalSavedView(savedView);
+  currentLocalSavedViews = await loadLocalSavedViews(currentBundleKey);
+  currentCollections = applyLocalEdits(currentBaselineCollections, currentLocalOverlays, currentLocalEvidenceReferences, currentLocalActions, currentLocalRisks, currentLocalSavedViews);
+  return savedView;
+}
+
+function buildSavedView(name, scope, visibleColumns) {
+  const timestamp = new Date().toISOString();
+  const token = crypto.randomUUID();
+  const cleanName = String(name || "Untitled view").trim() || "Untitled view";
+  return {
+    key: currentBundleKey + "::" + token,
+    bundleKey: currentBundleKey,
+    id: "SVW-" + token,
+    entityType: "saved-view",
+    schemaVersion: "${VERSION_AXES.schemaVersion}",
+    title: cleanName,
+    name: cleanName,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    sourceProduct: "explorer",
+    recordStatus: "active",
+    scope,
+    filters: {
+      query: currentExplorerSearch.trim() || undefined,
+      tagIds: [...currentTagFilterIds],
+      tagsMode: currentTagFilterMode,
+      assessmentStatuses: [...currentRequirementStatusFilter]
+    },
+    presentation: { visibleColumns }
+  };
+}
+
+function savedViews() {
+  const baselineViews = currentBaselineCollections?.["saved-views"] || [];
+  const localIds = new Set(currentLocalSavedViews.map((view) => view.id));
+  return [...baselineViews.filter((view) => !localIds.has(view.id)), ...currentLocalSavedViews];
+}
+
+async function applySavedView(savedViewId) {
+  const view = savedViews().find((item) => item.id === savedViewId);
+  if (!view) {
+    return;
+  }
+  currentExplorerSearch = String(view.filters?.query || "");
+  currentTagFilterIds = new Set(Array.isArray(view.filters?.tagIds) ? view.filters.tagIds : []);
+  currentTagFilterMode = view.filters?.tagsMode === "all" ? "all" : "any";
+  currentRequirementStatusFilter = new Set(Array.isArray(view.filters?.assessmentStatuses) ? view.filters.assessmentStatuses : []);
+  persistTagFilterState();
+  persistRequirementFilterState();
+  syncTagFilterControls();
+  syncRequirementStatusFilterControls();
+  applyTagFilter();
+  applyRequirementStatusFilter();
+  applyExplorerSearch();
+}
+
+async function applyRelationshipsSavedView(savedViewId) {
+  const links = document.querySelector("#links");
+  if (links instanceof HTMLDetailsElement) {
+    links.open = true;
+  }
+  await applySavedView(savedViewId);
+}
+
 function bindTagFilterControls() {
   document.querySelectorAll(".tag-filter-checkbox").forEach((input) => {
     input.addEventListener("change", () => {
@@ -823,6 +963,30 @@ function applyTagFilter() {
     row.dataset.tagFilterHidden = matches ? "false" : "true";
     row.hidden = !matches;
   }
+}
+
+function applyExplorerSearch() {
+  const query = currentExplorerSearch.trim().toLowerCase();
+  if (explorerSearchInput instanceof HTMLInputElement && explorerSearchInput.value !== currentExplorerSearch) {
+    explorerSearchInput.value = currentExplorerSearch;
+  }
+  let visible = 0;
+  let total = 0;
+  for (const row of document.querySelectorAll("details.panel tbody tr")) {
+    total += 1;
+    const matchesSearch = !query || String(row.textContent || "").toLowerCase().includes(query);
+    row.dataset.searchFilterHidden = matchesSearch ? "false" : "true";
+    const hidden = row.dataset.tagFilterHidden === "true" || row.dataset.statusFilterHidden === "true" || row.dataset.searchFilterHidden === "true";
+    row.hidden = hidden;
+    if (!hidden) {
+      visible += 1;
+    }
+  }
+  if (explorerSearchStatus) {
+    const localMatches = document.querySelectorAll(".local-requirement-option:not([hidden])").length;
+    explorerSearchStatus.textContent = query ? visible + ' visible rows match and ' + localMatches + ' Local Changes item(s) match "' + currentExplorerSearch + '"' : (visible || total) + ' visible rows loaded';
+  }
+  updateBackToTopVisibility();
 }
 
 function loadTagFilterState() {
@@ -1466,7 +1630,7 @@ function localStatusConflicts() {
   return conflicts;
 }
 
-function applyLocalEdits(collections, overlays, evidenceReferences, localActions, localRisks) {
+function applyLocalEdits(collections, overlays, evidenceReferences, localActions, localRisks, localSavedViews) {
   const clone = cloneCollections(collections);
   clone.requirements = (clone.requirements || []).map((requirement) => {
     const overlay = overlays.get(requirement.id);
@@ -1505,6 +1669,12 @@ function applyLocalEdits(collections, overlays, evidenceReferences, localActions
     }
     if (!(clone.links || []).some((item) => item.id === materialised.link.id)) {
       clone.links = [...(clone.links || []), materialised.link];
+    }
+  }
+  for (const savedView of localSavedViews) {
+    if (!(clone["saved-views"] || []).some((item) => item.id === savedView.id)) {
+      const { key, bundleKey, ...entity } = savedView;
+      clone["saved-views"] = [...(clone["saved-views"] || []), entity];
     }
   }
   clone.posture = (clone.posture || []).map((posture) => ({
@@ -1811,7 +1981,7 @@ function cloneCollections(collections) {
 
 function openLocalDb() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(localDbName, 6);
+    const request = indexedDB.open(localDbName, 7);
     request.addEventListener("upgradeneeded", () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(localStoreName)) {
@@ -1828,6 +1998,10 @@ function openLocalDb() {
       }
       if (!db.objectStoreNames.contains(localRiskStoreName)) {
         const store = db.createObjectStore(localRiskStoreName, { keyPath: "key" });
+        store.createIndex("bundleKey", "bundleKey", { unique: false });
+      }
+      if (!db.objectStoreNames.contains(localSavedViewStoreName)) {
+        const store = db.createObjectStore(localSavedViewStoreName, { keyPath: "key" });
         store.createIndex("bundleKey", "bundleKey", { unique: false });
       }
       if (!db.objectStoreNames.contains(rememberedBundleStoreName)) {
@@ -1921,6 +2095,29 @@ async function loadLocalRisks(bundleKey) {
     request.addEventListener("success", () => resolve(request.result.sort((left, right) => left.createdAt.localeCompare(right.createdAt))));
     request.addEventListener("error", () => reject(request.error));
     transaction.addEventListener("complete", () => db.close());
+  });
+}
+
+async function loadLocalSavedViews(bundleKey) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localSavedViewStoreName, "readonly");
+    const store = transaction.objectStore(localSavedViewStoreName);
+    const index = store.index("bundleKey");
+    const request = index.getAll(bundleKey);
+    request.addEventListener("success", () => resolve(request.result.sort((left, right) => left.createdAt.localeCompare(right.createdAt))));
+    request.addEventListener("error", () => reject(request.error));
+    transaction.addEventListener("complete", () => db.close());
+  });
+}
+
+async function saveLocalSavedView(record) {
+  const db = await openLocalDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(localSavedViewStoreName, "readwrite");
+    transaction.objectStore(localSavedViewStoreName).put(record);
+    transaction.addEventListener("complete", () => { db.close(); resolve(); });
+    transaction.addEventListener("error", () => reject(transaction.error));
   });
 }
 
@@ -2026,6 +2223,7 @@ async function resetLocalData(bundleKey) {
   await resetLocalEvidenceReferences(bundleKey);
   await resetLocalActions(bundleKey);
   await resetLocalRisks(bundleKey);
+  await resetLocalSavedViews(bundleKey);
 }
 
 async function resetLocalActions(bundleKey) {
@@ -2034,6 +2232,10 @@ async function resetLocalActions(bundleKey) {
 
 async function resetLocalRisks(bundleKey) {
   await resetObjectStoreByBundleKey(localRiskStoreName, bundleKey);
+}
+
+async function resetLocalSavedViews(bundleKey) {
+  await resetObjectStoreByBundleKey(localSavedViewStoreName, bundleKey);
 }
 
 async function resetObjectStoreByBundleKey(storeName, bundleKey) {
@@ -2529,6 +2731,11 @@ globalThis.pspfExplorerAddLocalRisk = addLocalRisk;
 globalThis.pspfExplorerExportLocalBundle = exportLocalAuthoringBundle;
 globalThis.pspfExplorerSetIncludeComplianceHistory = (value) => { includeComplianceHistoryInExport = Boolean(value); };
 globalThis.pspfExplorerResetLocalData = () => resetLocalData(currentBundleKey);
+globalThis.pspfExplorerSaveRequirementsView = saveRequirementsView;
+globalThis.pspfExplorerSaveRelationshipsView = saveRelationshipsView;
+globalThis.pspfExplorerSavedViews = savedViews;
+globalThis.pspfExplorerApplySavedView = applySavedView;
+globalThis.pspfExplorerApplyRelationshipsSavedView = applyRelationshipsSavedView;
 `;
 
 await writeFile(join(dist, "index.html"), html, "utf8");
