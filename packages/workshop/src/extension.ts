@@ -3338,6 +3338,7 @@ function renderStrategyEditorPanel(strategy: StrategyEntity, currentArea: string
         <input type="hidden" name="entityType" value="strategy">
         <input type="hidden" name="entityId" value="${escapeHtml(strategy.id)}">
         <input type="hidden" name="strategyArea" value="${escapeHtml(currentArea)}">
+        ${renderStrategyAreaReadiness(strategy, currentArea)}
         ${renderStrategyEditorArea(strategy, currentArea)}
         <section>
           <h2>Save</h2>
@@ -3386,6 +3387,143 @@ function renderStrategyAreaNav(strategy: StrategyEntity, currentArea: string): s
 
 function strategyAreaNavItem(area: string, title: string, detail: string, currentArea: string, nested = false): string {
   return `<button type="button" class="strategy-editor__nav-item${nested ? " strategy-editor__nav-item--nested" : ""}" data-command="openStrategyArea" data-strategy-area="${escapeHtml(area)}"${area === currentArea ? ' aria-current="page"' : ""}><strong>${escapeHtml(title)}</strong><span>${escapeHtml(detail)}</span></button>`;
+}
+
+function renderStrategyAreaReadiness(strategy: StrategyEntity, currentArea: string): string {
+  const summary = strategyAreaReadiness(strategy, currentArea);
+  const missingItems = summary.missing.length > 0 ? summary.missing : ["No obvious gaps for this area."];
+  return `<section class="strategy-editor__readiness">
+    <p class="eyebrow">Area readiness</p>
+    <h2>${escapeHtml(summary.title)}</h2>
+    <p class="muted">${escapeHtml(summary.description)}</p>
+    <div class="strategy-editor__cue-grid">
+      ${metricCard("Requirements", summary.referenceCounts.requirement)}
+      ${metricCard("Risks", summary.referenceCounts.risk)}
+      ${metricCard("Actions", summary.referenceCounts.action)}
+      ${metricCard("Directions", summary.referenceCounts.direction)}
+      ${metricCard("Outcomes", summary.outcomeCount)}
+      ${metricCard("Measures", summary.measureCount)}
+    </div>
+    <div class="strategy-editor__cue-grid strategy-editor__cue-grid--text">
+      <div class="strategy-editor__cue"><h3>Next useful checks</h3><ul>${missingItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></div>
+      <div class="strategy-editor__cue"><h3>Publication posture</h3><p>${escapeHtml(summary.publicationCue)}</p></div>
+    </div>
+  </section>`;
+}
+
+type StrategyAreaReadiness = {
+  readonly title: string;
+  readonly description: string;
+  readonly referenceCounts: Readonly<Record<"requirement" | "risk" | "action" | "direction", number>>;
+  readonly outcomeCount: number;
+  readonly measureCount: number;
+  readonly missing: readonly string[];
+  readonly publicationCue: string;
+};
+
+function strategyAreaReadiness(strategy: StrategyEntity, currentArea: string): StrategyAreaReadiness {
+  if (currentArea === "frame") {
+    const allReferences = strategy.choices.flatMap((choice) => [
+      ...choice.references,
+      ...choice.outcomes.flatMap((outcome) => outcome.references)
+    ]);
+    const outcomeCount = strategy.choices.reduce((total, choice) => total + choice.outcomes.length, 0);
+    const measureCount = strategy.choices.reduce(
+      (total, choice) =>
+        total + choice.outcomes.reduce((innerTotal, outcome) => innerTotal + outcome.measures.length, 0),
+      0
+    );
+    return {
+      title: "Strategy frame",
+      description: "Executive context, authority, scope, posture, and assumptions for the whole Strategy record.",
+      referenceCounts: strategyReferenceCounts(allReferences),
+      outcomeCount,
+      measureCount,
+      missing: compactStrings([
+        strategy.strategyStatement.trim() ? "" : "Add a Strategy statement before briefing leadership.",
+        strategy.riskPostureStatement.trim()
+          ? ""
+          : "Add the risk posture statement that explains the direction of travel.",
+        strategy.choices.length > 0 ? "" : "Add at least one strategic choice.",
+        outcomeCount > 0 ? "" : "Add outcomes under the strategic choices.",
+        measureCount > 0 ? "" : "Add at least one measure so the roadmap has a target signal."
+      ]),
+      publicationCue:
+        "Strategy statement, executive summary, scope, and posture can support executive views. Assumptions and internal working notes stay sensitive by default."
+    };
+  }
+
+  const outcomeMatch = currentArea.match(/^choice\.(\d+)\.outcome\.(\d+)$/);
+  if (outcomeMatch) {
+    const choiceIndex = Number(outcomeMatch[1]);
+    const outcomeIndex = Number(outcomeMatch[2]);
+    const outcome = strategy.choices[choiceIndex]?.outcomes[outcomeIndex];
+    if (outcome) {
+      return {
+        title: `Outcome ${choiceIndex + 1}.${outcomeIndex + 1}`,
+        description: "Outcome workspace for intended change, measures, and linked work.",
+        referenceCounts: strategyReferenceCounts(outcome.references),
+        outcomeCount: 1,
+        measureCount: outcome.measures.length,
+        missing: compactStrings([
+          outcome.statement.trim() ? "" : "Add the outcome statement.",
+          outcome.summary.trim() ? "" : "Add an outcome summary for executive readers.",
+          outcome.references.length > 0
+            ? ""
+            : "Link at least one Requirement so this outcome traces to assurance work.",
+          outcome.measures.length > 0 ? "" : "Add at least one measure with current and target values.",
+          outcome.measures.some((measure) => (measure.target ?? "").trim())
+            ? ""
+            : "Add a target value to at least one measure."
+        ]),
+        publicationCue:
+          "Outcome statement, summary, and high-level measures can support the executive roadmap. Linked record detail remains governed by each source record."
+      };
+    }
+  }
+
+  const choiceMatch = currentArea.match(/^choice\.(\d+)$/);
+  if (choiceMatch) {
+    const choiceIndex = Number(choiceMatch[1]);
+    const choice = strategy.choices[choiceIndex];
+    if (choice) {
+      const measureCount = choice.outcomes.reduce((total, outcome) => total + outcome.measures.length, 0);
+      return {
+        title: `Strategic choice ${choiceIndex + 1}`,
+        description: "Choice context for intent, owner, target posture, rationale, constraints, and outcomes.",
+        referenceCounts: strategyReferenceCounts(choice.references),
+        outcomeCount: choice.outcomes.length,
+        measureCount,
+        missing: compactStrings([
+          choice.statement.trim() ? "" : "Add the choice statement.",
+          choice.summary.trim() ? "" : "Add a choice summary that can feed the Master Plan.",
+          choice.targetPosture.trim() ? "" : "Add the target posture for this choice.",
+          choice.references.length > 0 ? "" : "Link at least one Requirement to ground the choice.",
+          choice.outcomes.length > 0 ? "" : "Add outcomes under this choice.",
+          measureCount > 0 ? "" : "Add measures under the outcomes."
+        ]),
+        publicationCue:
+          "Choice statement, summary, capability area, and target posture can inform executive planning. Rationale and constraints remain internal working context."
+      };
+    }
+  }
+
+  return strategyAreaReadiness(strategy, "frame");
+}
+
+function strategyReferenceCounts(
+  references: readonly StrategyEntity["choices"][number]["references"][number][]
+): Readonly<Record<"requirement" | "risk" | "action" | "direction", number>> {
+  return {
+    requirement: references.filter((reference) => reference.entityType === "requirement").length,
+    risk: references.filter((reference) => reference.entityType === "risk").length,
+    action: references.filter((reference) => reference.entityType === "action").length,
+    direction: references.filter((reference) => reference.entityType === "direction").length
+  };
+}
+
+function compactStrings(values: readonly string[]): readonly string[] {
+  return values.filter((value) => value.trim().length > 0);
 }
 
 function renderStrategyEditorArea(strategy: StrategyEntity, currentArea: string): string {
@@ -8356,6 +8494,7 @@ async function openCisoMasterPlan(): Promise<void> {
       freshness: evidence.freshness
     }))
   );
+  const readinessRows = cisoMasterPlanReadinessRows(model);
   const panel = vscode.window.createWebviewPanel("pspfCisoMasterPlan", "CISO Master Plan", vscode.ViewColumn.One, {
     enableScripts: true
   });
@@ -8379,6 +8518,8 @@ async function openCisoMasterPlan(): Promise<void> {
       </div>
       <p>${escapeHtml(model.direction)}</p>
       <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
+        <button type="button" data-command="pspf.workshop.editStrategySummary">Strategy Editor</button>
         <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
         <button type="button" data-command="pspf.workshop.createRoadmapInitiativePlan">Add initiative plan</button>
         <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
@@ -8386,6 +8527,7 @@ async function openCisoMasterPlan(): Promise<void> {
         <button type="button" data-command="pspf.workshop.copyCisoMasterPlan">Copy plan</button>
       </div>
     </section>
+    ${recordTable("Planning Readiness", readinessRows, ["area", "status", "nextStep"])}
     ${recordTable("Plan Streams", streamRows, ["stream", "phase", "status", "basis"])}
     ${recordTable("Roadmap Initiative Stages", initiativeRows, ["initiative", "stage", "stageAction", "status", "dueDate", "evidence"])}
     ${recordTable("Roadmap Initiative Evidence", initiativeEvidenceRows, ["initiative", "evidence", "freshness"])}
@@ -8393,6 +8535,53 @@ async function openCisoMasterPlan(): Promise<void> {
     ${recordTable("Inputs And Dependencies", dependencyRows, ["dependency", "source", "status"])}
   `
   );
+}
+
+function cisoMasterPlanReadinessRows(model: ReturnType<typeof buildCisoMasterPlanModel>): readonly {
+  readonly area: string;
+  readonly status: string;
+  readonly nextStep: string;
+}[] {
+  const initiativeWithoutEvidence = model.initiativePlans.filter((initiative) => initiative.evidenceCount === 0).length;
+  return [
+    {
+      area: "Strategy direction",
+      status: model.streams.length > 0 ? "Ready" : "Needs strategy stream",
+      nextStep:
+        model.streams.length > 0
+          ? "Review Strategy Map for choice and outcome coverage."
+          : "Open Strategy Editor and add at least one strategic choice."
+    },
+    {
+      area: "Initiative stages",
+      status:
+        model.initiativePlans.length > 0 ? `${model.initiativePlans.length} initiative plan(s)` : "No initiative plans",
+      nextStep:
+        model.initiativePlans.length > 0
+          ? "Open stage Actions to keep status, timing and stage wording current."
+          : "Add an initiative plan when roadmap work needs Design, Build, Verify and Monitor stages."
+    },
+    {
+      area: "Case for action",
+      status:
+        initiativeWithoutEvidence === 0
+          ? "Evidence linked"
+          : `${initiativeWithoutEvidence} initiative(s) need evidence`,
+      nextStep:
+        initiativeWithoutEvidence === 0
+          ? "Open Evidence rows to keep the case for action current."
+          : "Link Evidence to the initiative Actions so the case for action remains editable."
+    },
+    {
+      area: "Dependencies",
+      status:
+        model.dependencies.length > 0 ? `${model.dependencies.length} dependency row(s)` : "No dependencies recorded",
+      nextStep:
+        model.dependencies.length > 0
+          ? "Review supplier, risk and external dependency status before sharing the plan."
+          : "Link Shop milestones, open Risks or other dependency records when they affect the path."
+    }
+  ];
 }
 
 async function copyCisoMasterPlan(): Promise<void> {

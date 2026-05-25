@@ -51,7 +51,9 @@ Plan for an ecosystem-wide consistency refactor, but deliver it as staged vertic
 ### Slice 5 - Explorer/Workshop Pattern Alignment
 
 - Extract Explorer saved-view/filter logic into reusable static-safe helpers.
-- Simplify Workshop Strategy and Action editors after relationship-manager behaviour is proven.
+- Use v1.32 to simplify the Workshop Strategy Editor around staged Strategy areas: frame, choices, outcomes, and measures.
+- Add Strategy Editor readiness, linked-work, and publication-sensitivity cues without changing the canonical singleton Strategy model.
+- Keep Action editor simplification as a follow-on after Strategy polish proves the pattern.
 - Preserve the Requirement Workbench as the reference implementation until replacements are demonstrably better.
 
 ## Current Large Panels To Simplify

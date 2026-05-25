@@ -488,6 +488,19 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 8. **Deferred-scope gate**: endpoint allow-listing, scheduled sync, background polling, webhooks, incremental cursors, additional source adapters, external Actions, technology systems, commercial records, Pub records, and Explorer runtime integration remain out of scope.
 9. **Regression gate**: `e2e:v1.31`, `check:risk-source-integration`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.32 candidate gates (CISO Master Plan and Strategy Editor polish, per ADR 0069)
+
+1. **ADR gate**: ADR 0069 records the v1.32 CISO Master Plan and Strategy Editor polish decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.32.0`; schema, bundle, and API axes remain `1.11.0` unless implementation adds a new published bundle field, collection, link verb, or schema-bearing entity.
+3. **Master Plan scan gate**: Workshop CISO Master Plan clearly presents direction, streams, phases, initiative stages, evidence inputs, risks, actions, and Shop dependencies from existing records without introducing a separate Plan product.
+4. **Planning navigation gate**: the Master Plan routes operators to Strategy Map, Strategy Editor, Plan of Action, Master Dashboard, Digital CISO Magazine, and editable source records where applicable.
+5. **Strategy Editor readiness gate**: the Strategy Editor keeps staged areas for frame, choices, outcomes, and measures, and adds concise readiness, linked-work, and missing-context cues for the visible area.
+6. **Publication-sensitivity gate**: Strategy Editor copy and Master Plan rendering distinguish publication-safe executive content from sensitive assumptions, rationale, constraints, and non-public working detail.
+7. **Initiative planning gate**: roadmap initiative stages remain editable through existing Action records and their case for action remains editable through existing Evidence records; no canonical roadmap, milestone, resource, budget, or plan-baseline entity is added.
+8. **Generated-output gate**: copied/generated Master Plan Markdown excludes restricted personal fields, sensitive assumptions, non-public working notes, raw integration logs, and unpublished Pub data.
+9. **Deferred-scope gate**: v1.32 does not add a PSPF Plan product, multiple Strategy records, standalone strategy-choice entities, Explorer strategy editing, editable Connected View, PMO scheduling, approvals, reminders, calendars, finance reconciliation, persisted Report Packs, native PDF generation, email sending, or subscriber management.
+10. **Regression gate**: `check:ciso-magazine`, `check:brief-redaction`, `check:ux-coverage`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

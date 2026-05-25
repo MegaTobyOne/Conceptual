@@ -81,6 +81,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0066 | v1.29.2 generated slide and document export direction | proposed |
 | 0067 | v1.30 6clicks risk source integration | proposed |
 | 0068 | v1.31 6clicks risk source hardening | proposed |
+| 0069 | v1.32 CISO Master Plan and Strategy Editor polish | proposed |
 
 ## Template
 
