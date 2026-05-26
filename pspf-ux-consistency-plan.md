@@ -53,6 +53,7 @@ Plan for an ecosystem-wide consistency refactor, but deliver it as staged vertic
 - Extract Explorer saved-view/filter logic into reusable static-safe helpers.
 - Use v1.32 to simplify the Workshop Strategy Editor around staged Strategy areas: frame, choices, outcomes, and measures.
 - Add Strategy Editor readiness, linked-work, and publication-sensitivity cues without changing the canonical singleton Strategy model.
+- Change CISO Master Plan initiative creation from a four-activity template to step-built planner frames, tasks, and milestones over existing Actions and Evidence.
 - Keep Action editor simplification as a follow-on after Strategy polish proves the pattern.
 - Preserve the Requirement Workbench as the reference implementation until replacements are demonstrably better.
 

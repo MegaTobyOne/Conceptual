@@ -38,9 +38,9 @@ Workshop is the main operator surface for evidence-backed assessment work. Requi
 Current v1.27 Workshop additions include:
 
 - Digital CISO Magazine: a generated `OFFICIAL: Sensitive` issue for share-ready CISO communication.
-- CISO Master Plan: an active roadmap view derived from Strategy, Plan of Action, Risks, Evidence, Shop dependencies, and staged initiative plans.
+- CISO Master Plan: an active roadmap view derived from Strategy, Plan of Action, Risks, Evidence, Shop dependencies, and step-built initiative plans.
 - Export-format direction: native slide decks and document exports should be generated from existing brief, magazine, dashboard, and plan models with the same redaction controls as Markdown, HTML, PDF, and bundle outputs.
-- Roadmap initiative plans: operators can add idea/initiative work such as an AI Implementation plan with Design, Build, Verify, and Monitor stages; each stage remains editable as an Action and the case for action remains editable as Evidence.
+- Roadmap initiative plans: operators can create an initiative frame, then add tasks and milestones step by step; each task or milestone remains editable as an Action and the case for action remains editable as Evidence.
 - Plan of Action: the execution worklist for Actions, with timeline filtering and a single Today legend for the timeline marker.
 - Saved views: Workshop saved views can be opened, renamed, archived, and edited so the saved filter definition can change over time.
 

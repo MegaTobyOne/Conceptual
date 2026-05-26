@@ -15,7 +15,7 @@ Implement v1.32 as **CISO Master Plan and Strategy Editor polish** inside Worksh
 
 The slice provides:
 
-1. A refreshed CISO Master Plan panel that makes the derived roadmap easier to scan across direction, streams, phases, initiative stages, evidence inputs, risks, actions, and Shop dependencies.
+1. A refreshed CISO Master Plan panel that makes the derived roadmap easier to scan across direction, streams, phases, planner tasks, milestones, evidence inputs, risks, actions, and Shop dependencies.
 2. Clearer navigation from the CISO Master Plan to the Strategy Map, Plan of Action, Master Dashboard, Digital CISO Magazine, and relevant editable records.
 3. User-facing Strategy Editor improvements that keep the staged-area model but make it easier to understand and update:
    - a concise readiness summary for the current Strategy area;
@@ -23,7 +23,7 @@ The slice provides:
    - visible cues for publication-safe versus sensitive strategy content;
    - linked-work coverage counts for Requirements, Risks, Actions, Directions, and ISM mapping prompts where applicable; and
    - preserved Save this area, Save and view map, dirty-navigation, and Cancel behaviour.
-4. Roadmap initiative planning that continues to use existing Action and Evidence records for editable initiative stages and case-for-action material.
+4. Roadmap initiative planning that starts from an initiative frame and lets operators add tasks and milestones step by step, using existing Action and Evidence records rather than a four-activity template.
 5. Validation that copied/generated Master Plan content remains publication-safe and excludes restricted personal fields, sensitive assumptions, and non-public working notes.
 
 Versioning:
@@ -59,6 +59,7 @@ Trade-offs:
 
 - The Master Plan remains derived and generated on demand, so it is not an auditable plan baseline or persisted issue history.
 - Initiative planning remains constrained by the existing Action and Evidence shapes; richer milestone/resource/budget planning needs a later model decision.
+- Step-built Planner tasks are more flexible than the original four-stage template, but they rely on clear Action/Evidence conventions until a later ADR decides whether first-class planning entities are warranted.
 - Editor polish improves comprehension but does not remove the underlying complexity of nested Strategy choices, outcomes, and measures.
 
 ## Alternatives considered

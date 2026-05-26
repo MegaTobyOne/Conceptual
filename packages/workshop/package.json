@@ -91,6 +91,16 @@
         "icon": "$(lightbulb)"
       },
       {
+        "command": "pspf.workshop.addPlannerTask",
+        "title": "PSPF: Add Planner Task",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "pspf.workshop.addPlannerMilestone",
+        "title": "PSPF: Add Planner Milestone",
+        "icon": "$(milestone)"
+      },
+      {
         "command": "pspf.workshop.createRisk",
         "title": "PSPF: Create Risk"
       },

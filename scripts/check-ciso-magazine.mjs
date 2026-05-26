@@ -69,7 +69,7 @@ const checks = [
   ),
   check(
     "CISO Master Plan explains initiative edit path",
-    workshopExtension.includes("Open each initiative stage to edit its title")
+    workshopExtension.includes("Open each initiative task or milestone to edit its title")
   ),
   check(
     "Workshop manifest contributes magazine command",
@@ -82,6 +82,11 @@ const checks = [
   check(
     "Workshop manifest contributes roadmap initiative command",
     workshopManifest.includes("PSPF: Create Roadmap Initiative Plan")
+  ),
+  check("Workshop manifest contributes planner task command", workshopManifest.includes("PSPF: Add Planner Task")),
+  check(
+    "Workshop manifest contributes planner milestone command",
+    workshopManifest.includes("PSPF: Add Planner Milestone")
   ),
   ...forbidden.map((value) =>
     check(
