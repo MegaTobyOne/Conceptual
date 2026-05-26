@@ -10,6 +10,7 @@ const root = process.cwd();
 const explorerPath = join(root, "packages", "explorer", "dist", "index.html");
 const sampleBundlePath = join(root, "packages", "explorer", "dist", "sample-bundle-enterprise.json");
 const bundlePath = findBundlePath();
+const explorerHtml = readFileSyncText(explorerPath);
 const reportDirectory = join(root, ".tmp", "explorer-publication");
 await mkdir(reportDirectory, { recursive: true });
 
@@ -381,6 +382,16 @@ try {
       "First open offers sample bundle",
       firstOpenText.includes("Load enterprise sample") && firstOpenText.includes("Download enterprise JSON"),
       firstOpenText
+    ),
+    check(
+      "Explorer HTML ships CSP meta",
+      /<meta http-equiv="Content-Security-Policy" content="[^"]*script-src 'self'[^"]*">/i.test(explorerHtml),
+      "built index.html"
+    ),
+    check(
+      "Explorer HTML has no inline script tags",
+      !/<script>(?!\s*<\/script>)/i.test(explorerHtml),
+      "built index.html"
     ),
     check(
       "Explorer ships downloadable sample JSON",

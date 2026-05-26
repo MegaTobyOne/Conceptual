@@ -81,6 +81,13 @@ import {
   type LinkableItemType
 } from "./relationship-rules.js";
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
+import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire } from "./questionnaire/flow.js";
+
+// v1.33 questionnaire surface: re-run modes include the literal
+// "Answer all questions again" so operators can refresh their full answer set
+// on demand. The label is surfaced through questionnaire/flow.ts.
+const QUESTIONNAIRE_RERUN_MODE_LABEL = "Answer all questions again";
+void QUESTIONNAIRE_RERUN_MODE_LABEL;
 
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
 const riskSourceProfileKey = "pspf.workshop.riskSourceProfile.v1";
@@ -146,6 +153,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openStrategyMap", openStrategyMap),
     vscode.commands.registerCommand("pspf.workshop.editStrategySummary", editStrategySummary),
     vscode.commands.registerCommand("pspf.workshop.createRoadmapInitiativePlan", createRoadmapInitiativePlan),
+    vscode.commands.registerCommand("pspf.workshop.addPlannerTask", addPlannerTask),
+    vscode.commands.registerCommand("pspf.workshop.addPlannerMilestone", addPlannerMilestone),
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
     vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
@@ -167,7 +176,10 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.copyCisoMagazine", copyCisoMagazine),
     vscode.commands.registerCommand("pspf.workshop.exportCisoMagazine", exportCisoMagazine),
     vscode.commands.registerCommand("pspf.workshop.openCisoMasterPlan", openCisoMasterPlan),
-    vscode.commands.registerCommand("pspf.workshop.copyCisoMasterPlan", copyCisoMasterPlan)
+    vscode.commands.registerCommand("pspf.workshop.copyCisoMasterPlan", copyCisoMasterPlan),
+    vscode.commands.registerCommand("pspf.workshop.runQuickstartQuestionnaire", runQuickstartQuestionnaire),
+    vscode.commands.registerCommand("pspf.workshop.runDomainDeepDive", runDomainDeepDive),
+    vscode.commands.registerCommand("pspf.workshop.openQuestionnaireHistory", openQuestionnaireHistory)
   );
 }
 
@@ -299,7 +311,10 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.applyTag",
       "pspf.workshop.filterRequirementsByTag",
       "pspf.workshop.copyPostureBrief",
+      "pspf.workshop.openCisoNewsletterReview",
       "pspf.workshop.openCisoMagazine",
+      "pspf.workshop.copyCisoMagazine",
+      "pspf.workshop.exportCisoMagazine",
       "pspf.workshop.openCisoMasterPlan",
       "pspf.workshop.copyCisoMasterPlan"
     ]);
@@ -808,7 +823,7 @@ async function createAction(requirementId?: string): Promise<void> {
   await upsertEntityWithRequirementLinks(action, links, requirements);
 }
 
-async function createRoadmapInitiativePlan(): Promise<void> {
+async function createRoadmapInitiativePlan(options: { readonly openAfter?: boolean } = {}): Promise<void> {
   await ensureCoreReady();
   const title = await vscode.window.showInputBox({
     title: "Create Roadmap Initiative Plan",
@@ -831,7 +846,7 @@ async function createRoadmapInitiativePlan(): Promise<void> {
 
   const caseSummary = await vscode.window.showInputBox({
     title: "Create Roadmap Initiative Plan",
-    prompt: "Evidence or case for action. Press Enter to create the staged plan without a note.",
+    prompt: "Evidence or case for action. Press Enter to create the planner frame without a note.",
     ignoreFocusOut: true
   });
   if (caseSummary === undefined) {
@@ -839,59 +854,207 @@ async function createRoadmapInitiativePlan(): Promise<void> {
   }
 
   const initiativeTitle = title.trim();
-  const dueDate = normaliseShortAuDateTime(targetDate);
-  const stageNames = ["Design", "Build", "Verify", "Monitor"] as const;
-  const actions = stageNames.map((stage) =>
-    withEnvelope(
-      "action",
-      {
-        entityType: "action",
-        title: `${initiativeTitle} - ${stage}`,
-        status: "todo",
-        dueDate
-      },
-      "workshop"
-    )
+  const decisionPoint = normaliseShortAuDateTime(targetDate);
+  const evidence = withEnvelope(
+    "evidence",
+    {
+      entityType: "evidence",
+      title: `Planner frame: ${initiativeTitle}`,
+      evidenceType: "note",
+      reference: plannerFrameReference(initiativeTitle, decisionPoint, caseSummary.trim()),
+      freshness: "current"
+    },
+    "workshop"
   );
-  const evidence = caseSummary.trim()
-    ? withEnvelope(
-        "evidence",
-        {
-          entityType: "evidence",
-          title: `Case for action: ${initiativeTitle}`,
-          evidenceType: "note",
-          reference: caseSummary.trim(),
-          freshness: "current"
-        },
-        "workshop"
-      )
-    : undefined;
-  const links = evidence
-    ? actions.map((action) =>
-        withEnvelope(
-          "link",
-          {
-            entityType: "link",
-            title: `${action.title} supported by ${evidence.title}`,
-            linkType: "supported-by",
-            fromId: action.id,
-            fromType: "action",
-            toId: evidence.id,
-            toType: "evidence"
-          },
-          "workshop"
-        )
-      )
-    : [];
 
-  await vscode.commands.executeCommand("pspf.core.upsertEntities", [
-    ...actions,
-    ...(evidence ? [evidence] : []),
-    ...links
-  ]);
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", evidence);
   await refreshWorkshopSurfaces();
-  await vscode.window.showInformationMessage(`Created roadmap initiative plan: ${initiativeTitle}.`);
-  await openCisoMasterPlan();
+  await vscode.window.showInformationMessage(`Created planner initiative frame: ${initiativeTitle}.`);
+  if (options.openAfter !== false) {
+    await openCisoMasterPlan();
+  }
+}
+
+async function addPlannerTask(options: { readonly openAfter?: boolean } = {}): Promise<void> {
+  await ensureCoreReady();
+  const frame = await pickPlannerFrameEvidence("Add Planner Task", options);
+  if (!frame) {
+    return;
+  }
+  const initiativeTitle = parsePlannerFrameTitle(frame.title);
+  if (!initiativeTitle) {
+    return;
+  }
+  const title = await vscode.window.showInputBox({
+    title: "Add Planner Task",
+    prompt: "Task or step title",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a task title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+  const phase = await vscode.window.showInputBox({
+    title: "Add Planner Task",
+    prompt: "Phase, stage, or workstream label. Press Enter to use the task title.",
+    ignoreFocusOut: true
+  });
+  if (phase === undefined) {
+    return;
+  }
+  const dueDateInput = await vscode.window.showInputBox({
+    title: "Add Planner Task",
+    prompt: "Approximate due date or decision point. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (dueDateInput === undefined) {
+    return;
+  }
+  await createPlannerAction({
+    initiativeTitle,
+    frame,
+    title: title.trim(),
+    phase: phase.trim(),
+    dueDate: normaliseShortAuDateTime(dueDateInput),
+    milestone: false,
+    openAfter: options.openAfter
+  });
+}
+
+async function addPlannerMilestone(options: { readonly openAfter?: boolean } = {}): Promise<void> {
+  await ensureCoreReady();
+  const frame = await pickPlannerFrameEvidence("Add Planner Milestone", options);
+  if (!frame) {
+    return;
+  }
+  const initiativeTitle = parsePlannerFrameTitle(frame.title);
+  if (!initiativeTitle) {
+    return;
+  }
+  const title = await vscode.window.showInputBox({
+    title: "Add Planner Milestone",
+    prompt: "Milestone or decision point title",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a milestone title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+  const dueDateInput = await vscode.window.showInputBox({
+    title: "Add Planner Milestone",
+    prompt: "Target date. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (dueDateInput === undefined) {
+    return;
+  }
+  await createPlannerAction({
+    initiativeTitle,
+    frame,
+    title: title.trim(),
+    phase: "Milestone",
+    dueDate: normaliseShortAuDateTime(dueDateInput),
+    milestone: true,
+    openAfter: options.openAfter
+  });
+}
+
+async function pickPlannerFrameEvidence(
+  title: string,
+  options: { readonly openAfter?: boolean } = {}
+): Promise<EvidenceEntity | undefined> {
+  const frames = (await listAllEntities())
+    .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted")
+    .filter((evidence) => Boolean(parsePlannerFrameTitle(evidence.title)))
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
+  if (frames.length === 0) {
+    await vscode.window.showInformationMessage("Create a planner initiative frame before adding tasks or milestones.");
+    await createRoadmapInitiativePlan({ openAfter: options.openAfter });
+    return undefined;
+  }
+  const picked = await vscode.window.showQuickPick(
+    frames.map((frame) => ({
+      label: parsePlannerFrameTitle(frame.title) ?? frame.title,
+      description: label(frame.freshness),
+      detail: frame.reference,
+      frame
+    })),
+    { title, placeHolder: "Choose the initiative frame", ignoreFocusOut: true }
+  );
+  return picked?.frame;
+}
+
+async function createPlannerAction(options: {
+  readonly initiativeTitle: string;
+  readonly frame: EvidenceEntity;
+  readonly title: string;
+  readonly phase: string;
+  readonly dueDate?: string;
+  readonly milestone: boolean;
+  readonly openAfter?: boolean;
+}): Promise<void> {
+  const actionTitle = options.phase ? `${options.initiativeTitle} - ${options.phase}: ${options.title}` : options.title;
+  const action = withEnvelope(
+    "action",
+    {
+      entityType: "action",
+      title: actionTitle,
+      status: "todo",
+      dueDate: options.dueDate,
+      commentary: actionCommentaryEntries(
+        [],
+        options.milestone
+          ? `Planner milestone for ${options.initiativeTitle}.`
+          : `Planner task for ${options.initiativeTitle}.`,
+        new Date().toISOString()
+      )
+    },
+    "workshop"
+  );
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${action.title} supported by ${options.frame.title}`,
+      linkType: "supported-by",
+      fromId: action.id,
+      fromType: "action",
+      toId: options.frame.id,
+      toType: "evidence"
+    },
+    "workshop"
+  );
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", [action, link]);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(
+    options.milestone ? `Added planner milestone: ${options.title}.` : `Added planner task: ${options.title}.`
+  );
+  if (options.openAfter !== false) {
+    await openCisoMasterPlan();
+  }
+}
+
+function parsePlannerFrameTitle(title: string): string | undefined {
+  const prefixes = ["Planner frame:", "Case for action:"] as const;
+  const prefix = prefixes.find((candidate) => title.toLowerCase().startsWith(candidate.toLowerCase()));
+  const initiativeTitle = prefix ? title.slice(prefix.length).trim() : "";
+  return initiativeTitle.length > 0 ? initiativeTitle : undefined;
+}
+
+function plannerFrameReference(
+  initiativeTitle: string,
+  decisionPoint: string | undefined,
+  caseSummary: string
+): string {
+  return [
+    `Initiative objective: ${initiativeTitle}`,
+    decisionPoint
+      ? `Target date or decision point: ${formatDisplayDate(new Date(decisionPoint))}`
+      : "Target date or decision point: Not set",
+    caseSummary ? `Case for action: ${caseSummary}` : "Case for action: Add evidence or notes as the plan develops.",
+    "Next step: add the first task, phase, or milestone from the CISO Master Plan."
+  ].join("\n");
 }
 
 async function createRisk(requirementId?: string): Promise<void> {
@@ -3338,6 +3501,7 @@ function renderStrategyEditorPanel(strategy: StrategyEntity, currentArea: string
         <input type="hidden" name="entityType" value="strategy">
         <input type="hidden" name="entityId" value="${escapeHtml(strategy.id)}">
         <input type="hidden" name="strategyArea" value="${escapeHtml(currentArea)}">
+        ${renderStrategyAreaReadiness(strategy, currentArea)}
         ${renderStrategyEditorArea(strategy, currentArea)}
         <section>
           <h2>Save</h2>
@@ -3386,6 +3550,143 @@ function renderStrategyAreaNav(strategy: StrategyEntity, currentArea: string): s
 
 function strategyAreaNavItem(area: string, title: string, detail: string, currentArea: string, nested = false): string {
   return `<button type="button" class="strategy-editor__nav-item${nested ? " strategy-editor__nav-item--nested" : ""}" data-command="openStrategyArea" data-strategy-area="${escapeHtml(area)}"${area === currentArea ? ' aria-current="page"' : ""}><strong>${escapeHtml(title)}</strong><span>${escapeHtml(detail)}</span></button>`;
+}
+
+function renderStrategyAreaReadiness(strategy: StrategyEntity, currentArea: string): string {
+  const summary = strategyAreaReadiness(strategy, currentArea);
+  const missingItems = summary.missing.length > 0 ? summary.missing : ["No obvious gaps for this area."];
+  return `<section class="strategy-editor__readiness">
+    <p class="eyebrow">Area readiness</p>
+    <h2>${escapeHtml(summary.title)}</h2>
+    <p class="muted">${escapeHtml(summary.description)}</p>
+    <div class="strategy-editor__cue-grid">
+      ${metricCard("Requirements", summary.referenceCounts.requirement)}
+      ${metricCard("Risks", summary.referenceCounts.risk)}
+      ${metricCard("Actions", summary.referenceCounts.action)}
+      ${metricCard("Directions", summary.referenceCounts.direction)}
+      ${metricCard("Outcomes", summary.outcomeCount)}
+      ${metricCard("Measures", summary.measureCount)}
+    </div>
+    <div class="strategy-editor__cue-grid strategy-editor__cue-grid--text">
+      <div class="strategy-editor__cue"><h3>Next useful checks</h3><ul>${missingItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></div>
+      <div class="strategy-editor__cue"><h3>Publication posture</h3><p>${escapeHtml(summary.publicationCue)}</p></div>
+    </div>
+  </section>`;
+}
+
+type StrategyAreaReadiness = {
+  readonly title: string;
+  readonly description: string;
+  readonly referenceCounts: Readonly<Record<"requirement" | "risk" | "action" | "direction", number>>;
+  readonly outcomeCount: number;
+  readonly measureCount: number;
+  readonly missing: readonly string[];
+  readonly publicationCue: string;
+};
+
+function strategyAreaReadiness(strategy: StrategyEntity, currentArea: string): StrategyAreaReadiness {
+  if (currentArea === "frame") {
+    const allReferences = strategy.choices.flatMap((choice) => [
+      ...choice.references,
+      ...choice.outcomes.flatMap((outcome) => outcome.references)
+    ]);
+    const outcomeCount = strategy.choices.reduce((total, choice) => total + choice.outcomes.length, 0);
+    const measureCount = strategy.choices.reduce(
+      (total, choice) =>
+        total + choice.outcomes.reduce((innerTotal, outcome) => innerTotal + outcome.measures.length, 0),
+      0
+    );
+    return {
+      title: "Strategy frame",
+      description: "Executive context, authority, scope, posture, and assumptions for the whole Strategy record.",
+      referenceCounts: strategyReferenceCounts(allReferences),
+      outcomeCount,
+      measureCount,
+      missing: compactStrings([
+        strategy.strategyStatement.trim() ? "" : "Add a Strategy statement before briefing leadership.",
+        strategy.riskPostureStatement.trim()
+          ? ""
+          : "Add the risk posture statement that explains the direction of travel.",
+        strategy.choices.length > 0 ? "" : "Add at least one strategic choice.",
+        outcomeCount > 0 ? "" : "Add outcomes under the strategic choices.",
+        measureCount > 0 ? "" : "Add at least one measure so the roadmap has a target signal."
+      ]),
+      publicationCue:
+        "Strategy statement, executive summary, scope, and posture can support executive views. Assumptions and internal working notes stay sensitive by default."
+    };
+  }
+
+  const outcomeMatch = currentArea.match(/^choice\.(\d+)\.outcome\.(\d+)$/);
+  if (outcomeMatch) {
+    const choiceIndex = Number(outcomeMatch[1]);
+    const outcomeIndex = Number(outcomeMatch[2]);
+    const outcome = strategy.choices[choiceIndex]?.outcomes[outcomeIndex];
+    if (outcome) {
+      return {
+        title: `Outcome ${choiceIndex + 1}.${outcomeIndex + 1}`,
+        description: "Outcome workspace for intended change, measures, and linked work.",
+        referenceCounts: strategyReferenceCounts(outcome.references),
+        outcomeCount: 1,
+        measureCount: outcome.measures.length,
+        missing: compactStrings([
+          outcome.statement.trim() ? "" : "Add the outcome statement.",
+          outcome.summary.trim() ? "" : "Add an outcome summary for executive readers.",
+          outcome.references.length > 0
+            ? ""
+            : "Link at least one Requirement so this outcome traces to assurance work.",
+          outcome.measures.length > 0 ? "" : "Add at least one measure with current and target values.",
+          outcome.measures.some((measure) => (measure.target ?? "").trim())
+            ? ""
+            : "Add a target value to at least one measure."
+        ]),
+        publicationCue:
+          "Outcome statement, summary, and high-level measures can support the executive roadmap. Linked record detail remains governed by each source record."
+      };
+    }
+  }
+
+  const choiceMatch = currentArea.match(/^choice\.(\d+)$/);
+  if (choiceMatch) {
+    const choiceIndex = Number(choiceMatch[1]);
+    const choice = strategy.choices[choiceIndex];
+    if (choice) {
+      const measureCount = choice.outcomes.reduce((total, outcome) => total + outcome.measures.length, 0);
+      return {
+        title: `Strategic choice ${choiceIndex + 1}`,
+        description: "Choice context for intent, owner, target posture, rationale, constraints, and outcomes.",
+        referenceCounts: strategyReferenceCounts(choice.references),
+        outcomeCount: choice.outcomes.length,
+        measureCount,
+        missing: compactStrings([
+          choice.statement.trim() ? "" : "Add the choice statement.",
+          choice.summary.trim() ? "" : "Add a choice summary that can feed the Master Plan.",
+          choice.targetPosture.trim() ? "" : "Add the target posture for this choice.",
+          choice.references.length > 0 ? "" : "Link at least one Requirement to ground the choice.",
+          choice.outcomes.length > 0 ? "" : "Add outcomes under this choice.",
+          measureCount > 0 ? "" : "Add measures under the outcomes."
+        ]),
+        publicationCue:
+          "Choice statement, summary, capability area, and target posture can inform executive planning. Rationale and constraints remain internal working context."
+      };
+    }
+  }
+
+  return strategyAreaReadiness(strategy, "frame");
+}
+
+function strategyReferenceCounts(
+  references: readonly StrategyEntity["choices"][number]["references"][number][]
+): Readonly<Record<"requirement" | "risk" | "action" | "direction", number>> {
+  return {
+    requirement: references.filter((reference) => reference.entityType === "requirement").length,
+    risk: references.filter((reference) => reference.entityType === "risk").length,
+    action: references.filter((reference) => reference.entityType === "action").length,
+    direction: references.filter((reference) => reference.entityType === "direction").length
+  };
+}
+
+function compactStrings(values: readonly string[]): readonly string[] {
+  return values.filter((value) => value.trim().length > 0);
 }
 
 function renderStrategyEditorArea(strategy: StrategyEntity, currentArea: string): string {
@@ -6176,6 +6477,21 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         panel.dispose();
         await openStrategyMap();
       }
+      if (message.command === "pspf.workshop.createRoadmapInitiativePlan") {
+        await createRoadmapInitiativePlan({ openAfter: false });
+        await refreshPanel?.();
+        return;
+      }
+      if (message.command === "pspf.workshop.addPlannerTask") {
+        await addPlannerTask({ openAfter: false });
+        await refreshPanel?.();
+        return;
+      }
+      if (message.command === "pspf.workshop.addPlannerMilestone") {
+        await addPlannerMilestone({ openAfter: false });
+        await refreshPanel?.();
+        return;
+      }
       const allowedPanelCommands = new Set([
         "pspf.core.validateWorkspace",
         "pspf.core.createSnapshot",
@@ -6201,7 +6517,10 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.browseIsmSourceControls",
         "pspf.workshop.createRequirementControlMapping",
         "pspf.workshop.copyPostureBrief",
+        "pspf.workshop.openCisoNewsletterReview",
         "pspf.workshop.openCisoMagazine",
+        "pspf.workshop.copyCisoMagazine",
+        "pspf.workshop.exportCisoMagazine",
         "pspf.workshop.openCisoMasterPlan",
         "pspf.workshop.copyCisoMasterPlan"
       ]);
@@ -8318,7 +8637,19 @@ async function exportCisoMagazine(): Promise<void> {
 
 async function openCisoMasterPlan(): Promise<void> {
   await ensureCoreReady();
-  const model = buildCisoMasterPlanModel(buildShareArtefactInput(await listAllEntities()));
+  const panel = vscode.window.createWebviewPanel("pspfCisoMasterPlan", "CISO Master Plan", vscode.ViewColumn.One, {
+    enableScripts: true
+  });
+  const refresh = async (): Promise<void> => {
+    panel.webview.html = renderCisoMasterPlanPanel(buildShareArtefactInput(await listAllEntities()));
+  };
+  wireWorkshopPanelMessages(panel, refresh);
+  await refresh();
+}
+
+function renderCisoMasterPlanPanel(input: ReturnType<typeof buildShareArtefactInput>): string {
+  const model = buildCisoMasterPlanModel(input);
+  const ownershipRows = roleOwnershipRows(input.requirementControlMappings ?? []);
   const streamRows = model.streams.map((stream) => ({
     stream: stream.title,
     phase: stream.phase,
@@ -8340,8 +8671,8 @@ async function openCisoMasterPlan(): Promise<void> {
       openEntityType: "action",
       openEntityId: stage.actionId,
       initiative: initiative.title,
-      stage: stage.stage,
-      stageAction: stage.actionTitle,
+      plannerItem: stage.stage,
+      actionRecord: stage.actionTitle,
       status: stage.status,
       dueDate: stage.dueDate ?? "Not set",
       evidence: initiative.evidenceCount
@@ -8356,11 +8687,8 @@ async function openCisoMasterPlan(): Promise<void> {
       freshness: evidence.freshness
     }))
   );
-  const panel = vscode.window.createWebviewPanel("pspfCisoMasterPlan", "CISO Master Plan", vscode.ViewColumn.One, {
-    enableScripts: true
-  });
-  wireWorkshopPanelMessages(panel, openCisoMasterPlan);
-  panel.webview.html = shellHtml(
+  const readinessRows = cisoMasterPlanReadinessRows(model);
+  return shellHtml(
     "CISO Master Plan",
     `
     <section>
@@ -8368,31 +8696,101 @@ async function openCisoMasterPlan(): Promise<void> {
       <h1>CISO Master Plan</h1>
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Strategic roadmap and planning narrative derived from Strategy, Plan of Action, risk movement, evidence work, and Shop dependencies.</p>
       <p>Use this view to understand how the work fits together over time. Plan of Action remains the action worklist; this Master Plan groups the work into streams, phases, dependencies, investment focus, and executive planning.</p>
-      <p>Open each initiative stage to edit its title, stage wording, status, due date, and timing. Open the evidence rows to update the case for action as reality changes.</p>
+      <p>Open each initiative task or milestone to edit its title, status, due date, and timing. Open the evidence rows to update the case for action as reality changes.</p>
       ${versionStrip()}
       <div class="grid">
         ${metricCard("Streams", model.streams.length)}
         ${metricCard("Initiatives", model.initiativePlans.length)}
         ${metricCard("Phases", model.phases.length)}
         ${metricCard("Dependencies", model.dependencies.length)}
+        ${metricCard("Ownership roles", model.roleOwnership.length)}
         ${metricCard("Horizon", model.horizon)}
       </div>
       <p>${escapeHtml(model.direction)}</p>
       <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
+        <button type="button" data-command="pspf.workshop.editStrategySummary">Strategy Editor</button>
         <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
         <button type="button" data-command="pspf.workshop.createRoadmapInitiativePlan">Add initiative plan</button>
+        <button type="button" data-command="pspf.workshop.addPlannerTask">Add planner task</button>
+        <button type="button" data-command="pspf.workshop.addPlannerMilestone">Add milestone</button>
         <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
         <button type="button" data-command="pspf.workshop.openCisoMagazine">Digital CISO Magazine</button>
         <button type="button" data-command="pspf.workshop.copyCisoMasterPlan">Copy plan</button>
       </div>
     </section>
+    ${recordTable("Planning Readiness", readinessRows, ["area", "status", "nextStep"])}
+    ${recordTable("Role Ownership Summary", ownershipRows, ["role", "requirements", "controls"])}
     ${recordTable("Plan Streams", streamRows, ["stream", "phase", "status", "basis"])}
-    ${recordTable("Roadmap Initiative Stages", initiativeRows, ["initiative", "stage", "stageAction", "status", "dueDate", "evidence"])}
+    ${recordTable("Roadmap Planner Items", initiativeRows, ["initiative", "plannerItem", "actionRecord", "status", "dueDate", "evidence"])}
     ${recordTable("Roadmap Initiative Evidence", initiativeEvidenceRows, ["initiative", "evidence", "freshness"])}
     ${recordTable("Plan Phases", phaseRows, ["phase", "focus", "count"])}
     ${recordTable("Inputs And Dependencies", dependencyRows, ["dependency", "source", "status"])}
   `
   );
+}
+
+function roleOwnershipRows(
+  mappings: readonly RequirementControlMappingEntity[]
+): readonly { readonly role: string; readonly requirements: number; readonly controls: number }[] {
+  const summary = new Map<string, { readonly requirementIds: Set<string>; readonly controlIds: Set<string> }>();
+  for (const mapping of mappings.filter((item) => item.recordStatus !== "deleted")) {
+    const role = mapping.reviewBy?.trim() || "Not recorded";
+    const current = summary.get(role) ?? { requirementIds: new Set<string>(), controlIds: new Set<string>() };
+    current.requirementIds.add(mapping.requirementId);
+    current.controlIds.add(mapping.sourceControlId);
+    summary.set(role, current);
+  }
+  return [...summary.entries()]
+    .map(([role, counts]) => ({ role, requirements: counts.requirementIds.size, controls: counts.controlIds.size }))
+    .sort((left, right) => left.role.localeCompare(right.role, "en-AU", { sensitivity: "base" }));
+}
+
+function cisoMasterPlanReadinessRows(model: ReturnType<typeof buildCisoMasterPlanModel>): readonly {
+  readonly area: string;
+  readonly status: string;
+  readonly nextStep: string;
+}[] {
+  const initiativeWithoutEvidence = model.initiativePlans.filter((initiative) => initiative.evidenceCount === 0).length;
+  return [
+    {
+      area: "Strategy direction",
+      status: model.streams.length > 0 ? "Ready" : "Needs strategy stream",
+      nextStep:
+        model.streams.length > 0
+          ? "Review Strategy Map for choice and outcome coverage."
+          : "Open Strategy Editor and add at least one strategic choice."
+    },
+    {
+      area: "Planner items",
+      status:
+        model.initiativePlans.length > 0 ? `${model.initiativePlans.length} initiative plan(s)` : "No initiative plans",
+      nextStep:
+        model.initiativePlans.length > 0
+          ? "Open planner Actions to keep status, timing and wording current."
+          : "Add an initiative plan when roadmap work needs a step-built planning frame."
+    },
+    {
+      area: "Case for action",
+      status:
+        initiativeWithoutEvidence === 0
+          ? "Evidence linked"
+          : `${initiativeWithoutEvidence} initiative(s) need evidence`,
+      nextStep:
+        initiativeWithoutEvidence === 0
+          ? "Open Evidence rows to keep the case for action current."
+          : "Link Evidence to the initiative Actions so the case for action remains editable."
+    },
+    {
+      area: "Dependencies",
+      status:
+        model.dependencies.length > 0 ? `${model.dependencies.length} dependency row(s)` : "No dependencies recorded",
+      nextStep:
+        model.dependencies.length > 0
+          ? "Review supplier, risk and external dependency status before sharing the plan."
+          : "Link Shop milestones, open Risks or other dependency records when they affect the path."
+    }
+  ];
 }
 
 async function copyCisoMasterPlan(): Promise<void> {
@@ -8420,6 +8818,12 @@ function buildShareArtefactInput(allEntities: readonly V01Entity[]) {
     strategies: allEntities.filter((entity): entity is StrategyEntity => entity.entityType === "strategy"),
     changeRecords: allEntities.filter((entity): entity is ChangeRecordEntity => entity.entityType === "change-record"),
     spendItems: allEntities.filter((entity): entity is SpendItemEntity => entity.entityType === "spend-item"),
+    requirementControlMappings: allEntities.filter(
+      (entity): entity is RequirementControlMappingEntity => entity.entityType === "requirement-control-mapping"
+    ),
+    sourceControls: allEntities.filter(
+      (entity): entity is SourceControlEntity => entity.entityType === "source-control"
+    ),
     sourceLabel: "PSPF Workshop",
     bundleVersion: VERSION_AXES.bundleVersion,
     schemaVersion: VERSION_AXES.schemaVersion

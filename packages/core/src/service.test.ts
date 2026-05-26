@@ -51,21 +51,13 @@ test("writer lock blocks every mutating Core service entry point", async () => {
   const workspaceRoot = await freshWorkspace("writer-lock-write-surface");
   const service = createCoreService(workspaceRoot);
   const paths = await service.initialiseWorkspace();
-  await writeFile(
-    join(paths.locks, "writer-lock.json"),
-    `${JSON.stringify(
-      {
-        holderPid: 1,
-        acquiredAt: "2026-05-25T00:00:00.000Z",
-        policy: "single-writer",
-        writable: false,
-        detail: "Simulated second-window writer lock."
-      },
-      null,
-      2
-    )}\n`,
-    "utf8"
-  );
+  await writeLockState(paths, {
+    holderPid: 1,
+    acquiredAt: "2026-05-25T00:00:00.000Z",
+    policy: "single-writer",
+    writable: false,
+    detail: "Simulated second-window writer lock."
+  });
 
   const requirement = withEnvelope(
     "requirement",
@@ -134,6 +126,23 @@ test("integrity scan reports links whose declared endpoint type does not match t
   );
 });
 
+test("mutating operations require an initialised workspace", async () => {
+  const workspaceRoot = await freshWorkspace("mutating-requires-initialised-workspace");
+  const service = createCoreService(workspaceRoot);
+  const requirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Workspace initialisation required",
+      domainId: PSPF_DOMAINS[0]!.id,
+      assessmentStatus: "in-progress"
+    },
+    "workshop"
+  );
+
+  await assert.rejects(() => service.upsertEntity(requirement), /workspace is not initialised/i);
+});
+
 async function freshWorkspace(name: string): Promise<string> {
   const workspaceRoot = join(testRoot, name);
   await rm(workspaceRoot, { recursive: true, force: true });
@@ -143,6 +152,25 @@ async function freshWorkspace(name: string): Promise<string> {
 
 async function writeBundle(path: string, collections: Record<string, readonly unknown[]>): Promise<void> {
   await writeFile(path, `${JSON.stringify({ collections }, null, 2)}\n`, "utf8");
+}
+
+async function writeLockState(
+  paths: { readonly locks: string },
+  value: {
+    readonly holderPid: number;
+    readonly acquiredAt: string;
+    readonly policy: "single-writer";
+    readonly writable: boolean;
+    readonly detail: string;
+  }
+): Promise<void> {
+  await rm(join(paths.locks, "writer.lock"), { force: true });
+  await writeFile(join(paths.locks, "writer.lock"), `${value.holderPid}\n`, "utf8");
+  await writeFile(
+    join(paths.locks, "writer-lock.json"),
+    `${JSON.stringify({ ...value, currentPid: process.pid }, null, 2)}\n`,
+    "utf8"
+  );
 }
 
 async function requirementStatus(

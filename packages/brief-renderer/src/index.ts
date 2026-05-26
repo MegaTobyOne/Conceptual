@@ -5,8 +5,10 @@ import type {
   DomainEntity,
   EvidenceEntity,
   LinkEntity,
+  RequirementControlMappingEntity,
   RequirementEntity,
   RiskEntity,
+  SourceControlEntity,
   SpendItemEntity,
   StrategyEntity
 } from "@pspf/contracts";
@@ -21,6 +23,8 @@ export interface PostureBriefInput {
   readonly domains: readonly Pick<DomainEntity, "id" | "title">[];
   readonly directions?: readonly DirectionEntity[];
   readonly strategies?: readonly StrategyEntity[];
+  readonly requirementControlMappings?: readonly RequirementControlMappingEntity[];
+  readonly sourceControls?: readonly SourceControlEntity[];
   readonly sourceLabel?: string;
   readonly bundleVersion?: string;
   readonly schemaVersion?: string;
@@ -101,7 +105,14 @@ export interface CisoMasterPlanModel {
   readonly initiativePlans: readonly CisoMasterPlanInitiative[];
   readonly phases: readonly CisoMasterPlanPhase[];
   readonly dependencies: readonly CisoMasterPlanDependency[];
+  readonly roleOwnership: readonly RoleOwnershipSummary[];
   readonly newsletterArticle: CisoMagazineStory;
+}
+
+export interface RoleOwnershipSummary {
+  readonly role: string;
+  readonly requirements: number;
+  readonly controls: number;
 }
 
 export interface CisoMasterPlanStream {
@@ -196,6 +207,10 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
     directions: input.directions,
     strategies: activeStrategy ? [activeStrategy] : [],
     spendItems: linkedSpendItems,
+    requirementControlMappings: (input.requirementControlMappings ?? []).filter((mapping) =>
+      scopedRequirementIds.has(mapping.requirementId)
+    ),
+    sourceControls: input.sourceControls,
     sourceLabel: input.sourceLabel,
     bundleVersion: input.bundleVersion,
     schemaVersion: input.schemaVersion
@@ -319,6 +334,7 @@ export function buildCisoMasterPlanModel(input: CisoMagazineInput): CisoMasterPl
       status: `${label(risk.status)} · score ${risk.likelihood * risk.impact}`
     }))
   ].slice(0, 8);
+  const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings ?? []);
   const articleBody = `${streams.length} CISO plan stream(s) are combined into the Master Plan for ${horizon}. The plan starts from strategy, uses the Plan of Action as the delivery spine, includes ${initiativePlans.length} idea or initiative plan(s), and calls out ${dependencies.length} dependency or supplier milestone(s) that could change the path.`;
 
   return {
@@ -329,6 +345,7 @@ export function buildCisoMasterPlanModel(input: CisoMagazineInput): CisoMasterPl
     initiativePlans,
     phases,
     dependencies,
+    roleOwnership,
     newsletterArticle: {
       title: "CISO Master Plan",
       body: articleBody
@@ -374,11 +391,39 @@ export function renderCisoMasterPlanMarkdown(input: CisoMagazineInput): string {
       ? ["- No linked supplier milestones, external plan inputs, or risk dependencies recorded in this scope."]
       : model.dependencies.map((dependency) => `- ${dependency.title} (${dependency.source}) - ${dependency.status}`)),
     "",
+    "## Role Ownership Summary",
+    "",
+    ...roleOwnershipRows(model.roleOwnership),
+    "",
     "Note: this generated plan is a shareable planning view over existing PSPF records. Adapt it as decisions and dependencies change."
   ].join("\n");
 }
 
+function buildRoleOwnershipSummary(
+  mappings: readonly RequirementControlMappingEntity[]
+): readonly RoleOwnershipSummary[] {
+  const summary = new Map<string, { readonly requirementIds: Set<string>; readonly controlIds: Set<string> }>();
+  for (const mapping of mappings.filter((item) => item.recordStatus !== "deleted")) {
+    const role = mapping.reviewBy?.trim() || "Not recorded";
+    const current = summary.get(role) ?? { requirementIds: new Set<string>(), controlIds: new Set<string>() };
+    current.requirementIds.add(mapping.requirementId);
+    current.controlIds.add(mapping.sourceControlId);
+    summary.set(role, current);
+  }
+  return [...summary.entries()]
+    .map(([role, counts]) => ({ role, requirements: counts.requirementIds.size, controls: counts.controlIds.size }))
+    .sort((left, right) => left.role.localeCompare(right.role, "en-AU", { sensitivity: "base" }));
+}
+
+function roleOwnershipRows(summary: readonly RoleOwnershipSummary[]): readonly string[] {
+  if (summary.length === 0) {
+    return ["- No role ownership recorded for Requirement-to-ISM control mappings."];
+  }
+  return summary.map((item) => `- ${item.role}: ${item.requirements} requirement(s), ${item.controls} control(s)`);
+}
+
 const roadmapInitiativeStages = ["Design", "Build", "Verify", "Monitor"] as const;
+const plannerFrameTitlePrefixes = ["Planner frame:", "Case for action:"] as const;
 
 function buildInitiativePlans(
   actions: readonly ActionEntity[],
@@ -395,8 +440,24 @@ function buildInitiativePlans(
     }
   >();
 
+  for (const item of evidence) {
+    const initiativeTitle = parsePlannerFrameTitle(item.title);
+    if (!initiativeTitle) {
+      continue;
+    }
+    const group = grouped.get(initiativeTitle) ?? { stages: [], evidenceIds: new Set<string>() };
+    group.evidenceIds.add(item.id);
+    grouped.set(initiativeTitle, group);
+  }
+
   for (const action of actions) {
-    const parsed = parseInitiativeStage(action.title);
+    const frameEvidenceIds = evidenceIdsByActionId.get(action.id) ?? [];
+    const frameEvidenceTitle = [...frameEvidenceIds]
+      .map((evidenceId) => evidenceById.get(evidenceId)?.title)
+      .find((title): title is string => Boolean(title && parsePlannerFrameTitle(title)));
+    const parsed = frameEvidenceTitle
+      ? parsePlannerLinkedAction(action.title, parsePlannerFrameTitle(frameEvidenceTitle) ?? "")
+      : parseInitiativeStage(action.title);
     if (!parsed) {
       continue;
     }
@@ -433,6 +494,26 @@ function buildInitiativePlans(
       evidenceCount: group.evidenceIds.size
     }))
     .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
+}
+
+function parsePlannerFrameTitle(title: string): string | undefined {
+  const prefix = plannerFrameTitlePrefixes.find((candidate) => title.toLowerCase().startsWith(candidate.toLowerCase()));
+  const initiativeTitle = prefix ? title.slice(prefix.length).trim() : "";
+  return initiativeTitle.length > 0 ? initiativeTitle : undefined;
+}
+
+function parsePlannerLinkedAction(
+  title: string,
+  initiativeTitle: string
+): { readonly initiativeTitle: string; readonly stage: string } | undefined {
+  const withoutInitiativePrefix = title.toLowerCase().startsWith(`${initiativeTitle.toLowerCase()} - `)
+    ? title.slice(initiativeTitle.length + 3).trim()
+    : title.trim();
+  const stage = withoutInitiativePrefix.split(":")[0]?.trim() || withoutInitiativePrefix;
+  return {
+    initiativeTitle,
+    stage: stage.length > 0 ? stage : "Task"
+  };
 }
 
 function parseInitiativeStage(title: string): { readonly initiativeTitle: string; readonly stage: string } | undefined {
@@ -675,6 +756,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
     )
   ).length;
   const evidenceNeedsReview = input.evidence.filter((item) => item.freshness !== "current").length;
+  const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings ?? []);
   const metadata = [
     `Generated: ${formatDisplayDate(input.generatedAt)}`,
     input.sourceLabel ? `Source: ${input.sourceLabel}` : undefined,
@@ -699,6 +781,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
     strategy
       ? `- Strategy: ${strategy.title} (${strategy.scope}, ${strategy.timeHorizon})`
       : "- Strategy: None recorded",
+    `- Role ownership: ${roleOwnership.length} role(s), ${roleOwnership.reduce((total, item) => total + item.requirements, 0)} requirement coverage count, ${roleOwnership.reduce((total, item) => total + item.controls, 0)} control coverage count`,
     "",
     "## Strategy",
     "",
@@ -712,6 +795,10 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
     "",
     `- Requirements with current evidence: ${currentEvidenceRequirements}`,
     `- Evidence needing freshness review: ${evidenceNeedsReview}`,
+    "",
+    "## Role Ownership Summary",
+    "",
+    ...roleOwnershipRows(roleOwnership),
     "",
     "## Domain Summary",
     "",
@@ -765,6 +852,7 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     const directionsNeedingResponse = directions.filter((direction) => direction.responseState === "not-set" || direction.responseState === "no").length;
     const currentEvidenceRequirements = (input.requirements || []).filter((requirement) => (evidenceIdsByRequirement.get(requirement.id) || []).some((evidenceId) => evidenceById.get(evidenceId)?.freshness === "current")).length;
     const evidenceNeedsReview = (input.evidence || []).filter((item) => item.freshness !== "current").length;
+    const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings || []);
     const metadata = [
       "Generated: " + formatDisplayDate(input.generatedAt),
       input.sourceLabel ? "Source: " + input.sourceLabel : undefined,
@@ -786,6 +874,7 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "- Risks: " + (input.risks || []).length,
       "- Directions: " + directions.length + (directions.length > 0 ? " (" + directionsNeedingResponse + " need a response)" : ""),
       strategy ? "- Strategy: " + strategy.title + " (" + strategy.scope + ", " + strategy.timeHorizon + ")" : "- Strategy: None recorded",
+      "- Role ownership: " + roleOwnership.length + " role(s), " + roleOwnership.reduce((total, item) => total + item.requirements, 0) + " requirement coverage count, " + roleOwnership.reduce((total, item) => total + item.controls, 0) + " control coverage count",
       "",
       "## Strategy",
       "",
@@ -799,6 +888,10 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "",
       "- Requirements with current evidence: " + currentEvidenceRequirements,
       "- Evidence needing freshness review: " + evidenceNeedsReview,
+      "",
+      "## Role Ownership Summary",
+      "",
+      ...roleOwnershipRows(roleOwnership),
       "",
       "## Domain Summary",
       "",
@@ -827,6 +920,25 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     const counts = countBy(requirements, (requirement) => requirement.assessmentStatus);
     const rows = Object.entries(counts).map(([status, count]) => "- " + label(status) + ": " + count);
     return rows.length > 0 ? rows : ["- None recorded."];
+  }
+  function buildRoleOwnershipSummary(mappings) {
+    const summary = new Map();
+    for (const mapping of (mappings || []).filter((item) => item.recordStatus !== "deleted")) {
+      const role = (mapping.reviewBy || "").trim() || "Not recorded";
+      const current = summary.get(role) || { requirementIds: new Set(), controlIds: new Set() };
+      current.requirementIds.add(mapping.requirementId);
+      current.controlIds.add(mapping.sourceControlId);
+      summary.set(role, current);
+    }
+    return [...summary.entries()]
+      .map(([role, counts]) => ({ role, requirements: counts.requirementIds.size, controls: counts.controlIds.size }))
+      .sort((left, right) => left.role.localeCompare(right.role, "en-AU", { sensitivity: "base" }));
+  }
+  function roleOwnershipRows(summary) {
+    if (summary.length === 0) {
+      return ["- No role ownership recorded for Requirement-to-ISM control mappings."];
+    }
+    return summary.map((item) => "- " + item.role + ": " + item.requirements + " requirement(s), " + item.controls + " control(s)");
   }
   function strategyRows(strategy) {
     if (!strategy) {

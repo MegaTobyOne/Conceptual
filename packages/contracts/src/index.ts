@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.11.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.31.2" as const;
+export const PSPF_SLICE_VERSION = "1.33.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -813,8 +813,6 @@ export type EntityDraft<EntityType extends V01EntityType> = Omit<EntityFor<Entit
   entityType: EntityType;
 };
 
-export const DISALLOWED_PUBLICATION_FIELDS = ["person.name", "person.email", "assignment.personId"] as const;
-
 export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "domain",
@@ -998,7 +996,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "requirement-control-mapping",
     fields: [
-      ...internalFields(
+      ...publicFields(
         "id",
         "entityType",
         "schemaVersion",
@@ -1065,7 +1063,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "supplier",
     fields: [
-      ...internalFields(
+      ...publicFields(
         "id",
         "entityType",
         "schemaVersion",
@@ -1085,7 +1083,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "contract",
     fields: [
-      ...internalFields(
+      ...publicFields(
         "id",
         "entityType",
         "schemaVersion",
@@ -1107,7 +1105,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "spend-item",
     fields: [
-      ...internalFields(
+      ...publicFields(
         "id",
         "entityType",
         "schemaVersion",
@@ -2636,6 +2634,17 @@ function sampleLink(
   });
 }
 
+export const DISALLOWED_PUBLICATION_FIELDS = [
+  "person.name",
+  "person.email",
+  "assignment.personId",
+  ...PUBLICATION_FIELD_POLICIES.flatMap((policy) =>
+    policy.fields
+      .filter((fieldPolicy) => fieldPolicy.publication === "restricted")
+      .map((fieldPolicy) => `${policy.entityType}.${fieldPolicy.field}`)
+  )
+] as readonly string[];
+
 export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
   const policy = PUBLICATION_FIELD_POLICIES.find((entry) => entry.entityType === entity.entityType);
   if (!policy) {
@@ -2649,7 +2658,7 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
     if (!publication) {
       throw new Error(`Missing publication policy for ${entity.entityType}.${field}`);
     }
-    if (publication === "public" || publication === "internal") {
+    if (publication === "public") {
       output[field] = field === "schemaVersion" ? VERSION_AXES.schemaVersion : value;
     }
   }
@@ -2660,8 +2669,23 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
 
   if (entity.entityType === "strategy" && Array.isArray(output.choices)) {
     output.choices = output.choices.map((choice) => {
-      const { rationale: _rationale, constraints: _constraints, ...publicChoice } = choice as StrategicChoice;
-      return publicChoice;
+      const publicChoice = choice as StrategicChoice;
+      return {
+        id: publicChoice.id,
+        statement: publicChoice.statement,
+        summary: publicChoice.summary,
+        capabilityArea: publicChoice.capabilityArea,
+        targetPosture: publicChoice.targetPosture,
+        trend: publicChoice.trend,
+        confidence: publicChoice.confidence,
+        references: publicChoice.references,
+        outcomes: publicChoice.outcomes.map((outcome) => ({
+          id: outcome.id,
+          statement: outcome.statement,
+          summary: outcome.summary,
+          references: outcome.references
+        }))
+      };
     });
   }
 
@@ -2799,10 +2823,89 @@ function publicFields(...fields: readonly string[]): readonly FieldPolicy[] {
   return fields.map((field) => ({ field, publication: "public" as const }));
 }
 
-function internalFields(...fields: readonly string[]): readonly FieldPolicy[] {
-  return fields.map((field) => ({ field, publication: "internal" as const }));
-}
-
 export function assertNever(value: never): never {
   throw new Error(`Unexpected value: ${String(value)}`);
 }
+
+// --------------------------------------------------------------------------
+// Questionnaire-driven population (ADR 0069, v1.33)
+// Type-only additions: questionnaire packs are reference data, runs are local
+// JSON files; no new entity envelopes or schema directories are introduced.
+// --------------------------------------------------------------------------
+
+export type QuestionnaireAnswerValue = "yes-with-link" | "yes" | "partial" | "no" | "unknown" | "na" | "skipped";
+
+export type QuestionnaireDomainFamily = "GOV" | "RISK" | "INFO" | "TECH" | "PER" | "PHYS";
+
+export type QuestionnairePublicationPolicy = "internal" | "restricted" | "public";
+
+export interface QuestionnaireEvidenceTemplate {
+  readonly title: string;
+  readonly type: string;
+  readonly defaultReviewCycleDays: number;
+  readonly promptFor: "url" | "note" | "url-or-note";
+}
+
+export interface QuestionnaireActionTemplate {
+  readonly title: string;
+  readonly priority: "low" | "medium" | "high" | "critical";
+  readonly dueOffsetDays: number;
+}
+
+export interface QuestionnaireRiskTemplate {
+  readonly applyOnAnswers: ReadonlyArray<QuestionnaireAnswerValue>;
+  readonly title: string;
+  readonly likelihood: "rare" | "unlikely" | "possible" | "likely" | "almost-certain";
+  readonly consequence: "insignificant" | "minor" | "moderate" | "major" | "severe";
+}
+
+export interface QuestionnaireQuestion {
+  readonly id: string;
+  readonly domain: QuestionnaireDomainFamily;
+  readonly requirementRefs: ReadonlyArray<string>;
+  readonly prompt: string;
+  readonly helpText: string;
+  readonly evidenceTemplate: QuestionnaireEvidenceTemplate;
+  readonly actionTemplates: Partial<Record<QuestionnaireAnswerValue, QuestionnaireActionTemplate>>;
+  readonly riskTemplate?: QuestionnaireRiskTemplate;
+  readonly publicationPolicy: QuestionnairePublicationPolicy;
+}
+
+export interface QuestionnairePack {
+  readonly packId: string;
+  readonly packVersion: string;
+  readonly title: string;
+  readonly description: string;
+  readonly scope: "starter" | "domain-deep-dive";
+  readonly domain?: QuestionnaireDomainFamily;
+  readonly questions: ReadonlyArray<QuestionnaireQuestion>;
+}
+
+export interface QuestionnaireAnswerRecord {
+  readonly questionId: string;
+  readonly value: QuestionnaireAnswerValue;
+  readonly evidenceUrl?: string;
+  readonly note?: string;
+  readonly naRationale?: string;
+  readonly answeredAt: string;
+}
+
+export type QuestionnaireRunMode =
+  | "first-run"
+  | "update-stale-or-changed"
+  | "update-all-questions"
+  | "answer-all-again";
+
+export interface QuestionnaireRunRecord {
+  readonly runId: string;
+  readonly packId: string;
+  readonly packVersion: string;
+  readonly mode: QuestionnaireRunMode;
+  readonly startedAt: string;
+  readonly completedAt: string;
+  readonly previousRunId?: string;
+  readonly answers: ReadonlyArray<QuestionnaireAnswerRecord>;
+  readonly publicationPolicy: QuestionnairePublicationPolicy;
+}
+
+export const QUESTIONNAIRE_RUN_DIRECTORY = ".pspf/questionnaire/runs" as const;

@@ -129,6 +129,12 @@ export function shellHtml(title: string, body: string): string {
     .strategy-editor__two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; align-items: start; }
     .strategy-editor__field { margin-top: 12px; }
     .strategy-editor__field textarea { min-height: 10rem; }
+    .strategy-editor__readiness .metric strong { font-size: 22px; }
+    .strategy-editor__cue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+    .strategy-editor__cue-grid--text { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 10px; }
+    .strategy-editor__cue { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; background: color-mix(in srgb, var(--surface-strong) 78%, transparent); }
+    .strategy-editor__cue h3 { margin-top: 0; }
+    .strategy-editor__cue ul { margin: 0; padding-left: 18px; }
     .strategy-editor__nested { margin-top: 14px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--surface-strong) 78%, transparent); }
     .strategy-editor__measure { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
     .requirement-browser { width: min(100%, 1320px); display: grid; grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); gap: var(--gap); align-items: start; }

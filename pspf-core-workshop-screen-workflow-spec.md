@@ -623,6 +623,28 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 
 This is intentionally not a full-screen editor first; it should feel like a structured review and launch point.
 
+### Workflow W-Q — Run questionnaire (v0.8+)
+
+**Goal:** populate (or refresh) the workspace from plain-English yes/no/partial/unknown/N-A answers, producing a custom first daily bundle and a re-runnable posture refresh path.
+
+**Authoritative spec:** [pspf-questionnaire-spec.md](pspf-questionnaire-spec.md). **ADR:** [adr/0069-questionnaire-population.md](adr/0069-questionnaire-population.md).
+
+**Entry points:**
+- `PSPF: Run Quickstart Questionnaire` (Starter pack),
+- `PSPF: Run Domain Deep Dive…` (per-Domain packs),
+- Workshop Welcome stale-review prompt when a prior run exists.
+
+**Flow:**
+1. User selects a pack and mode (first-run / update / answer all). Update mode is the default when a prior run exists and filters to stale-review and previously uncertain questions.
+2. WebviewPanel walks the user through one question card at a time; answers, links and notes are draft-saved per change.
+3. Review screen lists every record that will be created, updated, or superseded, grouped by Requirement, with a "Take Snapshot and apply" primary action.
+4. Apply takes a pre-apply Snapshot of type `questionnaire-run`, then writes Requirements, Evidence, Actions, and (where templated) Risks atomically via Core APIs. Flipped answers auto-close superseded Actions with reason `superseded-by-questionnaire-run/<runId>`.
+5. Result screen reports counts and deep-links to Assessment Dashboard, Evidence Review Queue, and the run's Snapshot detail.
+
+**Success state:** the operator has a populated, evidence-backed workspace whose provenance is traceable back to a specific question pack version and run.
+
+**Failure state:** apply rolls back atomically; the pre-apply Snapshot remains; the offending field is highlighted on the review screen.
+
 ## Navigation model
 
 ### Primary navigation

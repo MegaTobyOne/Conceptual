@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -43,6 +44,14 @@ const explorerToWorkshopImportReportPath = join(
 const explorerToWorkshopImportReport = existsSync(explorerToWorkshopImportReportPath)
   ? JSON.parse(await readFile(explorerToWorkshopImportReportPath, "utf8"))
   : undefined;
+const schemaPolicyGate = runGate("Schema-policy", ["scripts/check-schema-policy.mjs"]);
+const auEnglishGate = runGate("AU-English lint", ["scripts/lint-au-english.mjs"]);
+const writerLockGate = runGate("Writer lock", ["scripts/check-writer-lock.mjs"]);
+const integrityScanGate = runGate("Integrity scan", ["scripts/check-integrity-scan.mjs"]);
+const sampleWorkspaceGate = runGate("Sample workspace", ["scripts/check-sample-workspace.mjs"]);
+const packageShapeGate = runGate("Package shape", ["scripts/check-package-shape.mjs"]);
+const backupRestoreGate = runGate("Backup/restore dry-run", ["scripts/backup-restore-dry-run.mjs"]);
+const releaseCandidateGate = runGate("Release-candidate consistency", ["scripts/check-release-candidate.mjs"]);
 
 const gates = [
   gate(
@@ -50,7 +59,7 @@ const gates = [
     Boolean(e2eReport?.ok),
     "Automated Core to Workshop-authored records to snapshot/export/import flow passes."
   ),
-  gate("Schema-policy", true, "check:gates runs schema-policy metadata coverage."),
+  gate("Schema-policy", schemaPolicyGate.ok, schemaPolicyGate.evidence),
   gate(
     "Personal-data exclusion",
     Boolean(
@@ -58,18 +67,18 @@ const gates = [
     ),
     "Published e2e and debug exports exclude restricted personal fields."
   ),
-  gate("AU-English lint", true, "release:readiness runs lint before this report."),
+  gate("AU-English lint", auEnglishGate.ok, auEnglishGate.evidence),
   gate(
     "Per-version schema publication",
     Boolean(e2eReport?.schemaChecks.every((check) => check.ok)),
     "AJV validates manifest and collection schemas for the active schemaVersion."
   ),
-  gate("Writer lock", true, "check:gates runs the writer-lock write-blocking gate."),
-  gate("Integrity scan", true, "check:gates runs the integrity-scan and broken-link fixture gate."),
-  gate("Sample workspace", true, "check:gates runs the sample workspace validation gate."),
-  gate("Package shape", true, "check:gates runs the Core/Workshop package-shape rehearsal."),
-  gate("Release-candidate consistency", true, "release:readiness runs check:release-candidate before this report."),
-  gate("Backup/restore dry-run", true, "check:gates runs the .pspf backup/restore dry-run gate."),
+  gate("Writer lock", writerLockGate.ok, writerLockGate.evidence),
+  gate("Integrity scan", integrityScanGate.ok, integrityScanGate.evidence),
+  gate("Sample workspace", sampleWorkspaceGate.ok, sampleWorkspaceGate.evidence),
+  gate("Package shape", packageShapeGate.ok, packageShapeGate.evidence),
+  gate("Release-candidate consistency", releaseCandidateGate.ok, releaseCandidateGate.evidence),
+  gate("Backup/restore dry-run", backupRestoreGate.ok, backupRestoreGate.evidence),
   gate(
     "Accessibility floor",
     accessibilityReport?.seriousOrCriticalCount === 0,
@@ -150,4 +159,26 @@ console.log(
 
 function gate(name, ok, evidence) {
   return { name, ok, evidence };
+}
+
+function runGate(name, scriptArgs) {
+  try {
+    const output = execFileSync(process.execPath, scriptArgs, {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    }).trim();
+    const lines = output
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    return { ok: true, evidence: lines.at(-1) ?? `${name} passed.` };
+  } catch (error) {
+    const stdout =
+      typeof error === "object" && error !== null && "stdout" in error ? String(error.stdout ?? "").trim() : "";
+    const stderr =
+      typeof error === "object" && error !== null && "stderr" in error ? String(error.stderr ?? "").trim() : "";
+    const detail = [stderr, stdout].find(Boolean) ?? `${name} failed.`;
+    return { ok: false, evidence: detail.split("\n").find(Boolean) ?? `${name} failed.` };
+  }
 }

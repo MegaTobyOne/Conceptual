@@ -13,6 +13,12 @@ export {
   REFERENCE_DATA_SOURCES
 } from "./generated/reference-data.js";
 
+export {
+  QUESTIONNAIRE_STARTER_PACK,
+  QUESTIONNAIRE_DOMAIN_PACKS,
+  getQuestionnairePackById
+} from "./questionnaire/starter-v1.js";
+
 export type PspfDomainFamily = "GOV" | "RISK" | "INFO" | "TECH" | "PER" | "PHYS";
 
 export interface ReferenceSourceDescriptor {

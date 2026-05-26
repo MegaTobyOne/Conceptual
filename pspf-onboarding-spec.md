@@ -73,6 +73,8 @@ For initial assurance-user testing, v0.8 adds a shorter sample-driven path witho
 
 The same sample path is enforced by `pnpm run check:sample-workspace`.
 
+> **Questionnaire-driven population (v0.8 sibling).** Between steps 3 and 4 the operator may instead — or in addition — run `PSPF: Run Quickstart Questionnaire` to populate the workspace from real-world yes/no/partial/unknown/N-A answers. See [pspf-questionnaire-spec.md](pspf-questionnaire-spec.md) and [adr/0069-questionnaire-population.md](adr/0069-questionnaire-population.md). The remainder of the path (Integrity Scan, Export, Explorer) is unchanged. The questionnaire is re-runnable as a posture refresh.
+
 ## v1.0 release test path
 
 v1.0 uses [validation-scenario-1-operator-workflow.md](validation-scenario-1-operator-workflow.md) as the manual assurance-user validation script. Automated readiness uses:

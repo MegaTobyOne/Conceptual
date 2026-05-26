@@ -17,6 +17,7 @@ const SKIP_DIRECTORIES = new Set([
 
 const ROOT_FILES = ["README.md", ".github/copilot-instructions.md"];
 const SCANNED_TREES = ["docs", "adr"];
+const UI_SOURCE_TREES = ["packages", "scripts"];
 const ROOT_MARKDOWN_GLOB =
   /^(?:pspf-.*\.md|validation-scenario-.*\.md|explorer-screen-workflow-spec\.md|extracted-spec-pspf-explorer\.md)$/;
 
@@ -36,18 +37,20 @@ for (const entry of readdirSync(root)) {
 }
 
 const sortedTargets = [...targets].sort();
+const sourceTargets = UI_SOURCE_TREES.flatMap((tree) =>
+  findFiles(join(root, tree), new Set([".ts", ".tsx", ".js", ".mjs"]))
+).sort();
 const failures = [];
 
 for (const target of sortedTargets) {
   const text = stripCodeAndLinks(readFileSync(join(root, target), "utf8"));
-  for (const pair of config.pairs) {
-    const pattern = new RegExp(`\\b${escapeRegex(pair.avoid)}\\b`, "i");
-    const match = pattern.exec(text);
-    if (match) {
-      const lineNumber = text.slice(0, match.index).split("\n").length;
-      failures.push(`${target}:${lineNumber}: use "${pair.use}" instead of "${pair.avoid}"`);
-    }
-  }
+  collectFailures(target, text, failures);
+}
+
+for (const target of sourceTargets) {
+  const sourceText = readFileSync(join(root, target), "utf8");
+  const extracted = extractHumanStrings(sourceText);
+  collectFailures(target, extracted, failures);
 }
 
 if (failures.length > 0) {
@@ -55,9 +58,13 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`ok AU-English lint checked ${sortedTargets.length} files`);
+console.log(`ok AU-English lint checked ${sortedTargets.length + sourceTargets.length} files`);
 
 function findMarkdown(directory) {
+  return findFiles(directory, new Set([".md"]));
+}
+
+function findFiles(directory, extensions) {
   const results = [];
   let entries;
   try {
@@ -72,8 +79,8 @@ function findMarkdown(directory) {
     const path = join(directory, entry);
     const stats = statSync(path);
     if (stats.isDirectory()) {
-      results.push(...findMarkdown(path));
-    } else if (entry.endsWith(".md")) {
+      results.push(...findFiles(path, extensions));
+    } else if ([...extensions].some((extension) => entry.endsWith(extension))) {
       results.push(relative(root, path));
     }
   }
@@ -126,4 +133,53 @@ function stripCodeAndLinks(text) {
     out.push(masked);
   }
   return out.join("\n");
+}
+
+function extractHumanStrings(text) {
+  const extracted = [];
+  const literalPattern = /(["'`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
+  for (const match of text.matchAll(literalPattern)) {
+    const raw = match[2] ?? "";
+    const normalised = raw
+      .replace(/\$\{[^}]+\}/g, " ")
+      .replace(/\$\([^)]+\)/g, " ")
+      .replace(/\\[nrt]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!looksLikeHumanString(normalised)) {
+      continue;
+    }
+    extracted.push(normalised);
+  }
+  return extracted.join("\n");
+}
+
+function looksLikeHumanString(value) {
+  if (value.length < 3) {
+    return false;
+  }
+  if (!/[A-Za-z]/.test(value)) {
+    return false;
+  }
+  if (/^(?:[./#@]|[A-Za-z0-9_-]+:)/.test(value) && !/\s/.test(value)) {
+    return false;
+  }
+  if (/^[A-Za-z0-9_.-]+$/.test(value)) {
+    return false;
+  }
+  if (/[{}[\]<>]/.test(value)) {
+    return false;
+  }
+  return /\s/.test(value) || /[,:;!?]/.test(value);
+}
+
+function collectFailures(target, text, failures) {
+  for (const pair of config.pairs) {
+    const pattern = new RegExp(`\\b${escapeRegex(pair.avoid)}\\b`, "i");
+    const match = pattern.exec(text);
+    if (match) {
+      const lineNumber = text.slice(0, match.index).split("\n").length;
+      failures.push(`${target}:${lineNumber}: use "${pair.use}" instead of "${pair.avoid}"`);
+    }
+  }
 }

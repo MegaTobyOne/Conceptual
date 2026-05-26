@@ -70,8 +70,8 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. If DNS resolves but LiteSpeed returns `404`, check that the VentraIP/cPanel subdomain document root still matches the `test-web` `VENTRAIP_DOCROOT`; subdomain recreation can reset that mapping outside Git. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.31.2`, `Schema 1.11.0`, and `API 1.11.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.31.2` and its tooltip includes `Schema 1.11.0`, `Bundle 1.11.0`, and `API 1.11.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.33.0`, `Schema 1.11.0`, and `API 1.11.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.33.0` and its tooltip includes `Schema 1.11.0`, `Bundle 1.11.0`, and `API 1.11.0`.
 4. From `Workshop Home`, click `Load sample`.
 5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, N/A-aware completion/evidence metrics, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions. Open `Plan of Action` and confirm the graphical plan shows Action date spans, status filters, and a visible Today marker. Open `Essential Eight` and confirm the strategy tracker and uplift plan are populated from linked Requirements, Evidence, Risks, and Actions. Then open `Strategy Map` and confirm the Cyber Strategy Map shows three strategic choices, outcome summaries, posture measures, trend/confidence labels, and linked Requirements, Risks, Actions, and Directions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.

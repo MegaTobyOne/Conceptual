@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { POSTURE_BRIEF_BROWSER_SCRIPT } from "@pspf/brief-renderer";
 import { CONNECTED_VIEW_STYLES, CONNECTED_VIEW_BROWSER_SCRIPT } from "@pspf/connected-view";
 import {
+  DISALLOWED_PUBLICATION_FIELDS,
   PSPF_SLICE_VERSION,
   VERSION_AXES,
   buildSampleWorkspaceEntities,
@@ -110,6 +111,7 @@ const html = `<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; base-uri 'self'; form-action 'self'">
   <title>PSPF Explorer</title>
   <style>
     ${tokensCss("explorer")}
@@ -662,6 +664,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
 
   bindTagFilterControls();
   bindRequirementStatusFilterControls();
+  bindComplianceToggleControls();
   applyTagFilter();
   applyRequirementStatusFilter();
   applyExplorerSearch();
@@ -827,6 +830,25 @@ function loadRequirementFilterState() {
     currentExplorerSearch = typeof stored?.query === "string" ? stored.query : currentExplorerSearch;
   } catch {
     currentRequirementStatusFilter = new Set();
+  }
+}
+
+function bindComplianceToggleControls() {
+  for (const input of document.querySelectorAll("[data-compliance-include-na]")) {
+    input.addEventListener("change", () => {
+      const panel = input.closest(".panel-lite");
+      const donut = panel && panel.querySelector("[data-compliance-donut]");
+      const label = panel && panel.querySelector("[data-compliance-met-label]");
+      if (!donut || !label) {
+        return;
+      }
+      const prefix = input.checked ? "include" : "ignore";
+      donut.style.setProperty("--met", (donut.dataset[prefix + "Met"] || "0") + "%");
+      donut.style.setProperty("--partial", (donut.dataset[prefix + "Partial"] || "0") + "%");
+      donut.style.setProperty("--not-met", (donut.dataset[prefix + "NotMet"] || "0") + "%");
+      donut.setAttribute("aria-label", donut.dataset[prefix + "Label"] || "");
+      label.textContent = (donut.dataset[prefix + "Met"] || "0") + "%";
+    });
   }
 }
 
@@ -1082,16 +1104,15 @@ async function writeClipboardText(value) {
 
 async function validateBundle(manifest, collections, collectionTexts) {
   const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "suppliers", "contracts", "spend-items", "strategies", "posture"];
+  const manifestNames = (manifest.collections || []).map((entry) => entry.name);
   const checks = [
-    check("Bundle version", manifest.bundleVersion === "${VERSION_AXES.bundleVersion}", manifest.bundleVersion || "missing"),
-    check("Schema version", manifest.schemaVersion === "${VERSION_AXES.schemaVersion}", manifest.schemaVersion || "missing"),
-    check("API version", manifest.apiVersion === "${VERSION_AXES.apiVersion}", manifest.apiVersion || "missing"),
+    check("Bundle version", hasCompatibleMajor(manifest.bundleVersion, "${VERSION_AXES.bundleVersion}"), manifest.bundleVersion || "missing"),
+    check("Schema version", hasCompatibleMajor(manifest.schemaVersion, "${VERSION_AXES.schemaVersion}"), manifest.schemaVersion || "missing"),
+    check("API version", hasCompatibleMajor(manifest.apiVersion, "${VERSION_AXES.apiVersion}"), manifest.apiVersion || "missing"),
     check("Generator mode", manifest.generator && ["publication", "local-authoring"].includes(manifest.generator.mode), manifest.generator && manifest.generator.mode || "missing"),
     check("Classification", manifest.security && manifest.security.classification === "OFFICIAL: Sensitive", manifest.security && manifest.security.classification || "missing")
   ];
-
-  const manifestNames = (manifest.collections || []).map((entry) => entry.name);
-  checks.push(check("Collection contract", JSON.stringify(manifestNames) === JSON.stringify(expectedCollections), manifestNames.join(", ")));
+  checks.push(check("Collection contract", expectedCollections.every((name) => manifestNames.includes(name)), manifestNames.join(", ")));
 
   for (const entry of manifest.collections || []) {
     const records = collections[entry.name] || [];
@@ -1128,6 +1149,8 @@ async function validateBundle(manifest, collections, collectionTexts) {
   checks.push(check("Strategy assumptions excluded", !containsPath(collections.strategies || [], ["assumptions"]), "default deny"));
   checks.push(check("Strategy rationale excluded", !containsPath(collections.strategies || [], ["rationale"]), "default deny"));
   checks.push(check("Strategy constraints excluded", !containsPath(collections.strategies || [], ["constraints"]), "default deny"));
+  checks.push(check("Strategy executive owner excluded", !containsPath(collections.strategies || [], ["executiveOwner"]), "default deny"));
+  checks.push(check("Strategy measures excluded", !containsPath(collections.strategies || [], ["measures"]), "default deny"));
   const mappings = collections["requirement-control-mappings"] || [];
   const validConfidence = new Set(["low", "medium", "high"]);
   checks.push(check("Mapping confidence present", mappings.every((mapping) => validConfidence.has(mapping.confidence)), mappings.length + " mapping(s)"));
@@ -1136,8 +1159,7 @@ async function validateBundle(manifest, collections, collectionTexts) {
   const sourceControls = collections["source-controls"] || [];
   checks.push(check("Source-control drift status", sourceControls.every((sourceControl) => validDriftStatus.has(sourceControl.statementChangeStatus)), sourceControls.length + " source control(s)"));
 
-  const disallowed = ["person.name", "person.email", "assignment.personId"];
-  for (const fieldPath of disallowed) {
+  for (const fieldPath of ${JSON.stringify(DISALLOWED_PUBLICATION_FIELDS)}) {
     checks.push(check("Excludes " + fieldPath, !containsPath({ manifest, collections }, fieldPath.split(".")), "default deny"));
   }
 
@@ -2032,10 +2054,9 @@ async function restoreRememberedBundle() {
 }
 
 function isCompatibleRememberedBundle(manifest) {
-  return manifest?.schemaVersion === "${VERSION_AXES.schemaVersion}" &&
-    manifest?.bundleVersion === "${VERSION_AXES.bundleVersion}" &&
-    manifest?.apiVersion === "${VERSION_AXES.apiVersion}" &&
-    manifest?.generator?.productVersion === "${PSPF_SLICE_VERSION}";
+  return hasCompatibleMajor(manifest?.schemaVersion, "${VERSION_AXES.schemaVersion}") &&
+    hasCompatibleMajor(manifest?.bundleVersion, "${VERSION_AXES.bundleVersion}") &&
+    hasCompatibleMajor(manifest?.apiVersion, "${VERSION_AXES.apiVersion}");
 }
 
 function showRememberedBundleSchemaNotice(manifest) {
@@ -2224,6 +2245,7 @@ async function resetLocalData(bundleKey) {
   await resetLocalActions(bundleKey);
   await resetLocalRisks(bundleKey);
   await resetLocalSavedViews(bundleKey);
+  clearExplorerBrowserState();
 }
 
 async function resetLocalActions(bundleKey) {
@@ -2262,6 +2284,35 @@ function validationTable(checks) {
 
 function check(label, ok, detail) {
   return { label, ok: Boolean(ok), detail: String(detail || "") };
+}
+
+function clearExplorerBrowserState() {
+  for (const storage of [sessionStorage, localStorage]) {
+    const keysToDelete = [];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key && key.startsWith("pspf:explorer:")) {
+        keysToDelete.push(key);
+      }
+    }
+    for (const key of keysToDelete) {
+      storage.removeItem(key);
+    }
+  }
+}
+
+function hasCompatibleMajor(actual, supported) {
+  const actualMajor = semverMajor(actual);
+  const supportedMajor = semverMajor(supported);
+  return actualMajor !== undefined && supportedMajor !== undefined && actualMajor === supportedMajor;
+}
+
+function semverMajor(value) {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const match = /^([0-9]+)[.]/.exec(value);
+  return match ? Number(match[1]) : undefined;
 }
 
 function metric(label, value) {
@@ -2500,7 +2551,6 @@ function overview(requirements, collections) {
         '</div>' +
       '</div>' +
       statusTable +
-      '<script>document.querySelectorAll("[data-compliance-include-na]").forEach(function(input){input.addEventListener("change",function(){var panel=input.closest(".panel-lite");var donut=panel&&panel.querySelector("[data-compliance-donut]");var label=panel&&panel.querySelector("[data-compliance-met-label]");if(!donut||!label)return;var prefix=input.checked?"include":"ignore";donut.style.setProperty("--met",donut.dataset[prefix+"Met"]+"%");donut.style.setProperty("--partial",donut.dataset[prefix+"Partial"]+"%");donut.style.setProperty("--not-met",donut.dataset[prefix+"NotMet"]+"%");donut.setAttribute("aria-label",donut.dataset[prefix+"Label"]||"");label.textContent=(donut.dataset[prefix+"Met"]||"0")+"%";});});</script>' +
     '</div>' +
     '<div>' +
       '<h3>Domain Posture</h3>' + domainBars(requirements) +

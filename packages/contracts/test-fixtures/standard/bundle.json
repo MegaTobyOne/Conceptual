@@ -270,7 +270,6 @@
                         "summary": "Quarterly evidence review keeps PSPF reporting decisions current.",
                         "capabilityArea": "Governance and assurance",
                         "targetPosture": "Quarterly evidence review operating with current governance artefacts by 2026-12-31.",
-                        "executiveOwner": "CISO",
                         "trend": "improving",
                         "confidence": "medium",
                         "references": [
@@ -290,20 +289,6 @@
                                         "entityType": "requirement",
                                         "entityId": "REQ-00000000-0000-7000-8000-000000000101",
                                         "role": "evidenced-by"
-                                    }
-                                ],
-                                "measures": [
-                                    {
-                                        "id": "measure-governance-review-cadence",
-                                        "title": "Governance review cadence",
-                                        "measureClass": "governance-assurance",
-                                        "baseline": "Ad hoc",
-                                        "current": "Quarterly review scheduled",
-                                        "target": "Quarterly review complete",
-                                        "unit": "cadence",
-                                        "trend": "improving",
-                                        "confidence": "medium",
-                                        "reviewCadence": "quarterly"
                                     }
                                 ]
                             }
