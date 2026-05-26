@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, open, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -902,7 +902,10 @@ ON CONFLICT(id) DO UPDATE SET
 }
 
 async function getWriterLock(workspaceRoot: string): Promise<WriterLockState> {
-  const paths = await ensureInitialised(workspaceRoot, false);
+  const paths = getWorkspacePaths(workspaceRoot);
+  if (!existsSync(paths.db)) {
+    await initialiseWorkspace(workspaceRoot);
+  }
   return readWriterLock(paths);
 }
 
@@ -1449,7 +1452,7 @@ async function ensureInitialised(workspaceRoot: string, createIfMissing = true):
     if (createIfMissing) {
       return initialiseWorkspace(workspaceRoot);
     }
-    await initialiseWorkspace(workspaceRoot);
+    throw new Error(`PSPF workspace is not initialised at ${workspaceRoot}.`);
   }
   if (createIfMissing) {
     await refreshReferenceData(workspaceRoot);
@@ -1561,9 +1564,26 @@ async function assertWritable(paths: WorkspacePaths): Promise<void> {
 }
 
 async function acquireWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
+  const lockFilePath = join(paths.locks, "writer.lock");
+  const lockStatePath = join(paths.locks, "writer-lock.json");
   const existing = await readWriterLock(paths);
+  if (existing.holderPid === process.pid && existsSync(lockFilePath)) {
+    return existing;
+  }
   if (existing.holderPid && existing.holderPid !== process.pid && isProcessAlive(existing.holderPid)) {
     return existing;
+  }
+  await rm(lockFilePath, { force: true });
+  await rm(lockStatePath, { force: true });
+  try {
+    const lockFile = await open(lockFilePath, "wx");
+    await lockFile.writeFile(`${process.pid}\n`, "utf8");
+    await lockFile.close();
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST") {
+      return readWriterLock(paths);
+    }
+    throw error;
   }
 
   const state: WriterLockState = {
@@ -1574,20 +1594,31 @@ async function acquireWriterLock(paths: WorkspacePaths): Promise<WriterLockState
     writable: true,
     detail: "Writer lock held by current process."
   };
-  await writeJson(join(paths.locks, "writer-lock.json"), state);
+  await writeJson(lockStatePath, state);
   return state;
 }
 
 async function readWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
-  const lockPath = join(paths.locks, "writer-lock.json");
-  if (!existsSync(lockPath)) {
+  const lockFilePath = join(paths.locks, "writer.lock");
+  const lockStatePath = join(paths.locks, "writer-lock.json");
+  const lockFileExists = existsSync(lockFilePath);
+  if (!lockFileExists && !existsSync(lockStatePath)) {
     return { currentPid: process.pid, policy: "single-writer", writable: true, detail: "No writer lock exists yet." };
   }
+  if (!existsSync(lockStatePath)) {
+    return {
+      currentPid: process.pid,
+      policy: "single-writer",
+      writable: false,
+      detail: "Workspace is read-only because writer lock metadata is unavailable."
+    };
+  }
 
-  const value = JSON.parse(await readFile(lockPath, "utf8")) as Partial<WriterLockState>;
+  const value = JSON.parse(await readFile(lockStatePath, "utf8")) as Partial<WriterLockState>;
   const holderPid = typeof value.holderPid === "number" ? value.holderPid : undefined;
-  const heldByCurrentProcess = holderPid === process.pid;
-  const writable = !holderPid || heldByCurrentProcess || !isProcessAlive(holderPid);
+  const heldByCurrentProcess = lockFileExists && holderPid === process.pid;
+  const writable =
+    !lockFileExists || heldByCurrentProcess || (typeof holderPid === "number" && !isProcessAlive(holderPid));
   return {
     holderPid,
     acquiredAt: value.acquiredAt,
@@ -1598,7 +1629,7 @@ async function readWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
       ? heldByCurrentProcess
         ? "Writer lock held by current process."
         : "Writer lock is available."
-      : `Workspace is read-only because writer lock is held by process ${holderPid}.`
+      : `Workspace is read-only because writer lock is held by process ${holderPid ?? "unknown"}.`
   };
 }
 

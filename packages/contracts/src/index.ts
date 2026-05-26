@@ -813,8 +813,6 @@ export type EntityDraft<EntityType extends V01EntityType> = Omit<EntityFor<Entit
   entityType: EntityType;
 };
 
-export const DISALLOWED_PUBLICATION_FIELDS = ["person.name", "person.email", "assignment.personId"] as const;
-
 export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "domain",
@@ -998,7 +996,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "requirement-control-mapping",
     fields: [
-      ...internalFields(
+      ...publicFields(
         "id",
         "entityType",
         "schemaVersion",
@@ -1065,7 +1063,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "supplier",
     fields: [
-      ...internalFields(
+      ...publicFields(
         "id",
         "entityType",
         "schemaVersion",
@@ -1085,7 +1083,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "contract",
     fields: [
-      ...internalFields(
+      ...publicFields(
         "id",
         "entityType",
         "schemaVersion",
@@ -1107,7 +1105,7 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   {
     entityType: "spend-item",
     fields: [
-      ...internalFields(
+      ...publicFields(
         "id",
         "entityType",
         "schemaVersion",
@@ -2636,6 +2634,17 @@ function sampleLink(
   });
 }
 
+export const DISALLOWED_PUBLICATION_FIELDS = [
+  "person.name",
+  "person.email",
+  "assignment.personId",
+  ...PUBLICATION_FIELD_POLICIES.flatMap((policy) =>
+    policy.fields
+      .filter((fieldPolicy) => fieldPolicy.publication === "restricted")
+      .map((fieldPolicy) => `${policy.entityType}.${fieldPolicy.field}`)
+  )
+] as readonly string[];
+
 export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
   const policy = PUBLICATION_FIELD_POLICIES.find((entry) => entry.entityType === entity.entityType);
   if (!policy) {
@@ -2649,7 +2658,7 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
     if (!publication) {
       throw new Error(`Missing publication policy for ${entity.entityType}.${field}`);
     }
-    if (publication === "public" || publication === "internal") {
+    if (publication === "public") {
       output[field] = field === "schemaVersion" ? VERSION_AXES.schemaVersion : value;
     }
   }
@@ -2660,8 +2669,23 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
 
   if (entity.entityType === "strategy" && Array.isArray(output.choices)) {
     output.choices = output.choices.map((choice) => {
-      const { rationale: _rationale, constraints: _constraints, ...publicChoice } = choice as StrategicChoice;
-      return publicChoice;
+      const publicChoice = choice as StrategicChoice;
+      return {
+        id: publicChoice.id,
+        statement: publicChoice.statement,
+        summary: publicChoice.summary,
+        capabilityArea: publicChoice.capabilityArea,
+        targetPosture: publicChoice.targetPosture,
+        trend: publicChoice.trend,
+        confidence: publicChoice.confidence,
+        references: publicChoice.references,
+        outcomes: publicChoice.outcomes.map((outcome) => ({
+          id: outcome.id,
+          statement: outcome.statement,
+          summary: outcome.summary,
+          references: outcome.references
+        }))
+      };
     });
   }
 
@@ -2797,10 +2821,6 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
 
 function publicFields(...fields: readonly string[]): readonly FieldPolicy[] {
   return fields.map((field) => ({ field, publication: "public" as const }));
-}
-
-function internalFields(...fields: readonly string[]): readonly FieldPolicy[] {
-  return fields.map((field) => ({ field, publication: "internal" as const }));
 }
 
 export function assertNever(value: never): never {

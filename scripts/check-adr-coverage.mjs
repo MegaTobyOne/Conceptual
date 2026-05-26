@@ -252,6 +252,12 @@ const coverage = [
     "check:risk-source-integration",
     "check:release-candidate",
     "check:gates"
+  ]),
+  adr("0069-v1-32-ciso-master-plan-and-strategy-editor-polish.md", "automated", [
+    "check:brief-redaction",
+    "check:schema-policy",
+    "check:release-candidate",
+    "check:gates"
   ])
 ];
 

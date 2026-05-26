@@ -14,21 +14,12 @@ const lock = await service.getWriterLock();
 assert.equal(lock.writable, true, lock.detail);
 assert.equal(lock.policy, "single-writer");
 
-await writeFile(
-  join(paths.locks, "writer-lock.json"),
-  `${JSON.stringify(
-    {
-      holderPid: 1,
-      acquiredAt: new Date().toISOString(),
-      currentPid: process.pid,
-      writable: false,
-      detail: "Simulated second-window writer lock."
-    },
-    null,
-    2
-  )}\n`,
-  "utf8"
-);
+await writeLockState(paths, {
+  holderPid: 1,
+  acquiredAt: new Date().toISOString(),
+  writable: false,
+  detail: "Simulated second-window writer lock."
+});
 
 const readOnlyLock = await service.getWriterLock();
 assert.equal(readOnlyLock.writable, false, readOnlyLock.detail);
@@ -47,24 +38,24 @@ const requirement = withEnvelope(
 
 await assert.rejects(() => service.upsertEntity(requirement), /read-only|writer lock/i);
 
-await writeFile(
-  join(paths.locks, "writer-lock.json"),
-  `${JSON.stringify(
-    {
-      holderPid: 999999,
-      acquiredAt: new Date().toISOString(),
-      currentPid: process.pid,
-      policy: "single-writer",
-      writable: false,
-      detail: "Simulated stale second-window writer lock."
-    },
-    null,
-    2
-  )}\n`,
-  "utf8"
-);
+await writeLockState(paths, {
+  holderPid: 999999,
+  acquiredAt: new Date().toISOString(),
+  writable: false,
+  detail: "Simulated stale second-window writer lock."
+});
 
 const recoveredLock = await service.getWriterLock();
 assert.equal(recoveredLock.writable, true, recoveredLock.detail);
 await service.upsertEntity(requirement);
 console.log("ok writer-lock gate blocks live second-window writes and recovers stale locks");
+
+async function writeLockState(paths, value) {
+  await rm(join(paths.locks, "writer.lock"), { force: true });
+  await writeFile(join(paths.locks, "writer.lock"), `${value.holderPid}\n`, "utf8");
+  await writeFile(
+    join(paths.locks, "writer-lock.json"),
+    `${JSON.stringify({ ...value, currentPid: process.pid, policy: "single-writer" }, null, 2)}\n`,
+    "utf8"
+  );
+}

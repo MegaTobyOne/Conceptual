@@ -678,17 +678,10 @@ function renderTeamScopeBriefMarkdown(
   }
   lines.push("");
 
-  if (team.notes) {
-    lines.push("## Local-only notes");
-    lines.push("");
-    lines.push(team.notes);
-    lines.push("");
-  }
-
   lines.push("---");
   lines.push("");
   lines.push(
-    "_Redaction: Pub person names, person identifiers, and relationship notes are local-only and are not included in this brief. Share this Markdown file directly with the team to inform their scope and goals._"
+    "_Redaction: Pub person names, person identifiers, team notes, and relationship notes are local-only and are not included in this brief. Share this Markdown file directly with the team to inform their scope and goals._"
   );
   lines.push("");
   return lines.join("\n");

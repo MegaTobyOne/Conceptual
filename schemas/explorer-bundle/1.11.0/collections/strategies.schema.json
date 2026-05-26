@@ -166,73 +166,12 @@
                 }
             }
         },
-        "measure": {
-            "type": "object",
-            "required": [
-                "id",
-                "title",
-                "measureClass",
-                "trend",
-                "confidence",
-                "reviewCadence"
-            ],
-            "additionalProperties": false,
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 80
-                },
-                "title": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 160
-                },
-                "measureClass": {
-                    "enum": [
-                        "capability",
-                        "essential-eight",
-                        "coverage",
-                        "exposure",
-                        "detection-response",
-                        "resilience",
-                        "governance-assurance"
-                    ]
-                },
-                "baseline": {
-                    "type": "string",
-                    "maxLength": 160
-                },
-                "current": {
-                    "type": "string",
-                    "maxLength": 160
-                },
-                "target": {
-                    "type": "string",
-                    "maxLength": 160
-                },
-                "unit": {
-                    "type": "string",
-                    "maxLength": 40
-                },
-                "trend": {
-                    "$ref": "#/definitions/trend"
-                },
-                "confidence": {
-                    "$ref": "#/definitions/confidence"
-                },
-                "reviewCadence": {
-                    "$ref": "#/definitions/reviewCadence"
-                }
-            }
-        },
         "outcome": {
             "type": "object",
             "required": [
                 "id",
                 "statement",
                 "summary",
-                "measures",
                 "references"
             ],
             "additionalProperties": false,
@@ -251,12 +190,6 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 400
-                },
-                "measures": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/measure"
-                    }
                 },
                 "references": {
                     "type": "array",
@@ -305,10 +238,6 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 320
-                },
-                "executiveOwner": {
-                    "type": "string",
-                    "maxLength": 120
                 },
                 "trend": {
                     "$ref": "#/definitions/trend"

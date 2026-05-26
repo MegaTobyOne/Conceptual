@@ -28,7 +28,7 @@ await writeFile(
     'Header always set Referrer-Policy "strict-origin-when-cross-origin"',
     'Header always set X-Frame-Options "DENY"',
     'Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"',
-    "Header always set Content-Security-Policy \"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'\"",
+    "Header always set Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'\"",
     "",
     "<IfModule mod_rewrite.c>",
     "  RewriteEngine On",
