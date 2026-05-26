@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.31.2",
+  "version": "1.33.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -284,6 +284,21 @@
         "command": "pspf.workshop.copyCisoMasterPlan",
         "title": "PSPF: Copy CISO Master Plan",
         "icon": "$(checklist)"
+      },
+      {
+        "command": "pspf.workshop.runQuickstartQuestionnaire",
+        "title": "PSPF: Run Quickstart Questionnaire",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "pspf.workshop.runDomainDeepDive",
+        "title": "PSPF: Run Domain Deep Dive Questionnaire",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "pspf.workshop.openQuestionnaireHistory",
+        "title": "PSPF: Open Questionnaire History",
+        "icon": "$(history)"
       }
     ],
     "menus": {
@@ -364,6 +379,7 @@
     "@pspf/brief-renderer": "workspace:*",
     "@pspf/connected-view": "workspace:*",
     "@pspf/contracts": "workspace:*",
+    "@pspf/reference-data": "workspace:*",
     "@pspf/webview-shell": "workspace:*"
   }
 }

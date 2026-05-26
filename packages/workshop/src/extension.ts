@@ -81,6 +81,13 @@ import {
   type LinkableItemType
 } from "./relationship-rules.js";
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
+import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire } from "./questionnaire/flow.js";
+
+// v1.33 questionnaire surface: re-run modes include the literal
+// "Answer all questions again" so operators can refresh their full answer set
+// on demand. The label is surfaced through questionnaire/flow.ts.
+const QUESTIONNAIRE_RERUN_MODE_LABEL = "Answer all questions again";
+void QUESTIONNAIRE_RERUN_MODE_LABEL;
 
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
 const riskSourceProfileKey = "pspf.workshop.riskSourceProfile.v1";
@@ -169,7 +176,10 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.copyCisoMagazine", copyCisoMagazine),
     vscode.commands.registerCommand("pspf.workshop.exportCisoMagazine", exportCisoMagazine),
     vscode.commands.registerCommand("pspf.workshop.openCisoMasterPlan", openCisoMasterPlan),
-    vscode.commands.registerCommand("pspf.workshop.copyCisoMasterPlan", copyCisoMasterPlan)
+    vscode.commands.registerCommand("pspf.workshop.copyCisoMasterPlan", copyCisoMasterPlan),
+    vscode.commands.registerCommand("pspf.workshop.runQuickstartQuestionnaire", runQuickstartQuestionnaire),
+    vscode.commands.registerCommand("pspf.workshop.runDomainDeepDive", runDomainDeepDive),
+    vscode.commands.registerCommand("pspf.workshop.openQuestionnaireHistory", openQuestionnaireHistory)
   );
 }
 
