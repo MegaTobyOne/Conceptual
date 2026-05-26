@@ -16,6 +16,9 @@
       "path": "../contracts"
     },
     {
+      "path": "../reference-data"
+    },
+    {
       "path": "../webview-shell"
     }
   ]

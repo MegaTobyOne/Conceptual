@@ -488,6 +488,19 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 8. **Deferred-scope gate**: endpoint allow-listing, scheduled sync, background polling, webhooks, incremental cursors, additional source adapters, external Actions, technology systems, commercial records, Pub records, and Explorer runtime integration remain out of scope.
 9. **Regression gate**: `e2e:v1.31`, `check:risk-source-integration`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.33 candidate gates (questionnaire-driven population, per ADR 0069)
+
+1. **ADR gate**: ADR 0069 records the v1.33 questionnaire-driven population decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.33.0`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
+3. **Pack-integrity gate**: `check:questionnaire-pack` validates the bundled Starter pack and Domain deep-dive packs: every `requirementRefs[]` resolves to a current PSPF baseline requirement, every prompt and help-text passes AU-English lint, every question declares a publication policy, and pack IDs and question IDs are unique.
+4. **Deterministic policy gate**: the answer-to-records policy in `packages/workshop/src/questionnaire/policy.ts` is pure and unit-tested for every supported answer value (`yes-with-link`, `yes`, `partial`, `no`, `unknown`, `na`, and `skipped`); identical inputs produce identical planned writes including identical Action `dueDate` offsets, evidence `nextReview` dates, and supersede-on-flip behaviour.
+5. **Run storage gate**: questionnaire runs and answer sets are persisted as JSON files under `.pspf/questionnaire/runs/<runId>.json` with publication policy `internal`; no new SQLite tables, contract entity types, or schema directories are introduced in v1.33.
+6. **Update-mode gate**: when prior runs exist the questionnaire offers three modes — `update-stale-or-changed`, `update-all-questions`, and `first-run-style` ("Answer all questions again") — and the mode picker exposes the "Answer all questions again" option to the operator on every re-run.
+7. **Snapshot-before-apply gate**: every questionnaire apply is preceded by a Core snapshot of type `questionnaire-run` so the run can be reviewed and rolled back without operator intervention.
+8. **Supersede gate**: when a re-run flips a previous answer (for example `no` to `yes-with-link`), the planned writes close the previous outstanding Action with reason `superseded-by-questionnaire-run/<runId>` and create the new Evidence and review-cycle Action instead of duplicating records.
+9. **Privacy gate**: free-text answer notes default to publication policy `internal`; the personal-data exclusion gate covers questionnaire answer notes; pack manifests may be exported but operator answers are never auto-published.
+10. **Regression gate**: `e2e:v1.33`, `check:questionnaire-pack`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

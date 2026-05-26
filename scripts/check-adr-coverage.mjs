@@ -252,7 +252,8 @@ const coverage = [
     "check:risk-source-integration",
     "check:release-candidate",
     "check:gates"
-  ])
+  ]),
+  adr("0069-questionnaire-population.md", "manual", ["check:gates"])
 ];
 
 const adrFiles = (await readdir(adrDirectory)).filter((file) => /^\d{4}-.*\.md$/.test(file)).sort();
