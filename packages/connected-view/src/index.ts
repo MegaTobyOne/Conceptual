@@ -633,6 +633,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 
 .cv-board {
   position: relative;
+  isolation: isolate;
   display: grid; gap: 12px; padding: 14px;
   width: 100%;
   flex: 1 1 auto;
@@ -658,6 +659,8 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 .pspf-connected-view.layout-grouped [data-cv-lane="lane-requirements"] { display: none; }
 
 .cv-lane {
+  position: relative;
+  z-index: 1;
   display: flex; flex-direction: column;
   background: var(--cv-surface);
   border: 1px solid var(--cv-border);
@@ -704,6 +707,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 
 .cv-card {
   position: relative;
+  z-index: 2;
   background: var(--cv-surface-strong);
   border: 1px solid var(--cv-border);
   border-left: 3px solid color-mix(in srgb, var(--cv-muted) 50%, transparent);
@@ -770,11 +774,13 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 .cv-card.cv-selected,
 .cv-card.cv-connected { opacity: 1 !important; }
 .cv-card.cv-selected {
+  z-index: 4;
   outline: 2px solid var(--cv-accent);
   outline-offset: 1px;
   background: color-mix(in srgb, var(--cv-accent) 16%, var(--cv-surface-strong));
 }
 .cv-card.cv-connected {
+  z-index: 3;
   background: color-mix(in srgb, var(--cv-accent) 7%, var(--cv-surface-strong));
   border-color: color-mix(in srgb, var(--cv-accent) 35%, var(--cv-border));
 }
@@ -793,6 +799,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 
 .cv-links {
   position: absolute; inset: 0;
+  z-index: 0;
   width: 100%; height: 100%;
   pointer-events: none; overflow: visible;
 }

@@ -535,6 +535,21 @@ Status chips are central to the design and should be consistent everywhere. Sugg
 - At risk
 - Archived
 
+### Active filter cues
+
+Search, tab, status, tag, or saved-view state that reduces a Requirements list must be visible near the list it affects. Use a compact count such as `Showing 12 of 217 Requirements` and provide a clear action that restores the unfiltered `All` view when the filter state is local to that surface.
+
+Domain tabs are navigation as well as filtering. They should preserve context, keep the current item reachable where possible, and compose predictably with search and status/tag filters.
+
+### Trend indicators
+
+Trend values should render as compact labelled arrow indicators, not plain text and not colour alone:
+
+- Improving: green upward arrow plus `Improving`.
+- Steady: amber right arrow plus `Steady`.
+- Deteriorating: red downward arrow plus `Deteriorating`.
+- Unknown: neutral dash plus `Unknown`.
+
 ### Evidence badges
 
 Evidence badges should communicate both presence and quality, for example:

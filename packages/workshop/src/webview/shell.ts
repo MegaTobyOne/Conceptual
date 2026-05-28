@@ -107,6 +107,11 @@ export function shellHtml(title: string, body: string): string {
     .cell-compact { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="freshness"], td[data-field="freshness"] { white-space: nowrap; width: 1%; font-variant-numeric: tabular-nums; }
     th[data-field="open"], td[data-field="open"] { white-space: nowrap; width: 1%; }
+    .trend-indicator { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border); border-radius: 999px; padding: 3px 8px; font-size: 12px; font-weight: 700; white-space: nowrap; background: var(--surface-strong); }
+    .trend-indicator[data-trend="improving"] { border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); color: var(--pspf-ok); background: var(--pspf-ok-soft); }
+    .trend-indicator[data-trend="steady"] { border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); color: var(--pspf-warn); background: var(--pspf-warn-soft); }
+    .trend-indicator[data-trend="deteriorating"] { border-color: color-mix(in srgb, var(--pspf-danger) 55%, var(--border)); color: var(--pspf-danger); background: var(--pspf-danger-soft); }
+    .trend-indicator[data-trend="unknown"] { color: var(--muted); }
     button, input, select, textarea { font: inherit; }
     .form-grid { display: grid; gap: 12px; max-width: 640px; }
     label { display: grid; gap: 5px; color: var(--text); font-size: 13px; }
