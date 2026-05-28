@@ -2412,7 +2412,7 @@ async function openMasterDashboard(): Promise<void> {
     ? strategy.choices.map((choice) => ({
         choice: choice.statement,
         capability: choice.capabilityArea,
-        trend: label(choice.trend),
+        trend: trendIndicator(choice.trend),
         confidence: label(choice.confidence),
         outcomes: choice.outcomes.length,
         measures: choice.outcomes.reduce((total, outcome) => total + outcome.measures.length, 0),
@@ -3194,7 +3194,7 @@ async function openStrategyMap(): Promise<void> {
   const choiceRows = strategy.choices.map((choice) => ({
     choice: choice.statement,
     capability: choice.capabilityArea,
-    trend: label(choice.trend),
+    trend: trendIndicator(choice.trend),
     confidence: label(choice.confidence),
     outcomes: choice.outcomes.length,
     linkedRecords: choice.references.length,
@@ -3209,7 +3209,7 @@ async function openStrategyMap(): Promise<void> {
         class: label(measure.measureClass),
         current: measure.current ?? "Not recorded",
         target: measure.target ?? "Not recorded",
-        trend: label(measure.trend),
+        trend: trendIndicator(measure.trend),
         confidence: label(measure.confidence)
       }))
     )
@@ -4269,7 +4269,7 @@ function strategyChoiceCard(
     <span>${escapeHtml(choice.capabilityArea)}</span>
     <strong style="font-size:18px;line-height:1.25;">${escapeHtml(choice.statement)}</strong>
     <p>${escapeHtml(choice.summary)}</p>
-    <p class="muted">Trend: ${escapeHtml(label(choice.trend))} · Confidence: ${escapeHtml(label(choice.confidence))}</p>
+    <p class="muted">Trend: ${trendIndicator(choice.trend)} · Confidence: ${escapeHtml(label(choice.confidence))}</p>
     <p>${escapeHtml(choice.targetPosture)}</p>
     <h3>Linked Records</h3>
     ${strategyReferenceList(choice.references, lookup)}
@@ -6928,9 +6928,12 @@ function requirementWorkbenchStyles(): string {
     .requirement-signal span { display: block; color: var(--muted); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
     .requirement-signal strong { display: block; margin-top: 5px; font-size: 18px; line-height: 1.1; }
     .requirement-signal small { display: block; margin-top: 4px; color: var(--muted); line-height: 1.3; }
+    .requirement-browser__tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .requirement-browser__tabs button[aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 16%, var(--surface-strong)); }
     .requirement-browser__filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
     .requirement-browser__filters button[aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 12%, var(--surface-strong)); }
-    .requirement-browser__count { margin: 0; }
+    .requirement-browser__count { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; }
+    .requirement-browser__count-chip { border: 1px solid var(--border); border-radius: 999px; padding: 3px 8px; background: var(--surface-strong); color: var(--muted); font-size: 12px; }
   </style>`;
 }
 
@@ -6939,6 +6942,14 @@ function requirementBrowserNav(
   allEntities: readonly V01Entity[],
   options: RequirementBrowserOptions = {}
 ): string {
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const directionTargetRequirementIds = new Set(
+    links
+      .filter((link) => link.fromType === "direction" && link.toType === "requirement" && link.linkType === "targets")
+      .map((link) => link.toId)
+  );
   const requirements = allEntities
     .filter(
       (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
@@ -6947,9 +6958,6 @@ function requirementBrowserNav(
       if (!options.savedView) {
         return true;
       }
-      const links = allEntities.filter(
-        (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
-      );
       return savedViewMatchesRequirement(options.savedView, candidate, links);
     })
     .sort(compareRequirementsForPicker);
@@ -6957,12 +6965,30 @@ function requirementBrowserNav(
   const position = currentIndex >= 0 ? `${currentIndex + 1} of ${requirements.length}` : `${requirements.length} total`;
   const filterText = options.filterText?.trim() ?? "";
   const statusCounts = requirementStatusCounts(requirements);
+  const domainTabs = PSPF_DOMAINS.map((domain) => ({
+    id: domain.id,
+    label: domain.title,
+    count: requirements.filter((candidate) => candidate.domainId === domain.id).length
+  })).filter((domain) => domain.count > 0);
+  const directionsCount = requirements.filter((candidate) => directionTargetRequirementIds.has(candidate.id)).length;
   const items = requirements
-    .map((candidate) => requirementBrowserNavItem(candidate, candidate.id === requirement.id, filterText))
+    .map((candidate) =>
+      requirementBrowserNavItem(
+        candidate,
+        candidate.id === requirement.id,
+        directionTargetRequirementIds.has(candidate.id),
+        filterText
+      )
+    )
     .join("");
   return `<section class="requirement-browser__nav" aria-label="Requirement browser">
     <h2>Requirements</h2>
     <input class="requirement-browser__filter" type="search" aria-label="Filter requirements" placeholder="Filter by title, domain, or status" value="${escapeHtml(filterText)}">
+    <div class="requirement-browser__tabs" aria-label="Requirement domain tabs">
+      <button type="button" data-requirement-tab="all" aria-pressed="true">All ${requirements.length}</button>
+      ${domainTabs.map((domain) => `<button type="button" data-requirement-tab="${escapeHtml(domain.id)}">${escapeHtml(domain.label)} ${domain.count}</button>`).join("")}
+      <button type="button" data-requirement-tab="directions">Directions ${directionsCount}</button>
+    </div>
     <div class="requirement-browser__filters" aria-label="Requirement status filters">
       <button type="button" data-requirement-status-filter="all" aria-pressed="true">All ${requirements.length}</button>
       ${assessmentStatusItems.map((item) => `<button type="button" data-requirement-status-filter="${escapeHtml(item.value)}">${escapeHtml(item.label)} ${statusCounts.get(item.value) ?? 0}</button>`).join("")}
@@ -6970,18 +6996,23 @@ function requirementBrowserNav(
     <div class="requirement-browser__list" role="list" aria-label="Scrollable Requirements list">
       ${items || '<p class="muted">No Requirements found.</p>'}
     </div>
-    <p class="muted requirement-browser__count" data-requirement-browser-count>${escapeHtml(position)}</p>
+    <p class="muted requirement-browser__count"><span class="requirement-browser__count-chip" data-requirement-browser-count>${escapeHtml(position)}</span><button type="button" class="secondary" data-clear-requirement-filters hidden>Clear filters</button></p>
   </section>`;
 }
 
-function requirementBrowserNavItem(requirement: RequirementEntity, isCurrent: boolean, filterText = ""): string {
+function requirementBrowserNavItem(
+  requirement: RequirementEntity,
+  isCurrent: boolean,
+  isDirectionTargeted: boolean,
+  filterText = ""
+): string {
   const title = requirement.title;
   const domain = domainName(requirement.domainId);
   const status = label(requirement.assessmentStatus);
   const searchText = `${title} ${domain} ${status} ${requirement.id}`;
   const normalisedFilter = filterText.toLocaleLowerCase("en-AU");
   const hidden = normalisedFilter && !searchText.toLocaleLowerCase("en-AU").includes(normalisedFilter);
-  return `<button type="button" class="requirement-browser__item" role="listitem" title="${escapeHtml(title)}" aria-label="${escapeHtml(`${requirementNumberLabel(requirement)}. ${title}. ${domain}. ${status}`)}" data-command="openRequirementInEditor" data-requirement-id="${escapeHtml(requirement.id)}" data-status="${escapeHtml(requirement.assessmentStatus)}" data-search="${escapeHtml(searchText)}"${isCurrent ? ' aria-current="page"' : ""}${hidden ? " hidden" : ""}>
+  return `<button type="button" class="requirement-browser__item" role="listitem" title="${escapeHtml(title)}" aria-label="${escapeHtml(`${requirementNumberLabel(requirement)}. ${title}. ${domain}. ${status}`)}" data-command="openRequirementInEditor" data-requirement-id="${escapeHtml(requirement.id)}" data-status="${escapeHtml(requirement.assessmentStatus)}" data-domain="${escapeHtml(requirement.domainId)}" data-direction-targeted="${isDirectionTargeted ? "true" : "false"}" data-search="${escapeHtml(searchText)}"${isCurrent ? ' aria-current="page"' : ""}${hidden ? " hidden" : ""}>
     <span class="requirement-browser__number">${escapeHtml(requirementNumberLabel(requirement))}</span>
     <span class="requirement-browser__meta">${escapeHtml(domain)} · ${escapeHtml(status)}</span>
   </button>`;
@@ -6999,27 +7030,51 @@ function requirementBrowserScript(): string {
   return `<script>
     (() => {
       const input = document.querySelector('.requirement-browser__filter');
-      const buttons = Array.from(document.querySelectorAll('[data-requirement-status-filter]'));
+      const statusButtons = Array.from(document.querySelectorAll('[data-requirement-status-filter]'));
+      const tabButtons = Array.from(document.querySelectorAll('[data-requirement-tab]'));
       const items = Array.from(document.querySelectorAll('.requirement-browser__item'));
       const count = document.querySelector('[data-requirement-browser-count]');
+      const clearButton = document.querySelector('[data-clear-requirement-filters]');
       function applyRequirementFilters() {
         const query = input instanceof HTMLInputElement ? input.value.trim().toLocaleLowerCase('en-AU') : '';
-        const selected = buttons.find((button) => button.getAttribute('aria-pressed') === 'true')?.getAttribute('data-requirement-status-filter') || 'all';
+        const selectedStatus = statusButtons.find((button) => button.getAttribute('aria-pressed') === 'true')?.getAttribute('data-requirement-status-filter') || 'all';
+        const selectedTab = tabButtons.find((button) => button.getAttribute('aria-pressed') === 'true')?.getAttribute('data-requirement-tab') || 'all';
         let visible = 0;
+        let pinned = false;
         for (const item of items) {
           const search = (item.getAttribute('data-search') || item.textContent || '').toLocaleLowerCase('en-AU');
           const status = item.getAttribute('data-status') || '';
-          const matches = (!query || search.includes(query)) && (selected === 'all' || status === selected);
-          item.hidden = !matches;
-          if (matches) visible += 1;
+          const domain = item.getAttribute('data-domain') || '';
+          const directionTargeted = item.getAttribute('data-direction-targeted') === 'true';
+          const isCurrent = item.getAttribute('aria-current') === 'page';
+          const matchesSearch = !query || search.includes(query);
+          const matchesStatus = selectedStatus === 'all' || status === selectedStatus;
+          const matchesTab = selectedTab === 'all' || domain === selectedTab || (selectedTab === 'directions' && directionTargeted);
+          const matches = matchesSearch && matchesStatus && matchesTab;
+          const showPinned = !matches && isCurrent;
+          pinned = pinned || showPinned;
+          item.hidden = !(matches || showPinned);
+          if (matches || showPinned) visible += 1;
         }
-        if (count) count.textContent = visible + ' visible of ' + items.length + ' Requirements';
+        const reduced = Boolean(query) || selectedStatus !== 'all' || selectedTab !== 'all';
+        if (count) count.textContent = (reduced ? 'Showing ' : '') + visible + ' of ' + items.length + ' Requirements' + (pinned ? ' · selected item outside filters' : '');
+        if (clearButton instanceof HTMLButtonElement) clearButton.hidden = !reduced;
       }
       input?.addEventListener('input', applyRequirementFilters);
-      buttons.forEach((button) => button.addEventListener('click', () => {
-        buttons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+      statusButtons.forEach((button) => button.addEventListener('click', () => {
+        statusButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
         applyRequirementFilters();
       }));
+      tabButtons.forEach((button) => button.addEventListener('click', () => {
+        tabButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+        applyRequirementFilters();
+      }));
+      clearButton?.addEventListener('click', () => {
+        if (input instanceof HTMLInputElement) input.value = '';
+        statusButtons.forEach((item) => item.setAttribute('aria-pressed', String(item.getAttribute('data-requirement-status-filter') === 'all')));
+        tabButtons.forEach((item) => item.setAttribute('aria-pressed', String(item.getAttribute('data-requirement-tab') === 'all')));
+        applyRequirementFilters();
+      });
       applyRequirementFilters();
     })();
   </script>`;
@@ -9596,7 +9651,7 @@ function tableOpenCell(record: object): string {
 
 function tableCell(record: object, field: string): string {
   const value = String(readRecordField(record, field) ?? "");
-  if (field === "action") {
+  if (field === "action" || field === "trend") {
     return `<td data-field="${escapeHtml(field)}">${value}</td>`;
   }
   if (field === "reference" && readRecordField(record, "openEntityType") === "evidence") {
@@ -9607,6 +9662,13 @@ function tableCell(record: object, field: string): string {
     return `<td data-field="${escapeHtml(field)}" title="${escapeHtml(fullValue)}"><span class="cell-compact">${escapeHtml(value)}</span></td>`;
   }
   return `<td data-field="${escapeHtml(field)}">${escapeHtml(value)}</td>`;
+}
+
+function trendIndicator(value: string): string {
+  const trend = value === "improving" || value === "steady" || value === "deteriorating" ? value : "unknown";
+  const arrow =
+    trend === "improving" ? "&uarr;" : trend === "steady" ? "&rarr;" : trend === "deteriorating" ? "&darr;" : "&ndash;";
+  return `<span class="trend-indicator" data-trend="${escapeHtml(trend)}"><span aria-hidden="true">${arrow}</span><span>${escapeHtml(label(trend))}</span></span>`;
 }
 
 function evidenceReferenceCell(reference: string): string {

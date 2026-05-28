@@ -182,6 +182,16 @@ const html = `<!doctype html>
     .tag-filter-options { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .tag-filter label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-soft); border-radius: var(--pspf-radius-pill); padding: 4px 9px; background: var(--surface-soft); }
     .tag-filter input[type="checkbox"] { width: auto; }
+    .requirement-tabs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; }
+    .requirement-tabs button[aria-pressed="true"] { border-color: var(--accent-strong); background: var(--accent-soft); color: #ccfbf1; }
+    .requirement-filter-status { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; border: 1px solid rgba(20, 184, 166, 0.32); border-radius: 6px; background: rgba(18, 63, 59, 0.22); color: #ccfbf1; font-size: 12px; line-height: 1.4; padding: 8px; margin: 0 0 12px; }
+    .requirement-filter-status[hidden] { display: none; }
+    .requirement-filter-status button { padding: 4px 8px; font-size: 12px; }
+    .trend-indicator { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border-soft); border-radius: var(--pspf-radius-pill); padding: 3px 8px; font-size: 12px; font-weight: 700; white-space: nowrap; background: var(--surface-soft); }
+    .trend-indicator[data-trend="improving"] { border-color: rgba(34, 197, 94, 0.55); color: #bbf7d0; background: rgba(20, 83, 45, 0.28); }
+    .trend-indicator[data-trend="steady"] { border-color: rgba(245, 158, 11, 0.58); color: #fde68a; background: rgba(120, 53, 15, 0.26); }
+    .trend-indicator[data-trend="deteriorating"] { border-color: rgba(248, 113, 113, 0.58); color: #fecaca; background: rgba(127, 29, 29, 0.28); }
+    .trend-indicator[data-trend="unknown"] { color: var(--muted); }
     .local-authoring-grid { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
     .local-picker { border: 1px solid rgba(20, 184, 166, 0.35); border-radius: var(--pspf-radius); background: var(--surface-soft); padding: 12px; position: sticky; top: 64px; }
     .local-picker.filtered { border-color: var(--accent-strong); box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.22); }
@@ -371,6 +381,7 @@ let currentExplorerSearch = "";
 let currentTagFilterIds = new Set();
 let currentTagFilterMode = "any";
 let currentRequirementStatusFilter = new Set();
+let currentRequirementTab = "all";
 let shouldSnapLocalSelectionToSearch = false;
 let includeComplianceHistoryInExport = true;
 const localDbName = "pspf-explorer-local-v1";
@@ -503,6 +514,11 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   const validation = await validateBundle(manifest, currentBaselineCollections, collectionTexts);
   const domainsById = new Map((collections.domains || []).map((domain) => [domain.id, domain.title]));
   const relationshipSummary = summariseRelationships(collections.links || []);
+  const directionTargetRequirementIds = new Set(
+    (collections.links || [])
+      .filter((link) => link.fromType === "direction" && link.toType === "requirement" && link.linkType === "targets")
+      .map((link) => link.toId)
+  );
   const tagModel = buildTagModel(collections);
   const requirementsById = new Map((collections.requirements || []).map((requirement) => [requirement.id, requirement]));
   const sourceControlsById = new Map((collections["source-controls"] || []).map((sourceControl) => [sourceControl.id, sourceControl]));
@@ -516,6 +532,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
     tags: tagModel.labelsByRequirement.get(requirement.id) || "",
     tagIds: tagModel.idsByRequirement.get(requirement.id) || [],
     assessmentStatusRaw: requirement.assessmentStatus,
+    directionTargeted: directionTargetRequirementIds.has(requirement.id),
     statusSource: currentLocalOverlays.has(requirement.id) ? "Local" : "From bundle"
   }));
   currentLocalRequirements = requirements;
@@ -616,7 +633,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderLocalAuthoringSection();
 
   requirementsSection.hidden = false;
-  renderExplorerSection(requirementsSection, "Requirements", requirementStatusFilterPanel() + tagFilterPanel(tagModel) + table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "tags", "evidence", "actions", "risks"]));
+  renderExplorerSection(requirementsSection, "Requirements", requirementTabsPanel(requirements) + requirementFilterStatusPanel() + requirementStatusFilterPanel() + tagFilterPanel(tagModel) + table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "tags", "evidence", "actions", "risks"]));
 
   evidenceSection.hidden = false;
   renderExplorerSection(evidenceSection, "Evidence", tagFilterPanel(tagModel) + table(evidence, ["title", "evidenceType", "freshness", "requirements", "reference"]));
@@ -664,8 +681,10 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
 
   bindTagFilterControls();
   bindRequirementStatusFilterControls();
+  bindRequirementTabControls();
   bindComplianceToggleControls();
   applyTagFilter();
+  applyRequirementTabFilter();
   applyRequirementStatusFilter();
   applyExplorerSearch();
 }
@@ -723,13 +742,19 @@ function strategyPanel(collections, entitiesById) {
       choice: choice.statement,
       capability: choice.capabilityArea || "Not recorded",
       target: choice.targetPosture || "Not recorded",
-      trend: label(choice.trend || "unknown"),
+      trend: trendIndicator(choice.trend || "unknown"),
       confidence: label(choice.confidence || "medium"),
       outcomes: (choice.outcomes || []).length,
       links: strategyReferenceList(choice.references || [], entitiesById)
     }))
   );
   return table(summaryRows, ["title", "scope", "horizon", "cadence", "frameworks", "choices"]) + table(choiceRows, ["strategy", "choice", "capability", "target", "trend", "confidence", "outcomes", "links"]);
+}
+
+function trendIndicator(value) {
+  const trend = ["improving", "steady", "deteriorating"].includes(value) ? value : "unknown";
+  const arrow = trend === "improving" ? "&uarr;" : trend === "steady" ? "&rarr;" : trend === "deteriorating" ? "&darr;" : "&ndash;";
+  return '<span class="trend-indicator" data-trend="' + escapeHtml(trend) + '"><span aria-hidden="true">' + arrow + '</span><span>' + escapeHtml(label(trend)) + '</span></span>';
 }
 
 function strategyReferenceList(references, entitiesById) {
@@ -786,6 +811,77 @@ function requirementStatusFilterPanel() {
   return '<div class="tag-filter" role="group" aria-label="Requirement status filter"><div class="toolbar"><strong>Status filter</strong><button type="button" class="secondary requirement-status-filter-clear">Clear statuses</button></div><div class="tag-filter-options">' + options + '</div></div>';
 }
 
+function requirementTabsPanel(requirements) {
+  const allCount = requirements.length;
+  const domainCounts = new Map();
+  for (const requirement of requirements) {
+    domainCounts.set(requirement.domainId, { label: requirement.domain, count: (domainCounts.get(requirement.domainId)?.count || 0) + 1 });
+  }
+  const domainTabs = [...domainCounts.entries()].map(([domainId, domain]) => '<button type="button" data-requirement-tab="' + escapeHtml(domainId) + '" aria-pressed="' + String(currentRequirementTab === domainId) + '">' + escapeHtml(domain.label) + ' ' + domain.count + '</button>').join("");
+  const directionsCount = requirements.filter((requirement) => requirement.directionTargeted).length;
+  return '<div class="requirement-tabs" role="tablist" aria-label="Requirement domain tabs">' +
+    '<button type="button" data-requirement-tab="all" aria-pressed="' + String(currentRequirementTab === "all") + '">All ' + allCount + '</button>' +
+    domainTabs +
+    '<button type="button" data-requirement-tab="directions" aria-pressed="' + String(currentRequirementTab === "directions") + '">Directions ' + directionsCount + '</button>' +
+    '</div>';
+}
+
+function requirementFilterStatusPanel() {
+  return '<div class="requirement-filter-status" data-requirement-filter-status hidden role="status"><span data-requirement-filter-status-text></span><button type="button" class="secondary requirement-filter-clear">Clear filters</button></div>';
+}
+
+function bindRequirementTabControls() {
+  document.querySelectorAll("[data-requirement-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentRequirementTab = button.getAttribute("data-requirement-tab") || "all";
+      persistRequirementFilterState();
+      syncRequirementTabControls();
+      applyRequirementTabFilter();
+      applyExplorerSearch();
+    });
+  });
+  document.querySelectorAll(".requirement-filter-clear").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentExplorerSearch = "";
+      currentLocalRequirementFilter = "";
+      currentRequirementStatusFilter = new Set();
+      currentTagFilterIds = new Set();
+      currentTagFilterMode = "any";
+      currentRequirementTab = "all";
+      persistTagFilterState();
+      persistRequirementFilterState();
+      if (explorerSearchInput instanceof HTMLInputElement) {
+        explorerSearchInput.value = "";
+      }
+      syncTagFilterControls();
+      syncRequirementStatusFilterControls();
+      syncRequirementTabControls();
+      applyTagFilter();
+      applyRequirementStatusFilter();
+      applyRequirementTabFilter();
+      renderLocalAuthoringSection();
+      applyExplorerSearch();
+      explorerSearchInput?.focus();
+    });
+  });
+}
+
+function syncRequirementTabControls() {
+  document.querySelectorAll("[data-requirement-tab]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.getAttribute("data-requirement-tab") === currentRequirementTab));
+  });
+}
+
+function applyRequirementTabFilter() {
+  for (const row of document.querySelectorAll("#requirements tbody tr")) {
+    const domain = String(row.dataset.domainId || "");
+    const directionTargeted = row.dataset.directionTargeted === "true";
+    const matches = currentRequirementTab === "all" || domain === currentRequirementTab || (currentRequirementTab === "directions" && directionTargeted);
+    row.dataset.tabFilterHidden = matches ? "false" : "true";
+    row.hidden = !matches;
+  }
+}
+
 function bindRequirementStatusFilterControls() {
   document.querySelectorAll(".requirement-status-filter-checkbox").forEach((input) => {
     input.addEventListener("change", () => {
@@ -828,8 +924,10 @@ function loadRequirementFilterState() {
     const stored = JSON.parse(sessionStorage.getItem(requirementFilterSessionKey) || "null");
     currentRequirementStatusFilter = new Set(Array.isArray(stored?.assessmentStatuses) ? stored.assessmentStatuses : []);
     currentExplorerSearch = typeof stored?.query === "string" ? stored.query : currentExplorerSearch;
+    currentRequirementTab = typeof stored?.tab === "string" ? stored.tab : "all";
   } catch {
     currentRequirementStatusFilter = new Set();
+    currentRequirementTab = "all";
   }
 }
 
@@ -855,7 +953,8 @@ function bindComplianceToggleControls() {
 function persistRequirementFilterState() {
   sessionStorage.setItem(requirementFilterSessionKey, JSON.stringify({
     query: currentExplorerSearch,
-    assessmentStatuses: [...currentRequirementStatusFilter]
+    assessmentStatuses: [...currentRequirementStatusFilter],
+    tab: currentRequirementTab
   }));
 }
 
@@ -998,7 +1097,7 @@ function applyExplorerSearch() {
     total += 1;
     const matchesSearch = !query || String(row.textContent || "").toLowerCase().includes(query);
     row.dataset.searchFilterHidden = matchesSearch ? "false" : "true";
-    const hidden = row.dataset.tagFilterHidden === "true" || row.dataset.statusFilterHidden === "true" || row.dataset.searchFilterHidden === "true";
+    const hidden = row.dataset.tagFilterHidden === "true" || row.dataset.statusFilterHidden === "true" || row.dataset.tabFilterHidden === "true" || row.dataset.searchFilterHidden === "true";
     row.hidden = hidden;
     if (!hidden) {
       visible += 1;
@@ -1008,7 +1107,21 @@ function applyExplorerSearch() {
     const localMatches = document.querySelectorAll(".local-requirement-option:not([hidden])").length;
     explorerSearchStatus.textContent = query ? visible + ' visible rows match and ' + localMatches + ' Local Changes item(s) match "' + currentExplorerSearch + '"' : (visible || total) + ' visible rows loaded';
   }
+  updateRequirementFilterStatus();
   updateBackToTopVisibility();
+}
+
+function updateRequirementFilterStatus() {
+  const status = document.querySelector("[data-requirement-filter-status]");
+  const text = document.querySelector("[data-requirement-filter-status-text]");
+  if (!(status instanceof HTMLElement) || !text) {
+    return;
+  }
+  const rows = Array.from(document.querySelectorAll("#requirements tbody tr"));
+  const visible = rows.filter((row) => !row.hidden).length;
+  const reduced = currentExplorerSearch.trim() || currentRequirementStatusFilter.size > 0 || currentTagFilterIds.size > 0 || currentRequirementTab !== "all";
+  status.hidden = !reduced;
+  text.textContent = reduced ? "Showing " + visible + " of " + rows.length + " Requirements" : "";
 }
 
 function loadTagFilterState() {
@@ -2641,6 +2754,12 @@ function tableRowAttributes(row) {
   if (row.assessmentStatusRaw) {
     attributes.push('data-assessment-status="' + escapeHtml(row.assessmentStatusRaw) + '"');
   }
+  if (row.domainId) {
+    attributes.push('data-domain-id="' + escapeHtml(row.domainId) + '"');
+  }
+  if (typeof row.directionTargeted === "boolean") {
+    attributes.push('data-direction-targeted="' + (row.directionTargeted ? "true" : "false") + '"');
+  }
   return attributes.length ? " " + attributes.join(" ") : "";
 }
 
@@ -2648,7 +2767,7 @@ function tableValue(value, key) {
   if (value === undefined || value === null || value === "") {
     return '<span class="empty-value">Not recorded</span>';
   }
-  if (key === "local" || key === "source" || key === "open") {
+  if (key === "local" || key === "source" || key === "open" || key === "trend") {
     return String(value);
   }
   if (value === 0) {

@@ -488,7 +488,6 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 8. **Deferred-scope gate**: endpoint allow-listing, scheduled sync, background polling, webhooks, incremental cursors, additional source adapters, external Actions, technology systems, commercial records, Pub records, and Explorer runtime integration remain out of scope.
 9. **Regression gate**: `e2e:v1.31`, `check:risk-source-integration`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
-<<<<<<< HEAD
 ### v1.32 candidate gates (CISO Master Plan and Strategy Editor polish, per ADR 0069)
 
 1. **ADR gate**: ADR 0069 records the v1.32 CISO Master Plan and Strategy Editor polish decision before release preparation completes.
@@ -501,7 +500,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 8. **Generated-output gate**: copied/generated Master Plan Markdown excludes restricted personal fields, sensitive assumptions, non-public working notes, raw integration logs, and unpublished Pub data.
 9. **Deferred-scope gate**: v1.32 does not add a PSPF Plan product, multiple Strategy records, standalone strategy-choice entities, Explorer strategy editing, editable Connected View, PMO scheduling, approvals, reminders, calendars, finance reconciliation, persisted Report Packs, native PDF generation, email sending, or subscriber management.
 10. **Regression gate**: `check:ciso-magazine`, `check:brief-redaction`, `check:ux-coverage`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
-=======
+
 ### v1.33 candidate gates (questionnaire-driven population, per ADR 0069)
 
 1. **ADR gate**: ADR 0069 records the v1.33 questionnaire-driven population decision before release preparation completes.
@@ -514,7 +513,18 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 8. **Supersede gate**: when a re-run flips a previous answer (for example `no` to `yes-with-link`), the planned writes close the previous outstanding Action with reason `superseded-by-questionnaire-run/<runId>` and create the new Evidence and review-cycle Action instead of duplicating records.
 9. **Privacy gate**: free-text answer notes default to publication policy `internal`; the personal-data exclusion gate covers questionnaire answer notes; pack manifests may be exported but operator answers are never auto-published.
 10. **Regression gate**: `e2e:v1.33`, `check:questionnaire-pack`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
->>>>>>> agents/questionnaire-method-design
+
+### v1.34 candidate gates (Requirements navigation polish, per ADR 0070)
+
+1. **ADR gate**: ADR 0070 records the v1.34 Requirements navigation polish decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.34.0`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
+3. **Workshop Requirements navigation gate**: Workshop Requirements exposes an `All` tab, PSPF domain tabs, and a `Directions` tab; search, status, saved-view, tab, and Direction-lens state update a visible filtered-count cue with a clear action.
+4. **Explorer Requirements navigation gate**: Explorer Requirements exposes the same tab model and visible filtered-count cue while preserving existing search, status, and tag filters.
+5. **Directions lens gate**: the `Directions` tab in both Workshop and Explorer lists Requirements targeted by existing Direction links and does not introduce a separate Direction authoring mode, link verb, bundle field, or schema change.
+6. **Trend indicator gate**: Strategy and list/table trend fields render labelled red/amber/green/neutral arrow indicators for improving, steady, deteriorating, and unknown values; colour is not the only signal.
+7. **Connected View layering gate**: selecting a Connected View card keeps all connector lines, including highlighted selected-chain paths, visually underneath selected and connected cards.
+8. **Deferred-scope gate**: v1.34 does not add new Requirement, Direction, saved-view, or navigation entities; schema-bearing fields; link verbs; editable Connected View; drag-to-link; edge filtering; team/private saved views; or tag hierarchy.
+9. **Regression gate**: `e2e:v1.34`, `check:explorer-publication`, `check:workshop-navigation`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 

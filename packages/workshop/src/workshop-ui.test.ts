@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
 
 test("requirement editor tabs use the requirement number instead of the full title", () => {
@@ -45,4 +46,22 @@ test("due dates render as short AU dates without raw ISO noise", () => {
   assert.equal(normaliseShortAuDateTime("30/06/2026"), "30 Jun 2026");
   assert.equal(normaliseShortAuDateTime("30 Jun 2026"), "30 Jun 2026");
   assert.equal(normaliseShortAuDateTime("today", new Date(2026, 4, 19, 15, 45)), "19 May 2026");
+});
+
+test("requirement browser exposes domain tabs, Directions lens, and clearable filter count", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /data-requirement-tab="directions"/);
+  assert.match(source, /data-clear-requirement-filters/);
+  assert.match(source, /directionTargetRequirementIds/);
+  assert.match(source, /selected item outside filters/);
+});
+
+test("Workshop Strategy trends render labelled arrow indicators", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /function trendIndicator\(value: string\)/);
+  assert.match(source, /trend: trendIndicator\(choice\.trend\)/);
+  assert.match(source, /trend: trendIndicator\(measure\.trend\)/);
+  assert.match(source, /class="trend-indicator"/);
 });
