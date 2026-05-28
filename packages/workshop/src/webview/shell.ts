@@ -143,10 +143,10 @@ export function shellHtml(title: string, body: string): string {
     .strategy-editor__nested { margin-top: 14px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--surface-strong) 78%, transparent); }
     .strategy-editor__measure { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
     .requirement-browser { width: min(100%, 1320px); display: grid; grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); gap: var(--gap); align-items: start; }
-    .requirement-browser__nav { position: sticky; top: var(--pad); max-height: calc(100vh - 150px); display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 10px; }
+    .requirement-browser__nav { position: sticky; top: var(--pad); max-height: calc(100vh - 150px); display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto; gap: 10px; }
     .requirement-browser__nav h2 { margin-bottom: 0; }
     .requirement-browser__filter { box-sizing: border-box; }
-    .requirement-browser__list { overflow: auto; display: grid; gap: 6px; padding-right: 2px; }
+    .requirement-browser__list { min-height: 0; overflow: auto; display: grid; gap: 6px; padding-right: 2px; }
     .requirement-browser__item { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 9px; color: var(--text); background: var(--surface-strong); text-align: left; cursor: pointer; }
     .requirement-browser__item:hover { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 8%, var(--surface-strong)); }
     .requirement-browser__item[aria-current="page"] { border-color: var(--workshop-blue); box-shadow: inset 3px 0 0 var(--workshop-blue); }

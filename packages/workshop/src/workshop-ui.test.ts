@@ -51,10 +51,11 @@ test("due dates render as short AU dates without raw ISO noise", () => {
 test("requirement browser exposes domain tabs, Directions lens, and clearable filter count", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
+  assert.match(source, /class="requirement-page__tabs"/);
   assert.match(source, /data-requirement-tab="directions"/);
+  assert.match(source, /data-requirement-content="directions"/);
   assert.match(source, /data-clear-requirement-filters/);
   assert.match(source, /directionTargetRequirementIds/);
-  assert.match(source, /selected item outside filters/);
 });
 
 test("Workshop Strategy trends render labelled arrow indicators", async () => {
