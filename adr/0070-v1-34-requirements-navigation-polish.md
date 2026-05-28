@@ -17,7 +17,7 @@ Implement v1.34 as **Requirements navigation polish** across Workshop and Explor
 
 The slice provides:
 
-1. A Requirements tab row with `All`, PSPF domain tabs, and a peer `Directions` tab.
+1. A Requirements tab row with PSPF domain tabs and a peer `Directions` tab.
 2. A `Directions` tab that shows Requirements targeted by existing Direction links, keeping Directions as context rather than a separate authoring mode.
 3. A visible filtered-count cue and clear action whenever search, tab, status, tag, or saved-view state reduces the visible Requirements set.
 4. Labelled trend indicators in Strategy and list/table surfaces, using red/amber/green/neutral arrows plus text labels rather than colour alone.
@@ -25,8 +25,8 @@ The slice provides:
 
 Versioning:
 
-- Product version target: `PSPF_SLICE_VERSION = "1.34.0"`.
-- Package version target: `1.34.0`.
+- Product version target: `PSPF_SLICE_VERSION = "1.34.1"`.
+- Package version target: `1.34.1`.
 - `VERSION_AXES` remains `schemaVersion = bundleVersion = apiVersion = "1.11.0"` because this slice adds no published bundle fields, collections, link verbs, or schema-bearing entities.
 
 ## Non-goals

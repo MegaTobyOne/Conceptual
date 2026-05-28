@@ -6823,6 +6823,8 @@ function renderRequirementEditor(
       responseState: label(direction.responseState),
       sourceAuthority: direction.sourceAuthority ?? "Not recorded"
     }));
+  const pageTabs = requirementPageTabs(requirement, allEntities, browserOptions);
+  const directionsPanel = requirementDirectionsPanel(allEntities);
   const sourceControlsById = new Map(
     allEntities
       .filter((entity): entity is SourceControlEntity => entity.entityType === "source-control")
@@ -6860,7 +6862,6 @@ function renderRequirementEditor(
     isBaseline ? "Official PSPF baseline title and domain are locked." : undefined,
     requirementNavigationStrip(requirement, allEntities)
   )}
-    ${requirementWorkbenchStyles()}
     <section>
       <h2>Requirement Workbench</h2>
       <p class="muted">Add or open the linked records that drive this Requirement's assessment.</p>
@@ -6888,9 +6889,16 @@ function renderRequirementEditor(
     ${commercialContextSection(requirement, allEntities)}
     ${recordTable("ISM Mappings", mappingRows, ["controlId", "title", "coverage", "profile", "confidence", "reviewed"])}
   `;
-  return `<div class="requirement-browser">
-    ${requirementBrowserNav(requirement, allEntities, browserOptions)}
-    <div class="requirement-browser__content">${editorContent}</div>
+  return `${requirementWorkbenchStyles()}
+  <div class="requirement-page">
+    ${pageTabs}
+    <div class="requirement-browser">
+      ${requirementBrowserNav(requirement, allEntities, browserOptions)}
+      <div class="requirement-browser__content">
+        <div data-requirement-content="requirement">${editorContent}</div>
+        <div data-requirement-content="directions" hidden>${directionsPanel}</div>
+      </div>
+    </div>
     ${requirementBrowserScript()}
   </div>`;
 }
@@ -6923,18 +6931,98 @@ function requirementSignalCard(labelText: string, value: string, detail: string)
 
 function requirementWorkbenchStyles(): string {
   return `<style>
+    .requirement-page { display: grid; gap: 12px; }
+    .requirement-page__tabs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+    .requirement-page__tabs button[aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 16%, var(--surface-strong)); }
     .requirement-signals { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
     .requirement-signal { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 10px; background: var(--surface-strong); }
     .requirement-signal span { display: block; color: var(--muted); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
     .requirement-signal strong { display: block; margin-top: 5px; font-size: 18px; line-height: 1.1; }
     .requirement-signal small { display: block; margin-top: 4px; color: var(--muted); line-height: 1.3; }
-    .requirement-browser__tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-    .requirement-browser__tabs button[aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 16%, var(--surface-strong)); }
     .requirement-browser__filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
     .requirement-browser__filters button[aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 12%, var(--surface-strong)); }
     .requirement-browser__count { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; }
     .requirement-browser__count-chip { border: 1px solid var(--border); border-radius: 999px; padding: 3px 8px; background: var(--surface-strong); color: var(--muted); font-size: 12px; }
   </style>`;
+}
+
+function requirementPageTabs(
+  requirement: RequirementEntity,
+  allEntities: readonly V01Entity[],
+  options: RequirementBrowserOptions = {}
+): string {
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const requirements = requirementsForBrowser(allEntities, links, options);
+  const tabs = PSPF_DOMAINS.map((domain) => ({
+    id: domain.id,
+    label: domain.title,
+    count: requirements.filter((candidate) => candidate.domainId === domain.id).length
+  })).filter((domain) => domain.count > 0);
+  const directionsCount = allEntities.filter(
+    (entity): entity is DirectionEntity => entity.entityType === "direction" && entity.recordStatus !== "deleted"
+  ).length;
+  return `<nav class="requirement-page__tabs" aria-label="Requirement domain tabs">
+    ${tabs.map((domain) => `<button type="button" data-requirement-tab="${escapeHtml(domain.id)}" aria-pressed="${domain.id === requirement.domainId ? "true" : "false"}">${escapeHtml(domain.label)} ${domain.count}</button>`).join("")}
+    <button type="button" data-requirement-tab="directions" aria-pressed="false">Directions ${directionsCount}</button>
+  </nav>`;
+}
+
+function requirementDirectionsPanel(allEntities: readonly V01Entity[]): string {
+  const requirementsById = new Map(
+    allEntities
+      .filter(
+        (entity): entity is RequirementEntity =>
+          entity.entityType === "requirement" && entity.recordStatus !== "deleted"
+      )
+      .map((requirement) => [requirement.id, requirement])
+  );
+  const requirementIdsByDirection = new Map<string, string[]>();
+  for (const link of allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  )) {
+    if (link.fromType === "direction" && link.toType === "requirement" && link.linkType === "targets") {
+      requirementIdsByDirection.set(link.fromId, [...(requirementIdsByDirection.get(link.fromId) ?? []), link.toId]);
+    }
+  }
+  const rows = allEntities
+    .filter(
+      (entity): entity is DirectionEntity => entity.entityType === "direction" && entity.recordStatus !== "deleted"
+    )
+    .sort(compareDirectionsForPicker)
+    .map((direction) => {
+      const targetedRequirements = (requirementIdsByDirection.get(direction.id) ?? [])
+        .map((requirementId) => requirementsById.get(requirementId)?.title ?? requirementId)
+        .join("; ");
+      return {
+        openEntityType: "direction",
+        openEntityId: direction.id,
+        reference: direction.reference,
+        title: direction.title,
+        responseState: label(direction.responseState),
+        sourceAuthority: direction.sourceAuthority ?? "Not recorded",
+        requirements: targetedRequirements || "None linked"
+      };
+    });
+  return `<section>
+    <h2>Directions</h2>
+    <p class="muted">Use Directions as a navigation lens over PSPF Requirements. Open a Direction to review or update its response state.</p>
+    ${recordTable("Directions", rows, ["reference", "title", "responseState", "sourceAuthority", "requirements"])}
+  </section>`;
+}
+
+function requirementsForBrowser(
+  allEntities: readonly V01Entity[],
+  links: readonly LinkEntity[],
+  options: RequirementBrowserOptions = {}
+): RequirementEntity[] {
+  return allEntities
+    .filter(
+      (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
+    )
+    .filter((candidate) => !options.savedView || savedViewMatchesRequirement(options.savedView, candidate, links))
+    .sort(compareRequirementsForPicker);
 }
 
 function requirementBrowserNav(
@@ -6950,27 +7038,11 @@ function requirementBrowserNav(
       .filter((link) => link.fromType === "direction" && link.toType === "requirement" && link.linkType === "targets")
       .map((link) => link.toId)
   );
-  const requirements = allEntities
-    .filter(
-      (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
-    )
-    .filter((candidate) => {
-      if (!options.savedView) {
-        return true;
-      }
-      return savedViewMatchesRequirement(options.savedView, candidate, links);
-    })
-    .sort(compareRequirementsForPicker);
+  const requirements = requirementsForBrowser(allEntities, links, options);
   const currentIndex = requirements.findIndex((candidate) => candidate.id === requirement.id);
   const position = currentIndex >= 0 ? `${currentIndex + 1} of ${requirements.length}` : `${requirements.length} total`;
   const filterText = options.filterText?.trim() ?? "";
   const statusCounts = requirementStatusCounts(requirements);
-  const domainTabs = PSPF_DOMAINS.map((domain) => ({
-    id: domain.id,
-    label: domain.title,
-    count: requirements.filter((candidate) => candidate.domainId === domain.id).length
-  })).filter((domain) => domain.count > 0);
-  const directionsCount = requirements.filter((candidate) => directionTargetRequirementIds.has(candidate.id)).length;
   const items = requirements
     .map((candidate) =>
       requirementBrowserNavItem(
@@ -6984,11 +7056,6 @@ function requirementBrowserNav(
   return `<section class="requirement-browser__nav" aria-label="Requirement browser">
     <h2>Requirements</h2>
     <input class="requirement-browser__filter" type="search" aria-label="Filter requirements" placeholder="Filter by title, domain, or status" value="${escapeHtml(filterText)}">
-    <div class="requirement-browser__tabs" aria-label="Requirement domain tabs">
-      <button type="button" data-requirement-tab="all" aria-pressed="true">All ${requirements.length}</button>
-      ${domainTabs.map((domain) => `<button type="button" data-requirement-tab="${escapeHtml(domain.id)}">${escapeHtml(domain.label)} ${domain.count}</button>`).join("")}
-      <button type="button" data-requirement-tab="directions">Directions ${directionsCount}</button>
-    </div>
     <div class="requirement-browser__filters" aria-label="Requirement status filters">
       <button type="button" data-requirement-status-filter="all" aria-pressed="true">All ${requirements.length}</button>
       ${assessmentStatusItems.map((item) => `<button type="button" data-requirement-status-filter="${escapeHtml(item.value)}">${escapeHtml(item.label)} ${statusCounts.get(item.value) ?? 0}</button>`).join("")}
@@ -7035,30 +7102,30 @@ function requirementBrowserScript(): string {
       const items = Array.from(document.querySelectorAll('.requirement-browser__item'));
       const count = document.querySelector('[data-requirement-browser-count]');
       const clearButton = document.querySelector('[data-clear-requirement-filters]');
+      const requirementPanel = document.querySelector('[data-requirement-content="requirement"]');
+      const directionsPanel = document.querySelector('[data-requirement-content="directions"]');
       function applyRequirementFilters() {
         const query = input instanceof HTMLInputElement ? input.value.trim().toLocaleLowerCase('en-AU') : '';
         const selectedStatus = statusButtons.find((button) => button.getAttribute('aria-pressed') === 'true')?.getAttribute('data-requirement-status-filter') || 'all';
         const selectedTab = tabButtons.find((button) => button.getAttribute('aria-pressed') === 'true')?.getAttribute('data-requirement-tab') || 'all';
         let visible = 0;
-        let pinned = false;
         for (const item of items) {
           const search = (item.getAttribute('data-search') || item.textContent || '').toLocaleLowerCase('en-AU');
           const status = item.getAttribute('data-status') || '';
           const domain = item.getAttribute('data-domain') || '';
           const directionTargeted = item.getAttribute('data-direction-targeted') === 'true';
-          const isCurrent = item.getAttribute('aria-current') === 'page';
           const matchesSearch = !query || search.includes(query);
           const matchesStatus = selectedStatus === 'all' || status === selectedStatus;
           const matchesTab = selectedTab === 'all' || domain === selectedTab || (selectedTab === 'directions' && directionTargeted);
           const matches = matchesSearch && matchesStatus && matchesTab;
-          const showPinned = !matches && isCurrent;
-          pinned = pinned || showPinned;
-          item.hidden = !(matches || showPinned);
-          if (matches || showPinned) visible += 1;
+          item.hidden = !matches;
+          if (matches) visible += 1;
         }
-        const reduced = Boolean(query) || selectedStatus !== 'all' || selectedTab !== 'all';
-        if (count) count.textContent = (reduced ? 'Showing ' : '') + visible + ' of ' + items.length + ' Requirements' + (pinned ? ' · selected item outside filters' : '');
-        if (clearButton instanceof HTMLButtonElement) clearButton.hidden = !reduced;
+        const filtered = Boolean(query) || selectedStatus !== 'all';
+        if (count) count.textContent = (filtered ? 'Showing ' : '') + visible + ' of ' + items.length + ' Requirements';
+        if (clearButton instanceof HTMLButtonElement) clearButton.hidden = !filtered;
+        if (requirementPanel instanceof HTMLElement) requirementPanel.hidden = selectedTab === 'directions';
+        if (directionsPanel instanceof HTMLElement) directionsPanel.hidden = selectedTab !== 'directions';
       }
       input?.addEventListener('input', applyRequirementFilters);
       statusButtons.forEach((button) => button.addEventListener('click', () => {
@@ -7072,7 +7139,6 @@ function requirementBrowserScript(): string {
       clearButton?.addEventListener('click', () => {
         if (input instanceof HTMLInputElement) input.value = '';
         statusButtons.forEach((item) => item.setAttribute('aria-pressed', String(item.getAttribute('data-requirement-status-filter') === 'all')));
-        tabButtons.forEach((item) => item.setAttribute('aria-pressed', String(item.getAttribute('data-requirement-tab') === 'all')));
         applyRequirementFilters();
       });
       applyRequirementFilters();

@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.34.0",
+  "version": "1.34.1",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -373,7 +373,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
-    "test": "node --test dist/**/*.test.js"
+    "test": "node --test dist/*.test.js dist/**/*.test.js"
   },
   "dependencies": {
     "@pspf/brief-renderer": "workspace:*",
