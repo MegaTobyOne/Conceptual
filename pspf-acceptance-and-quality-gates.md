@@ -517,7 +517,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 ### v1.34 candidate gates (Requirements navigation polish, per ADR 0070)
 
 1. **ADR gate**: ADR 0070 records the v1.34 Requirements navigation polish decision before release preparation completes.
-2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.34.1`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.34.2`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
 3. **Workshop Requirements navigation gate**: Workshop Requirements exposes page-level PSPF domain tabs and a `Directions` tab above the two-panel workbench; search, status, saved-view, tab, and Direction-lens state update a visible filtered-count cue with a clear action.
 4. **Explorer Requirements navigation gate**: Explorer Requirements exposes the same tab model and visible filtered-count cue while preserving existing search, status, and tag filters.
 5. **Directions lens gate**: the `Directions` tab in both Workshop and Explorer lists Requirements targeted by existing Direction links and does not introduce a separate Direction authoring mode, link verb, bundle field, or schema change.

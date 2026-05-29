@@ -59,6 +59,7 @@ import {
   type SavedViewEntity,
   type SavedViewScope,
   type SourceControlEntity,
+  type SourceControlImplementationStatus,
   type SpendItemEntity,
   type StrategyEntity,
   type TagColour,
@@ -4969,17 +4970,27 @@ function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEn
   const driftLabels = uniqueStrings(
     sourceControls.map((sourceControl) => statementChangeLabel(sourceControl.statementChangeStatus))
   ).sort((left, right) => left.localeCompare(right, "en-AU"));
+  const implementationLabels = implementationStatusItems
+    .map((item) => item.label)
+    .concat("Not assessed")
+    .filter((value) =>
+      sourceControls.some((sourceControl) => implementationStatusLabel(sourceControl.implementationStatus) === value)
+    );
   const releaseCount = uniqueStrings(
     sourceControls.map((sourceControl) => sourceControl.provenance.oscalRelease)
   ).length;
   const changedCount = sourceControls.filter(
     (sourceControl) => sourceControl.statementChangeStatus !== "unchanged"
   ).length;
+  const assessedCount = sourceControls.filter(
+    (sourceControl) => sourceControl.implementationStatus !== undefined
+  ).length;
   const rows = sourceControls.map(renderIsmSourceControlBrowserRow).join("");
 
   return `<section class="ism-browser" id="ism-source-controls">
     <div class="grid">
       ${metricCard("Source controls", sourceControls.length)}
+      ${metricCard("Implementation assessed", assessedCount)}
       ${metricCard("Profiles", profiles.length)}
       ${metricCard("OSCAL releases", releaseCount)}
       ${metricCard("Drift markers", changedCount)}
@@ -5003,6 +5014,13 @@ function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEn
           ${driftLabels.map((drift) => `<option value="${escapeHtml(drift)}">${escapeHtml(drift)}</option>`).join("")}
         </select>
       </label>
+      <label>
+        <span>Implementation</span>
+        <select id="ism-implementation-filter">
+          <option value="">All implementation states</option>
+          ${implementationLabels.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}
+        </select>
+      </label>
       <button type="button" id="ism-clear-filters">Clear filters</button>
     </div>
     <p class="muted" id="ism-result-count">Showing ${sourceControls.length} of ${sourceControls.length} controls.</p>
@@ -5013,6 +5031,7 @@ function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEn
             <th data-field="action">Open</th>
             <th data-field="controlId"><button type="button" data-sort="controlId">Control ID</button></th>
             <th data-field="title"><button type="button" data-sort="title">Title</button></th>
+            <th data-field="implementation"><button type="button" data-sort="implementation">Implementation</button></th>
             <th data-field="profiles"><button type="button" data-sort="profiles">Profiles</button></th>
             <th data-field="release"><button type="button" data-sort="release">Release</button></th>
             <th data-field="drift"><button type="button" data-sort="drift">Drift</button></th>
@@ -5028,14 +5047,24 @@ function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEn
 function renderIsmSourceControlBrowserRow(sourceControl: SourceControlEntity): string {
   const profiles = sourceControl.profileTags.join(", ");
   const drift = statementChangeLabel(sourceControl.statementChangeStatus);
+  const implementation = implementationStatusLabel(sourceControl.implementationStatus);
   const release = sourceControl.provenance.oscalRelease;
-  const searchText = [sourceControl.controlId, sourceControl.title, sourceControl.statement, profiles, release, drift]
+  const searchText = [
+    sourceControl.controlId,
+    sourceControl.title,
+    sourceControl.statement,
+    profiles,
+    release,
+    drift,
+    implementation
+  ]
     .join(" ")
     .toLocaleLowerCase("en-AU");
-  return `<tr data-search="${escapeHtml(searchText)}" data-profile="${escapeHtml(profiles)}" data-drift="${escapeHtml(drift)}" data-control-id="${escapeHtml(sourceControl.controlId)}" data-title="${escapeHtml(sourceControl.title)}" data-profiles="${escapeHtml(profiles)}" data-release="${escapeHtml(release)}">
+  return `<tr data-search="${escapeHtml(searchText)}" data-profile="${escapeHtml(profiles)}" data-drift="${escapeHtml(drift)}" data-implementation="${escapeHtml(implementation)}" data-control-id="${escapeHtml(sourceControl.controlId)}" data-title="${escapeHtml(sourceControl.title)}" data-profiles="${escapeHtml(profiles)}" data-release="${escapeHtml(release)}">
     <td data-field="action"><button type="button" data-command="openIsmControlDetail" data-source-control-id="${escapeHtml(sourceControl.id)}">Open</button></td>
     <td data-field="controlId"><strong>${escapeHtml(sourceControl.controlId)}</strong></td>
     <td data-field="title">${escapeHtml(sourceControl.title)}<br><span class="muted">${escapeHtml(sourceControl.statement)}</span></td>
+    <td data-field="implementation">${escapeHtml(implementation)}</td>
     <td data-field="profiles">${escapeHtml(profiles || "Not tagged")}</td>
     <td data-field="release">${escapeHtml(release)}</td>
     <td data-field="drift">${escapeHtml(drift)}</td>
@@ -5044,11 +5073,11 @@ function renderIsmSourceControlBrowserRow(sourceControl: SourceControlEntity): s
 
 function ismSourceControlsBrowserScript(totalCount: number): string {
   return `<style>
-    .ism-browser__toolbar { display: grid; grid-template-columns: minmax(18rem, 2fr) minmax(12rem, 1fr) minmax(10rem, 1fr) auto; gap: 0.75rem; align-items: end; margin: 1rem 0; }
+    .ism-browser__toolbar { display: grid; grid-template-columns: minmax(18rem, 2fr) minmax(12rem, 1fr) minmax(10rem, 1fr) minmax(10rem, 1fr) auto; gap: 0.75rem; align-items: end; margin: 1rem 0; }
     .ism-browser__toolbar label { display: grid; gap: 0.3rem; }
     .ism-browser__toolbar span { color: var(--vscode-descriptionForeground); font-size: 0.82rem; }
     .ism-browser__toolbar input, .ism-browser__toolbar select { width: 100%; box-sizing: border-box; }
-    .ism-browser__table table { min-width: 980px; }
+    .ism-browser__table table { min-width: 1120px; }
     .ism-browser__table th button { width: 100%; color: inherit; background: transparent; border: 0; padding: 0; font: inherit; text-align: left; cursor: pointer; }
     .ism-browser__table th button::after { content: " ↕"; color: var(--vscode-descriptionForeground); }
     .ism-browser__table th button[aria-sort="ascending"]::after { content: " ↑"; }
@@ -5061,6 +5090,7 @@ function ismSourceControlsBrowserScript(totalCount: number): string {
       const searchInput = document.getElementById('ism-control-search');
       const profileFilter = document.getElementById('ism-profile-filter');
       const driftFilter = document.getElementById('ism-drift-filter');
+      const implementationFilter = document.getElementById('ism-implementation-filter');
       const clearButton = document.getElementById('ism-clear-filters');
       const count = document.getElementById('ism-result-count');
       const table = document.getElementById('ism-controls-table');
@@ -5076,12 +5106,14 @@ function ismSourceControlsBrowserScript(totalCount: number): string {
         const query = searchInput instanceof HTMLInputElement ? searchInput.value.trim().toLocaleLowerCase('en-AU') : '';
         const profile = profileFilter instanceof HTMLSelectElement ? profileFilter.value : '';
         const drift = driftFilter instanceof HTMLSelectElement ? driftFilter.value : '';
+        const implementation = implementationFilter instanceof HTMLSelectElement ? implementationFilter.value : '';
         let visible = 0;
         for (const row of rows) {
           const matchesQuery = !query || rowText(row, 'search').includes(query);
           const matchesProfile = !profile || rowText(row, 'profile').split(', ').includes(profile);
           const matchesDrift = !drift || rowText(row, 'drift') === drift;
-          const isVisible = matchesQuery && matchesProfile && matchesDrift;
+          const matchesImplementation = !implementation || rowText(row, 'implementation') === implementation;
+          const isVisible = matchesQuery && matchesProfile && matchesDrift && matchesImplementation;
           row.hidden = !isVisible;
           if (isVisible) visible += 1;
         }
@@ -5107,10 +5139,12 @@ function ismSourceControlsBrowserScript(totalCount: number): string {
       searchInput?.addEventListener('input', applyFilters);
       profileFilter?.addEventListener('change', applyFilters);
       driftFilter?.addEventListener('change', applyFilters);
+      implementationFilter?.addEventListener('change', applyFilters);
       clearButton?.addEventListener('click', () => {
         if (searchInput instanceof HTMLInputElement) searchInput.value = '';
         if (profileFilter instanceof HTMLSelectElement) profileFilter.value = '';
         if (driftFilter instanceof HTMLSelectElement) driftFilter.value = '';
+        if (implementationFilter instanceof HTMLSelectElement) implementationFilter.value = '';
         applyFilters();
         searchInput?.focus();
       });
@@ -5222,6 +5256,7 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
       <p>${escapeHtml(sourceControl.statement)}</p>
       ${versionStrip()}
       <div class="grid">
+        ${metricCard("Implementation", implementationStatusLabel(sourceControl.implementationStatus))}
         ${metricCard("Mapped Requirements", mappings.length)}
         ${metricCard("Linked work records", workRows.length)}
         ${metricCard("Direct work links", directWorkRows.length)}
@@ -5229,6 +5264,7 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
         ${metricCard("Drift", statementChangeLabel(sourceControl.statementChangeStatus))}
       </div>
       <div class="form-actions">
+        <button type="button" data-command="setIsmControlImplementationStatus" data-source-control-id="${escapeHtml(sourceControl.id)}">Set Implementation Status</button>
         <button type="button" data-command="pspf.workshop.createRequirementControlMapping">Map Requirement</button>
         <button type="button" data-command="linkEvidenceToIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Link Evidence</button>
         <button type="button" data-command="linkActionToIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Link Action</button>
@@ -5345,6 +5381,47 @@ async function linkExistingWorkToSourceControl(
   await refreshWorkshopSurfaces();
   await vscode.window.showInformationMessage(
     `Linked ${picked.length} ${label(itemType).toLowerCase()} record${picked.length === 1 ? "" : "s"} directly to ${sourceControl.controlId}.`
+  );
+}
+
+async function setSourceControlImplementationStatus(sourceControlId: string): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const sourceControl = allEntities.find(
+    (entity): entity is SourceControlEntity =>
+      entity.entityType === "source-control" && entity.id === sourceControlId && entity.recordStatus !== "deleted"
+  );
+  if (!sourceControl) {
+    await vscode.window.showWarningMessage("Open an ISM control before recording its implementation status.");
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    implementationStatusItems.map((item) => ({
+      label: item.label,
+      description: item.value === sourceControl.implementationStatus ? "Current" : undefined,
+      value: item.value
+    })),
+    {
+      title: `Implementation status for ${sourceControl.controlId}`,
+      placeHolder: "Operator interpretation, kept internal and not published by default",
+      ignoreFocusOut: true
+    }
+  );
+  if (!picked) {
+    return;
+  }
+  if (picked.value === sourceControl.implementationStatus) {
+    return;
+  }
+  const updated: SourceControlEntity = {
+    ...sourceControl,
+    implementationStatus: picked.value,
+    updatedAt: new Date().toISOString()
+  };
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(
+    `${sourceControl.controlId} implementation status set to ${implementationStatusLabel(picked.value)}.`
   );
 }
 
@@ -6529,6 +6606,10 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       }
       if (message.command === "openIsmControlDetail" && message.sourceControlId) {
         await openIsmControlDetail(message.sourceControlId);
+      }
+      if (message.command === "setIsmControlImplementationStatus" && message.sourceControlId) {
+        await setSourceControlImplementationStatus(message.sourceControlId);
+        await refreshPanel?.();
       }
       if (message.command === "linkEvidenceToIsmControl" && message.sourceControlId) {
         await linkExistingWorkToSourceControl(message.sourceControlId, "evidence");
@@ -9957,6 +10038,24 @@ const assessmentStatusItems: readonly { readonly label: string; readonly value: 
   { label: "Not applicable", value: "not-applicable" },
   { label: "Under review", value: "under-review" }
 ];
+
+const implementationStatusItems: readonly {
+  readonly label: string;
+  readonly value: SourceControlImplementationStatus;
+}[] = [
+  { label: "Not implemented", value: "not-implemented" },
+  { label: "Partial", value: "partial" },
+  { label: "Implemented", value: "implemented" },
+  { label: "Not applicable", value: "not-applicable" },
+  { label: "Under review", value: "under-review" }
+];
+
+function implementationStatusLabel(status: SourceControlImplementationStatus | undefined): string {
+  if (!status) {
+    return "Not assessed";
+  }
+  return implementationStatusItems.find((item) => item.value === status)?.label ?? label(status);
+}
 
 const directionResponseStateItems: readonly { readonly label: string; readonly value: DirectionResponseState }[] = [
   { label: "Not set", value: "not-set" },

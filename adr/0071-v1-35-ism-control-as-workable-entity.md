@@ -17,7 +17,7 @@ As the ISM becomes a more prominent assurance reference, operators increasingly 
 
 Establish the ISM control as a workable assurance entity that mirrors the Requirement operator spine, delivered in phases that each respect the locked constraints (closed link taxonomy verbs in ADR 0003, default-deny per-field publication in ADR 0005, UUIDv7 with time-stripping in ADR 0002, OFFICIAL: Sensitive labelling-only in ADR 0011, AU English in ADR 0016, zero runtime egress).
 
-### Phase 4a - v1.35 (this slice): direct control-to-work linking
+### Phase 4a - v1.35: direct control-to-work linking
 
 The first vertical slice lands the link-model foundation and the Workshop affordances, with **no schema-version bump**:
 
@@ -34,13 +34,20 @@ This is safe to ship without touching `VERSION_AXES` because:
 - `OPERATOR_LINK_RULES` is operator-affordance metadata; precedent for adding rules ahead of full UI rollout is set by ADR [0065](0065-v1-29-ux-consistency-and-relationship-manager.md), which kept `VERSION_AXES` unchanged.
 - Core link validation (`packages/core/src/service.ts`) constrains links by verb membership and by `fromType`/`toType` matching the referenced entity, not by an endpoint-pair allow-list, so a direct `source-control` link validates and round-trips.
 
-### Phase 4b - v1.36+ (proposed, requires schema bump): control implementation posture
+### Phase 4b - v1.35 (this slice): control implementation posture
 
-Give the ISM control its own posture, mirroring `Requirement.assessmentStatus`:
+Give the ISM control its own posture, mirroring `Requirement.assessmentStatus`, **with no schema-version bump**:
 
-- Add `SourceControlEntity.implementationStatus` (candidate values `not-implemented | partial | implemented | not-applicable | under-review`) as operator posture layered on top of the immutable vendored statement. Publication policy `internal` at minimum (it is operator interpretation, not the public ASD catalogue text), declared in `PUBLICATION_FIELD_POLICIES`.
-- This is a schema-bearing change: roll `schemaVersion` forward, add a new `schemas/explorer-bundle/<version>/` directory, update validation, redaction defaults, contract tests, and seeded sample data.
-- Surface an ISM control browser that mirrors the Requirements browser: navigate by ISM guideline/section then implementation status, with a `workshop-source-controls` saved-view scope.
+- Add `SourceControlEntity.implementationStatus` (candidate values `not-implemented | partial | implemented | not-applicable | under-review`) as operator posture layered on top of the immutable vendored statement. Publication policy `internal` (it is operator interpretation, not the public ASD catalogue text), declared in `PUBLICATION_FIELD_POLICIES`.
+- Surface the posture on the Workshop ISM control detail (an "Implementation" metric plus a "Set Implementation Status" affordance) and add an implementation-status column, filter, and "Implementation assessed" metric to the ISM control browser so operators can navigate the ISM by posture, mirroring the Requirements browser.
+
+This is safe to ship without touching `VERSION_AXES` because:
+
+- The field is classified `internal`, so `sanitiseEntityForPublication` strips it at the publication boundary exactly as it does for the existing `sensitive` `localApplicabilityNote`. The published Explorer bundle therefore only ever carries the public ASD catalogue fields, so the per-version `schemas/explorer-bundle/<version>/collections/source-controls.schema.json` contract (with `additionalProperties: false`) is unchanged and no new schema directory is required.
+- Core does not validate runtime entities against an allow-list of fields (`packages/core/src/service.ts`), so the additive optional field round-trips through `pspf.core.upsertEntity` without error.
+- Earlier reasoning that Phase 4b was "schema-bearing" assumed the posture might be published; committing it to `internal` (the correct default-deny choice for security-gap interpretation, ADR 0005 and ADR 0011) removes that requirement.
+
+Deferred to a later phase (still requiring their own readiness work): a dedicated `workshop-source-controls` saved-view scope (the saved-view `scope` enum is a published collection field and would need a schema bump), and persisted saved views over the ISM control browser.
 
 ### Phase 4c - v1.37+ (proposed): bidirectional posture and unified obligation navigation
 
@@ -52,7 +59,8 @@ Give the ISM control its own posture, mirroring `Requirement.assessmentStatus`:
 
 - No schema-version bump, new entity type, new link verb, new schema directory, or new published collection in v1.35.
 - No editing of vendored ISM control statement text (the catalogue remains read-only; ADR 0018).
-- No `implementationStatus` field, ISM control browser navigation, or saved-view scope in v1.35 (Phase 4b).
+- No publication of `implementationStatus` to the Explorer bundle or posture brief; it is `internal` operator interpretation, stripped at the publication boundary (Phase 4c covers any inverse posture rollup).
+- No dedicated `workshop-source-controls` saved-view scope in v1.35 (it would require a saved-view schema change).
 - No runtime network fetch of ISM data in any phase (E1, ADR 0011).
 - No mapping to non-ISM control catalogues.
 
@@ -74,6 +82,8 @@ Trade-offs:
 - `@pspf/contracts.OPERATOR_LINK_RULES` includes the three `source-control` endpoint rules with canonical verb, label, and phrase; `operator-link-rules.test.ts` covers them.
 - Workshop ISM control detail renders direct `Link Evidence`/`Link Action`/`Link Risk` affordances and a "Work Linked Directly To This Control" panel.
 - A direct `source-control` link round-trips through `pspf.core.upsertEntities` and core validation without error.
+- `SourceControlEntity.implementationStatus` has an `internal` entry in `PUBLICATION_FIELD_POLICIES`; `publication-policy.test.ts` asserts the policy and that `sanitiseEntityForPublication` strips the field.
+- Workshop ISM control detail renders the implementation posture and a "Set Implementation Status" affordance; the ISM control browser exposes an implementation column and filter.
 - `typecheck`, `lint`, contracts tests, and the relationship-rule gate pass with `VERSION_AXES` unchanged.
 
 ## Related

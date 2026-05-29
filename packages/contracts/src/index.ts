@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.11.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.34.1" as const;
+export const PSPF_SLICE_VERSION = "1.34.2" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -546,6 +546,13 @@ export interface SourceControlProvenance {
   readonly sourceUrl: string;
 }
 
+export type SourceControlImplementationStatus =
+  | "not-implemented"
+  | "partial"
+  | "implemented"
+  | "not-applicable"
+  | "under-review";
+
 export interface SourceControlEntity extends EntityEnvelope {
   readonly entityType: "source-control";
   readonly title: string;
@@ -556,6 +563,7 @@ export interface SourceControlEntity extends EntityEnvelope {
   readonly externalRefs: readonly SourceControlExternalRef[];
   readonly provenance: SourceControlProvenance;
   readonly localApplicabilityNote?: string;
+  readonly implementationStatus?: SourceControlImplementationStatus;
 }
 
 export type CoverageQualifier = "primary" | "partial" | "compensating";
@@ -1017,7 +1025,8 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "externalRefs",
         "provenance"
       ),
-      { field: "localApplicabilityNote", publication: "sensitive" }
+      { field: "localApplicabilityNote", publication: "sensitive" },
+      { field: "implementationStatus", publication: "internal" }
     ]
   },
   {

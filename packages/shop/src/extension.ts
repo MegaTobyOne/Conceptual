@@ -3313,7 +3313,7 @@ function renderForecastHtml(
     ${relationshipActions}
     <section>
       <h2>Scenario comparison</h2>
-      <p class="muted">Compare approved work, the approved and committed baseline, and proposed-inclusive planning without changing source records.</p>
+      <p class="muted">Compare approved work, the Approved and committed baseline, and proposed-inclusive planning without changing source records.</p>
       <table>
         <thead><tr><th>Scenario</th><th>Description</th><th>Items</th><th>Planned spend</th><th>Forecast cost</th><th>Expected savings</th><th>Net forecast</th><th>Signals</th></tr></thead>
         <tbody>${scenarioRows}</tbody>

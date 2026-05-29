@@ -8,7 +8,8 @@ import {
   sanitiseEntityForPublication,
   withEnvelope,
   type RequirementEntity,
-  type SpendItemEntity
+  type SpendItemEntity,
+  type SourceControlEntity
 } from "./index.js";
 
 test("every v0.1 entity type has publication policy metadata", () => {
@@ -178,4 +179,37 @@ test("disallowed publication fields include every restricted field path", () => 
   assert.ok(DISALLOWED_PUBLICATION_FIELDS.includes("supplier.primaryContact"));
   assert.ok(DISALLOWED_PUBLICATION_FIELDS.includes("person.name"));
   assert.ok(DISALLOWED_PUBLICATION_FIELDS.includes("assignment.personId"));
+});
+
+test("source-control implementation posture is internal and stripped at publication", () => {
+  const policy = PUBLICATION_FIELD_POLICIES.find((entry) => entry.entityType === "source-control");
+  assert.ok(policy, "source-control publication policy is present");
+  const fieldPolicy = policy.fields.find((entry) => entry.field === "implementationStatus");
+  assert.ok(fieldPolicy, "implementationStatus has a declared publication policy");
+  assert.equal(fieldPolicy.publication, "internal");
+
+  const sourceControl = withEnvelope(
+    "source-control",
+    {
+      entityType: "source-control",
+      title: "Application control",
+      controlId: "ISM-0843",
+      statement: "Application control is implemented on workstations.",
+      profileTags: ["Essential Eight"],
+      statementChangeStatus: "unchanged",
+      externalRefs: [],
+      provenance: {
+        oscalRelease: "2024-03",
+        catalog: "ISM",
+        profile: null,
+        sourceUrl: "https://www.cyber.gov.au/ism"
+      },
+      implementationStatus: "partial"
+    },
+    "workshop"
+  ) as SourceControlEntity;
+
+  const published = sanitiseEntityForPublication(sourceControl) as SourceControlEntity;
+  assert.equal(published.controlId, "ISM-0843");
+  assert.equal(published.implementationStatus, undefined);
 });
