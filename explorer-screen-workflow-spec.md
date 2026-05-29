@@ -841,6 +841,8 @@ The most-used reporting output is expected to be a simple posture graphic plus a
 
 The brief is not a free-form report writer in v1. It is a constrained, repeatable output composed from the same summary calculations used by Overview, Reporting, Essential Eight, Evidence, and the Relationships Board.
 
+Explorer may show public ISM review-state cues such as unmapped, drift review, mapped with direct work, or mapped with no direct work where those cues derive only from published mappings, source-control drift state, and direct public evidence/action/risk link counts. It must not expose internal implementation status or infer per-control security posture.
+
 ### Shareable work brief output
 
 Explorer must also support a paste-friendly work brief for a requirement, selected requirements, a domain, Essential Eight scope, or a Direction. The target use is email or Teams, not a formal report pack.

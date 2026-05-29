@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-13T01:49:11.133Z",
+  "generatedAt": "2026-05-29T07:13:58.320Z",
   "sources": [
     {
       "sourceId": "pspf-release-2025-list-requirements",
@@ -28,9 +28,18 @@
     "displayedRequirementCount": 217,
     "minRequirementNumber": 1,
     "maxRequirementNumber": 218,
-    "missingRequirementNumbers": [113],
+    "missingRequirementNumbers": [
+      113
+    ],
     "duplicateRequirementNumbers": [],
-    "domainFamilies": ["GOV", "INFO", "PER", "PHYS", "RISK", "TECH"],
+    "domainFamilies": [
+      "GOV",
+      "INFO",
+      "PER",
+      "PHYS",
+      "RISK",
+      "TECH"
+    ],
     "publishedDirectionCount": 9,
     "directionsReflectedInRequirements": 5
   },

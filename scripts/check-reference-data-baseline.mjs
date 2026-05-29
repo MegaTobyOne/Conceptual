@@ -106,6 +106,11 @@ assert.match(
 );
 assert.match(generated, /ISM_SOURCE_CONTROLS/, "generated reference data should export ISM source controls");
 assert.match(
+  generated,
+  /ISM_SOURCE_CONTROL_CATEGORIES/,
+  "generated reference data should export ISM source control categories"
+);
+assert.match(
   ismLibrary,
   /from "@pspf\/reference-data"/,
   "ISM source library should wrap the generated reference-data package"

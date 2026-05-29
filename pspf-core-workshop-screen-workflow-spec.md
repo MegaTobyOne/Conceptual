@@ -318,6 +318,9 @@ Workshop may reuse simple Explorer-style graphics in Summary and report prep, bu
 **Posture brief:**
 The Summary view must be able to produce a simple posture brief suitable for routine reporting: one graphic-ready posture summary, a short text description of overall posture, domain-level posture, Essential Eight posture, ISM control posture aggregates, and an action plan backed by evidence and data. The brief should cite the data behind its claims using requirement counts, evidence freshness, action state, risk state, Direction response state, source-control/mapping counts, and direct ISM control work-link counts rather than unsupported narrative.
 
+**ISM review workbench:**
+Workshop must provide an ISM Review Workbench that derives operational queues from existing source controls, mappings, direct evidence/action/risk links, drift markers, and internal implementation status. The first queues are unmapped, not assessed, drift review, needs direct work, and risk without action. The workbench is a navigation/read-model surface; it must not create a new schema-bearing review entity or publish per-control implementation status.
+
 **Shareable brief:**
 Workshop must let the user create a paste-friendly brief for one requirement, a selected requirement group, a domain, Essential Eight scope, or a Direction. The brief is designed for email or Teams and should be available as copied Markdown/plain text, with an optional HTML clipboard representation where the platform supports it. It must include the selected scope, current assessment/posture, work required, highest-impact actions, evidence basis, known blockers/risks, owners as role/team labels where export policy allows, and a generated-at timestamp. It must omit or redact fields that are not allowed by the active publication/export policy.
 

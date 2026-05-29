@@ -1,6 +1,7 @@
 import type { DirectionEntity, LinkEntity, RequirementEntity, SourceControlEntity } from "@pspf/contracts";
 export {
   ISM_OSCAL_RELEASE,
+  ISM_SOURCE_CONTROL_CATEGORIES,
   ISM_SOURCE_CONTROLS,
   PSPF_BASELINE_DOMAINS,
   PSPF_BASELINE_DIRECTIONS,
@@ -83,3 +84,7 @@ export type PspfBaselineRequirement = Omit<RequirementEntity, "createdAt" | "upd
 export type PspfBaselineDirection = Omit<DirectionEntity, "createdAt" | "updatedAt">;
 export type PspfBaselineDirectionLink = Omit<LinkEntity, "createdAt" | "updatedAt">;
 export type IsmReferenceSourceControl = Omit<SourceControlEntity, "createdAt" | "updatedAt">;
+export interface IsmSourceControlCategory {
+  readonly controlId: string;
+  readonly category: string;
+}

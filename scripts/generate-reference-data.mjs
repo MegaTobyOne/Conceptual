@@ -178,7 +178,12 @@ const sources = [
 ];
 
 const pspfReferences = extractPspfRequirements(pspfPdfPath, pspfHash);
-const ismSourceControls = await extractIsmSourceControls(ismCatalogPath);
+const ismSourceControlRecords = await extractIsmSourceControls(ismCatalogPath);
+const ismSourceControls = ismSourceControlRecords.map(({ sourceControl }) => sourceControl);
+const ismSourceControlCategories = ismSourceControlRecords.map(({ sourceControl, category }) => ({
+  controlId: sourceControl.controlId,
+  category
+}));
 const previousIsmSourceControls = buildPreviousIsmSourceControls(ismSourceControls);
 const report = buildReport(pspfReferences, ismSourceControls, previousIsmSourceControls[0]?.controlId ?? "");
 const pspfReferenceDomains = domainDefinitions.map(({ family, domainId, title, sortOrder }) => ({
@@ -246,6 +251,7 @@ const generated =
   `export const PSPF_BASELINE_DIRECTIONS = ${toConst(pspfBaselineDirections)} satisfies readonly Omit<DirectionEntity, "createdAt" | "updatedAt">[];\n\n` +
   `export const PSPF_BASELINE_DIRECTION_LINKS = ${toConst(pspfBaselineDirectionLinks)} satisfies readonly Omit<LinkEntity, "createdAt" | "updatedAt">[];\n\n` +
   `export const ISM_SOURCE_CONTROLS = ${toConst(ismSourceControls)} satisfies readonly Omit<SourceControlEntity, "createdAt" | "updatedAt">[];\n\n` +
+  `export const ISM_SOURCE_CONTROL_CATEGORIES = ${toConst(ismSourceControlCategories)};\n\n` +
   `export const PREVIOUS_ISM_SOURCE_CONTROLS = ${toConst(previousIsmSourceControls)} satisfies readonly Pick<SourceControlEntity, "controlId" | "statement" | "provenance">[];\n\n` +
   `export const PSPF_REFERENCE_DATA_REPORT = ${toConst(report)};\n`;
 
@@ -368,44 +374,47 @@ async function extractIsmSourceControls(catalogPath) {
   const controls = [];
 
   for (const group of catalog.groups ?? []) {
-    collectControls(group, controls);
+    collectControls(group, controls, String(group.title ?? "Uncategorised"));
   }
 
-  return controls.map((control, index) => {
+  return controls.map(({ control, category }, index) => {
     const statement = normaliseWhitespace(collectProse(control).join(" ")) || control.title;
     const controlId = String(control.id ?? control.uuid ?? `ism-control-${index + 1}`);
     return {
-      id: `SRC-${stableUuid(controlId)}`,
-      entityType: "source-control",
-      schemaVersion: "1.6.0",
-      title: String(control.title ?? controlId),
-      sourceProduct: "core",
-      recordStatus: "active",
-      controlId,
-      statement,
-      profileTags: ["master-catalog"],
-      statementChangeStatus: index === 0 ? "changed" : "unchanged",
-      externalRefs: [
-        { scheme: "oscal-control-id", value: controlId },
-        ...(control.uuid ? [{ scheme: "oscal-uuid", value: String(control.uuid) }] : [])
-      ],
-      provenance: {
-        oscalRelease: "v2026.03.24",
-        catalog: "ISM_catalog.json",
-        profile: null,
-        sourceUrl: ISM_SOURCE.sourceUrl
-      }
+      sourceControl: {
+        id: `SRC-${stableUuid(controlId)}`,
+        entityType: "source-control",
+        schemaVersion: "1.6.0",
+        title: String(control.title ?? controlId),
+        sourceProduct: "core",
+        recordStatus: "active",
+        controlId,
+        statement,
+        profileTags: ["master-catalog"],
+        statementChangeStatus: index === 0 ? "changed" : "unchanged",
+        externalRefs: [
+          { scheme: "oscal-control-id", value: controlId },
+          ...(control.uuid ? [{ scheme: "oscal-uuid", value: String(control.uuid) }] : [])
+        ],
+        provenance: {
+          oscalRelease: "v2026.03.24",
+          catalog: "ISM_catalog.json",
+          profile: null,
+          sourceUrl: ISM_SOURCE.sourceUrl
+        }
+      },
+      category
     };
   });
 }
 
-function collectControls(node, output) {
+function collectControls(node, output, category) {
   for (const control of node.controls ?? []) {
-    output.push(control);
-    collectControls(control, output);
+    output.push({ control, category });
+    collectControls(control, output, category);
   }
   for (const group of node.groups ?? []) {
-    collectControls(group, output);
+    collectControls(group, output, category);
   }
 }
 

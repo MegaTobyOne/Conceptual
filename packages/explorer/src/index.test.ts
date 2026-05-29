@@ -49,10 +49,12 @@ test("Explorer exposes unified obligation and public ISM review navigation", asy
   assert.match(source, /renderExplorerSection\(obligationsSection, "Obligations"/);
   assert.match(source, /Unified read-only navigation across PSPF Requirements and public ISM catalogue controls/);
   assert.match(source, /summariseDirectSourceControlWork\(collections\.links \|\| \[\]\)/);
+  assert.match(source, /publicIsmReviewState\(/);
+  assert.match(source, /posture: sourceControl\.reviewState/);
   assert.match(source, /Implementation posture is an internal Workshop field and is not published here/);
   assert.match(
     source,
-    /table\(sourceControls, \["controlId", "title", "requirements", "evidence", "actions", "risks", "profiles", "release", "drift"\]\)/
+    /table\(sourceControls, \["controlId", "title", "reviewState", "requirements", "evidence", "actions", "risks", "profiles", "release", "drift"\]\)/
   );
 });
 
