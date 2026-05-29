@@ -66,3 +66,26 @@ test("Workshop Strategy trends render labelled arrow indicators", async () => {
   assert.match(source, /trend: trendIndicator\(measure\.trend\)/);
   assert.match(source, /class="trend-indicator"/);
 });
+
+test("Workshop exposes ISM Review Workbench queues", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /pspf\.workshop\.openIsmReviewWorkbench/);
+  assert.match(source, /allowedCommands = new Set\([\s\S]*"pspf\.workshop\.openIsmReviewWorkbench"/);
+  assert.match(source, /function buildIsmReviewWorkbenchRows/);
+  assert.match(source, /risk-without-action/);
+  assert.match(source, /needs-direct-work/);
+  assert.match(source, /data-ism-review-filter/);
+  assert.match(source, /id="ism-review-category-filter"/);
+});
+
+test("ISM source controls browser exposes category filter", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /ISM_SOURCE_CONTROL_CATEGORIES/);
+  assert.match(source, /homeButton\("pspf\.workshop\.browseIsmSourceControls", "ISM controls"/);
+  assert.match(source, /allowedCommands = new Set\([\s\S]*"pspf\.workshop\.browseIsmSourceControls"/);
+  assert.match(source, /id="ism-category-filter"/);
+  assert.match(source, /data-category/);
+  assert.match(source, /function ismSourceControlCategory/);
+});

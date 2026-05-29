@@ -569,6 +569,11 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
     evidence: directWorkByControlId.evidence.get(item.id) || 0,
     actions: directWorkByControlId.actions.get(item.id) || 0,
     risks: directWorkByControlId.risks.get(item.id) || 0,
+    reviewState: publicIsmReviewState(
+      mappedRequirementTitlesByControlId.get(item.id) || [],
+      directWorkByControlId,
+      item
+    ),
     profiles: (item.profileTags || []).join(", "),
     release: item.provenance && item.provenance.oscalRelease || "unknown",
     drift: driftStatusLabel(item.statementChangeStatus)
@@ -585,7 +590,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
       type: "ISM Control",
       reference: sourceControl.controlId,
       title: sourceControl.title,
-      posture: "Public catalogue item",
+      posture: sourceControl.reviewState,
       linkedWork: sourceControl.evidence + " evidence · " + sourceControl.actions + " actions · " + sourceControl.risks + " risks"
     }))
   ];
@@ -703,7 +708,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderExplorerSection(changeRecordsSection, "Why This Changed", '<p class="muted">Published Change Records explain significant changes without exposing sensitive reasons, impact notes, or decision-owner references.</p>' + table(changeRecords, ["title", "status", "changeType", "persistence", "source", "raisedAt", "affected", "summary"]));
 
   sourceControlsSection.hidden = false;
-  renderExplorerSection(sourceControlsSection, "ISM Source Controls", '<p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0. Implementation posture is an internal Workshop field and is not published here.</p>' + table(sourceControls, ["controlId", "title", "requirements", "evidence", "actions", "risks", "profiles", "release", "drift"]));
+  renderExplorerSection(sourceControlsSection, "ISM Source Controls", '<p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0. Implementation posture is an internal Workshop field and is not published here.</p>' + table(sourceControls, ["controlId", "title", "reviewState", "requirements", "evidence", "actions", "risks", "profiles", "release", "drift"]));
 
   ismCoverageSection.hidden = false;
   renderExplorerSection(ismCoverageSection, "ISM Coverage", table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"]));
@@ -2513,6 +2518,23 @@ function summariseDirectSourceControlWork(links) {
     }
   }
   return { evidence, actions, risks };
+}
+
+function publicIsmReviewState(mappedRequirementTitles, directWorkByControlId, sourceControl) {
+  const directWorkCount =
+    (directWorkByControlId.evidence.get(sourceControl.id) || 0) +
+    (directWorkByControlId.actions.get(sourceControl.id) || 0) +
+    (directWorkByControlId.risks.get(sourceControl.id) || 0);
+  if (sourceControl.statementChangeStatus && sourceControl.statementChangeStatus !== "unchanged") {
+    return "Drift review";
+  }
+  if (mappedRequirementTitles.length === 0) {
+    return "Unmapped";
+  }
+  if (directWorkCount === 0) {
+    return "Mapped, no direct work";
+  }
+  return "Mapped with direct work";
 }
 
 function increment(map, key) {

@@ -36232,6 +36232,4529 @@ export const ISM_SOURCE_CONTROLS = [
   }
 ] as const satisfies readonly Omit<SourceControlEntity, "createdAt" | "updatedAt">[];
 
+export const ISM_SOURCE_CONTROL_CATEGORIES = [
+  {
+    "controlId": "ism-principle-gov-01",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-08",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-02",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-04",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-09",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-03",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-05",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-06",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-10",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-11",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-12",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-13",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-14",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-gov-07",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-ide-01",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-ide-05",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-ide-02",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-ide-03",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-ide-06",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-ide-04",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-01",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-16",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-13",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-12",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-05",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-04",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-06",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-07",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-08",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-17",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-10",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-18",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-19",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-20",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-09",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-14",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-pro-15",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-det-01",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-det-04",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-det-02",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-det-03",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-det-05",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-res-01",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-res-05",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-res-03",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-res-02",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-res-04",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-rec-02",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-principle-rec-01",
+    "category": "Cyber security principles"
+  },
+  {
+    "controlId": "ism-1997",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1998",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1999",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-2000",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-2001",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-2002",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-2003",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-2004",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-2005",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-2006",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0714",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1478",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1617",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1966",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0724",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0725",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0726",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0718",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1918",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0733",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1618",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0734",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0720",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0731",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0732",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0717",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-2020",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0735",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1071",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1525",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1633",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1203",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1634",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0009",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1635",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1636",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1967",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0027",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1968",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1526",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-2021",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-1587",
+    "category": "Guidelines for cyber security roles"
+  },
+  {
+    "controlId": "ism-0576",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1784",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-0125",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1803",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1625",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1626",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-0120",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-0123",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-0140",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1880",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1881",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1819",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-0133",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-0917",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1969",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1970",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-0137",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1609",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1731",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1732",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1213",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-0138",
+    "category": "Guidelines for cyber security incidents"
+  },
+  {
+    "controlId": "ism-1631",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1452",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1567",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1568",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1882",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1632",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1569",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1785",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1786",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1787",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1788",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1789",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1790",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1791",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1792",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1736",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1737",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1793",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1971",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1637",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1638",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1529",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1570",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1972",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1395",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-0072",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1571",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1738",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1804",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-0141",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1794",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1451",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1572",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1573",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1574",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1575",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1073",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-1576",
+    "category": "Guidelines for procurement and outsourcing"
+  },
+  {
+    "controlId": "ism-0039",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-0047",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-1739",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-0888",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-1602",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-0041",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-0043",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-0912",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-1163",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-1563",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-1564",
+    "category": "Guidelines for cyber security documentation"
+  },
+  {
+    "controlId": "ism-1973",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-0810",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-1974",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-1053",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-1975",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-1530",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-0813",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-1074",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-1296",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-1543",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-0225",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-0829",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-2069",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-2070",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-2007",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-2008",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-2009",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-0164",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-0161",
+    "category": "Guidelines for physical security"
+  },
+  {
+    "controlId": "ism-0252",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1565",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-2022",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1740",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-2071",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0817",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0820",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1146",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0821",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0824",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1864",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-2074",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0258",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0432",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0434",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0435",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1865",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0414",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0415",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1583",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0420",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0405",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1852",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1566",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0409",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0411",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1507",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1508",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1175",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1883",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1649",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0445",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1263",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1509",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1650",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0446",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0447",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0430",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1591",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1404",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1648",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1647",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0407",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0441",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0443",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1610",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1611",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1612",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1614",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1615",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-1613",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0078",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0854",
+    "category": "Guidelines for personnel security"
+  },
+  {
+    "controlId": "ism-0181",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1111",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0211",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0208",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1645",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1646",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0206",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1096",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1639",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1640",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1820",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0926",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1718",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1719",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1216",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1112",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1119",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0187",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1821",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1114",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1130",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1164",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0195",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0194",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0201",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1115",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1133",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1122",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1105",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1095",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1822",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1107",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1720",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1721",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1109",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0218",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1102",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1101",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1103",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1098",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1100",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0213",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0216",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0217",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1116",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0198",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1123",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0250",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1884",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1137",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0249",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-0246",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1885",
+    "category": "Guidelines for communications infrastructure"
+  },
+  {
+    "controlId": "ism-1078",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0229",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0230",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0231",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0232",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0233",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0235",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0236",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0931",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-1562",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0546",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0548",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0547",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0554",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0553",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0555",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0551",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-1014",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0549",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0556",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0558",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0559",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-1450",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-1019",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-1805",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0588",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0245",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-1854",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0590",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-0589",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-1855",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-1036",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-2075",
+    "category": "Guidelines for communications systems"
+  },
+  {
+    "controlId": "ism-1297",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1400",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1866",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-2095",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0694",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1482",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0874",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0705",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1533",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1195",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1867",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0687",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0869",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1868",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1085",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1886",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-2096",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-2097",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1887",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1888",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-2098",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0863",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0864",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1366",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1082",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1083",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1299",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0240",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1196",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1200",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1198",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1199",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0682",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-2099",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-2100",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-2101",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0866",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1145",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1644",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0871",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0870",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1084",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0701",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0702",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1298",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1554",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1555",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1088",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1300",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-1556",
+    "category": "Guidelines for enterprise mobility"
+  },
+  {
+    "controlId": "ism-0280",
+    "category": "Guidelines for evaluated products"
+  },
+  {
+    "controlId": "ism-0285",
+    "category": "Guidelines for evaluated products"
+  },
+  {
+    "controlId": "ism-0286",
+    "category": "Guidelines for evaluated products"
+  },
+  {
+    "controlId": "ism-0289",
+    "category": "Guidelines for evaluated products"
+  },
+  {
+    "controlId": "ism-0290",
+    "category": "Guidelines for evaluated products"
+  },
+  {
+    "controlId": "ism-1551",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1913",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1858",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0336",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1869",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0294",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0296",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0293",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1599",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1079",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0305",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0307",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0306",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0310",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1598",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0313",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1741",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0311",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1742",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1218",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0312",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0315",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0317",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1219",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1220",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1221",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0318",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1534",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1076",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1222",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1223",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1550",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1217",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0321",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-0316",
+    "category": "Guidelines for information technology equipment"
+  },
+  {
+    "controlId": "ism-1549",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1359",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1713",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0332",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0323",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0337",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0325",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0330",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0831",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1059",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1600",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1642",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0347",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0947",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0348",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0351",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0352",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0835",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0354",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1065",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1067",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0356",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0357",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0836",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0358",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0359",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0360",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1735",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0363",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0350",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1361",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1160",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1517",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1722",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1723",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1724",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1725",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1726",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1727",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0368",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1728",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1729",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0361",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0362",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1641",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0370",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0371",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0372",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0373",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0839",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0840",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0374",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0378",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-0375",
+    "category": "Guidelines for media"
+  },
+  {
+    "controlId": "ism-1743",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1407",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1408",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1406",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1608",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1588",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1914",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1409",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0383",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0380",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0341",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1654",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1655",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1492",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1745",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1584",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1491",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1592",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0382",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0843",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1490",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1656",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1870",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1871",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1657",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1658",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0955",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1471",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1392",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1746",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1544",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1659",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1582",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0846",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1660",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1889",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1621",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1622",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1623",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1624",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1341",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1034",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1416",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1417",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1418",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0343",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0345",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1976",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1977",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0582",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0938",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1467",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1915",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1806",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1470",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1235",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1667",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1668",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1669",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1542",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1859",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1823",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1486",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1485",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1412",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1585",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1670",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1860",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1824",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1601",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1748",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1825",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1671",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1488",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1672",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1673",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1674",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1890",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1487",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1675",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1891",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1676",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1489",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1826",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1483",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1916",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1246",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1260",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1247",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1245",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1249",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1250",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1926",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1927",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1928",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1830",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1827",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1929",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1828",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1829",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1930",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1931",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1832",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1932",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1933",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-2010",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1834",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1833",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1934",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1835",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1935",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1836",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1838",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1936",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1937",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1839",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1840",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1841",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1842",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1843",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1844",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1938",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1620",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1939",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1940",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1941",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1942",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1845",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1846",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1943",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1944",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1945",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1946",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1947",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1948",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1949",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1950",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1951",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1952",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1978",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1979",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1546",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1603",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1055",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-2076",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-2077",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1504",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1679",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1680",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1892",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1893",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1681",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1919",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1173",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0974",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1505",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1401",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1872",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1873",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1874",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1682",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1894",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-2011",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1920",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1683",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0417",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1895",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1559",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1560",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1561",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0421",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1557",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0422",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1558",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-2078",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-2079",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-2080",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-2081",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1593",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1227",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1594",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1595",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1596",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1953",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1685",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1795",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1954",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1619",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1590",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1955",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1847",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1956",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1597",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1980",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0418",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1402",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1957",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1896",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1861",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1686",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1897",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1749",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1875",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1403",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0853",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0428",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-2012",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0408",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1460",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1604",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1605",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1606",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1848",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1607",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-1461",
+    "category": "Guidelines for system hardening"
+  },
+  {
+    "controlId": "ism-0042",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1211",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1898",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1380",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1687",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1688",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1689",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1958",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1385",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1750",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1386",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1387",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1899",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1143",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-0298",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1493",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1643",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1807",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1808",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1698",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1699",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1700",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1701",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1702",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1752",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1703",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1900",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1921",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1876",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1690",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1691",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1692",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1901",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1693",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1877",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1694",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1695",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1696",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1902",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1878",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1751",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1879",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1697",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1903",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1904",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-0300",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1905",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1704",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-0304",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1501",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1753",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1981",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1982",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1809",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1510",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1547",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1548",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1511",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1810",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1811",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1812",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1813",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1705",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1706",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1814",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1707",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1708",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-1515",
+    "category": "Guidelines for system management"
+  },
+  {
+    "controlId": "ism-0580",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1405",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1983",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1984",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1985",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1815",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-0988",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-0585",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1959",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1986",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1906",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1907",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-0109",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1987",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1960",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1961",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1228",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1988",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-1989",
+    "category": "Guidelines for system monitoring"
+  },
+  {
+    "controlId": "ism-0400",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1419",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1420",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2023",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2024",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1422",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1816",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2025",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2026",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2027",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2028",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2102",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2029",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2030",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2031",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2032",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2033",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2034",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2035",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2036",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2037",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2038",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-0401",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1238",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2039",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2040",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2041",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2042",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1780",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2043",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1796",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1797",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2044",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2045",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2046",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2047",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2048",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2049",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2050",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2051",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2052",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1798",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2053",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2054",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1730",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2082",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2083",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2055",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2056",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1818",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2013",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1817",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2014",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1910",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2015",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1240",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2016",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2057",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2058",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2059",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1275",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1276",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1278",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1536",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-0402",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2060",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2061",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2062",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1616",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1755",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1756",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1717",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1908",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1754",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1909",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1911",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2084",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2072",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2085",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2103",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2086",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2087",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2088",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2089",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2090",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2091",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2092",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2093",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1924",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2094",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1922",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1239",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-0971",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1849",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1850",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2063",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2064",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2065",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2066",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-2067",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1424",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1552",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1851",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1241",
+    "category": "Guidelines for software development"
+  },
+  {
+    "controlId": "ism-1269",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1277",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1270",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1271",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1272",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1273",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1243",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1256",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-0393",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1255",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1268",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1274",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-1537",
+    "category": "Guidelines for database systems"
+  },
+  {
+    "controlId": "ism-0264",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0267",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0270",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0271",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0272",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1089",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0565",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1023",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0269",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0569",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0571",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0570",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0567",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0572",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1589",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0574",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1183",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1151",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0861",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1026",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1027",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1540",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1799",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1234",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1502",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-1024",
+    "category": "Guidelines for email"
+  },
+  {
+    "controlId": "ism-0518",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0516",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1912",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1178",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1181",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1577",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1532",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0529",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0530",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0535",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1364",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-2068",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1863",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0385",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1479",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1781",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0521",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1186",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1428",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1429",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1430",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0520",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1182",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1006",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1962",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1311",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1312",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1028",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1030",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1627",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1628",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-2017",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1782",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1800",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1304",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0534",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1801",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1963",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1964",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1314",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0536",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1315",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1710",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1316",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1317",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1318",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1320",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1319",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1332",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1321",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1711",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1322",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1324",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1323",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1327",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1330",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1712",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1454",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1334",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1335",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1338",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1013",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1437",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1579",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1580",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1581",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1438",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1439",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1431",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1436",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-1432",
+    "category": "Guidelines for networking"
+  },
+  {
+    "controlId": "ism-0499",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1802",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0507",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1080",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0459",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0469",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0457",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0460",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0465",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0467",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0455",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0462",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0501",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0142",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1091",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0471",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0994",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0472",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1759",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1629",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1446",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0474",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1761",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1762",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0475",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1763",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1764",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1990",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1991",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1992",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1993",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1994",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1995",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0476",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1765",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0477",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1766",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1767",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1768",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1769",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1770",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0479",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-2073",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1917",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1996",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0481",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1139",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1369",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1370",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1372",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1448",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1373",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1374",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1375",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1553",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1453",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1506",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0484",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0485",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1449",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0487",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0488",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0489",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0490",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0494",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0496",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1233",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1771",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1772",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0998",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0999",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0498",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-1000",
+    "category": "Guidelines for cryptography"
+  },
+  {
+    "controlId": "ism-0628",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0637",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0631",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1192",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1427",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1520",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0613",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1773",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0611",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0616",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0612",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1774",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0629",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0619",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0622",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1783",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-2018",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0634",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1037",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0100",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-2019",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0626",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0597",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0635",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1522",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1521",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0670",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1523",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0610",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1528",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0639",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1862",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0643",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0645",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1157",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1158",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0260",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0261",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0963",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0961",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1237",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0263",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0958",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1236",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1171",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0659",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0651",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0652",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1524",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1293",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1289",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1290",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1288",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1389",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0649",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1284",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1965",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1286",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1287",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0677",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0591",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1457",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-1480",
+    "category": "Guidelines for gateways"
+  },
+  {
+    "controlId": "ism-0663",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-1535",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-0661",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-0657",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-1778",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-0664",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-0675",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-0665",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-1187",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-0669",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-1779",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-1586",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-1294",
+    "category": "Guidelines for data transfers"
+  },
+  {
+    "controlId": "ism-0660",
+    "category": "Guidelines for data transfers"
+  }
+] as const;
+
 export const PREVIOUS_ISM_SOURCE_CONTROLS = [
   {
     "controlId": "ism-principle-gov-01",
@@ -47536,7 +52059,7 @@ export const PREVIOUS_ISM_SOURCE_CONTROLS = [
 ] as const satisfies readonly Pick<SourceControlEntity, "controlId" | "statement" | "provenance">[];
 
 export const PSPF_REFERENCE_DATA_REPORT = {
-  "generatedAt": "2026-05-13T01:49:11.133Z",
+  "generatedAt": "2026-05-29T07:13:58.320Z",
   "sources": [
     {
       "sourceId": "pspf-release-2025-list-requirements",

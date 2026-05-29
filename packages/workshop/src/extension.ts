@@ -84,6 +84,7 @@ import {
 } from "./relationship-rules.js";
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
 import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire } from "./questionnaire/flow.js";
+import { ISM_SOURCE_CONTROL_CATEGORIES } from "@pspf/reference-data";
 
 // v1.33 questionnaire surface: re-run modes include the literal
 // "Answer all questions again" so operators can refresh their full answer set
@@ -98,6 +99,10 @@ const riskSourceRunsKey = "pspf.workshop.riskSourceRuns.v1";
 const riskSourceSecretKey = "pspf.workshop.6clicksRiskSource.credential";
 const riskSourceConfigFile = "integrations.json";
 const STRATEGY_REFERENCE_ROLES = ["drives", "addresses", "blocked-by", "evidenced-by", "monitors"] as const;
+const ismSourceControlCategoryByControlId = new Map<string, string>(
+  ISM_SOURCE_CONTROL_CATEGORIES.map((item) => [item.controlId, item.category] as const)
+);
+const ismSourceControlCategoryOrder = uniqueStrings(ISM_SOURCE_CONTROL_CATEGORIES.map((item) => item.category));
 let workshopContext: vscode.ExtensionContext | undefined;
 let homeViewProvider: WorkshopHomeViewProvider | undefined;
 let requirementWorkbenchController:
@@ -160,6 +165,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openEvidenceReviewQueue", openEvidenceReviewQueue),
     vscode.commands.registerCommand("pspf.workshop.openItemDetail", openItemDetail),
     vscode.commands.registerCommand("pspf.workshop.browseIsmSourceControls", browseIsmSourceControls),
+    vscode.commands.registerCommand("pspf.workshop.openIsmReviewWorkbench", openIsmReviewWorkbench),
     vscode.commands.registerCommand("pspf.workshop.openIsmControlDetail", openIsmControlDetail),
     vscode.commands.registerCommand("pspf.workshop.createRequirementControlMapping", createRequirementControlMapping),
     vscode.commands.registerCommand("pspf.workshop.registerDirection", registerDirection),
@@ -303,6 +309,8 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.createRoadmapInitiativePlan",
       "pspf.workshop.openEvidenceReviewQueue",
       "pspf.workshop.openItemDetail",
+      "pspf.workshop.openIsmReviewWorkbench",
+      "pspf.workshop.browseIsmSourceControls",
       "pspf.workshop.registerDirection",
       "pspf.workshop.updateDirectionResponse",
       "pspf.workshop.openDirectionDetail",
@@ -445,6 +453,8 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
         ${homeButton("pspf.workshop.openMasterDashboard", "Master Dashboard", "Open the CISO decision board")}
         ${homeButton("pspf.workshop.openEssentialEightDashboard", "Essential Eight", "Track E8 posture, mappings, and uplift plan")}
+        ${homeButton("pspf.workshop.openIsmReviewWorkbench", "ISM Review", "Review controls needing mapping, evidence, actions, or drift attention")}
+        ${homeButton("pspf.workshop.browseIsmSourceControls", "ISM controls", "Browse ISM controls by category, drift, profile, and implementation state")}
         ${homeButton("pspf.workshop.openPlanOfActionBoard", "Plan of Action", "Manage the action worklist")}
         ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
         ${homeButton("pspf.workshop.openStrategyMap", "Strategy Map", "Connect strategic choices to Requirements, Risks, Actions, and Directions")}
@@ -4946,6 +4956,7 @@ async function browseIsmSourceControls(): Promise<void> {
       ${versionStrip()}
       <div class="form-actions">
         <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.openIsmReviewWorkbench">Review Workbench</button>
         <button type="button" data-command="pspf.workshop.createRequirementControlMapping">Map Requirement</button>
         <button type="button" data-command="pspf.workshop.openEssentialEightDashboard">Essential Eight</button>
       </div>
@@ -4953,6 +4964,277 @@ async function browseIsmSourceControls(): Promise<void> {
     ${renderIsmSourceControlsBrowser(sourceControls)}
   `
   );
+}
+
+type IsmReviewState =
+  | "unmapped"
+  | "not-assessed"
+  | "drift-review"
+  | "needs-direct-work"
+  | "risk-without-action"
+  | "reviewed";
+
+interface IsmReviewWorkbenchRow {
+  readonly sourceControl: SourceControlEntity;
+  readonly reviewStates: readonly IsmReviewState[];
+  readonly mappingCount: number;
+  readonly evidenceCount: number;
+  readonly actionCount: number;
+  readonly riskCount: number;
+}
+
+async function openIsmReviewWorkbench(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const sourceControls = allEntities
+    .filter(
+      (entity): entity is SourceControlEntity =>
+        entity.entityType === "source-control" && entity.recordStatus !== "deleted"
+    )
+    .sort(compareSourceControlsForBrowser);
+  const rows = buildIsmReviewWorkbenchRows(sourceControls, allEntities);
+  const panel = vscode.window.createWebviewPanel("pspfIsmReviewWorkbench", "PSPF ISM Review", vscode.ViewColumn.One, {
+    enableScripts: true
+  });
+  wireWorkshopPanelMessages(panel, openIsmReviewWorkbench);
+  panel.webview.html = shellHtml(
+    "PSPF ISM Review",
+    `
+    <section>
+      <h1>ISM Review Workbench</h1>
+      <p class="muted">Prioritise source controls that need mapping, direct work, implementation assessment, or drift review.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Controls", sourceControls.length)}
+        ${metricCard("Unmapped", countIsmReviewRows(rows, "unmapped"))}
+        ${metricCard("Not assessed", countIsmReviewRows(rows, "not-assessed"))}
+        ${metricCard("Needs direct work", countIsmReviewRows(rows, "needs-direct-work"))}
+        ${metricCard("Drift review", countIsmReviewRows(rows, "drift-review"))}
+        ${metricCard("Risk without action", countIsmReviewRows(rows, "risk-without-action"))}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.browseIsmSourceControls">All ISM controls</button>
+        <button type="button" data-command="pspf.workshop.createRequirementControlMapping">Map Requirement</button>
+      </div>
+    </section>
+    ${renderIsmReviewWorkbenchTable(rows)}
+  `
+  );
+}
+
+function buildIsmReviewWorkbenchRows(
+  sourceControls: readonly SourceControlEntity[],
+  allEntities: readonly V01Entity[]
+): readonly IsmReviewWorkbenchRow[] {
+  const mappings = allEntities.filter(
+    (entity): entity is RequirementControlMappingEntity =>
+      entity.entityType === "requirement-control-mapping" && entity.recordStatus !== "deleted"
+  );
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const mappingCounts = new Map<string, number>();
+  const directEvidenceCounts = new Map<string, number>();
+  const directActionCounts = new Map<string, number>();
+  const directRiskCounts = new Map<string, number>();
+  for (const mapping of mappings) {
+    mappingCounts.set(mapping.sourceControlId, (mappingCounts.get(mapping.sourceControlId) ?? 0) + 1);
+  }
+  for (const link of links) {
+    if (link.fromType !== "source-control") {
+      continue;
+    }
+    if (link.linkType === "supported-by" && link.toType === "evidence") {
+      directEvidenceCounts.set(link.fromId, (directEvidenceCounts.get(link.fromId) ?? 0) + 1);
+    }
+    if (link.linkType === "addressed-by" && link.toType === "action") {
+      directActionCounts.set(link.fromId, (directActionCounts.get(link.fromId) ?? 0) + 1);
+    }
+    if (link.linkType === "exposed-by" && link.toType === "risk") {
+      directRiskCounts.set(link.fromId, (directRiskCounts.get(link.fromId) ?? 0) + 1);
+    }
+  }
+  return sourceControls
+    .map((sourceControl) => {
+      const mappingCount = mappingCounts.get(sourceControl.id) ?? 0;
+      const evidenceCount = directEvidenceCounts.get(sourceControl.id) ?? 0;
+      const actionCount = directActionCounts.get(sourceControl.id) ?? 0;
+      const riskCount = directRiskCounts.get(sourceControl.id) ?? 0;
+      const directWorkCount = evidenceCount + actionCount + riskCount;
+      const reviewStates: IsmReviewState[] = [];
+      if (mappingCount === 0) {
+        reviewStates.push("unmapped");
+      }
+      if (sourceControl.implementationStatus === undefined) {
+        reviewStates.push("not-assessed");
+      }
+      if (sourceControl.statementChangeStatus !== "unchanged") {
+        reviewStates.push("drift-review");
+      }
+      if (mappingCount > 0 && directWorkCount === 0) {
+        reviewStates.push("needs-direct-work");
+      }
+      if (riskCount > 0 && actionCount === 0) {
+        reviewStates.push("risk-without-action");
+      }
+      const effectiveReviewStates: readonly IsmReviewState[] = reviewStates.length > 0 ? reviewStates : ["reviewed"];
+      return {
+        sourceControl,
+        reviewStates: effectiveReviewStates,
+        mappingCount,
+        evidenceCount,
+        actionCount,
+        riskCount
+      };
+    })
+    .sort(
+      (left, right) =>
+        ismReviewSortWeight(left.reviewStates) - ismReviewSortWeight(right.reviewStates) ||
+        compareSourceControlsForBrowser(left.sourceControl, right.sourceControl)
+    );
+}
+
+function renderIsmReviewWorkbenchTable(rows: readonly IsmReviewWorkbenchRow[]): string {
+  const categories = ismSourceControlCategoriesForBrowser(rows.map((row) => row.sourceControl));
+  const body = rows.map(renderIsmReviewWorkbenchRow).join("");
+  return `<section class="ism-review-workbench">
+    <div class="ism-review-workbench__toolbar" role="search" aria-label="Filter ISM review controls">
+      <label>
+        <span>Category</span>
+        <select id="ism-review-category-filter">
+          <option value="">All categories</option>
+          ${categories.map((category) => `<option value="${escapeHtml(category.label)}">${escapeHtml(category.label)} (${category.count})</option>`).join("")}
+        </select>
+      </label>
+    </div>
+    <div class="ism-review-workbench__filters" aria-label="ISM review queues">
+      ${ismReviewFilterButton("all", "All", rows.length)}
+      ${ismReviewFilterButton("unmapped", "Unmapped", countIsmReviewRows(rows, "unmapped"))}
+      ${ismReviewFilterButton("not-assessed", "Not assessed", countIsmReviewRows(rows, "not-assessed"))}
+      ${ismReviewFilterButton("needs-direct-work", "Needs direct work", countIsmReviewRows(rows, "needs-direct-work"))}
+      ${ismReviewFilterButton("drift-review", "Drift review", countIsmReviewRows(rows, "drift-review"))}
+      ${ismReviewFilterButton("risk-without-action", "Risk without action", countIsmReviewRows(rows, "risk-without-action"))}
+    </div>
+    <p class="muted" id="ism-review-count">Showing ${rows.length} of ${rows.length} controls.</p>
+    <div class="table-wrap" tabindex="0" aria-label="ISM review workbench table">
+      <table id="ism-review-table">
+        <thead>
+          <tr>
+            <th data-field="action">Open</th>
+            <th>Control</th>
+            <th>Review state</th>
+            <th>Implementation</th>
+            <th>Mappings</th>
+            <th>Evidence</th>
+            <th>Actions</th>
+            <th>Risks</th>
+            <th>Drift</th>
+          </tr>
+        </thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>
+    ${ismReviewWorkbenchScript(rows.length)}
+  </section>`;
+}
+
+function renderIsmReviewWorkbenchRow(row: IsmReviewWorkbenchRow): string {
+  const reviewStateLabels = row.reviewStates.map(ismReviewStateLabel).join(", ");
+  const category = ismSourceControlCategory(row.sourceControl);
+  return `<tr data-review-state="${escapeHtml(row.reviewStates.join(" "))}" data-category="${escapeHtml(category)}">
+    <td data-field="action"><button type="button" data-command="openIsmControlDetail" data-source-control-id="${escapeHtml(row.sourceControl.id)}">Open</button></td>
+    <td><strong>${escapeHtml(row.sourceControl.controlId)}</strong><br>${escapeHtml(row.sourceControl.title)}</td>
+    <td>${escapeHtml(reviewStateLabels)}</td>
+    <td>${escapeHtml(implementationStatusLabel(row.sourceControl.implementationStatus))}</td>
+    <td>${row.mappingCount}</td>
+    <td>${row.evidenceCount}</td>
+    <td>${row.actionCount}</td>
+    <td>${row.riskCount}</td>
+    <td>${escapeHtml(statementChangeLabel(row.sourceControl.statementChangeStatus))}</td>
+  </tr>`;
+}
+
+function ismReviewFilterButton(value: IsmReviewState | "all", labelText: string, count: number): string {
+  return `<button type="button" data-ism-review-filter="${escapeHtml(value)}">${escapeHtml(labelText)} (${count})</button>`;
+}
+
+function countIsmReviewRows(rows: readonly IsmReviewWorkbenchRow[], state: IsmReviewState): number {
+  return rows.filter((row) => row.reviewStates.includes(state)).length;
+}
+
+function ismReviewSortWeight(states: readonly IsmReviewState[]): number {
+  const weights: Record<IsmReviewState, number> = {
+    "risk-without-action": 0,
+    "drift-review": 1,
+    "needs-direct-work": 2,
+    unmapped: 3,
+    "not-assessed": 4,
+    reviewed: 5
+  };
+  return Math.min(...states.map((state) => weights[state]));
+}
+
+function ismReviewStateLabel(state: IsmReviewState): string {
+  switch (state) {
+    case "unmapped":
+      return "Unmapped";
+    case "not-assessed":
+      return "Implementation not assessed";
+    case "drift-review":
+      return "Drift review";
+    case "needs-direct-work":
+      return "Needs direct work";
+    case "risk-without-action":
+      return "Risk without action";
+    case "reviewed":
+      return "Reviewed";
+  }
+}
+
+function ismReviewWorkbenchScript(totalCount: number): string {
+  return `<style>
+    .ism-review-workbench__toolbar { display: grid; grid-template-columns: minmax(16rem, 24rem); gap: 0.75rem; align-items: end; margin: 1rem 0; }
+    .ism-review-workbench__toolbar label { display: grid; gap: 0.3rem; }
+    .ism-review-workbench__toolbar span { color: var(--vscode-descriptionForeground); font-size: 0.82rem; }
+    .ism-review-workbench__toolbar select { width: 100%; box-sizing: border-box; }
+    .ism-review-workbench__filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+    .ism-review-workbench__filters button[aria-pressed="true"] { border-color: var(--vscode-focusBorder); }
+    .ism-review-workbench th[data-field="action"], .ism-review-workbench td[data-field="action"] { width: 4.75rem; min-width: 4.75rem; white-space: nowrap; }
+    .ism-review-workbench td[data-field="action"] button { min-width: 3.75rem; padding-inline: 0.5rem; font-size: 0.82rem; white-space: nowrap; }
+  </style>
+  <script>
+    (() => {
+      const rows = Array.from(document.querySelectorAll('#ism-review-table tbody tr'));
+      const categoryFilter = document.getElementById('ism-review-category-filter');
+      const buttons = Array.from(document.querySelectorAll('[data-ism-review-filter]'));
+      const count = document.querySelector('#ism-review-count');
+      let active = 'all';
+      function applyFilter(next) {
+        active = next;
+        const selectedCategory = categoryFilter instanceof HTMLSelectElement ? categoryFilter.value : '';
+        let visible = 0;
+        for (const row of rows) {
+          const states = row.dataset.reviewState || '';
+          const category = row.dataset.category || '';
+          const show = (active === 'all' || states.split(' ').includes(active)) && (!selectedCategory || category === selectedCategory);
+          row.hidden = !show;
+          if (show) visible += 1;
+        }
+        for (const button of buttons) {
+          button.setAttribute('aria-pressed', button.dataset.ismReviewFilter === active ? 'true' : 'false');
+        }
+        if (count) {
+          count.textContent = 'Showing ' + visible + ' of ${totalCount} controls.';
+        }
+      }
+      for (const button of buttons) {
+        button.addEventListener('click', () => applyFilter(button.dataset.ismReviewFilter || 'all'));
+      }
+      categoryFilter?.addEventListener('change', () => applyFilter(active));
+      applyFilter('all');
+    })();
+  </script>`;
 }
 
 function compareSourceControlsForBrowser(left: SourceControlEntity, right: SourceControlEntity): number {
@@ -4963,7 +5245,38 @@ function compareSourceControlsForBrowser(left: SourceControlEntity, right: Sourc
   );
 }
 
+function ismSourceControlCategory(sourceControl: SourceControlEntity): string {
+  return ismSourceControlCategoryByControlId.get(sourceControl.controlId) ?? "Uncategorised";
+}
+
+function ismSourceControlCategoriesForBrowser(
+  sourceControls: readonly SourceControlEntity[]
+): readonly { readonly label: string; readonly count: number }[] {
+  const counts = new Map<string, number>();
+  for (const sourceControl of sourceControls) {
+    const category = ismSourceControlCategory(sourceControl);
+    counts.set(category, (counts.get(category) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .map(([label, count]) => ({ label, count }))
+    .sort((left, right) => {
+      const leftIndex = ismSourceControlCategoryOrder.indexOf(left.label);
+      const rightIndex = ismSourceControlCategoryOrder.indexOf(right.label);
+      if (leftIndex >= 0 && rightIndex >= 0) {
+        return leftIndex - rightIndex;
+      }
+      if (leftIndex >= 0) {
+        return -1;
+      }
+      if (rightIndex >= 0) {
+        return 1;
+      }
+      return left.label.localeCompare(right.label, "en-AU");
+    });
+}
+
 function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEntity[]): string {
+  const categories = ismSourceControlCategoriesForBrowser(sourceControls);
   const profiles = uniqueStrings(sourceControls.flatMap((sourceControl) => sourceControl.profileTags)).sort(
     (left, right) => left.localeCompare(right, "en-AU", { numeric: true })
   );
@@ -4999,6 +5312,13 @@ function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEn
       <label>
         <span>Search controls</span>
         <input id="ism-control-search" type="search" placeholder="Control ID, title, statement, profile, release" autocomplete="off">
+      </label>
+      <label>
+        <span>Category</span>
+        <select id="ism-category-filter">
+          <option value="">All categories</option>
+          ${categories.map((category) => `<option value="${escapeHtml(category.label)}">${escapeHtml(category.label)} (${category.count})</option>`).join("")}
+        </select>
       </label>
       <label>
         <span>Profile</span>
@@ -5045,6 +5365,7 @@ function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEn
 }
 
 function renderIsmSourceControlBrowserRow(sourceControl: SourceControlEntity): string {
+  const category = ismSourceControlCategory(sourceControl);
   const profiles = sourceControl.profileTags.join(", ");
   const drift = statementChangeLabel(sourceControl.statementChangeStatus);
   const implementation = implementationStatusLabel(sourceControl.implementationStatus);
@@ -5056,11 +5377,12 @@ function renderIsmSourceControlBrowserRow(sourceControl: SourceControlEntity): s
     profiles,
     release,
     drift,
-    implementation
+    implementation,
+    category
   ]
     .join(" ")
     .toLocaleLowerCase("en-AU");
-  return `<tr data-search="${escapeHtml(searchText)}" data-profile="${escapeHtml(profiles)}" data-drift="${escapeHtml(drift)}" data-implementation="${escapeHtml(implementation)}" data-control-id="${escapeHtml(sourceControl.controlId)}" data-title="${escapeHtml(sourceControl.title)}" data-profiles="${escapeHtml(profiles)}" data-release="${escapeHtml(release)}">
+  return `<tr data-search="${escapeHtml(searchText)}" data-category="${escapeHtml(category)}" data-profile="${escapeHtml(profiles)}" data-drift="${escapeHtml(drift)}" data-implementation="${escapeHtml(implementation)}" data-control-id="${escapeHtml(sourceControl.controlId)}" data-title="${escapeHtml(sourceControl.title)}" data-profiles="${escapeHtml(profiles)}" data-release="${escapeHtml(release)}">
     <td data-field="action"><button type="button" data-command="openIsmControlDetail" data-source-control-id="${escapeHtml(sourceControl.id)}">Open</button></td>
     <td data-field="controlId"><strong>${escapeHtml(sourceControl.controlId)}</strong></td>
     <td data-field="title">${escapeHtml(sourceControl.title)}<br><span class="muted">${escapeHtml(sourceControl.statement)}</span></td>
@@ -5073,11 +5395,13 @@ function renderIsmSourceControlBrowserRow(sourceControl: SourceControlEntity): s
 
 function ismSourceControlsBrowserScript(totalCount: number): string {
   return `<style>
-    .ism-browser__toolbar { display: grid; grid-template-columns: minmax(18rem, 2fr) minmax(12rem, 1fr) minmax(10rem, 1fr) minmax(10rem, 1fr) auto; gap: 0.75rem; align-items: end; margin: 1rem 0; }
+    .ism-browser__toolbar { display: grid; grid-template-columns: minmax(18rem, 2fr) minmax(14rem, 1.4fr) minmax(12rem, 1fr) minmax(10rem, 1fr) minmax(10rem, 1fr) auto; gap: 0.75rem; align-items: end; margin: 1rem 0; }
     .ism-browser__toolbar label { display: grid; gap: 0.3rem; }
     .ism-browser__toolbar span { color: var(--vscode-descriptionForeground); font-size: 0.82rem; }
     .ism-browser__toolbar input, .ism-browser__toolbar select { width: 100%; box-sizing: border-box; }
     .ism-browser__table table { min-width: 1120px; }
+    .ism-browser__table th[data-field="action"], .ism-browser__table td[data-field="action"] { width: 4.75rem; min-width: 4.75rem; white-space: nowrap; }
+    .ism-browser__table td[data-field="action"] button { min-width: 3.75rem; padding-inline: 0.5rem; font-size: 0.82rem; white-space: nowrap; }
     .ism-browser__table th button { width: 100%; color: inherit; background: transparent; border: 0; padding: 0; font: inherit; text-align: left; cursor: pointer; }
     .ism-browser__table th button::after { content: " ↕"; color: var(--vscode-descriptionForeground); }
     .ism-browser__table th button[aria-sort="ascending"]::after { content: " ↑"; }
@@ -5088,6 +5412,7 @@ function ismSourceControlsBrowserScript(totalCount: number): string {
   <script>
     (() => {
       const searchInput = document.getElementById('ism-control-search');
+      const categoryFilter = document.getElementById('ism-category-filter');
       const profileFilter = document.getElementById('ism-profile-filter');
       const driftFilter = document.getElementById('ism-drift-filter');
       const implementationFilter = document.getElementById('ism-implementation-filter');
@@ -5104,16 +5429,18 @@ function ismSourceControlsBrowserScript(totalCount: number): string {
       }
       function applyFilters() {
         const query = searchInput instanceof HTMLInputElement ? searchInput.value.trim().toLocaleLowerCase('en-AU') : '';
+        const category = categoryFilter instanceof HTMLSelectElement ? categoryFilter.value : '';
         const profile = profileFilter instanceof HTMLSelectElement ? profileFilter.value : '';
         const drift = driftFilter instanceof HTMLSelectElement ? driftFilter.value : '';
         const implementation = implementationFilter instanceof HTMLSelectElement ? implementationFilter.value : '';
         let visible = 0;
         for (const row of rows) {
           const matchesQuery = !query || rowText(row, 'search').includes(query);
+          const matchesCategory = !category || rowText(row, 'category') === category;
           const matchesProfile = !profile || rowText(row, 'profile').split(', ').includes(profile);
           const matchesDrift = !drift || rowText(row, 'drift') === drift;
           const matchesImplementation = !implementation || rowText(row, 'implementation') === implementation;
-          const isVisible = matchesQuery && matchesProfile && matchesDrift && matchesImplementation;
+          const isVisible = matchesQuery && matchesCategory && matchesProfile && matchesDrift && matchesImplementation;
           row.hidden = !isVisible;
           if (isVisible) visible += 1;
         }
@@ -5137,11 +5464,13 @@ function ismSourceControlsBrowserScript(totalCount: number): string {
           .forEach((row) => body.appendChild(row));
       }
       searchInput?.addEventListener('input', applyFilters);
+      categoryFilter?.addEventListener('change', applyFilters);
       profileFilter?.addEventListener('change', applyFilters);
       driftFilter?.addEventListener('change', applyFilters);
       implementationFilter?.addEventListener('change', applyFilters);
       clearButton?.addEventListener('click', () => {
         if (searchInput instanceof HTMLInputElement) searchInput.value = '';
+        if (categoryFilter instanceof HTMLSelectElement) categoryFilter.value = '';
         if (profileFilter instanceof HTMLSelectElement) profileFilter.value = '';
         if (driftFilter instanceof HTMLSelectElement) driftFilter.value = '';
         if (implementationFilter instanceof HTMLSelectElement) implementationFilter.value = '';

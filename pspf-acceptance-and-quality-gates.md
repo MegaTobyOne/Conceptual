@@ -537,6 +537,16 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deferred-scope gate**: v1.35 does not add editable Explorer ISM authoring, drag-to-link, private/team saved views, non-public ISM statement notes, or new link verbs beyond the existing control-to-work use of `supported-by`, `addressed-by`, and `exposed-by`.
 8. **Regression gate**: `e2e:v1.35`, `check:explorer-publication`, `check:workshop-navigation`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.36 candidate gates (ISM Review Workbench, per ADR 0072)
+
+1. **ADR gate**: ADR 0072 records the ISM Review Workbench decision before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.36.0`; `VERSION_AXES` remain `1.12.0`; no new schema directory is introduced.
+3. **Workshop ISM Review Workbench gate**: Workshop exposes `PSPF: Open ISM Review Workbench` from the command palette, Home, and ISM Source Controls browser; the workbench shows metrics and quick filters for unmapped, not-assessed, drift-review, needs-direct-work, and risk-without-action controls.
+4. **Explorer public review cue gate**: Explorer Obligations and ISM Source Controls show public-safe review-state cues derived only from published mappings, drift, and direct evidence/action/risk link counts.
+5. **No-schema gate**: v1.36 introduces no entity, collection, link verb, saved-view scope, published field, or compatibility-axis bump.
+6. **Deferred-scope gate**: v1.36 does not add editable Explorer ISM authoring, drag-to-link, private/team saved views, non-public ISM statement notes, an ISM profile picker, or runtime ISM network fetch.
+7. **Regression gate**: `e2e:v1.36`, `check:explorer-publication`, `check:workshop-navigation`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.
