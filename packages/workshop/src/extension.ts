@@ -69,6 +69,7 @@ import {
   isValidTagLabel,
   normaliseSavedViewName,
   normaliseTagLabel,
+  operatorLinkRuleForEndpoints,
   withEnvelope
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
@@ -5153,6 +5154,14 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
       .filter((link) => mappedRequirementIds.has(link.fromId) && ["evidence", "action", "risk"].includes(link.toType))
       .map((link) => link.toId)
   );
+  const directWorkLinks = links.filter(
+    (link) =>
+      link.recordStatus !== "deleted" &&
+      link.fromType === "source-control" &&
+      link.fromId === sourceControl.id &&
+      ["evidence", "action", "risk"].includes(link.toType)
+  );
+  const directWorkIds = new Set(directWorkLinks.map((link) => link.toId));
 
   const requirementRows = mappings.map((mapping) => {
     const requirement = requirementsById.get(mapping.requirementId);
@@ -5183,6 +5192,20 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
       linkedRequirement: linkedRequirementTitlesForWork(entity.id, links, requirementsById, mappedRequirementIds)
     }));
 
+  const directWorkRows = allEntities
+    .filter(
+      (entity): entity is EvidenceEntity | ActionEntity | RiskEntity =>
+        (entity.entityType === "evidence" || entity.entityType === "action" || entity.entityType === "risk") &&
+        directWorkIds.has(entity.id)
+    )
+    .map((entity) => ({
+      openEntityType: entity.entityType,
+      openEntityId: entity.id,
+      type: label(entity.entityType),
+      title: entity.title,
+      state: ismLinkedWorkState(entity)
+    }));
+
   const panel = vscode.window.createWebviewPanel(
     "pspfIsmControlDetail",
     shortWorkshopPanelTitle(sourceControl),
@@ -5201,17 +5224,22 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
       <div class="grid">
         ${metricCard("Mapped Requirements", mappings.length)}
         ${metricCard("Linked work records", workRows.length)}
+        ${metricCard("Direct work links", directWorkRows.length)}
         ${metricCard("Profiles", sourceControl.profileTags.length)}
         ${metricCard("Drift", statementChangeLabel(sourceControl.statementChangeStatus))}
       </div>
       <div class="form-actions">
         <button type="button" data-command="pspf.workshop.createRequirementControlMapping">Map Requirement</button>
+        <button type="button" data-command="linkEvidenceToIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Link Evidence</button>
+        <button type="button" data-command="linkActionToIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Link Action</button>
+        <button type="button" data-command="linkRiskToIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Link Risk</button>
         <button type="button" data-command="attachEvidenceForIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Attach Evidence</button>
         <button type="button" data-command="createActionForIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Create Action</button>
         <button type="button" data-command="createRiskForIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Create Risk</button>
         <button type="button" data-command="pspf.workshop.browseIsmSourceControls">All ISM controls</button>
       </div>
     </section>
+    ${recordTable("Work Linked Directly To This Control", directWorkRows, ["type", "title", "state"])}
     ${recordTable("Requirements Mapped To This Control", requirementRows, ["requirement", "domain", "status", "coverage", "profile", "confidence", "reviewed"])}
     ${recordTable("Work Linked Through Mapped Requirements", workRows, ["type", "title", "state", "linkedRequirement"])}
   `
@@ -5240,6 +5268,84 @@ function linkedRequirementTitlesForWork(
     .map((link) => requirementsById.get(link.fromId)?.title)
     .filter((title): title is string => Boolean(title));
   return uniqueStrings(titles).join(", ") || "Not recorded";
+}
+
+async function linkExistingWorkToSourceControl(
+  sourceControlId: string,
+  itemType: "evidence" | "action" | "risk"
+): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const sourceControl = allEntities.find(
+    (entity): entity is SourceControlEntity =>
+      entity.entityType === "source-control" && entity.id === sourceControlId && entity.recordStatus !== "deleted"
+  );
+  if (!sourceControl) {
+    await vscode.window.showWarningMessage("Open an ISM control before linking work directly to it.");
+    return;
+  }
+  const rule = operatorLinkRuleForEndpoints("source-control", itemType, "workshop");
+  if (!rule) {
+    return;
+  }
+  const activeLinks = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const alreadyLinkedIds = new Set(
+    activeLinks
+      .filter(
+        (link) =>
+          link.fromType === "source-control" &&
+          link.fromId === sourceControl.id &&
+          link.linkType === rule.linkType &&
+          link.toType === itemType
+      )
+      .map((link) => link.toId)
+  );
+  const candidates = allEntities
+    .filter(
+      (entity): entity is EvidenceEntity | ActionEntity | RiskEntity =>
+        entity.entityType === itemType && entity.recordStatus !== "deleted" && !alreadyLinkedIds.has(entity.id)
+    )
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
+  if (candidates.length === 0) {
+    await vscode.window.showInformationMessage(
+      `No unlinked ${label(itemType).toLowerCase()} records are available to link to this ISM control.`
+    );
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    candidates.map((entity) => ({ label: entity.title, detail: entity.id, entity })),
+    {
+      title: `Link Existing ${label(itemType)} to ${sourceControl.controlId}`,
+      placeHolder: `Select one or more ${label(itemType).toLowerCase()} records to link directly to this control`,
+      canPickMany: true,
+      ignoreFocusOut: true
+    }
+  );
+  if (!picked || picked.length === 0) {
+    return;
+  }
+  const links = picked.map(({ entity }) =>
+    withEnvelope(
+      "link",
+      {
+        entityType: "link",
+        title: `${sourceControl.controlId} ${rule.phrase} ${entity.title}`,
+        linkType: rule.linkType,
+        fromId: sourceControl.id,
+        fromType: "source-control",
+        toId: entity.id,
+        toType: itemType
+      },
+      "workshop"
+    )
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", links);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(
+    `Linked ${picked.length} ${label(itemType).toLowerCase()} record${picked.length === 1 ? "" : "s"} directly to ${sourceControl.controlId}.`
+  );
 }
 
 async function pickMappedRequirementForSourceControl(
@@ -6423,6 +6529,18 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       }
       if (message.command === "openIsmControlDetail" && message.sourceControlId) {
         await openIsmControlDetail(message.sourceControlId);
+      }
+      if (message.command === "linkEvidenceToIsmControl" && message.sourceControlId) {
+        await linkExistingWorkToSourceControl(message.sourceControlId, "evidence");
+        await refreshPanel?.();
+      }
+      if (message.command === "linkActionToIsmControl" && message.sourceControlId) {
+        await linkExistingWorkToSourceControl(message.sourceControlId, "action");
+        await refreshPanel?.();
+      }
+      if (message.command === "linkRiskToIsmControl" && message.sourceControlId) {
+        await linkExistingWorkToSourceControl(message.sourceControlId, "risk");
+        await refreshPanel?.();
       }
       if (message.command === "attachEvidenceForIsmControl" && message.sourceControlId) {
         const requirement = await pickMappedRequirementForSourceControl(

@@ -153,6 +153,33 @@ export const OPERATOR_LINK_RULES = [
     phrase: "changes"
   },
   {
+    id: "workshop-source-control-supported-by-evidence",
+    sourceProduct: "workshop",
+    linkType: "supported-by",
+    fromType: "source-control",
+    toType: "evidence",
+    label: "Link ISM Control to Evidence",
+    phrase: "supported by"
+  },
+  {
+    id: "workshop-source-control-addressed-by-action",
+    sourceProduct: "workshop",
+    linkType: "addressed-by",
+    fromType: "source-control",
+    toType: "action",
+    label: "Link ISM Control to Action",
+    phrase: "addressed by"
+  },
+  {
+    id: "workshop-source-control-exposed-by-risk",
+    sourceProduct: "workshop",
+    linkType: "exposed-by",
+    fromType: "source-control",
+    toType: "risk",
+    label: "Link ISM Control to Risk",
+    phrase: "exposed by"
+  },
+  {
     id: "shop-supplier-supports-requirement",
     sourceProduct: "shop",
     linkType: "supports",

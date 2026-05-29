@@ -2,7 +2,9 @@
 
 ## Status
 
-Forward-looking. v0.1 implements **nothing** from this spec beyond the glossary and free-text ISM references. Phases 1–3 are governed by [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md). Phase 1 is fixed by [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md); Phase 2 is fixed by [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md); Phase 3 is fixed by [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
+Active. Phases 1-3 are **implemented** for the current seeded source-library slice (see [pspf-development-readiness-review.md](pspf-development-readiness-review.md)): read-only ISM source library (`SRC-*`), first-class Requirement to ISM control mapping (`MAP-*`) with confidence and review metadata, drift visibility, and the posture-brief ISM coverage section. Phases 1-3 are governed by [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md), and fixed by [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md), [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md), and [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
+
+Phase 4 ("ISM control as a workable assurance entity", [adr/0071-v1-35-ism-control-as-workable-entity.md](adr/0071-v1-35-ism-control-as-workable-entity.md)) extends ISM controls to carry their own directly linked evidence, actions, and risk, mirroring the PSPF Requirement operator spine. Phase 4a (v1.35) lands direct control-to-work linking with no schema-version bump; control implementation posture and dedicated ISM navigation follow in Phases 4b/4c.
 
 ## Purpose
 
@@ -27,6 +29,9 @@ Each OSCAL release ships a master `ISM_catalog.{json,xml,yaml}` plus resolved pr
 | 1 | v0.2 | Read-only ISM source library: vendored OSCAL snapshot → `source-control` (`SRC-*`) entities, browsable in Workshop and Explorer. See ADR 0018. |
 | 2 | v0.2 | First-class **Requirement ↔ ISM control mapping** entity (`MAP-*`) with `rationale`, `coverageQualifier`, `applicabilityProfile`. Posture brief gains an ISM coverage section. See ADR 0019. |
 | 3 | v0.3 | Mapping `confidence`, `lastReviewedAt`, `reviewBy`; automated version-drift detection across OSCAL releases. The profile picker remains deferred. See ADR 0020. |
+| 4a | v1.35 | **ISM control as a workable entity**: direct `source-control` to evidence/action/risk linking (`supported-by`, `addressed-by`, `exposed-by`), no schema-version bump. See ADR 0071. |
+| 4b | v1.36+ | `SourceControl.implementationStatus` posture and a dedicated ISM control browser mirroring the Requirements browser. Schema-bearing. See ADR 0071. |
+| 4c | v1.37+ | Bidirectional posture rollups and unified PSPF Requirement / ISM control obligation navigation. See ADR 0071. |
 
 ## Phase 1 — Read-only ISM Source Library
 

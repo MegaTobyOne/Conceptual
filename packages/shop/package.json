@@ -82,6 +82,14 @@
         "title": "PSPF: Import Shop Local JSON"
       },
       {
+        "command": "pspf.shop.diagnoseData",
+        "title": "PSPF: Diagnose Shop Data"
+      },
+      {
+        "command": "pspf.shop.repairData",
+        "title": "PSPF: Repair Shop Data"
+      },
+      {
         "command": "pspf.shop.newSupplier",
         "title": "PSPF: New Supplier"
       },
@@ -176,6 +184,11 @@
           "command": "pspf.shop.importLocalStore",
           "when": "view =~ /^pspfShop\\./",
           "group": "navigation@3"
+        },
+        {
+          "command": "pspf.shop.diagnoseData",
+          "when": "view =~ /^pspfShop\\./",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [

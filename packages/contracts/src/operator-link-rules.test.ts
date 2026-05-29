@@ -37,6 +37,18 @@ test("operator link rules cover current Workshop relationship commands", () => {
   assert.equal(operatorLinkRuleFor("change-record", "changes", "requirement")?.sourceProduct, "workshop");
 });
 
+test("operator link rules cover direct ISM control relationship commands", () => {
+  assert.equal(operatorLinkRuleFor("source-control", "supported-by", "evidence")?.sourceProduct, "workshop");
+  assert.equal(operatorLinkRuleFor("source-control", "addressed-by", "action")?.sourceProduct, "workshop");
+  assert.equal(operatorLinkRuleFor("source-control", "exposed-by", "risk")?.sourceProduct, "workshop");
+});
+
+test("operator link rules can resolve direct ISM control links by endpoints", () => {
+  assert.equal(operatorLinkRuleForEndpoints("source-control", "evidence", "workshop")?.linkType, "supported-by");
+  assert.equal(operatorLinkRuleForEndpoints("source-control", "action", "workshop")?.linkType, "addressed-by");
+  assert.equal(operatorLinkRuleForEndpoints("source-control", "risk", "workshop")?.linkType, "exposed-by");
+});
+
 test("operator link rules can resolve the Workshop existing-item link by endpoints", () => {
   assert.equal(operatorLinkRuleForEndpoints("requirement", "evidence", "workshop")?.linkType, "supported-by");
   assert.equal(operatorLinkRuleForEndpoints("requirement", "action", "workshop")?.linkType, "addressed-by");

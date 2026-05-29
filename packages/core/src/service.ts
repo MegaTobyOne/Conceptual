@@ -169,7 +169,7 @@ export interface WriterLockState {
 }
 
 export interface IntegrityScanFinding {
-  readonly section: "sqlite" | "payload" | "links" | "writer-lock" | "lifecycle";
+  readonly section: "sqlite" | "payload" | "links" | "references" | "writer-lock" | "lifecycle";
   readonly severity: "info" | "warning" | "error";
   readonly message: string;
 }
@@ -184,6 +184,7 @@ export interface IntegrityScanReport {
     readonly links: number;
     readonly orphanedLinks: number;
     readonly mistypedLinks: number;
+    readonly brokenReferences: number;
     readonly unparseablePayloads: number;
   };
 }
@@ -478,6 +479,46 @@ async function runIntegrityScan(workspaceRoot: string): Promise<IntegrityScanRep
     }
   }
 
+  let brokenReferences = 0;
+  for (const entity of entitiesById.values()) {
+    if (entity.entityType !== "contract" || entity.recordStatus === "deleted") {
+      continue;
+    }
+    const contract = entity as V01Entity & { supplierId?: unknown };
+    if (typeof contract.supplierId !== "string" || contract.supplierId.trim() === "") {
+      brokenReferences += 1;
+      findings.push({
+        section: "references",
+        severity: "error",
+        message: `Contract ${contract.id} has missing or invalid supplierId.`
+      });
+      continue;
+    }
+    const supplier = entitiesById.get(contract.supplierId);
+    if (!supplier) {
+      brokenReferences += 1;
+      findings.push({
+        section: "references",
+        severity: "error",
+        message: `Contract ${contract.id} references missing supplier ${contract.supplierId}.`
+      });
+    } else if (supplier.entityType !== "supplier") {
+      brokenReferences += 1;
+      findings.push({
+        section: "references",
+        severity: "error",
+        message: `Contract ${contract.id} supplierId ${contract.supplierId} references ${supplier.entityType}, not supplier.`
+      });
+    } else if (supplier.recordStatus === "deleted") {
+      brokenReferences += 1;
+      findings.push({
+        section: "references",
+        severity: "error",
+        message: `Contract ${contract.id} references deleted supplier ${contract.supplierId}.`
+      });
+    }
+  }
+
   const lock = await readWriterLock(paths);
   if (lock.holderPid && lock.holderPid !== process.pid && !isProcessAlive(lock.holderPid)) {
     findings.push({
@@ -506,6 +547,7 @@ async function runIntegrityScan(workspaceRoot: string): Promise<IntegrityScanRep
       links: linkCount,
       orphanedLinks,
       mistypedLinks,
+      brokenReferences,
       unparseablePayloads: unparseable
     }
   };
