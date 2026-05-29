@@ -5200,8 +5200,8 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
   const requirementRows = mappings.map((mapping) => {
     const requirement = requirementsById.get(mapping.requirementId);
     return {
-      openEntityType: "requirement-control-mapping",
-      openEntityId: mapping.id,
+      openEntityType: requirement ? "requirement" : "requirement-control-mapping",
+      openEntityId: requirement?.id ?? mapping.id,
       requirement: requirement?.title ?? mapping.requirementId,
       domain: requirement ? domainName(requirement.domainId) : "Unknown",
       status: requirement ? label(requirement.assessmentStatus) : "Unknown",
@@ -5265,7 +5265,7 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
       </div>
       <div class="form-actions">
         <button type="button" data-command="setIsmControlImplementationStatus" data-source-control-id="${escapeHtml(sourceControl.id)}">Set Implementation Status</button>
-        <button type="button" data-command="pspf.workshop.createRequirementControlMapping">Map Requirement</button>
+        <button type="button" data-command="mapRequirementToCurrentIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Map Requirement</button>
         <button type="button" data-command="linkEvidenceToIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Link Evidence</button>
         <button type="button" data-command="linkActionToIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Link Action</button>
         <button type="button" data-command="linkRiskToIsmControl" data-source-control-id="${escapeHtml(sourceControl.id)}">Link Risk</button>
@@ -5276,7 +5276,7 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
       </div>
     </section>
     ${recordTable("Work Linked Directly To This Control", directWorkRows, ["type", "title", "state"])}
-    ${recordTable("Requirements Mapped To This Control", requirementRows, ["requirement", "domain", "status", "coverage", "profile", "confidence", "reviewed"])}
+    ${recordTable("Requirements This Control Implements", requirementRows, ["requirement", "domain", "status", "coverage", "profile", "confidence", "reviewed"])}
     ${recordTable("Work Linked Through Mapped Requirements", workRows, ["type", "title", "state", "linkedRequirement"])}
   `
   );
@@ -5425,6 +5425,58 @@ async function setSourceControlImplementationStatus(sourceControlId: string): Pr
   );
 }
 
+async function mapRequirementToSourceControl(sourceControlId: string): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const sourceControl = allEntities.find(
+    (entity): entity is SourceControlEntity =>
+      entity.entityType === "source-control" && entity.id === sourceControlId && entity.recordStatus !== "deleted"
+  );
+  if (!sourceControl) {
+    await vscode.window.showWarningMessage("Open an ISM control before mapping a Requirement to it.");
+    return;
+  }
+  const mappedRequirementIds = new Set(
+    allEntities
+      .filter(
+        (entity): entity is RequirementControlMappingEntity =>
+          entity.entityType === "requirement-control-mapping" &&
+          entity.recordStatus !== "deleted" &&
+          entity.sourceControlId === sourceControl.id
+      )
+      .map((mapping) => mapping.requirementId)
+  );
+  const requirements = allEntities
+    .filter(
+      (entity): entity is RequirementEntity =>
+        entity.entityType === "requirement" && entity.recordStatus !== "deleted" && !mappedRequirementIds.has(entity.id)
+    )
+    .sort(compareRequirementsForPicker);
+  if (requirements.length === 0) {
+    await vscode.window.showInformationMessage(
+      `${sourceControl.controlId} is already mapped to every active Requirement.`
+    );
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    requirements.map((requirement) => ({
+      label: requirement.title,
+      description: domainName(requirement.domainId),
+      detail: implementationStatusLabel(sourceControl.implementationStatus),
+      requirement
+    })),
+    {
+      title: `Map Requirement to ${sourceControl.controlId}`,
+      placeHolder: "Select the PSPF Requirement this ISM control helps implement",
+      ignoreFocusOut: true
+    }
+  );
+  if (!picked) {
+    return;
+  }
+  await createRequirementControlMapping(picked.requirement, sourceControl);
+}
+
 async function pickMappedRequirementForSourceControl(
   sourceControlId: string,
   title: string
@@ -5459,14 +5511,17 @@ async function pickMappedRequirementForSourceControl(
   return picked?.requirement;
 }
 
-async function createRequirementControlMapping(initialRequirement?: RequirementEntity): Promise<void> {
+async function createRequirementControlMapping(
+  initialRequirement?: RequirementEntity,
+  initialSourceControl?: SourceControlEntity
+): Promise<void> {
   await ensureCoreReady();
   const requirement = initialRequirement ?? (await pickRequirement());
   if (!requirement) {
     return;
   }
 
-  const sourceControl = await pickSourceControl();
+  const sourceControl = initialSourceControl ?? (await pickSourceControl());
   if (!sourceControl) {
     return;
   }
@@ -6122,6 +6177,10 @@ type EditableWorkshopEntity =
   | RequirementControlMappingEntity;
 
 async function openItemDetailForEntity(entityType: string, entityId: string): Promise<void> {
+  if (entityType === "source-control") {
+    await openIsmControlDetail(entityId);
+    return;
+  }
   const allEntities = await listAllEntities();
   const entity = allEntities.find(
     (item): item is EditableWorkshopEntity =>
@@ -6609,6 +6668,10 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       }
       if (message.command === "setIsmControlImplementationStatus" && message.sourceControlId) {
         await setSourceControlImplementationStatus(message.sourceControlId);
+        await refreshPanel?.();
+      }
+      if (message.command === "mapRequirementToCurrentIsmControl" && message.sourceControlId) {
+        await mapRequirementToSourceControl(message.sourceControlId);
         await refreshPanel?.();
       }
       if (message.command === "linkEvidenceToIsmControl" && message.sourceControlId) {
@@ -8178,6 +8241,7 @@ function renderSavedViewManager(savedViews: readonly SavedViewEntity[]): string 
         <button type="button" data-command="createSavedView" data-saved-view-scope="workshop-requirements">Create Requirements view</button>
         <button type="button" data-command="createSavedView" data-saved-view-scope="workshop-dashboard">Create Dashboard view</button>
         <button type="button" data-command="createSavedView" data-saved-view-scope="workshop-evidence-review">Create Evidence Review view</button>
+        <button type="button" data-command="createSavedView" data-saved-view-scope="workshop-source-controls">Create ISM Controls view</button>
       </div>
     </section>
     ${recordTable("Workshop Saved Views", rows, ["name", "scope", "filters", "status", "action"])}
@@ -8214,6 +8278,10 @@ async function createOrEditWorkshopSavedView(
     await refreshWorkshopSurfaces();
     await vscode.window.showInformationMessage(`Updated saved view: ${renamed.name}.`);
     return renamed;
+  }
+
+  if (scope === "workshop-source-controls") {
+    return createSourceControlSavedView(scope, cleanName);
   }
 
   const query = await vscode.window.showInputBox({
@@ -8284,6 +8352,10 @@ async function createOrEditWorkshopSavedView(
 }
 
 async function editWorkshopSavedView(savedView: SavedViewEntity): Promise<SavedViewEntity | undefined> {
+  if (savedView.scope === "workshop-source-controls") {
+    return editSourceControlSavedView(savedView);
+  }
+
   const savedViews = await listSavedViews(true);
   const name = await vscode.window.showInputBox({
     title: "Edit Saved View",
@@ -8376,7 +8448,115 @@ async function editWorkshopSavedView(savedView: SavedViewEntity): Promise<SavedV
   return updated;
 }
 
+async function createSourceControlSavedView(
+  scope: SavedViewScope,
+  cleanName: string
+): Promise<SavedViewEntity | undefined> {
+  const query = await vscode.window.showInputBox({
+    title: "Create ISM Controls View",
+    prompt: "Optional control search text. Press Enter to skip.",
+    ignoreFocusOut: true,
+    validateInput: (value) =>
+      value.length > SAVED_VIEW_LIMITS.queryMaxLength
+        ? `Use at most ${SAVED_VIEW_LIMITS.queryMaxLength} characters.`
+        : undefined
+  });
+  if (query === undefined) {
+    return undefined;
+  }
+  const implementationStatuses = await vscode.window.showQuickPick(implementationStatusItems, {
+    title: "Optional implementation statuses",
+    canPickMany: true,
+    ignoreFocusOut: true
+  });
+  if (implementationStatuses === undefined) {
+    return undefined;
+  }
+  const savedView = withEnvelope(
+    "saved-view",
+    {
+      entityType: "saved-view",
+      title: cleanName,
+      name: cleanName,
+      scope,
+      filters: {
+        query: trimOptional(query),
+        implementationStatuses: implementationStatuses.map((item) => item.value)
+      },
+      presentation: {
+        sortKey: "title",
+        sortDirection: "asc",
+        visibleColumns: ["title"]
+      }
+    },
+    "workshop"
+  ) satisfies SavedViewEntity;
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", savedView);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(`Created saved view: ${savedView.name}.`);
+  return savedView;
+}
+
+async function editSourceControlSavedView(savedView: SavedViewEntity): Promise<SavedViewEntity | undefined> {
+  const savedViews = await listSavedViews(true);
+  const name = await vscode.window.showInputBox({
+    title: "Edit ISM Controls View",
+    prompt: "Saved view name",
+    value: savedView.name,
+    ignoreFocusOut: true,
+    validateInput: (value) => validateSavedViewNameInput(value, savedViews, savedView.id, savedView.scope)
+  });
+  if (!name) {
+    return undefined;
+  }
+  const query = await vscode.window.showInputBox({
+    title: "Edit ISM Controls View",
+    prompt: "Control search text. Clear this box to remove the search filter.",
+    value: savedView.filters.query ?? "",
+    ignoreFocusOut: true,
+    validateInput: (value) =>
+      value.length > SAVED_VIEW_LIMITS.queryMaxLength
+        ? `Use at most ${SAVED_VIEW_LIMITS.queryMaxLength} characters.`
+        : undefined
+  });
+  if (query === undefined) {
+    return undefined;
+  }
+  const implementationStatuses = await vscode.window.showQuickPick(
+    implementationStatusItems.map((item) => ({
+      ...item,
+      picked: savedView.filters.implementationStatuses?.includes(item.value)
+    })),
+    {
+      title: "Implementation statuses to include. Leave empty for all statuses.",
+      canPickMany: true,
+      ignoreFocusOut: true
+    }
+  );
+  if (implementationStatuses === undefined) {
+    return undefined;
+  }
+  const cleanName = name.normalize("NFC").trim().replace(/\s+/g, " ");
+  const updated = {
+    ...savedView,
+    title: cleanName,
+    name: cleanName,
+    filters: {
+      query: trimOptional(query),
+      implementationStatuses: implementationStatuses.map((item) => item.value)
+    },
+    updatedAt: new Date().toISOString()
+  } satisfies SavedViewEntity;
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", updated);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(`Updated saved view: ${updated.name}.`);
+  return updated;
+}
+
 function defaultSavedViewName(scope: SavedViewScope): string {
+  if (scope === "workshop-source-controls") {
+    return "ISM control posture view";
+  }
   if (scope === "workshop-dashboard") {
     return "Planning dashboard view";
   }
@@ -8387,6 +8567,10 @@ function defaultSavedViewName(scope: SavedViewScope): string {
 }
 
 async function openWorkshopSavedView(savedView: SavedViewEntity): Promise<void> {
+  if (savedView.scope === "workshop-source-controls") {
+    await openWorkshopSourceControlsSavedView(savedView);
+    return;
+  }
   if (savedView.scope === "workshop-dashboard") {
     await openWorkshopDashboardSavedView(savedView);
     return;
@@ -8588,6 +8772,54 @@ async function openWorkshopEvidenceReviewSavedView(savedView: SavedViewEntity): 
   );
 }
 
+async function openWorkshopSourceControlsSavedView(savedView: SavedViewEntity): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const sourceControls = allEntities
+    .filter(
+      (entity): entity is SourceControlEntity =>
+        entity.entityType === "source-control" &&
+        entity.recordStatus !== "deleted" &&
+        savedViewMatchesSourceControl(savedView, entity)
+    )
+    .sort(compareSourceControlsForBrowser);
+  const rows = sourceControls.map((sourceControl) => ({
+    openEntityType: "source-control",
+    openEntityId: sourceControl.id,
+    controlId: sourceControl.controlId,
+    title: sourceControl.title,
+    implementation: implementationStatusLabel(sourceControl.implementationStatus),
+    profiles: sourceControl.profileTags.join(", ") || "Not tagged",
+    drift: statementChangeLabel(sourceControl.statementChangeStatus)
+  }));
+  const assessedCount = sourceControls.filter(
+    (sourceControl) => sourceControl.implementationStatus !== undefined
+  ).length;
+  const panel = vscode.window.createWebviewPanel(
+    "pspfWorkshopSavedView",
+    shortWorkshopPanelTitle({ entityType: "saved-view", title: savedView.name } as V01Entity),
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel);
+  panel.webview.html = shellHtml(
+    savedView.name,
+    `
+    <section>
+      <h1>${escapeHtml(savedView.name)}</h1>
+      <p class="muted">ISM control posture · ${escapeHtml(savedViewFilterSummary(savedView))} · ${sourceControls.length} matching control(s)</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Controls", sourceControls.length)}
+        ${metricCard("Assessed", assessedCount)}
+        ${metricCard("Not assessed", sourceControls.length - assessedCount)}
+      </div>
+    </section>
+    ${recordTable("ISM Controls", rows, ["controlId", "title", "implementation", "profiles", "drift"])}
+  `
+  );
+}
+
 async function openWorkshopRequirementsView(savedView: SavedViewEntity): Promise<void> {
   await ensureCoreReady();
   const allEntities = await listAllEntities();
@@ -8647,6 +8879,26 @@ function savedViewMatchesRequirement(
   return true;
 }
 
+function savedViewMatchesSourceControl(savedView: SavedViewEntity, sourceControl: SourceControlEntity): boolean {
+  const filters = savedView.filters;
+  const query = filters.query?.trim().toLocaleLowerCase("en-AU");
+  if (
+    query &&
+    !`${sourceControl.controlId} ${sourceControl.title} ${sourceControl.statement} ${sourceControl.profileTags.join(" ")}`
+      .toLocaleLowerCase("en-AU")
+      .includes(query)
+  ) {
+    return false;
+  }
+  if ((filters.implementationStatuses ?? []).length > 0) {
+    return sourceControl.implementationStatus !== undefined &&
+      filters.implementationStatuses?.includes(sourceControl.implementationStatus)
+      ? true
+      : false;
+  }
+  return true;
+}
+
 function savedViewFilterSummary(savedView: SavedViewEntity): string {
   const filters = savedView.filters;
   const parts = [];
@@ -8658,6 +8910,9 @@ function savedViewFilterSummary(savedView: SavedViewEntity): string {
   }
   if ((filters.tagIds ?? []).length > 0) {
     parts.push(`${filters.tagIds?.length} tag(s) ${label(filters.tagsMode ?? "any")}`);
+  }
+  if ((filters.implementationStatuses ?? []).length > 0) {
+    parts.push(`Implementation: ${filters.implementationStatuses?.map(implementationStatusLabel).join(", ")}`);
   }
   return parts.length > 0 ? parts.join(" · ") : "No filters";
 }
@@ -8847,7 +9102,9 @@ async function copyPostureBrief(): Promise<void> {
     directions: input.directions,
     strategies: input.strategies,
     domains: PSPF_DOMAINS,
-    sourceLabel: "PSPF Workshop"
+    sourceLabel: "PSPF Workshop",
+    requirementControlMappings: input.requirementControlMappings,
+    sourceControls: input.sourceControls
   });
 
   await vscode.env.clipboard.writeText(brief);

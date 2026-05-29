@@ -757,6 +757,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
   ).length;
   const evidenceNeedsReview = input.evidence.filter((item) => item.freshness !== "current").length;
   const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings ?? []);
+  const ismPostureRows = buildIsmControlPostureRows(input.sourceControls ?? [], input.links);
   const metadata = [
     `Generated: ${formatDisplayDate(input.generatedAt)}`,
     input.sourceLabel ? `Source: ${input.sourceLabel}` : undefined,
@@ -800,6 +801,10 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
     "",
     ...roleOwnershipRows(roleOwnership),
     "",
+    "## ISM Control Posture",
+    "",
+    ...ismPostureRows,
+    "",
     "## Domain Summary",
     "",
     ...input.domains.map((domain) => {
@@ -839,6 +844,33 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
   ].join("\n");
 }
 
+function buildIsmControlPostureRows(
+  sourceControls: readonly SourceControlEntity[],
+  links: readonly LinkEntity[]
+): readonly string[] {
+  const controls = sourceControls.filter((item) => item.recordStatus !== "deleted");
+  if (controls.length === 0) {
+    return ["- No ISM source controls included in this brief."];
+  }
+  const controlIds = new Set(controls.map((item) => item.id));
+  const directWorkLinks = links.filter(
+    (link) =>
+      link.recordStatus !== "deleted" &&
+      link.fromType === "source-control" &&
+      controlIds.has(link.fromId) &&
+      (link.toType === "evidence" || link.toType === "action" || link.toType === "risk")
+  );
+  const directlyWorkedControls = new Set(directWorkLinks.map((link) => link.fromId));
+  const assessed = controls.filter((item) => item.implementationStatus !== undefined).length;
+  return [
+    `- ISM controls in scope: ${controls.length}`,
+    `- Controls with internal implementation assessment: ${assessed}`,
+    `- Controls with direct evidence, action, or risk links: ${directlyWorkedControls.size}`,
+    `- Direct ISM control work links: ${directWorkLinks.length}`,
+    "- Implementation status detail remains internal and is excluded from published Explorer bundles."
+  ];
+}
+
 export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRenderer = (() => {
   function renderPostureBriefMarkdown(input) {
     const requirementsById = new Map((input.requirements || []).map((requirement) => [requirement.id, requirement]));
@@ -853,6 +885,7 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     const currentEvidenceRequirements = (input.requirements || []).filter((requirement) => (evidenceIdsByRequirement.get(requirement.id) || []).some((evidenceId) => evidenceById.get(evidenceId)?.freshness === "current")).length;
     const evidenceNeedsReview = (input.evidence || []).filter((item) => item.freshness !== "current").length;
     const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings || []);
+    const ismPostureRows = buildIsmControlPostureRows(input.sourceControls || [], input.links || []);
     const metadata = [
       "Generated: " + formatDisplayDate(input.generatedAt),
       input.sourceLabel ? "Source: " + input.sourceLabel : undefined,
@@ -892,6 +925,10 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "## Role Ownership Summary",
       "",
       ...roleOwnershipRows(roleOwnership),
+      "",
+      "## ISM Control Posture",
+      "",
+      ...ismPostureRows,
       "",
       "## Domain Summary",
       "",
@@ -939,6 +976,23 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       return ["- No role ownership recorded for Requirement-to-ISM control mappings."];
     }
     return summary.map((item) => "- " + item.role + ": " + item.requirements + " requirement(s), " + item.controls + " control(s)");
+  }
+  function buildIsmControlPostureRows(sourceControls, links) {
+    const controls = (sourceControls || []).filter((item) => item.recordStatus !== "deleted");
+    if (controls.length === 0) {
+      return ["- No ISM source controls included in this brief."];
+    }
+    const controlIds = new Set(controls.map((item) => item.id));
+    const directWorkLinks = (links || []).filter((link) => link.recordStatus !== "deleted" && link.fromType === "source-control" && controlIds.has(link.fromId) && (link.toType === "evidence" || link.toType === "action" || link.toType === "risk"));
+    const directlyWorkedControls = new Set(directWorkLinks.map((link) => link.fromId));
+    const assessed = controls.filter((item) => item.implementationStatus !== undefined).length;
+    return [
+      "- ISM controls in scope: " + controls.length,
+      "- Controls with internal implementation assessment: " + assessed,
+      "- Controls with direct evidence, action, or risk links: " + directlyWorkedControls.size,
+      "- Direct ISM control work links: " + directWorkLinks.length,
+      "- Implementation status detail remains internal and is excluded from published Explorer bundles."
+    ];
   }
   function strategyRows(strategy) {
     if (!strategy) {

@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.11.0",
-  bundleVersion: "1.11.0",
-  apiVersion: "1.11.0"
+  schemaVersion: "1.12.0",
+  bundleVersion: "1.12.0",
+  apiVersion: "1.12.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.34.2" as const;
+export const PSPF_SLICE_VERSION = "1.35.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -441,6 +441,7 @@ export const SAVED_VIEW_SCOPES = [
   "explorer-relationships",
   "workshop-dashboard",
   "workshop-evidence-review",
+  "workshop-source-controls",
   "workshop-requirements"
 ] as const;
 export type SavedViewScope = (typeof SAVED_VIEW_SCOPES)[number];
@@ -504,6 +505,7 @@ export interface SavedViewFilters {
   readonly evidenceCoverage?: SavedViewEvidenceCoverage;
   readonly actionStates?: readonly ActionStatus[];
   readonly riskStates?: readonly RiskStatus[];
+  readonly implementationStatuses?: readonly SourceControlImplementationStatus[];
 }
 
 export interface SavedViewPresentation {

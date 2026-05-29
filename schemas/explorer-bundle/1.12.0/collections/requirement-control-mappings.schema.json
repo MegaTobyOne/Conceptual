@@ -1,0 +1,122 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.12.0/collections/requirement-control-mappings.schema.json",
+    "title": "PSPF Explorer Requirement-Control Mappings Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "requirementId",
+            "sourceControlId",
+            "coverageQualifier",
+            "applicabilityProfile",
+            "confidence",
+            "provenance"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^MAP-"
+            },
+            "entityType": {
+                "const": "requirement-control-mapping"
+            },
+            "schemaVersion": {
+                "const": "1.12.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "requirementId": {
+                "type": "string",
+                "pattern": "^REQ-"
+            },
+            "sourceControlId": {
+                "type": "string",
+                "pattern": "^SRC-"
+            },
+            "coverageQualifier": {
+                "enum": [
+                    "primary",
+                    "partial",
+                    "compensating"
+                ]
+            },
+            "applicabilityProfile": {
+                "type": "string",
+                "minLength": 1
+            },
+            "confidence": {
+                "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                ]
+            },
+            "lastReviewedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "reviewBy": {
+                "type": "string",
+                "minLength": 1
+            },
+            "provenance": {
+                "type": "object",
+                "required": [
+                    "author",
+                    "createdAt",
+                    "oscalRelease"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "author": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "oscalRelease": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            }
+        }
+    }
+}

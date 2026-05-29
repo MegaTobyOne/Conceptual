@@ -194,7 +194,7 @@ The first file loaded by Explorer is `manifest.json`. It describes the bundle, a
 | `collections/report-packs.json` | report pack entities |
 | `collections/snapshots.json` | immutable snapshot entities |
 | `collections/tags.json` | operator-applied classification labels (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) |
-| `collections/saved-views.json` | named user convenience filter snapshots for supported Explorer and Workshop scopes (see [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md) and [adr/0043-v1-9-saved-view-expansion.md](adr/0043-v1-9-saved-view-expansion.md)) |
+| `collections/saved-views.json` | named user convenience filter snapshots for supported Explorer and Workshop scopes, including `workshop-source-controls` with `implementationStatuses` filters from schema `1.12.0` (see [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md), [adr/0043-v1-9-saved-view-expansion.md](adr/0043-v1-9-saved-view-expansion.md), and [adr/0071-v1-35-ism-control-as-workable-entity.md](adr/0071-v1-35-ism-control-as-workable-entity.md)) |
 | `collections/change-records.json` | published public change-record summaries for the Explorer "Why This Changed" view; sensitive reason, impact, and decision-owner fields are excluded (see [adr/0044-v1-10-change-records.md](adr/0044-v1-10-change-records.md)) |
 | `indexes/by-tag.json` | derived requirement-id lists per tag for fast filter rendering |
 | `indexes/*.json` | denormalised read models |
@@ -764,7 +764,7 @@ For the first Explorer release, the minimum useful bundle should contain:
 When Explorer is the producer, the bundle MAY additionally include collections that capture user-owned local state:
 
 - `tags` — user-defined labels with optional priority (1–4) applied to requirements.
-- `saved-views` — named filter snapshots over the requirement catalogue.
+- `saved-views` — named filter snapshots over supported Explorer and Workshop scopes, including Requirements, relationships, dashboard/evidence-review planning scopes, and ISM source-control posture views.
 - `directions` — Home Affairs Directions register, response state, evidence and notes.
 - `compliance-entries` — per-requirement compliance state, evidence, target maturity, reviewer, notes.
 - `compliance-events` — append-only audit trail of compliance state changes.

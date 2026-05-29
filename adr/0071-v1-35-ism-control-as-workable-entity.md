@@ -1,6 +1,6 @@
 # 0071 - v1.35 ISM control as a workable assurance entity
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-05-29
 
 ## Context
@@ -40,6 +40,7 @@ Give the ISM control its own posture, mirroring `Requirement.assessmentStatus`, 
 
 - Add `SourceControlEntity.implementationStatus` (candidate values `not-implemented | partial | implemented | not-applicable | under-review`) as operator posture layered on top of the immutable vendored statement. Publication policy `internal` (it is operator interpretation, not the public ASD catalogue text), declared in `PUBLICATION_FIELD_POLICIES`.
 - Surface the posture on the Workshop ISM control detail (an "Implementation" metric plus a "Set Implementation Status" affordance) and add an implementation-status column, filter, and "Implementation assessed" metric to the ISM control browser so operators can navigate the ISM by posture, mirroring the Requirements browser.
+- Make the control-side mapping path first class: the ISM control detail renders a "Requirements This Control Implements" panel that opens the mapped Requirement, and its "Map Requirement" affordance preselects the current control, excludes already mapped Requirements, and then captures the existing mapping metadata.
 
 This is safe to ship without touching `VERSION_AXES` because:
 
@@ -47,35 +48,37 @@ This is safe to ship without touching `VERSION_AXES` because:
 - Core does not validate runtime entities against an allow-list of fields (`packages/core/src/service.ts`), so the additive optional field round-trips through `pspf.core.upsertEntity` without error.
 - Earlier reasoning that Phase 4b was "schema-bearing" assumed the posture might be published; committing it to `internal` (the correct default-deny choice for security-gap interpretation, ADR 0005 and ADR 0011) removes that requirement.
 
-Deferred to a later phase (still requiring their own readiness work): a dedicated `workshop-source-controls` saved-view scope (the saved-view `scope` enum is a published collection field and would need a schema bump), and persisted saved views over the ISM control browser.
+The dedicated `workshop-source-controls` saved-view scope is intentionally kept out of Phase 4b and landed in Phase 4c below because the saved-view `scope` enum is a published collection field and therefore requires a schema bump.
 
-### Phase 4c - v1.37+ (proposed): bidirectional posture and unified obligation navigation
+### Phase 4c - v1.35 (completion slice): saved views, aggregate posture, and unified obligation navigation
 
-- Feed control implementation status plus directly-linked evidence/actions/risk into an ISM posture view and the posture brief's ISM section (the inverse of today's mapping-derived coverage).
-- Add the symmetric "Requirements this control implements" panel to the control detail, with one-click mapping from either side.
-- Explore a shared "obligation" navigation shell presenting PSPF Requirements and ISM Controls with consistent filter/saved-view/detail patterns.
+- Add the public/exportable `workshop-source-controls` saved-view scope plus `implementationStatuses` saved-view filters. Because saved views are a published collection with a closed `scope` enum, this bumps `VERSION_AXES` to `1.12.0` and publishes `schemas/explorer-bundle/1.12.0/`.
+- Feed ISM control posture into aggregate rollups: Workshop may count implementation-assessed and not-assessed controls, and both Workshop and Explorer posture briefs include public-safe counts for controls in scope, aggregate internal-assessment coverage, controls with direct evidence/action/risk links, and direct control-work link totals.
+- Add a shared obligation navigation concept: Explorer publication mode gains a read-only `Obligations` section spanning PSPF Requirements and ISM Controls, and its ISM Source Controls section shows mapped Requirements plus direct public evidence/action/risk counts.
+
+The schema bump is deliberately narrow. `SourceControl.implementationStatus` remains `internal` and is stripped before publication; v1.35 does not publish per-control implementation status or private operator interpretation.
 
 ## Non-goals
 
-- No schema-version bump, new entity type, new link verb, new schema directory, or new published collection in v1.35.
+- No new entity type, new link verb, or new published collection in v1.35.
 - No editing of vendored ISM control statement text (the catalogue remains read-only; ADR 0018).
-- No publication of `implementationStatus` to the Explorer bundle or posture brief; it is `internal` operator interpretation, stripped at the publication boundary (Phase 4c covers any inverse posture rollup).
-- No dedicated `workshop-source-controls` saved-view scope in v1.35 (it would require a saved-view schema change).
+- No publication of per-control `implementationStatus` to the Explorer bundle or posture brief; it is `internal` operator interpretation, stripped at the publication boundary. Only aggregate internal-assessment counts may appear in posture summaries.
 - No runtime network fetch of ISM data in any phase (E1, ADR 0011).
 - No mapping to non-ISM control catalogues.
+- No editable Explorer ISM authoring, drag-to-link, private/team saved views, or Connected View edge editing.
 
 ## Consequences
 
 Positive:
 
 - Operators can attach evidence, actions, and risk directly to an ISM control as the unit of work, matching the Requirement spine, without forcing a Requirement mapping first.
-- The change is additive and schema-stable, so Explorer bundle compatibility and the v1.34 train are unaffected.
+- Direct control-to-work linking and internal implementation posture are schema-stable; the completion slice bumps the schema only for the public saved-view scope/filter contract.
 - The mapping-derived view is preserved, so existing Requirement-to-ISM coverage continues to render.
 
 Trade-offs:
 
 - Work can now reach a control by two routes (directly, and via a mapped Requirement). The control detail distinguishes "linked directly" from "linked through mapped Requirements" so the provenance of each relationship stays clear.
-- Full parity with the Requirement spine (control posture, dedicated navigation, bidirectional rollups) lands across Phases 4b and 4c, each gated by its own readiness work.
+- Full parity with the Requirement spine is still intentionally bounded: ISM controls are workable and navigable, but the vendored catalogue stays read-only and Explorer remains publication/review only.
 
 ## Quality gates (delta)
 
@@ -84,7 +87,12 @@ Trade-offs:
 - A direct `source-control` link round-trips through `pspf.core.upsertEntities` and core validation without error.
 - `SourceControlEntity.implementationStatus` has an `internal` entry in `PUBLICATION_FIELD_POLICIES`; `publication-policy.test.ts` asserts the policy and that `sanitiseEntityForPublication` strips the field.
 - Workshop ISM control detail renders the implementation posture and a "Set Implementation Status" affordance; the ISM control browser exposes an implementation column and filter.
-- `typecheck`, `lint`, contracts tests, and the relationship-rule gate pass with `VERSION_AXES` unchanged.
+- Workshop ISM control detail renders "Requirements This Control Implements" and maps new Requirements to the already-open control without forcing the operator to pick that control again.
+- Workshop Saved Views can create, edit, open, and summarise `workshop-source-controls` views with query and implementation-status filters.
+- `schemas/explorer-bundle/1.12.0/collections/saved-views.schema.json` accepts the `workshop-source-controls` scope and `implementationStatuses` filters.
+- Shared posture brief renderer tests assert aggregate ISM posture rows and browser-renderer parity without per-control implementation status detail.
+- Explorer tests assert the read-only `Obligations` section and public ISM Source Controls review columns.
+- `typecheck`, `lint`, contracts tests, Explorer tests, brief-renderer tests, schema coverage, and release readiness pass with `VERSION_AXES = 1.12.0`.
 
 ## Related
 

@@ -235,7 +235,7 @@ Evidence review queues MUST classify evidence as old, incomplete, changed, unver
 
 ### E27 — Posture brief traceability
 
-The posture brief MUST include overall posture, domain posture, Essential Eight posture, evidence confidence signals, Direction response state, and top Action Impact entries. Every non-empty claim in the brief MUST be traceable to requirement, evidence, action, risk, Direction, or summary-index data. CI: snapshot test renders the brief from the standard fixture and asserts no posture/action-plan claim is emitted without backing IDs or counts.
+The posture brief MUST include overall posture, domain posture, Essential Eight posture, evidence confidence signals, Direction response state, ISM control posture aggregates, and top Action Impact entries. Every non-empty claim in the brief MUST be traceable to requirement, evidence, action, risk, Direction, source-control, mapping, link, or summary-index data. Per-control ISM implementation status remains internal; only aggregate counts may appear in shareable briefs. CI: snapshot test renders the brief from the standard fixture and asserts no posture/action-plan claim is emitted without backing IDs or counts.
 
 ### E28 — Shareable brief redaction and readability
 
