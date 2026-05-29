@@ -2,7 +2,7 @@
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.31.2 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.11.0`.
+The repository currently ships PSPF v1.35.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.12.0`.
 
 ## Products
 
@@ -29,13 +29,13 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the v1.31 gate chain and writes `.tmp/release-readiness/v1.31.2-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.35.0-readiness-report.md`.
 
 ## Current Workshop Slice
 
 Workshop is the main operator surface for evidence-backed assessment work. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
 
-Current v1.27 Workshop additions include:
+Current v1.35 Workshop additions include:
 
 - Digital CISO Magazine: a generated `OFFICIAL: Sensitive` issue for share-ready CISO communication.
 - CISO Master Plan: an active roadmap view derived from Strategy, Plan of Action, Risks, Evidence, Shop dependencies, and step-built initiative plans.
@@ -43,6 +43,7 @@ Current v1.27 Workshop additions include:
 - Roadmap initiative plans: operators can create an initiative frame, then add tasks and milestones step by step; each task or milestone remains editable as an Action and the case for action remains editable as Evidence.
 - Plan of Action: the execution worklist for Actions, with timeline filtering and a single Today legend for the timeline marker.
 - Saved views: Workshop saved views can be opened, renamed, archived, and edited so the saved filter definition can change over time.
+- ISM controls: direct control-to-evidence/action/risk links, internal implementation posture, control-side Requirement mapping, dedicated ISM control saved views, public-safe ISM posture brief rollups, and Explorer read-only obligation navigation.
 
 ## Manual Validation
 

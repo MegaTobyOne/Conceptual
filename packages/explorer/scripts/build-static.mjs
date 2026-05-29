@@ -271,6 +271,7 @@ const html = `<!doctype html>
     <nav class="section-nav" aria-label="Explorer sections" hidden>
       <a href="#summary">Overview</a>
       <a href="#local-authoring">Local Changes</a>
+      <a href="#obligations">Obligations</a>
       <a href="#requirements">Requirements</a>
       <a href="#evidence">Evidence</a>
       <a href="#actions">Actions</a>
@@ -301,6 +302,7 @@ const html = `<!doctype html>
       </div>
     </section>
     <details id="local-authoring" class="panel" aria-live="polite" hidden></details>
+    <details id="obligations" class="panel" hidden></details>
     <details id="requirements" class="panel" hidden></details>
     <details id="evidence" class="panel" hidden></details>
     <details id="actions" class="panel" hidden></details>
@@ -350,6 +352,7 @@ const backToTopButton = document.querySelector("#back-to-top");
 const bundleToolsSection = document.querySelector("#bundle-tools");
 const validationSection = document.querySelector("#validation");
 const localAuthoringSection = document.querySelector("#local-authoring");
+const obligationsSection = document.querySelector("#obligations");
 const requirementsSection = document.querySelector("#requirements");
 const evidenceSection = document.querySelector("#evidence");
 const actionsSection = document.querySelector("#actions");
@@ -552,13 +555,40 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
     requirements: titleList(relationshipSummary.requirementsByRisk.get(item.id), requirementsById),
     tagIds: tagIdsForRequirementIds(relationshipSummary.requirementsByRisk.get(item.id), tagModel)
   }));
+  const mappedRequirementTitlesByControlId = new Map();
+  for (const mapping of collections["requirement-control-mappings"] || []) {
+    const requirement = requirementsById.get(mapping.requirementId);
+    append(mappedRequirementTitlesByControlId, mapping.sourceControlId, requirement ? requirement.title : compactEntityId(mapping.requirementId));
+  }
+  const directWorkByControlId = summariseDirectSourceControlWork(collections.links || []);
   const sourceControls = (collections["source-controls"] || []).map((item) => ({
+    id: item.id,
     controlId: item.controlId,
     title: item.title,
+    requirements: (mappedRequirementTitlesByControlId.get(item.id) || []).join(", ") || "Not mapped",
+    evidence: directWorkByControlId.evidence.get(item.id) || 0,
+    actions: directWorkByControlId.actions.get(item.id) || 0,
+    risks: directWorkByControlId.risks.get(item.id) || 0,
     profiles: (item.profileTags || []).join(", "),
     release: item.provenance && item.provenance.oscalRelease || "unknown",
     drift: driftStatusLabel(item.statementChangeStatus)
   }));
+  const obligationRows = [
+    ...requirements.map((requirement) => ({
+      type: "PSPF Requirement",
+      reference: compactEntityId(requirement.id),
+      title: requirement.title,
+      posture: label(requirement.assessmentStatusRaw || requirement.assessmentStatus),
+      linkedWork: requirement.evidence + " evidence · " + requirement.actions + " actions · " + requirement.risks + " risks"
+    })),
+    ...sourceControls.map((sourceControl) => ({
+      type: "ISM Control",
+      reference: sourceControl.controlId,
+      title: sourceControl.title,
+      posture: "Public catalogue item",
+      linkedWork: sourceControl.evidence + " evidence · " + sourceControl.actions + " actions · " + sourceControl.risks + " risks"
+    }))
+  ];
   const ismCoverage = (collections["requirement-control-mappings"] || []).map((mapping) => {
     const requirement = requirementsById.get(mapping.requirementId);
     const sourceControl = sourceControlsById.get(mapping.sourceControlId);
@@ -584,6 +614,8 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
     links: collections.links || [],
     domains: collections.domains || [],
     directions: collections.directions || [],
+    requirementControlMappings: collections["requirement-control-mappings"] || [],
+    sourceControls: collections["source-controls"] || [],
     sourceLabel: "PSPF Explorer publication mode",
     bundleVersion: manifest.bundleVersion,
     schemaVersion: manifest.schemaVersion
@@ -632,6 +664,9 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   localAuthoringSection.hidden = false;
   renderLocalAuthoringSection();
 
+  obligationsSection.hidden = false;
+  renderExplorerSection(obligationsSection, "Obligations", '<p class="muted">Unified read-only navigation across PSPF Requirements and public ISM catalogue controls. Requirement posture is published; ISM implementation posture remains internal to Workshop.</p>' + table(obligationRows, ["type", "reference", "title", "posture", "linkedWork"]));
+
   requirementsSection.hidden = false;
   renderExplorerSection(requirementsSection, "Requirements", requirementTabsPanel(requirements) + requirementFilterStatusPanel() + requirementStatusFilterPanel() + tagFilterPanel(tagModel) + table(requirements, ["title", "assessmentStatus", "statusSource", "domain", "tags", "evidence", "actions", "risks"]));
 
@@ -668,7 +703,7 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
   renderExplorerSection(changeRecordsSection, "Why This Changed", '<p class="muted">Published Change Records explain significant changes without exposing sensitive reasons, impact notes, or decision-owner references.</p>' + table(changeRecords, ["title", "status", "changeType", "persistence", "source", "raisedAt", "affected", "summary"]));
 
   sourceControlsSection.hidden = false;
-  renderExplorerSection(sourceControlsSection, "ISM Source Controls", '<p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0.</p>' + table(sourceControls, ["controlId", "title", "profiles", "release", "drift"]));
+  renderExplorerSection(sourceControlsSection, "ISM Source Controls", '<p class="muted">ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0. Implementation posture is an internal Workshop field and is not published here.</p>' + table(sourceControls, ["controlId", "title", "requirements", "evidence", "actions", "risks", "profiles", "release", "drift"]));
 
   ismCoverageSection.hidden = false;
   renderExplorerSection(ismCoverageSection, "ISM Coverage", table(ismCoverage, ["requirement", "controlId", "control", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"]));
@@ -2457,6 +2492,27 @@ function summariseRelationships(links) {
     }
   }
   return { evidenceByRequirement, actionsByRequirement, risksByRequirement, requirementsByEvidence, requirementsByAction, requirementsByRisk };
+}
+
+function summariseDirectSourceControlWork(links) {
+  const evidence = new Map();
+  const actions = new Map();
+  const risks = new Map();
+  for (const link of links) {
+    if (link.fromType !== "source-control") {
+      continue;
+    }
+    if (link.linkType === "supported-by" && link.toType === "evidence") {
+      increment(evidence, link.fromId);
+    }
+    if (link.linkType === "addressed-by" && link.toType === "action") {
+      increment(actions, link.fromId);
+    }
+    if (link.linkType === "exposed-by" && link.toType === "risk") {
+      increment(risks, link.fromId);
+    }
+  }
+  return { evidence, actions, risks };
 }
 
 function increment(map, key) {

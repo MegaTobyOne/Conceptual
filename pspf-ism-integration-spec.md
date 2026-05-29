@@ -2,7 +2,9 @@
 
 ## Status
 
-Forward-looking. v0.1 implements **nothing** from this spec beyond the glossary and free-text ISM references. Phases 1–3 are governed by [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md). Phase 1 is fixed by [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md); Phase 2 is fixed by [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md); Phase 3 is fixed by [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
+Active. Phases 1-3 are **implemented** for the current seeded source-library slice (see [pspf-development-readiness-review.md](pspf-development-readiness-review.md)): read-only ISM source library (`SRC-*`), first-class Requirement to ISM control mapping (`MAP-*`) with confidence and review metadata, drift visibility, and the posture-brief ISM coverage section. Phases 1-3 are governed by [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md), and fixed by [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md), [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md), and [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).
+
+Phase 4 ("ISM control as a workable assurance entity", [adr/0071-v1-35-ism-control-as-workable-entity.md](adr/0071-v1-35-ism-control-as-workable-entity.md)) extends ISM controls to carry their own directly linked evidence, actions, and risk, mirroring the PSPF Requirement operator spine. v1.35 completes the control-side navigation slice: direct control-to-work links, internal implementation posture, control-side Requirement mapping, a dedicated `workshop-source-controls` saved-view scope, aggregate posture brief treatment, and read-only Explorer obligation navigation. `implementationStatus` remains internal; the schema-axis bump to `1.12.0` is for the public saved-view scope/filter contract, not for publishing per-control implementation status.
 
 ## Purpose
 
@@ -27,6 +29,9 @@ Each OSCAL release ships a master `ISM_catalog.{json,xml,yaml}` plus resolved pr
 | 1 | v0.2 | Read-only ISM source library: vendored OSCAL snapshot → `source-control` (`SRC-*`) entities, browsable in Workshop and Explorer. See ADR 0018. |
 | 2 | v0.2 | First-class **Requirement ↔ ISM control mapping** entity (`MAP-*`) with `rationale`, `coverageQualifier`, `applicabilityProfile`. Posture brief gains an ISM coverage section. See ADR 0019. |
 | 3 | v0.3 | Mapping `confidence`, `lastReviewedAt`, `reviewBy`; automated version-drift detection across OSCAL releases. The profile picker remains deferred. See ADR 0020. |
+| 4a | v1.35 | **ISM control as a workable entity**: direct `source-control` to evidence/action/risk linking (`supported-by`, `addressed-by`, `exposed-by`), no schema-version bump. See ADR 0071. |
+| 4b | v1.35 | `SourceControl.implementationStatus` posture (`internal`, stripped at publication), implementation column/filter/metric on the ISM control browser, and control-side Requirement mapping from the ISM control detail. See ADR 0071. |
+| 4c | v1.35 | Dedicated `workshop-source-controls` saved-view scope and `implementationStatuses` filters, aggregate ISM posture rollups in Workshop/posture brief, and read-only Explorer obligation navigation spanning PSPF Requirements and ISM Controls. `VERSION_AXES` bump to `1.12.0` because saved views are public/exportable. See ADR 0071. |
 
 ## Phase 1 — Read-only ISM Source Library
 
@@ -81,7 +86,7 @@ The closed 22-verb vocabulary in ADR 0003 cannot carry mapping attributes (`cove
 
 ### Posture brief
 
-The posture brief (E27) gains an **ISM coverage** section. Every claim ("57% of Essential Eight ML2 ISM controls are mapped to PSPF Requirements with `primary` coverage") must trace to backing mapping records. Free-form ISM claims are forbidden.
+The posture brief (E27) gains ISM coverage and ISM control posture sections. Every claim must trace to backing mapping, source-control, or link counts. Free-form ISM claims are forbidden. Per-control `implementationStatus` is not published; the brief may state aggregate internal-assessment counts and direct control-work link counts.
 
 ## Phase 3 — Mapping quality and version drift
 

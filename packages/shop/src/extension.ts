@@ -34,6 +34,22 @@ import {
   type SpendItemRecord,
   type SupplierRecord
 } from "./relationship-rules.js";
+import {
+  deriveForecast,
+  deriveForecastMonths,
+  deriveScenarioSummaries,
+  deriveSpendItemReport,
+  forecastOnlyItems,
+  formatMoneyAmount,
+  moneyAmountValue,
+  moneyInputValue,
+  spendTotals,
+  type AssuranceSpendRow,
+  type ForecastMonth,
+  type ForecastYear,
+  type ScenarioSummary,
+  type SpendItemReportRow
+} from "./forecast.js";
 import { commandUri, escapeHtml, formatCurrency, formatToken } from "./webview/util.js";
 
 const SHOP_STORE_VERSION = "1.0.0";
@@ -56,7 +72,6 @@ const SAVINGS_TYPES = [
 const CONFIDENCE_LEVELS = ["low", "medium", "high"] as const;
 const SHOP_CONFIGURATION_SECTION = "pspf.shop";
 const NEAR_TERM_REVIEW_DAYS = 120;
-const MONTH_NAMES = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"] as const;
 const CPR_LINKS = {
   valueForMoney: "https://www.finance.gov.au/government/procurement/commonwealth-procurement-rules/value-money",
   accountability:
@@ -79,24 +94,6 @@ interface ShopStore {
   readonly spendItems: readonly SpendItemRecord[];
 }
 
-interface ForecastYear {
-  readonly financialYear: string;
-  readonly plannedSpend: number;
-  readonly forecastCost: number;
-  readonly expectedSavings: number;
-  readonly netForecast: number;
-  readonly itemCount: number;
-}
-
-interface ForecastMonth {
-  readonly monthKey: string;
-  readonly monthLabel: string;
-  readonly financialYear: string;
-  readonly forecastSpend: number;
-  readonly forecastSavings: number;
-  readonly itemCount: number;
-}
-
 interface SavingScheduleRow {
   readonly spendItem: SpendItemRecord;
   readonly financialYear: string;
@@ -112,41 +109,6 @@ interface EfficiencyDividendYear {
   readonly financialYear: string;
   readonly plannedSaving: number;
   readonly itemCount: number;
-  readonly confidence: string;
-}
-
-interface SpendItemReportRow {
-  readonly title: string;
-  readonly financialYear: string;
-  readonly costCentre: string;
-  readonly status: string;
-  readonly amount: number;
-  readonly forecastCost: number;
-  readonly expectedSavings: number;
-}
-
-interface ScenarioSummary {
-  readonly label: string;
-  readonly description: string;
-  readonly itemCount: number;
-  readonly plannedSpend: number;
-  readonly forecastCost: number;
-  readonly expectedSavings: number;
-  readonly netForecast: number;
-  readonly lowConfidenceCount: number;
-  readonly unlinkedItemCount: number;
-}
-
-interface AssuranceSpendRow {
-  readonly scope: "Requirement" | "Action" | "Tag";
-  readonly title: string;
-  readonly secondary: string;
-  readonly itemCount: number;
-  readonly multiLinkedItemCount: number;
-  readonly plannedSpend: number;
-  readonly forecastCost: number;
-  readonly expectedSavings: number;
-  readonly netForecast: number;
   readonly confidence: string;
 }
 
@@ -210,6 +172,31 @@ interface CommercialCoverageDashboard {
   readonly assuranceSpend: readonly AssuranceSpendRow[];
   readonly savingSchedule: readonly SavingScheduleRow[];
   readonly efficiencyDividends: readonly EfficiencyDividendYear[];
+}
+
+interface ShopDataDiagnosticFinding {
+  readonly severity: "error" | "warning";
+  readonly recordType: string;
+  readonly recordId: string;
+  readonly message: string;
+}
+
+interface ShopDataDiagnosticReport {
+  readonly generatedAt: string;
+  readonly ok: boolean;
+  readonly summary: string;
+  readonly counts: {
+    readonly suppliers: number;
+    readonly contracts: number;
+    readonly spendItems: number;
+  };
+  readonly findings: readonly ShopDataDiagnosticFinding[];
+  readonly repair: ShopDataRepairPlan;
+}
+
+interface ShopDataRepairPlan {
+  readonly placeholderSupplierIds: readonly string[];
+  readonly malformedRecordIds: readonly string[];
 }
 
 type ShopEditorKind = "supplier" | "contract" | "spend-item";
@@ -282,6 +269,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.shop.openHome", openHome),
     vscode.commands.registerCommand("pspf.shop.loadSample", loadSample),
     vscode.commands.registerCommand("pspf.shop.importLocalStore", importLocalStore),
+    vscode.commands.registerCommand("pspf.shop.diagnoseData", diagnoseShopData),
+    vscode.commands.registerCommand("pspf.shop.repairData", repairShopData),
     vscode.commands.registerCommand("pspf.shop.newSupplier", newSupplier),
     vscode.commands.registerCommand("pspf.shop.newContract", newContract),
     vscode.commands.registerCommand("pspf.shop.newSpendItem", newSpendItem),
@@ -841,9 +830,9 @@ async function loadCoreStore(): Promise<ShopStore> {
   return {
     shopStoreVersion: SHOP_STORE_VERSION,
     updatedAt: new Date().toISOString(),
-    suppliers: suppliers.filter(isActiveEntity).filter(isSupplierEntity),
-    contracts: contracts.filter(isActiveEntity).filter(isContractEntity),
-    spendItems: spendItems.filter(isActiveEntity).filter(isSpendItemEntity)
+    suppliers: suppliers.filter(isActiveEntity).map(normaliseSupplierRecord).filter(isDefined),
+    contracts: contracts.filter(isActiveEntity).map(normaliseContractRecord).filter(isDefined),
+    spendItems: spendItems.filter(isActiveEntity).map(normaliseSpendItemRecord).filter(isDefined)
   };
 }
 
@@ -892,6 +881,394 @@ async function importLocalStore(): Promise<void> {
   shopStore = undefined;
   await refreshViews();
   vscode.window.showInformationMessage(`Imported ${localEntities.length} Shop records into Core.`);
+}
+
+async function diagnoseShopData(): Promise<void> {
+  const report = await buildShopDataDiagnosticReport();
+  const document = await vscode.workspace.openTextDocument({
+    content: renderShopDataDiagnosticReport(report),
+    language: "markdown"
+  });
+  await vscode.window.showTextDocument(document, { preview: false });
+  const message = report.ok
+    ? "Shop data diagnostics found no blocking issues."
+    : `Shop data diagnostics found ${report.findings.filter((finding) => finding.severity === "error").length} error(s).`;
+  vscode.window.showInformationMessage(message);
+  if (repairActionCount(report.repair) === 0) {
+    return;
+  }
+
+  const answer = await vscode.window.showWarningMessage(
+    `Diagnostics found ${repairActionCount(report.repair)} repairable Shop issue(s). A Core snapshot will be created first, and no records will be deleted.`,
+    "Repair now",
+    "Not now"
+  );
+  if (answer === "Repair now") {
+    await applyShopDataRepairs(report.repair);
+    await diagnoseShopData();
+  }
+}
+
+async function repairShopData(): Promise<void> {
+  const report = await buildShopDataDiagnosticReport();
+  if (repairActionCount(report.repair) === 0) {
+    vscode.window.showInformationMessage("No automatically repairable Shop data issues were found.");
+    return;
+  }
+
+  const answer = await vscode.window.showWarningMessage(
+    `Repair ${repairActionCount(report.repair)} Shop data issue(s)? A Core snapshot will be created first. No records will be deleted.`,
+    { modal: true },
+    "Repair now",
+    "Cancel"
+  );
+  if (answer !== "Repair now") {
+    return;
+  }
+
+  await applyShopDataRepairs(report.repair);
+  await diagnoseShopData();
+}
+
+async function applyShopDataRepairs(plan: ShopDataRepairPlan): Promise<void> {
+  const [rawSuppliers, rawContracts, rawSpendItems] = await Promise.all([
+    listCoreEntities("supplier"),
+    listCoreEntities("contract"),
+    listCoreEntities("spend-item")
+  ]);
+  const activeSuppliers = rawSuppliers.filter(isActiveEntity);
+  const activeContracts = rawContracts.filter(isActiveEntity);
+  const activeSpendItems = rawSpendItems.filter(isActiveEntity);
+  const activeSupplierIds = new Set(activeSuppliers.map((supplier) => supplier.id));
+  const repairedEntities: Array<SupplierRecord | ContractRecord | SpendItemRecord> = [];
+  const placeholderSupplierIds = new Set(plan.placeholderSupplierIds);
+
+  for (const supplier of activeSuppliers) {
+    if (!normaliseSupplierRecord(supplier)) {
+      repairedEntities.push(createRecoveredSupplierFromRecord(supplier));
+    }
+  }
+
+  const supplierIdsAfterRepair = new Set([...activeSupplierIds, ...placeholderSupplierIds]);
+  let fallbackSupplierId: string | undefined;
+  for (const contract of activeContracts) {
+    if (!normaliseContractRecord(contract)) {
+      const record = contract as unknown as Record<string, unknown>;
+      const supplierId =
+        typeof record.supplierId === "string" && record.supplierId.trim() ? record.supplierId : undefined;
+      if (!supplierId) {
+        fallbackSupplierId ??= createShopId("SUP");
+        placeholderSupplierIds.add(fallbackSupplierId);
+        supplierIdsAfterRepair.add(fallbackSupplierId);
+      }
+      repairedEntities.push(createRecoveredContractFromRecord(contract, supplierIdsAfterRepair, fallbackSupplierId));
+    }
+  }
+
+  for (const spendItem of activeSpendItems) {
+    if (!normaliseSpendItemRecord(spendItem)) {
+      repairedEntities.push(createRecoveredSpendItemFromRecord(spendItem));
+    }
+  }
+
+  const placeholderSuppliers = [...placeholderSupplierIds]
+    .filter((supplierId) => !activeSupplierIds.has(supplierId))
+    .map(createRecoveredSupplier);
+  const repairEntities = [...placeholderSuppliers, ...repairedEntities];
+  if (repairEntities.length === 0) {
+    vscode.window.showInformationMessage("No automatically repairable Shop data issues were found.");
+    return;
+  }
+
+  await vscode.commands.executeCommand("pspf.core.createSnapshot");
+  await upsertShopEntities(repairEntities);
+  shopStore = undefined;
+  await refreshViews();
+  vscode.window.showInformationMessage(`Repaired ${repairEntities.length} Shop record(s).`);
+}
+
+function repairActionCount(plan: ShopDataRepairPlan): number {
+  return plan.placeholderSupplierIds.length + plan.malformedRecordIds.length;
+}
+
+function createRecoveredSupplier(id: string): SupplierRecord {
+  return {
+    ...newCommercialEnvelope("supplier"),
+    id,
+    entityType: "supplier",
+    name: `Recovered supplier ${id}`,
+    supplierType: "other",
+    status: "proposed",
+    criticality: "medium",
+    notes:
+      "Created by PSPF Shop data repair because one or more active contracts referenced this supplier ID, but no valid active supplier record was available. Review and rename before relying on this supplier record."
+  };
+}
+
+function createRecoveredSupplierFromRecord(entity: V01Entity): SupplierRecord {
+  const record = entity as unknown as Record<string, unknown>;
+  return {
+    ...normaliseCommercialEnvelope(record, "supplier"),
+    id: entity.id,
+    entityType: "supplier",
+    name: nonEmptyString(record.name) ?? `Recovered supplier ${entity.id}`,
+    supplierType: mapSupplierType(record.supplierType) ?? "other",
+    status: mapSupplierStatus(record.status) ?? "proposed",
+    criticality: isIncluded(CRITICALITIES, record.criticality) ? record.criticality : "medium",
+    ...(typeof record.primaryContact === "string" ? { primaryContact: record.primaryContact } : {}),
+    notes: appendRepairNote(record.notes, "Repaired malformed supplier fields. Review before relying on this record.")
+  };
+}
+
+function createRecoveredContractFromRecord(
+  entity: V01Entity,
+  supplierIds: ReadonlySet<string>,
+  fallbackSupplierId: string | undefined
+): ContractRecord {
+  const record = entity as unknown as Record<string, unknown>;
+  const rawSupplierId = nonEmptyString(record.supplierId);
+  const supplierId = rawSupplierId && supplierIds.has(rawSupplierId) ? rawSupplierId : fallbackSupplierId;
+  return {
+    ...normaliseCommercialEnvelope(record, "contract"),
+    id: entity.id,
+    entityType: "contract",
+    supplierId: supplierId ?? createShopId("SUP"),
+    title: nonEmptyString(record.title) ?? `Recovered contract ${entity.id}`,
+    status: mapContractStatus(record.status) ?? "draft",
+    ...(typeof record.contractRef === "string" ? { contractRef: record.contractRef } : {}),
+    ...(typeof record.startsAt === "string" ? { startsAt: record.startsAt } : {}),
+    ...(typeof record.endsAt === "string" ? { endsAt: record.endsAt } : {}),
+    ...(normaliseMoneyAmount(record.value) ? { value: normaliseMoneyAmount(record.value) } : {}),
+    serviceSummary: appendRepairNote(
+      record.serviceSummary,
+      "Repaired malformed contract fields. Review supplier, title, status, dates, and value before relying on this record."
+    )
+  };
+}
+
+function createRecoveredSpendItemFromRecord(entity: V01Entity): SpendItemRecord {
+  const record = entity as unknown as Record<string, unknown>;
+  const financialYear = nonEmptyString(record.financialYear);
+  const amount = normaliseMoneyAmount(record.amount);
+  return {
+    ...normaliseCommercialEnvelope(record, "spend-item"),
+    id: entity.id,
+    entityType: "spend-item",
+    title: nonEmptyString(record.title) ?? `Recovered spend item ${entity.id}`,
+    spendType: mapSpendType(record.spendType) ?? "uplift",
+    status: mapSpendStatus(record.status) ?? "proposed",
+    amount: amount ?? moneyAmount(0),
+    financialYear: financialYear && !validateFinancialYear(financialYear) ? financialYear : defaultFinancialYear(),
+    ...(typeof record.costCentre === "string" ? { costCentre: record.costCentre } : {}),
+    ...(typeof record.forecastStartAt === "string" ? { forecastStartAt: record.forecastStartAt } : {}),
+    ...(typeof record.forecastEndAt === "string" ? { forecastEndAt: record.forecastEndAt } : {}),
+    ...(normaliseMoneyAmount(record.forecastCost) ? { forecastCost: normaliseMoneyAmount(record.forecastCost) } : {}),
+    ...(normaliseMoneyAmount(record.expectedSavings)
+      ? { expectedSavings: normaliseMoneyAmount(record.expectedSavings) }
+      : {}),
+    ...(mapSavingsType(record.savingsType) ? { savingsType: mapSavingsType(record.savingsType) } : {}),
+    ...(typeof record.paybackPeriodMonths === "number" ? { paybackPeriodMonths: record.paybackPeriodMonths } : {}),
+    confidence: isIncluded(CONFIDENCE_LEVELS, record.confidence) ? record.confidence : "medium",
+    ...(typeof record.assumptions === "string" ? { assumptions: record.assumptions } : {}),
+    notes: appendRepairNote(record.notes, "Repaired malformed spend item fields. Review amount and financial year.")
+  };
+}
+
+async function buildShopDataDiagnosticReport(): Promise<ShopDataDiagnosticReport> {
+  const [rawSuppliers, rawContracts, rawSpendItems] = await Promise.all([
+    listCoreEntities("supplier"),
+    listCoreEntities("contract"),
+    listCoreEntities("spend-item")
+  ]);
+  const findings: ShopDataDiagnosticFinding[] = [];
+  const activeSuppliers = rawSuppliers.filter(isActiveEntity);
+  const activeContracts = rawContracts.filter(isActiveEntity);
+  const activeSpendItems = rawSpendItems.filter(isActiveEntity);
+  const repair = buildShopDataRepairPlan(activeSuppliers, activeContracts, activeSpendItems);
+
+  for (const supplier of activeSuppliers) {
+    const record = supplier as unknown as Record<string, unknown>;
+    const missing: string[] = [];
+    if (typeof record.name !== "string" || record.name.trim() === "") {
+      missing.push("name");
+    }
+    if (!mapSupplierType(record.supplierType)) {
+      missing.push("supplierType");
+    }
+    if (!mapSupplierStatus(record.status)) {
+      missing.push("status");
+    }
+    if (!isIncluded(CRITICALITIES, record.criticality)) {
+      missing.push("criticality");
+    }
+    if (missing.length > 0) {
+      findings.push({
+        severity: "error",
+        recordType: "supplier",
+        recordId: supplier.id,
+        message: `Supplier is missing or has invalid ${missing.join(", ")}.`
+      });
+    }
+  }
+
+  for (const contract of activeContracts) {
+    const record = contract as unknown as Record<string, unknown>;
+    const missing: string[] = [];
+    if (typeof record.supplierId !== "string" || record.supplierId.trim() === "") {
+      missing.push("supplierId");
+    }
+    if (typeof record.title !== "string" || record.title.trim() === "") {
+      missing.push("title");
+    }
+    if (!mapContractStatus(record.status)) {
+      missing.push("status");
+    }
+    if (missing.length > 0) {
+      findings.push({
+        severity: "error",
+        recordType: "contract",
+        recordId: contract.id,
+        message: `Contract is missing or has invalid ${missing.join(", ")}.`
+      });
+      continue;
+    }
+  }
+
+  const validSupplierIds = new Set(
+    activeSuppliers
+      .map(normaliseSupplierRecord)
+      .filter(isDefined)
+      .map((supplier) => supplier.id)
+  );
+  const deletedSupplierIds = new Set(
+    rawSuppliers.filter((supplier) => !isActiveEntity(supplier)).map((supplier) => supplier.id)
+  );
+  for (const contract of activeContracts.map(normaliseContractRecord).filter(isDefined)) {
+    if (validSupplierIds.has(contract.supplierId)) {
+      continue;
+    }
+    const message = deletedSupplierIds.has(contract.supplierId)
+      ? `Contract references deleted supplier ${contract.supplierId}.`
+      : `Contract references missing or invalid supplier ${contract.supplierId}.`;
+    findings.push({ severity: "error", recordType: "contract", recordId: contract.id, message });
+  }
+
+  for (const spendItem of activeSpendItems) {
+    if (!normaliseSpendItemRecord(spendItem)) {
+      findings.push({
+        severity: "error",
+        recordType: "spend-item",
+        recordId: spendItem.id,
+        message: "Spend item is missing required title, amount, financialYear, spendType, status, or confidence."
+      });
+    }
+  }
+
+  const activeShopEntities = [...activeSuppliers, ...activeContracts, ...activeSpendItems];
+  const ids = new Map<string, string[]>();
+  for (const entity of activeShopEntities) {
+    ids.set(entity.id, [...(ids.get(entity.id) ?? []), entity.entityType]);
+  }
+  for (const [id, types] of ids) {
+    if (types.length > 1) {
+      findings.push({
+        severity: "error",
+        recordType: "shop",
+        recordId: id,
+        message: `Duplicate active Shop entity ID appears as ${types.join(", ")}.`
+      });
+    }
+  }
+
+  const errorCount = findings.filter((finding) => finding.severity === "error").length;
+  const summary =
+    errorCount === 0
+      ? `Shop diagnostics passed: ${activeSuppliers.length} supplier(s), ${activeContracts.length} contract(s), ${activeSpendItems.length} spend item(s).`
+      : `Shop diagnostics found ${errorCount} error(s) across ${activeSuppliers.length} supplier(s), ${activeContracts.length} contract(s), and ${activeSpendItems.length} spend item(s).`;
+
+  return {
+    generatedAt: new Date().toISOString(),
+    ok: errorCount === 0,
+    summary,
+    counts: {
+      suppliers: activeSuppliers.length,
+      contracts: activeContracts.length,
+      spendItems: activeSpendItems.length
+    },
+    findings,
+    repair
+  };
+}
+
+function buildShopDataRepairPlan(
+  activeSuppliers: readonly V01Entity[],
+  activeContracts: readonly V01Entity[],
+  activeSpendItems: readonly V01Entity[]
+): ShopDataRepairPlan {
+  const malformedRecordIds = [
+    ...activeSuppliers.filter((supplier) => !normaliseSupplierRecord(supplier)).map((supplier) => supplier.id),
+    ...activeContracts.filter((contract) => !normaliseContractRecord(contract)).map((contract) => contract.id),
+    ...activeSpendItems.filter((spendItem) => !normaliseSpendItemRecord(spendItem)).map((spendItem) => spendItem.id)
+  ].sort((first, second) => first.localeCompare(second));
+  const activeSupplierIds = new Set(activeSuppliers.map((supplier) => supplier.id));
+  const placeholderSupplierIds = new Set<string>();
+  for (const contract of activeContracts) {
+    const record = contract as unknown as Record<string, unknown>;
+    const supplierId = nonEmptyString(record.supplierId);
+    if (supplierId && !activeSupplierIds.has(supplierId)) {
+      placeholderSupplierIds.add(supplierId);
+    }
+  }
+  return {
+    placeholderSupplierIds: [...placeholderSupplierIds].sort((first, second) => first.localeCompare(second)),
+    malformedRecordIds
+  };
+}
+
+function renderShopDataDiagnosticReport(report: ShopDataDiagnosticReport): string {
+  const findingRows =
+    report.findings.length === 0
+      ? "No Shop data integrity findings."
+      : report.findings
+          .map(
+            (finding) =>
+              `- **${finding.severity.toUpperCase()}** ${finding.recordType} ${finding.recordId}: ${finding.message}`
+          )
+          .join("\n");
+  const repairActionCountText = `${repairActionCount(report.repair)} automatic repair action(s)`;
+  const repairRows =
+    repairActionCount(report.repair) === 0
+      ? "No automatic repair is available from this diagnostic report."
+      : [
+          ...report.repair.placeholderSupplierIds.map((supplierId) => `- Create placeholder supplier ${supplierId}`),
+          ...report.repair.malformedRecordIds.map((recordId) => `- Repair malformed active Shop record ${recordId}`)
+        ].join("\n");
+  return `# PSPF Shop Data Diagnostics
+
+Generated: ${report.generatedAt}
+
+${report.summary}
+
+## Active Records
+
+- Suppliers: ${report.counts.suppliers}
+- Contracts: ${report.counts.contracts}
+- Spend items: ${report.counts.spendItems}
+
+## Findings
+
+${findingRows}
+
+## Embedded Repair
+
+${repairActionCountText}
+
+${repairRows}
+
+## Next Step
+
+If the diagnostic prompt offers **Repair now**, it will create a Core snapshot first, then repair malformed active Shop records and create placeholder supplier records for orphaned contract references. Review recovered records after repair.
+`;
 }
 
 async function saveStore(nextStore: ShopStore): Promise<void> {
@@ -1167,18 +1544,6 @@ function isActiveEntity(entity: V01Entity): boolean {
   return entity.recordStatus !== "deleted";
 }
 
-function isSupplierEntity(entity: V01Entity): entity is SupplierRecord {
-  return entity.entityType === "supplier";
-}
-
-function isContractEntity(entity: V01Entity): entity is ContractRecord {
-  return entity.entityType === "contract";
-}
-
-function isSpendItemEntity(entity: V01Entity): entity is SpendItemRecord {
-  return entity.entityType === "spend-item";
-}
-
 function isLinkableTarget(entity: V01Entity): entity is LinkableTarget {
   return (
     entity.entityType === "requirement" ||
@@ -1346,6 +1711,21 @@ function validateFinancialYear(value: string): string | undefined {
 
 function stringField(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function nonEmptyString(value: unknown): string | undefined {
+  const text = stringField(value);
+  return text ? text : undefined;
+}
+
+function appendRepairNote(value: unknown, note: string): string {
+  const existing = optionalStringField(value);
+  return existing ? `${existing}\n\n${note}` : note;
+}
+
+function defaultFinancialYear(): string {
+  const currentYear = new Date().getFullYear();
+  return `${currentYear}-${String((currentYear + 1) % 100).padStart(2, "0")}`;
 }
 
 function optionalStringField(value: unknown): string | undefined {
@@ -1528,6 +1908,7 @@ const SHOP_HOME_ALLOWED_COMMANDS: ReadonlySet<string> = new Set([
   "pspf.shop.openHome",
   "pspf.shop.loadSample",
   "pspf.shop.importLocalStore",
+  "pspf.shop.diagnoseData",
   "pspf.shop.newSupplier",
   "pspf.shop.newContract",
   "pspf.shop.newSpendItem",
@@ -1567,6 +1948,7 @@ function renderShopHomeHtml(store: ShopStore): string {
   const dataBody = `<div class="action-list compact">
     ${homeActionButton("pspf.shop.loadSample", "Load sample", "Replace current Shop data with sample records")}
     ${homeActionButton("pspf.shop.importLocalStore", "Import local JSON", "Import .pspf/shop/shop.json records into Core")}
+    ${homeActionButton("pspf.shop.diagnoseData", "Diagnose data", "Check Shop records for missing supplier names and orphaned contracts")}
   </div>`;
 
   const body = [
@@ -1700,135 +2082,6 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown Shop rendering error";
 }
 
-function deriveForecast(spendItems: readonly SpendItemRecord[]): ForecastYear[] {
-  const byYear = new Map<string, ForecastYear>();
-  for (const item of forecastOnlyItems(spendItems)) {
-    const existing = byYear.get(item.financialYear) ?? {
-      financialYear: item.financialYear,
-      plannedSpend: 0,
-      forecastCost: 0,
-      expectedSavings: 0,
-      netForecast: 0,
-      itemCount: 0
-    };
-    const plannedSpend = existing.plannedSpend + moneyAmountValue(item.amount);
-    const forecastCost = existing.forecastCost + (moneyAmountValue(item.forecastCost) || moneyAmountValue(item.amount));
-    const expectedSavings = existing.expectedSavings + moneyAmountValue(item.expectedSavings);
-    byYear.set(item.financialYear, {
-      financialYear: item.financialYear,
-      plannedSpend,
-      forecastCost,
-      expectedSavings,
-      netForecast: forecastCost - expectedSavings,
-      itemCount: existing.itemCount + 1
-    });
-  }
-  return [...byYear.values()].sort((first, second) => first.financialYear.localeCompare(second.financialYear));
-}
-
-function deriveForecastMonths(spendItems: readonly SpendItemRecord[]): ForecastMonth[] {
-  const byMonth = new Map<string, ForecastMonth>();
-  for (const item of forecastOnlyItems(spendItems)) {
-    const months = forecastMonthsForItem(item);
-    if (months.length === 0) {
-      continue;
-    }
-    const monthlySpend = (moneyAmountValue(item.forecastCost) || moneyAmountValue(item.amount)) / months.length;
-    for (const month of months) {
-      const existing = byMonth.get(month.monthKey) ?? {
-        monthKey: month.monthKey,
-        monthLabel: month.monthLabel,
-        financialYear: month.financialYear,
-        forecastSpend: 0,
-        forecastSavings: 0,
-        itemCount: 0
-      };
-      byMonth.set(month.monthKey, {
-        ...existing,
-        forecastSpend: existing.forecastSpend + monthlySpend,
-        forecastSavings: existing.forecastSavings + moneyAmountValue(item.expectedSavings) / months.length,
-        itemCount: existing.itemCount + 1
-      });
-    }
-  }
-  return [...byMonth.values()].sort((first, second) => first.monthKey.localeCompare(second.monthKey));
-}
-
-function forecastOnlyItems(spendItems: readonly SpendItemRecord[]): SpendItemRecord[] {
-  return spendItems.filter((item) => item.status !== "spent" && item.status !== "cancelled");
-}
-
-function forecastMonthsForItem(item: SpendItemRecord): ForecastMonth[] {
-  const explicitMonths = monthsBetween(item.forecastStartAt, item.forecastEndAt, item.financialYear);
-  if (explicitMonths.length > 0) {
-    return explicitMonths;
-  }
-  return monthsForFinancialYear(item.financialYear);
-}
-
-function monthsBetween(
-  startText: string | undefined,
-  endText: string | undefined,
-  fallbackFinancialYear: string
-): ForecastMonth[] {
-  if (!startText || !endText) {
-    return [];
-  }
-  const start = new Date(`${startText}T00:00:00Z`);
-  const end = new Date(`${endText}T00:00:00Z`);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
-    return [];
-  }
-  const months: ForecastMonth[] = [];
-  let cursorYear = start.getUTCFullYear();
-  let cursorMonth = start.getUTCMonth();
-  const endKey = end.getUTCFullYear() * 12 + end.getUTCMonth();
-  while (cursorYear * 12 + cursorMonth <= endKey && months.length < 60) {
-    months.push(monthBucket(cursorYear, cursorMonth, fallbackFinancialYear));
-    cursorMonth += 1;
-    if (cursorMonth > 11) {
-      cursorMonth = 0;
-      cursorYear += 1;
-    }
-  }
-  return months;
-}
-
-function monthsForFinancialYear(financialYear: string): ForecastMonth[] {
-  const match = financialYear.match(/^(\d{4})-\d{2}$/);
-  if (!match) {
-    return [];
-  }
-  const startYear = Number(match[1]);
-  return MONTH_NAMES.map((_, index) => {
-    const month = (index + 6) % 12;
-    const year = index < 6 ? startYear : startYear + 1;
-    return monthBucket(year, month, financialYear);
-  });
-}
-
-function monthBucket(year: number, month: number, fallbackFinancialYear: string): ForecastMonth {
-  const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
-  return {
-    monthKey,
-    monthLabel: new Intl.DateTimeFormat("en-AU", { month: "short", year: "numeric", timeZone: "UTC" }).format(
-      new Date(Date.UTC(year, month, 1))
-    ),
-    financialYear: financialYearForMonth(year, month) ?? fallbackFinancialYear,
-    forecastSpend: 0,
-    forecastSavings: 0,
-    itemCount: 0
-  };
-}
-
-function financialYearForMonth(year: number, month: number): string | undefined {
-  if (!Number.isFinite(year) || !Number.isFinite(month)) {
-    return undefined;
-  }
-  const startYear = month >= 6 ? year : year - 1;
-  return `${startYear}-${String((startYear + 1) % 100).padStart(2, "0")}`;
-}
-
 async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCoverageDashboard> {
   const entities = await listCoreEntities();
   const activeEntities = entities.filter(isActiveEntity);
@@ -1929,44 +2182,6 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
   };
 }
 
-function deriveScenarioSummaries(
-  spendItems: readonly SpendItemRecord[],
-  links: readonly LinkEntity[]
-): ScenarioSummary[] {
-  const scenarios: Array<{
-    readonly label: string;
-    readonly description: string;
-    readonly statuses: readonly string[];
-  }> = [
-    {
-      label: "Approved and committed baseline",
-      description: "Approved and committed work only",
-      statuses: ["approved", "committed"]
-    },
-    { label: "Approved only", description: "Approved work before commitments", statuses: ["approved"] },
-    {
-      label: "Include proposed work",
-      description: "Baseline plus proposed ideas and options",
-      statuses: ["approved", "committed", "proposed"]
-    }
-  ];
-  return scenarios.map((scenario) => {
-    const items = spendItems.filter((item) => scenario.statuses.includes(item.status));
-    const totals = spendTotals(items);
-    return {
-      label: scenario.label,
-      description: scenario.description,
-      itemCount: items.length,
-      plannedSpend: totals.plannedSpend,
-      forecastCost: totals.forecastCost,
-      expectedSavings: totals.expectedSavings,
-      netForecast: totals.netForecast,
-      lowConfidenceCount: items.filter((item) => item.confidence === "low").length,
-      unlinkedItemCount: items.filter((item) => !hasAssuranceSpendLink(item, links)).length
-    };
-  });
-}
-
 function deriveAssuranceSpend(
   spendItems: readonly SpendItemRecord[],
   links: readonly LinkEntity[],
@@ -2052,18 +2267,6 @@ function assuranceSpendRow(
   };
 }
 
-function spendTotals(
-  items: readonly SpendItemRecord[]
-): Omit<ScenarioSummary, "label" | "description" | "itemCount" | "lowConfidenceCount" | "unlinkedItemCount"> {
-  const plannedSpend = items.reduce((total, item) => total + moneyAmountValue(item.amount), 0);
-  const forecastCost = items.reduce(
-    (total, item) => total + (moneyAmountValue(item.forecastCost) || moneyAmountValue(item.amount)),
-    0
-  );
-  const expectedSavings = items.reduce((total, item) => total + moneyAmountValue(item.expectedSavings), 0);
-  return { plannedSpend, forecastCost, expectedSavings, netForecast: forecastCost - expectedSavings };
-}
-
 function linkedActionIdsForSpend(item: SpendItemRecord, links: readonly LinkEntity[]): Set<string> {
   return new Set(
     links
@@ -2120,10 +2323,6 @@ function uniqueSpendItems(items: readonly SpendItemRecord[]): SpendItemRecord[] 
   return [...new Map(items.map((item) => [item.id, item])).values()];
 }
 
-function hasAssuranceSpendLink(item: SpendItemRecord, links: readonly LinkEntity[]): boolean {
-  return links.some((link) => isSpendAssuranceLink(link) && link.fromId === item.id);
-}
-
 function linkedAssuranceTargetCount(item: SpendItemRecord, links: readonly LinkEntity[]): number {
   return links.filter((link) => isSpendAssuranceLink(link) && link.fromId === item.id).length;
 }
@@ -2147,24 +2346,6 @@ function scopeRank(scope: AssuranceSpendRow["scope"]): number {
     case "Action":
       return 2;
   }
-}
-
-function deriveSpendItemReport(spendItems: readonly SpendItemRecord[]): SpendItemReportRow[] {
-  return spendItems
-    .slice()
-    .sort(
-      (first, second) =>
-        first.financialYear.localeCompare(second.financialYear) || first.title.localeCompare(second.title)
-    )
-    .map((item) => ({
-      title: item.title,
-      financialYear: item.financialYear,
-      costCentre: item.costCentre ?? "",
-      status: formatToken(item.status),
-      amount: moneyAmountValue(item.amount),
-      forecastCost: moneyAmountValue(item.forecastCost) || moneyAmountValue(item.amount),
-      expectedSavings: moneyAmountValue(item.expectedSavings)
-    }));
 }
 
 function deriveSavingSchedule(store: ShopStore, links: readonly LinkEntity[]): SavingScheduleRow[] {
@@ -3132,7 +3313,7 @@ function renderForecastHtml(
     ${relationshipActions}
     <section>
       <h2>Scenario comparison</h2>
-      <p class="muted">Compare approved work, the approved and committed baseline, and proposed-inclusive planning without changing source records.</p>
+      <p class="muted">Compare approved work, the Approved and committed baseline, and proposed-inclusive planning without changing source records.</p>
       <table>
         <thead><tr><th>Scenario</th><th>Description</th><th>Items</th><th>Planned spend</th><th>Forecast cost</th><th>Expected savings</th><th>Net forecast</th><th>Signals</th></tr></thead>
         <tbody>${scenarioRows}</tbody>
@@ -3454,26 +3635,6 @@ function getWorkspaceUri(fileName: string): vscode.Uri | undefined {
 
 function moneyAmount(amount: number, currency = "AUD"): MoneyAmount {
   return { amount, currency };
-}
-
-function moneyInputValue(value: MoneyAmount | undefined): string {
-  const amount = moneyAmountNumber(value);
-  return amount === undefined ? "" : amount.toString();
-}
-
-function moneyAmountValue(value: MoneyAmount | undefined): number {
-  return moneyAmountNumber(value) ?? 0;
-}
-
-function moneyAmountNumber(value: MoneyAmount | undefined): number | undefined {
-  return typeof value?.amount === "number" && Number.isFinite(value.amount) ? value.amount : undefined;
-}
-
-function formatMoneyAmount(value: MoneyAmount | undefined): string {
-  return formatCurrency(
-    moneyAmountValue(value),
-    typeof value?.currency === "string" && value.currency ? value.currency : "AUD"
-  );
 }
 
 function iconFor(iconName: "contract" | "home" | "info" | "sample" | "spend" | "supplier"): string {

@@ -517,7 +517,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 ### v1.34 candidate gates (Requirements navigation polish, per ADR 0070)
 
 1. **ADR gate**: ADR 0070 records the v1.34 Requirements navigation polish decision before release preparation completes.
-2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.34.1`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.34.2`; schema, bundle, and API axes remain `1.11.0`; no new schema directory is introduced.
 3. **Workshop Requirements navigation gate**: Workshop Requirements exposes page-level PSPF domain tabs and a `Directions` tab above the two-panel workbench; search, status, saved-view, tab, and Direction-lens state update a visible filtered-count cue with a clear action.
 4. **Explorer Requirements navigation gate**: Explorer Requirements exposes the same tab model and visible filtered-count cue while preserving existing search, status, and tag filters.
 5. **Directions lens gate**: the `Directions` tab in both Workshop and Explorer lists Requirements targeted by existing Direction links and does not introduce a separate Direction authoring mode, link verb, bundle field, or schema change.
@@ -525,6 +525,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Connected View layering gate**: selecting a Connected View card keeps all connector lines, including highlighted selected-chain paths, visually underneath selected and connected cards.
 8. **Deferred-scope gate**: v1.34 does not add new Requirement, Direction, saved-view, or navigation entities; schema-bearing fields; link verbs; editable Connected View; drag-to-link; edge filtering; team/private saved views; or tag hierarchy.
 9. **Regression gate**: `e2e:v1.34`, `check:explorer-publication`, `check:workshop-navigation`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
+### v1.35 candidate gates (ISM obligation navigation completion, per ADR 0071)
+
+1. **ADR gate**: ADR 0071 records the ISM control-as-workable-entity completion decision, including the schema-bearing `workshop-source-controls` saved-view scope and the public/internal split for ISM posture.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.35.0`; `VERSION_AXES` are `1.12.0`; `schemas/explorer-bundle/1.12.0/` is published and earlier schema directories remain immutable.
+3. **Workshop ISM saved-view gate**: Workshop Saved Views can create, edit, open, and summarise `workshop-source-controls` views with query and implementation-status filters over ISM source controls.
+4. **ISM posture rollup gate**: Workshop surfaces implementation-assessed, not-assessed, direct evidence/action/risk link, and mapped-control counts as aggregates; per-control `implementationStatus` remains `internal` and is stripped at publication.
+5. **Posture brief gate**: shared Workshop/Explorer posture briefs include a traceable ISM Control Posture section based on aggregate source-control and link counts and do not emit per-control implementation status detail.
+6. **Explorer obligation navigation gate**: Explorer adds a read-only Obligations section spanning PSPF Requirements and ISM Controls, plus richer ISM Source Control rows with mapped Requirements and direct public evidence/action/risk counts.
+7. **Deferred-scope gate**: v1.35 does not add editable Explorer ISM authoring, drag-to-link, private/team saved views, non-public ISM statement notes, or new link verbs beyond the existing control-to-work use of `supported-by`, `addressed-by`, and `exposed-by`.
+8. **Regression gate**: `e2e:v1.35`, `check:explorer-publication`, `check:workshop-navigation`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 

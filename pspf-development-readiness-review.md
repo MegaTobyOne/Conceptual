@@ -79,6 +79,10 @@ These are open before, during, or after the first manual operator validation. No
 6. **Command rename in extension surface spec** — `pspf-vscode-extension-surface-spec.md` still lists `pspf.core.exportExplorerBundle`; the implementation correctly uses `pspf.core.exportBundle` per ADR 0009 (single master bundle). The spec text is patched alongside this review; this risk closes when the patch lands.
 7. **Core API contract shape** — `pspf-core-api-contract-spec.md` describes a layered `PspfCoreApi` object (`platform`, `queries`, `commands`, `events`). v0.1 exposes a flat object plus VS Code commands; the layered shape is targeted for v0.2 once a second consuming product exists. Documented here rather than treated as drift, because v0.1 has only one consumer.
 8. **First operator validation** — manual validation using `validation-scenario-1-operator-workflow.md` has been clean to date. Keep recording any future operator findings against the scenario before expanding post-v1.0 scope.
+9. **Post-next-slice diagnostics hardening** — after the current manual-validation sequence, add the next diagnostics/repair tranche without pulling it into the immediate slice:
+	- Pub local JSON diagnostics and conservative repair for malformed people, teams, roles, assignments, and relationship notes, including orphaned `assignment.personId`, `assignment.roleId`, `role.teamId`, `role.reportsToRoleId`, `team.parentTeamId`, and `relationshipNote.personId` references. Pub repair must copy `.pspf/pub/pub.json` before writing, create placeholders only where non-destructive, and leave duplicate IDs or cycles diagnostic-only.
+	- Core integrity scan expansion for known reference fields beyond `link` rows and Shop `contract.supplierId`, especially requirement-control mappings and any future Core-backed Pub references. Core should stay report-first; broad automatic repair is deferred unless a fix is mechanical, reversible, and product-owned.
+	- Workshop should expose clearer integrity findings over Core scan results when useful, but should not get a broad auto-repair tool for assurance records. Workshop repair remains limited to explicit operator-owned, meaning-preserving actions.
 
 ## Development environment enhancements
 
@@ -109,7 +113,7 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.8.0, including Workshop tag creation/application/filtering, Explorer tag filters on Requirements and the Relationships Board, Explorer Requirements saved views, Explorer Local Changes, refresh restore, Workshop/Explorer identity markers, Workshop import review for Explorer local JSON, plan-apply, and undo.
+The next sequence is manual validation of v1.8.0, including Workshop tag creation/application/filtering, Explorer tag filters on Requirements and the Relationships Board, Explorer Requirements saved views, Explorer Local Changes, refresh restore, Workshop/Explorer identity markers, Workshop import review for Explorer local JSON, plan-apply, and undo. The Pub/Core/Workshop diagnostics hardening noted above is queued after that validation sequence, not inside it.
 
 ## Review conclusion
 

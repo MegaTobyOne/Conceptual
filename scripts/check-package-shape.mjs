@@ -50,6 +50,8 @@ const extensionPackages = [
       "pspf.shop.openHome",
       "pspf.shop.loadSample",
       "pspf.shop.importLocalStore",
+      "pspf.shop.diagnoseData",
+      "pspf.shop.repairData",
       "pspf.shop.newSupplier",
       "pspf.shop.newContract",
       "pspf.shop.newSpendItem",

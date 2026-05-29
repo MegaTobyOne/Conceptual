@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.11.0",
-  bundleVersion: "1.11.0",
-  apiVersion: "1.11.0"
+  schemaVersion: "1.12.0",
+  bundleVersion: "1.12.0",
+  apiVersion: "1.12.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.34.1" as const;
+export const PSPF_SLICE_VERSION = "1.35.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -151,6 +151,33 @@ export const OPERATOR_LINK_RULES = [
     toType: "requirement",
     label: "Link Change Record to Requirement",
     phrase: "changes"
+  },
+  {
+    id: "workshop-source-control-supported-by-evidence",
+    sourceProduct: "workshop",
+    linkType: "supported-by",
+    fromType: "source-control",
+    toType: "evidence",
+    label: "Link ISM Control to Evidence",
+    phrase: "supported by"
+  },
+  {
+    id: "workshop-source-control-addressed-by-action",
+    sourceProduct: "workshop",
+    linkType: "addressed-by",
+    fromType: "source-control",
+    toType: "action",
+    label: "Link ISM Control to Action",
+    phrase: "addressed by"
+  },
+  {
+    id: "workshop-source-control-exposed-by-risk",
+    sourceProduct: "workshop",
+    linkType: "exposed-by",
+    fromType: "source-control",
+    toType: "risk",
+    label: "Link ISM Control to Risk",
+    phrase: "exposed by"
   },
   {
     id: "shop-supplier-supports-requirement",
@@ -414,6 +441,7 @@ export const SAVED_VIEW_SCOPES = [
   "explorer-relationships",
   "workshop-dashboard",
   "workshop-evidence-review",
+  "workshop-source-controls",
   "workshop-requirements"
 ] as const;
 export type SavedViewScope = (typeof SAVED_VIEW_SCOPES)[number];
@@ -477,6 +505,7 @@ export interface SavedViewFilters {
   readonly evidenceCoverage?: SavedViewEvidenceCoverage;
   readonly actionStates?: readonly ActionStatus[];
   readonly riskStates?: readonly RiskStatus[];
+  readonly implementationStatuses?: readonly SourceControlImplementationStatus[];
 }
 
 export interface SavedViewPresentation {
@@ -519,6 +548,13 @@ export interface SourceControlProvenance {
   readonly sourceUrl: string;
 }
 
+export type SourceControlImplementationStatus =
+  | "not-implemented"
+  | "partial"
+  | "implemented"
+  | "not-applicable"
+  | "under-review";
+
 export interface SourceControlEntity extends EntityEnvelope {
   readonly entityType: "source-control";
   readonly title: string;
@@ -529,6 +565,7 @@ export interface SourceControlEntity extends EntityEnvelope {
   readonly externalRefs: readonly SourceControlExternalRef[];
   readonly provenance: SourceControlProvenance;
   readonly localApplicabilityNote?: string;
+  readonly implementationStatus?: SourceControlImplementationStatus;
 }
 
 export type CoverageQualifier = "primary" | "partial" | "compensating";
@@ -990,7 +1027,8 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "externalRefs",
         "provenance"
       ),
-      { field: "localApplicabilityNote", publication: "sensitive" }
+      { field: "localApplicabilityNote", publication: "sensitive" },
+      { field: "implementationStatus", publication: "internal" }
     ]
   },
   {

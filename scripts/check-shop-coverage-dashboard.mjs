@@ -4,6 +4,8 @@ import { join } from "node:path";
 
 const root = process.cwd();
 const shopExtension = await readFile(join(root, "packages/shop/src/extension.ts"), "utf8");
+const shopForecast = await readFile(join(root, "packages/shop/src/forecast.ts"), "utf8");
+const shopSources = `${shopExtension}\n${shopForecast}`;
 
 for (const requiredText of [
   "NEAR_TERM_REVIEW_DAYS = 120",
@@ -56,7 +58,7 @@ for (const requiredText of [
   "Include proposed work",
   "promptSpendItemAssuranceLink"
 ]) {
-  assert.equal(shopExtension.includes(requiredText), true, `Shop coverage dashboard should mention ${requiredText}`);
+  assert.equal(shopSources.includes(requiredText), true, `Shop coverage dashboard should mention ${requiredText}`);
 }
 
 const renderStart = shopExtension.indexOf("function renderForecastHtml");

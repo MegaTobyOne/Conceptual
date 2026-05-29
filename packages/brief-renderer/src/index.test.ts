@@ -23,6 +23,11 @@ test("posture brief includes evidence basis and excludes sensitive requirement s
   assert.match(brief, /Requirements with current evidence: 1/);
   assert.match(brief, /Role ownership: 1 role\(s\), 1 requirement coverage count, 1 control coverage count/);
   assert.match(brief, /Access review owner: 1 requirement\(s\), 1 control\(s\)/);
+  assert.match(brief, /## ISM Control Posture/);
+  assert.match(brief, /ISM controls in scope: 1/);
+  assert.match(brief, /Controls with internal implementation assessment: 1/);
+  assert.match(brief, /Controls with direct evidence, action, or risk links: 1/);
+  assert.doesNotMatch(brief, /partial/);
   assert.match(brief, /Confirm next governance review date/);
   assert.doesNotMatch(brief, /Internal assessment working note/);
 });
@@ -325,6 +330,26 @@ function briefFixture() {
     },
     "workshop"
   );
+  const sourceControl = withEnvelope(
+    "source-control",
+    {
+      entityType: "source-control",
+      title: "Privileged access management",
+      controlId: "ISM-1401",
+      statement: "Privileged access is managed and reviewed.",
+      profileTags: ["Essential Eight"],
+      statementChangeStatus: "unchanged",
+      implementationStatus: "implemented",
+      externalRefs: [{ scheme: "ism-control-id", value: "ISM-1401" }],
+      provenance: {
+        oscalRelease: "v2026.03.24",
+        catalog: "ISM",
+        profile: "Essential Eight",
+        sourceUrl: "https://www.cyber.gov.au/"
+      }
+    },
+    "workshop"
+  );
 
   return {
     generatedAt: "2026-05-11T00:00:00.000Z",
@@ -372,6 +397,19 @@ function briefFixture() {
           toType: "risk"
         },
         "workshop"
+      ),
+      withEnvelope(
+        "link",
+        {
+          entityType: "link",
+          title: "control supported",
+          linkType: "supported-by",
+          fromId: sourceControl.id,
+          fromType: "source-control",
+          toId: evidence.id,
+          toType: "evidence"
+        },
+        "workshop"
       )
     ],
     requirementControlMappings: [
@@ -380,7 +418,7 @@ function briefFixture() {
         {
           entityType: "requirement-control-mapping",
           requirementId: requirement.id,
-          sourceControlId: "SRC-ISM-1401",
+          sourceControlId: sourceControl.id,
           coverageQualifier: "partial",
           applicabilityProfile: "Enterprise",
           confidence: "medium",
@@ -394,6 +432,7 @@ function briefFixture() {
         "workshop"
       )
     ],
+    sourceControls: [sourceControl],
     domains: PSPF_DOMAINS,
     sourceLabel: "Test"
   };

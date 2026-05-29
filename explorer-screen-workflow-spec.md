@@ -142,7 +142,7 @@ Explorer should use a small, stable top-level navigation set.
 10. Reporting
 11. Data / About
 
-Tags are a filter affordance on Requirements (and on the Relationships Board) per [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md); tag management is reached from Workshop. Saved views are the v1.8 durable filter surface per [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md); v1.8 limits them to Requirements filters.
+Tags are a filter affordance on Requirements (and on the Relationships Board) per [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md); tag management is reached from Workshop. Saved views are the durable filter surface per [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md), later expanded to Workshop planning scopes and `workshop-source-controls` ISM posture views.
 
 ### Secondary navigation behaviour
 
@@ -833,10 +833,11 @@ The most-used reporting output is expected to be a simple posture graphic plus a
 - overall PSPF posture as a compact chart with a nearby text summary,
 - posture by domain,
 - Essential Eight posture,
+- ISM control posture aggregates based on published source controls, mappings, and direct control-work links, without per-control implementation status detail,
 - evidence confidence signals, including stale, incomplete, changed, and missing evidence counts,
 - Direction response state,
 - top actions ranked by explainable Action Impact,
-- and supporting facts so the user can trace each claim back to requirements, evidence, risks, actions, and Directions.
+- and supporting facts so the user can trace each claim back to requirements, evidence, risks, actions, Directions, ISM source controls, mappings, and links.
 
 The brief is not a free-form report writer in v1. It is a constrained, repeatable output composed from the same summary calculations used by Overview, Reporting, Essential Eight, Evidence, and the Relationships Board.
 

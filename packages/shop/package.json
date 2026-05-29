@@ -2,7 +2,7 @@
   "name": "pspf-shop",
   "displayName": "PSPF Shop",
   "description": "PSPF commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.",
-  "version": "1.34.1",
+  "version": "1.35.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -80,6 +80,14 @@
       {
         "command": "pspf.shop.importLocalStore",
         "title": "PSPF: Import Shop Local JSON"
+      },
+      {
+        "command": "pspf.shop.diagnoseData",
+        "title": "PSPF: Diagnose Shop Data"
+      },
+      {
+        "command": "pspf.shop.repairData",
+        "title": "PSPF: Repair Shop Data"
       },
       {
         "command": "pspf.shop.newSupplier",
@@ -176,6 +184,11 @@
           "command": "pspf.shop.importLocalStore",
           "when": "view =~ /^pspfShop\\./",
           "group": "navigation@3"
+        },
+        {
+          "command": "pspf.shop.diagnoseData",
+          "when": "view =~ /^pspfShop\\./",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [

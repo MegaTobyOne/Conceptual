@@ -45,12 +45,34 @@ const validLink = withEnvelope(
   },
   "workshop"
 );
-await service.upsertEntities([requirement, evidence, validLink]);
+const supplier = withEnvelope(
+  "supplier",
+  {
+    entityType: "supplier",
+    name: "Integrity Scan Supplier",
+    supplierType: "service",
+    status: "active",
+    criticality: "medium"
+  },
+  "shop"
+);
+const contract = withEnvelope(
+  "contract",
+  {
+    entityType: "contract",
+    supplierId: supplier.id,
+    title: "Integrity scan valid contract",
+    status: "active"
+  },
+  "shop"
+);
+await service.upsertEntities([requirement, evidence, validLink, supplier, contract]);
 
 const passingReport = await service.runIntegrityScan();
 assert.equal(passingReport.ok, true, passingReport.summary);
 assert.equal(passingReport.counts.orphanedLinks, 0);
 assert.equal(passingReport.counts.mistypedLinks, 0);
+assert.equal(passingReport.counts.brokenReferences, 0);
 
 const brokenLink = withEnvelope(
   "link",
@@ -67,9 +89,23 @@ const brokenLink = withEnvelope(
 );
 await service.upsertEntity(brokenLink);
 
+const brokenContract = withEnvelope(
+  "contract",
+  {
+    entityType: "contract",
+    supplierId: "SUP-00000000-0000-4000-8000-000000000000",
+    title: "Broken supplier reference fixture",
+    status: "active"
+  },
+  "shop"
+);
+await service.upsertEntity(brokenContract);
+
 const failingReport = await service.runIntegrityScan();
 assert.equal(failingReport.ok, false, failingReport.summary);
 assert.equal(failingReport.counts.orphanedLinks, 1);
+assert.equal(failingReport.counts.brokenReferences, 1);
 assert.match(failingReport.findings.map((finding) => finding.message).join("\n"), /references missing toId/);
+assert.match(failingReport.findings.map((finding) => finding.message).join("\n"), /references missing supplier/);
 
-console.log("ok integrity scan passes clean workspace and detects broken-link fixture");
+console.log("ok integrity scan passes clean workspace and detects broken-link and broken-reference fixtures");

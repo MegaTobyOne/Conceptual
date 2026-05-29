@@ -42,6 +42,20 @@ test("Explorer Requirements expose domain tabs, Directions lens, and filtered-co
   );
 });
 
+test("Explorer exposes unified obligation and public ISM review navigation", async () => {
+  const source = await readFile(new URL("../scripts/build-static.mjs", import.meta.url), "utf8");
+
+  assert.match(source, /<a href="#obligations">Obligations<\/a>/);
+  assert.match(source, /renderExplorerSection\(obligationsSection, "Obligations"/);
+  assert.match(source, /Unified read-only navigation across PSPF Requirements and public ISM catalogue controls/);
+  assert.match(source, /summariseDirectSourceControlWork\(collections\.links \|\| \[\]\)/);
+  assert.match(source, /Implementation posture is an internal Workshop field and is not published here/);
+  assert.match(
+    source,
+    /table\(sourceControls, \["controlId", "title", "requirements", "evidence", "actions", "risks", "profiles", "release", "drift"\]\)/
+  );
+});
+
 test("Explorer Strategy trends render labelled arrow indicators", async () => {
   const source = await readFile(new URL("../scripts/build-static.mjs", import.meta.url), "utf8");
 
