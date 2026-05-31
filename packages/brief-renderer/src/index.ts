@@ -1205,7 +1205,8 @@ function buildEditorNote(pspfDomainTitle: string, strategy?: StrategyEntity): st
   if (!strategy) {
     return `${pspfDomainTitle} is summarised from current PSPF records so leaders can see what changed, what needs attention, and what to do next.${educationCue}`;
   }
-  return `${pspfDomainTitle} is framed against ${strategy.title}: ${strategy.strategyStatement}.${educationCue}`;
+  const strategyStatement = strategy.strategyStatement.trim().replace(/[.?!]\s*$/u, "");
+  return `${pspfDomainTitle} is framed against ${strategy.title}: ${strategyStatement}.${educationCue}`;
 }
 
 function buildFeatureStories(
