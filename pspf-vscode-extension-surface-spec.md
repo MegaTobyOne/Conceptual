@@ -112,6 +112,19 @@ Use **Tree Views for navigation and state inspection**, and use **Webviews only 
 
 VS Code views live in containers such as the Activity Bar sidebars or panels, and guidance recommends keeping the number of views small and providing icons because views may be moved by users.
 
+### Unified sidebar contract
+
+All PSPF extension sidebars MUST share one shape so the suite reads as a single ecosystem. The full rationale and rules live in `pspf-design-spec.md` (Canonical sidebar contract); the binding points for manifests are:
+
+- **One container per extension:** id `pspf<Surface>`, title `PSPF <Surface>`, product icon.
+- **Fixed view order:** Home WebviewView first, then one collapsible Tree View per key record type, then any optional reporting/forecast WebviewView last.
+- **Home is title-first:** the Home panel opens with the product title plus a one-line posture summary and metric tiles (shared `homePostureHeader`), not an explanatory paragraph. Home launches workflows and shows readiness; it does not duplicate the record trees.
+- **Record trees default collapsed:** every record Tree View declares `"visibility": "collapsed"` so Home stays the focal point.
+- **Click-to-open:** selecting a tree item opens that record’s detail via the surface’s open-detail command.
+- **Consistent menus:** `view/title` carries the create action for that tree; `view/item/context` carries open, edit, delete, and link actions.
+- **Per-surface accent:** Workshop teal, Shop amber, Pub red, Core blue.
+- **Noun labels only:** retired `Hearth`, `Trail`, `Lookout`, `Skylight` names MUST NOT appear in any container, view, label, or command.
+
 ### Core view container
 
 Core should contribute a single compact view container in the secondary sidebar or activity bar only if necessary.

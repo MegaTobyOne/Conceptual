@@ -91,6 +91,10 @@ export function shellHtml(title: string, body: string): string {
     h3 { font-size: 14px; margin: 12px 0 6px; }
     p { line-height: 1.5; }
     .eyebrow { margin: 0 0 6px; color: var(--workshop-blue); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .momentum { margin: 0 0 10px; padding: 8px 10px; border-left: 2px solid var(--workshop-blue); background: var(--surface-strong); border-radius: var(--radius-sm); color: var(--text); font-size: 12.5px; line-height: 1.45; }
+    .sparkline { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
+    .sparkline svg { display: block; }
+    .sparkline-caption { color: var(--muted); font-size: var(--pspf-type-label); text-transform: uppercase; letter-spacing: var(--pspf-letter-label); font-variant-numeric: tabular-nums; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
     .metric { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--pspf-gap-md); background: var(--surface-strong); }
     .metric span { color: var(--muted); display: block; font-size: var(--pspf-type-label); text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }

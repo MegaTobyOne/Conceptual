@@ -6,8 +6,8 @@ import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
 import {
   commandButtonAcknowledgementScript,
   homeActionButton,
-  homeMetricCard,
   homePanelShellHtml,
+  homePostureHeader,
   homeSection,
   tokensCss
 } from "@pspf/webview-shell";
@@ -211,6 +211,139 @@ let roleEditorPanel: vscode.WebviewPanel | undefined;
 let assignmentEditorPanel: vscode.WebviewPanel | undefined;
 let relationshipNoteEditorPanel: vscode.WebviewPanel | undefined;
 
+function formatPubToken(value: string | undefined): string {
+  if (!value) {
+    return "";
+  }
+  return value
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+class PubMessageTreeItem extends vscode.TreeItem {
+  constructor(label: string, description: string, iconId: string) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this.description = description;
+    this.tooltip = description;
+    this.iconPath = new vscode.ThemeIcon(iconId);
+  }
+}
+
+class PubRecordTreeItem<T> extends vscode.TreeItem {
+  constructor(
+    label: string,
+    description: string,
+    iconId: string,
+    openCommand: string,
+    record: T,
+    contextValue: string
+  ) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this.description = description;
+    this.tooltip = description;
+    this.iconPath = new vscode.ThemeIcon(iconId);
+    this.command = { command: openCommand, title: "Open detail", arguments: [record] };
+    this.contextValue = contextValue;
+  }
+}
+
+abstract class PubTreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+  private readonly changedEmitter = new vscode.EventEmitter<vscode.TreeItem | undefined | null | void>();
+  readonly onDidChangeTreeData = this.changedEmitter.event;
+
+  refresh(): void {
+    this.changedEmitter.fire();
+  }
+
+  getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+    return element;
+  }
+
+  abstract getChildren(): Promise<vscode.TreeItem[]>;
+}
+
+class PeopleTreeProvider extends PubTreeProvider {
+  async getChildren(): Promise<vscode.TreeItem[]> {
+    const store = await loadStore();
+    if (store.people.length === 0) {
+      return [new PubMessageTreeItem("No people yet", "Use New Person or Load Sample", "info")];
+    }
+    return store.people.map((person) => {
+      const detail = [formatPubToken(person.stakeholderType), person.currentRole || person.organisation]
+        .filter(Boolean)
+        .join(" · ");
+      return new PubRecordTreeItem(
+        person.displayName,
+        detail,
+        "account",
+        "pspf.pub.openPersonDetail",
+        person,
+        "pspfPubPerson"
+      );
+    });
+  }
+}
+
+class TeamsTreeProvider extends PubTreeProvider {
+  async getChildren(): Promise<vscode.TreeItem[]> {
+    const store = await loadStore();
+    if (store.teams.length === 0) {
+      return [new PubMessageTreeItem("No teams yet", "Use New Team or Load Sample", "info")];
+    }
+    return store.teams.map((team) => {
+      const roleCount = store.roles.filter((role) => role.teamId === team.id).length;
+      const detail = roleCount === 1 ? "1 role" : `${roleCount} roles`;
+      return new PubRecordTreeItem(team.title, detail, "organization", "pspf.pub.openTeamDetail", team, "pspfPubTeam");
+    });
+  }
+}
+
+class RolesTreeProvider extends PubTreeProvider {
+  async getChildren(): Promise<vscode.TreeItem[]> {
+    const store = await loadStore();
+    if (store.roles.length === 0) {
+      return [new PubMessageTreeItem("No roles yet", "Use New Role or Load Sample", "info")];
+    }
+    return store.roles.map((role) => {
+      const team = store.teams.find((candidate) => candidate.id === role.teamId);
+      return new PubRecordTreeItem(
+        role.title,
+        team?.title ?? "Unassigned team",
+        "person",
+        "pspf.pub.openRoleDetail",
+        role,
+        "pspfPubRole"
+      );
+    });
+  }
+}
+
+class AssignmentsTreeProvider extends PubTreeProvider {
+  async getChildren(): Promise<vscode.TreeItem[]> {
+    const store = await loadStore();
+    if (store.assignments.length === 0) {
+      return [new PubMessageTreeItem("No assignments yet", "Use New Assignment or Load Sample", "info")];
+    }
+    return store.assignments.map((assignment) => {
+      const person = store.people.find((candidate) => candidate.id === assignment.personId);
+      const role = store.roles.find((candidate) => candidate.id === assignment.roleId);
+      const label = `${person?.displayName ?? "Unknown person"} → ${role?.title ?? "Unknown role"}`;
+      return new PubRecordTreeItem(
+        label,
+        formatPubToken(assignment.status),
+        "key",
+        "pspf.pub.openAssignmentDetail",
+        assignment,
+        "pspfPubAssignment"
+      );
+    });
+  }
+}
+
+const pubTreeProviders: PubTreeProvider[] = [];
+
 export function activate(context: vscode.ExtensionContext): void {
   homeViewProvider = new PubHomeViewProvider();
   const statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 70);
@@ -219,9 +352,20 @@ export function activate(context: vscode.ExtensionContext): void {
   statusItem.command = "pspf.pub.openHome";
   statusItem.show();
 
+  const peopleTree = new PeopleTreeProvider();
+  const teamsTree = new TeamsTreeProvider();
+  const rolesTree = new RolesTreeProvider();
+  const assignmentsTree = new AssignmentsTreeProvider();
+  pubTreeProviders.length = 0;
+  pubTreeProviders.push(peopleTree, teamsTree, rolesTree, assignmentsTree);
+
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("pspfPub.homeView", homeViewProvider),
     statusItem,
+    vscode.window.registerTreeDataProvider("pspfPub.peopleView", peopleTree),
+    vscode.window.registerTreeDataProvider("pspfPub.teamsView", teamsTree),
+    vscode.window.registerTreeDataProvider("pspfPub.rolesView", rolesTree),
+    vscode.window.registerTreeDataProvider("pspfPub.assignmentsView", assignmentsTree),
     vscode.commands.registerCommand("pspf.pub.openHome", openHome),
     vscode.commands.registerCommand("pspf.pub.loadSample", loadSample),
     vscode.commands.registerCommand("pspf.pub.newPerson", newPerson),
@@ -263,6 +407,7 @@ export function deactivate(): void {
   roleEditorPanel = undefined;
   assignmentEditorPanel = undefined;
   relationshipNoteEditorPanel = undefined;
+  pubTreeProviders.length = 0;
 }
 
 async function openHome(): Promise<void> {
@@ -326,9 +471,9 @@ async function newPerson(): Promise<void> {
   vscode.window.showInformationMessage(`Added Pub person ${displayName}.`);
 }
 
-async function openPersonDetail(): Promise<void> {
+async function openPersonDetail(personArg?: PersonRecord): Promise<void> {
   const store = await loadStore();
-  const person = await pickPerson(store, "Open person detail");
+  const person = personArg ?? (await pickPerson(store, "Open person detail"));
   if (!person) {
     return;
   }
@@ -444,9 +589,9 @@ async function newRole(): Promise<void> {
   vscode.window.showInformationMessage(`Added Pub role ${title}.`);
 }
 
-async function openRoleDetail(): Promise<void> {
+async function openRoleDetail(roleArg?: RoleRecord): Promise<void> {
   const store = await loadStore();
-  const role = await pickRole(store, "Open role detail");
+  const role = roleArg ?? (await pickRole(store, "Open role detail"));
   if (!role) {
     return;
   }
@@ -523,9 +668,9 @@ async function newTeam(): Promise<void> {
   await openTeamEditor();
 }
 
-async function openTeamDetail(): Promise<void> {
+async function openTeamDetail(teamArg?: TeamRecord): Promise<void> {
   const store = await loadStore();
-  const team = await pickTeam(store, "Open team detail");
+  const team = teamArg ?? (await pickTeam(store, "Open team detail"));
   if (!team) {
     return;
   }
@@ -789,9 +934,9 @@ async function newAssignment(): Promise<void> {
   vscode.window.showInformationMessage(`Assigned ${person.displayName} to ${role.title}.`);
 }
 
-async function openAssignmentDetail(): Promise<void> {
+async function openAssignmentDetail(assignmentArg?: AssignmentRecord): Promise<void> {
   const store = await loadStore();
-  const assignment = await pickAssignment(store, "Open assignment detail");
+  const assignment = assignmentArg ?? (await pickAssignment(store, "Open assignment detail"));
   if (!assignment) {
     return;
   }
@@ -1024,6 +1169,9 @@ async function handlePubWebviewCommand(command: string | undefined): Promise<voi
 
 async function refreshHome(): Promise<void> {
   await homeViewProvider?.refresh();
+  for (const provider of pubTreeProviders) {
+    provider.refresh();
+  }
 }
 
 async function loadStore(): Promise<PubStore> {
@@ -1225,75 +1373,49 @@ function buildSampleStore(): PubStore {
 }
 
 function renderHomeHtml(store: PubStore): string {
-  const axes = `Schema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
   const upcomingBadges = deriveUpcomingBadges(store);
   const upcomingBody =
     upcomingBadges.length === 0
       ? `<p class="muted">Load sample data or add assignments to see action, review, rotation, and anniversary signals.</p>`
       : `<div class="tags">${upcomingBadges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("")}</div>`;
 
-  const heroBody = `
-    <p class="muted">${escapeHtml(axes)}</p>
-    <p>Pub is the local-only people context surface: who has a stake in protecting information, where responsibility needs attention, how the organisation chart supports assurance work, and which relationship log entries need follow-up.</p>
-    <div class="grid" role="list">
-      ${homeMetricCard("People", store.people.length)}
-      ${homeMetricCard("Teams", store.teams.length)}
-      ${homeMetricCard("Roles", store.roles.length)}
-      ${homeMetricCard("Assignments", store.assignments.length)}
-    </div>
-    <p class="muted" style="margin-top:8px">no Explorer publication in v1.29 — Pub records stay local in v${escapeHtml(PSPF_SLICE_VERSION)}.</p>
-  `;
+  const posture = `${store.people.length} ${store.people.length === 1 ? "person" : "people"} across ${store.teams.length} ${store.teams.length === 1 ? "team" : "teams"} · local-only, never exported to Explorer.`;
 
-  const signalsBody = `<div class="grid two">
-    <div class="metric"><span>Upcoming badges</span><strong style="font-size:13px;font-weight:500;line-height:1.4;letter-spacing:0">${upcomingBody}</strong></div>
-    <div class="metric"><span>Local-only boundary</span><strong style="font-size:13px;font-weight:500;line-height:1.4;letter-spacing:0">Person display names, relationship notes, development context, performance context, and assignment-to-person mappings stay in <code>.pspf/pub/pub.json</code> and never enter Explorer bundles.</strong></div>
-  </div>`;
+  const signalsBody =
+    upcomingBadges.length === 0
+      ? upcomingBody
+      : `<div class="tags">${upcomingBadges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("")}</div>`;
 
   const coreActions = `<div class="action-list">
-    ${homeActionButton("pspf.pub.openTeams", "Teams", "Review local team control ownership")}
-    ${homeActionButton("pspf.pub.openTeamDetail", "Team detail", "Open one team with roles, assignments, gaps, and notes")}
-    ${homeActionButton("pspf.pub.editTeam", "Edit team", "Update local team ownership and responsibility")}
     ${homeActionButton("pspf.pub.openOrgChart", "Organisation chart", "See teams, roles, owned controls, and assignment badges")}
-    ${homeActionButton("pspf.pub.openAssignments", "Assignments", "Review people-to-role coverage")}
-    ${homeActionButton("pspf.pub.openRelationshipLog", "Relationship log", "Review stakeholder follow-up notes")}
+    ${homeActionButton("pspf.pub.openRelationshipLog", "Relationship log", "Open the relationship log of stakeholder follow-up notes")}
+    ${homeActionButton("pspf.pub.recordRelationshipNote", "Record relationship note", "Record a local follow-up")}
   </div>`;
 
   const createActions = `<div class="action-list compact">
+    ${homeActionButton("pspf.pub.newPerson", "New person", "Add local-only person context")}
     ${homeActionButton("pspf.pub.newTeam", "New team", "Add local team-owned controls")}
     ${homeActionButton("pspf.pub.newRole", "New role", "Attach a role to a team")}
-    ${homeActionButton("pspf.pub.openRoleDetail", "Role detail", "Open one role with team and assignment coverage")}
-    ${homeActionButton("pspf.pub.editRole", "Edit role", "Update local role contribution and PD context")}
-    ${homeActionButton("pspf.pub.newPerson", "New person", "Add local-only person context")}
-    ${homeActionButton("pspf.pub.openPersonDetail", "Person detail", "Open one person with assignments and relationship notes")}
-    ${homeActionButton("pspf.pub.editPerson", "Edit person", "Update local-only person context")}
     ${homeActionButton("pspf.pub.newAssignment", "New assignment", "Assign a person to a role")}
-    ${homeActionButton("pspf.pub.openAssignmentDetail", "Assignment detail", "Open one person-to-role assignment")}
-    ${homeActionButton("pspf.pub.editAssignment", "Edit assignment", "Update local assignment coverage")}
-    ${homeActionButton("pspf.pub.recordRelationshipNote", "Relationship note", "Record a local follow-up")}
-    ${homeActionButton("pspf.pub.openRelationshipNoteDetail", "Note detail", "Open one local relationship note")}
-    ${homeActionButton("pspf.pub.editRelationshipNote", "Edit note", "Update local relationship follow-up context")}
     ${homeActionButton("pspf.pub.loadSample", "Load sample", "Replace current Pub data with sample records")}
   </div>`;
 
-  const foundationBody = `<div class="grid two">
-    ${homeFoundationCard("Organisation chart", "Role, team, milestone, anniversary, and action badges for upcoming work and sustainability signals.")}
-    ${homeFoundationCard("Team control ownership", "Teams own controls and control sets; roles and assignments explain who helps sustain that ownership.")}
-    ${homeFoundationCard("Relationship context", "Staff, service providers, customers, relationship notes, team events, and stakeholder history kept local by default.")}
-    ${homeFoundationCard("Assignments and rotations", "Assignment boards, roster opportunities, staff rotations, and role contribution views for future implementation.")}
-  </div>`;
-
   const body = [
-    homeSection({
+    homePostureHeader({
       id: "overview",
-      hero: true,
       eyebrow: "Local people context",
-      heading: "People, roles, teams, assignments, and stakeholder relationships",
-      body: heroBody
+      title: "PSPF Pub",
+      posture,
+      metrics: [
+        { label: "People", value: store.people.length },
+        { label: "Teams", value: store.teams.length },
+        { label: "Roles", value: store.roles.length },
+        { label: "Assignments", value: store.assignments.length }
+      ]
     }),
     homeSection({ id: "signals", eyebrow: "Now", heading: "Action signals", body: signalsBody }),
-    homeSection({ id: "actions", eyebrow: "Browse", heading: "Core Pub actions", body: coreActions }),
-    homeSection({ id: "create", eyebrow: "Author", heading: "Create local records", body: createActions }),
-    homeSection({ id: "foundation", eyebrow: "Reference", heading: "Pub foundation areas", body: foundationBody })
+    homeSection({ id: "actions", eyebrow: "Open", heading: "People & relationship tools", body: coreActions }),
+    homeSection({ id: "create", eyebrow: "Author", heading: "Create local records", body: createActions })
   ].join("");
 
   return homePanelShellHtml({
@@ -1302,20 +1424,16 @@ function renderHomeHtml(store: PubStore): string {
     tagline: "Local-only people context",
     version: PSPF_SLICE_VERSION,
     accent: "red",
-    sensitivityBanner: "OFFICIAL: Sensitive · Pub data stays on this workspace and is never exported to Explorer.",
+    sensitivityBanner:
+      "OFFICIAL: Sensitive · local-only people context · no Explorer publication in v1.29 — Pub data stays on this workspace and is never exported to Explorer.",
     nav: [
       { href: "overview", label: "Overview" },
       { href: "signals", label: "Signals" },
-      { href: "actions", label: "Browse" },
-      { href: "create", label: "Create" },
-      { href: "foundation", label: "Reference" }
+      { href: "actions", label: "Open" },
+      { href: "create", label: "Create" }
     ],
     body
   });
-}
-
-function homeFoundationCard(title: string, body: string): string {
-  return `<article class="metric"><span>${escapeHtml(title)}</span><strong style="font-size:13px;font-weight:500;line-height:1.4;letter-spacing:0">${escapeHtml(body)}</strong></article>`;
 }
 
 function renderOrgChartHtml(store: PubStore): string {

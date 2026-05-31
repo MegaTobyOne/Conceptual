@@ -17,8 +17,8 @@ import {
 } from "@pspf/contracts";
 import {
   homeActionButton,
-  homeMetricCard,
   homePanelShellHtml,
+  homePostureHeader,
   homeSection,
   relationshipManagerHtml,
   tokensCss,
@@ -1923,16 +1923,6 @@ function renderShopHomeHtml(store: ShopStore): string {
   const spendCount = store.spendItems.length;
   const axes = `Schema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
 
-  const heroBody = `
-    <p class="muted">${axes}</p>
-    <p>Shop is the commercial planning surface for suppliers, contracts, and spend items. Use the Suppliers, Contracts, and Spend panels below to browse records; this Home tab is for quick capture and forecast review.</p>
-    <div class="grid" role="list">
-      ${homeMetricCard("Suppliers", supplierCount)}
-      ${homeMetricCard("Contracts", contractCount)}
-      ${homeMetricCard("Spend items", spendCount)}
-    </div>
-  `;
-
   const createBody = `<div class="action-list">
     ${homeActionButton("pspf.shop.newSupplier", "New supplier", "Capture a supplier")}
     ${homeActionButton("pspf.shop.newContract", "New contract", "Capture a supplier contract")}
@@ -1952,12 +1942,16 @@ function renderShopHomeHtml(store: ShopStore): string {
   </div>`;
 
   const body = [
-    homeSection({
+    homePostureHeader({
       id: "overview",
-      hero: true,
       eyebrow: "Commercial planning",
-      heading: "Shop workspace",
-      body: heroBody
+      title: "PSPF Shop",
+      posture: axes,
+      metrics: [
+        { label: "Suppliers", value: supplierCount },
+        { label: "Contracts", value: contractCount },
+        { label: "Spend items", value: spendCount }
+      ]
     }),
     homeSection({ id: "create", eyebrow: "Author", heading: "Create records", body: createBody }),
     homeSection({ id: "forecast", eyebrow: "Review", heading: "Forecast & savings", body: forecastBody }),

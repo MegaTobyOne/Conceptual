@@ -215,6 +215,12 @@ export function homePanelShellHtml(options: HomePanelOptions): string {
       letter-spacing: 0.05em;
     }
     .muted { color: var(--vscode-descriptionForeground); font-size: 12px; }
+    .home-posture {
+      margin: 0 0 10px;
+      color: var(--vscode-foreground);
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 8px; }
     .grid.two { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
     .metric {
@@ -348,4 +354,51 @@ export function homeSection(section: HomeSection): string {
   const className = section.hero ? "hero-section" : "";
   const eyebrow = section.eyebrow ? `<p class="eyebrow">${escapeText(section.eyebrow)}</p>` : "";
   return `<section${idAttr} class="${className}">${eyebrow}<h2>${escapeText(section.heading)}</h2>${section.body}</section>`;
+}
+
+/** A single label/value tile shown in the shared posture header strip. */
+export interface HomePostureMetric {
+  readonly label: string;
+  readonly value: number | string;
+}
+
+export interface HomePostureHeaderOptions {
+  /** Section anchor id, e.g. "overview". */
+  readonly id?: string;
+  /** Small uppercase eyebrow above the title, e.g. "Commercial planning". */
+  readonly eyebrow?: string;
+  /** Prominent product/workspace title — this leads, never an explainer paragraph. */
+  readonly title: string;
+  /**
+   * One short, plain-language posture line, e.g.
+   * "12 people across 4 teams". Kept to a single sentence so the header
+   * reads as status, not prose.
+   */
+  readonly posture?: string;
+  /** Quick-glance metric tiles rendered in the shared grid. */
+  readonly metrics?: readonly HomePostureMetric[];
+}
+
+/**
+ * Renders the canonical title-first Home header used across every PSPF
+ * extension sidebar. Unlike a free-form hero section, this deliberately
+ * leads with a bold title and an at-a-glance posture line plus metric
+ * tiles — never an explanatory paragraph — so the surfaces feel like one
+ * consistent product family.
+ */
+export function homePostureHeader(options: HomePostureHeaderOptions): string {
+  const posture = options.posture ? `<p class="home-posture">${escapeText(options.posture)}</p>` : "";
+  const metrics =
+    options.metrics && options.metrics.length > 0
+      ? `<div class="grid" role="list">${options.metrics
+          .map((metric) => homeMetricCard(metric.label, metric.value))
+          .join("")}</div>`
+      : "";
+  return homeSection({
+    id: options.id ?? "overview",
+    hero: true,
+    eyebrow: options.eyebrow,
+    heading: options.title,
+    body: `${posture}${metrics}`
+  });
 }

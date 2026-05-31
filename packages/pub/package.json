@@ -38,6 +38,26 @@
           "type": "webview",
           "id": "pspfPub.homeView",
           "name": "Pub Home"
+        },
+        {
+          "id": "pspfPub.peopleView",
+          "name": "People",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfPub.teamsView",
+          "name": "Teams",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfPub.rolesView",
+          "name": "Roles",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfPub.assignmentsView",
+          "name": "Assignments",
+          "visibility": "collapsed"
         }
       ]
     },
@@ -143,33 +163,80 @@
       "view/title": [
         {
           "command": "pspf.pub.newPerson",
-          "when": "view == pspfPub.homeView",
+          "when": "view == pspfPub.peopleView",
           "group": "navigation@1"
         },
         {
           "command": "pspf.pub.newTeam",
-          "when": "view == pspfPub.homeView",
-          "group": "navigation@2"
+          "when": "view == pspfPub.teamsView",
+          "group": "navigation@1"
         },
         {
-          "command": "pspf.pub.openTeamDetail",
-          "when": "view == pspfPub.homeView",
-          "group": "navigation@3"
+          "command": "pspf.pub.newRole",
+          "when": "view == pspfPub.rolesView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.pub.newAssignment",
+          "when": "view == pspfPub.assignmentsView",
+          "group": "navigation@1"
         },
         {
           "command": "pspf.pub.recordRelationshipNote",
           "when": "view == pspfPub.homeView",
-          "group": "navigation@4"
+          "group": "navigation@1"
         },
         {
           "command": "pspf.pub.openOrgChart",
           "when": "view == pspfPub.homeView",
-          "group": "navigation@5"
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pspf.pub.openPersonDetail",
+          "when": "view == pspfPub.peopleView && viewItem == pspfPubPerson",
+          "group": "0_open@1"
         },
         {
-          "command": "pspf.pub.openAssignments",
-          "when": "view == pspfPub.homeView",
-          "group": "navigation@6"
+          "command": "pspf.pub.editPerson",
+          "when": "view == pspfPub.peopleView && viewItem == pspfPubPerson",
+          "group": "1_modify@1"
+        },
+        {
+          "command": "pspf.pub.openTeamDetail",
+          "when": "view == pspfPub.teamsView && viewItem == pspfPubTeam",
+          "group": "0_open@1"
+        },
+        {
+          "command": "pspf.pub.editTeam",
+          "when": "view == pspfPub.teamsView && viewItem == pspfPubTeam",
+          "group": "1_modify@1"
+        },
+        {
+          "command": "pspf.pub.exportTeamScopeBrief",
+          "when": "view == pspfPub.teamsView && viewItem == pspfPubTeam",
+          "group": "1_modify@2"
+        },
+        {
+          "command": "pspf.pub.openRoleDetail",
+          "when": "view == pspfPub.rolesView && viewItem == pspfPubRole",
+          "group": "0_open@1"
+        },
+        {
+          "command": "pspf.pub.editRole",
+          "when": "view == pspfPub.rolesView && viewItem == pspfPubRole",
+          "group": "1_modify@1"
+        },
+        {
+          "command": "pspf.pub.openAssignmentDetail",
+          "when": "view == pspfPub.assignmentsView && viewItem == pspfPubAssignment",
+          "group": "0_open@1"
+        },
+        {
+          "command": "pspf.pub.editAssignment",
+          "when": "view == pspfPub.assignmentsView && viewItem == pspfPubAssignment",
+          "group": "1_modify@1"
         }
       ]
     }

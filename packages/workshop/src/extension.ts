@@ -93,6 +93,9 @@ const QUESTIONNAIRE_RERUN_MODE_LABEL = "Answer all questions again";
 void QUESTIONNAIRE_RERUN_MODE_LABEL;
 
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
+const momentumSnapshotKey = "pspf.workshop.momentumSnapshot.v1";
+const postureHistoryKey = "pspf.workshop.postureHistory.v1";
+const lastSharedKey = "pspf.workshop.lastShared.v1";
 const riskSourceProfileKey = "pspf.workshop.riskSourceProfile.v1";
 const riskSourcePreviewKey = "pspf.workshop.riskSourcePreview.v1";
 const riskSourceRunsKey = "pspf.workshop.riskSourceRuns.v1";
@@ -105,6 +108,29 @@ const ismSourceControlCategoryByControlId = new Map<string, string>(
 const ismSourceControlCategoryOrder = uniqueStrings(ISM_SOURCE_CONTROL_CATEGORIES.map((item) => item.category));
 let workshopContext: vscode.ExtensionContext | undefined;
 let homeViewProvider: WorkshopHomeViewProvider | undefined;
+interface WorkshopMomentumSnapshot {
+  readonly capturedAt: string;
+  readonly requirements: number;
+  readonly evidence: number;
+  readonly actions: number;
+  readonly openActions: number;
+  readonly risks: number;
+  readonly directions: number;
+  readonly metPercentage: number;
+}
+let momentumBaseline: WorkshopMomentumSnapshot | undefined;
+interface PostureHistoryPoint {
+  readonly day: string;
+  readonly metPercentage: number;
+}
+interface WorkshopShareState {
+  readonly sharedAt: string;
+  readonly requirements: number;
+  readonly evidence: number;
+  readonly actions: number;
+  readonly metPercentage: number;
+  readonly artefact: string;
+}
 let requirementWorkbenchController:
   | {
       open: (
@@ -115,8 +141,167 @@ let requirementWorkbenchController:
     }
   | undefined;
 
+class WorkshopTreeItem extends vscode.TreeItem {
+  constructor(label: string, description: string, iconId: string) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this.description = description;
+    this.tooltip = description;
+    this.iconPath = new vscode.ThemeIcon(iconId);
+  }
+}
+
+class WorkshopEntityTreeItem extends vscode.TreeItem {
+  constructor(label: string, description: string, iconId: string, entity: V01Entity, contextValue: string) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this.description = description;
+    this.tooltip = description;
+    this.iconPath = new vscode.ThemeIcon(iconId);
+    this.command = { command: "pspf.workshop.openTreeEntity", title: "Open detail", arguments: [entity] };
+    this.contextValue = contextValue;
+  }
+}
+
+abstract class WorkshopTreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+  private readonly changedEmitter = new vscode.EventEmitter<vscode.TreeItem | undefined | null | void>();
+  readonly onDidChangeTreeData = this.changedEmitter.event;
+
+  refresh(): void {
+    this.changedEmitter.fire();
+  }
+
+  getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+    return element;
+  }
+
+  abstract getChildren(): Promise<vscode.TreeItem[]>;
+}
+
+class RequirementsTreeProvider extends WorkshopTreeProvider {
+  async getChildren(): Promise<vscode.TreeItem[]> {
+    const requirements = await listRequirements();
+    if (requirements.length === 0) {
+      return [new WorkshopTreeItem("No requirements yet", "Use New Requirement or Load Sample Workspace", "info")];
+    }
+    return [...requirements]
+      .sort(compareRequirementsForPicker)
+      .map(
+        (requirement) =>
+          new WorkshopEntityTreeItem(
+            requirement.title,
+            `${domainName(requirement.domainId)} · ${label(requirement.assessmentStatus)}`,
+            "checklist",
+            requirement,
+            "pspfWorkshopRequirement"
+          )
+      );
+  }
+}
+
+class EvidenceTreeProvider extends WorkshopTreeProvider {
+  async getChildren(): Promise<vscode.TreeItem[]> {
+    const evidence = (await listAllEntities()).filter(
+      (entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted"
+    );
+    if (evidence.length === 0) {
+      return [new WorkshopTreeItem("No evidence yet", "Use Attach Evidence to start backing a requirement", "info")];
+    }
+    return [...evidence]
+      .sort((left, right) => left.title.localeCompare(right.title, "en-AU"))
+      .map(
+        (item) =>
+          new WorkshopEntityTreeItem(item.title, label(item.freshness), "verified", item, "pspfWorkshopEvidence")
+      );
+  }
+}
+
+class ActionsTreeProvider extends WorkshopTreeProvider {
+  async getChildren(): Promise<vscode.TreeItem[]> {
+    const actions = (await listAllEntities()).filter(
+      (entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted"
+    );
+    if (actions.length === 0) {
+      return [new WorkshopTreeItem("No actions yet", "Use New Action to plan remediation work", "info")];
+    }
+    return [...actions]
+      .sort((left, right) => left.title.localeCompare(right.title, "en-AU"))
+      .map((action) => {
+        const due = formatShortAuDateTime(action.dueDate);
+        const detail = due ? `${label(action.status)} · due ${due}` : label(action.status);
+        return new WorkshopEntityTreeItem(action.title, detail, "tasklist", action, "pspfWorkshopAction");
+      });
+  }
+}
+
+class RisksTreeProvider extends WorkshopTreeProvider {
+  async getChildren(): Promise<vscode.TreeItem[]> {
+    const risks = (await listAllEntities()).filter(
+      (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+    );
+    if (risks.length === 0) {
+      return [new WorkshopTreeItem("No risks yet", "Use New Risk to capture a risk", "info")];
+    }
+    return [...risks]
+      .sort((left, right) => right.likelihood * right.impact - left.likelihood * left.impact)
+      .map(
+        (risk) =>
+          new WorkshopEntityTreeItem(
+            risk.title,
+            `${workshopRiskSeverityLabel(risk)} · ${risk.likelihood}×${risk.impact}`,
+            "warning",
+            risk,
+            "pspfWorkshopRisk"
+          )
+      );
+  }
+}
+
+class DirectionsTreeProvider extends WorkshopTreeProvider {
+  async getChildren(): Promise<vscode.TreeItem[]> {
+    const directions = await listDirections();
+    if (directions.length === 0) {
+      return [new WorkshopTreeItem("No directions yet", "Use Register Direction to track a direction", "info")];
+    }
+    return [...directions]
+      .sort(compareDirectionsForPicker)
+      .map(
+        (direction) =>
+          new WorkshopEntityTreeItem(
+            `${direction.reference} ${direction.title}`.trim(),
+            label(direction.responseState),
+            "law",
+            direction,
+            "pspfWorkshopDirection"
+          )
+      );
+  }
+}
+
+function workshopRiskSeverityLabel(risk: RiskEntity): string {
+  const score = risk.likelihood * risk.impact;
+  if (score >= 16) {
+    return "Extreme";
+  }
+  if (score >= 10) {
+    return "High";
+  }
+  if (score >= 4) {
+    return "Medium";
+  }
+  return "Low";
+}
+
+const workshopTreeProviders: WorkshopTreeProvider[] = [];
+
+async function openTreeEntity(entity: V01Entity | undefined): Promise<void> {
+  if (!entity) {
+    return;
+  }
+  await openItemDetailForEntity(entity.entityType, entity.id);
+}
+
 export function activate(context: vscode.ExtensionContext): void {
   workshopContext = context;
+  momentumBaseline = context.workspaceState.get<WorkshopMomentumSnapshot>(momentumSnapshotKey);
   homeViewProvider = new WorkshopHomeViewProvider();
   const statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 90);
   statusItem.text = `$(shield) PSPF v${PSPF_SLICE_VERSION}`;
@@ -124,9 +309,23 @@ export function activate(context: vscode.ExtensionContext): void {
   statusItem.command = "pspf.workshop.openHome";
   statusItem.show();
 
+  const requirementsTree = new RequirementsTreeProvider();
+  const evidenceTree = new EvidenceTreeProvider();
+  const actionsTree = new ActionsTreeProvider();
+  const risksTree = new RisksTreeProvider();
+  const directionsTree = new DirectionsTreeProvider();
+  workshopTreeProviders.length = 0;
+  workshopTreeProviders.push(requirementsTree, evidenceTree, actionsTree, risksTree, directionsTree);
+
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("pspfWorkshop.homeView", homeViewProvider),
     statusItem,
+    vscode.window.registerTreeDataProvider("pspfWorkshop.requirementsView", requirementsTree),
+    vscode.window.registerTreeDataProvider("pspfWorkshop.evidenceView", evidenceTree),
+    vscode.window.registerTreeDataProvider("pspfWorkshop.actionsView", actionsTree),
+    vscode.window.registerTreeDataProvider("pspfWorkshop.risksView", risksTree),
+    vscode.window.registerTreeDataProvider("pspfWorkshop.directionsView", directionsTree),
+    vscode.commands.registerCommand("pspf.workshop.openTreeEntity", openTreeEntity),
     vscode.commands.registerCommand("pspf.workshop.openHome", openHome),
     vscode.commands.registerCommand("pspf.workshop.createRequirement", createRequirement),
     vscode.commands.registerCommand("pspf.workshop.openWelcome", openWelcome),
@@ -236,6 +435,9 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
   }
 
   async refresh(): Promise<void> {
+    for (const provider of workshopTreeProviders) {
+      provider.refresh();
+    }
     if (!this.view) {
       return;
     }
@@ -352,6 +554,10 @@ interface WorkshopHomeModel {
   readonly directionsNeedingResponse: number;
   readonly changeRecords: number;
   readonly recentRequirementTitle: string;
+  readonly metPercentage: number;
+  readonly momentum: string | undefined;
+  readonly trend: readonly PostureHistoryPoint[];
+  readonly shareNudge: string | undefined;
 }
 
 async function buildHomeModel(): Promise<WorkshopHomeModel> {
@@ -388,6 +594,30 @@ async function buildHomeModel(): Promise<WorkshopHomeModel> {
     ? requirements.find((requirement) => requirement.id === recentRequirementId)
     : undefined;
 
+  const applicableRequirements = requirements.filter((requirement) => !isNotApplicableRequirement(requirement));
+  const metRequirements = applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const metPercentage =
+    applicableRequirements.length === 0 ? 0 : Math.round((metRequirements / applicableRequirements.length) * 100);
+  const openActions = actions.filter((action) => action.status !== "done" && action.status !== "cancelled").length;
+
+  const currentSnapshot: WorkshopMomentumSnapshot = {
+    capturedAt: new Date().toISOString(),
+    requirements: requirements.length,
+    evidence: evidence.length,
+    actions: actions.length,
+    openActions,
+    risks: risks.length,
+    directions: directions.length,
+    metPercentage
+  };
+  const momentum = describeMomentum(momentumBaseline, currentSnapshot);
+  void workshopContext?.workspaceState.update(momentumSnapshotKey, currentSnapshot);
+  const trend = recordPostureHistory(metPercentage);
+  const shareNudge = describeShareNudge(
+    workshopContext?.workspaceState.get<WorkshopShareState>(lastSharedKey),
+    currentSnapshot
+  );
+
   return {
     counts: {
       requirements: requirements.length,
@@ -403,8 +633,81 @@ async function buildHomeModel(): Promise<WorkshopHomeModel> {
     ).length,
     directionsNeedingResponse: directions.filter((direction) => direction.responseState === "not-set").length,
     changeRecords: changeRecords.length,
-    recentRequirementTitle: recentRequirement?.title ?? "None selected yet"
+    recentRequirementTitle: recentRequirement?.title ?? "None selected yet",
+    metPercentage,
+    momentum,
+    trend,
+    shareNudge
   };
+}
+
+function recordPostureHistory(metPercentage: number): readonly PostureHistoryPoint[] {
+  const day = new Date().toISOString().slice(0, 10);
+  const existing = workshopContext?.workspaceState.get<readonly PostureHistoryPoint[]>(postureHistoryKey) ?? [];
+  const withoutToday = existing.filter((point) => point.day !== day);
+  const updated = [...withoutToday, { day, metPercentage }].slice(-30);
+  void workshopContext?.workspaceState.update(postureHistoryKey, updated);
+  return updated;
+}
+
+function renderPostureSparkline(trend: readonly PostureHistoryPoint[]): string {
+  if (trend.length < 2) {
+    return "";
+  }
+  const width = 160;
+  const height = 32;
+  const padding = 2;
+  const values = trend.map((point) => point.metPercentage);
+  const max = Math.max(...values, 100);
+  const min = Math.min(...values, 0);
+  const span = max - min || 1;
+  const stepX = (width - padding * 2) / (trend.length - 1);
+  const points = trend
+    .map((point, index) => {
+      const x = padding + index * stepX;
+      const y = padding + (height - padding * 2) * (1 - (point.metPercentage - min) / span);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  const lastValue = values[values.length - 1] ?? 0;
+  const firstValue = values[0] ?? 0;
+  const direction = lastValue > firstValue ? "rising" : lastValue < firstValue ? "easing" : "steady";
+  return `<div class="sparkline" title="Posture trend over the last ${trend.length} working days">
+    <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Posture trend ${direction}, now ${lastValue}% met">
+      <polyline fill="none" stroke="var(--workshop-blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
+    </svg>
+    <span class="sparkline-caption">${firstValue}% → ${lastValue}% met · ${direction}</span>
+  </div>`;
+}
+
+function describeMomentum(
+  baseline: WorkshopMomentumSnapshot | undefined,
+  current: WorkshopMomentumSnapshot
+): string | undefined {
+  if (!baseline) {
+    return undefined;
+  }
+  const parts: string[] = [];
+  const evidenceDelta = current.evidence - baseline.evidence;
+  if (evidenceDelta > 0) {
+    parts.push(`${evidenceDelta} new evidence record${evidenceDelta === 1 ? "" : "s"}`);
+  }
+  const requirementDelta = current.requirements - baseline.requirements;
+  if (requirementDelta > 0) {
+    parts.push(`${requirementDelta} new requirement${requirementDelta === 1 ? "" : "s"}`);
+  }
+  const closedActions = baseline.openActions - current.openActions;
+  if (closedActions > 0) {
+    parts.push(`${closedActions} action${closedActions === 1 ? "" : "s"} closed`);
+  }
+  const postureDelta = current.metPercentage - baseline.metPercentage;
+  if (postureDelta !== 0) {
+    parts.push(`posture ${baseline.metPercentage}% → ${current.metPercentage}%`);
+  }
+  if (parts.length === 0) {
+    return undefined;
+  }
+  return `Since you were last here: ${parts.join(" · ")}.`;
 }
 
 async function continueNextTask(): Promise<void> {
@@ -422,8 +725,10 @@ function renderHomeView(model: WorkshopHomeModel): string {
     `
     <section class="hero-section">
       <p class="eyebrow">System of record</p>
-      <h2>Workspace</h2>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))}</p>
+      <h2>PSPF Workshop</h2>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · ${model.metPercentage}% met</p>
+      ${model.momentum ? `<p class="momentum">${escapeHtml(model.momentum)}</p>` : ""}
+      ${renderPostureSparkline(model.trend)}
       ${versionStrip()}
       <div class="grid">
         ${metricCard("Requirements", model.counts.requirements)}
@@ -435,20 +740,20 @@ function renderHomeView(model: WorkshopHomeModel): string {
       </div>
     </section>
     <section>
-      <h2>Needs Attention</h2>
-      <div class="grid">
+      <h2>Where to focus next</h2>
+      ${
+        model.missingEvidence + model.evidenceReview + model.urgentActions + model.directionsNeedingResponse === 0
+          ? `<p class="muted">All clear right now — nothing waiting on you. A good moment to review posture or capture new evidence.</p>`
+          : `<div class="grid">
         ${metricCard("Missing evidence", model.missingEvidence)}
-        ${metricCard("Evidence review", model.evidenceReview)}
+        ${metricCard("Evidence to refresh", model.evidenceReview)}
         ${metricCard("Urgent actions", model.urgentActions)}
         ${metricCard("Directions not set", model.directionsNeedingResponse)}
-      </div>
+      </div>`
+      }
       <p class="muted">Recent requirement: ${escapeHtml(model.recentRequirementTitle)}</p>
       <div class="action-list">
         ${homeButton("pspf.workshop.home.continue", "Continue next task", "Open the highest-priority review surface")}
-        ${homeButton("pspf.workshop.openRequirementsList", "Requirements", "Browse and open Requirements")}
-        ${homeButton("pspf.workshop.openEvidenceList", "Evidence", "Browse evidence records")}
-        ${homeButton("pspf.workshop.openActionsList", "Actions", "Browse Action records")}
-        ${homeButton("pspf.workshop.openRisksList", "Risks", "Browse Risk records")}
         ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
         ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
         ${homeButton("pspf.workshop.openMasterDashboard", "Master Dashboard", "Open the CISO decision board")}
@@ -489,6 +794,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
     </section>
     <section>
       <h2>Check And Share</h2>
+      ${model.shareNudge ? `<p class="momentum">${escapeHtml(model.shareNudge)}</p>` : ""}
       <div class="action-list compact">
         ${homeButton("pspf.core.validateWorkspace", "Validate")}
         ${homeButton("pspf.core.runIntegrityScan", "Integrity scan")}
@@ -6577,6 +6883,7 @@ async function openEntityEditor(
     unsavedEditorFields = undefined;
   };
   const saveCurrentEntity = async (fields: Record<string, string>): Promise<boolean> => {
+    const previousEntity = currentEntity;
     const updated = await buildUpdatedEntity(currentEntity, fields);
     if (!updated) {
       return false;
@@ -6586,6 +6893,7 @@ async function openEntityEditor(
     currentEntity = updated;
     hasUnsavedEditorChanges = false;
     unsavedEditorFields = undefined;
+    celebrateClosure(previousEntity, updated);
     return true;
   };
   const confirmDirtyEditorChanges = async (): Promise<boolean> => {
@@ -7126,6 +7434,26 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       }
     }
   );
+}
+
+function celebrateClosure(previous: EditableWorkshopEntity, next: EditableWorkshopEntity): void {
+  if (
+    previous.entityType === "requirement" &&
+    next.entityType === "requirement" &&
+    previous.assessmentStatus !== "met" &&
+    next.assessmentStatus === "met"
+  ) {
+    void vscode.window.showInformationMessage(`Requirement met — ${next.title}. Nice progress.`);
+    return;
+  }
+  if (
+    previous.entityType === "action" &&
+    next.entityType === "action" &&
+    previous.status !== "done" &&
+    next.status === "done"
+  ) {
+    void vscode.window.showInformationMessage(`Action closed — ${next.title}. One less thing on the plan.`);
+  }
 }
 
 async function buildUpdatedEntity(
@@ -9437,7 +9765,56 @@ async function copyPostureBrief(): Promise<void> {
   });
 
   await vscode.env.clipboard.writeText(brief);
+  await recordShareState(allEntities, "Posture brief");
   await vscode.window.showInformationMessage("PSPF posture brief copied to clipboard.");
+}
+
+async function recordShareState(allEntities: readonly V01Entity[], artefact: string): Promise<void> {
+  const requirements = allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement");
+  const applicableRequirements = requirements.filter((requirement) => !isNotApplicableRequirement(requirement));
+  const metRequirements = applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const metPercentage =
+    applicableRequirements.length === 0 ? 0 : Math.round((metRequirements / applicableRequirements.length) * 100);
+  const state: WorkshopShareState = {
+    sharedAt: new Date().toISOString(),
+    requirements: requirements.length,
+    evidence: allEntities.filter((entity) => entity.entityType === "evidence").length,
+    actions: allEntities.filter((entity) => entity.entityType === "action").length,
+    metPercentage,
+    artefact
+  };
+  await workshopContext?.workspaceState.update(lastSharedKey, state);
+}
+
+function describeShareNudge(
+  state: WorkshopShareState | undefined,
+  current: WorkshopMomentumSnapshot
+): string | undefined {
+  if (!state) {
+    return undefined;
+  }
+  const sharedDate = new Date(state.sharedAt);
+  const days = Math.max(0, Math.floor((Date.now() - sharedDate.getTime()) / 86_400_000));
+  const when = days === 0 ? "today" : days === 1 ? "yesterday" : `${days} days ago`;
+  const changes: string[] = [];
+  const evidenceDelta = current.evidence - state.evidence;
+  if (evidenceDelta !== 0) {
+    changes.push(`${Math.abs(evidenceDelta)} evidence ${evidenceDelta > 0 ? "added" : "removed"}`);
+  }
+  const requirementDelta = current.requirements - state.requirements;
+  if (requirementDelta !== 0) {
+    changes.push(
+      `${Math.abs(requirementDelta)} requirement${Math.abs(requirementDelta) === 1 ? "" : "s"} ${requirementDelta > 0 ? "added" : "removed"}`
+    );
+  }
+  const postureDelta = current.metPercentage - state.metPercentage;
+  if (postureDelta !== 0) {
+    changes.push(`posture ${state.metPercentage}% → ${current.metPercentage}%`);
+  }
+  if (changes.length === 0) {
+    return `${state.artefact} shared ${when} · nothing has changed since.`;
+  }
+  return `${state.artefact} shared ${when} · ${changes.join(" · ")} since. A fresh copy may be worth sharing.`;
 }
 
 async function openCisoMagazine(): Promise<void> {
@@ -10036,6 +10413,9 @@ async function ensureCoreReady(): Promise<void> {
 
 async function refreshWorkshopSurfaces(): Promise<void> {
   await homeViewProvider?.refresh();
+  for (const provider of workshopTreeProviders) {
+    provider.refresh();
+  }
 }
 
 async function pickRequirement(): Promise<RequirementEntity | undefined> {
