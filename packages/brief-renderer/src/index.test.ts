@@ -59,6 +59,10 @@ test("CISO magazine supports INFO scope and excludes sensitive working notes", (
   assert.match(markdown, /Digital CISO Magazine/);
   assert.match(markdown, /## CISO Master Plan/);
   assert.match(markdown, /Information has 1 requirement\(s\) and 1 action\(s\) needing attention/);
+  assert.match(
+    markdown,
+    /PSPF sets the assurance obligations, and ISM controls provide the implementation patterns that help teams show those obligations are being met\./
+  );
   assert.match(markdown, /Review portable media handling/);
   assert.match(markdown, /Media register owner confirmed the register refresh is blocked by supplier evidence/);
   assert.match(renderPostureBriefMarkdown(fixture), /latest update: .*Media register owner confirmed/);
