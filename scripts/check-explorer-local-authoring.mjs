@@ -152,16 +152,29 @@ try {
   }));
 
   await page.locator("#local-evidence-reference").fill("https://example.gov.au/evidence/local-test");
-  await page.locator("#local-selected-status").selectOption("met");
-  await page.waitForFunction(
-    () =>
-      document.querySelector('[data-local-save-target="status"]')?.textContent?.includes("Saved") &&
-      document.querySelector('[data-local-save-target="status"]')?.getAttribute("data-state") === "saved"
+  await page.locator("#posture-editor").evaluate((section) => {
+    if (section instanceof HTMLDetailsElement) {
+      section.open = true;
+    }
+  });
+  const postureEditorVisible = await page.locator("#posture-editor").isVisible();
+  await page.locator(`#posture-editor select[data-posture-requirement-id="${requirement.id}"]`).selectOption("met");
+  await page.waitForFunction((requirementId) => {
+    const select = document.querySelector(`#posture-editor select[data-posture-requirement-id="${requirementId}"]`);
+    return (
+      select?.value === "met" && document.querySelector("#posture-editor")?.textContent?.includes("Local status edits1")
+    );
+  }, requirement.id);
+  const interactiveSaveFeedback = await page.evaluate(
+    ({ requirementId, initiallyVisible }) => ({
+      postureEditorVisible: Boolean(document.querySelector("#posture-editor")),
+      postureSelectValue:
+        document.querySelector(`#posture-editor select[data-posture-requirement-id="${requirementId}"]`)?.value || "",
+      localStatusCount: document.querySelector("#posture-editor")?.textContent || "",
+      initiallyVisible
+    }),
+    { requirementId: requirement.id, initiallyVisible: postureEditorVisible }
   );
-  const interactiveSaveFeedback = await page.evaluate(() => ({
-    text: document.querySelector('[data-local-save-target="status"]')?.textContent || "",
-    state: document.querySelector('[data-local-save-target="status"]')?.getAttribute("data-state") || ""
-  }));
 
   await page.evaluate(
     async ({ requirementId }) => {
@@ -501,8 +514,11 @@ try {
       JSON.stringify(blurValidationFeedback)
     ),
     check(
-      "Local save feedback appears inline",
-      interactiveSaveFeedback.state === "saved" && interactiveSaveFeedback.text.includes("Saved"),
+      "Editable posture screen updates local status",
+      interactiveSaveFeedback.initiallyVisible &&
+        interactiveSaveFeedback.postureEditorVisible &&
+        interactiveSaveFeedback.postureSelectValue === "met" &&
+        interactiveSaveFeedback.localStatusCount.includes("Local status edits1"),
       JSON.stringify(interactiveSaveFeedback)
     ),
     check("Local Changes stays open after status save", localAuthoringOpenAfterStatusSave, "section focus"),
