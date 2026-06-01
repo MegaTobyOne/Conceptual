@@ -37,6 +37,21 @@ import {
   CONTINUOUS_COMPLIANCE_RISK_SEVERITIES
 } from "./continuous-compliance.js";
 import {
+  buildPentestWorkbenchModel,
+  PENTEST_FINDING_SEVERITIES,
+  type PentestAssessmentModel,
+  type PentestFindingModel,
+  type PentestFindingQueueId,
+  type PentestWorkbenchModel
+} from "./pentest-workbench.js";
+import {
+  buildRequirementCardViewModel,
+  type RequirementCardDomainGroup,
+  type RequirementCardLinkRef,
+  type RequirementCardModel,
+  type RequirementCardViewModel
+} from "./requirement-card-view.js";
+import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
   CHANGE_RECORD_STATUSES,
@@ -375,6 +390,8 @@ export function activate(context: vscode.ExtensionContext): void {
       openUnifiedSecurityOperatingModel
     ),
     vscode.commands.registerCommand("pspf.workshop.openCyberAwarenessChangeStrategy", openCyberAwarenessChangeStrategy),
+    vscode.commands.registerCommand("pspf.workshop.openPentestWorkbench", openPentestWorkbench),
+    vscode.commands.registerCommand("pspf.workshop.openRequirementCardView", openRequirementCardView),
     vscode.commands.registerCommand("pspf.workshop.openEssentialEightDashboard", openEssentialEightDashboard),
     vscode.commands.registerCommand("pspf.workshop.openPlanOfActionBoard", openPlanOfActionBoard),
     vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
@@ -530,6 +547,8 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openContinuousComplianceMetro",
       "pspf.workshop.openUnifiedSecurityOperatingModel",
       "pspf.workshop.openCyberAwarenessChangeStrategy",
+      "pspf.workshop.openPentestWorkbench",
+      "pspf.workshop.openRequirementCardView",
       "pspf.workshop.openEssentialEightDashboard",
       "pspf.workshop.openPlanOfActionBoard",
       "pspf.workshop.openConnectedView",
@@ -786,9 +805,11 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openMasterDashboard", "Master Dashboard", "Open the CISO decision board")}
         ${homeButton("pspf.workshop.openEssentialEightDashboard", "Essential Eight", "Track E8 posture, mappings, and uplift plan")}
         ${homeButton("pspf.workshop.openIsmReviewWorkbench", "ISM Review", "Review controls needing mapping, evidence, actions, or drift attention")}
+        ${homeButton("pspf.workshop.openPentestWorkbench", "Penetration testing", "Manage third-party findings, retests, and supplier contract context")}
         ${homeButton("pspf.workshop.browseIsmSourceControls", "ISM controls", "Browse ISM controls by category, drift, profile, and implementation state")}
         ${homeButton("pspf.workshop.openPlanOfActionBoard", "Plan of Action", "Manage the action worklist")}
         ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
+        ${homeButton("pspf.workshop.openRequirementCardView", "Requirement Cards", "Flip through Requirements by Domain with RAG status and quick investigation")}
         ${homeButton("pspf.workshop.openStrategyMap", "Strategy Map", "Connect strategic choices to Requirements, Risks, Actions, and Directions")}
         ${homeButton("pspf.workshop.openChangeRecords", "Change records", "Review why important records changed")}
         ${homeButton("pspf.workshop.manageSavedViews", "Saved views", "Save and reopen Workshop Requirement filters")}
@@ -2815,8 +2836,9 @@ async function openMasterDashboard(): Promise<void> {
         <button type="button" data-command="pspf.workshop.openPspfGridView">PSPF Grid View</button>
         <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
         <button type="button" data-command="pspf.workshop.openHumanCentredRiskView">Human-Centred Risk</button>
+        <button type="button" data-command="pspf.workshop.openPentestWorkbench">Penetration Testing</button>
         <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
-        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
+        <button type="button" data-command="pspf.workshop.openRequirementCardView">Requirement Cards</button>
         <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
         <button type="button" data-command="pspf.core.createSnapshot">Snapshot</button>
         <button type="button" data-command="pspf.core.exportBundle">Export Bundle</button>
@@ -2860,6 +2882,435 @@ async function openPspfGridView(): Promise<void> {
     panel.webview.html = renderPspfGridView(buildPspfGridModel(await listAllEntities()));
   });
   panel.webview.html = renderPspfGridView(buildPspfGridModel(await listAllEntities()));
+}
+
+async function openRequirementCardView(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel(
+    "pspfRequirementCardView",
+    "Requirement Card View",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = renderRequirementCardView(
+      buildRequirementCardViewModel(await listAllEntities(), PSPF_DOMAINS)
+    );
+  });
+  panel.webview.html = renderRequirementCardView(buildRequirementCardViewModel(await listAllEntities(), PSPF_DOMAINS));
+}
+
+async function openPentestWorkbench(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel(
+    "pspfPentestWorkbench",
+    "Penetration Testing Workbench",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = renderPentestWorkbench(buildPentestWorkbenchModel(await listAllEntities()));
+  });
+  panel.webview.html = renderPentestWorkbench(buildPentestWorkbenchModel(await listAllEntities()));
+}
+
+function renderRequirementCardView(model: RequirementCardViewModel): string {
+  const sections =
+    model.groups.length > 0
+      ? model.groups.map(requirementCardDomainSection).join("")
+      : `<section><p class="muted">No Requirements found yet. Add Requirements in the Workshop to populate the card view.</p></section>`;
+  const domainFilters = model.groups
+    .map(
+      (group) =>
+        `<button type="button" data-card-domain-filter="${escapeHtml(group.domainId)}">${escapeHtml(group.domainName)} (${group.cards.length})</button>`
+    )
+    .join("");
+  return shellHtml(
+    "Requirement Card View",
+    `
+    ${requirementCardViewStyles()}
+    <section>
+      <p class="eyebrow">Workshop · Requirement cards</p>
+      <h1>Requirement Card View</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Flip a card to read its summary and open linked Evidence, Actions, and Risks. Cards are grouped by Domain and filterable by Domain, RAG status, and text.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Requirements", model.totals.requirements)}
+        ${metricCard("Green", model.totals.green)}
+        ${metricCard("Amber", model.totals.amber)}
+        ${metricCard("Red", model.totals.red)}
+        ${metricCard("N/A", model.totals.grey)}
+        ${metricCard("Evidence gaps", model.totals.evidenceGaps)}
+        ${metricCard("Unlinked", model.totals.unlinked)}
+      </div>
+      <div class="card-view-filters">
+        <div class="card-view-filter-row" role="group" aria-label="Filter by Domain">
+          <span class="card-view-filter-label">Domain</span>
+          <button type="button" data-card-domain-filter="all" aria-pressed="true">All</button>
+          ${domainFilters}
+        </div>
+        <div class="card-view-filter-row" role="group" aria-label="Filter by RAG status">
+          <span class="card-view-filter-label">Status</span>
+          <button type="button" data-card-rag-filter="all" aria-pressed="true">All</button>
+          <button type="button" data-card-rag-filter="green">Green</button>
+          <button type="button" data-card-rag-filter="amber">Amber</button>
+          <button type="button" data-card-rag-filter="red">Red</button>
+          <button type="button" data-card-rag-filter="grey">N/A</button>
+        </div>
+        <div class="card-view-filter-row">
+          <label class="card-view-filter-label" for="card-view-search">Search</label>
+          <input type="search" id="card-view-search" data-card-search-input placeholder="Filter by title or summary" />
+          <button type="button" data-command="refresh">Refresh</button>
+        </div>
+        <p class="muted" data-card-view-count></p>
+      </div>
+    </section>
+    <div class="card-view-board">
+      ${sections}
+    </div>
+    ${requirementCardViewScript()}
+  `
+  );
+}
+
+function requirementCardDomainSection(group: RequirementCardDomainGroup): string {
+  const cards = group.cards.map(requirementCard).join("");
+  return `<section class="card-view-domain" data-card-domain-section data-domain="${escapeHtml(group.domainId)}">
+    <div class="card-view-domain__header">
+      <h2>${escapeHtml(group.domainName)}</h2>
+      <div class="card-view-domain__counts">
+        ${shellPill(`Green ${group.ragCounts.green}`)}
+        ${shellPill(`Amber ${group.ragCounts.amber}`)}
+        ${shellPill(`Red ${group.ragCounts.red}`)}
+        ${shellPill(`N/A ${group.ragCounts.grey}`)}
+      </div>
+    </div>
+    <div class="card-view-cards">${cards}</div>
+  </section>`;
+}
+
+function requirementCard(card: RequirementCardModel): string {
+  const search = [card.title, card.summary, card.statusLabel, card.domainName].join(" ").toLocaleLowerCase("en-AU");
+  return `<article class="card-view-card" data-card data-domain="${escapeHtml(card.domainId)}" data-rag="${card.rag}" data-search="${escapeHtml(search)}">
+    <div class="card-view-card__inner">
+      <div class="card-view-card__face card-view-card__front" data-card-face="front">
+        <div class="card-view-card__top">
+          <span class="card-view-rag card-view-rag--${card.rag}">${escapeHtml(card.statusLabel)}</span>
+          <span class="muted">${escapeHtml(card.domainName)}</span>
+        </div>
+        <h3>${escapeHtml(card.title)}</h3>
+        <p class="card-view-card__summary">${escapeHtml(card.summary)}</p>
+        <div class="card-view-card__chips">
+          ${shellPill(`Evidence ${card.evidenceCount}`)}
+          ${shellPill(`Actions ${card.actionCount}`)}
+          ${shellPill(`Risks ${card.riskCount}`)}
+          ${card.evidenceGapCount > 0 ? shellPill(`Gaps ${card.evidenceGapCount}`) : ""}
+        </div>
+        <p class="card-view-card__hint">Click to flip for detail →</p>
+      </div>
+      <div class="card-view-card__face card-view-card__back" data-card-face="back">
+        <div class="card-view-card__top">
+          <span class="card-view-rag card-view-rag--${card.rag}">${escapeHtml(card.statusLabel)}</span>
+          <button type="button" class="card-view-flip-back" data-card-flip-back>← Back</button>
+        </div>
+        <h3>${escapeHtml(card.title)}</h3>
+        ${requirementCardLinkList("Evidence", card.evidence)}
+        ${requirementCardLinkList("Actions", card.actions)}
+        ${requirementCardLinkList("Risks", card.risks)}
+        <div class="form-actions card-view-card__investigate">
+          <button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(card.id)}">Open requirement</button>
+          <button type="button" data-command="pspf.workshop.openConnectedView">Trace in Connected View</button>
+        </div>
+      </div>
+    </div>
+  </article>`;
+}
+
+function requirementCardLinkList(heading: string, refs: readonly RequirementCardLinkRef[]): string {
+  if (refs.length === 0) {
+    return `<div class="card-view-links"><h4>${escapeHtml(heading)}</h4><p class="muted">None linked yet.</p></div>`;
+  }
+  const items = refs
+    .map(
+      (ref) =>
+        `<li><button type="button" data-command="openEntity" data-entity-type="${escapeHtml(ref.entityType)}" data-entity-id="${escapeHtml(ref.id)}">${escapeHtml(ref.title)}</button><span class="muted">${escapeHtml(ref.detail)}</span></li>`
+    )
+    .join("");
+  return `<div class="card-view-links"><h4>${escapeHtml(heading)} (${refs.length})</h4><ul>${items}</ul></div>`;
+}
+
+function requirementCardViewStyles(): string {
+  return `<style>
+    .card-view-filters { margin-top: 14px; display: grid; gap: 8px; }
+    .card-view-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .card-view-filter-label { font-size: 12px; font-weight: 700; min-width: 56px; color: var(--muted); }
+    .card-view-filter-row [aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 14%, var(--surface-strong)); }
+    .card-view-filter-row input[type="search"] { flex: 1 1 220px; min-width: 180px; padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-strong); color: inherit; }
+    .card-view-board { display: grid; gap: 16px; background: transparent; border: 0; padding: 0; }
+    .card-view-domain { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: color-mix(in srgb, var(--surface) 92%, var(--workshop-blue)); }
+    .card-view-domain[hidden] { display: none; }
+    .card-view-domain__header { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .card-view-domain__header h2 { margin: 0; }
+    .card-view-domain__counts { display: flex; gap: 6px; flex-wrap: wrap; }
+    .card-view-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .card-view-card { perspective: 1200px; min-height: 220px; }
+    .card-view-card[hidden] { display: none; }
+    .card-view-card__inner { position: relative; width: 100%; height: 100%; min-height: 220px; transition: transform 0.5s; transform-style: preserve-3d; }
+    .card-view-card.is-flipped .card-view-card__inner { transform: rotateY(180deg); }
+    .card-view-card__face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--surface-strong); overflow: auto; }
+    .card-view-card__front { cursor: pointer; }
+    .card-view-card__back { transform: rotateY(180deg); }
+    .card-view-card__top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .card-view-card h3 { margin: 4px 0; font-size: 14px; }
+    .card-view-card__summary { margin: 0; font-size: 13px; }
+    .card-view-card__chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+    .card-view-card__hint { margin: 6px 0 0; font-size: 11px; color: var(--muted); }
+    .card-view-rag { border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; border: 1px solid var(--border); }
+    .card-view-rag--green { border-color: var(--pspf-ok); color: var(--pspf-ok); background: var(--pspf-ok-soft); }
+    .card-view-rag--amber { border-color: var(--pspf-warn); color: var(--pspf-warn); background: var(--pspf-warn-soft); }
+    .card-view-rag--red { border-color: var(--vscode-errorForeground); color: var(--vscode-errorForeground); }
+    .card-view-rag--grey { border-color: var(--border); color: var(--muted); }
+    .card-view-links { margin-top: 6px; }
+    .card-view-links h4 { margin: 6px 0 4px; font-size: 12px; }
+    .card-view-links ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .card-view-links li { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+    .card-view-links li span { font-size: 11px; white-space: nowrap; }
+    .card-view-card__investigate { margin-top: 8px; }
+    @media (max-width: 720px) { .card-view-cards { grid-template-columns: 1fr; } }
+  </style>`;
+}
+
+function requirementCardViewScript(): string {
+  return `<script>
+    (() => {
+      const board = document.querySelector('.card-view-board');
+      if (!board) return;
+      const cards = Array.from(document.querySelectorAll('[data-card]'));
+      const sections = Array.from(document.querySelectorAll('[data-card-domain-section]'));
+      const domainButtons = Array.from(document.querySelectorAll('[data-card-domain-filter]'));
+      const ragButtons = Array.from(document.querySelectorAll('[data-card-rag-filter]'));
+      const search = document.querySelector('[data-card-search-input]');
+      const count = document.querySelector('[data-card-view-count]');
+      const state = { domain: 'all', rag: 'all', text: '' };
+
+      function apply() {
+        let visible = 0;
+        for (const card of cards) {
+          const matchesDomain = state.domain === 'all' || card.getAttribute('data-domain') === state.domain;
+          const matchesRag = state.rag === 'all' || card.getAttribute('data-rag') === state.rag;
+          const matchesText = state.text === '' || (card.getAttribute('data-search') || '').includes(state.text);
+          const match = matchesDomain && matchesRag && matchesText;
+          card.hidden = !match;
+          if (match) visible += 1;
+        }
+        for (const section of sections) {
+          const hasVisible = Array.from(section.querySelectorAll('[data-card]')).some((card) => !card.hidden);
+          section.hidden = !hasVisible;
+        }
+        if (count) count.textContent = visible + ' visible requirement' + (visible === 1 ? '' : 's');
+      }
+
+      function setPressed(buttons, attr, value) {
+        for (const button of buttons) button.setAttribute('aria-pressed', String(button.getAttribute(attr) === value));
+      }
+
+      domainButtons.forEach((button) => button.addEventListener('click', () => {
+        state.domain = button.getAttribute('data-card-domain-filter') || 'all';
+        setPressed(domainButtons, 'data-card-domain-filter', state.domain);
+        apply();
+      }));
+      ragButtons.forEach((button) => button.addEventListener('click', () => {
+        state.rag = button.getAttribute('data-card-rag-filter') || 'all';
+        setPressed(ragButtons, 'data-card-rag-filter', state.rag);
+        apply();
+      }));
+      if (search) search.addEventListener('input', () => {
+        state.text = (search.value || '').trim().toLowerCase();
+        apply();
+      });
+
+      board.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        if (target.closest('[data-card-flip-back]')) {
+          const card = target.closest('[data-card]');
+          if (card) card.classList.remove('is-flipped');
+          return;
+        }
+        if (target.closest('button, a, input, select, textarea, ul')) return;
+        const front = target.closest('[data-card-face="front"]');
+        if (!front) return;
+        const card = front.closest('[data-card]');
+        if (card) card.classList.add('is-flipped');
+      });
+
+      apply();
+    })();
+  </script>`;
+}
+
+function renderPentestWorkbench(model: PentestWorkbenchModel): string {
+  const assessments =
+    model.assessments.length > 0
+      ? model.assessments.map(renderPentestAssessment).join("")
+      : `<section><p class="muted">No penetration testing assessments found. Create a Tag such as PENTEST-2026-Web and apply it to finding Actions to populate this workbench.</p></section>`;
+  const severityLegend = PENTEST_FINDING_SEVERITIES.map(
+    (severity) =>
+      `<span class="pentest-severity-pill" data-severity="${escapeHtml(severity.id)}">${escapeHtml(severity.label)} · ${severity.slaDays} d</span>`
+  ).join("");
+  return shellHtml(
+    "Penetration Testing Workbench",
+    `
+    ${pentestWorkbenchStyles()}
+    <section>
+      <p class="eyebrow">Workshop · Third-party assurance</p>
+      <h1>Penetration Testing Workbench</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Findings, retests, residual risks and Shop contract context derived from existing Actions, Evidence, Risks, Tags and links.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Assessments", model.totals.assessments)}
+        ${metricCard("Findings", model.totals.findings)}
+        ${metricCard("Overdue", model.totals.overdue)}
+        ${metricCard("SLA at risk", model.totals.slaAtRisk)}
+        ${metricCard("Pending verification", model.totals.pendingVerification)}
+        ${metricCard("Closed", model.totals.closed)}
+        ${metricCard("Retest backlog", model.totals.verificationBacklog)}
+        ${metricCard("Residual risks", model.totals.residualRisks)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.createAction">Create finding action</button>
+        <button type="button" data-command="pspf.workshop.attachEvidence">Add evidence</button>
+        <button type="button" data-command="pspf.workshop.manageTags">Manage Tags</button>
+      </div>
+      <p class="muted">SLA bands: ${severityLegend}. Severity is inferred from a linked severity Tag or the Action title; unknown severity defaults to Medium so the finding remains visible.</p>
+    </section>
+    ${assessments}
+  `
+  );
+}
+
+function renderPentestAssessment(assessment: PentestAssessmentModel): string {
+  const commercialRows = assessment.commercialContext.map((item) => ({
+    openEntityType: "contract",
+    openEntityId: item.contractId,
+    supplier: item.supplierName ?? "Supplier not linked",
+    contract: item.contractTitle,
+    contractRef: item.contractRef ?? "Not recorded"
+  }));
+  const riskRows = assessment.residualRisks.map((risk) => ({
+    openEntityType: "risk",
+    openEntityId: risk.id,
+    title: risk.title,
+    status: label(risk.status),
+    score: risk.score,
+    supplierLinked: risk.supplierLinked ? "Yes" : "No"
+  }));
+  const verificationRows = assessment.verificationBacklog.map((item) => ({
+    openEntityType: "evidence",
+    openEntityId: item.evidenceId,
+    evidence: item.evidenceTitle,
+    finding: item.findingTitle,
+    severity: item.severityLabel,
+    freshness: label(item.freshness),
+    dueDate: item.dueDate ?? "Not set"
+  }));
+
+  return `
+    <section class="pentest-assessment" aria-labelledby="pentest-${escapeHtml(assessment.tagId)}">
+      <header class="pentest-assessment__header">
+        <div>
+          <p class="eyebrow">${escapeHtml(assessment.tagLabel)}</p>
+          <h2 id="pentest-${escapeHtml(assessment.tagId)}">${escapeHtml(assessment.title)}</h2>
+          <p class="muted">Started ${escapeHtml(assessment.startedAt ? formatDisplayDate(new Date(assessment.startedAt)) : "not yet")} · ${assessment.findingCount} finding${assessment.findingCount === 1 ? "" : "s"} · ${assessment.closurePercentage}% closed</p>
+        </div>
+        <div class="pentest-severity-counts" aria-label="Finding count by severity">
+          ${PENTEST_FINDING_SEVERITIES.map(
+            (severity) =>
+              `<span class="pentest-severity-pill" data-severity="${escapeHtml(severity.id)}">${escapeHtml(severity.label)} ${assessment.severityCounts[severity.id]}</span>`
+          ).join("")}
+        </div>
+      </header>
+      <div class="pentest-queue-grid">
+        ${renderPentestFindingQueue("Overdue", "overdue", assessment.queues.overdue)}
+        ${renderPentestFindingQueue("SLA at risk", "sla-at-risk", assessment.queues["sla-at-risk"])}
+        ${renderPentestFindingQueue("Pending verification", "pending-verification", assessment.queues["pending-verification"])}
+        ${renderPentestFindingQueue("Closed", "closed", assessment.queues.closed)}
+      </div>
+    </section>
+    ${recordTable(`Retest backlog · ${assessment.tagLabel}`, verificationRows, ["evidence", "finding", "severity", "freshness", "dueDate"])}
+    ${recordTable(`Commercial context · ${assessment.tagLabel}`, commercialRows, ["supplier", "contract", "contractRef"])}
+    ${recordTable(`Residual risk · ${assessment.tagLabel}`, riskRows, ["title", "status", "score", "supplierLinked"])}
+  `;
+}
+
+function renderPentestFindingQueue(
+  title: string,
+  queueId: PentestFindingQueueId,
+  findings: readonly PentestFindingModel[]
+): string {
+  const rows =
+    findings.length > 0
+      ? findings.map((finding) => renderPentestFindingCard(finding)).join("")
+      : `<p class="muted">No findings in this queue.</p>`;
+  return `
+    <article class="pentest-queue" data-queue="${escapeHtml(queueId)}">
+      <header class="pentest-queue__header">
+        <h3>${escapeHtml(title)}</h3>
+        ${shellPill(String(findings.length))}
+      </header>
+      <div class="pentest-finding-list">${rows}</div>
+    </article>
+  `;
+}
+
+function renderPentestFindingCard(finding: PentestFindingModel): string {
+  const evidenceText =
+    finding.verifiedEvidenceIds.length > 0
+      ? `${finding.verifiedEvidenceIds.length} verified evidence`
+      : finding.linkedEvidenceIds.length > 0
+        ? `${finding.linkedEvidenceIds.length} evidence needing verification`
+        : "No evidence linked";
+  const requirementText =
+    finding.linkedRequirementIds.length > 0
+      ? `${finding.linkedRequirementIds.length} linked requirement${finding.linkedRequirementIds.length === 1 ? "" : "s"}`
+      : "No requirement link";
+  return `
+    <article class="pentest-finding-card" data-severity="${escapeHtml(finding.severityId)}">
+      <header>
+        <span class="pentest-severity-pill" data-severity="${escapeHtml(finding.severityId)}">${escapeHtml(finding.severityLabel)}</span>
+        <button type="button" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(finding.id)}">${escapeHtml(finding.title)}</button>
+      </header>
+      <p class="muted">${escapeHtml(label(finding.status))} · due ${escapeHtml(finding.dueDate ?? "not set")} · SLA ${escapeHtml(finding.slaDeadline.slice(0, 10))}</p>
+      <p class="muted">${escapeHtml(evidenceText)} · ${escapeHtml(requirementText)} · ${escapeHtml(finding.severitySource)}</p>
+    </article>
+  `;
+}
+
+function pentestWorkbenchStyles(): string {
+  return `<style>
+    .pentest-assessment { display: grid; gap: 12px; }
+    .pentest-assessment__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .pentest-assessment__header h2 { margin: 0; }
+    .pentest-severity-counts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+    .pentest-severity-pill { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 700; white-space: nowrap; background: var(--surface); }
+    .pentest-severity-pill[data-severity="critical"] { color: var(--pspf-warn); background: var(--pspf-warn-soft); border-color: color-mix(in srgb, var(--pspf-warn) 65%, var(--border)); }
+    .pentest-severity-pill[data-severity="high"] { color: var(--pspf-warn); border-color: color-mix(in srgb, var(--pspf-warn) 50%, var(--border)); }
+    .pentest-severity-pill[data-severity="medium"] { color: var(--workshop-blue); background: var(--workshop-blue-soft); border-color: color-mix(in srgb, var(--workshop-blue) 55%, var(--border)); }
+    .pentest-severity-pill[data-severity="low"] { color: var(--pspf-ok); background: var(--pspf-ok-soft); border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); }
+    .pentest-queue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    .pentest-queue { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); background: var(--surface-strong); display: grid; gap: 10px; align-content: start; }
+    .pentest-queue[data-queue="overdue"], .pentest-queue[data-queue="sla-at-risk"] { box-shadow: inset 3px 0 0 var(--pspf-warn); }
+    .pentest-queue[data-queue="pending-verification"] { box-shadow: inset 3px 0 0 var(--workshop-blue); }
+    .pentest-queue[data-queue="closed"] { box-shadow: inset 3px 0 0 var(--pspf-ok); }
+    .pentest-queue__header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .pentest-queue__header h3 { margin: 0; font-size: 15px; }
+    .pentest-finding-list { display: grid; gap: 8px; }
+    .pentest-finding-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px; background: var(--surface); display: grid; gap: 4px; }
+    .pentest-finding-card header { display: flex; align-items: flex-start; gap: 8px; }
+    .pentest-finding-card button { text-align: left; }
+    .pentest-finding-card p { margin: 0; }
+  </style>`;
 }
 
 function renderPspfGridView(model: PspfGridModel): string {
