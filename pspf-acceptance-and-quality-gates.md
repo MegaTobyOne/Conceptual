@@ -548,6 +548,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deferred-scope gate**: v1.36 does not add editable Explorer ISM authoring, drag-to-link, private/team saved views, non-public ISM statement notes, an ISM profile picker, chart image export, worker-backed integrity scan, multi-window editing, or runtime ISM network fetch.
 8. **Regression gate**: `e2e:v1.36`, `check:explorer-publication`, `check:workshop-navigation`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.37 candidate gates (Continuous Compliance outputs, per ADR 0073)
+
+1. **ADR gate**: ADR 0073 records the Workshop Continuous Compliance outputs decision and the deliberate, schema-neutral crossing of the v0.1 thin slice before release preparation completes.
+2. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.37.0`; `VERSION_AXES` remain `1.12.0`; no new schema directory is introduced.
+3. **Continuous Compliance outputs gate**: Workshop exposes the PSPF Grid View, Human-Centred Risk View, Continuous Compliance Metro, Unified Security Operating Model, and Cyber Awareness Change Strategy from the command palette, Home, and the view title menu, and the Plan of Action board carries a separate Support And Decisions Needed callout.
+4. **Centralised taxonomy gate**: fixed ordering and controlled vocabulary for all six outputs live in `packages/workshop/src/continuous-compliance.ts` as pure, unit-tested model builders; `check:continuous-compliance` asserts registration, the callout, and the exported taxonomy.
+5. **Authoring-only gate**: the six outputs are Workshop authoring surfaces only; they add no export, snapshot, or Explorer presentation and no new entity, collection, link verb, saved-view scope, published field, or compatibility-axis bump.
+6. **Privacy gate**: the Continuous Compliance module never references restricted personal fields (`Person.name`, `Person.email`, `Assignment.personId`); team and capability views derive only from existing strategy fields such as `executiveOwner`.
+7. **Deferred-scope gate**: v1.37 does not add editable Explorer authoring, an authored organisation/team model, chart image export, or runtime network fetch.
+8. **Regression gate**: `e2e:v1.37`, `check:continuous-compliance`, `check:workshop-navigation`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

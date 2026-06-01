@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.36.1",
+  "version": "1.37.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -194,6 +194,31 @@
         "command": "pspf.workshop.openMasterDashboard",
         "title": "PSPF: Open Master Dashboard",
         "icon": "$(dashboard)"
+      },
+      {
+        "command": "pspf.workshop.openPspfGridView",
+        "title": "PSPF: Open PSPF Grid View",
+        "icon": "$(table)"
+      },
+      {
+        "command": "pspf.workshop.openHumanCentredRiskView",
+        "title": "PSPF: Open Human-Centred Risk View",
+        "icon": "$(person)"
+      },
+      {
+        "command": "pspf.workshop.openContinuousComplianceMetro",
+        "title": "PSPF: Open Continuous Compliance Metro",
+        "icon": "$(circuit-board)"
+      },
+      {
+        "command": "pspf.workshop.openUnifiedSecurityOperatingModel",
+        "title": "PSPF: Open Unified Security Operating Model",
+        "icon": "$(organization)"
+      },
+      {
+        "command": "pspf.workshop.openCyberAwarenessChangeStrategy",
+        "title": "PSPF: Open Cyber Awareness Change Strategy",
+        "icon": "$(megaphone)"
       },
       {
         "command": "pspf.workshop.openEssentialEightDashboard",
@@ -401,6 +426,31 @@
           "command": "pspf.workshop.openMasterDashboard",
           "when": "view == pspfWorkshop.homeView",
           "group": "navigation@4.5"
+        },
+        {
+          "command": "pspf.workshop.openPspfGridView",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.55"
+        },
+        {
+          "command": "pspf.workshop.openHumanCentredRiskView",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.56"
+        },
+        {
+          "command": "pspf.workshop.openContinuousComplianceMetro",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.57"
+        },
+        {
+          "command": "pspf.workshop.openUnifiedSecurityOperatingModel",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.58"
+        },
+        {
+          "command": "pspf.workshop.openCyberAwarenessChangeStrategy",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.59"
         },
         {
           "command": "pspf.workshop.openPlanOfActionBoard",

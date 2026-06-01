@@ -23,6 +23,20 @@ import {
   type PlanOfActionTaskModel
 } from "./plan-of-action-board.js";
 import {
+  buildPspfGridModel,
+  type PspfGridModel,
+  buildHumanCentredRiskModel,
+  type HumanCentredRiskModel,
+  buildContinuousComplianceMetroModel,
+  type ContinuousComplianceMetroModel,
+  buildUnifiedSecurityOperatingModel,
+  type UnifiedSecurityOperatingModel,
+  buildCyberAwarenessChangeStrategyModel,
+  type CyberAwarenessChangeStrategyModel,
+  CONTINUOUS_COMPLIANCE_ASSURANCE_BANDS,
+  CONTINUOUS_COMPLIANCE_RISK_SEVERITIES
+} from "./continuous-compliance.js";
+import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
   CHANGE_RECORD_STATUSES,
@@ -353,6 +367,14 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.linkExistingDirection", linkExistingDirection),
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
     vscode.commands.registerCommand("pspf.workshop.openMasterDashboard", openMasterDashboard),
+    vscode.commands.registerCommand("pspf.workshop.openPspfGridView", openPspfGridView),
+    vscode.commands.registerCommand("pspf.workshop.openHumanCentredRiskView", openHumanCentredRiskView),
+    vscode.commands.registerCommand("pspf.workshop.openContinuousComplianceMetro", openContinuousComplianceMetro),
+    vscode.commands.registerCommand(
+      "pspf.workshop.openUnifiedSecurityOperatingModel",
+      openUnifiedSecurityOperatingModel
+    ),
+    vscode.commands.registerCommand("pspf.workshop.openCyberAwarenessChangeStrategy", openCyberAwarenessChangeStrategy),
     vscode.commands.registerCommand("pspf.workshop.openEssentialEightDashboard", openEssentialEightDashboard),
     vscode.commands.registerCommand("pspf.workshop.openPlanOfActionBoard", openPlanOfActionBoard),
     vscode.commands.registerCommand("pspf.workshop.openConnectedView", openConnectedView),
@@ -503,6 +525,11 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openRisksList",
       "pspf.workshop.openAssessmentDashboard",
       "pspf.workshop.openMasterDashboard",
+      "pspf.workshop.openPspfGridView",
+      "pspf.workshop.openHumanCentredRiskView",
+      "pspf.workshop.openContinuousComplianceMetro",
+      "pspf.workshop.openUnifiedSecurityOperatingModel",
+      "pspf.workshop.openCyberAwarenessChangeStrategy",
       "pspf.workshop.openEssentialEightDashboard",
       "pspf.workshop.openPlanOfActionBoard",
       "pspf.workshop.openConnectedView",
@@ -2785,7 +2812,9 @@ async function openMasterDashboard(): Promise<void> {
       </div>
       <div class="form-actions">
         <button type="button" data-command="pspf.workshop.openEssentialEightDashboard">Essential Eight</button>
+        <button type="button" data-command="pspf.workshop.openPspfGridView">PSPF Grid View</button>
         <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
+        <button type="button" data-command="pspf.workshop.openHumanCentredRiskView">Human-Centred Risk</button>
         <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
         <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
         <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
@@ -2818,6 +2847,547 @@ async function openMasterDashboard(): Promise<void> {
       </div>
     </section>
     ${recordTable("Action Pressure", actionRows, ["title", "status", "urgency", "total", "dueDate"])}
+  `
+  );
+}
+
+async function openPspfGridView(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel("pspfGridView", "PSPF Grid View", vscode.ViewColumn.One, {
+    enableScripts: true
+  });
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = renderPspfGridView(buildPspfGridModel(await listAllEntities()));
+  });
+  panel.webview.html = renderPspfGridView(buildPspfGridModel(await listAllEntities()));
+}
+
+function renderPspfGridView(model: PspfGridModel): string {
+  const cells = model.cells
+    .map(
+      (cell) => `
+      <article class="cc-grid-cell" data-assurance="${escapeHtml(cell.assuranceBandId)}">
+        <header class="cc-grid-cell__header">
+          <strong>${escapeHtml(cell.groupingLabel)}</strong>
+          <span class="cc-assurance-pill" data-assurance="${escapeHtml(cell.assuranceBandId)}">${escapeHtml(cell.assuranceLabel)}</span>
+        </header>
+        <p class="cc-grid-cell__hint">${escapeHtml(cell.groupingHint)}</p>
+        <div class="cc-grid-cell__bar" role="img" aria-label="${cell.metPercentage}% met">
+          <span style="width:${cell.metPercentage}%"></span>
+        </div>
+        <dl class="cc-grid-cell__stats">
+          <div><dt>Met</dt><dd>${cell.metPercentage}%</dd></div>
+          <div><dt>Evidence</dt><dd>${cell.evidenceCoverage}%</dd></div>
+          <div><dt>Requirements</dt><dd>${cell.applicable}</dd></div>
+          <div><dt>Recent updates</dt><dd>${cell.recentlyUpdated}</dd></div>
+        </dl>
+      </article>`
+    )
+    .join("");
+  const legend = CONTINUOUS_COMPLIANCE_ASSURANCE_BANDS.map(
+    (band) => `<span class="cc-assurance-pill" data-assurance="${escapeHtml(band.id)}">${escapeHtml(band.label)}</span>`
+  ).join("");
+  const milestones = model.milestones.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  return shellHtml(
+    "PSPF Grid View",
+    `
+    ${continuousComplianceStyles()}
+    <section>
+      <p class="eyebrow">Continuous Compliance · Output 4</p>
+      <h1>PSPF Grid View</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Grouped PSPF obligations, current assurance, and recent progress for the in-scope cyber and information governance domains.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Met, excl N/A", `${model.overallMetPercentage}%`)}
+        ${metricCard("Evidence, excl N/A", `${model.overallEvidenceCoverage}%`)}
+        ${metricCard("Requirements in scope", model.applicable)}
+        ${metricCard("Requirements met", model.met)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
+        <button type="button" data-command="pspf.workshop.openEssentialEightDashboard">Essential Eight</button>
+        <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy posture brief</button>
+      </div>
+    </section>
+    <section>
+      <h2>Domain Grid</h2>
+      <p class="muted">Each grouping shows current assurance using fixed labels. Bands: ${legend}</p>
+      <div class="cc-grid">${cells}</div>
+    </section>
+    <section>
+      <h2>Recent Progress</h2>
+      <ul class="cc-milestones">${milestones}</ul>
+    </section>
+  `
+  );
+}
+
+function continuousComplianceStyles(): string {
+  return `<style>
+    .cc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .cc-grid-cell { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); background: var(--surface-strong); display: grid; gap: 8px; align-content: start; }
+    .cc-grid-cell__header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .cc-grid-cell__header strong { font-size: 14px; }
+    .cc-grid-cell__hint { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+    .cc-grid-cell__bar { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--border) 60%, transparent); overflow: hidden; }
+    .cc-grid-cell__bar span { display: block; height: 100%; border-radius: 999px; background: var(--workshop-blue); }
+    .cc-grid-cell__stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; margin: 0; }
+    .cc-grid-cell__stats div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .cc-grid-cell__stats dt { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; margin: 0; }
+    .cc-grid-cell__stats dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .cc-assurance-pill { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 700; white-space: nowrap; background: var(--surface); }
+    .cc-assurance-pill[data-assurance="established"] { color: var(--pspf-ok); border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); background: var(--pspf-ok-soft); }
+    .cc-assurance-pill[data-assurance="progressing"] { color: var(--workshop-blue); border-color: color-mix(in srgb, var(--workshop-blue) 55%, var(--border)); background: var(--workshop-blue-soft); }
+    .cc-assurance-pill[data-assurance="emerging"] { color: var(--pspf-warn); border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); background: var(--pspf-warn-soft); }
+    .cc-assurance-pill[data-assurance="early"] { color: var(--pspf-warn); border-color: color-mix(in srgb, var(--pspf-warn) 40%, var(--border)); }
+    .cc-assurance-pill[data-assurance="not-started"] { color: var(--muted); }
+    .cc-grid-cell[data-assurance="established"] { box-shadow: inset 3px 0 0 var(--pspf-ok); }
+    .cc-grid-cell[data-assurance="progressing"] { box-shadow: inset 3px 0 0 var(--workshop-blue); }
+    .cc-grid-cell[data-assurance="emerging"], .cc-grid-cell[data-assurance="early"] { box-shadow: inset 3px 0 0 var(--pspf-warn); }
+    .cc-grid-cell[data-assurance="not-started"] { box-shadow: inset 3px 0 0 var(--border); }
+    .cc-milestones { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+    .cc-milestones li { line-height: 1.45; }
+    .cc-outcome-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+    .cc-outcome-card { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); background: var(--surface-strong); display: grid; gap: 10px; align-content: start; }
+    .cc-outcome-card__header { display: grid; gap: 2px; }
+    .cc-outcome-card__header .eyebrow { margin: 0; }
+    .cc-outcome-card__header h3 { margin: 0; font-size: 15px; line-height: 1.35; }
+    .cc-risk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .cc-risk-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+    .cc-risk-item__body { display: grid; gap: 2px; }
+    .cc-risk-item__body strong { font-size: 13.5px; line-height: 1.35; }
+    .cc-risk-item__meta { color: var(--muted); font-size: 12px; }
+    .cc-severity-pill { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 700; white-space: nowrap; background: var(--surface); }
+    .cc-severity-pill[data-severity="high"] { color: var(--pspf-warn); border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); background: var(--pspf-warn-soft); }
+    .cc-severity-pill[data-severity="medium"] { color: var(--workshop-blue); border-color: color-mix(in srgb, var(--workshop-blue) 55%, var(--border)); background: var(--workshop-blue-soft); }
+    .cc-severity-pill[data-severity="low"] { color: var(--pspf-ok); border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); background: var(--pspf-ok-soft); }
+    .cc-metro-hub { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-strong); margin-bottom: 12px; }
+    .cc-metro-hub__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--workshop-blue); box-shadow: 0 0 0 3px var(--workshop-blue-soft); }
+    .cc-metro { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    .cc-metro-line { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); background: var(--surface-strong); display: grid; gap: 10px; align-content: start; --metro-colour: var(--workshop-blue); }
+    .cc-metro-line[data-line="0"] { --metro-colour: var(--workshop-blue); }
+    .cc-metro-line[data-line="1"] { --metro-colour: var(--pspf-ok); }
+    .cc-metro-line[data-line="2"] { --metro-colour: var(--pspf-warn); }
+    .cc-metro-line[data-line="3"] { --metro-colour: #8a63d2; }
+    .cc-metro-line[data-line="4"] { --metro-colour: #d2638a; }
+    .cc-metro-line[data-line="5"] { --metro-colour: #2aa6a0; }
+    .cc-metro-line__header { display: flex; align-items: flex-start; gap: 10px; }
+    .cc-metro-line__marker { width: 10px; height: 10px; border-radius: 3px; background: var(--metro-colour); margin-top: 4px; flex: none; }
+    .cc-metro-line__header strong { display: block; font-size: 14px; }
+    .cc-metro-line__meta { color: var(--muted); font-size: 12px; }
+    .cc-metro-stations { list-style: none; margin: 0; padding: 0 0 0 4px; display: grid; gap: 0; border-left: 3px solid var(--metro-colour); margin-left: 4px; }
+    .cc-metro-station { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0 6px 10px; position: relative; }
+    .cc-metro-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--surface); border: 3px solid var(--metro-colour); margin-left: -16px; margin-top: 2px; flex: none; }
+    .cc-metro-station__body { display: grid; gap: 1px; }
+    .cc-metro-station__body strong { font-size: 13px; line-height: 1.35; }
+    .cc-metro-station__meta { color: var(--muted); font-size: 11.5px; }
+    .cc-metro-empty { margin: 0; }
+    .cc-team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    .cc-team-card { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); background: var(--surface-strong); display: grid; gap: 10px; align-content: start; }
+    .cc-team-card__header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .cc-team-card__header strong { font-size: 14px; }
+    .cc-team-card__count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .cc-team-functions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .cc-team-function { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; background: var(--surface); }
+    .cc-team-services { list-style: disc; margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+    .cc-team-services li { font-size: 12.5px; line-height: 1.4; }
+    .cc-coverage-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .cc-coverage-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+    .cc-coverage-row[data-covered="yes"] { box-shadow: inset 3px 0 0 var(--pspf-ok); }
+    .cc-coverage-row[data-covered="no"] { box-shadow: inset 3px 0 0 var(--pspf-warn); }
+    .cc-coverage-status { font-size: 11.5px; font-weight: 700; border-radius: 999px; padding: 2px 9px; border: 1px solid var(--border); white-space: nowrap; }
+    .cc-coverage-row[data-covered="yes"] .cc-coverage-status { color: var(--pspf-ok); background: var(--pspf-ok-soft); border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); }
+    .cc-coverage-row[data-covered="no"] .cc-coverage-status { color: var(--pspf-warn); background: var(--pspf-warn-soft); border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); }
+    .cc-coverage-body { display: grid; gap: 1px; }
+    .cc-coverage-body strong { font-size: 13px; }
+    .cc-coverage-meta { color: var(--muted); font-size: 12px; }
+    .cc-theme-grid, .cc-message-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .cc-theme-card { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); background: var(--surface-strong); display: grid; gap: 4px; align-content: start; }
+    .cc-theme-card strong { font-size: 14px; }
+    .cc-theme-card p { margin: 0; line-height: 1.45; }
+    .cc-translation-list { margin: 0; display: grid; gap: 8px; }
+    .cc-translation-row { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+    .cc-translation-row dt { margin: 0; font-weight: 700; font-size: 13px; }
+    .cc-translation-row dd { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+    .cc-message-card { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); background: var(--surface-strong); display: grid; gap: 8px; align-content: start; }
+    .cc-message-card__header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .cc-message-card__header strong { font-size: 13.5px; }
+    .cc-message-card__body { margin: 0; line-height: 1.5; font-size: 13px; }
+    .cc-support-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .cc-support-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+    .cc-support-item[data-support="blocked"] { box-shadow: inset 3px 0 0 var(--pspf-warn); }
+    .cc-support-item[data-support="overdue"] { box-shadow: inset 3px 0 0 var(--pspf-warn); }
+    .cc-support-item[data-support="due-soon"] { box-shadow: inset 3px 0 0 var(--workshop-blue); }
+    .cc-support-flag { font-size: 11.5px; font-weight: 700; border-radius: 999px; padding: 2px 9px; border: 1px solid var(--border); white-space: nowrap; background: var(--surface-strong); }
+    .cc-support-item[data-support="blocked"] .cc-support-flag, .cc-support-item[data-support="overdue"] .cc-support-flag { color: var(--pspf-warn); background: var(--pspf-warn-soft); border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); }
+    .cc-support-item[data-support="due-soon"] .cc-support-flag { color: var(--workshop-blue); background: var(--workshop-blue-soft); border-color: color-mix(in srgb, var(--workshop-blue) 55%, var(--border)); }
+    .cc-support-body { display: grid; gap: 1px; text-align: left; background: none; border: none; padding: 0; cursor: pointer; color: inherit; font: inherit; }
+    .cc-support-body strong { font-size: 13px; }
+    .cc-support-meta { color: var(--muted); font-size: 12px; }
+  </style>`;
+}
+
+async function openHumanCentredRiskView(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel(
+    "pspfHumanCentredRiskView",
+    "Human-Centred Risk View",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = renderHumanCentredRiskView(buildHumanCentredRiskModel(await listAllEntities()));
+  });
+  panel.webview.html = renderHumanCentredRiskView(buildHumanCentredRiskModel(await listAllEntities()));
+}
+
+function renderHumanCentredRiskItem(item: {
+  readonly title: string;
+  readonly severityId: string;
+  readonly severityLabel: string;
+  readonly statusLabel: string;
+  readonly treatmentLabel: string;
+  readonly linkedActions: number;
+}): string {
+  const actionsNote =
+    item.linkedActions > 0
+      ? `${item.linkedActions} linked action${item.linkedActions === 1 ? "" : "s"}`
+      : "No linked actions yet";
+  return `
+    <li class="cc-risk-item">
+      <span class="cc-severity-pill" data-severity="${escapeHtml(item.severityId)}">${escapeHtml(item.severityLabel)}</span>
+      <div class="cc-risk-item__body">
+        <strong>${escapeHtml(item.title)}</strong>
+        <span class="cc-risk-item__meta">${escapeHtml(item.statusLabel)} · ${escapeHtml(item.treatmentLabel)} · ${escapeHtml(actionsNote)}</span>
+      </div>
+    </li>`;
+}
+
+function renderHumanCentredRiskView(model: HumanCentredRiskModel): string {
+  const groups = model.groups
+    .map(
+      (group) => `
+      <article class="cc-outcome-card">
+        <header class="cc-outcome-card__header">
+          <p class="eyebrow">${escapeHtml(group.capabilityArea)}</p>
+          <h3>${escapeHtml(group.outcomeStatement)}</h3>
+        </header>
+        <ul class="cc-risk-list">${group.risks.map(renderHumanCentredRiskItem).join("")}</ul>
+      </article>`
+    )
+    .join("");
+  const unassigned =
+    model.unassigned.length > 0
+      ? `
+    <section>
+      <h2>Risks Not Yet Tied To A Business Outcome</h2>
+      <p class="muted">Connect each risk to a strategic outcome so leaders can see what is at stake in plain terms.</p>
+      <ul class="cc-risk-list">${model.unassigned.map(renderHumanCentredRiskItem).join("")}</ul>
+    </section>`
+      : "";
+  const legend = CONTINUOUS_COMPLIANCE_RISK_SEVERITIES.map(
+    (band) => `<span class="cc-severity-pill" data-severity="${escapeHtml(band.id)}">${escapeHtml(band.label)}</span>`
+  ).join("");
+  const groupsBlock =
+    model.groups.length > 0
+      ? `<div class="cc-outcome-grid">${groups}</div>`
+      : `<p class="muted">No business outcomes have linked risks yet. Open the Strategy Map to connect strategic outcomes to the risks that threaten them.</p>`;
+  return shellHtml(
+    "Human-Centred Risk View",
+    `
+    ${continuousComplianceStyles()}
+    <section>
+      <p class="eyebrow">Continuous Compliance · Output 1</p>
+      <h1>Human-Centred Risk View</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · What business outcome is at risk, the specific risk, and how it is being treated — described for people, not auditors.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Risks in view", model.counts.total)}
+        ${metricCard("High severity", model.counts.high)}
+        ${metricCard("Treatment underway", model.treated)}
+        ${metricCard("No treatment yet", model.untreated)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
+        <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
+        <button type="button" data-command="pspf.workshop.createRisk">Create risk</button>
+      </div>
+    </section>
+    <section>
+      <h2>Outcomes At Risk</h2>
+      <p class="muted">Severity bands: ${legend}</p>
+      ${groupsBlock}
+    </section>
+    ${unassigned}
+  `
+  );
+}
+
+async function openContinuousComplianceMetro(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel(
+    "pspfContinuousComplianceMetro",
+    "Continuous Compliance Metro",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = renderContinuousComplianceMetro(buildContinuousComplianceMetroModel(await listAllEntities()));
+  });
+  panel.webview.html = renderContinuousComplianceMetro(buildContinuousComplianceMetroModel(await listAllEntities()));
+}
+
+function renderContinuousComplianceMetro(model: ContinuousComplianceMetroModel): string {
+  const lines = model.lines
+    .map((line, index) => {
+      const stations = line.stations
+        .map(
+          (station) => `
+          <li class="cc-metro-station">
+            <span class="cc-metro-dot" aria-hidden="true"></span>
+            <div class="cc-metro-station__body">
+              <strong>${escapeHtml(station.label)}</strong>
+              <span class="cc-metro-station__meta">${station.measures} measure${station.measures === 1 ? "" : "s"} · ${station.references} link${station.references === 1 ? "" : "s"}</span>
+            </div>
+          </li>`
+        )
+        .join("");
+      const stationsBlock =
+        line.stations.length > 0
+          ? `<ul class="cc-metro-stations">${stations}</ul>`
+          : `<p class="muted cc-metro-empty">No functional outputs mapped yet. Add outcomes to this strategic choice.</p>`;
+      return `
+      <article class="cc-metro-line" data-line="${index % 6}">
+        <header class="cc-metro-line__header">
+          <span class="cc-metro-line__marker" aria-hidden="true"></span>
+          <div>
+            <strong>${escapeHtml(line.capabilityArea)}</strong>
+            <span class="cc-metro-line__meta">${escapeHtml(trendIndicator(line.trend as StrategyEntity["choices"][number]["trend"]))} · ${escapeHtml(label(line.confidence))} confidence · target ${escapeHtml(line.targetPosture)}</span>
+          </div>
+        </header>
+        ${stationsBlock}
+      </article>`;
+    })
+    .join("");
+  const linesBlock =
+    model.lines.length > 0
+      ? `<div class="cc-metro">${lines}</div>`
+      : `<p class="muted">No capability lines yet. Open the Strategy Map to author strategic choices and their outcomes, then return to see the capability metro.</p>`;
+  return shellHtml(
+    "Continuous Compliance Metro",
+    `
+    ${continuousComplianceStyles()}
+    <section>
+      <p class="eyebrow">Continuous Compliance · Output 6</p>
+      <h1>Continuous Compliance Metro</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · The capability landscape that supports continuous compliance, mapped as connected lines and stations around a central hub.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Central hub", "GRC")}
+        ${metricCard("Capability lines", model.totalCapabilities)}
+        ${metricCard("Functional stations", model.totalStations)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
+        <button type="button" data-command="pspf.workshop.openPspfGridView">PSPF Grid View</button>
+      </div>
+    </section>
+    <section>
+      <div class="cc-metro-hub"><span class="cc-metro-hub__dot" aria-hidden="true"></span>${escapeHtml(model.hub)}</div>
+      ${linesBlock}
+    </section>
+  `
+  );
+}
+
+async function openUnifiedSecurityOperatingModel(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel(
+    "pspfUnifiedSecurityOperatingModel",
+    "Unified Security Operating Model",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = renderUnifiedSecurityOperatingModel(
+      buildUnifiedSecurityOperatingModel(await listAllEntities())
+    );
+  });
+  panel.webview.html = renderUnifiedSecurityOperatingModel(buildUnifiedSecurityOperatingModel(await listAllEntities()));
+}
+
+function renderUnifiedSecurityOperatingModel(model: UnifiedSecurityOperatingModel): string {
+  const teams = model.teams
+    .map((team) => {
+      const services =
+        team.services.length > 0
+          ? `<ul class="cc-team-services">${team.services
+              .map((service) => `<li>${escapeHtml(service.label)}</li>`)
+              .join("")}</ul>`
+          : `<p class="muted cc-metro-empty">No services mapped yet.</p>`;
+      const functions =
+        team.capabilityAreas.length > 0
+          ? team.capabilityAreas
+              .map((capability) => `<span class="cc-team-function">${escapeHtml(capability)}</span>`)
+              .join("")
+          : `<span class="muted">No capability areas recorded</span>`;
+      return `
+      <article class="cc-team-card">
+        <header class="cc-team-card__header">
+          <strong>${escapeHtml(team.name)}</strong>
+          <span class="cc-team-card__count">${team.services.length} service${team.services.length === 1 ? "" : "s"}</span>
+        </header>
+        <div class="cc-team-functions">${functions}</div>
+        ${services}
+      </article>`;
+    })
+    .join("");
+  const coverage = model.coverage
+    .map(
+      (item) => `
+      <li class="cc-coverage-row" data-covered="${item.covered ? "yes" : "no"}">
+        <span class="cc-coverage-status">${item.covered ? "Covered" : "Gap"}</span>
+        <div class="cc-coverage-body">
+          <strong>${escapeHtml(item.label)}</strong>
+          <span class="cc-coverage-meta">${item.covered ? escapeHtml(item.teams.join(", ")) : "No team currently owns this function"}</span>
+        </div>
+      </li>`
+    )
+    .join("");
+  const teamsBlock =
+    model.teams.length > 0
+      ? `<div class="cc-team-grid">${teams}</div>`
+      : `<p class="muted">No teams or owners are mapped yet. Add an executive owner to each strategic choice on the Strategy Map to populate the operating model.</p>`;
+  const unmapped =
+    model.unmappedCapabilities.length > 0
+      ? `<section>
+      <h2>Capabilities Outside The Standard Functions</h2>
+      <p class="muted">These capability areas did not match a standard security function. Review the wording or treat them as bespoke functions.</p>
+      <div class="cc-team-functions">${model.unmappedCapabilities
+        .map((capability) => `<span class="cc-team-function">${escapeHtml(capability)}</span>`)
+        .join("")}</div>
+    </section>`
+      : "";
+  return shellHtml(
+    "Unified Security Operating Model",
+    `
+    ${continuousComplianceStyles()}
+    <section>
+      <p class="eyebrow">Continuous Compliance · Output 5</p>
+      <h1>Unified Security Operating Model</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Which teams deliver which security functions and outcomes, with coverage and gaps visible on one page.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Teams in scope", model.teams.length)}
+        ${metricCard("Functions covered", `${model.coveredFunctions}/${model.coverage.length}`)}
+        ${metricCard("Coverage gaps", model.gapFunctions)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
+        <button type="button" data-command="pspf.workshop.openContinuousComplianceMetro">Capability Metro</button>
+      </div>
+    </section>
+    <section>
+      <h2>Teams And Their Functions</h2>
+      ${teamsBlock}
+    </section>
+    <section>
+      <h2>Function Coverage</h2>
+      <p class="muted">Standard security functions in fixed order. Gaps show where no team currently owns a function.</p>
+      <ul class="cc-coverage-list">${coverage}</ul>
+    </section>
+    ${unmapped}
+  `
+  );
+}
+
+async function openCyberAwarenessChangeStrategy(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel(
+    "pspfCyberAwarenessChangeStrategy",
+    "Cyber Awareness Change Strategy",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = renderCyberAwarenessChangeStrategy(
+      buildCyberAwarenessChangeStrategyModel(await listAllEntities())
+    );
+  });
+  panel.webview.html = renderCyberAwarenessChangeStrategy(
+    buildCyberAwarenessChangeStrategyModel(await listAllEntities())
+  );
+}
+
+function renderCyberAwarenessChangeStrategy(model: CyberAwarenessChangeStrategyModel): string {
+  const themeLabel = new Map(model.themes.map((theme) => [theme.id, theme.label] as const));
+  const themes = model.themes
+    .map(
+      (theme) => `
+      <article class="cc-theme-card">
+        <strong>${escapeHtml(theme.label)}</strong>
+        <p class="muted">${escapeHtml(theme.summary)}</p>
+      </article>`
+    )
+    .join("");
+  const translations = model.translations
+    .map(
+      (item) => `
+      <div class="cc-translation-row">
+        <dt>${escapeHtml(item.term)}</dt>
+        <dd>${escapeHtml(item.plain)}</dd>
+      </div>`
+    )
+    .join("");
+  const messages = model.messageBlocks
+    .map(
+      (block) => `
+      <article class="cc-message-card">
+        <header class="cc-message-card__header">
+          <strong>${escapeHtml(block.scenario)}</strong>
+          <span class="cc-team-function">${escapeHtml(themeLabel.get(block.themeId) ?? block.themeId)}</span>
+        </header>
+        <p class="cc-message-card__body">${escapeHtml(block.message)}</p>
+      </article>`
+    )
+    .join("");
+  return shellHtml(
+    "Cyber Awareness Change Strategy",
+    `
+    ${continuousComplianceStyles()}
+    <section>
+      <p class="eyebrow">Continuous Compliance · Output 3</p>
+      <h1>Cyber Awareness Change Strategy</h1>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Reusable themes, plain-language translations, and adaptable message blocks so cyber change communication stays clear and consistent.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Core themes", model.themes.length)}
+        ${metricCard("Term translations", model.translations.length)}
+        ${metricCard("Message blocks", model.messageBlocks.length)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="refresh">Refresh</button>
+        <button type="button" data-command="pspf.workshop.openCisoMagazine">Digital CISO Magazine</button>
+      </div>
+    </section>
+    <section>
+      <h2>Core Themes</h2>
+      <div class="cc-theme-grid">${themes}</div>
+    </section>
+    <section>
+      <h2>Plain-Language Translations</h2>
+      <p class="muted">Use these accessible explanations in place of specialist terms.</p>
+      <dl class="cc-translation-list">${translations}</dl>
+    </section>
+    <section>
+      <h2>Reusable Message Blocks</h2>
+      <p class="muted">Adapt the wording to the forum, then reuse it so the same themes carry across every channel.</p>
+      <div class="cc-message-grid">${messages}</div>
+    </section>
   `
   );
 }
@@ -2956,10 +3526,62 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
       ${renderPlanOfActionStatusFilters()}
       ${renderPlanOfActionTimeline(model)}
     </section>
+    ${renderPlanOfActionSupportCallout(model)}
     ${recordTable("Action Worklist", taskRows, ["title", "stream", "status", "urgency", "startDate", "endDate", "dueDate", "linkedRequirements", "linkedRisks", "impact"])}
     ${planOfActionFilterScript()}
   `
   );
+}
+
+function renderPlanOfActionSupportCallout(model: PlanOfActionBoardModel): string {
+  const supportTasks = model.phases
+    .flatMap((phase) => phase.tasks.map((task) => ({ task, stream: phase.title })))
+    .filter(({ task }) => task.urgency === "blocked" || task.urgency === "overdue" || task.urgency === "due-soon")
+    .sort((left, right) => supportUrgencyRank(left.task.urgency) - supportUrgencyRank(right.task.urgency));
+  const body =
+    supportTasks.length > 0
+      ? `<ul class="cc-support-list">${supportTasks
+          .map(({ task, stream }) => {
+            const due = formatShortAuDateTime(task.dueDate) ?? "no date set";
+            return `
+        <li class="cc-support-item" data-support="${escapeHtml(task.urgency)}">
+          <span class="cc-support-flag">${escapeHtml(supportNeedLabel(task.urgency))}</span>
+          <button type="button" class="cc-support-body" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
+            <strong>${escapeHtml(task.title)}</strong>
+            <span class="cc-support-meta">${escapeHtml(stream)} · ${escapeHtml(label(task.status))} · due ${escapeHtml(due)}</span>
+          </button>
+        </li>`;
+          })
+          .join("")}</ul>`
+      : `<p class="muted">No blocked, overdue, or imminent work right now. Nothing is waiting on a decision, input, or resource.</p>`;
+  return `
+    ${continuousComplianceStyles()}
+    <section>
+      <p class="eyebrow">Continuous Compliance · Output 2</p>
+      <h2>Support And Decisions Needed</h2>
+      <p class="muted">Dependencies, decisions, inputs, and resource needs called out separately from the timeline, so managers can see where to act.</p>
+      ${body}
+    </section>`;
+}
+
+function supportUrgencyRank(urgency: string): number {
+  if (urgency === "blocked") {
+    return 0;
+  }
+  if (urgency === "overdue") {
+    return 1;
+  }
+  return 2;
+}
+
+function supportNeedLabel(urgency: string): string {
+  if (urgency === "blocked") {
+    return "Decision or input needed";
+  }
+  if (urgency === "overdue") {
+    return "Overdue — needs attention";
+  }
+  return "Due soon";
 }
 
 function renderPlanOfActionStatusFilters(): string {

@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.36.1",
+  "version": "1.37.0",
   "private": true,
   "description": "Local-first PSPF Core, Workshop, Shop, Pub, and Explorer validation slice.",
   "license": "MIT",
@@ -99,6 +99,9 @@
     "e2e:v1.35:run": "pnpm run e2e:v1.34:run && node scripts/check-schema-coverage.mjs && node scripts/check-brief-redaction.mjs && node scripts/check-explorer-publication.mjs",
     "e2e:v1.36": "pnpm run e2e:v1.35 && pnpm run check:explorer-publication && pnpm run check:workshop-navigation",
     "e2e:v1.36:run": "pnpm run e2e:v1.35:run && node scripts/check-explorer-publication.mjs && node scripts/check-workshop-navigation.mjs",
+    "e2e:v1.37": "pnpm run e2e:v1.36 && pnpm run check:workshop-navigation && pnpm run check:continuous-compliance",
+    "e2e:v1.37:run": "pnpm run e2e:v1.36:run && node scripts/check-workshop-navigation.mjs && node scripts/check-continuous-compliance.mjs",
+    "check:continuous-compliance": "pnpm build && node scripts/check-continuous-compliance.mjs",
     "validate:export": "pnpm build && node scripts/validate-export.mjs",
     "validate:debug-workspace": "pnpm build && pnpm run validate:debug-workspace:run",
     "validate:debug-workspace:run": "node scripts/validate-debug-workspace.mjs && node scripts/check-personal-data-exclusion.mjs",
@@ -110,7 +113,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm build && pnpm run e2e:v1.36:run && pnpm run check:gates:run && pnpm run validate:debug-workspace:run && pnpm lint && node scripts/check-release-candidate.mjs && node scripts/release-readiness.mjs",
+    "release:readiness": "pnpm build && pnpm run e2e:v1.37:run && pnpm run check:gates:run && pnpm run validate:debug-workspace:run && pnpm lint && node scripts/check-release-candidate.mjs && node scripts/release-readiness.mjs",
     "test": "pnpm build && pnpm -r --if-present test",
     "typecheck": "tsc -b tsconfig.json"
   },
