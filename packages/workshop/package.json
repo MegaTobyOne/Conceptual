@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.36.0",
+  "version": "1.36.1",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -38,6 +38,31 @@
           "type": "webview",
           "id": "pspfWorkshop.homeView",
           "name": "Workshop Home"
+        },
+        {
+          "id": "pspfWorkshop.requirementsView",
+          "name": "Requirements",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfWorkshop.evidenceView",
+          "name": "Evidence",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfWorkshop.actionsView",
+          "name": "Actions",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfWorkshop.risksView",
+          "name": "Risks",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfWorkshop.directionsView",
+          "name": "Directions",
+          "visibility": "collapsed"
         }
       ]
     },
@@ -303,10 +328,45 @@
         "command": "pspf.workshop.openQuestionnaireHistory",
         "title": "PSPF: Open Questionnaire History",
         "icon": "$(history)"
+      },
+      {
+        "command": "pspf.workshop.openTreeEntity",
+        "title": "PSPF: Open Workshop Record Detail"
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "pspf.workshop.openTreeEntity",
+          "when": "false"
+        }
+      ],
       "view/title": [
+        {
+          "command": "pspf.workshop.createRequirement",
+          "when": "view == pspfWorkshop.requirementsView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.workshop.attachEvidence",
+          "when": "view == pspfWorkshop.evidenceView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.workshop.createAction",
+          "when": "view == pspfWorkshop.actionsView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.workshop.createRisk",
+          "when": "view == pspfWorkshop.risksView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.workshop.registerDirection",
+          "when": "view == pspfWorkshop.directionsView",
+          "group": "navigation@1"
+        },
         {
           "command": "pspf.workshop.importBundle",
           "when": "view == pspfWorkshop.homeView",
@@ -371,6 +431,33 @@
           "command": "pspf.workshop.manageSavedViews",
           "when": "view == pspfWorkshop.homeView",
           "group": "navigation@6"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pspf.workshop.openTreeEntity",
+          "when": "view == pspfWorkshop.requirementsView && viewItem == pspfWorkshopRequirement",
+          "group": "0_open@1"
+        },
+        {
+          "command": "pspf.workshop.openTreeEntity",
+          "when": "view == pspfWorkshop.evidenceView && viewItem == pspfWorkshopEvidence",
+          "group": "0_open@1"
+        },
+        {
+          "command": "pspf.workshop.openTreeEntity",
+          "when": "view == pspfWorkshop.actionsView && viewItem == pspfWorkshopAction",
+          "group": "0_open@1"
+        },
+        {
+          "command": "pspf.workshop.openTreeEntity",
+          "when": "view == pspfWorkshop.risksView && viewItem == pspfWorkshopRisk",
+          "group": "0_open@1"
+        },
+        {
+          "command": "pspf.workshop.openTreeEntity",
+          "when": "view == pspfWorkshop.directionsView && viewItem == pspfWorkshopDirection",
+          "group": "0_open@1"
         }
       ]
     }

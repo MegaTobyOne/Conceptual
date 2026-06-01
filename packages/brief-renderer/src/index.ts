@@ -1200,10 +1200,13 @@ function buildCoverHook(requirementCount: number, actionCount: number, pspfDomai
 }
 
 function buildEditorNote(pspfDomainTitle: string, strategy?: StrategyEntity): string {
+  const educationCue =
+    " PSPF sets the assurance obligations, and ISM controls provide the implementation patterns that help teams show those obligations are being met.";
   if (!strategy) {
-    return `${pspfDomainTitle} is summarised from current PSPF records so leaders can see what changed, what needs attention, and what to do next.`;
+    return `${pspfDomainTitle} is summarised from current PSPF records so leaders can see what changed, what needs attention, and what to do next.${educationCue}`;
   }
-  return `${pspfDomainTitle} is framed against ${strategy.title}: ${strategy.strategyStatement}`;
+  const strategyStatement = strategy.strategyStatement.trim().replace(/[.?!]\s*$/u, "");
+  return `${pspfDomainTitle} is framed against ${strategy.title}: ${strategyStatement}.${educationCue}`;
 }
 
 function buildFeatureStories(

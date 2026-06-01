@@ -210,6 +210,9 @@ const html = `<!doctype html>
     .local-card h3 { margin-top: 0; }
     .local-card select, .local-card input { background: #111113; border: 1px solid #52525b; border-radius: 6px; color: #f4f4f5; padding: 6px 8px; }
     .local-card .toolbar { align-items: end; }
+    .posture-editor { margin: 12px 0; }
+    .posture-editor summary { cursor: pointer; }
+    .posture-editor select { background: #111113; border: 1px solid #52525b; border-radius: 6px; color: #f4f4f5; padding: 6px 8px; max-width: 100%; }
     #local-evidence-requirement { width: min(30rem, 100%); }
     #local-evidence-title, #local-evidence-reference, #local-action-title, #local-action-due-date, #local-risk-title { width: min(20rem, 100%); }
     #local-action-requirement, #local-risk-requirement { width: min(30rem, 100%); }
@@ -660,8 +663,10 @@ async function render(manifest, incomingCollections, collectionTexts = undefined
       metric("ISM mappings", (collections["requirement-control-mappings"] || []).length) +
     '</div>' +
     overview(requirements, collections) +
+    postureEditorPanel(requirements) +
     '<p class="muted">Bundle ' + escapeHtml(manifest.bundleVersion) + " · Schema " + escapeHtml(manifest.schemaVersion) + " · Generated " + formatDate(manifest.generatedAt) + '</p>';
   document.querySelector("#copy-brief")?.addEventListener("click", copyPostureBrief);
+  bindPostureEditorControls();
 
   validationSection.hidden = false;
   renderExplorerSection(validationSection, "Bundle Validation", validationTable(validation));
@@ -1205,6 +1210,52 @@ function tagLabel(tag) {
 function renderLocalAuthoringSection() {
   renderExplorerSection(localAuthoringSection, "Local Changes", localAuthoringPanel(currentLocalRequirements));
   bindLocalAuthoringControls();
+}
+
+function postureEditorPanel(requirements) {
+  const applicable = requirements.filter((requirement) => requirement.assessmentStatus !== "not-applicable");
+  const met = applicable.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const metPercentage = applicable.length === 0 ? 0 : Math.round((met / applicable.length) * 100);
+  const rows = requirements.map((requirement) => {
+    const baseline = baselineRequirement(requirement.id);
+    return {
+      title: requirement.title,
+      domain: requirement.domain || requirement.domainId || "Not recorded",
+      baseline: label(baseline?.assessmentStatus || requirement.assessmentStatus),
+      current: postureStatusSelect(requirement.id, requirement.assessmentStatus),
+      source: currentLocalOverlays.has(requirement.id) ? '<span class="version-pill local-badge">local</span>' : '<span class="version-pill baseline-badge">from bundle</span>'
+    };
+  });
+  return '<details id="posture-editor" class="local-card posture-editor">' +
+    '<summary><strong>Edit posture screen</strong></summary>' +
+    '<p class="muted">Update Requirement assessment states for local Explorer review. Changes stay in this browser, refresh the posture brief, and are included when you export local JSON back to Workshop.</p>' +
+    '<div class="grid">' +
+      metric("Met posture", metPercentage + "%") +
+      metric("Local status edits", currentLocalOverlays.size) +
+      metric("Applicable Requirements", applicable.length) +
+    '</div>' +
+    tableHtml(rows, ["title", "domain", "baseline", "current", "source"]) +
+    '<p id="posture-editor-status" class="muted" role="status"></p>' +
+  '</details>';
+}
+
+function postureStatusSelect(requirementId, selected) {
+  const options = assessmentStatuses.map((status) => '<option value="' + escapeHtml(status) + '"' + (status === selected ? " selected" : "") + '>' + escapeHtml(label(status)) + '</option>').join("");
+  return '<select data-posture-requirement-id="' + escapeHtml(requirementId) + '" aria-label="Edit posture status for ' + escapeHtml(requirementId) + '">' + options + '</select>';
+}
+
+function bindPostureEditorControls() {
+  document.querySelectorAll("#posture-editor select[data-posture-requirement-id]").forEach((select) => {
+    select.addEventListener("change", async () => {
+      const requirementId = select.dataset.postureRequirementId;
+      const status = document.querySelector("#posture-editor-status");
+      if (status) {
+        status.textContent = "Saving posture change...";
+      }
+      currentLocalRequirementId = requirementId;
+      await setLocalRequirementStatus(requirementId, select.value);
+    });
+  });
 }
 
 function versionStrip(manifest) {
@@ -2845,7 +2896,7 @@ function tableValue(value, key) {
   if (value === undefined || value === null || value === "") {
     return '<span class="empty-value">Not recorded</span>';
   }
-  if (key === "local" || key === "source" || key === "open" || key === "trend") {
+  if (key === "local" || key === "source" || key === "open" || key === "trend" || key === "current") {
     return String(value);
   }
   if (value === 0) {

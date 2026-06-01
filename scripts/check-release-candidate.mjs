@@ -1670,8 +1670,9 @@ if (isV1Release && minorVersion >= 36) {
     "v1.36 candidate gates (ISM Review Workbench, per ADR 0072)",
     "Workshop ISM Review Workbench gate",
     "Explorer public review cue gate",
+    "Editable posture screen gate",
     "No-schema gate",
-    "PSPF_SLICE_VERSION` are `1.36.0`"
+    "PSPF_SLICE_VERSION` are `1.36.1`"
   ]) {
     assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
   }

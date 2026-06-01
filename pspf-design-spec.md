@@ -199,6 +199,19 @@ Within each container, sub-views use direct nouns (`Requirements`, `Evidence`, `
 - Use subviews to separate lists, details, and diagnostics rather than multiplying major entry points.
 - Preserve the user’s place and context when switching views.
 
+### Canonical sidebar contract
+
+Every PSPF extension sidebar MUST follow the same shape so the suite reads as one unified ecosystem. Surfaces that diverge from this contract are treated as defects.
+
+1. **One Activity Bar container per extension**, with id `pspf<Surface>` and title `PSPF <Surface>` (for example `pspfWorkshop` / `PSPF Workshop`), plus the product icon.
+2. **View order is fixed:** the Home webview is first, then one collapsible Tree View per key record type, then any optional reporting or forecast webview last.
+3. **Home leads with a title, not a blurb.** Home opens with the product title plus a one-line posture summary and metric tiles (see the shared `homePostureHeader`), never an explanatory paragraph.
+4. **Each key record type is its own collapsible Tree View** with a direct noun label (`Requirements`, `Evidence`, `Actions`, `Risks`, `Directions`, `Suppliers`, `Contracts`, `Spend`, `People`, `Teams`, `Roles`, `Assignments`). Record trees are `"visibility": "collapsed"` by default so Home stays the focal point.
+5. **Clicking a tree item opens that record’s detail** via the surface’s open-detail command, consistently across every extension.
+6. **Menus are consistent:** `view/title` carries the create/new action for that tree; `view/item/context` carries open, edit, delete, and link actions.
+7. **Accent colour is per surface:** Workshop teal, Shop amber, Pub red, Core blue.
+8. **Noun-based names only.** The retired `Hearth`, `Trail`, `Lookout`, `Skylight` names MUST NOT appear in any container, view, label, or command.
+
 ## Screen patterns
 
 ### Pattern 1: Summary overview
