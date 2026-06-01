@@ -198,6 +198,15 @@ export const OPERATOR_LINK_RULES = [
     phrase: "associated with"
   },
   {
+    id: "shop-supplier-has-contract",
+    sourceProduct: "shop",
+    linkType: "has",
+    fromType: "supplier",
+    toType: "contract",
+    label: "Link Supplier to Contract",
+    phrase: "has"
+  },
+  {
     id: "shop-contract-supports-requirement",
     sourceProduct: "shop",
     linkType: "supports",
@@ -232,6 +241,15 @@ export const OPERATOR_LINK_RULES = [
     toType: "requirement",
     label: "Link Spend Item to Requirement",
     phrase: "supports"
+  },
+  {
+    id: "workshop-action-related-to-contract",
+    sourceProduct: "workshop",
+    linkType: "related-to",
+    fromType: "action",
+    toType: "contract",
+    label: "Link Action to Contract",
+    phrase: "related to"
   }
 ] as const satisfies readonly OperatorLinkRule[];
 

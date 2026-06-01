@@ -70,6 +70,7 @@ Workshop should feel **practical, task-oriented, and progressively revealing**. 
 | Directions | authoritative Directions and response state | Tree View / filtered Requirements mode |
 | Tags | operator-applied classifications applied to Requirements (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) | Tag manager WebviewPanel; chips and picker on Requirement Detail; filter on Requirements navigator |
 | Summary | current workspace posture and readiness | WebviewView |
+| Penetration Testing | third-party assessment finding queue, SLA tracking, verification backlog, and commercial context | WebviewPanel |
 | Item detail | rich editable/readable detail for selected record | editor/webview panel |
 | Report prep | reporting pack preview and export prep | WebviewPanel |
 
@@ -333,7 +334,39 @@ Workshop must let the user create a paste-friendly brief for one requirement, a 
 
 This is one of the few places where a WebviewView is justified because it benefits from cards, small charts or progress blocks, and richer visual hierarchy than a tree can provide.
 
-### 6. Item Detail screen
+### 6. Workshop Penetration Testing Workbench
+
+**Purpose:** operational management surface for the findings, verification backlog, and commercial context of third-party penetration testing engagements.
+
+**Type:** WebviewPanel, opened by `PSPF: Open Penetration Testing Workbench`.
+
+**Design note:** The workbench is a read model over existing Actions, Evidence, Risks, Tags, and commercial links. It does not introduce new entities or schema. Assessment grouping is Tag-based; the operator creates a Tag per engagement (convention: `PENTEST-<YYYY>-<ref>`) and applies it to all finding Actions, Evidence items, and Risks created from that engagement. Finding severity is inferred from an Action-linked severity Tag or a severity label in the Action title; unknown severity defaults to Medium so the finding remains visible.
+
+**Sections:**
+
+- **Assessment list** — one row per pentest assessment Tag in the workspace, showing assessment label, date range (derived from `createdAt` of the earliest finding Action), finding count by severity, and overall closure percentage.
+- **Finding queues** — per-assessment, Actions tagged as findings sorted into:
+  - Overdue (`dueDate` past, not done or cancelled)
+  - SLA at risk (computed maximum deadline — Critical 30 d, High 60 d, Medium 90 d, Low 180 d from `Action.createdAt` — would expire before `dueDate`, or `dueDate` not set)
+  - Pending verification (status `done` but no linked Evidence with `freshness: current`)
+  - Closed (done with current linked Evidence)
+- **Verification backlog** — non-current Evidence items linked to finding Actions, grouped by finding severity and expected-completion date.
+- **Commercial context panel** — reads `action related-to contract` and `supplier has contract` links to show the pen-test supplier name, contract reference, and engagement title beside the assessment. Requires the operator to have recorded the contract and supplier in Shop and linked them in the standard way; no new link verbs are introduced.
+- **Residual risk summary** — Risks tagged with the assessment Tag, including those with `supplier associated-with risk` links to the pen-test supplier, shown as accepted residual exposure per assessment.
+
+**Context actions per finding:**
+- Open action (reveals full Action detail, evidence links, and linked Requirements)
+- Add evidence (jump to evidence creation pre-linked to the finding)
+- Reveal linked requirement
+- Copy ID
+
+**Keyboard navigation:** all queues must be navigable by keyboard; Tab moves between sections, arrow keys navigate within queues, Enter opens the selected item. VS Code accessibility guidance applies.
+
+**Non-goals for this surface:** scheduling, scoping, or statement-of-work authoring; cost reconciliation (remains in Shop); automated reminders or escalation logic; publication or export of workbench state.
+
+See [adr/0073-v1-37-workshop-continuous-compliance-outputs.md](adr/0073-v1-37-workshop-continuous-compliance-outputs.md) for the design rationale and quality gates.
+
+### 7. Item Detail screen
 
 **Purpose:** show and edit a single requirement, evidence item, action, risk, or Direction.
 

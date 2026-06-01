@@ -221,6 +221,16 @@
         "icon": "$(megaphone)"
       },
       {
+        "command": "pspf.workshop.openPentestWorkbench",
+        "title": "PSPF: Open Penetration Testing Workbench",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "pspf.workshop.openRequirementCardView",
+        "title": "PSPF: Open Requirement Card View",
+        "icon": "$(layout-panel)"
+      },
+      {
         "command": "pspf.workshop.openEssentialEightDashboard",
         "title": "PSPF: Open Essential Eight Dashboard",
         "icon": "$(shield)"
@@ -451,6 +461,16 @@
           "command": "pspf.workshop.openCyberAwarenessChangeStrategy",
           "when": "view == pspfWorkshop.homeView",
           "group": "navigation@4.59"
+        },
+        {
+          "command": "pspf.workshop.openPentestWorkbench",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.595"
+        },
+        {
+          "command": "pspf.workshop.openRequirementCardView",
+          "when": "view == pspfWorkshop.homeView",
+          "group": "navigation@4.597"
         },
         {
           "command": "pspf.workshop.openPlanOfActionBoard",
