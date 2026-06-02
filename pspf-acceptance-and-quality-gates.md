@@ -559,6 +559,16 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deferred-scope gate**: v1.37 does not add editable Explorer authoring, an authored organisation/team model, chart image export, or runtime network fetch.
 8. **Regression gate**: `e2e:v1.37`, `check:continuous-compliance`, `check:workshop-navigation`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.38 candidate gates (Cyber reference catalogue and dataset diagnostics)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.38.0`; `VERSION_AXES` are `1.13.0`; `schemas/explorer-bundle/1.13.0/` is published and earlier schema directories remain immutable.
+2. **Cyber reference data gate**: generated reference data includes curated ASD/ACSC cyber functions, mitigation strategies, guidance frameworks, Trustworthy Software, Secure Configuration Management, and queryable cyber-reference mappings.
+3. **Dataset diagnostics gate**: `PSPF: Run Dataset Diagnostics`, `runDatasetDiagnostics()`, and `check:cyber-reference-data` validate seeded cyber reference counts, mapping endpoint existence/type, generated cyber-link parity, schema versions, public redaction, export, and clean-start reset.
+4. **Mapping UX gate**: Requirement detail and ISM Control detail expose reciprocal open/edit actions so Requirement-to-control mappings can be inspected and edited from both ends.
+5. **Publication gate**: `cyber-reference-mapping.rationale` remains sensitive and is not emitted in public Explorer bundles.
+6. **No-runtime-egress gate**: the cyber reference catalogue is vendored/generated and no runtime network fetch is introduced.
+7. **Regression gate**: `e2e:v1.38`, `check:cyber-reference-data`, `check:schema-coverage`, `check:schema-policy`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

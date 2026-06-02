@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { createCoreService } from "../packages/core/dist/service.js";
 import { buildSampleWorkspaceEntities, buildHomeSampleWorkspaceEntities } from "../packages/contracts/dist/index.js";
 import {
+  CYBER_REFERENCE_LINKS,
   ISM_SOURCE_CONTROLS,
   PSPF_BASELINE_DIRECTIONS,
   PSPF_BASELINE_DIRECTION_LINKS,
@@ -56,7 +57,11 @@ async function runVariant({ name, build, expected }) {
     PSPF_BASELINE_DIRECTIONS.length + expected.directions,
     `${name}: directions`
   );
-  assert.equal(validation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + expected.links, `${name}: links`);
+  assert.equal(
+    validation.counts.links,
+    PSPF_BASELINE_DIRECTION_LINKS.length + CYBER_REFERENCE_LINKS.length + expected.links,
+    `${name}: links`
+  );
   assert.equal(validation.counts["source-controls"], ISM_SOURCE_CONTROLS.length, `${name}: source-controls`);
   assert.equal(
     validation.counts["requirement-control-mappings"],

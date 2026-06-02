@@ -4,6 +4,7 @@ import { join, relative } from "node:path";
 import { createCoreService } from "../packages/core/dist/service.js";
 import { PSPF_DOMAINS, withEnvelope } from "../packages/contracts/dist/index.js";
 import {
+  CYBER_REFERENCE_LINKS,
   ISM_SOURCE_CONTROLS,
   PSPF_BASELINE_DIRECTIONS,
   PSPF_BASELINE_DIRECTION_LINKS,
@@ -26,7 +27,7 @@ assert.equal(initialValidation.counts.domains, 6);
 assert.equal(initialValidation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length);
 assert.equal(initialValidation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(initialValidation.counts.directions, PSPF_BASELINE_DIRECTIONS.length);
-assert.equal(initialValidation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length);
+assert.equal(initialValidation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + CYBER_REFERENCE_LINKS.length);
 
 const requirement = withEnvelope(
   "requirement",
@@ -285,7 +286,7 @@ assert.equal(validation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length +
 assert.equal(validation.counts.evidence, 1);
 assert.equal(validation.counts.actions, 1);
 assert.equal(validation.counts.risks, 1);
-assert.equal(validation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 5);
+assert.equal(validation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + CYBER_REFERENCE_LINKS.length + 5);
 assert.equal(validation.counts.tags, 1);
 assert.equal(validation.counts.snapshots, 1);
 assert.equal(validation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
@@ -302,7 +303,7 @@ assert.equal(report.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length + 1);
 assert.equal(report.counts.evidence, 1);
 assert.equal(report.counts.actions, 1);
 assert.equal(report.counts.risks, 1);
-assert.equal(report.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 5);
+assert.equal(report.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + CYBER_REFERENCE_LINKS.length + 5);
 assert.equal(report.counts.tags, 1);
 assert.equal(report.counts.snapshots, 1);
 assert.equal(report.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
@@ -336,7 +337,7 @@ assert.equal(importValidation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.le
 assert.equal(importValidation.counts.evidence, 1);
 assert.equal(importValidation.counts.actions, 1);
 assert.equal(importValidation.counts.risks, 1);
-assert.equal(importValidation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + 5);
+assert.equal(importValidation.counts.links, PSPF_BASELINE_DIRECTION_LINKS.length + CYBER_REFERENCE_LINKS.length + 5);
 assert.equal(importValidation.counts.tags, 1);
 assert.equal(importValidation.counts["source-controls"], ISM_SOURCE_CONTROLS.length);
 assert.equal(importValidation.counts["requirement-control-mappings"], 1);

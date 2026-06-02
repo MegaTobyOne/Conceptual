@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.12.0",
-  bundleVersion: "1.12.0",
-  apiVersion: "1.12.0"
+  schemaVersion: "1.13.0",
+  bundleVersion: "1.13.0",
+  apiVersion: "1.13.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.37.0" as const;
+export const PSPF_SLICE_VERSION = "1.38.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -25,6 +25,11 @@ export const V0_1_ENTITY_TYPES = [
   "supplier",
   "contract",
   "spend-item",
+  "cyber-function",
+  "mitigation-strategy",
+  "guidance-framework",
+  "control-theme",
+  "cyber-reference-mapping",
   "strategy",
   "posture"
 ] as const;
@@ -48,6 +53,11 @@ export const V0_1_COLLECTIONS = [
   "suppliers",
   "contracts",
   "spend-items",
+  "cyber-functions",
+  "mitigation-strategies",
+  "guidance-frameworks",
+  "control-themes",
+  "cyber-reference-mappings",
   "strategies",
   "posture"
 ] as const;
@@ -609,6 +619,97 @@ export interface RequirementControlMappingEntity extends EntityEnvelope {
   readonly provenance: RequirementControlMappingProvenance;
 }
 
+export interface CyberReferenceExternalRef {
+  readonly scheme: string;
+  readonly value: string;
+}
+
+export interface CyberReferenceProvenance {
+  readonly sourceId: string;
+  readonly sourceUrl: string;
+  readonly retrievedAt?: string;
+  readonly licence: string;
+  readonly attribution: string;
+}
+
+export interface CyberFunctionEntity extends EntityEnvelope {
+  readonly entityType: "cyber-function";
+  readonly code: "govern" | "protect" | "detect" | "respond";
+  readonly title: string;
+  readonly summary: string;
+  readonly sourceFramework: "ism-cyber-security-principles";
+  readonly relatedControlIds: readonly string[];
+  readonly externalRefs: readonly CyberReferenceExternalRef[];
+  readonly provenance: CyberReferenceProvenance;
+}
+
+export type MitigationStrategyCategory = "essential-eight" | "mitigation-strategy";
+
+export interface MitigationStrategyEntity extends EntityEnvelope {
+  readonly entityType: "mitigation-strategy";
+  readonly code: string;
+  readonly title: string;
+  readonly category: MitigationStrategyCategory;
+  readonly summary: string;
+  readonly maturityProfiles: readonly string[];
+  readonly relatedRequirementIds: readonly string[];
+  readonly relatedSourceControlIds: readonly string[];
+  readonly externalRefs: readonly CyberReferenceExternalRef[];
+  readonly provenance: CyberReferenceProvenance;
+}
+
+export interface GuidanceFrameworkEntity extends EntityEnvelope {
+  readonly entityType: "guidance-framework";
+  readonly code: string;
+  readonly title: string;
+  readonly summary: string;
+  readonly publisher: "ASD/ACSC" | string;
+  readonly sourceUrl: string;
+  readonly retrievedAt: string;
+  readonly licence: string;
+  readonly attribution: string;
+  readonly sourceHash: string;
+  readonly externalRefs: readonly CyberReferenceExternalRef[];
+  readonly provenance: CyberReferenceProvenance;
+}
+
+export interface ControlThemeEntity extends EntityEnvelope {
+  readonly entityType: "control-theme";
+  readonly code: "trustworthy-software" | "secure-configuration-management" | string;
+  readonly title: string;
+  readonly summary: string;
+  readonly sourcePrincipleControlIds: readonly string[];
+  readonly relatedStrategyCodes: readonly string[];
+  readonly externalRefs: readonly CyberReferenceExternalRef[];
+  readonly provenance: CyberReferenceProvenance;
+}
+
+export type CyberReferenceMappingPurpose = "implements" | "supports" | "includes" | "sources" | "themes" | "relates";
+
+export interface CyberReferenceEndpoint {
+  readonly entityType: V01EntityType;
+  readonly entityId: string;
+}
+
+export interface CyberReferenceMappingProvenance extends CyberReferenceProvenance {
+  readonly author: string;
+  readonly createdAt: string;
+}
+
+export interface CyberReferenceMappingEntity extends EntityEnvelope {
+  readonly entityType: "cyber-reference-mapping";
+  readonly from: CyberReferenceEndpoint;
+  readonly to: CyberReferenceEndpoint;
+  readonly purpose: CyberReferenceMappingPurpose;
+  readonly coverageQualifier?: CoverageQualifier;
+  readonly applicabilityProfile?: string;
+  readonly confidence: MappingConfidence;
+  readonly rationale?: string;
+  readonly lastReviewedAt?: string;
+  readonly reviewBy?: string;
+  readonly provenance: CyberReferenceMappingProvenance;
+}
+
 export interface PostureEntity extends EntityEnvelope {
   readonly id: "POSTURE";
   readonly entityType: "posture";
@@ -832,6 +933,11 @@ export type V01Entity =
   | SupplierEntity
   | ContractEntity
   | SpendItemEntity
+  | CyberFunctionEntity
+  | MitigationStrategyEntity
+  | GuidanceFrameworkEntity
+  | ControlThemeEntity
+  | CyberReferenceMappingEntity
   | StrategyEntity
   | PostureEntity;
 
@@ -852,6 +958,11 @@ export type EntityByCollection = {
   suppliers: SupplierEntity;
   contracts: ContractEntity;
   "spend-items": SpendItemEntity;
+  "cyber-functions": CyberFunctionEntity;
+  "mitigation-strategies": MitigationStrategyEntity;
+  "guidance-frameworks": GuidanceFrameworkEntity;
+  "control-themes": ControlThemeEntity;
+  "cyber-reference-mappings": CyberReferenceMappingEntity;
   strategies: StrategyEntity;
   posture: PostureEntity;
 };
@@ -1188,6 +1299,113 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
     ]
   },
   {
+    entityType: "cyber-function",
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "code",
+      "summary",
+      "sourceFramework",
+      "relatedControlIds",
+      "externalRefs",
+      "provenance"
+    )
+  },
+  {
+    entityType: "mitigation-strategy",
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "code",
+      "category",
+      "summary",
+      "maturityProfiles",
+      "relatedRequirementIds",
+      "relatedSourceControlIds",
+      "externalRefs",
+      "provenance"
+    )
+  },
+  {
+    entityType: "guidance-framework",
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "code",
+      "summary",
+      "publisher",
+      "sourceUrl",
+      "retrievedAt",
+      "licence",
+      "attribution",
+      "sourceHash",
+      "externalRefs",
+      "provenance"
+    )
+  },
+  {
+    entityType: "control-theme",
+    fields: publicFields(
+      "id",
+      "entityType",
+      "schemaVersion",
+      "title",
+      "createdAt",
+      "updatedAt",
+      "sourceProduct",
+      "recordStatus",
+      "code",
+      "summary",
+      "sourcePrincipleControlIds",
+      "relatedStrategyCodes",
+      "externalRefs",
+      "provenance"
+    )
+  },
+  {
+    entityType: "cyber-reference-mapping",
+    fields: [
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "from",
+        "to",
+        "purpose",
+        "coverageQualifier",
+        "applicabilityProfile",
+        "confidence",
+        "lastReviewedAt",
+        "reviewBy",
+        "provenance"
+      ),
+      { field: "rationale", publication: "sensitive" }
+    ]
+  },
+  {
     entityType: "strategy",
     fields: [
       ...publicFields(
@@ -1320,6 +1538,11 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   supplier: "suppliers",
   contract: "contracts",
   "spend-item": "spend-items",
+  "cyber-function": "cyber-functions",
+  "mitigation-strategy": "mitigation-strategies",
+  "guidance-framework": "guidance-frameworks",
+  "control-theme": "control-themes",
+  "cyber-reference-mapping": "cyber-reference-mappings",
   strategy: "strategies",
   posture: "posture"
 };
@@ -1341,6 +1564,11 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   supplier: "SUP",
   contract: "CTR",
   "spend-item": "SPD",
+  "cyber-function": "FNC",
+  "mitigation-strategy": "MST",
+  "guidance-framework": "GDC",
+  "control-theme": "CTH",
+  "cyber-reference-mapping": "CRM",
   strategy: "STR",
   posture: "POSTURE"
 };

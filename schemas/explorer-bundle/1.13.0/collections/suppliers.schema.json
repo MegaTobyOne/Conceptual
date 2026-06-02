@@ -1,0 +1,82 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.13.0/collections/suppliers.schema.json",
+    "title": "PSPF Explorer Suppliers Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "supplierType",
+            "status",
+            "criticality"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^SUP-"
+            },
+            "entityType": {
+                "const": "supplier"
+            },
+            "schemaVersion": {
+                "const": "1.13.0"
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer",
+                    "shop"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "supplierType": {
+                "enum": [
+                    "software",
+                    "service",
+                    "advisory",
+                    "managed-service",
+                    "other"
+                ]
+            },
+            "status": {
+                "enum": [
+                    "active",
+                    "inactive",
+                    "proposed"
+                ]
+            },
+            "criticality": {
+                "enum": [
+                    "low",
+                    "medium",
+                    "high",
+                    "critical"
+                ]
+            }
+        }
+    }
+}

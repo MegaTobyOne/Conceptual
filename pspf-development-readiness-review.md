@@ -6,6 +6,8 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
+**Current implementation note:** v1.38.0 adds the curated cyber reference catalogue, Explorer bundle schemas `1.13.0`, Core dataset diagnostics, clean-start reset recovery, reciprocal ISM mapping open/edit affordances, and the `check:cyber-reference-data` release gate. Release readiness is expected to run through `e2e:v1.38:run` and validate `VERSION_AXES = 1.13.0`.
+
 **Status: v1.9 saved-view expansion build implemented for test. v1.8 saved views build implemented; v1.7 tags and filters foundation build implemented; v1.6 Workshop import review and identity build implemented; v1.5.1 Explorer product-boundary and visual identity patch implemented; v1.5 plan-apply import and undo implemented; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
@@ -47,7 +49,7 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.9.0:
+`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.38.0:
 
 1. Spine workflow (headless `e2e:v1.9`).
 2. Schema-policy.
@@ -66,6 +68,7 @@ The core product decisions remain stable:
 15. Explorer local-authoring smoke.
 16. Explorer-to-Workshop import smoke.
 17. Master-bundle import.
+18. Cyber reference dataset diagnostics.
 
 ## Remaining readiness risks
 

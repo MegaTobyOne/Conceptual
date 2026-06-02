@@ -1,4 +1,4 @@
-# Validation Scenario 1: v1.36.1 ISM Review Workbench Workflow
+# Validation Scenario 1: v1.38.0 Cyber Reference Dataset Workflow
 
 ## Purpose
 
@@ -38,7 +38,7 @@ Manual focus:
 
 Automated coverage handles detailed counts, redaction/default-deny, schema validation, accessibility, writer lock, backup/restore, personal-data exclusion, and import/export round trips. Do not repeat those manually unless a visible behaviour looks wrong.
 
-Still out of scope for v1.36.1:
+Still out of scope for v1.38.0:
 
 - Pub data in Explorer bundles, Pub delete/archive flows, broader row-level Pub list actions, development-record persistence, performance-management workflows, roster planning, rotation planning, chart image export, numeric performance benchmarking, private/team saved views, default-start views, per-user/private tags, tag hierarchies, Explorer-authored Change Records, change-record diff views, change-record tagging, local history pruning, automatic retention windows, plan baselines, milestone/resource/budget entities, standalone strategy-choice entities, multiple Strategy records, Explorer strategy editing, editable Explorer ISM authoring, a separate PSPF Plan product, procurement import, finance reconciliation, approvals, editable Connected View, drag-to-link, impact-weighted Connected View layout, office/cost-centre hierarchy, persisted Report Packs, native PDF generation, email sending, subscriber management, RSS/feed publication, copyrighted comic artwork or trade dress, image/PDF export of the board, and third-party accessibility audit.
 
@@ -72,8 +72,8 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. If DNS resolves but LiteSpeed returns `404`, check that the VentraIP/cPanel subdomain document root still matches the `test-web` `VENTRAIP_DOCROOT`; subdomain recreation can reset that mapping outside Git. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.37.0`, `Schema 1.12.0`, and `API 1.12.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.37.0` and its tooltip includes `Schema 1.12.0`, `Bundle 1.12.0`, and `API 1.12.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.38.0`, `Schema 1.13.0`, and `API 1.13.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.38.0` and its tooltip includes `Schema 1.13.0`, `Bundle 1.13.0`, and `API 1.13.0`.
 4. From `Workshop Home`, click `Load sample`.
 5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, N/A-aware completion/evidence metrics, `Action Impact — Top 5`, latest activity, and no obvious cramped columns or wrapping regressions. Open `Plan of Action` and confirm the graphical plan shows Action date spans, status filters, and a visible Today marker. Open `Essential Eight` and confirm the strategy tracker and uplift plan are populated from linked Requirements, Evidence, Risks, and Actions. Then open `Strategy Map` and confirm the Cyber Strategy Map shows three strategic choices, outcome summaries, posture measures, labelled red/amber/green trend arrows with confidence labels, and linked Requirements, Risks, Actions, and Directions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.
@@ -91,7 +91,7 @@ If `dig` returns no address or `curl` reports `Could not resolve host`, create o
 18. In `PSPF: Manage Saved Views`, create a Dashboard view and an Evidence Review view using the same filter. Apply the Dashboard view and confirm it opens a planning slice with filtered Requirements, open Actions, open Risks, and recent Change Records. Apply the Evidence Review view and confirm it opens missing-evidence and evidence-needing-review lists for the filtered Requirements.
 18a. Open `PSPF: Browse ISM Source Controls`, choose a control, set its implementation status, link one Evidence/Action/Risk directly to the control, and map one Requirement from the control detail. Return to `PSPF: Manage Saved Views`, create an `ISM Controls` view with an implementation-status filter, apply it, and confirm the matching control opens from the saved-view table.
 18b. Run `PSPF: Open ISM Review Workbench` from the command palette or Workshop Home. Confirm the queue metrics and quick filters show unmapped, not-assessed, drift-review, needs-direct-work, and risk-without-action controls, and that opening a row returns to the ISM Control Detail.
-19. From `Workshop Home`, click `Validate`, `Integrity scan` (`PSPF: Run Integrity Scan`), `Snapshot`, `Copy brief`, and `Export` in that order. Confirm each completes and the copied brief is readable when pasted into a scratch note.
+19. From `Workshop Home`, click `Validate`, `Integrity scan` (`PSPF: Run Integrity Scan`), `Dataset diagnostics` (`PSPF: Run Dataset Diagnostics`), `Snapshot`, `Copy brief`, and `Export` in that order. Confirm each completes, dataset diagnostics reports the cyber reference dataset as valid, and the copied brief is readable when pasted into a scratch note.
 20. Open `packages/explorer/dist/index.html`, select the latest debug `bundle.json` from `Open a PSPF bundle` if a remembered bundle does not restore, and confirm the portable assurance masthead, `OFFICIAL: Sensitive · TLP:AMBER+STRICT` banner, and `Bundle baseline` / `Local changes` / `Export to Workshop` mode strip are visible after the bundle loads.
 21. Open `Why This Changed` and confirm the Change Record appears with affected Requirement context, public summary, and no sensitive reason, impact summary, or decision-owner reference.
 22. Open `Plan Lens` and confirm it shows open Actions, open Risks, active/proposed Change Records, and Directions needing attention without introducing editable plan-baseline, milestone, resource, or budget fields. Open `Strategy` and confirm the executive strategy view shows choices, outcomes, measures, and linked records without rationale, assumptions, constraints, or non-public commentary.
@@ -107,9 +107,9 @@ If `dig` returns no address or `curl` reports `Could not resolve host`, create o
 31. Run `Run Preview` from the Risk Source panel and confirm the preview classifies fixture risks into new/changed/unchanged/ambiguous/error counts with field-level differences where applicable. Confirm rejected fixture rows remain visible as `error` decisions rather than failing the whole preview.
 32. Run `Apply Selected`, confirm the multi-select list contains only new/changed rows, choose a subset, and continue. For changed records, confirm the dialog preserves local PSPF-owned fields unless `Apply source values` is explicitly selected. Confirm created or updated risks show Risk Source metadata in the Risk editor and a redacted run log exists under `.pspf/logs/risk-source-runs/`.
 33. Reconfigure the 6clicks risk source in explicit `Live 6clicks` mode using an invalid non-HTTPS URL and confirm validation blocks the profile. Cancel before entering real credentials unless this is an approved tenant validation run.
-34. Open Pub from the Activity Bar or run `PSPF: Open Pub`. Confirm `PSPF Pub v1.36.1`, local-only people context, organisation chart, relationship context, assignments and rotations, and local-only Pub publication wording are visible. Load the Pub sample if needed, then open People, Roles, Assignments, and Relationship Log. Confirm the Organisation Chart shows a graphical team/role/assignment view as well as the supporting table. For each local record type, open its detail panel and edit panel, confirm the expected fields are visible, save without implying that Pub data is exported, and confirm Relationship Note detail/edit covers person, recorded date, summary, and next contact.
+34. Open Pub from the Activity Bar or run `PSPF: Open Pub`. Confirm `PSPF Pub v1.38.0`, local-only people context, organisation chart, relationship context, assignments and rotations, and local-only Pub publication wording are visible. Load the Pub sample if needed, then open People, Roles, Assignments, and Relationship Log. Confirm the Organisation Chart shows a graphical team/role/assignment view as well as the supporting table. For each local record type, open its detail panel and edit panel, confirm the expected fields are visible, save without implying that Pub data is exported, and confirm Relationship Note detail/edit covers person, recorded date, summary, and next contact.
 35. In GitHub Actions, open or run a Marketplace release dry run from `main` with `target=all` and `dry_run=true`. Confirm the run name includes `target=all / dry_run=true`, the dispatch summary says publication is skipped, Core, Workshop, Shop, and Pub publish jobs show dry-run summaries, and `Publish to VS Code Marketplace`, `Verify Marketplace version`, `Tag and GitHub release`, and `Verify receipt tag` are skipped.
-36. Confirm the dry run created no `core/1.36.1`, `workshop/1.36.1`, `shop/1.36.1`, or `pub/1.36.1` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
+36. Confirm the dry run created no `core/1.38.0`, `workshop/1.38.0`, `shop/1.38.0`, or `pub/1.38.0` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
 37. From Workshop Home, click `Digital CISO Magazine` and confirm the issue opens from a button and copies email-ready Markdown. Click `CISO Master Plan` and confirm a separate active planning panel opens with direction, streams, phases, inputs/dependencies, and buttons back to Plan of Action, Master Dashboard, Digital CISO Magazine, and copy plan. Then run `npx pnpm@10.10.0 run check:ciso-magazine` from the repository root and open `.tmp/ciso-magazine/digital-ciso-magazine.html`. Confirm the issue has a cover hook, editor's note, current posture snapshot, feature story, attention-required section, action strip, commercial watch, CISO Master Plan article, reader actions, next issue, source metadata, and `OFFICIAL: Sensitive` label. Open `.tmp/ciso-magazine/ciso-master-plan.md` and `.tmp/ciso-magazine/digital-ciso-magazine-info.md` and confirm they are readable as planning/email-copy extracts.
 38. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
 
@@ -166,12 +166,12 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.36.1-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.38.0-readiness-report.md`.
 - An Explorer Local Changes smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
-- PASS for the Explorer publication smoke, posture brief redaction, and Digital CISO Magazine gates.
-- Manual operator validation should focus on v1.36 ISM Review Workbench queues, v1.35 ISM control saved views, implementation-status navigation, direct control work links, Explorer Obligations review, and public-safe ISM posture brief rows, plus the v1.31 6clicks Risk Source panel, Pub local detail/edit coverage, Marketplace dry-run support, and earlier regression surfaces.
+- PASS for the Explorer publication smoke, posture brief redaction, cyber reference data, and Digital CISO Magazine gates.
+- Manual operator validation should focus on v1.38 cyber reference dataset diagnostics, clean-start reset recovery, reciprocal ISM mapping open/edit actions, v1.36 ISM Review Workbench queues, v1.35 ISM control saved views, implementation-status navigation, direct control work links, Explorer Obligations review, and public-safe ISM posture brief rows, plus the v1.31 6clicks Risk Source panel, Pub local detail/edit coverage, Marketplace dry-run support, and earlier regression surfaces.
 
 ## Pass Criteria
 

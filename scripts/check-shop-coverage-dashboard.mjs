@@ -48,6 +48,8 @@ for (const requiredText of [
   "pspf.shop.linkSpendToAction",
   "pspf.shop.linkSpendItemToContract",
   "Spend items needing contract funding links",
+  "Total annual cost",
+  "annual-cost",
   "contract funds spend-item",
   "isContractFundingLink",
   "deriveScenarioSummaries",

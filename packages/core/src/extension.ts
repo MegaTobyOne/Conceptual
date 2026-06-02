@@ -10,9 +10,11 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
 
   const api = {
     initialiseWorkspace: () => getService().initialiseWorkspace(),
+    resetWorkspace: () => getService().resetWorkspace(),
     validateWorkspace: () => getService().validateWorkspace(),
     verifyIntegrity: () => getService().verifyIntegrity(),
     runIntegrityScan: () => getService().runIntegrityScan(),
+    runDatasetDiagnostics: () => getService().runDatasetDiagnostics(),
     createSnapshot: () => getService().createSnapshot(),
     exportBundle: () => getService().exportBundle(),
     planImportBundle: getService().planImportBundle,
@@ -30,6 +32,19 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       const paths = await getService().initialiseWorkspace();
       await vscode.window.showInformationMessage(`PSPF workspace initialised at ${relative(paths.root, paths.pspf)}`);
       return paths;
+    }),
+    vscode.commands.registerCommand("pspf.core.resetWorkspace", async () => {
+      const action = await vscode.window.showWarningMessage(
+        "Reset PSPF workspace data and return to a clean reference-data baseline? This removes local PSPF records, snapshots, imports, exports and logs in this workspace.",
+        { modal: true },
+        "Reset workspace"
+      );
+      if (action !== "Reset workspace") {
+        return { reset: false };
+      }
+      const result = await getService().resetWorkspace();
+      await vscode.window.showInformationMessage(result.message);
+      return result;
     }),
     vscode.commands.registerCommand("pspf.core.validateWorkspace", async () => {
       const result = await getService().validateWorkspace();
@@ -50,6 +65,17 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       await vscode.window.showInformationMessage(
         report.ok ? report.summary : `PSPF integrity scan failed: ${report.summary}`
       );
+      return report;
+    }),
+    vscode.commands.registerCommand("pspf.core.runDatasetDiagnostics", async () => {
+      const report = await getService().runDatasetDiagnostics();
+      const action = await vscode.window.showInformationMessage(
+        report.ok ? report.summary : `PSPF dataset diagnostics failed: ${report.summary}`,
+        ...(report.ok ? [] : ["Reset workspace"])
+      );
+      if (action === "Reset workspace") {
+        return vscode.commands.executeCommand("pspf.core.resetWorkspace");
+      }
       return report;
     }),
     vscode.commands.registerCommand("pspf.core.createSnapshot", async () => {
@@ -120,6 +146,9 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     ),
     vscode.commands.registerCommand("pspf.core.ensureWorkspaceReady", async () => getService().initialiseWorkspace()),
     vscode.commands.registerCommand("pspf.core.runIntegrityScanHeadless", async () => getService().runIntegrityScan()),
+    vscode.commands.registerCommand("pspf.core.runDatasetDiagnosticsHeadless", async () =>
+      getService().runDatasetDiagnostics()
+    ),
     vscode.commands.registerCommand("pspf.core.upsertEntity", (entity) => getService().upsertEntity(entity)),
     vscode.commands.registerCommand("pspf.core.upsertEntities", (entities) => getService().upsertEntities(entities)),
     vscode.commands.registerCommand("pspf.core.listEntities", (entityType) => getService().listEntities(entityType)),

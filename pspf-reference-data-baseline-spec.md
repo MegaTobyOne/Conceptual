@@ -46,6 +46,14 @@ Required ISM baseline concepts:
 - Current v1.0 implementation uses the vendored master OSCAL catalogue and tags generated controls with `master-catalog`. Resolved profile membership can be added when a reviewed profile selection is introduced.
 - Statement drift state compared with the previous vendored release.
 
+Required cyber reference concepts:
+
+- ISM Cyber Security Principles grouped as `govern`, `protect`, `detect`, and `respond` functions.
+- Essential Eight mitigation strategies plus the remaining mitigation-strategy family from ASD/ACSC guidance.
+- Guidance frameworks for ISM Cyber Security Principles, Essential Eight/ISM mapping, Blueprint for Secure Cloud, Gateway Security Guidance Package, Modern Defensible Architecture, and Strategies to Mitigate Cyber Security Incidents.
+- Curated control themes for Trustworthy Software and Secure Configuration Management.
+- Queryable cyber-reference mappings that connect PSPF Requirements, ISM source controls, mitigation strategies, and control themes without embedding rationale in public outputs.
+
 Required mapping concepts:
 
 - Human-reviewed PSPF requirement to ISM source-control mapping.
@@ -76,6 +84,7 @@ Required mapping concepts:
 8. Generated reference data has complete publication policies.
 9. Explorer and Workshop surfaces show source attribution when displaying reference text.
 10. Release readiness includes a generated reference-data report.
+11. Cyber reference diagnostics validate counts, endpoint existence/type, generated cyber links, active schema version, and public redaction of mapping rationale.
 
 ## Current v1.0 baseline
 
@@ -84,8 +93,10 @@ Required mapping concepts:
 - Source report: `packages/reference-data/data/reference-data-report.json`.
 - PSPF baseline: six PSPF Release 2025 domain families and 217 displayed mandatory requirement rows from the April 2026 PDF, with missing requirement `113` recorded as a source anomaly across the 1..218 numbering range.
 - ISM baseline: 1130 generated source-control records from the vendored `v2026.03.24` `ISM_catalog.json` master catalogue.
+- Cyber reference baseline: 4 cyber functions, 9 mitigation strategies, 6 guidance frameworks, 2 control themes, and generated cyber-reference mappings/links from `packages/reference-data/data/sources/acsc-guidance/v2026-06-02/cyber-reference-catalogue.json`.
 - Compatibility: `@pspf/ism-source-library` re-exports the generated ISM baseline for existing imports.
 - Runtime posture: Core seeds from vendored/generated package data and does not fetch PSPF or ISM data at runtime.
+- Diagnostic posture: `runDatasetDiagnostics()` and `check:cyber-reference-data` prove the seeded cyber reference dataset matches the generated report, survives clean reset, and remains public-redaction safe.
 
 ## Agent workflow
 
