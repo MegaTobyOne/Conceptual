@@ -3867,6 +3867,7 @@ function renderEssentialEightDashboard(model: EssentialEightDashboardModel): str
   return shellHtml(
     "PSPF Essential Eight Dashboard",
     `
+    ${essentialEightVisualStyles()}
     <section>
       <p class="eyebrow">TECH 14 · Essential Eight</p>
       <h1>Essential Eight Dashboard</h1>
@@ -3901,11 +3902,116 @@ function renderEssentialEightDashboard(model: EssentialEightDashboardModel): str
         ${metricCard("Mapped controls", model.metrics.mappedControls)}
       </div>
     </section>
+    <section class="e8-visuals" aria-labelledby="e8-visual-heading">
+      <h2 id="e8-visual-heading">Visual Posture</h2>
+      <div class="e8-chart-grid">
+        ${renderEssentialEightComplianceDonut(model)}
+        ${renderEssentialEightEvidenceChart(model)}
+        ${renderEssentialEightStrategyChart(model)}
+      </div>
+    </section>
     ${recordTable("E8 Strategy Tracker", model.strategyRows, ["strategy", "target", "status", "requirements", "met", "evidence", "ismMappings", "openActions", "openRisks", "nextStep"])}
     ${recordTable("E8 Uplift Plan", model.planRows, ["title", "strategy", "status", "urgency", "startDate", "endDate", "dueDate", "impact", "linkedRequirements"])}
     ${recordTable("E8 Requirements To Review", model.requirementRows, ["title", "status", "evidence", "actions", "risks", "ismMappings"])}
   `
   );
+}
+
+function essentialEightVisualStyles(): string {
+  return `<style>
+    .e8-chart-grid { display: grid; grid-template-columns: minmax(220px, 0.9fr) minmax(260px, 1fr) minmax(260px, 1fr); gap: 14px; align-items: stretch; }
+    .e8-chart-card { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--gap); background: var(--surface-strong); min-width: 0; }
+    .e8-chart-card h3 { margin-top: 0; }
+    .e8-donut-wrap { display: grid; grid-template-columns: 148px 1fr; gap: 14px; align-items: center; }
+    .e8-donut { width: 148px; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(var(--pspf-ok) 0 var(--e8-met), var(--workshop-blue) var(--e8-met) var(--e8-progress), var(--amber) var(--e8-progress) var(--e8-partial), var(--pspf-danger) var(--e8-partial) var(--e8-not-met), var(--muted) var(--e8-not-met) 100%); position: relative; box-shadow: inset 0 0 0 1px var(--border); }
+    .e8-donut::after { content: ""; position: absolute; inset: 26px; border-radius: 50%; background: var(--surface-strong); box-shadow: inset 0 0 0 1px var(--border); }
+    .e8-donut-centre { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; z-index: 1; font-variant-numeric: tabular-nums; }
+    .e8-donut-centre strong { display: block; font-size: 28px; line-height: 1; }
+    .e8-donut-centre span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .e8-legend { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .e8-legend li { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12.5px; }
+    .e8-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 7px; background: var(--swatch); }
+    .e8-bars { display: grid; gap: 12px; }
+    .e8-bar-row { display: grid; gap: 5px; }
+    .e8-bar-row header { display: flex; justify-content: space-between; gap: 10px; padding: 0; border: 0; background: transparent; font-size: 12.5px; }
+    .e8-bar-row header strong, .e8-bar-row header span { display: inline; font-size: inherit; line-height: inherit; color: inherit; letter-spacing: 0; }
+    .e8-bar { height: 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); overflow: hidden; display: flex; }
+    .e8-bar span { display: block; min-width: 0; background: var(--swatch); }
+    .e8-bar-stack span + span { box-shadow: inset 1px 0 0 color-mix(in srgb, var(--surface) 55%, transparent); }
+    .e8-chart-note { color: var(--muted); font-size: 12px; margin-bottom: 0; }
+    @media (max-width: 820px) { .e8-chart-grid, .e8-donut-wrap { grid-template-columns: 1fr; } .e8-donut { margin: 0 auto; } }
+  </style>`;
+}
+
+function renderEssentialEightComplianceDonut(model: EssentialEightDashboardModel): string {
+  const counts = model.statusCounts;
+  const total = Math.max(counts.total, 1);
+  const metEnd = percent(counts.met, total);
+  const progressEnd = percent(counts.met + counts.inProgress + counts.underReview, total);
+  const partialEnd = percent(counts.met + counts.inProgress + counts.underReview + counts.partiallyMet, total);
+  const notMetEnd = percent(
+    counts.met + counts.inProgress + counts.underReview + counts.partiallyMet + counts.notMet,
+    total
+  );
+  const donutLabel = `${model.metrics.metPercentage}% of applicable Essential Eight requirements are met. ${counts.met} met, ${counts.inProgress + counts.underReview} in progress or under review, ${counts.partiallyMet} partially met, ${counts.notMet} not met, ${counts.notApplicable} not applicable.`;
+  const legend = [
+    { label: "Met", value: counts.met, swatch: "var(--pspf-ok)" },
+    { label: "In progress / review", value: counts.inProgress + counts.underReview, swatch: "var(--workshop-blue)" },
+    { label: "Partially met", value: counts.partiallyMet, swatch: "var(--amber)" },
+    { label: "Not met", value: counts.notMet, swatch: "var(--pspf-danger)" },
+    { label: "N/A", value: counts.notApplicable, swatch: "var(--muted)" }
+  ];
+  return `<article class="e8-chart-card">
+    <h3>Compliance Status</h3>
+    <div class="e8-donut-wrap">
+      <div class="e8-donut" role="img" aria-label="${escapeHtml(donutLabel)}" style="--e8-met: ${metEnd}%; --e8-progress: ${progressEnd}%; --e8-partial: ${partialEnd}%; --e8-not-met: ${notMetEnd}%;">
+        <div class="e8-donut-centre"><strong>${model.metrics.metPercentage}%</strong><span>met</span></div>
+      </div>
+      <ul class="e8-legend">
+        ${legend.map((item) => `<li><span><i style="--swatch: ${item.swatch};"></i>${escapeHtml(item.label)}</span><strong>${item.value}</strong></li>`).join("")}
+      </ul>
+    </div>
+  </article>`;
+}
+
+function renderEssentialEightEvidenceChart(model: EssentialEightDashboardModel): string {
+  const covered = model.statusCounts.evidenceCovered;
+  const missing = Math.max(model.statusCounts.applicable - covered, 0);
+  return `<article class="e8-chart-card">
+    <h3>Evidence Coverage</h3>
+    <div class="e8-bars">
+      ${e8BarRow("Evidence linked", covered, model.statusCounts.applicable, "var(--pspf-ok)")}
+      ${e8BarRow("Needs evidence", missing, model.statusCounts.applicable, "var(--amber)")}
+    </div>
+    <p class="e8-chart-note">Applicable E8 requirements only; ${model.metrics.notApplicable} not-applicable requirement${model.metrics.notApplicable === 1 ? "" : "s"} excluded.</p>
+  </article>`;
+}
+
+function renderEssentialEightStrategyChart(model: EssentialEightDashboardModel): string {
+  const counts = model.strategyStatusCounts;
+  const total = Math.max(ESSENTIAL_EIGHT_STRATEGIES.length, 1);
+  const segments = [
+    { label: "Met", value: counts.met, swatch: "var(--pspf-ok)" },
+    { label: "In progress", value: counts.inProgress, swatch: "var(--workshop-blue)" },
+    { label: "Needs uplift", value: counts.needsUplift, swatch: "var(--amber)" },
+    { label: "Not started", value: counts.notStarted, swatch: "var(--pspf-danger)" }
+  ];
+  return `<article class="e8-chart-card">
+    <h3>Strategy Readiness</h3>
+    <div class="e8-bar e8-bar-stack" role="img" aria-label="${escapeHtml(`${counts.met} Essential Eight strategies met, ${counts.inProgress} in progress, ${counts.needsUplift} need uplift, ${counts.notStarted} not started.`)}">
+      ${segments.map((segment) => `<span title="${escapeHtml(`${segment.label}: ${segment.value}`)}" style="--swatch: ${segment.swatch}; width: ${percent(segment.value, total)}%;"></span>`).join("")}
+    </div>
+    <ul class="e8-legend">
+      ${segments.map((segment) => `<li><span><i style="--swatch: ${segment.swatch};"></i>${escapeHtml(segment.label)}</span><strong>${segment.value}</strong></li>`).join("")}
+    </ul>
+  </article>`;
+}
+
+function e8BarRow(labelText: string, value: number, total: number, swatch: string): string {
+  return `<div class="e8-bar-row">
+    <header><span>${escapeHtml(labelText)}</span><strong>${value} of ${total}</strong></header>
+    <div class="e8-bar" role="img" aria-label="${escapeHtml(`${labelText}: ${value} of ${total}`)}"><span style="--swatch: ${swatch}; width: ${percent(value, total)}%;"></span></div>
+  </div>`;
 }
 
 async function openPlanOfActionBoard(): Promise<void> {
@@ -4201,6 +4307,23 @@ type EssentialEightDashboardModel = {
     readonly needsEvidence: number;
     readonly needsUplift: number;
   };
+  readonly statusCounts: {
+    readonly total: number;
+    readonly applicable: number;
+    readonly met: number;
+    readonly inProgress: number;
+    readonly partiallyMet: number;
+    readonly notMet: number;
+    readonly underReview: number;
+    readonly notApplicable: number;
+    readonly evidenceCovered: number;
+  };
+  readonly strategyStatusCounts: {
+    readonly met: number;
+    readonly inProgress: number;
+    readonly needsUplift: number;
+    readonly notStarted: number;
+  };
   readonly summary: string;
   readonly strategyRows: readonly object[];
   readonly planRows: readonly object[];
@@ -4280,6 +4403,12 @@ function buildEssentialEightDashboardModel(allEntities: readonly V01Entity[]): E
   const needsUplift = strategyRows.filter((row) =>
     ["Needs uplift", "Not started"].includes(String(readRecordField(row, "status") ?? ""))
   ).length;
+  const strategyStatusCounts = {
+    met: strategiesMet,
+    inProgress: strategyRows.filter((row) => readRecordField(row, "status") === "In progress").length,
+    needsUplift: strategyRows.filter((row) => readRecordField(row, "status") === "Needs uplift").length,
+    notStarted: strategyRows.filter((row) => readRecordField(row, "status") === "Not started").length
+  };
   const planRows = e8Actions
     .map((action) => {
       const requirementIds = links
@@ -4349,6 +4478,18 @@ function buildEssentialEightDashboardModel(allEntities: readonly V01Entity[]): E
       needsEvidence,
       needsUplift
     },
+    statusCounts: {
+      total: e8Requirements.length,
+      applicable: completion.applicable,
+      met: completion.metAll,
+      inProgress: e8Requirements.filter((requirement) => requirement.assessmentStatus === "in-progress").length,
+      partiallyMet: e8Requirements.filter((requirement) => requirement.assessmentStatus === "partially-met").length,
+      notMet: e8Requirements.filter((requirement) => requirement.assessmentStatus === "not-met").length,
+      underReview: e8Requirements.filter((requirement) => requirement.assessmentStatus === "under-review").length,
+      notApplicable: completion.notApplicable,
+      evidenceCovered: evidenceRequirementIds.size
+    },
+    strategyStatusCounts,
     summary: `${strategiesMet} of ${ESSENTIAL_EIGHT_STRATEGIES.length} Essential Eight strategies are currently met, with ${openActions.length} open linked Actions and ${e8Mappings.length} E8-scoped ISM mappings.`,
     strategyRows,
     planRows,

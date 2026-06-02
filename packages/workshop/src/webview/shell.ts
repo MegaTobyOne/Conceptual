@@ -361,7 +361,7 @@ export function shellHtml(title: string, body: string): string {
       if (command === 'attachEvidenceToRequirement' || command === 'createActionForRequirement' || command === 'createRiskForRequirement' || command === 'mapRequirementToIsm') {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
       }
-      if (command === 'openIsmControlDetail' || command === 'attachEvidenceForIsmControl' || command === 'createActionForIsmControl' || command === 'createRiskForIsmControl') {
+      if (command === 'openIsmControlDetail' || command === 'setIsmControlImplementationStatus' || command === 'mapRequirementToCurrentIsmControl' || command === 'linkEvidenceToIsmControl' || command === 'linkActionToIsmControl' || command === 'linkRiskToIsmControl' || command === 'attachEvidenceForIsmControl' || command === 'createActionForIsmControl' || command === 'createRiskForIsmControl') {
         vscode.postMessage({ command, sourceControlId: button.getAttribute('data-source-control-id') });
       }
       if (command === 'linkExistingEvidenceToRequirement' || command === 'linkExistingActionToRequirement' || command === 'linkExistingRiskToRequirement' || command === 'linkExistingDirectionToRequirement') {

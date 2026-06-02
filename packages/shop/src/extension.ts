@@ -2976,6 +2976,9 @@ function renderCompactForecastHtml(
   );
   const nextDividend = dashboard.efficiencyDividends[0];
   const proposedScenario = dashboard.scenarioSummaries.find((scenario) => scenario.label === "Include proposed work");
+  const annualCostLabel = nextForecast
+    ? `${escapeHtml(nextForecast.financialYear)} total annual cost ${escapeHtml(formatCurrency(nextForecast.forecastCost))}`
+    : "No annual cost forecast yet";
   return `<!doctype html>
 <html lang="en-AU">
 <head>
@@ -3011,6 +3014,7 @@ function renderCompactForecastHtml(
         <span class="pspf-pill"><strong>${urgentActions}</strong> funded blocked or overdue Actions</span>
         <span class="pspf-pill"><strong>${managementReviews}</strong> supplier management checks due</span>
         <span class="pspf-pill"><strong>${artefactGaps}</strong> contract artefact gaps</span>
+        <span class="pspf-pill"><strong>${annualCostLabel}</strong></span>
         <span class="pspf-pill">${publicationStatus}</span>
         <span class="pspf-pill">${nextForecast ? `${escapeHtml(nextForecast.financialYear)} net forecast ${escapeHtml(formatCurrency(nextForecast.netForecast))}` : "No spend forecast yet"}</span>
         <span class="pspf-pill">${nextMonth ? `${escapeHtml(nextMonth.monthLabel)} forecast ${escapeHtml(formatCurrency(nextMonth.forecastSpend))}` : "No monthly forecast yet"}</span>
@@ -3030,6 +3034,29 @@ function renderForecastHtml(
   mode: "panel" | "view" = "panel"
 ): string {
   const publicationStatus = getPublicationStatus(store);
+  const headlineYear = forecast[0];
+  const totalAnnualCostHtml = headlineYear
+    ? `<section class="annual-cost" aria-label="Total annual cost">
+        <div>
+          <p class="eyebrow">Total annual cost</p>
+          <h2>${escapeHtml(headlineYear.financialYear)} forecast cost</h2>
+          <strong>${escapeHtml(formatCurrency(headlineYear.forecastCost))}</strong>
+        </div>
+        <dl>
+          <div><dt>Items</dt><dd>${headlineYear.itemCount}</dd></div>
+          <div><dt>Planned spend</dt><dd>${escapeHtml(formatCurrency(headlineYear.plannedSpend))}</dd></div>
+          <div><dt>Expected savings</dt><dd>${escapeHtml(formatCurrency(headlineYear.expectedSavings))}</dd></div>
+          <div><dt>Net forecast</dt><dd>${escapeHtml(formatCurrency(headlineYear.netForecast))}</dd></div>
+        </dl>
+      </section>`
+    : `<section class="annual-cost" aria-label="Total annual cost">
+        <div>
+          <p class="eyebrow">Total annual cost</p>
+          <h2>No annual cost forecast yet</h2>
+          <strong>${escapeHtml(formatCurrency(0))}</strong>
+        </div>
+        <p class="muted">Add forecast spend items to see the first financial-year total.</p>
+      </section>`;
   const monthlyRows =
     monthlyForecast.length === 0
       ? '<tr><td colspan="4">No forecast spend by month yet.</td></tr>'
@@ -3268,6 +3295,13 @@ function renderForecastHtml(
     .summary { display: flex; flex-wrap: wrap; gap: var(--pspf-pad-sm); margin: 0 0 var(--pspf-pad); }
     .summary .pspf-pill { padding: 6px var(--pspf-pad-sm); }
       .summary .pspf-pill strong { color: var(--shop-amber); }
+      .annual-cost { border: 1px solid color-mix(in srgb, var(--shop-amber) 55%, var(--pspf-border)); border-left: 6px solid var(--shop-amber); border-radius: var(--pspf-radius); background: color-mix(in srgb, var(--shop-amber-soft) 58%, var(--pspf-surface)); padding: var(--pspf-gap-md) var(--pspf-pad); margin: 0 0 var(--pspf-gap-md); display: grid; grid-template-columns: minmax(220px, 0.9fr) minmax(320px, 1.1fr); gap: var(--pspf-gap); align-items: center; }
+      .annual-cost h2 { margin: 0 0 6px; }
+      .annual-cost strong { display: block; color: var(--shop-amber); font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+      .annual-cost dl { display: grid; grid-template-columns: repeat(2, minmax(130px, 1fr)); gap: 10px; margin: 0; }
+      .annual-cost dl div { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); background: var(--pspf-surface); padding: var(--pspf-pad-sm); }
+      .annual-cost dt { color: var(--pspf-muted); font-size: var(--pspf-type-label); text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+      .annual-cost dd { margin: 4px 0 0; font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
       .panel { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-gap); margin: 0 0 var(--pspf-gap-md); }
         .coverage { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
       .coverage-card { background: color-mix(in srgb, var(--pspf-surface) 92%, var(--shop-amber)); border-left: 3px solid var(--pspf-primary); padding: var(--pspf-gap); }
@@ -3283,6 +3317,7 @@ function renderForecastHtml(
         .status-review, .status-needed { border-color: var(--vscode-errorForeground); }
         .status-watch { border-color: var(--shop-amber); }
         .status-ok, .status-ready { border-color: var(--pspf-primary); }
+          @media (max-width: 760px) { .annual-cost, .annual-cost dl { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -3300,6 +3335,7 @@ function renderForecastHtml(
           <span class="pspf-pill"><a href="${escapeHtml(commandUri("pspf.shop.exportForecastCsv", []))}">Export CSV</a></span>
           <span class="pspf-pill"><a href="${escapeHtml(commandUri("pspf.shop.exportForecastXls", []))}">Export XLS</a></span>
   </div>
+    ${totalAnnualCostHtml}
     <section class="panel">
         <h2>Assurance coverage</h2>
         <div class="coverage">${coverageRows}</div>

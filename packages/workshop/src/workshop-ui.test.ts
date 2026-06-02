@@ -67,6 +67,20 @@ test("Workshop Strategy trends render labelled arrow indicators", async () => {
   assert.match(source, /class="trend-indicator"/);
 });
 
+test("Essential Eight dashboard renders visual posture charts", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /function renderEssentialEightComplianceDonut/);
+  assert.match(source, /function renderEssentialEightEvidenceChart/);
+  assert.match(source, /function renderEssentialEightStrategyChart/);
+  assert.match(source, /class="e8-donut"/);
+  assert.match(source, /Compliance Status/);
+  assert.match(source, /Evidence Coverage/);
+  assert.match(source, /Strategy Readiness/);
+  assert.match(source, /readonly statusCounts/);
+  assert.match(source, /readonly strategyStatusCounts/);
+});
+
 test("Workshop exposes ISM Review Workbench queues", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
@@ -88,4 +102,35 @@ test("ISM source controls browser exposes category filter", async () => {
   assert.match(source, /id="ism-category-filter"/);
   assert.match(source, /data-category/);
   assert.match(source, /function ismSourceControlCategory/);
+});
+
+test("ISM control detail buttons post source-control payloads", async () => {
+  const extensionSource = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const shellSource = await readFile(new URL("../src/webview/shell.ts", import.meta.url), "utf8");
+  const commands = [
+    "openIsmControlDetail",
+    "setIsmControlImplementationStatus",
+    "mapRequirementToCurrentIsmControl",
+    "linkEvidenceToIsmControl",
+    "linkActionToIsmControl",
+    "linkRiskToIsmControl",
+    "attachEvidenceForIsmControl",
+    "createActionForIsmControl",
+    "createRiskForIsmControl"
+  ];
+
+  for (const command of commands) {
+    assert.match(
+      extensionSource,
+      new RegExp(`data-command="${command}" data-source-control-id=`),
+      `${command} should render with source-control context`
+    );
+    assert.match(
+      shellSource,
+      new RegExp(
+        `command === '${command}'[\\s\\S]*sourceControlId: button\\.getAttribute\\('data-source-control-id'\\)`
+      ),
+      `${command} should post source-control context to the extension host`
+    );
+  }
 });
