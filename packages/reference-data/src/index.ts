@@ -1,8 +1,24 @@
-import type { DirectionEntity, LinkEntity, RequirementEntity, SourceControlEntity } from "@pspf/contracts";
+import type {
+  ControlThemeEntity,
+  CyberFunctionEntity,
+  CyberReferenceMappingEntity,
+  DirectionEntity,
+  GuidanceFrameworkEntity,
+  LinkEntity,
+  MitigationStrategyEntity,
+  RequirementEntity,
+  SourceControlEntity
+} from "@pspf/contracts";
 export {
+  CONTROL_THEMES,
+  CYBER_FUNCTIONS,
+  CYBER_REFERENCE_LINKS,
+  CYBER_REFERENCE_MAPPINGS,
+  GUIDANCE_FRAMEWORKS,
   ISM_OSCAL_RELEASE,
   ISM_SOURCE_CONTROL_CATEGORIES,
   ISM_SOURCE_CONTROLS,
+  MITIGATION_STRATEGIES,
   PSPF_BASELINE_DOMAINS,
   PSPF_BASELINE_DIRECTIONS,
   PSPF_BASELINE_DIRECTION_LINKS,
@@ -78,12 +94,26 @@ export interface PspfReferenceDataReport {
     readonly sourceControlCount: number;
     readonly changedFixtureControlId: string;
   };
+  readonly cyberReference: {
+    readonly cyberFunctionCount: number;
+    readonly mitigationStrategyCount: number;
+    readonly guidanceFrameworkCount: number;
+    readonly controlThemeCount: number;
+    readonly cyberReferenceMappingCount: number;
+    readonly cyberReferenceLinkCount: number;
+  };
 }
 
 export type PspfBaselineRequirement = Omit<RequirementEntity, "createdAt" | "updatedAt">;
 export type PspfBaselineDirection = Omit<DirectionEntity, "createdAt" | "updatedAt">;
 export type PspfBaselineDirectionLink = Omit<LinkEntity, "createdAt" | "updatedAt">;
 export type IsmReferenceSourceControl = Omit<SourceControlEntity, "createdAt" | "updatedAt">;
+export type CyberReferenceFunction = Omit<CyberFunctionEntity, "createdAt" | "updatedAt">;
+export type CyberReferenceMitigationStrategy = Omit<MitigationStrategyEntity, "createdAt" | "updatedAt">;
+export type CyberReferenceGuidanceFramework = Omit<GuidanceFrameworkEntity, "createdAt" | "updatedAt">;
+export type CyberReferenceControlTheme = Omit<ControlThemeEntity, "createdAt" | "updatedAt">;
+export type CyberReferenceMapping = Omit<CyberReferenceMappingEntity, "createdAt" | "updatedAt">;
+export type CyberReferenceLink = Omit<LinkEntity, "createdAt" | "updatedAt">;
 export interface IsmSourceControlCategory {
   readonly controlId: string;
   readonly category: string;

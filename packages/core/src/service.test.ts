@@ -126,6 +126,54 @@ test("integrity scan reports links whose declared endpoint type does not match t
   );
 });
 
+test("workspace reset returns to a clean cyber reference-data baseline", async () => {
+  const workspaceRoot = await freshWorkspace("reset-clean-baseline");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const localRequirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Local requirement removed by reset",
+      domainId: PSPF_DOMAINS[0]!.id,
+      assessmentStatus: "in-progress"
+    },
+    "workshop"
+  );
+  await service.upsertEntity(localRequirement);
+
+  const result = await service.resetWorkspace();
+  assert.equal(result.reset, true);
+
+  const requirements = await service.listEntities("requirement");
+  assert.equal(
+    requirements.some((requirement) => requirement.id === localRequirement.id),
+    false
+  );
+  assert.equal((await service.listEntities("cyber-function")).length, 4);
+  assert.equal((await service.listEntities("mitigation-strategy")).length, 9);
+  assert.equal((await service.listEntities("guidance-framework")).length, 6);
+  assert.equal((await service.listEntities("control-theme")).length, 2);
+  assert.equal((await service.listEntities("cyber-reference-mapping")).length > 0, true);
+});
+
+test("dataset diagnostics validate cyber reference mappings and clean reset", async () => {
+  const workspaceRoot = await freshWorkspace("dataset-diagnostics");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const report = await service.runDatasetDiagnostics();
+  assert.equal(report.ok, true, report.summary);
+  assert.equal(report.counts.cyberFunctions, 4);
+  assert.equal(report.counts.mitigationStrategies, 9);
+  assert.equal(report.counts.guidanceFrameworks, 6);
+  assert.equal(report.counts.controlThemes, 2);
+  assert.equal(report.counts.brokenMappingEndpoints, 0);
+  assert.equal(report.counts.mismatchedCyberLinks, 0);
+  assert.equal(report.counts.publicationLeaks, 0);
+});
+
 test("mutating operations require an initialised workspace", async () => {
   const workspaceRoot = await freshWorkspace("mutating-requires-initialised-workspace");
   const service = createCoreService(workspaceRoot);

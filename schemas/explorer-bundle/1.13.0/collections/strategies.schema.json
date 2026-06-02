@@ -1,0 +1,263 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.13.0/collections/strategies.schema.json",
+    "title": "PSPF Explorer Strategies Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "scope",
+            "timeHorizon",
+            "strategyStatement",
+            "riskPostureStatement",
+            "frameworks",
+            "choices",
+            "reviewCadence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^STR-"
+            },
+            "entityType": {
+                "const": "strategy"
+            },
+            "schemaVersion": {
+                "const": "1.13.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer",
+                    "shop"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "scope": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+            },
+            "timeHorizon": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+            },
+            "effectiveAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "strategyStatement": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600
+            },
+            "riskPostureStatement": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600
+            },
+            "frameworks": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                }
+            },
+            "choices": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                    "$ref": "#/definitions/strategicChoice"
+                }
+            },
+            "reviewCadence": {
+                "$ref": "#/definitions/reviewCadence"
+            },
+            "executiveSummary": {
+                "type": "string",
+                "maxLength": 600
+            }
+        }
+    },
+    "definitions": {
+        "reviewCadence": {
+            "enum": [
+                "monthly",
+                "quarterly",
+                "event-driven"
+            ]
+        },
+        "trend": {
+            "enum": [
+                "improving",
+                "steady",
+                "deteriorating",
+                "unknown"
+            ]
+        },
+        "confidence": {
+            "enum": [
+                "low",
+                "medium",
+                "high"
+            ]
+        },
+        "reference": {
+            "type": "object",
+            "required": [
+                "entityType",
+                "entityId",
+                "role"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "entityType": {
+                    "enum": [
+                        "requirement",
+                        "risk",
+                        "action",
+                        "direction"
+                    ]
+                },
+                "entityId": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "role": {
+                    "enum": [
+                        "drives",
+                        "addresses",
+                        "blocked-by",
+                        "evidenced-by",
+                        "monitors"
+                    ]
+                }
+            }
+        },
+        "outcome": {
+            "type": "object",
+            "required": [
+                "id",
+                "statement",
+                "summary",
+                "references"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                },
+                "statement": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 260
+                },
+                "summary": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 400
+                },
+                "references": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reference"
+                    }
+                }
+            }
+        },
+        "strategicChoice": {
+            "type": "object",
+            "required": [
+                "id",
+                "statement",
+                "summary",
+                "capabilityArea",
+                "targetPosture",
+                "trend",
+                "confidence",
+                "outcomes",
+                "references"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                },
+                "statement": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 260
+                },
+                "summary": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 400
+                },
+                "capabilityArea": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                },
+                "targetPosture": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 320
+                },
+                "trend": {
+                    "$ref": "#/definitions/trend"
+                },
+                "confidence": {
+                    "$ref": "#/definitions/confidence"
+                },
+                "outcomes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/outcome"
+                    }
+                },
+                "references": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reference"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -83,6 +83,31 @@ assert.equal(
 );
 assert.equal(report.ism.sourceControlCount, 1130, "ISM source extraction should include the full OSCAL control set");
 assert.equal(
+  report.cyberReference.cyberFunctionCount,
+  4,
+  "cyber reference data should include the curated ISM cyber security functions"
+);
+assert.equal(
+  report.cyberReference.mitigationStrategyCount,
+  9,
+  "cyber reference data should include Essential Eight plus remaining mitigation strategies"
+);
+assert.equal(
+  report.cyberReference.guidanceFrameworkCount,
+  6,
+  "cyber reference data should include the curated ASD/ACSC guidance frameworks"
+);
+assert.equal(
+  report.cyberReference.controlThemeCount,
+  2,
+  "cyber reference data should include Trustworthy Software and Secure Configuration Management themes"
+);
+assert.equal(
+  report.cyberReference.cyberReferenceMappingCount > 0,
+  true,
+  "cyber reference data should include queryable mapping records"
+);
+assert.equal(
   sha256(pspfSource),
   "b62e4980fa62c9bc602cc59001eae34695eccd3c67b9db60f6c069a4bed1506c",
   "PSPF source PDF hash should match the curated baseline"
@@ -105,6 +130,11 @@ assert.match(
   "generated reference data should export PSPF Direction-to-requirement links"
 );
 assert.match(generated, /ISM_SOURCE_CONTROLS/, "generated reference data should export ISM source controls");
+assert.match(generated, /CYBER_FUNCTIONS/, "generated reference data should export cyber functions");
+assert.match(generated, /MITIGATION_STRATEGIES/, "generated reference data should export mitigation strategies");
+assert.match(generated, /GUIDANCE_FRAMEWORKS/, "generated reference data should export guidance frameworks");
+assert.match(generated, /CONTROL_THEMES/, "generated reference data should export control themes");
+assert.match(generated, /CYBER_REFERENCE_MAPPINGS/, "generated reference data should export cyber reference mappings");
 assert.match(
   generated,
   /ISM_SOURCE_CONTROL_CATEGORIES/,

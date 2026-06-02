@@ -16,6 +16,16 @@ const pspfPdfPath = join(
   "pspf-release-2025-list-requirements.pdf"
 );
 const ismCatalogPath = join(packageRoot, "data", "sources", "ism-oscal", "v2026.03.24", "ISM_catalog.json");
+const acscGuidanceCataloguePath = join(
+  packageRoot,
+  "data",
+  "sources",
+  "acsc-guidance",
+  "v2026-06-02",
+  "cyber-reference-catalogue.json"
+);
+
+const GENERATED_SCHEMA_VERSION = "1.13.0";
 
 const PSPF_SOURCE = {
   sourceId: "pspf-release-2025-list-requirements",
@@ -35,6 +45,17 @@ const ISM_SOURCE = {
   localPath: "packages/reference-data/data/sources/ism-oscal/v2026.03.24/ISM_catalog.json",
   publicationDate: "2026-03-24",
   lastUpdated: "2026-03-24",
+  licence: "Creative Commons Attribution 4.0 International",
+  attribution: "Australian Signals Directorate / Australian Cyber Security Centre"
+};
+
+const ACSC_GUIDANCE_SOURCE = {
+  sourceId: "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+  title: "Curated ASD/ACSC cyber reference catalogue for PSPF",
+  sourceUrl: "https://www.cyber.gov.au/",
+  localPath: "packages/reference-data/data/sources/acsc-guidance/v2026-06-02/cyber-reference-catalogue.json",
+  publicationDate: "2026-06-02",
+  lastUpdated: "2026-06-02",
   licence: "Creative Commons Attribution 4.0 International",
   attribution: "Australian Signals Directorate / Australian Cyber Security Centre"
 };
@@ -172,20 +193,32 @@ await mkdir(join(packageRoot, "data"), { recursive: true });
 
 const pspfHash = await sha256File(pspfPdfPath);
 const ismHash = await sha256File(ismCatalogPath);
+const acscGuidanceHash = await sha256File(acscGuidanceCataloguePath);
+const cyberReferenceCatalogue = JSON.parse(await readFile(acscGuidanceCataloguePath, "utf8"));
 const sources = [
   { ...PSPF_SOURCE, sha256: pspfHash },
-  { ...ISM_SOURCE, sha256: ismHash }
+  { ...ISM_SOURCE, sha256: ismHash },
+  { ...ACSC_GUIDANCE_SOURCE, sha256: acscGuidanceHash }
 ];
 
 const pspfReferences = extractPspfRequirements(pspfPdfPath, pspfHash);
 const ismSourceControlRecords = await extractIsmSourceControls(ismCatalogPath);
-const ismSourceControls = ismSourceControlRecords.map(({ sourceControl }) => sourceControl);
+const themeTagsByControlId = buildThemeTagsByControlId(cyberReferenceCatalogue);
+const ismSourceControls = ismSourceControlRecords.map(({ sourceControl }) =>
+  applyThemeTags(sourceControl, themeTagsByControlId)
+);
 const ismSourceControlCategories = ismSourceControlRecords.map(({ sourceControl, category }) => ({
   controlId: sourceControl.controlId,
   category
 }));
 const previousIsmSourceControls = buildPreviousIsmSourceControls(ismSourceControls);
-const report = buildReport(pspfReferences, ismSourceControls, previousIsmSourceControls[0]?.controlId ?? "");
+const cyberReferenceData = buildCyberReferenceData(cyberReferenceCatalogue, acscGuidanceHash, ismSourceControls);
+const report = buildReport(
+  pspfReferences,
+  ismSourceControls,
+  previousIsmSourceControls[0]?.controlId ?? "",
+  cyberReferenceData
+);
 const pspfReferenceDomains = domainDefinitions.map(({ family, domainId, title, sortOrder }) => ({
   family,
   domainId,
@@ -195,7 +228,7 @@ const pspfReferenceDomains = domainDefinitions.map(({ family, domainId, title, s
 const pspfBaselineDomains = domainDefinitions.map((domain) => ({
   id: domain.domainId,
   entityType: "domain",
-  schemaVersion: "1.6.0",
+  schemaVersion: GENERATED_SCHEMA_VERSION,
   title: domain.title,
   code: domain.code,
   sortOrder: domain.sortOrder,
@@ -205,7 +238,7 @@ const pspfBaselineDomains = domainDefinitions.map((domain) => ({
 const pspfBaselineRequirements = pspfReferences.map((requirement) => ({
   id: requirement.requirementId,
   entityType: "requirement",
-  schemaVersion: "1.6.0",
+  schemaVersion: GENERATED_SCHEMA_VERSION,
   title: `PSPF ${String(requirement.requirementNumber).padStart(3, "0")} - ${requirement.statement}`,
   domainId: requirement.domainId,
   assessmentStatus: "not-started",
@@ -215,7 +248,7 @@ const pspfBaselineRequirements = pspfReferences.map((requirement) => ({
 const pspfBaselineDirections = currentPspfDirections.map((direction) => ({
   id: direction.id,
   entityType: "direction",
-  schemaVersion: "1.6.0",
+  schemaVersion: GENERATED_SCHEMA_VERSION,
   title: direction.title,
   sourceProduct: "core",
   recordStatus: "active",
@@ -228,7 +261,7 @@ const pspfBaselineDirectionLinks = currentPspfDirections.flatMap((direction) =>
   direction.targetRequirementIds.map((requirementId) => ({
     id: `LNK-PSPF-DIRECTION-${direction.reference.replace("Direction ", "").replace("-", "")}-${requirementId.replace("REQ-PSPF-2025-", "REQ")}`,
     entityType: "link",
-    schemaVersion: "1.6.0",
+    schemaVersion: GENERATED_SCHEMA_VERSION,
     title: `${direction.reference} is reflected in ${requirementId.replace("REQ-PSPF-2025-", "PSPF ")}`,
     sourceProduct: "core",
     recordStatus: "active",
@@ -241,7 +274,7 @@ const pspfBaselineDirectionLinks = currentPspfDirections.flatMap((direction) =>
 );
 
 const generated =
-  `import type { DirectionEntity, DomainEntity, LinkEntity, RequirementEntity, SourceControlEntity } from "@pspf/contracts";\n\n` +
+  `import type { ControlThemeEntity, CyberFunctionEntity, CyberReferenceMappingEntity, DirectionEntity, DomainEntity, GuidanceFrameworkEntity, LinkEntity, MitigationStrategyEntity, RequirementEntity, SourceControlEntity } from "@pspf/contracts";\n\n` +
   `export const ISM_OSCAL_RELEASE = "v2026.03.24" as const;\n` +
   `export const REFERENCE_DATA_SOURCES = ${toConst(sources)};\n\n` +
   `export const PSPF_REFERENCE_DOMAINS = ${toConst(pspfReferenceDomains)};\n\n` +
@@ -250,6 +283,12 @@ const generated =
   `export const PSPF_BASELINE_REQUIREMENTS = ${toConst(pspfBaselineRequirements)} satisfies readonly Omit<RequirementEntity, "createdAt" | "updatedAt">[];\n\n` +
   `export const PSPF_BASELINE_DIRECTIONS = ${toConst(pspfBaselineDirections)} satisfies readonly Omit<DirectionEntity, "createdAt" | "updatedAt">[];\n\n` +
   `export const PSPF_BASELINE_DIRECTION_LINKS = ${toConst(pspfBaselineDirectionLinks)} satisfies readonly Omit<LinkEntity, "createdAt" | "updatedAt">[];\n\n` +
+  `export const CYBER_FUNCTIONS = ${toConst(cyberReferenceData.cyberFunctions)} satisfies readonly Omit<CyberFunctionEntity, "createdAt" | "updatedAt">[];\n\n` +
+  `export const MITIGATION_STRATEGIES = ${toConst(cyberReferenceData.mitigationStrategies)} satisfies readonly Omit<MitigationStrategyEntity, "createdAt" | "updatedAt">[];\n\n` +
+  `export const GUIDANCE_FRAMEWORKS = ${toConst(cyberReferenceData.guidanceFrameworks)} satisfies readonly Omit<GuidanceFrameworkEntity, "createdAt" | "updatedAt">[];\n\n` +
+  `export const CONTROL_THEMES = ${toConst(cyberReferenceData.controlThemes)} satisfies readonly Omit<ControlThemeEntity, "createdAt" | "updatedAt">[];\n\n` +
+  `export const CYBER_REFERENCE_MAPPINGS = ${toConst(cyberReferenceData.cyberReferenceMappings)} satisfies readonly Omit<CyberReferenceMappingEntity, "createdAt" | "updatedAt">[];\n\n` +
+  `export const CYBER_REFERENCE_LINKS = ${toConst(cyberReferenceData.cyberReferenceLinks)} satisfies readonly Omit<LinkEntity, "createdAt" | "updatedAt">[];\n\n` +
   `export const ISM_SOURCE_CONTROLS = ${toConst(ismSourceControls)} satisfies readonly Omit<SourceControlEntity, "createdAt" | "updatedAt">[];\n\n` +
   `export const ISM_SOURCE_CONTROL_CATEGORIES = ${toConst(ismSourceControlCategories)};\n\n` +
   `export const PREVIOUS_ISM_SOURCE_CONTROLS = ${toConst(previousIsmSourceControls)} satisfies readonly Pick<SourceControlEntity, "controlId" | "statement" | "provenance">[];\n\n` +
@@ -384,7 +423,7 @@ async function extractIsmSourceControls(catalogPath) {
       sourceControl: {
         id: `SRC-${stableUuid(controlId)}`,
         entityType: "source-control",
-        schemaVersion: "1.6.0",
+        schemaVersion: GENERATED_SCHEMA_VERSION,
         title: String(control.title ?? controlId),
         sourceProduct: "core",
         recordStatus: "active",
@@ -406,6 +445,281 @@ async function extractIsmSourceControls(catalogPath) {
       category
     };
   });
+}
+
+function buildThemeTagsByControlId(catalogue) {
+  const tags = new Map();
+  for (const theme of catalogue.controlThemes ?? []) {
+    for (const controlId of theme.sourcePrincipleControlIds ?? []) {
+      const current = tags.get(controlId) ?? [];
+      current.push(`theme:${theme.code}`);
+      tags.set(controlId, current);
+    }
+  }
+  for (const strategy of catalogue.mitigationStrategies ?? []) {
+    for (const controlId of strategy.relatedControlIds ?? []) {
+      const current = tags.get(controlId) ?? [];
+      current.push(`strategy:${strategy.code}`);
+      tags.set(controlId, current);
+    }
+  }
+  return tags;
+}
+
+function applyThemeTags(sourceControl, tagsByControlId) {
+  const tags = tagsByControlId.get(sourceControl.controlId) ?? [];
+  if (tags.length === 0) {
+    return sourceControl;
+  }
+  return {
+    ...sourceControl,
+    profileTags: uniqueStrings([...sourceControl.profileTags, ...tags])
+  };
+}
+
+function buildCyberReferenceData(catalogue, sourceHash, sourceControls) {
+  const sourceControlIds = new Set(sourceControls.map((control) => control.controlId));
+  const source = sourceDescriptor(catalogue);
+  const cyberFunctions = (catalogue.functions ?? []).map((item) => ({
+    id: `FNC-${stableUuid(`cyber-function:${item.code}`)}`,
+    entityType: "cyber-function",
+    schemaVersion: GENERATED_SCHEMA_VERSION,
+    title: item.title,
+    sourceProduct: "core",
+    recordStatus: "active",
+    code: item.code,
+    summary: item.summary,
+    sourceFramework: "ism-cyber-security-principles",
+    relatedControlIds: item.relatedControlIds,
+    externalRefs: [{ scheme: "cyber.gov.au", value: item.sourceUrl }],
+    provenance: { ...source, sourceUrl: item.sourceUrl }
+  }));
+  const mitigationStrategies = (catalogue.mitigationStrategies ?? []).map((item) => ({
+    id: mitigationStrategyId(item.code),
+    entityType: "mitigation-strategy",
+    schemaVersion: GENERATED_SCHEMA_VERSION,
+    title: item.title,
+    sourceProduct: "core",
+    recordStatus: "active",
+    code: item.code,
+    category: item.category,
+    summary: item.summary,
+    maturityProfiles: item.maturityProfiles,
+    relatedRequirementIds: item.relatedRequirementIds,
+    relatedSourceControlIds: item.relatedControlIds
+      .filter((controlId) => sourceControlIds.has(controlId))
+      .map(sourceControlEntityId),
+    externalRefs: [{ scheme: "cyber.gov.au", value: item.sourceUrl }],
+    provenance: { ...source, sourceUrl: item.sourceUrl }
+  }));
+  const guidanceFrameworks = (catalogue.guidanceFrameworks ?? []).map((item) => ({
+    id: guidanceFrameworkId(item.code),
+    entityType: "guidance-framework",
+    schemaVersion: GENERATED_SCHEMA_VERSION,
+    title: item.title,
+    sourceProduct: "core",
+    recordStatus: "active",
+    code: item.code,
+    summary: item.summary,
+    publisher: "ASD/ACSC",
+    sourceUrl: item.sourceUrl,
+    retrievedAt: catalogue.retrievedAt,
+    licence: catalogue.licence,
+    attribution: catalogue.attribution,
+    sourceHash,
+    externalRefs: [{ scheme: "cyber.gov.au", value: item.sourceUrl }],
+    provenance: { ...source, sourceUrl: item.sourceUrl }
+  }));
+  const controlThemes = (catalogue.controlThemes ?? []).map((item) => ({
+    id: controlThemeId(item.code),
+    entityType: "control-theme",
+    schemaVersion: GENERATED_SCHEMA_VERSION,
+    title: item.title,
+    sourceProduct: "core",
+    recordStatus: "active",
+    code: item.code,
+    summary: item.summary,
+    sourcePrincipleControlIds: item.sourcePrincipleControlIds,
+    relatedStrategyCodes: item.relatedStrategyCodes,
+    externalRefs: [{ scheme: "cyber.gov.au", value: item.sourceUrl }],
+    provenance: { ...source, sourceUrl: item.sourceUrl }
+  }));
+  const cyberReferenceMappings = buildCyberReferenceMappings(catalogue, sourceControlIds, source);
+  const cyberReferenceLinks = buildCyberReferenceLinks(cyberReferenceMappings);
+  return {
+    cyberFunctions,
+    mitigationStrategies,
+    guidanceFrameworks,
+    controlThemes,
+    cyberReferenceMappings,
+    cyberReferenceLinks
+  };
+}
+
+function buildCyberReferenceMappings(catalogue, sourceControlIds, source) {
+  const mappings = [];
+  for (const strategy of catalogue.mitigationStrategies ?? []) {
+    for (const requirementId of strategy.relatedRequirementIds ?? []) {
+      mappings.push(
+        cyberReferenceMapping(
+          {
+            fromType: "requirement",
+            fromId: requirementId,
+            toType: "mitigation-strategy",
+            toId: mitigationStrategyId(strategy.code),
+            purpose: "supports",
+            confidence: "high",
+            sourceUrl: strategy.sourceUrl,
+            rationale: `PSPF requirement is explicitly associated with ${strategy.title}.`
+          },
+          source
+        )
+      );
+    }
+    for (const controlId of strategy.relatedControlIds ?? []) {
+      if (!sourceControlIds.has(controlId)) {
+        continue;
+      }
+      mappings.push(
+        cyberReferenceMapping(
+          {
+            fromType: "source-control",
+            fromId: sourceControlEntityId(controlId),
+            toType: "mitigation-strategy",
+            toId: mitigationStrategyId(strategy.code),
+            purpose: "supports",
+            confidence: "medium",
+            sourceUrl: strategy.sourceUrl,
+            rationale: `ISM control contributes to the ${strategy.title} mitigation strategy.`
+          },
+          source
+        )
+      );
+    }
+  }
+  for (const theme of catalogue.controlThemes ?? []) {
+    for (const controlId of theme.sourcePrincipleControlIds ?? []) {
+      if (!sourceControlIds.has(controlId)) {
+        continue;
+      }
+      mappings.push(
+        cyberReferenceMapping(
+          {
+            fromType: "source-control",
+            fromId: sourceControlEntityId(controlId),
+            toType: "control-theme",
+            toId: controlThemeId(theme.code),
+            purpose: "themes",
+            confidence: "high",
+            sourceUrl: theme.sourceUrl,
+            rationale: `ISM control is a curated anchor for ${theme.title}.`
+          },
+          source
+        )
+      );
+    }
+    for (const strategyCode of theme.relatedStrategyCodes ?? []) {
+      mappings.push(
+        cyberReferenceMapping(
+          {
+            fromType: "mitigation-strategy",
+            fromId: mitigationStrategyId(strategyCode),
+            toType: "control-theme",
+            toId: controlThemeId(theme.code),
+            purpose: "themes",
+            confidence: "medium",
+            sourceUrl: theme.sourceUrl,
+            rationale: `Mitigation strategy contributes to the ${theme.title} theme.`
+          },
+          source
+        )
+      );
+    }
+  }
+  return mappings;
+}
+
+function cyberReferenceMapping(input, source) {
+  const idSeed = `${input.fromType}:${input.fromId}:${input.purpose}:${input.toType}:${input.toId}`;
+  return {
+    id: `CRM-${stableUuid(idSeed)}`,
+    entityType: "cyber-reference-mapping",
+    schemaVersion: GENERATED_SCHEMA_VERSION,
+    title: `${input.fromId} ${input.purpose} ${input.toId}`,
+    sourceProduct: "core",
+    recordStatus: "active",
+    from: { entityType: input.fromType, entityId: input.fromId },
+    to: { entityType: input.toType, entityId: input.toId },
+    purpose: input.purpose,
+    confidence: input.confidence,
+    rationale: input.rationale,
+    lastReviewedAt: source.retrievedAt,
+    reviewBy: "PSPF Reference Data Curator",
+    provenance: {
+      ...source,
+      sourceUrl: input.sourceUrl,
+      author: "PSPF Reference Data Curator",
+      createdAt: source.retrievedAt
+    }
+  };
+}
+
+function buildCyberReferenceLinks(mappings) {
+  return mappings.map((mapping) => ({
+    id: `LNK-CYBER-${stableUuid(`cyber-reference-link:${mapping.id}`)}`,
+    entityType: "link",
+    schemaVersion: GENERATED_SCHEMA_VERSION,
+    title: `${mapping.title}`,
+    sourceProduct: "core",
+    recordStatus: "active",
+    linkType: linkTypeForCyberPurpose(mapping.purpose),
+    fromId: mapping.from.entityId,
+    fromType: mapping.from.entityType,
+    toId: mapping.to.entityId,
+    toType: mapping.to.entityType
+  }));
+}
+
+function linkTypeForCyberPurpose(purpose) {
+  switch (purpose) {
+    case "includes":
+      return "includes";
+    case "sources":
+      return "sourced-from";
+    case "themes":
+      return "related-to";
+    case "implements":
+    case "supports":
+    case "relates":
+    default:
+      return "supports";
+  }
+}
+
+function sourceDescriptor(catalogue) {
+  return {
+    sourceId: catalogue.sourceId,
+    sourceUrl: "https://www.cyber.gov.au/",
+    retrievedAt: catalogue.retrievedAt,
+    licence: catalogue.licence,
+    attribution: catalogue.attribution
+  };
+}
+
+function sourceControlEntityId(controlId) {
+  return `SRC-${stableUuid(controlId)}`;
+}
+
+function mitigationStrategyId(code) {
+  return `MST-${stableUuid(`mitigation-strategy:${code}`)}`;
+}
+
+function guidanceFrameworkId(code) {
+  return `GDC-${stableUuid(`guidance-framework:${code}`)}`;
+}
+
+function controlThemeId(code) {
+  return `CTH-${stableUuid(`control-theme:${code}`)}`;
 }
 
 function collectControls(node, output, category) {
@@ -445,7 +759,7 @@ function buildPreviousIsmSourceControls(currentControls) {
   }));
 }
 
-function buildReport(pspfReferences, ismControls, changedFixtureControlId) {
+function buildReport(pspfReferences, ismControls, changedFixtureControlId, cyberReferenceData) {
   const numbers = pspfReferences.map((reference) => reference.requirementNumber).sort((left, right) => left - right);
   const duplicates = numbers.filter((number, index) => numbers.indexOf(number) !== index);
   const minRequirementNumber = numbers[0] ?? 0;
@@ -476,6 +790,14 @@ function buildReport(pspfReferences, ismControls, changedFixtureControlId) {
       oscalRelease: "v2026.03.24",
       sourceControlCount: ismControls.length,
       changedFixtureControlId
+    },
+    cyberReference: {
+      cyberFunctionCount: cyberReferenceData.cyberFunctions.length,
+      mitigationStrategyCount: cyberReferenceData.mitigationStrategies.length,
+      guidanceFrameworkCount: cyberReferenceData.guidanceFrameworks.length,
+      controlThemeCount: cyberReferenceData.controlThemes.length,
+      cyberReferenceMappingCount: cyberReferenceData.cyberReferenceMappings.length,
+      cyberReferenceLinkCount: cyberReferenceData.cyberReferenceLinks.length
     }
   };
 }
@@ -496,6 +818,10 @@ function normaliseSourceDate(value) {
 function stableUuid(input) {
   const hex = createHash("sha256").update(input).digest("hex");
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-7000-${hex.slice(12, 16)}-${hex.slice(16, 28)}`;
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values)];
 }
 
 function toConst(value) {

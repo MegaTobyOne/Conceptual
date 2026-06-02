@@ -196,6 +196,11 @@ The first file loaded by Explorer is `manifest.json`. It describes the bundle, a
 | `collections/tags.json` | operator-applied classification labels (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) |
 | `collections/saved-views.json` | named user convenience filter snapshots for supported Explorer and Workshop scopes, including `workshop-source-controls` with `implementationStatuses` filters from schema `1.12.0` (see [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md), [adr/0043-v1-9-saved-view-expansion.md](adr/0043-v1-9-saved-view-expansion.md), and [adr/0071-v1-35-ism-control-as-workable-entity.md](adr/0071-v1-35-ism-control-as-workable-entity.md)) |
 | `collections/change-records.json` | published public change-record summaries for the Explorer "Why This Changed" view; sensitive reason, impact, and decision-owner fields are excluded (see [adr/0044-v1-10-change-records.md](adr/0044-v1-10-change-records.md)) |
+| `collections/cyber-functions.json` | curated ASD/ACSC cyber security functions used to group governance, protection, detection, and response context. |
+| `collections/mitigation-strategies.json` | curated Essential Eight and mitigation strategy records, including related PSPF Requirements and ISM source controls. |
+| `collections/guidance-frameworks.json` | ASD/ACSC guidance framework records with publisher, source URL, attribution, licence, and source hash. |
+| `collections/control-themes.json` | curated Trustworthy Software and Secure Configuration Management themes. |
+| `collections/cyber-reference-mappings.json` | queryable reference mappings between Requirements, ISM source controls, mitigation strategies, and control themes; mapping `rationale` is sensitive and excluded from public bundles. |
 | `indexes/by-tag.json` | derived requirement-id lists per tag for fast filter rendering |
 | `indexes/*.json` | denormalised read models |
 | `schemas/*.json` | published validation schemas |

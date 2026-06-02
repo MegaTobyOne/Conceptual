@@ -517,9 +517,11 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
 
     const allowedCommands = new Set([
       "pspf.core.initialiseWorkspace",
+      "pspf.core.resetWorkspace",
       "pspf.core.validateWorkspace",
       "pspf.core.verifyIntegrity",
       "pspf.core.runIntegrityScan",
+      "pspf.core.runDatasetDiagnostics",
       "pspf.core.createSnapshot",
       "pspf.core.exportBundle",
       "pspf.workshop.exportBackupJson",
@@ -846,6 +848,8 @@ function renderHomeView(model: WorkshopHomeModel): string {
       <div class="action-list compact">
         ${homeButton("pspf.core.validateWorkspace", "Validate")}
         ${homeButton("pspf.core.runIntegrityScan", "Integrity scan")}
+        ${homeButton("pspf.core.runDatasetDiagnostics", "Dataset diagnostics")}
+        ${homeButton("pspf.core.resetWorkspace", "Reset workspace", "Clean start from reference data")}
         ${homeButton("pspf.core.createSnapshot", "Snapshot")}
         ${homeButton("pspf.workshop.exportBackupJson", "Export backup JSON")}
         ${homeButton("pspf.workshop.importBackupJson", "Import backup JSON")}
@@ -6910,6 +6914,7 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
     return {
       openEntityType: requirement ? "requirement" : "requirement-control-mapping",
       openEntityId: requirement?.id ?? mapping.id,
+      action: `<button type="button" data-command="openEntity" data-entity-type="requirement-control-mapping" data-entity-id="${escapeHtml(mapping.id)}">Edit mapping</button>`,
       requirement: requirement?.title ?? mapping.requirementId,
       domain: requirement ? domainName(requirement.domainId) : "Unknown",
       status: requirement ? label(requirement.assessmentStatus) : "Unknown",
@@ -6984,7 +6989,7 @@ async function openIsmControlDetail(sourceControlId?: string): Promise<void> {
       </div>
     </section>
     ${recordTable("Work Linked Directly To This Control", directWorkRows, ["type", "title", "state"])}
-    ${recordTable("Requirements This Control Implements", requirementRows, ["requirement", "domain", "status", "coverage", "profile", "confidence", "reviewed"])}
+    ${recordTable("Requirements This Control Implements", requirementRows, ["requirement", "domain", "status", "coverage", "profile", "confidence", "reviewed", "action"])}
     ${recordTable("Work Linked Through Mapped Requirements", workRows, ["type", "title", "state", "linkedRequirement"])}
   `
   );
@@ -7791,6 +7796,9 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
         openEntityId: mapping.id,
         controlId: sourceControl?.controlId ?? mapping.sourceControlId,
         title: sourceControl?.title ?? "Unknown source control",
+        action: sourceControl
+          ? `<button type="button" data-command="openIsmControlDetail" data-source-control-id="${escapeHtml(sourceControl.id)}">Open control</button>`
+          : "",
         coverage: label(mapping.coverageQualifier),
         profile: mapping.applicabilityProfile,
         confidence: label(mapping.confidence ?? "medium"),
@@ -7836,7 +7844,7 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     ${recordTable("Actions", actionRows, ["title", "status", "urgency", "dueDate"])}
     ${recordTable("Risks", riskRows, ["title", "status", "likelihood", "impact"])}
     ${commercialContextSection(requirement, allEntities)}
-    ${recordTable("ISM Mappings", mappings, ["controlId", "title", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release"])}
+    ${recordTable("ISM Mappings", mappings, ["controlId", "title", "coverage", "profile", "confidence", "reviewed", "reviewer", "drift", "release", "action"])}
     ${recordTable("Relationships", relationships, ["title", "relationship", "targetType", "target"])}
   `
   );

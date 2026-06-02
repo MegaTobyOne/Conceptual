@@ -2,7 +2,7 @@
   "name": "pspf-shop",
   "displayName": "PSPF Shop",
   "description": "PSPF commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.",
-  "version": "1.37.0",
+  "version": "1.38.0",
   "private": true,
   "type": "module",
   "license": "MIT",

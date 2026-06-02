@@ -11,6 +11,7 @@ import {
   COLLECTION_BY_ENTITY_TYPE,
   type BundleCollections,
   type EntityByCollection,
+  type LinkEntity,
   DEFAULT_TAG_COLOUR,
   PSPF_SLICE_VERSION,
   SAVED_VIEW_EVIDENCE_COVERAGE,
@@ -44,9 +45,16 @@ import {
 } from "@pspf/contracts";
 import { ISM_SOURCE_CONTROLS } from "@pspf/ism-source-library";
 import {
+  CONTROL_THEMES,
+  CYBER_FUNCTIONS,
+  CYBER_REFERENCE_LINKS,
+  CYBER_REFERENCE_MAPPINGS,
+  GUIDANCE_FRAMEWORKS,
+  MITIGATION_STRATEGIES,
   PSPF_BASELINE_DIRECTIONS,
   PSPF_BASELINE_DIRECTION_LINKS,
-  PSPF_BASELINE_REQUIREMENTS
+  PSPF_BASELINE_REQUIREMENTS,
+  PSPF_REFERENCE_DATA_REPORT
 } from "@pspf/reference-data";
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
 
@@ -83,9 +91,11 @@ export interface ManifestCollection {
 export interface CoreService {
   readonly getWorkspacePaths: () => WorkspacePaths;
   readonly initialiseWorkspace: () => Promise<WorkspacePaths>;
+  readonly resetWorkspace: () => Promise<WorkspaceResetResult>;
   readonly validateWorkspace: () => Promise<{ ok: boolean; message: string; counts: Record<V01Collection, number> }>;
   readonly verifyIntegrity: () => Promise<{ ok: boolean; detail: string }>;
   readonly runIntegrityScan: () => Promise<IntegrityScanReport>;
+  readonly runDatasetDiagnostics: () => Promise<DatasetDiagnosticReport>;
   readonly createSnapshot: () => Promise<V01Entity>;
   readonly exportBundle: () => Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }>;
   readonly planImportBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
@@ -105,6 +115,7 @@ export interface CoreReadApi {
 
 export interface CoreWriteApi {
   readonly initialiseWorkspace: () => Promise<WorkspacePaths>;
+  readonly resetWorkspace: () => Promise<WorkspaceResetResult>;
   readonly createSnapshot: () => Promise<V01Entity>;
   readonly getWriterLock: () => Promise<WriterLockState>;
   readonly upsertEntity: (entity: V01Entity) => Promise<V01Entity>;
@@ -121,6 +132,7 @@ export interface CoreExchangeApi {
 export interface CoreIntegrityApi {
   readonly verifyIntegrity: () => Promise<{ ok: boolean; detail: string }>;
   readonly runIntegrityScan: () => Promise<IntegrityScanReport>;
+  readonly runDatasetDiagnostics: () => Promise<DatasetDiagnosticReport>;
 }
 
 export type ImportMode = "additive-merge" | "full-replace" | "plan-apply";
@@ -159,6 +171,14 @@ export interface ImportUndoResult {
   readonly message: string;
 }
 
+export interface WorkspaceResetResult {
+  readonly reset: boolean;
+  readonly root: string;
+  readonly removedPath: string;
+  readonly message: string;
+  readonly paths: WorkspacePaths;
+}
+
 export interface WriterLockState {
   readonly holderPid?: number;
   readonly acquiredAt?: string;
@@ -189,6 +209,31 @@ export interface IntegrityScanReport {
   };
 }
 
+export interface DatasetDiagnosticFinding {
+  readonly section: "counts" | "schema" | "mappings" | "links" | "publication";
+  readonly severity: "info" | "warning" | "error";
+  readonly message: string;
+}
+
+export interface DatasetDiagnosticReport {
+  readonly ok: boolean;
+  readonly generatedAt: string;
+  readonly summary: string;
+  readonly findings: readonly DatasetDiagnosticFinding[];
+  readonly counts: {
+    readonly cyberFunctions: number;
+    readonly mitigationStrategies: number;
+    readonly guidanceFrameworks: number;
+    readonly controlThemes: number;
+    readonly cyberReferenceMappings: number;
+    readonly cyberReferenceLinks: number;
+    readonly brokenMappingEndpoints: number;
+    readonly mismatchedCyberLinks: number;
+    readonly schemaVersionMismatches: number;
+    readonly publicationLeaks: number;
+  };
+}
+
 export function createCoreService(workspaceRoot: string): CoreService {
   return {
     ...createCoreReadApi(workspaceRoot),
@@ -210,6 +255,7 @@ export function createCoreReadApi(workspaceRoot: string): CoreReadApi {
 export function createCoreWriteApi(workspaceRoot: string): CoreWriteApi {
   return {
     initialiseWorkspace: () => serialiseWorkspaceOperation(workspaceRoot, () => initialiseWorkspace(workspaceRoot)),
+    resetWorkspace: () => serialiseWorkspaceOperation(workspaceRoot, () => resetWorkspace(workspaceRoot)),
     createSnapshot: () => serialiseWorkspaceOperation(workspaceRoot, () => createSnapshot(workspaceRoot)),
     getWriterLock: () => serialiseWorkspaceOperation(workspaceRoot, () => getWriterLock(workspaceRoot)),
     upsertEntity: (entity) => serialiseWorkspaceOperation(workspaceRoot, () => upsertEntity(workspaceRoot, entity)),
@@ -232,7 +278,8 @@ export function createCoreExchangeApi(workspaceRoot: string): CoreExchangeApi {
 export function createCoreIntegrityApi(workspaceRoot: string): CoreIntegrityApi {
   return {
     verifyIntegrity: () => serialiseWorkspaceOperation(workspaceRoot, () => verifyIntegrity(workspaceRoot)),
-    runIntegrityScan: () => serialiseWorkspaceOperation(workspaceRoot, () => runIntegrityScan(workspaceRoot))
+    runIntegrityScan: () => serialiseWorkspaceOperation(workspaceRoot, () => runIntegrityScan(workspaceRoot)),
+    runDatasetDiagnostics: () => serialiseWorkspaceOperation(workspaceRoot, () => runDatasetDiagnostics(workspaceRoot))
   };
 }
 
@@ -335,13 +382,40 @@ INSERT INTO metadata(key, value) VALUES ('apiVersion', '${VERSION_AXES.apiVersio
     createdAt: timestamp,
     updatedAt: timestamp
   }));
+  const seededCyberReferenceEntities: V01Entity[] = [
+    ...CYBER_FUNCTIONS,
+    ...MITIGATION_STRATEGIES,
+    ...GUIDANCE_FRAMEWORKS,
+    ...CONTROL_THEMES,
+    ...CYBER_REFERENCE_MAPPINGS,
+    ...CYBER_REFERENCE_LINKS
+  ].map((entity) => ({
+    ...entity,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
   await upsertEntities(workspaceRoot, [...seededDomains, ...seededSourceControls]);
   await insertReferenceEntitiesIfMissing(workspaceRoot, [
     ...seededRequirements,
     ...seededDirections,
-    ...seededDirectionLinks
+    ...seededDirectionLinks,
+    ...seededCyberReferenceEntities
   ]);
   return paths;
+}
+
+async function resetWorkspace(workspaceRoot: string): Promise<WorkspaceResetResult> {
+  const paths = getWorkspacePaths(workspaceRoot);
+  await assertWritable(paths);
+  await rm(paths.pspf, { recursive: true, force: true });
+  const resetPaths = await initialiseWorkspace(workspaceRoot);
+  return {
+    reset: true,
+    root: workspaceRoot,
+    removedPath: paths.pspf,
+    message: "PSPF workspace reset to a clean reference-data baseline.",
+    paths: resetPaths
+  };
 }
 
 async function validateWorkspace(
@@ -555,6 +629,155 @@ async function runIntegrityScan(workspaceRoot: string): Promise<IntegrityScanRep
   await writeJson(join(paths.logs, "integrity-scan.json"), report);
   await recordOperation(paths, "integrity-scan", ok ? "success" : "failure", summary);
   return report;
+}
+
+async function runDatasetDiagnostics(workspaceRoot: string): Promise<DatasetDiagnosticReport> {
+  await ensureInitialised(workspaceRoot);
+  const findings: DatasetDiagnosticFinding[] = [];
+  const allEntities = (await listEntities(workspaceRoot)).filter((entity) => entity.recordStatus !== "deleted");
+  const entitiesById = new Map(allEntities.map((entity) => [entity.id, entity]));
+  const cyberFunctions = allEntities.filter((entity) => entity.entityType === "cyber-function");
+  const mitigationStrategies = allEntities.filter((entity) => entity.entityType === "mitigation-strategy");
+  const guidanceFrameworks = allEntities.filter((entity) => entity.entityType === "guidance-framework");
+  const controlThemes = allEntities.filter((entity) => entity.entityType === "control-theme");
+  const cyberReferenceMappings = allEntities.filter((entity) => entity.entityType === "cyber-reference-mapping");
+  const cyberReferenceLinks = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.id.startsWith("LNK-CYBER-")
+  );
+  const expected = PSPF_REFERENCE_DATA_REPORT.cyberReference;
+
+  checkDiagnosticCount(findings, "Cyber functions", cyberFunctions.length, expected.cyberFunctionCount);
+  checkDiagnosticCount(
+    findings,
+    "Mitigation strategies",
+    mitigationStrategies.length,
+    expected.mitigationStrategyCount
+  );
+  checkDiagnosticCount(findings, "Guidance frameworks", guidanceFrameworks.length, expected.guidanceFrameworkCount);
+  checkDiagnosticCount(findings, "Control themes", controlThemes.length, expected.controlThemeCount);
+  checkDiagnosticCount(
+    findings,
+    "Cyber reference mappings",
+    cyberReferenceMappings.length,
+    expected.cyberReferenceMappingCount
+  );
+  checkDiagnosticCount(findings, "Cyber reference links", cyberReferenceLinks.length, expected.cyberReferenceLinkCount);
+
+  let schemaVersionMismatches = 0;
+  for (const entity of [
+    ...cyberFunctions,
+    ...mitigationStrategies,
+    ...guidanceFrameworks,
+    ...controlThemes,
+    ...cyberReferenceMappings,
+    ...cyberReferenceLinks
+  ]) {
+    if (entity.schemaVersion !== VERSION_AXES.schemaVersion) {
+      schemaVersionMismatches += 1;
+      findings.push({
+        section: "schema",
+        severity: "error",
+        message: `${entity.id} has schemaVersion ${entity.schemaVersion}; expected ${VERSION_AXES.schemaVersion}.`
+      });
+    }
+  }
+
+  let brokenMappingEndpoints = 0;
+  for (const mapping of cyberReferenceMappings) {
+    for (const endpoint of [mapping.from, mapping.to]) {
+      const endpointEntity = entitiesById.get(endpoint.entityId);
+      if (!endpointEntity) {
+        brokenMappingEndpoints += 1;
+        findings.push({
+          section: "mappings",
+          severity: "error",
+          message: `Cyber mapping ${mapping.id} references missing ${endpoint.entityType} ${endpoint.entityId}.`
+        });
+        continue;
+      }
+      if (endpointEntity.entityType !== endpoint.entityType) {
+        brokenMappingEndpoints += 1;
+        findings.push({
+          section: "mappings",
+          severity: "error",
+          message: `Cyber mapping ${mapping.id} endpoint ${endpoint.entityId} is ${endpointEntity.entityType}, not ${endpoint.entityType}.`
+        });
+      }
+    }
+  }
+
+  const mappingEndpointKeys = new Set(cyberReferenceMappings.map(cyberReferenceMappingEndpointKey));
+  let mismatchedCyberLinks = 0;
+  for (const link of cyberReferenceLinks) {
+    const linkKey = `${link.fromType}:${link.fromId}:${link.toType}:${link.toId}`;
+    if (!mappingEndpointKeys.has(linkKey)) {
+      mismatchedCyberLinks += 1;
+      findings.push({
+        section: "links",
+        severity: "error",
+        message: `Cyber link ${link.id} does not match any cyber-reference-mapping endpoints.`
+      });
+    }
+  }
+
+  let publicationLeaks = 0;
+  for (const mapping of cyberReferenceMappings) {
+    const publicMapping = sanitiseEntityForPublication(mapping) as unknown as Record<string, unknown>;
+    if ("rationale" in publicMapping) {
+      publicationLeaks += 1;
+      findings.push({
+        section: "publication",
+        severity: "error",
+        message: `Cyber mapping ${mapping.id} exposes rationale in public sanitisation.`
+      });
+    }
+  }
+
+  if (findings.every((finding) => finding.severity !== "error")) {
+    findings.push({
+      section: "counts",
+      severity: "info",
+      message: "Cyber reference dataset counts, mappings, links, schema versions and public redaction passed."
+    });
+  }
+
+  const counts = {
+    cyberFunctions: cyberFunctions.length,
+    mitigationStrategies: mitigationStrategies.length,
+    guidanceFrameworks: guidanceFrameworks.length,
+    controlThemes: controlThemes.length,
+    cyberReferenceMappings: cyberReferenceMappings.length,
+    cyberReferenceLinks: cyberReferenceLinks.length,
+    brokenMappingEndpoints,
+    mismatchedCyberLinks,
+    schemaVersionMismatches,
+    publicationLeaks
+  };
+  const ok = findings.every((finding) => finding.severity !== "error");
+  const summary = ok
+    ? `Cyber reference dataset passed with ${counts.cyberReferenceMappings} mapping(s) and ${counts.cyberReferenceLinks} link(s).`
+    : `Cyber reference dataset failed with ${findings.filter((finding) => finding.severity === "error").length} error(s).`;
+  return { ok, generatedAt: nowIso(), summary, findings, counts };
+}
+
+function checkDiagnosticCount(
+  findings: DatasetDiagnosticFinding[],
+  labelText: string,
+  actual: number,
+  expected: number
+): void {
+  if (actual === expected) {
+    return;
+  }
+  findings.push({
+    section: "counts",
+    severity: "error",
+    message: `${labelText} count ${actual} does not match reference-data report count ${expected}.`
+  });
+}
+
+function cyberReferenceMappingEndpointKey(mapping: V01Entity & { entityType: "cyber-reference-mapping" }): string {
+  return `${mapping.from.entityType}:${mapping.from.entityId}:${mapping.to.entityType}:${mapping.to.entityId}`;
 }
 
 async function createSnapshot(workspaceRoot: string): Promise<V01Entity> {
@@ -996,6 +1219,11 @@ function createEmptyCollections(): BundleCollections {
     suppliers: [],
     contracts: [],
     "spend-items": [],
+    "cyber-functions": [],
+    "mitigation-strategies": [],
+    "guidance-frameworks": [],
+    "control-themes": [],
+    "cyber-reference-mappings": [],
     strategies: [],
     posture: []
   };
@@ -1093,6 +1321,11 @@ function getCollectionCounts(collections: BundleCollections): Record<V01Collecti
     suppliers: collections.suppliers.length,
     contracts: collections.contracts.length,
     "spend-items": collections["spend-items"].length,
+    "cyber-functions": collections["cyber-functions"].length,
+    "mitigation-strategies": collections["mitigation-strategies"].length,
+    "guidance-frameworks": collections["guidance-frameworks"].length,
+    "control-themes": collections["control-themes"].length,
+    "cyber-reference-mappings": collections["cyber-reference-mappings"].length,
     strategies: collections.strategies.length,
     posture: collections.posture.length
   };
@@ -1521,6 +1754,37 @@ async function refreshReferenceData(workspaceRoot: string): Promise<void> {
     new Set(PSPF_BASELINE_DIRECTION_LINKS.map((link) => link.id)),
     "LNK-PSPF-DIRECTION-"
   );
+  await deleteRetiredCoreReferenceEntities(
+    workspaceRoot,
+    "cyber-function",
+    new Set(CYBER_FUNCTIONS.map((entity) => entity.id))
+  );
+  await deleteRetiredCoreReferenceEntities(
+    workspaceRoot,
+    "mitigation-strategy",
+    new Set(MITIGATION_STRATEGIES.map((entity) => entity.id))
+  );
+  await deleteRetiredCoreReferenceEntities(
+    workspaceRoot,
+    "guidance-framework",
+    new Set(GUIDANCE_FRAMEWORKS.map((entity) => entity.id))
+  );
+  await deleteRetiredCoreReferenceEntities(
+    workspaceRoot,
+    "control-theme",
+    new Set(CONTROL_THEMES.map((entity) => entity.id))
+  );
+  await deleteRetiredCoreReferenceEntities(
+    workspaceRoot,
+    "cyber-reference-mapping",
+    new Set(CYBER_REFERENCE_MAPPINGS.map((entity) => entity.id))
+  );
+  await deleteRetiredCoreReferenceEntities(
+    workspaceRoot,
+    "link",
+    new Set(CYBER_REFERENCE_LINKS.map((link) => link.id)),
+    "LNK-CYBER-"
+  );
   const seededDomains: V01Entity[] = PSPF_DOMAINS.map((domain) => ({
     ...domain,
     createdAt: timestamp,
@@ -1546,11 +1810,24 @@ async function refreshReferenceData(workspaceRoot: string): Promise<void> {
     createdAt: timestamp,
     updatedAt: timestamp
   }));
+  const seededCyberReferenceEntities: V01Entity[] = [
+    ...CYBER_FUNCTIONS,
+    ...MITIGATION_STRATEGIES,
+    ...GUIDANCE_FRAMEWORKS,
+    ...CONTROL_THEMES,
+    ...CYBER_REFERENCE_MAPPINGS,
+    ...CYBER_REFERENCE_LINKS
+  ].map((entity) => ({
+    ...entity,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
   await upsertEntities(workspaceRoot, [...seededDomains, ...seededSourceControls]);
   await insertReferenceEntitiesIfMissing(workspaceRoot, [
     ...seededRequirements,
     ...seededDirections,
-    ...seededDirectionLinks
+    ...seededDirectionLinks,
+    ...seededCyberReferenceEntities
   ]);
 }
 

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://pspf.local/schemas/explorer-bundle/1.13.0/collections/mitigation-strategies.schema.json",
+  "title": "PSPF Explorer Mitigation Strategies Collection",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "code", "category", "summary", "maturityProfiles", "relatedRequirementIds", "relatedSourceControlIds", "externalRefs", "provenance"],
+    "additionalProperties": false,
+    "properties": {
+      "id": { "type": "string", "pattern": "^MST-" },
+      "entityType": { "const": "mitigation-strategy" },
+      "schemaVersion": { "const": "1.13.0" },
+      "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+      "createdAt": { "type": "string", "format": "date-time" },
+      "updatedAt": { "type": "string", "format": "date-time" },
+      "sourceProduct": { "enum": ["core", "workshop", "explorer", "shop"] },
+      "recordStatus": { "enum": ["active", "archived", "inactive", "deleted"] },
+      "code": { "type": "string", "minLength": 1, "maxLength": 80 },
+      "category": { "enum": ["essential-eight", "mitigation-strategy"] },
+      "summary": { "type": "string", "minLength": 1, "maxLength": 1000 },
+      "maturityProfiles": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+      "relatedRequirementIds": { "type": "array", "items": { "type": "string", "pattern": "^REQ-" } },
+      "relatedSourceControlIds": { "type": "array", "items": { "type": "string", "pattern": "^SRC-" } },
+      "externalRefs": { "$ref": "#/definitions/externalRefs" },
+      "provenance": { "$ref": "#/definitions/provenance" }
+    }
+  },
+  "definitions": {
+    "externalRefs": { "type": "array", "items": { "type": "object", "required": ["scheme", "value"], "additionalProperties": false, "properties": { "scheme": { "type": "string", "minLength": 1 }, "value": { "type": "string", "minLength": 1 } } } },
+    "provenance": { "type": "object", "required": ["sourceId", "sourceUrl", "licence", "attribution"], "additionalProperties": false, "properties": { "sourceId": { "type": "string", "minLength": 1 }, "sourceUrl": { "type": "string", "minLength": 1 }, "retrievedAt": { "type": "string", "format": "date-time" }, "licence": { "type": "string", "minLength": 1 }, "attribution": { "type": "string", "minLength": 1 } } }
+  }
+}

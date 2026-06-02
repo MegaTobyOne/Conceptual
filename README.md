@@ -2,7 +2,7 @@
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.36.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.12.0`.
+The repository currently ships PSPF v1.38.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.13.0`.
 
 ## Products
 
@@ -29,13 +29,19 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.36.0-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.38.0-readiness-report.md`.
 
 ## Current Workshop Slice
 
 Workshop is the main operator surface for evidence-backed assessment work. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
 
-Current v1.36 Workshop additions include:
+Current v1.38 additions include:
+
+- Cyber reference catalogue: curated ASD/ACSC cyber functions, Essential Eight and mitigation strategies, guidance frameworks, Trustworthy Software, secure configuration management, and queryable cyber-reference mappings.
+- Dataset diagnostics: `PSPF: Run Dataset Diagnostics` validates seeded cyber/reference counts, mapping endpoints, generated cyber links, schema versions, and public redaction, with a clean-start reset recovery action.
+- Explorer bundle schema `1.13.0`: publishes the new cyber reference collections and keeps mapping rationale sensitive by default.
+
+Recent Workshop additions include:
 
 - Digital CISO Magazine: a generated `OFFICIAL: Sensitive` issue for share-ready CISO communication.
 - CISO Master Plan: an active roadmap view derived from Strategy, Plan of Action, Risks, Evidence, Shop dependencies, and step-built initiative plans.
