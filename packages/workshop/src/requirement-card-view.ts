@@ -5,14 +5,16 @@ import type {
   EvidenceEntity,
   LinkEntity,
   RequirementEntity,
+  RequirementControlMappingEntity,
   RiskEntity,
+  SourceControlEntity,
   V01Entity
 } from "@pspf/contracts";
 
 export type RequirementCardRag = "green" | "amber" | "red" | "grey";
 
 export interface RequirementCardLinkRef {
-  readonly entityType: "evidence" | "action" | "risk";
+  readonly entityType: "evidence" | "action" | "risk" | "source-control";
   readonly id: string;
   readonly title: string;
   readonly detail: string;
@@ -31,9 +33,11 @@ export interface RequirementCardModel {
   readonly evidence: readonly RequirementCardLinkRef[];
   readonly actions: readonly RequirementCardLinkRef[];
   readonly risks: readonly RequirementCardLinkRef[];
+  readonly ismControls: readonly RequirementCardLinkRef[];
   readonly evidenceCount: number;
   readonly actionCount: number;
   readonly riskCount: number;
+  readonly ismControlCount: number;
   readonly evidenceGapCount: number;
   readonly linkedCount: number;
 }
@@ -100,15 +104,19 @@ export function buildRequirementCardViewModel(
   const evidence = activeEntities<EvidenceEntity>(entities, "evidence");
   const actions = activeEntities<ActionEntity>(entities, "action");
   const risks = activeEntities<RiskEntity>(entities, "risk");
+  const sourceControls = activeEntities<SourceControlEntity>(entities, "source-control");
+  const mappings = activeEntities<RequirementControlMappingEntity>(entities, "requirement-control-mapping");
   const links = activeEntities<LinkEntity>(entities, "link");
 
   const evidenceById = new Map(evidence.map((item) => [item.id, item]));
   const actionsById = new Map(actions.map((item) => [item.id, item]));
   const risksById = new Map(risks.map((item) => [item.id, item]));
+  const sourceControlsById = new Map(sourceControls.map((item) => [item.id, item]));
 
   const evidenceByRequirement = groupTargets(links, "supported-by", "requirement", "evidence");
   const actionsByRequirement = groupTargets(links, "addressed-by", "requirement", "action");
   const risksByRequirement = groupTargets(links, "exposed-by", "requirement", "risk");
+  const sourceControlsByRequirement = groupSourceControlsByRequirement(mappings);
 
   const cards = requirements.map((requirement) => {
     const evidenceRefs = (evidenceByRequirement.get(requirement.id) ?? [])
@@ -141,6 +149,16 @@ export function buildRequirementCardViewModel(
         detail: `Score ${item.likelihood * item.impact}`
       }))
       .sort(compareLinkRefs);
+    const ismControlRefs = (sourceControlsByRequirement.get(requirement.id) ?? [])
+      .map((id) => sourceControlsById.get(id))
+      .filter((item): item is SourceControlEntity => Boolean(item))
+      .map((item) => ({
+        entityType: "source-control" as const,
+        id: item.id,
+        title: `${item.controlId}: ${item.title}`,
+        detail: sourceControlImplementationStatusLabel(item.implementationStatus)
+      }))
+      .sort(compareLinkRefs);
     const evidenceGapCount = evidenceRefs.filter((ref) => ref.detail !== "Current").length;
     const summary = (requirement.summary ?? "").trim();
 
@@ -157,11 +175,13 @@ export function buildRequirementCardViewModel(
       evidence: evidenceRefs,
       actions: actionRefs,
       risks: riskRefs,
+      ismControls: ismControlRefs,
       evidenceCount: evidenceRefs.length,
       actionCount: actionRefs.length,
       riskCount: riskRefs.length,
+      ismControlCount: ismControlRefs.length,
       evidenceGapCount,
-      linkedCount: evidenceRefs.length + actionRefs.length + riskRefs.length
+      linkedCount: evidenceRefs.length + actionRefs.length + riskRefs.length + ismControlRefs.length
     } satisfies RequirementCardModel;
   });
 
@@ -191,6 +211,23 @@ export function buildRequirementCardViewModel(
       unlinked: cards.filter((card) => card.linkedCount === 0).length
     }
   };
+}
+
+function groupSourceControlsByRequirement(
+  mappings: readonly RequirementControlMappingEntity[]
+): ReadonlyMap<string, readonly string[]> {
+  const groups = new Map<string, string[]>();
+  for (const mapping of mappings) {
+    const existing = groups.get(mapping.requirementId);
+    if (existing) {
+      if (!existing.includes(mapping.sourceControlId)) {
+        existing.push(mapping.sourceControlId);
+      }
+    } else {
+      groups.set(mapping.requirementId, [mapping.sourceControlId]);
+    }
+  }
+  return groups;
 }
 
 function buildGroup(
@@ -289,6 +326,23 @@ function actionStatusLabel(status: ActionEntity["status"]): string {
     case "todo":
     default:
       return "To do";
+  }
+}
+
+function sourceControlImplementationStatusLabel(status: SourceControlEntity["implementationStatus"]): string {
+  switch (status) {
+    case "implemented":
+      return "Implemented";
+    case "partial":
+      return "Partially implemented";
+    case "not-implemented":
+      return "Not implemented";
+    case "not-applicable":
+      return "Not applicable";
+    case "under-review":
+      return "Under review";
+    default:
+      return "Not recorded";
   }
 }
 

@@ -122,3 +122,16 @@ test("Pub Organisation Chart renders a graphic team and role view", async () => 
   assert.match(source, /class="org-assignment-chip"/);
   assert.match(source, /Organisation chart detail/);
 });
+
+test("Pub Organisation Chart keeps the graphic focused on structure", async () => {
+  const source = await readFile(sourcePath, "utf8");
+  const orgChartMatch = source.match(
+    /function renderOrgChartHtml\(store: PubStore\): string \{[\s\S]*?function renderOrgChartAssignmentChip/
+  );
+  assert.ok(orgChartMatch, "organisation chart renderer should be present");
+  const orgChartSource = orgChartMatch[0];
+
+  assert.match(orgChartSource, /tableHtml\(\["Team", "Parent", "Role", "Reports to", "Assigned"\], rows, 5\)/);
+  assert.doesNotMatch(orgChartSource, /teamOrgTags/);
+  assert.doesNotMatch(orgChartSource, /No functional outcome recorded/);
+});

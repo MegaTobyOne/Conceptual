@@ -1450,8 +1450,7 @@ function renderOrgChartHtml(store: PubStore): string {
         const assignments = store.assignments.filter((assignment) => assignment.roleId === role.id);
         const assignedPeople =
           assignments.map((assignment) => personName(store, assignment.personId)).join(", ") || "No assignment";
-        const badges = assignments.map((assignment) => assignment.badge).filter(Boolean);
-        return `<tr><td>${escapeHtml(`${"  ".repeat(teamDepth.get(team.id) ?? 0)}${team.title}`)}</td><td>${escapeHtml(teamTitle(store, team.parentTeamId) || "Top level")}</td><td>${escapeHtml(controlSummary(team))}</td><td>${escapeHtml(role.title || "No role yet")}</td><td>${escapeHtml(roleTitle(store, role.reportsToRoleId) || "No reporting role")}</td><td>${escapeHtml(assignedPeople)}</td><td>${badges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join(" ") || "No badge"}</td><td>${escapeHtml(role.functionalOutcome)}</td></tr>`;
+        return `<tr><td>${escapeHtml(`${"  ".repeat(teamDepth.get(team.id) ?? 0)}${team.title}`)}</td><td>${escapeHtml(teamTitle(store, team.parentTeamId) || "Top level")}</td><td>${escapeHtml(role.title || "No role yet")}</td><td>${escapeHtml(roleTitle(store, role.reportsToRoleId) || "No reporting role")}</td><td>${escapeHtml(assignedPeople)}</td></tr>`;
       });
     })
     .join("");
@@ -1463,12 +1462,8 @@ function renderOrgChartHtml(store: PubStore): string {
       graphic
     )}${sectionHtml(
       "Organisation chart detail",
-      "Supporting table for scanning controls, reporting lines, assignments, and outcomes.",
-      tableHtml(
-        ["Team", "Parent", "Owned controls", "Role", "Reports to", "Assigned", "Badges", "Functional outcome"],
-        rows,
-        8
-      )
+      "Supporting table for scanning structure, reporting lines, and current assignments.",
+      tableHtml(["Team", "Parent", "Role", "Reports to", "Assigned"], rows, 5)
     )}</main>`
   );
 }
@@ -1511,8 +1506,6 @@ function renderOrgChartTeamNode(
   return `<article class="org-team-node" role="treeitem" aria-level="${(teamDepth.get(team.id) ?? 0) + 1}">
     <div class="org-team-card">
       <div class="org-team-heading"><span class="org-node-kicker">Team</span><h2>${escapeHtml(team.title)}</h2></div>
-      <p>${escapeHtml(team.responsibility || "No responsibility recorded")}</p>
-      <div class="tags">${teamOrgTags(team)}</div>
       <div class="org-role-grid">${roleCards}</div>
     </div>
     ${childHtml}
@@ -1529,24 +1522,12 @@ function renderOrgChartRoleCard(store: PubStore, role: RoleRecord): string {
   const reportsTo = roleTitle(store, role.reportsToRoleId);
   return `<article class="org-role-card">
     <div class="org-role-heading"><strong>${escapeHtml(role.title)}</strong>${reportsTo ? `<span>Reports to ${escapeHtml(reportsTo)}</span>` : `<span>No reporting role</span>`}</div>
-    <p>${escapeHtml(role.functionalOutcome || role.contribution || "No functional outcome recorded")}</p>
     <div class="org-assignment-row">${assignmentHtml}</div>
   </article>`;
 }
 
 function renderOrgChartAssignmentChip(store: PubStore, assignment: AssignmentRecord): string {
-  const details = [label(assignment.status), assignment.allocation, assignment.badge]
-    .filter(isNonEmptyString)
-    .join(" · ");
-  return `<span class="org-assignment-chip"><strong>${escapeHtml(personName(store, assignment.personId))}</strong><small>${escapeHtml(details || "Assigned")}</small></span>`;
-}
-
-function teamOrgTags(team: TeamRecord): string {
-  const tags = [
-    controlSummary(team),
-    ...team.ownedRequirementRefs.map((reference) => `Requirement ${reference}`)
-  ].filter(isNonEmptyString);
-  return tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
+  return `<span class="org-assignment-chip"><strong>${escapeHtml(personName(store, assignment.personId))}</strong><small>${escapeHtml(label(assignment.status))}</small></span>`;
 }
 
 function renderTeamsHtml(store: PubStore): string {

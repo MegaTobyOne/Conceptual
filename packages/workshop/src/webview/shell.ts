@@ -155,6 +155,7 @@ export function shellHtml(title: string, body: string): string {
     .requirement-browser__item:hover { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 8%, var(--surface-strong)); }
     .requirement-browser__item[aria-current="page"] { border-color: var(--workshop-blue); box-shadow: inset 3px 0 0 var(--workshop-blue); }
     .requirement-browser__number { display: block; color: var(--workshop-blue); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .requirement-browser__title-preview { display: -webkit-box; margin-top: 2px; color: var(--text); font-size: 12.5px; line-height: 1.25; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     .requirement-browser__meta { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .requirement-browser__content { min-width: 0; }
     .poa-board { display: grid; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
@@ -163,6 +164,16 @@ export function shellHtml(title: string, body: string): string {
     .poa-phase__header strong { font-size: 13px; }
     .poa-phase__header span { color: var(--muted); font-size: 12px; line-height: 1.35; }
     .poa-phase__tasks { display: grid; gap: 7px; }
+    .poa-master-range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 8px; color: var(--muted); font-size: 12px; }
+    .poa-master-range strong { color: var(--text); font-size: 13px; }
+    .poa-master-grid { position: relative; display: grid; gap: 7px; }
+    .poa-master-ruler { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 10px; align-items: end; color: var(--muted); font-size: 11px; }
+    .poa-master-ruler__spacer { font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .poa-ruler-track { position: relative; min-height: 24px; border-bottom: 1px solid var(--border); }
+    .poa-ruler-label { position: absolute; bottom: 4px; transform: translateX(-50%); white-space: nowrap; }
+    .poa-ruler-label:first-child { transform: translateX(0); }
+    .poa-ruler-label:last-child { transform: translateX(-100%); }
+    .poa-master-today-marker { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--amber); z-index: 3; pointer-events: none; }
     .poa-task { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 10px; align-items: center; }
     .poa-task[hidden] { display: none; }
     .poa-task__label { display: grid; gap: 2px; min-height: 34px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); background: var(--surface-strong); text-align: left; }
@@ -173,11 +184,16 @@ export function shellHtml(title: string, body: string): string {
     .poa-track { position: relative; min-height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 0 1px, transparent 1px 28px), color-mix(in srgb, var(--surface-strong) 80%, transparent); overflow: hidden; }
     .poa-today-marker { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--amber); z-index: 2; pointer-events: none; }
     .poa-bar { position: absolute; top: 5px; height: 22px; display: flex; align-items: center; min-width: 18px; max-width: calc(100% - 2px); border-radius: 999px; padding: 0 8px; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; box-sizing: border-box; overflow: hidden; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24); }
+    .poa-bar--unlabelled { padding: 0; }
     .poa-bar--blocked { background: #b42318; }
     .poa-bar--overdue { background: #b54708; }
     .poa-bar--due-soon { background: #1d4ed8; }
     .poa-bar--normal { background: #047857; }
-    .poa-status-filters { margin: 8px 0 12px; }
+    .poa-controls { display: grid; gap: 12px; }
+    .poa-controls h2, .poa-controls h3 { margin: 0; }
+    .poa-controls h3 { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .poa-filter-group, .poa-view-toggle { margin: 8px 0 0; }
+    .poa-master-schedule { background: linear-gradient(180deg, color-mix(in srgb, var(--pspf-ok) 8%, var(--surface)), var(--surface)); }
     .poa-status-filter[aria-pressed="false"] { opacity: 0.55; }
     .workshop-sensitivity { margin: 0; padding: 8px var(--pad-lg); }
     .muted { color: var(--muted); }

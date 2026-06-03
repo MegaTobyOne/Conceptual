@@ -2936,7 +2936,7 @@ function renderRequirementCardView(model: RequirementCardViewModel): string {
     <section>
       <p class="eyebrow">Workshop · Requirement cards</p>
       <h1>Requirement Card View</h1>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Flip a card to read its summary and open linked Evidence, Actions, and Risks. Cards are grouped by Domain and filterable by Domain, RAG status, and text.</p>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Flip a card to read its summary and open linked Evidence, Actions, Risks, and ISM controls. Cards are grouped by Domain and filterable by Domain, RAG status, and text.</p>
       ${versionStrip()}
       <div class="grid">
         ${metricCard("Requirements", model.totals.requirements)}
@@ -3008,6 +3008,7 @@ function requirementCard(card: RequirementCardModel): string {
           ${shellPill(`Evidence ${card.evidenceCount}`)}
           ${shellPill(`Actions ${card.actionCount}`)}
           ${shellPill(`Risks ${card.riskCount}`)}
+          ${shellPill(`ISM ${card.ismControlCount}`)}
           ${card.evidenceGapCount > 0 ? shellPill(`Gaps ${card.evidenceGapCount}`) : ""}
         </div>
         <p class="card-view-card__hint">Click to flip for detail →</p>
@@ -3021,6 +3022,7 @@ function requirementCard(card: RequirementCardModel): string {
         ${requirementCardLinkList("Evidence", card.evidence)}
         ${requirementCardLinkList("Actions", card.actions)}
         ${requirementCardLinkList("Risks", card.risks)}
+        ${requirementCardLinkList("ISM controls", card.ismControls)}
         <div class="form-actions card-view-card__investigate">
           <button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(card.id)}">Open requirement</button>
           <button type="button" data-command="pspf.workshop.openConnectedView">Trace in Connected View</button>
@@ -3056,10 +3058,10 @@ function requirementCardViewStyles(): string {
     .card-view-domain__header { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
     .card-view-domain__header h2 { margin: 0; }
     .card-view-domain__counts { display: flex; gap: 6px; flex-wrap: wrap; }
-    .card-view-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-    .card-view-card { perspective: 1200px; min-height: 220px; }
+    .card-view-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(312px, 1fr)); gap: 12px; }
+    .card-view-card { perspective: 1200px; min-height: 264px; }
     .card-view-card[hidden] { display: none; }
-    .card-view-card__inner { position: relative; width: 100%; height: 100%; min-height: 220px; transition: transform 0.5s; transform-style: preserve-3d; }
+    .card-view-card__inner { position: relative; width: 100%; height: 100%; min-height: 264px; transition: transform 0.5s; transform-style: preserve-3d; }
     .card-view-card.is-flipped .card-view-card__inner { transform: rotateY(180deg); }
     .card-view-card__face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--surface-strong); overflow: auto; }
     .card-view-card__front { cursor: pointer; }
@@ -4077,14 +4079,25 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
         <button type="button" data-command="pspf.workshop.openCisoMasterPlan">CISO Master Plan</button>
       </div>
     </section>
-    <section>
-      <h2>Timeline Preview</h2>
+    ${renderPlanOfActionScheduleControls(model)}
+    <section data-poa-view-section="master">
+      <h2>Master Schedule</h2>
+      <p class="muted">Single combined view of all Actions. Use the workstream and status filters to create a whole-of-work or sliced schedule.</p>
+      <div class="poa-master-range">
+        <strong>${escapeHtml(model.timelineStart)}</strong>
+        <span>to</span>
+        <strong>${escapeHtml(model.timelineEnd)}</strong>
+        <span>${model.totalDays} days · Today ${escapeHtml(model.today)}</span>
+      </div>
+      ${renderPlanOfActionMasterSchedule(model)}
+    </section>
+    <section data-poa-view-section="workstreams">
+      <h2>Workstream Timeline</h2>
       <p class="muted">${escapeHtml(model.timelineStart)} to ${escapeHtml(model.timelineEnd)} · ${model.totalDays} days · adaptive width ${Math.round(model.dayWidth * 10) / 10}px/day</p>
       <div class="poa-timeline-legend" aria-label="Timeline legend">
         <span class="poa-today-legend-line" aria-hidden="true"></span>
         <span>Today: ${escapeHtml(model.today)}</span>
       </div>
-      ${renderPlanOfActionStatusFilters()}
       ${renderPlanOfActionTimeline(model)}
     </section>
     ${renderPlanOfActionSupportCallout(model)}
@@ -4145,16 +4158,91 @@ function supportNeedLabel(urgency: string): string {
   return "Due soon";
 }
 
-function renderPlanOfActionStatusFilters(): string {
-  return `<div class="form-actions poa-status-filters" data-poa-status-filters>
+function renderPlanOfActionScheduleControls(model: PlanOfActionBoardModel): string {
+  return `<section class="poa-controls" data-poa-controls>
+    <div>
+      <h2>Schedule View</h2>
+      <div class="form-actions poa-view-toggle" data-poa-view-toggle>
+        <button type="button" class="poa-status-filter" data-poa-view="master" aria-pressed="true">Master schedule</button>
+        <button type="button" class="poa-status-filter" data-poa-view="workstreams" aria-pressed="false">Workstreams</button>
+        <button type="button" class="poa-status-filter" data-poa-view="both" aria-pressed="false">Both</button>
+      </div>
+    </div>
+    <div>
+      <h3>Status</h3>
+      <div class="form-actions poa-filter-group" data-poa-status-filters>
     ${actionStatusItems.map((item) => `<button type="button" class="poa-status-filter" data-poa-status-filter="${escapeHtml(item.value)}" aria-pressed="true">${escapeHtml(item.label)}</button>`).join("")}
     <button type="button" class="poa-status-filter" data-poa-status-filter="all">All</button>
+      </div>
+    </div>
+    <div>
+      <h3>Workstreams</h3>
+      <div class="form-actions poa-filter-group" data-poa-workstream-filters>
+        ${model.phases.map((phase) => `<button type="button" class="poa-status-filter" data-poa-workstream-filter="${escapeHtml(phase.id)}" aria-pressed="true">${escapeHtml(phase.title)}</button>`).join("")}
+        <button type="button" class="poa-status-filter" data-poa-workstream-filter="all">All</button>
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderPlanOfActionMasterSchedule(model: PlanOfActionBoardModel): string {
+  const tasks = model.phases
+    .flatMap((phase) => phase.tasks.map((task) => ({ task, phase })))
+    .sort(
+      (left, right) =>
+        left.task.startDate.localeCompare(right.task.startDate) || left.task.title.localeCompare(right.task.title)
+    );
+  if (tasks.length === 0) {
+    return `<p class="muted">No Actions are available yet. Create Actions or load the sample workspace to populate the master schedule.</p>`;
+  }
+  return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
+    <div class="poa-phase poa-master-schedule">
+      <div class="poa-phase__header">
+        <strong>All Actions</strong>
+        <span>Combined schedule across selected workstreams and statuses.</span>
+      </div>
+      <div class="poa-master-grid" style="--poa-width: ${model.timelineWidth}px;">
+        <div class="poa-master-today-marker" style="left: calc(220px + 10px + ${model.todayX}px);" aria-hidden="true" title="Today: ${escapeHtml(model.today)}"></div>
+        ${renderPlanOfActionMasterRuler(model)}
+        ${tasks.map(({ task, phase }) => renderPlanOfActionMasterTask(task, model.timelineWidth, phase.id, phase.title)).join("")}
+      </div>
+    </div>
   </div>`;
 }
 
+function renderPlanOfActionMasterRuler(model: PlanOfActionBoardModel): string {
+  const labels = planOfActionDateRulerLabels(model).map(
+    (labelItem) => `<span class="poa-ruler-label" style="left: ${labelItem.x}px;">${escapeHtml(labelItem.label)}</span>`
+  );
+  return `<div class="poa-master-ruler" aria-label="Master schedule date ruler">
+    <span class="poa-master-ruler__spacer">Actions</span>
+    <div class="poa-ruler-track" style="width: ${model.timelineWidth}px;">${labels.join("")}</div>
+  </div>`;
+}
+
+function planOfActionDateRulerLabels(
+  model: PlanOfActionBoardModel
+): readonly { readonly label: string; readonly x: number }[] {
+  const labelCount = Math.min(6, Math.max(2, Math.floor(model.timelineWidth / 160) + 1));
+  return Array.from({ length: labelCount }, (_, index) => {
+    const dayOffset = Math.round(((model.totalDays - 1) * index) / Math.max(1, labelCount - 1));
+    const labelDate = addUtcDays(model.timelineStart, dayOffset);
+    return {
+      label: formatShortAuDateTime(labelDate) ?? labelDate,
+      x: Math.round(dayOffset * model.dayWidth)
+    };
+  });
+}
+
+function addUtcDays(isoDate: string, days: number): string {
+  const date = new Date(`${isoDate}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
 function renderPlanOfActionTimeline(model: PlanOfActionBoardModel): string {
-  if (model.metrics.actions === 0) {
-    return `<p class="muted">No open Actions are available yet. Create Actions or load the sample workspace to populate the Plan of Action.</p>`;
+  if (!model.phases.some((phase) => phase.tasks.length > 0)) {
+    return `<p class="muted">No Actions are available yet. Create Actions or load the sample workspace to populate the Plan of Action.</p>`;
   }
   return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
     ${model.phases.map((phase) => renderPlanOfActionPhase(phase, model.timelineWidth, model.todayX, model.today)).join("")}
@@ -4168,9 +4256,11 @@ function renderPlanOfActionPhase(
   today: string
 ): string {
   const tasks = phase.tasks.length
-    ? phase.tasks.map((task) => renderPlanOfActionTask(task, timelineWidth, todayX, today)).join("")
+    ? phase.tasks
+        .map((task) => renderPlanOfActionTask(task, timelineWidth, todayX, today, phase.id, phase.title))
+        .join("")
     : `<p class="muted">No open Actions currently sit in this workstream.</p>`;
-  return `<div class="poa-phase">
+  return `<div class="poa-phase" data-poa-phase data-poa-workstream="${escapeHtml(phase.id)}">
     <div class="poa-phase__header">
       <strong>${escapeHtml(phase.title)}</strong>
       <span>${escapeHtml(phase.summary)}</span>
@@ -4183,18 +4273,38 @@ function renderPlanOfActionTask(
   task: PlanOfActionTaskModel,
   timelineWidth: number,
   todayX: number,
-  today: string
+  today: string,
+  workstreamId: string,
+  workstreamTitle: string
 ): string {
   const barClass = `poa-bar poa-bar--${task.urgency}`;
   const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
-  return `<div class="poa-task" data-poa-task data-poa-status="${escapeHtml(task.status)}">
+  return `<div class="poa-task" data-poa-task data-poa-status="${escapeHtml(task.status)}" data-poa-workstream="${escapeHtml(workstreamId)}">
     <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
       <strong>${escapeHtml(task.title)}</strong>
-      <span>${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
+      <span>${escapeHtml(workstreamTitle)} · ${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
     </button>
     <div class="poa-track" style="width: ${timelineWidth}px;">
       ${renderPlanOfActionTodayMarker(todayX, today)}
       <div class="${escapeHtml(barClass)}" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}">${barLabel}</div>
+    </div>
+  </div>`;
+}
+
+function renderPlanOfActionMasterTask(
+  task: PlanOfActionTaskModel,
+  timelineWidth: number,
+  workstreamId: string,
+  workstreamTitle: string
+): string {
+  const barClass = `poa-bar poa-bar--${task.urgency}`;
+  return `<div class="poa-task poa-task--master" data-poa-task data-poa-status="${escapeHtml(task.status)}" data-poa-workstream="${escapeHtml(workstreamId)}">
+    <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
+      <strong>${escapeHtml(task.title)}</strong>
+      <span>${escapeHtml(workstreamTitle)} · ${escapeHtml(label(task.status))}</span>
+    </button>
+    <div class="poa-track" style="width: ${timelineWidth}px;">
+      <div class="${escapeHtml(barClass)} poa-bar--unlabelled" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}"></div>
     </div>
   </div>`;
 }
@@ -4206,29 +4316,53 @@ function renderPlanOfActionTodayMarker(todayX: number, today: string): string {
 function planOfActionFilterScript(): string {
   return `<script>
 (() => {
-  const root = document.querySelector('[data-poa-status-filters]');
+  const root = document.querySelector('[data-poa-controls]');
   if (!root) return;
-  const buttons = Array.from(root.querySelectorAll('[data-poa-status-filter]'));
+  const statusButtons = Array.from(root.querySelectorAll('[data-poa-status-filter]'));
+  const workstreamButtons = Array.from(root.querySelectorAll('[data-poa-workstream-filter]'));
+  const viewButtons = Array.from(root.querySelectorAll('[data-poa-view]'));
   const taskSelector = '[data-poa-task]';
-  function selectedStatuses() {
-    return new Set(buttons.filter((button) => button.dataset.poaStatusFilter !== 'all' && button.getAttribute('aria-pressed') !== 'false').map((button) => button.dataset.poaStatusFilter));
+  function selectedValues(buttons, key) {
+    return new Set(buttons.filter((button) => button.dataset[key] !== 'all' && button.getAttribute('aria-pressed') !== 'false').map((button) => button.dataset[key]));
+  }
+  function selectedView() {
+    return viewButtons.find((button) => button.getAttribute('aria-pressed') === 'true')?.dataset.poaView || 'master';
   }
   function applyFilters() {
-    const selected = selectedStatuses();
+    const statuses = selectedValues(statusButtons, 'poaStatusFilter');
+    const workstreams = selectedValues(workstreamButtons, 'poaWorkstreamFilter');
     document.querySelectorAll(taskSelector).forEach((task) => {
-      task.hidden = !selected.has(task.dataset.poaStatus);
+      task.hidden = !statuses.has(task.dataset.poaStatus) || !workstreams.has(task.dataset.poaWorkstream);
+    });
+    document.querySelectorAll('[data-poa-phase]').forEach((phase) => {
+      phase.hidden = !workstreams.has(phase.dataset.poaWorkstream) || !Array.from(phase.querySelectorAll(taskSelector)).some((task) => !task.hidden);
+    });
+    const view = selectedView();
+    document.querySelectorAll('[data-poa-view-section]').forEach((section) => {
+      const name = section.dataset.poaViewSection;
+      section.hidden = view !== 'both' && name !== view;
     });
   }
-  buttons.forEach((button) => {
+  function wireMultiSelect(buttons, key) {
+    buttons.forEach((button) => {
     button.addEventListener('click', () => {
-      const value = button.dataset.poaStatusFilter;
+      const value = button.dataset[key];
       if (value === 'all') {
         buttons.forEach((item) => {
-          if (item.dataset.poaStatusFilter !== 'all') item.setAttribute('aria-pressed', 'true');
+          if (item.dataset[key] !== 'all') item.setAttribute('aria-pressed', 'true');
         });
       } else {
         button.setAttribute('aria-pressed', button.getAttribute('aria-pressed') === 'false' ? 'true' : 'false');
       }
+      applyFilters();
+    });
+  });
+  }
+  wireMultiSelect(statusButtons, 'poaStatusFilter');
+  wireMultiSelect(workstreamButtons, 'poaWorkstreamFilter');
+  viewButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      viewButtons.forEach((item) => item.setAttribute('aria-pressed', item === button ? 'true' : 'false'));
       applyFilters();
     });
   });
@@ -4597,6 +4731,9 @@ function essentialEightNextStep(status: string, evidenceCount: number, openActio
 }
 
 function essentialEightStrategyForRequirement(requirement: RequirementEntity): EssentialEightStrategy | undefined {
+  if (requirement.id === "REQ-PSPF-2025-092") {
+    return undefined;
+  }
   const text = `${requirement.id} ${requirement.title} ${requirement.summary ?? ""}`.toLocaleLowerCase("en-AU");
   return ESSENTIAL_EIGHT_STRATEGIES.find(
     (strategy) =>
@@ -8619,15 +8756,25 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.core.exportBundle",
         "pspf.shop.openForecast",
         "pspf.workshop.createAction",
+        "pspf.workshop.createRisk",
         "pspf.workshop.attachEvidence",
+        "pspf.workshop.loadSampleWorkspace",
+        "pspf.workshop.loadHomeSampleWorkspace",
         "pspf.workshop.openAssessmentDashboard",
         "pspf.workshop.openConnectedView",
         "pspf.workshop.openMasterDashboard",
         "pspf.workshop.openEssentialEightDashboard",
+        "pspf.workshop.openPspfGridView",
+        "pspf.workshop.openHumanCentredRiskView",
+        "pspf.workshop.openContinuousComplianceMetro",
+        "pspf.workshop.openPentestWorkbench",
+        "pspf.workshop.openRequirementCardView",
         "pspf.workshop.openPlanOfActionBoard",
         "pspf.workshop.openStrategyMap",
         "pspf.workshop.editStrategySummary",
         "pspf.workshop.createRoadmapInitiativePlan",
+        "pspf.workshop.addPlannerTask",
+        "pspf.workshop.addPlannerMilestone",
         "pspf.workshop.openRiskSourcePanel",
         "pspf.workshop.configureRiskSource",
         "pspf.workshop.testRiskSource",
@@ -8635,8 +8782,10 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.applyRiskSourceImport",
         "pspf.workshop.viewRiskSourceRuns",
         "pspf.workshop.openEvidenceReviewQueue",
+        "pspf.workshop.openIsmReviewWorkbench",
         "pspf.workshop.browseIsmSourceControls",
         "pspf.workshop.createRequirementControlMapping",
+        "pspf.workshop.manageTags",
         "pspf.workshop.copyPostureBrief",
         "pspf.workshop.openCisoNewsletterReview",
         "pspf.workshop.openCisoMagazine",
@@ -9215,6 +9364,7 @@ function requirementBrowserNavItem(
   filterText = ""
 ): string {
   const title = requirement.title;
+  const titlePreview = requirementBrowserTitlePreview(title);
   const domain = domainName(requirement.domainId);
   const status = label(requirement.assessmentStatus);
   const searchText = `${title} ${domain} ${status} ${requirement.id}`;
@@ -9222,8 +9372,14 @@ function requirementBrowserNavItem(
   const hidden = normalisedFilter && !searchText.toLocaleLowerCase("en-AU").includes(normalisedFilter);
   return `<button type="button" class="requirement-browser__item" role="listitem" title="${escapeHtml(title)}" aria-label="${escapeHtml(`${requirementNumberLabel(requirement)}. ${title}. ${domain}. ${status}`)}" data-command="openRequirementInEditor" data-requirement-id="${escapeHtml(requirement.id)}" data-status="${escapeHtml(requirement.assessmentStatus)}" data-domain="${escapeHtml(requirement.domainId)}" data-direction-targeted="${isDirectionTargeted ? "true" : "false"}" data-search="${escapeHtml(searchText)}"${isCurrent ? ' aria-current="page"' : ""}${hidden ? " hidden" : ""}>
     <span class="requirement-browser__number">${escapeHtml(requirementNumberLabel(requirement))}</span>
+    <span class="requirement-browser__title-preview">${escapeHtml(titlePreview)}</span>
     <span class="requirement-browser__meta">${escapeHtml(domain)} · ${escapeHtml(status)}</span>
   </button>`;
+}
+
+function requirementBrowserTitlePreview(title: string): string {
+  const naturalTitle = title.replace(/^\s*PSPF\s+\d+[A-Za-z]?\s*-\s*/i, "").trim();
+  return naturalTitle || title;
 }
 
 function requirementStatusCounts(requirements: readonly RequirementEntity[]): Map<AssessmentStatus, number> {

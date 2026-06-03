@@ -58,6 +58,17 @@ test("requirement browser exposes domain tabs, Directions lens, and clearable fi
   assert.match(source, /directionTargetRequirementIds/);
 });
 
+test("requirement browser list shows a compact natural-language title preview", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const shellSource = await readFile(new URL("../src/webview/shell.ts", import.meta.url), "utf8");
+
+  assert.match(source, /function requirementBrowserTitlePreview/);
+  assert.match(source, /class="requirement-browser__title-preview"/);
+  assert.match(source, /replace\(\/\^\\s\*PSPF/);
+  assert.match(shellSource, /\.requirement-browser__title-preview/);
+  assert.match(shellSource, /-webkit-line-clamp: 2/);
+});
+
 test("Workshop Strategy trends render labelled arrow indicators", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
@@ -79,6 +90,55 @@ test("Essential Eight dashboard renders visual posture charts", async () => {
   assert.match(source, /Strategy Readiness/);
   assert.match(source, /readonly statusCounts/);
   assert.match(source, /readonly strategyStatusCounts/);
+});
+
+test("Plan of Action exposes master schedule and slice controls", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /function renderPlanOfActionMasterSchedule/);
+  assert.match(source, /data-poa-view="master"/);
+  assert.match(source, /data-poa-view="workstreams"/);
+  assert.match(source, /data-poa-workstream-filter/);
+  assert.match(source, /data-poa-status-filter/);
+  assert.match(source, /data-poa-workstream=/);
+  assert.match(source, /<section data-poa-view-section="master">/);
+  assert.match(source, /function renderPlanOfActionMasterTask/);
+  assert.match(source, /class="poa-master-range"/);
+  assert.match(source, /class="poa-master-today-marker"/);
+  assert.match(source, /poa-bar--unlabelled/);
+  assert.match(source, /function renderPlanOfActionMasterRuler/);
+  assert.match(source, /function planOfActionDateRulerLabels/);
+  assert.match(source, /class="poa-master-ruler"/);
+  assert.match(source, /<span>\$\{escapeHtml\(workstreamTitle\)\} · \$\{escapeHtml\(label\(task\.status\)\)\}<\/span>/);
+});
+
+test("Requirement 92 is excluded from Essential Eight dashboard matching", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /requirement\.id === "REQ-PSPF-2025-092"/);
+});
+
+test("Requirement cards are larger and render ISM controls", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /minmax\(312px, 1fr\)/);
+  assert.match(source, /min-height: 264px/);
+  assert.match(source, /shellPill\(`ISM \$\{card\.ismControlCount\}`\)/);
+  assert.match(source, /requirementCardLinkList\("ISM controls", card\.ismControls\)/);
+});
+
+test("major feature view buttons can pass through the panel command bridge", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const panelCommandMatch = source.match(/const allowedPanelCommands = new Set\(\[([\s\S]*?)\]\);/);
+  assert.ok(panelCommandMatch, "panel command allow-list should be present");
+  const panelCommandBlock = panelCommandMatch[1];
+  assert.ok(panelCommandBlock, "panel command allow-list should have a command block");
+
+  const renderedCommands = [...source.matchAll(/data-command="(pspf\.[^"]+)"/g)].map((match) => match[1]);
+  const allowedPanelCommands = new Set([...panelCommandBlock.matchAll(/"(pspf\.[^"]+)"/g)].map((match) => match[1]));
+  const missingCommands = [...new Set(renderedCommands.filter((command) => !allowedPanelCommands.has(command)))].sort();
+
+  assert.deepEqual(missingCommands, []);
 });
 
 test("Workshop exposes ISM Review Workbench queues", async () => {

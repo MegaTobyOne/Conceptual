@@ -7,8 +7,10 @@ import {
   type EvidenceEntity,
   type LinkEntity,
   type RequirementEntity,
+  type RequirementControlMappingEntity,
   type RiskEntity,
   type ActionEntity,
+  type SourceControlEntity,
   type V01Entity,
   type V01EntityType
 } from "@pspf/contracts";
@@ -39,6 +41,8 @@ test("card view groups requirements by domain and counts linked records", () => 
   const staleEvidence = evidence("EVD-2", "Access review", "stale");
   const followUp = action("ACT-1", "Tighten dormant accounts", "in-progress");
   const exposure = riskEntity("RSK-1", "Privileged misuse");
+  const sourceControl = ismControl("SRC-1", "ISM-1234", "Privileged access review", "partial");
+  const mapping = requirementControlMapping("MAP-1", reqPersonnel.id, sourceControl.id);
 
   const entities: V01Entity[] = [
     reqGovernance,
@@ -47,6 +51,8 @@ test("card view groups requirements by domain and counts linked records", () => 
     staleEvidence,
     followUp,
     exposure,
+    sourceControl,
+    mapping,
     link("L1", "supported-by", reqGovernance.id, "requirement", currentEvidence.id, "evidence"),
     link("L2", "supported-by", reqPersonnel.id, "requirement", staleEvidence.id, "evidence"),
     link("L3", "addressed-by", reqPersonnel.id, "requirement", followUp.id, "action"),
@@ -70,8 +76,17 @@ test("card view groups requirements by domain and counts linked records", () => 
   assert.equal(personnelCard.evidenceCount, 1);
   assert.equal(personnelCard.actionCount, 1);
   assert.equal(personnelCard.riskCount, 1);
+  assert.equal(personnelCard.ismControlCount, 1);
+  assert.deepEqual(personnelCard.ismControls, [
+    {
+      entityType: "source-control",
+      id: sourceControl.id,
+      title: "ISM-1234: Privileged access review",
+      detail: "Partially implemented"
+    }
+  ]);
   assert.equal(personnelCard.evidenceGapCount, 1);
-  assert.equal(personnelCard.linkedCount, 3);
+  assert.equal(personnelCard.linkedCount, 4);
 });
 
 test("domains with no requirements are omitted and groups follow domain order", () => {
@@ -141,6 +156,53 @@ function riskEntity(id: string, title: string): RiskEntity {
     status: "monitored",
     likelihood: 3,
     impact: 4
+  };
+}
+
+function ismControl(
+  id: string,
+  controlId: string,
+  title: string,
+  implementationStatus: SourceControlEntity["implementationStatus"]
+): SourceControlEntity {
+  return {
+    ...envelope(id, "source-control"),
+    entityType: "source-control",
+    title,
+    controlId,
+    statement: "Review privileged access periodically.",
+    profileTags: ["E8-Admin"],
+    implementationStatus,
+    statementChangeStatus: "unchanged",
+    externalRefs: [],
+    provenance: {
+      oscalRelease: "v2026.03.24",
+      catalog: "ISM",
+      profile: null,
+      sourceUrl: "https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/ism"
+    }
+  };
+}
+
+function requirementControlMapping(
+  id: string,
+  requirementId: string,
+  sourceControlId: string
+): RequirementControlMappingEntity {
+  return {
+    ...envelope(id, "requirement-control-mapping"),
+    entityType: "requirement-control-mapping",
+    requirementId,
+    sourceControlId,
+    coverageQualifier: "primary",
+    applicabilityProfile: "E8-Admin",
+    confidence: "medium",
+    rationale: "Human-reviewed mapping for test coverage.",
+    provenance: {
+      author: "workshop-test",
+      createdAt: "2026-05-01T00:00:00.000Z",
+      oscalRelease: "v2026.03.24"
+    }
   };
 }
 

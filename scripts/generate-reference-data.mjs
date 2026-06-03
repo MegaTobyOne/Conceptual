@@ -188,6 +188,8 @@ const domainDefinitions = [
   }
 ];
 
+const pspfRequirementTitleOverrides = new Map([[92, "Approved TikTok use on standalone devices"]]);
+
 await mkdir(join(packageRoot, "src", "generated"), { recursive: true });
 await mkdir(join(packageRoot, "data"), { recursive: true });
 
@@ -239,7 +241,7 @@ const pspfBaselineRequirements = pspfReferences.map((requirement) => ({
   id: requirement.requirementId,
   entityType: "requirement",
   schemaVersion: GENERATED_SCHEMA_VERSION,
-  title: `PSPF ${String(requirement.requirementNumber).padStart(3, "0")} - ${requirement.statement}`,
+  title: formatPspfRequirementTitle(requirement),
   domainId: requirement.domainId,
   assessmentStatus: "not-started",
   sourceProduct: "core",
@@ -341,6 +343,11 @@ function extractPspfRequirements(pdfPath, sourceHash) {
   const references = entries.map((entry) => parsePspfEntry(entry, sourceHash));
   references.sort((left, right) => left.requirementNumber - right.requirementNumber);
   return references;
+}
+
+function formatPspfRequirementTitle(requirement) {
+  const prefix = `PSPF ${String(requirement.requirementNumber).padStart(3, "0")} - `;
+  return `${prefix}${pspfRequirementTitleOverrides.get(requirement.requirementNumber) ?? requirement.statement}`;
 }
 
 function parsePspfEntry(entry, sourceHash) {

@@ -165,7 +165,7 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
   const scopedRequirementIds = new Set(scopedRequirements.map((requirement) => requirement.id));
   const requirementsById = new Map(input.requirements.map((requirement) => [requirement.id, requirement]));
   const domainTitlesById = new Map(input.domains.map((domain) => [domain.id, domain.title]));
-  const requirementTitlesByTargetId = buildRequirementTitlesByTargetId(input.links, requirementsById);
+  const requirementSummariesByTargetId = buildRequirementSummariesByTargetId(input.links, requirementsById);
   const targetIdsByRequirement = buildTargetIdsByRequirement(input.links);
   const scopedActionIds = new Set(
     scopedRequirements.flatMap((requirement) => targetIdsByRequirement.get(requirement.id)?.actions ?? [])
@@ -244,7 +244,7 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
       masterPlan
     ),
     attentionItems: buildAttentionItems(requirementsNeedingAttention, input.domains, domainTitlesById).slice(0, 8),
-    actionStrip: buildActionStrip(openActions, requirementTitlesByTargetId).slice(0, 8),
+    actionStrip: buildActionStrip(openActions, requirementSummariesByTargetId).slice(0, 8),
     commercialWatch: buildCommercialWatch(linkedSpendItems).slice(0, 6),
     masterPlan,
     readerActions: buildReaderActions(
@@ -740,7 +740,7 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
 
 export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
   const requirementsById = new Map(input.requirements.map((requirement) => [requirement.id, requirement]));
-  const requirementTitlesByTargetId = buildRequirementTitlesByTargetId(input.links, requirementsById);
+  const requirementSummariesByTargetId = buildRequirementSummariesByTargetId(input.links, requirementsById);
   const evidenceIdsByRequirement = buildIdsByRequirement(input.links, "supported-by", "evidence");
   const evidenceById = new Map(input.evidence.map((item) => [item.id, item]));
   const openActions = input.actions.filter((action) => !["done", "cancelled"].includes(action.status));
@@ -819,7 +819,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
       ? ["- None recorded."]
       : openActions.map(
           (action) =>
-            `- ${action.title} (${label(action.status)}${action.dueDate ? `, due ${action.dueDate}` : ""}) - ${requirementTitlesByTargetId.get(action.id) ?? "No linked requirement"}${latestActionCommentary(action) ? `; latest update: ${latestActionCommentary(action)}` : ""}`
+            `- ${action.title} (${label(action.status)}${action.dueDate ? `, due ${action.dueDate}` : ""}) - ${requirementSummariesByTargetId.get(action.id) ?? "No linked requirement"}${latestActionCommentary(action) ? `; latest update: ${latestActionCommentary(action)}` : ""}`
         )),
     "",
     "## Open Risks",
@@ -828,7 +828,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
       ? ["- None recorded."]
       : openRisks.map(
           (risk) =>
-            `- ${risk.title} (${label(risk.status)}, likelihood ${risk.likelihood}, impact ${risk.impact}) - ${requirementTitlesByTargetId.get(risk.id) ?? "No linked requirement"}`
+            `- ${risk.title} (${label(risk.status)}, likelihood ${risk.likelihood}, impact ${risk.impact}) - ${requirementSummariesByTargetId.get(risk.id) ?? "No linked requirement"}`
         )),
     "",
     "## Directions",
@@ -837,7 +837,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
       ? ["- None registered."]
       : directions.map(
           (direction) =>
-            `- ${direction.reference}: ${direction.title} (${label(direction.responseState)}${direction.sourceAuthority ? `, ${direction.sourceAuthority}` : ""})`
+            `- ${label(direction.responseState)} - ${direction.reference}: ${direction.title}${direction.sourceAuthority ? ` (${direction.sourceAuthority})` : ""}`
         )),
     "",
     "Note: internal summaries and restricted personal fields are excluded from this brief."
@@ -874,7 +874,7 @@ function buildIsmControlPostureRows(
 export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRenderer = (() => {
   function renderPostureBriefMarkdown(input) {
     const requirementsById = new Map((input.requirements || []).map((requirement) => [requirement.id, requirement]));
-    const requirementTitlesByTargetId = buildRequirementTitlesByTargetId(input.links || [], requirementsById);
+    const requirementSummariesByTargetId = buildRequirementSummariesByTargetId(input.links || [], requirementsById);
     const evidenceIdsByRequirement = buildIdsByRequirement(input.links || [], "supported-by", "evidence");
     const evidenceById = new Map((input.evidence || []).map((item) => [item.id, item]));
     const openActions = (input.actions || []).filter((action) => !["done", "cancelled"].includes(action.status));
@@ -940,15 +940,15 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "",
       "## Open Actions",
       "",
-      ...(openActions.length === 0 ? ["- None recorded."] : openActions.map((action) => "- " + action.title + " (" + label(action.status) + (action.dueDate ? ", due " + action.dueDate : "") + ") - " + (requirementTitlesByTargetId.get(action.id) || "No linked requirement") + (latestActionCommentary(action) ? "; latest update: " + latestActionCommentary(action) : ""))),
+      ...(openActions.length === 0 ? ["- None recorded."] : openActions.map((action) => "- " + action.title + " (" + label(action.status) + (action.dueDate ? ", due " + action.dueDate : "") + ") - " + (requirementSummariesByTargetId.get(action.id) || "No linked requirement") + (latestActionCommentary(action) ? "; latest update: " + latestActionCommentary(action) : ""))),
       "",
       "## Open Risks",
       "",
-      ...(openRisks.length === 0 ? ["- None recorded."] : openRisks.map((risk) => "- " + risk.title + " (" + label(risk.status) + ", likelihood " + risk.likelihood + ", impact " + risk.impact + ") - " + (requirementTitlesByTargetId.get(risk.id) || "No linked requirement"))),
+      ...(openRisks.length === 0 ? ["- None recorded."] : openRisks.map((risk) => "- " + risk.title + " (" + label(risk.status) + ", likelihood " + risk.likelihood + ", impact " + risk.impact + ") - " + (requirementSummariesByTargetId.get(risk.id) || "No linked requirement"))),
       "",
       "## Directions",
       "",
-      ...(directions.length === 0 ? ["- None registered."] : directions.map((direction) => "- " + direction.reference + ": " + direction.title + " (" + label(direction.responseState) + (direction.sourceAuthority ? ", " + direction.sourceAuthority : "") + ")")),
+      ...(directions.length === 0 ? ["- None registered."] : directions.map((direction) => "- " + label(direction.responseState) + " - " + direction.reference + ": " + direction.title + (direction.sourceAuthority ? " (" + direction.sourceAuthority + ")" : ""))),
       "",
       "Note: internal summaries and restricted personal fields are excluded from this brief."
     ].join("\n");
@@ -1008,8 +1008,8 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     const choices = (strategy.choices || []).slice(0, 3).map((choice) => "- Choice: " + choice.statement + " - " + choice.targetPosture);
     return [...rows, ...choices];
   }
-  function buildRequirementTitlesByTargetId(links, requirementsById) {
-    const titlesByTargetId = new Map();
+  function buildRequirementSummariesByTargetId(links, requirementsById) {
+    const refsByTargetId = new Map();
     for (const link of links) {
       if (link.fromType !== "requirement") {
         continue;
@@ -1018,9 +1018,20 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       if (!requirement) {
         continue;
       }
-      titlesByTargetId.set(link.toId, [...(titlesByTargetId.get(link.toId) || []), requirement.title]);
+      refsByTargetId.set(link.toId, [...(refsByTargetId.get(link.toId) || []), requirementReference(requirement)]);
     }
-    return new Map(Array.from(titlesByTargetId.entries()).map(([targetId, titles]) => [targetId, titles.join("; ")]));
+    return new Map(Array.from(refsByTargetId.entries()).map(([targetId, refs]) => {
+      const uniqueRefs = [...new Set(refs)].sort((left, right) => left.localeCompare(right, "en-AU", { numeric: true }));
+      return [targetId, uniqueRefs.join(", ") + " (" + uniqueRefs.length + " linked)"];
+    }));
+  }
+  function requirementReference(requirement) {
+    const number = String(requirement.title || "").match(/^\s*(\d+[A-Za-z]?)\b/)?.[1];
+    return number ? "Req " + number : "Req " + compactEntityId(requirement.id);
+  }
+  function compactEntityId(id) {
+    const parts = String(id || "").split("-").filter(Boolean);
+    return parts.at(-1) || id;
   }
   function buildIdsByRequirement(links, linkType, toType) {
     const idsByRequirement = new Map();
@@ -1077,11 +1088,11 @@ function strategyRows(strategy: StrategyEntity | undefined): readonly string[] {
   return [...rows, ...choices];
 }
 
-function buildRequirementTitlesByTargetId(
+function buildRequirementSummariesByTargetId(
   links: readonly LinkEntity[],
   requirementsById: ReadonlyMap<string, RequirementEntity>
 ): ReadonlyMap<string, string> {
-  const titlesByTargetId = new Map<string, string[]>();
+  const refsByTargetId = new Map<string, string[]>();
   for (const link of links) {
     if (link.fromType !== "requirement") {
       continue;
@@ -1090,9 +1101,26 @@ function buildRequirementTitlesByTargetId(
     if (!requirement) {
       continue;
     }
-    titlesByTargetId.set(link.toId, [...(titlesByTargetId.get(link.toId) ?? []), requirement.title]);
+    refsByTargetId.set(link.toId, [...(refsByTargetId.get(link.toId) ?? []), requirementReference(requirement)]);
   }
-  return new Map(Array.from(titlesByTargetId.entries()).map(([targetId, titles]) => [targetId, titles.join("; ")]));
+  return new Map(
+    [...refsByTargetId.entries()].map(([targetId, refs]) => {
+      const uniqueRefs = [...new Set(refs)].sort((left, right) =>
+        left.localeCompare(right, "en-AU", { numeric: true })
+      );
+      return [targetId, `${uniqueRefs.join(", ")} (${uniqueRefs.length} linked)`];
+    })
+  );
+}
+
+function requirementReference(requirement: RequirementEntity): string {
+  const number = requirement.title.match(/^\s*(\d+[A-Za-z]?)\b/)?.[1];
+  return number ? `Req ${number}` : `Req ${compactEntityId(requirement.id)}`;
+}
+
+function compactEntityId(id: string): string {
+  const parts = id.split("-").filter(Boolean);
+  return parts.at(-1) ?? id;
 }
 
 function buildIdsByRequirement(
@@ -1248,7 +1276,7 @@ function buildAttentionItems(
 
 function buildActionStrip(
   actions: readonly ActionEntity[],
-  requirementTitlesByTargetId: ReadonlyMap<string, string>
+  requirementSummariesByTargetId: ReadonlyMap<string, string>
 ): readonly CisoMagazineActionItem[] {
   return [...actions]
     .sort((left, right) => actionPriority(right) - actionPriority(left))
@@ -1257,7 +1285,7 @@ function buildActionStrip(
       title: action.title,
       status: label(action.status),
       dueDate: action.dueDate,
-      linkedRequirement: requirementTitlesByTargetId.get(action.id),
+      linkedRequirement: requirementSummariesByTargetId.get(action.id),
       latestUpdate: latestActionCommentary(action)
     }));
 }

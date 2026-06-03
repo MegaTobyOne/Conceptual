@@ -1,6 +1,6 @@
 {
   "name": "@pspf/connected-view",
-  "version": "1.38.0",
+  "version": "1.38.1",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
