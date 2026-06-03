@@ -32,15 +32,40 @@ test("posture brief includes evidence basis and excludes sensitive requirement s
   assert.doesNotMatch(brief, /Internal assessment working note/);
 });
 
+test("clipboard markdown uses compact action requirement refs and status-first Directions", () => {
+  const fixture = briefFixture();
+  const baseRequirement = fixture.requirements[0];
+  assert.ok(baseRequirement);
+  const requirement = { ...baseRequirement, title: "17 Validate governance reporting workflow" };
+  const direction = withEnvelope(
+    "direction",
+    {
+      entityType: "direction",
+      title: "Approve cloud control plan",
+      reference: "DIR-2026-01",
+      responseState: "yes",
+      sourceAuthority: "CISO"
+    },
+    "workshop"
+  );
+  const brief = renderPostureBriefMarkdown({
+    ...fixture,
+    requirements: [requirement],
+    directions: [direction]
+  });
+
+  assert.match(brief, /Confirm next governance review date .* - Req 17 \(1 linked\)/);
+  assert.doesNotMatch(brief, /Confirm next governance review date .*Validate governance reporting workflow/);
+  assert.match(brief, /- Yes - DIR-2026-01: Approve cloud control plan \(CISO\)/);
+});
+
 test("browser posture brief renderer matches the package renderer", () => {
   const context = { globalThis: {} };
+  const fixture = briefFixture();
   vm.runInNewContext(POSTURE_BRIEF_BROWSER_SCRIPT, context);
   const renderer = context.globalThis as { pspfBriefRenderer: { renderPostureBriefMarkdown(input: unknown): string } };
 
-  assert.equal(
-    renderer.pspfBriefRenderer.renderPostureBriefMarkdown(briefFixture()),
-    renderPostureBriefMarkdown(briefFixture())
-  );
+  assert.equal(renderer.pspfBriefRenderer.renderPostureBriefMarkdown(fixture), renderPostureBriefMarkdown(fixture));
 });
 
 test("CISO magazine supports INFO scope and excludes sensitive working notes", () => {
@@ -76,6 +101,19 @@ test("CISO magazine supports INFO scope and excludes sensitive working notes", (
   assert.doesNotMatch(html, /Sensitive finance assumption/);
   assert.match(html, /@media print/);
   assert.match(html, /OFFICIAL: Sensitive/);
+});
+
+test("CISO magazine action strip uses compact linked requirement refs", () => {
+  const fixture = magazineFixture();
+  const baseRequirement = fixture.requirements[0];
+  assert.ok(baseRequirement);
+  const requirement = { ...baseRequirement, title: "22 Portable media handling is reviewed" };
+  const markdown = renderCisoMagazineMarkdown({ ...fixture, requirements: [requirement] });
+  const html = renderCisoMagazineHtml({ ...fixture, requirements: [requirement] });
+
+  assert.match(markdown, /Review portable media handling .* - Req 22 \(1 linked\)/);
+  assert.doesNotMatch(markdown, /Review portable media handling .*Portable media handling is reviewed/);
+  assert.match(html, /Req 22 \(1 linked\)/);
 });
 
 test("CISO magazine tolerates malformed spend money fields", () => {

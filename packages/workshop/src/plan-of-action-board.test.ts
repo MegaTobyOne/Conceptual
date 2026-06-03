@@ -69,6 +69,18 @@ test("plan of action includes all Action statuses for graphical filtering", () =
   assert.equal(model.metrics.actions, 1);
 });
 
+test("plan of action preserves completed Actions for master schedule slicing", () => {
+  const actions = [
+    actionEntity({ title: "Completed action", dueDate: "2026-06-02T00:00:00.000Z", status: "done" }),
+    actionEntity({ title: "Cancelled action", dueDate: "2026-06-03T00:00:00.000Z", status: "cancelled" })
+  ];
+  const model = buildPlanOfActionBoardModel(actions, { now: new Date("2026-05-20T00:00:00.000Z") });
+  const tasks = model.phases.flatMap((phase) => phase.tasks);
+
+  assert.deepEqual(tasks.map((task) => task.title).sort(), ["Cancelled action", "Completed action"]);
+  assert.equal(model.metrics.actions, 0);
+});
+
 test("plan of action caps long timeline width instead of using fixed day width", () => {
   const action = actionEntity({ title: "Long running uplift", dueDate: "2028-06-30T00:00:00.000Z" });
   const model = buildPlanOfActionBoardModel([action], {

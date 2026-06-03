@@ -5397,7 +5397,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
     "id": "REQ-PSPF-2025-092",
     "entityType": "requirement",
     "schemaVersion": "1.13.0",
-    "title": "PSPF 092 - The Chief Security Officer or Chief Information Security Officer approves any legitimate business reason for the use of the TikTok application on government devices and ensures the following mitigations are in place to manage security risks: • Ensure the TikTok application is installed and accessed only on a separate, standalone device without access to services that process or access official and classified information. • Ensure the separate, standalone device is appropriately stored and secured when not in use. This includes the isolation of these devices from sensitive conversations and information. • Ensure metadata has been removed from photos, videos and documents when uploading any content to TikTok. • Minimise, where possible, the sharing of personal identifying content on the TikTok application. • Use an official generic email address (for example, a group mailbox) for each TikTok account. • Use multi-factor authentication and unique passphrases for each TikTok account. • Ensure that devices that access the TikTok application are using the latest available operating system in order to control individual mobile application permissions. Regularly check for and update the application to ensure the latest version is used. • Only install the TikTok application from trusted stores such as Microsoft Store, Google Play Store and the Apple App Store. • Ensure only authorised users have access to corporate TikTok accounts and that access (either direct or delegated) is revoked immediately when there is no longer a requirement for that access. • Carefully and regularly review the terms and conditions, as well as application permissions with each update, to ensure appropriate risk management controls can be put in place or adjusted as required. • Delete the TikTok application from devices when access is no longer needed.",
+    "title": "PSPF 092 - Approved TikTok use on standalone devices",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
     "sourceProduct": "core",
@@ -54011,7 +54011,7 @@ export const PREVIOUS_ISM_SOURCE_CONTROLS = [
 ] as const satisfies readonly Pick<SourceControlEntity, "controlId" | "statement" | "provenance">[];
 
 export const PSPF_REFERENCE_DATA_REPORT = {
-  "generatedAt": "2026-06-02T10:19:36.460Z",
+  "generatedAt": "2026-06-02T23:16:10.569Z",
   "sources": [
     {
       "sourceId": "pspf-release-2025-list-requirements",

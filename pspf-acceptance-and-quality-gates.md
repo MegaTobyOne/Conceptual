@@ -569,6 +569,15 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **No-runtime-egress gate**: the cyber reference catalogue is vendored/generated and no runtime network fetch is introduced.
 7. **Regression gate**: `e2e:v1.38`, `check:cyber-reference-data`, `check:schema-coverage`, `check:schema-policy`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.38.1 patch gates (UI readiness and release hardening)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.38.1`; `VERSION_AXES` remain `1.13.0`; no new schema directory, entity type, collection, link verb, or published field is introduced.
+2. **Workshop button bridge gate**: source-level tests enumerate rendered major-feature `pspf.*` webview commands and confirm the Workshop panel command bridge allows them, preventing inactive feature buttons.
+3. **Clipboard brief gate**: shared posture brief and Digital CISO Magazine renderers use compact linked Requirement references for Actions, and Directions render status first before title.
+4. **Requirement Card gate**: the card view remains enlarged for scanability and includes ISM control links alongside Evidence and Actions.
+5. **Pub structure gate**: the Pub Organisation Chart graphic and supporting table show structure, reporting lines, and assignment state without repeating detailed responsibilities, control ownership, or role outcome prose.
+6. **Regression gate**: `@pspf/brief-renderer`, `pspf-workshop`, and `pspf-pub` focused build/test suites pass before full `release:readiness`.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.
