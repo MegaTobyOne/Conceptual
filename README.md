@@ -2,7 +2,7 @@
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.39.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
+The repository currently ships PSPF v1.41.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
 
 ## Products
 
@@ -29,18 +29,22 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.39.0-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.41.0-readiness-report.md`.
 
 ## Current Workshop Slice
 
 Workshop is the main operator surface for evidence-backed assessment work. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
 
-Current v1.39 additions include:
+Current v1.41 additions include:
 
 - Explorer bundle schema `1.14.0`: adds optional lifecycle decision metadata and sensitive/default-deny evidence link context while preserving earlier schema directories.
 - Workshop evidence operations: Action editors can apply tags to linked Requirements, evidence links can capture sensitive section/note context, and Evidence Review can copy a scoped evidence package by domain.
 - Executive reports: the broad newsletter is now the Digital CSO Magazine, while the Digital CISO Magazine is a dark Information + Technology edition.
 - Pub local ownership: roles can be archived without deleting local records, and team detail shows a compliance status summary from owned controls, owned Requirements, active roles, and assignments.
+- UX and IA refinement: Workshop Home is simplified around frequent actions, the Master Dashboard is a portal with actionable decision loops, Strategy Map and ISM browsing are grouped for scanability, and tree views expose browse-panel shortcuts.
+- Pub planning context: the Organisation Chart uses team cards with roles on the front and accountable Requirements, controls, and team dates on the back. Team-wide news and dates can be stored locally and optionally surfaced on the Workshop Plan of Action.
+
+Not implemented in v1.41: Pub data is still never published to Explorer bundles; Pub team dates remain local planning context only; there is no automatic conflict resolution, calendar integration, notification engine, Pub delete/archive workflow beyond role archive, or roster/performance-management workflow.
 
 Recent Workshop additions include:
 
@@ -72,7 +76,7 @@ Shop authoring is Core-backed and can link suppliers, contracts, and spend items
 
 ## Current Pub Slice
 
-Pub is now a Marketplace-ready local-only people and relationship surface. It provides the Activity Bar entry, Home view, Organisation Chart, Teams, People, Roles, Assignments, and Relationship Log views. v1.29 completes local detail/edit panels for Person, Role, Assignment, and Relationship Note records while keeping Pub data out of Explorer publication bundles.
+Pub is now a Marketplace-ready local-only people and relationship surface. It provides the Activity Bar entry, Home view, Organisation Chart, Teams, People, Roles, Assignments, and Relationship Log views. v1.41 adds team-card Organisation Chart backs for accountable Requirements/controls and local team-wide news/date items that can optionally appear on the Workshop Plan of Action. Pub data still stays out of Explorer publication bundles.
 
 ## Current UX Consistency Slice
 

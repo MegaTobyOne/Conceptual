@@ -132,7 +132,41 @@ test("Pub Organisation Chart renders a graphic team and role view", async () => 
   assert.match(source, /class="org-team-node"/);
   assert.match(source, /class="org-role-card"/);
   assert.match(source, /class="org-assignment-chip"/);
+  assert.match(source, /class="org-card-face org-card-face--front"/);
+  assert.match(source, /class="org-card-face org-card-face--back"/);
+  assert.match(source, /function renderOrgChartTeamBack\(team: TeamRecord\): string/);
   assert.match(source, /Organisation chart detail/);
+});
+
+test("Pub teams store local team news dates for optional planning", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /interface TeamItemRecord/);
+  assert.match(source, /readonly teamItems: readonly TeamItemRecord\[\]/);
+  assert.match(source, /function teamItemEditorFields\(item: TeamItemRecord/);
+  assert.match(source, /name="teamItem\.\$\{escapeHtml\(item\.id\)\}\.includeInPlan"/);
+  assert.match(source, /function parseTeamItemEditorFields/);
+  assert.match(source, /function normaliseTeamItems/);
+  assert.match(source, /formatTeamItemDateRange/);
+  assert.match(source, /Access review evidence window/);
+});
+
+test("Pub Home exposes one upcoming-actions graphic", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /function renderPubUpcomingActionsGraphic/);
+  assert.match(source, /class="pub-action-radar"/);
+  assert.match(source, /homeSection\(\{[\s\S]*id: "signals",[\s\S]*eyebrow: "Now",[\s\S]*heading: "Upcoming actions"/);
+  assert.match(source, /deriveUpcomingBadges\(store\)/);
+});
+
+test("Pub tree title menus link summaries to management panels", async () => {
+  const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
+
+  assert.match(manifest, /"command": "pspf\.pub\.openPeople"[\s\S]*"view == pspfPub\.peopleView"/);
+  assert.match(manifest, /"command": "pspf\.pub\.openTeams"[\s\S]*"view == pspfPub\.teamsView"/);
+  assert.match(manifest, /"command": "pspf\.pub\.openRoles"[\s\S]*"view == pspfPub\.rolesView"/);
+  assert.match(manifest, /"command": "pspf\.pub\.openAssignments"[\s\S]*"view == pspfPub\.assignmentsView"/);
 });
 
 test("Pub Organisation Chart keeps the graphic focused on structure", async () => {
@@ -146,6 +180,7 @@ test("Pub Organisation Chart keeps the graphic focused on structure", async () =
   assert.match(orgChartSource, /tableHtml\(\["Team", "Parent", "Role", "Reports to", "Assigned"\], rows, 5\)/);
   assert.doesNotMatch(orgChartSource, /teamOrgTags/);
   assert.doesNotMatch(orgChartSource, /No functional outcome recorded/);
+  assert.match(orgChartSource, /Team news and dates/);
 
   const chipMatch = source.match(/function renderOrgChartAssignmentChip\(store: PubStore[\s\S]*?\n}/);
   assert.ok(chipMatch, "assignment chip renderer should be present");

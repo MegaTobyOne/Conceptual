@@ -91,7 +91,18 @@ interface TeamRecord {
   readonly ownedControlRefs: readonly string[];
   readonly ownedRequirementRefs: readonly string[];
   readonly controlSetRefs: readonly string[];
+  readonly teamItems: readonly TeamItemRecord[];
   readonly responsibility: string;
+  readonly notes: string;
+}
+
+interface TeamItemRecord {
+  readonly id: string;
+  readonly title: string;
+  readonly itemType: string;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly includeInPlan: boolean;
   readonly notes: string;
 }
 
@@ -167,6 +178,7 @@ interface TeamEditorFields {
   readonly additionalRequirementRefs?: unknown;
   readonly controlSetRefs?: unknown;
   readonly responsibility?: unknown;
+  readonly teamItems?: unknown;
   readonly notes?: unknown;
 }
 
@@ -1361,6 +1373,17 @@ function buildSampleStore(): PubStore {
       ownedControlRefs: ["ISM-1401", "ISM-1402"],
       ownedRequirementRefs: ["REQ-PSPF-2025-008"],
       controlSetRefs: ["Access control operations"],
+      teamItems: [
+        {
+          id: "PUB-TMI-access-review-window",
+          title: "Access review evidence window",
+          itemType: "reminder",
+          startDate: "2026-06-24",
+          endDate: "2026-06-30",
+          includeInPlan: true,
+          notes: "Team-wide evidence pressure date for access review owners."
+        }
+      ],
       responsibility: "Owns access review control operation and reviewer backup coverage.",
       notes: "Team ownership is local-only until a future Pub publication ADR defines redaction and review gates."
     },
@@ -1371,6 +1394,17 @@ function buildSampleStore(): PubStore {
       ownedControlRefs: ["ISM-0988"],
       ownedRequirementRefs: [],
       controlSetRefs: ["Monitoring and escalation"],
+      teamItems: [
+        {
+          id: "PUB-TMI-provider-service-review",
+          title: "Provider service review",
+          itemType: "event",
+          startDate: "2026-07-15",
+          endDate: "",
+          includeInPlan: true,
+          notes: "Use to check for conflicts with monitoring uplift and evidence reminders."
+        }
+      ],
       responsibility: "Operates monitoring controls and escalation roster coverage.",
       notes: "Service-provider responsibility context stays local-only by default."
     }
@@ -1415,17 +1449,7 @@ function buildSampleStore(): PubStore {
 
 function renderHomeHtml(store: PubStore): string {
   const upcomingBadges = deriveUpcomingBadges(store);
-  const upcomingBody =
-    upcomingBadges.length === 0
-      ? `<p class="muted">Load sample data or add assignments to see action, review, rotation, and anniversary signals.</p>`
-      : `<div class="tags">${upcomingBadges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("")}</div>`;
-
   const posture = `${store.people.length} ${store.people.length === 1 ? "person" : "people"} across ${store.teams.length} ${store.teams.length === 1 ? "team" : "teams"} · local-only, never exported to Explorer.`;
-
-  const signalsBody =
-    upcomingBadges.length === 0
-      ? upcomingBody
-      : `<div class="tags">${upcomingBadges.map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("")}</div>`;
 
   const coreActions = `<div class="action-list">
     ${homeActionButton("pspf.pub.openOrgChart", "Organisation chart", "See teams, roles, owned controls, and assignment badges")}
@@ -1442,6 +1466,13 @@ function renderHomeHtml(store: PubStore): string {
   </div>`;
 
   const body = [
+    `<style>
+      .pub-action-radar { display: grid; gap: 8px; }
+      .pub-action-radar__track { display: grid; gap: 6px; }
+      .pub-action-radar__item { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 7px; align-items: center; color: var(--vscode-descriptionForeground); font-size: 12px; }
+      .pub-action-radar__item i { width: 10px; height: 10px; border-radius: 50%; background: var(--pspf-home-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--pspf-home-accent) 14%, transparent); }
+      .pub-action-radar__item span { overflow-wrap: anywhere; }
+    </style>`,
     homePostureHeader({
       id: "overview",
       eyebrow: "Local people context",
@@ -1454,7 +1485,12 @@ function renderHomeHtml(store: PubStore): string {
         { label: "Assignments", value: store.assignments.length }
       ]
     }),
-    homeSection({ id: "signals", eyebrow: "Now", heading: "Action signals", body: signalsBody }),
+    homeSection({
+      id: "signals",
+      eyebrow: "Now",
+      heading: "Upcoming actions",
+      body: renderPubUpcomingActionsGraphic(upcomingBadges)
+    }),
     homeSection({ id: "actions", eyebrow: "Open", heading: "People & relationship tools", body: coreActions }),
     homeSection({ id: "create", eyebrow: "Author", heading: "Create local records", body: createActions })
   ].join("");
@@ -1475,6 +1511,24 @@ function renderHomeHtml(store: PubStore): string {
     ],
     body
   });
+}
+
+function renderPubUpcomingActionsGraphic(upcomingBadges: readonly string[]): string {
+  if (upcomingBadges.length === 0) {
+    return `<p class="muted">Load sample data or add assignments to see action, review, rotation, and anniversary signals.</p>`;
+  }
+  return `<div class="pub-action-radar" aria-label="Upcoming Pub actions">
+    <div class="pub-action-radar__track">
+      ${upcomingBadges
+        .slice(0, 5)
+        .map(
+          (badge) =>
+            `<div class="pub-action-radar__item"><i aria-hidden="true"></i><span>${escapeHtml(badge)}</span></div>`
+        )
+        .join("")}
+    </div>
+    ${upcomingBadges.length > 5 ? `<p class="muted">${upcomingBadges.length - 5} more signal${upcomingBadges.length - 5 === 1 ? "" : "s"} in the local Pub store.</p>` : ""}
+  </div>`;
 }
 
 function renderOrgChartHtml(store: PubStore): string {
@@ -1538,6 +1592,7 @@ function renderOrgChartTeamNode(
   const roleCards = teamRoles.length
     ? teamRoles.map((role) => renderOrgChartRoleCard(store, role)).join("")
     : `<article class="org-role-card org-role-card--empty"><strong>No role yet</strong><span>Add roles to show coverage and reporting lines.</span></article>`;
+  const backItems = renderOrgChartTeamBack(team);
   const childHtml = childTeams.length
     ? `<div class="org-child-teams" role="group">${childTeams
         .map((childTeam) => renderOrgChartTeamNode(store, childTeam, teamDepth, nextSeenTeamIds))
@@ -1546,11 +1601,40 @@ function renderOrgChartTeamNode(
 
   return `<article class="org-team-node" role="treeitem" aria-level="${(teamDepth.get(team.id) ?? 0) + 1}">
     <div class="org-team-card">
-      <div class="org-team-heading"><span class="org-node-kicker">Team</span><h2>${escapeHtml(team.title)}</h2></div>
-      <div class="org-role-grid">${roleCards}</div>
+      <div class="org-card-face org-card-face--front">
+        <div class="org-team-heading"><span class="org-node-kicker">Team</span><h2>${escapeHtml(team.title)}</h2></div>
+        <p class="muted">${escapeHtml(team.responsibility || "No team responsibility recorded yet.")}</p>
+        <div class="org-role-grid">${roleCards}</div>
+      </div>
+      <div class="org-card-face org-card-face--back" aria-label="${escapeHtml(team.title)} accountabilities and team dates">
+        ${backItems}
+      </div>
     </div>
     ${childHtml}
   </article>`;
+}
+
+function renderOrgChartTeamBack(team: TeamRecord): string {
+  const requirements = team.ownedRequirementRefs.length
+    ? team.ownedRequirementRefs.map((ref) => `<span class="tag">${escapeHtml(ref)}</span>`).join("")
+    : `<span class="org-card-empty">No PSPF requirements linked</span>`;
+  const controls = [...team.ownedControlRefs, ...team.controlSetRefs].length
+    ? [...team.ownedControlRefs, ...team.controlSetRefs]
+        .map((ref) => `<span class="tag">${escapeHtml(ref)}</span>`)
+        .join("")
+    : `<span class="org-card-empty">No controls linked</span>`;
+  const dates = team.teamItems.length
+    ? `<ul class="org-team-date-list">${team.teamItems
+        .map(
+          (item) =>
+            `<li><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(formatTeamItemDateRange(item))}${item.includeInPlan ? " · Plan date" : ""}</span></li>`
+        )
+        .join("")}</ul>`
+    : `<p class="org-card-empty">No team news or dates recorded.</p>`;
+  return `<h3>Accountable scope</h3>
+    <div class="org-back-group"><strong>Requirements</strong><div class="tags">${requirements}</div></div>
+    <div class="org-back-group"><strong>Controls</strong><div class="tags">${controls}</div></div>
+    <div class="org-back-group"><strong>Team news and dates</strong>${dates}</div>`;
 }
 
 function renderOrgChartRoleCard(store: PubStore, role: RoleRecord): string {
@@ -1575,7 +1659,7 @@ function renderTeamsHtml(store: PubStore): string {
   const rows = store.teams
     .map(
       (team) =>
-        `<tr><td>${escapeHtml(team.title)}</td><td>${escapeHtml(team.ownedControlRefs.join(", "))}</td><td>${escapeHtml(team.controlSetRefs.join(", "))}</td><td>${escapeHtml(team.responsibility)}</td><td>${teamHealthBadges(store, team)}</td><td>${escapeHtml(team.notes)}</td></tr>`
+        `<tr><td>${escapeHtml(team.title)}</td><td>${escapeHtml(team.ownedControlRefs.join(", "))}</td><td>${escapeHtml(team.controlSetRefs.join(", "))}</td><td>${escapeHtml(team.responsibility)}</td><td>${teamHealthBadges(store, team)}</td><td>${escapeHtml(team.teamItems.map(formatTeamItemSummary).join("; ") || "No team dates")}</td><td>${escapeHtml(team.notes)}</td></tr>`
     )
     .join("");
   return pageHtml(
@@ -1583,7 +1667,7 @@ function renderTeamsHtml(store: PubStore): string {
     sectionHtml(
       "Team control ownership",
       "Teams own controls or control sets. Roles and assignments describe how people sustain that ownership locally.",
-      tableHtml(["Team", "Owned controls", "Control sets", "Responsibility", "Gaps", "Notes"], rows, 6)
+      tableHtml(["Team", "Owned controls", "Control sets", "Responsibility", "Gaps", "Team dates", "Notes"], rows, 7)
     )
   );
 }
@@ -1610,6 +1694,12 @@ async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<st
     .join("");
   const requirementRows = await teamRequirementRows(team);
   const directRequirementRows = await teamDirectRequirementRows(team);
+  const teamItemRows = team.teamItems
+    .map(
+      (item) =>
+        `<tr><td>${escapeHtml(item.title)}</td><td>${escapeHtml(label(item.itemType))}</td><td>${escapeHtml(formatTeamItemDateRange(item))}</td><td>${escapeHtml(item.includeInPlan ? "Yes" : "No")}</td><td>${escapeHtml(item.notes || "No notes")}</td></tr>`
+    )
+    .join("");
   return pageHtml(
     `PSPF Pub ${team.title}`,
     `<main>
@@ -1639,6 +1729,11 @@ async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<st
           ${commandButton("pspf.pub.recordRelationshipNote", "Relationship note", "Record local follow-up context")}
         </div>
       </section>
+      ${sectionHtml(
+        "Team news and dates",
+        "Team-wide items such as enterprise bargaining, census windows, leave pressure or local events. Items marked for the Plan of Action remain local and can appear as optional schedule dates.",
+        tableHtml(["Item", "Type", "Date", "Plan date", "Notes"], teamItemRows, 5)
+      )}
       ${sectionHtml(
         "Roles and assignments",
         "Roles and person assignments stay in Pub local storage and explain how this team sustains its owned controls.",
@@ -1717,7 +1812,8 @@ function renderTeamEditorHtml(
   const additionalControlsTab = controlsBase + sourceControls.length;
   const requirementsBase = additionalControlsTab + 1;
   const additionalRequirementsTab = requirementsBase + requirements.length;
-  const notesTab = additionalRequirementsTab + 1;
+  const teamItemsTab = additionalRequirementsTab + 1;
+  const notesTab = teamItemsTab + Math.max(1, team?.teamItems.length ?? 0) * 6;
   return pageHtml(
     team ? `Edit Pub Team ${team.title}` : "New Pub Team",
     `<main>
@@ -1792,6 +1888,11 @@ function renderTeamEditorHtml(
           ${team ? [...teamPeople, blankPerson()].map((person) => personEditorFields(person)).join("") : `<p class="muted">Save the team before adding people.</p>`}
         </section>
         <section class="panel">
+          <h1>Team news and dates</h1>
+          <p class="muted">Add team-wide items such as enterprise bargaining, census periods, shutdown dates, surveys or local reminders. Tick Plan date when the item should be available on the Workshop Plan of Action.</p>
+          ${team ? [...team.teamItems, blankTeamItem()].map((item, index) => teamItemEditorFields(item, teamItemsTab + index * 6)).join("") : `<p class="muted">Save the team before adding team-wide dated items.</p>`}
+        </section>
+        <section class="panel">
           <h1>Local-only notes</h1>
           <label>
             <span>Notes</span>
@@ -1806,6 +1907,19 @@ function renderTeamEditorHtml(
       </form>
     </main>`
   );
+}
+
+function teamItemEditorFields(item: TeamItemRecord, baseTabIndex: number): string {
+  const isBlank = item.title.length === 0;
+  return `<fieldset class="nested-editor"><legend>${escapeHtml(isBlank ? "New team item" : item.title)}</legend>
+    <input type="hidden" name="teamItem.${escapeHtml(item.id)}.id" value="${escapeHtml(item.id)}" />
+    <label><span>Title</span><input name="teamItem.${escapeHtml(item.id)}.title" value="${escapeHtml(item.title)}" placeholder="Enterprise bargaining, census, team planning day" tabindex="${baseTabIndex}" /></label>
+    <label><span>Type</span><input name="teamItem.${escapeHtml(item.id)}.itemType" value="${escapeHtml(item.itemType)}" placeholder="news, date, reminder, event" tabindex="${baseTabIndex + 1}" /></label>
+    <label><span>Start date</span><input name="teamItem.${escapeHtml(item.id)}.startDate" value="${escapeHtml(item.startDate)}" placeholder="2026-07-01" tabindex="${baseTabIndex + 2}" /></label>
+    <label><span>End date</span><input name="teamItem.${escapeHtml(item.id)}.endDate" value="${escapeHtml(item.endDate)}" placeholder="Optional, for a period" tabindex="${baseTabIndex + 3}" /></label>
+    <label class="checkbox-line"><input type="checkbox" name="teamItem.${escapeHtml(item.id)}.includeInPlan" value="true"${item.includeInPlan ? " checked" : ""} tabindex="${baseTabIndex + 4}" /> <span>Show as optional Plan of Action date</span></label>
+    <label><span>Notes</span><textarea name="teamItem.${escapeHtml(item.id)}.notes" rows="3" tabindex="${baseTabIndex + 5}">${escapeHtml(item.notes)}</textarea></label>
+  </fieldset>`;
 }
 
 function roleEditorFields(role: RoleRecord, store: PubStore): string {
@@ -2440,7 +2554,14 @@ function pageHtml(title: string, body: string): string {
     .org-chart-graphic { display: grid; gap: 18px; margin-top: 14px; overflow-x: auto; padding: 2px 2px 8px; }
     .org-chart-empty { margin-top: 12px; border: 1px dashed var(--vscode-panel-border); border-radius: 8px; padding: 18px; color: var(--vscode-descriptionForeground); }
     .org-team-node { display: grid; gap: 14px; min-width: min(980px, 100%); }
-    .org-team-card { position: relative; display: grid; gap: 12px; border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 72%, #c45a64 28%); border-radius: 10px; padding: 14px; background: color-mix(in srgb, var(--vscode-editor-background) 82%, #c45a64 18%); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+    .org-team-card { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 72%, #c45a64 28%); border-radius: 10px; padding: 14px; background: color-mix(in srgb, var(--vscode-editor-background) 82%, #c45a64 18%); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+    .org-card-face { display: grid; align-content: start; gap: 10px; min-height: 220px; border: 1px solid var(--vscode-panel-border); border-radius: 8px; padding: 12px; background: var(--vscode-sideBar-background); }
+    .org-card-face--back { background: color-mix(in srgb, var(--vscode-editor-background) 86%, #4f7f9f 14%); }
+    .org-back-group { display: grid; gap: 6px; }
+    .org-card-empty { color: var(--vscode-descriptionForeground); font-size: 0.82rem; }
+    .org-team-date-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+    .org-team-date-list li { display: grid; gap: 2px; border: 1px solid var(--vscode-panel-border); border-radius: 6px; padding: 7px 8px; background: var(--vscode-editor-background); }
+    .org-team-date-list span { color: var(--vscode-descriptionForeground); font-size: 0.78rem; }
     .org-team-heading, .org-role-heading { display: grid; gap: 3px; }
     .org-team-heading h2 { margin: 0; font-size: 1.05rem; }
     .org-node-kicker, .org-role-heading span, .org-assignment-chip small { color: var(--vscode-descriptionForeground); font-size: 0.76rem; }
@@ -2664,6 +2785,7 @@ function parseTeamEditorFields(
         ...splitRefs(stringField(fields?.additionalRequirementRefs))
       ]),
       controlSetRefs: splitRefs(stringField(fields?.controlSetRefs)),
+      teamItems: parseTeamItemEditorFields(fields, store, resolvedTeamId),
       responsibility: stringField(fields?.responsibility).trim(),
       notes: stringField(fields?.notes).trim()
     },
@@ -2671,6 +2793,33 @@ function parseTeamEditorFields(
     roles: parseRoleEditorFields(fields, store, resolvedTeamId),
     assignments: parseAssignmentEditorFields(fields, store)
   };
+}
+
+function parseTeamItemEditorFields(
+  fields: TeamEditorFields | undefined,
+  store: PubStore,
+  teamId: string
+): readonly TeamItemRecord[] {
+  const teamItemIds = formIndexedIds(fields, "teamItem");
+  const editedTeamItemIds = new Set(teamItemIds);
+  const editedTeamItems = teamItemIds
+    .map(
+      (itemId): TeamItemRecord => ({
+        id: itemId,
+        title: stringField(fields?.[`teamItem.${itemId}.title`]).trim(),
+        itemType: stringField(fields?.[`teamItem.${itemId}.itemType`]).trim() || "date",
+        startDate: stringField(fields?.[`teamItem.${itemId}.startDate`]).trim(),
+        endDate: stringField(fields?.[`teamItem.${itemId}.endDate`]).trim(),
+        includeInPlan: booleanField(fields?.[`teamItem.${itemId}.includeInPlan`]),
+        notes: stringField(fields?.[`teamItem.${itemId}.notes`]).trim()
+      })
+    )
+    .filter((item) => item.title.length > 0 || item.startDate.length > 0);
+  return [
+    ...(store.teams.find((team) => team.id === teamId)?.teamItems.filter((item) => !editedTeamItemIds.has(item.id)) ??
+      []),
+    ...editedTeamItems
+  ];
 }
 
 function parseRoleEditorFields(
@@ -2849,6 +2998,10 @@ function stringArrayField(value: unknown): readonly string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
+function booleanField(value: unknown): boolean {
+  return value === true || value === "true" || value === "on";
+}
+
 async function listSourceControls(): Promise<readonly SourceControlRecord[]> {
   try {
     const entities = await vscode.commands.executeCommand<readonly unknown[]>(
@@ -2929,6 +3082,7 @@ function normaliseTeams(store: Partial<PubStore>): readonly TeamRecord[] {
         ? team.ownedRequirementRefs.filter(isNonEmptyString)
         : [],
       controlSetRefs: Array.isArray(team.controlSetRefs) ? team.controlSetRefs.filter(isNonEmptyString) : [],
+      teamItems: normaliseTeamItems(team.teamItems),
       responsibility: typeof team.responsibility === "string" ? team.responsibility : "",
       notes: typeof team.notes === "string" ? team.notes : ""
     }));
@@ -2944,9 +3098,27 @@ function normaliseTeams(store: Partial<PubStore>): readonly TeamRecord[] {
     ownedControlRefs: [],
     ownedRequirementRefs: [],
     controlSetRefs: [],
+    teamItems: [],
     responsibility: "",
     notes: "Migrated from the previous role-level team field."
   }));
+}
+
+function normaliseTeamItems(value: unknown): readonly TeamItemRecord[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return (value as readonly Partial<TeamItemRecord>[])
+    .map((item) => ({
+      id: typeof item.id === "string" ? item.id : localId("TMI"),
+      title: typeof item.title === "string" ? item.title : "Untitled team item",
+      itemType: typeof item.itemType === "string" ? item.itemType : "date",
+      startDate: typeof item.startDate === "string" ? item.startDate : "",
+      endDate: typeof item.endDate === "string" ? item.endDate : "",
+      includeInPlan: typeof item.includeInPlan === "boolean" ? item.includeInPlan : false,
+      notes: typeof item.notes === "string" ? item.notes : ""
+    }))
+    .filter((item) => item.title.length > 0 || item.startDate.length > 0);
 }
 
 function normaliseRoles(store: Partial<PubStore>, teams: readonly TeamRecord[]): readonly RoleRecord[] {
@@ -3061,6 +3233,28 @@ function splitRefs(value: string): readonly string[] {
 
 function uniqueStrings(values: readonly string[]): readonly string[] {
   return [...new Set(values.filter(isNonEmptyString))];
+}
+
+function blankTeamItem(): TeamItemRecord {
+  return {
+    id: localId("TMI"),
+    title: "",
+    itemType: "date",
+    startDate: "",
+    endDate: "",
+    includeInPlan: false,
+    notes: ""
+  };
+}
+
+function formatTeamItemSummary(item: TeamItemRecord): string {
+  return `${item.title} (${formatTeamItemDateRange(item)})`;
+}
+
+function formatTeamItemDateRange(item: TeamItemRecord): string {
+  const start = formatDate(item.startDate) || "No date";
+  const end = formatDate(item.endDate);
+  return end && end !== start ? `${start} to ${end}` : start;
 }
 
 function isNonEmptyString(value: unknown): value is string {

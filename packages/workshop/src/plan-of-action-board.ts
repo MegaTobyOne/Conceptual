@@ -82,7 +82,11 @@ export interface PlanOfActionBoardModel {
 
 export function buildPlanOfActionBoardModel(
   entities: readonly V01Entity[],
-  options: { readonly now?: Date; readonly maxTimelineWidth?: number } = {}
+  options: {
+    readonly now?: Date;
+    readonly maxTimelineWidth?: number;
+    readonly timelineDateHints?: readonly { readonly startDate: string; readonly endDate?: string }[];
+  } = {}
 ): PlanOfActionBoardModel {
   const now = startOfUtcDay(options.now ?? new Date());
   const maxTimelineWidth = options.maxTimelineWidth ?? 1100;
@@ -93,8 +97,21 @@ export function buildPlanOfActionBoardModel(
     (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
   );
   const taskDates = actions.map((action, index) => deriveTaskDates(action, now, index));
-  const timelineStart = minDate([now, ...taskDates.map((dates) => dates.startDate)]);
-  const timelineEnd = maxDate([addDays(now, 30), ...taskDates.map((dates) => dates.endDate)]);
+  const hintedDates = (options.timelineDateHints ?? []).flatMap((hint) => {
+    const startDate = parseDate(hint.startDate);
+    const endDate = parseDate(hint.endDate) ?? startDate;
+    return startDate && endDate ? [{ startDate, endDate }] : [];
+  });
+  const timelineStart = minDate([
+    now,
+    ...taskDates.map((dates) => dates.startDate),
+    ...hintedDates.map((dates) => dates.startDate)
+  ]);
+  const timelineEnd = maxDate([
+    addDays(now, 30),
+    ...taskDates.map((dates) => dates.endDate),
+    ...hintedDates.map((dates) => dates.endDate)
+  ]);
   const totalDays = Math.max(1, diffDays(timelineStart, timelineEnd) + 1);
   const dayWidth = Math.min(18, maxTimelineWidth / totalDays);
   const timelineWidth = Math.ceil(totalDays * dayWidth);

@@ -6,7 +6,7 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.39.0 is a schema-bearing release with Explorer bundle schemas `1.14.0`. It adds lifecycle decision metadata, sensitive/default-deny evidence link context, Workshop Action-to-Requirement tagging, scoped evidence package copy, the CSO/CISO magazine split, and Pub local role archive/compliance status. Release readiness is expected to run through `e2e:v1.39:run` and validate `VERSION_AXES = 1.14.0`.
+**Current implementation note:** v1.41.0 is a schema-neutral UX and local planning release on Explorer bundle schemas `1.14.0`. It keeps the v1.39 schema-bearing evidence lifecycle/reporting changes, adds Workshop UX/IA refinements, and adds Pub team-card Organisation Chart backs plus local team news/date items that can optionally appear on the Workshop Plan of Action. Release readiness is expected to run through `e2e:v1.41:run` and validate `VERSION_AXES = 1.14.0`.
 
 **Status: v1.9 saved-view expansion build implemented for test. v1.8 saved views build implemented; v1.7 tags and filters foundation build implemented; v1.6 Workshop import review and identity build implemented; v1.5.1 Explorer product-boundary and visual identity patch implemented; v1.5 plan-apply import and undo implemented; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
@@ -49,9 +49,9 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.39.0:
+`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.41.0:
 
-1. Spine workflow (headless `e2e:v1.39`).
+1. Spine workflow (headless `e2e:v1.41`).
 2. Schema-policy.
 3. Personal-data exclusion.
 4. AU-English lint.
@@ -69,6 +69,7 @@ The core product decisions remain stable:
 16. Explorer-to-Workshop import smoke.
 17. Master-bundle import.
 18. Cyber reference dataset diagnostics.
+19. UX coverage, including Workshop IA affordances and Pub team-date planning context.
 
 ## Remaining readiness risks
 
@@ -76,16 +77,16 @@ These are open before, during, or after the first manual operator validation. No
 
 1. **AU-English lint scope** — ADR 0016 expects the lint to scan all user-facing copy, but until docs move to `docs/` (ADR 0013) only two files are effectively in scope. Either (a) extend `scripts/lint-au-english.mjs` to include `pspf-*.md`, `adr/**/*.md`, and `validation-scenario-*.md` while carving out fenced code blocks, or (b) mechanically move docs under `docs/` and update inbound links. The repository's Copilot instructions already acknowledge the docs have not yet moved.
 2. **Explorer CSP gap** — the static ecosystem page (`pspf-ecosystem.html`) still allows inline script/style for its own simple behaviour. The product Explorer build at `packages/explorer/dist/index.html` MUST keep meeting S4; do not copy this page's relaxed CSP into Explorer. Spot-check on every Explorer change.
-3. **Shop / Pub expectation management** — Shop and Pub are post-v1.0, so public copy, release notes, and the README must keep saying "deferred" until the packages exist. `packages/shop/README.md` and `packages/pub/README.md` currently hold deferral notes only.
+3. **Pub expectation management** — Pub now has a local-only people/team surface, including team-card organisation charts and local team-date planning context. Public copy must keep saying Pub data is not published to Explorer, team dates are local planning context only, and calendar/notification/performance-management workflows are not implemented.
 4. **`chart-renderer` package** — ADR 0014 names a shared `chart-renderer` alongside `brief-renderer`. v0.1 ships only `brief-renderer` because Workshop has no chart surface; the compliance donut is rendered inline by Explorer. The shared package will land in v0.2 when a chart is shared between surfaces. Tracked here so the gap is not forgotten.
 5. **Health view** — the v1 spec set references a Core "Health view" in `pspf-acceptance-and-quality-gates.md` Core criterion #2, `pspf-vscode-extension-surface-spec.md`, `pspf-onboarding-spec.md`, `pspf-core-architecture-spec.md`, and `pspf-core-workshop-screen-workflow-spec.md`. v0.1 surfaces the same information through discrete commands (`PSPF: Validate Workspace`, `PSPF: Verify Integrity`, `PSPF: Show Writer Lock`) and does not ship a single Health view webview. The unified view arrives in v0.2.
 6. **Command rename in extension surface spec** — `pspf-vscode-extension-surface-spec.md` still lists `pspf.core.exportExplorerBundle`; the implementation correctly uses `pspf.core.exportBundle` per ADR 0009 (single master bundle). The spec text is patched alongside this review; this risk closes when the patch lands.
 7. **Core API contract shape** — `pspf-core-api-contract-spec.md` describes a layered `PspfCoreApi` object (`platform`, `queries`, `commands`, `events`). v0.1 exposes a flat object plus VS Code commands; the layered shape is targeted for v0.2 once a second consuming product exists. Documented here rather than treated as drift, because v0.1 has only one consumer.
 8. **First operator validation** — manual validation using `validation-scenario-1-operator-workflow.md` has been clean to date. Keep recording any future operator findings against the scenario before expanding post-v1.0 scope.
 9. **Post-next-slice diagnostics hardening** — after the current manual-validation sequence, add the next diagnostics/repair tranche without pulling it into the immediate slice:
-	- Pub local JSON diagnostics and conservative repair for malformed people, teams, roles, assignments, and relationship notes, including orphaned `assignment.personId`, `assignment.roleId`, `role.teamId`, `role.reportsToRoleId`, `team.parentTeamId`, and `relationshipNote.personId` references. Pub repair must copy `.pspf/pub/pub.json` before writing, create placeholders only where non-destructive, and leave duplicate IDs or cycles diagnostic-only.
-	- Core integrity scan expansion for known reference fields beyond `link` rows and Shop `contract.supplierId`, especially requirement-control mappings and any future Core-backed Pub references. Core should stay report-first; broad automatic repair is deferred unless a fix is mechanical, reversible, and product-owned.
-	- Workshop should expose clearer integrity findings over Core scan results when useful, but should not get a broad auto-repair tool for assurance records. Workshop repair remains limited to explicit operator-owned, meaning-preserving actions.
+   - Pub local JSON diagnostics and conservative repair for malformed people, teams, roles, assignments, and relationship notes, including orphaned `assignment.personId`, `assignment.roleId`, `role.teamId`, `role.reportsToRoleId`, `team.parentTeamId`, and `relationshipNote.personId` references. Pub repair must copy `.pspf/pub/pub.json` before writing, create placeholders only where non-destructive, and leave duplicate IDs or cycles diagnostic-only.
+   - Core integrity scan expansion for known reference fields beyond `link` rows and Shop `contract.supplierId`, especially requirement-control mappings and any future Core-backed Pub references. Core should stay report-first; broad automatic repair is deferred unless a fix is mechanical, reversible, and product-owned.
+   - Workshop should expose clearer integrity findings over Core scan results when useful, but should not get a broad auto-repair tool for assurance records. Workshop repair remains limited to explicit operator-owned, meaning-preserving actions.
 
 ## Development environment enhancements
 
@@ -116,8 +117,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.8.0, including Workshop tag creation/application/filtering, Explorer tag filters on Requirements and the Relationships Board, Explorer Requirements saved views, Explorer Local Changes, refresh restore, Workshop/Explorer identity markers, Workshop import review for Explorer local JSON, plan-apply, and undo. The Pub/Core/Workshop diagnostics hardening noted above is queued after that validation sequence, not inside it.
+The next sequence is manual validation of v1.41.0, including Workshop UX/IA refinement, Pub Organisation Chart card fronts/backs, local team news/date editing, optional Plan of Action team-date context, and the existing Workshop, Explorer, Shop, Pub, import, and release-dry-run regression surfaces.
 
 ## Review conclusion
 
-The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, Explorer tag filters, Explorer Requirements saved views, Explorer local status overlays, Explorer local evidence references, Explorer local Actions, Explorer local Risks, local status conflict display, Workshop import review, plan-apply import, last-import undo, latest-bundle refresh restore, and Workshop/Explorer identity boundary are implemented end-to-end for v1.8.0 test. Manual validation has been clean to date through the v1.4 local-authoring path; v1.8.0 awaits operator validation.
+The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, Explorer tag filters, Explorer Requirements saved views, Explorer local status overlays, Explorer local evidence references, Explorer local Actions, Explorer local Risks, local status conflict display, Workshop import review, plan-apply import, last-import undo, latest-bundle refresh restore, Workshop/Explorer identity boundary, Shop commercial planning, Pub local CRUD, Workshop UX/IA refinement, and Pub team-date planning context are implemented for v1.41.0 readiness. Manual validation still needs to confirm the visible v1.41 Pub card view and Plan of Action team-date context in the Extension Host.

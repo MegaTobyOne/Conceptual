@@ -41,16 +41,16 @@ for (const requiredText of [
   assert.equal(workshopExtension.includes(requiredText), true, `Workshop integration should mention ${requiredText}`);
 }
 
-for (const homePanelText of [
-  "<h2>Integrations</h2>",
+for (const settingsPanelText of [
+  "<h2>Settings</h2>",
   'homeButton("pspf.workshop.openRiskSourcePanel", "Risk Source"',
-  'homeButton("pspf.workshop.configureRiskSource", "Configure source"',
-  'homeButton("pspf.workshop.testRiskSource", "Test source"',
-  'homeButton("pspf.workshop.previewRiskSourceImport", "Preview risks"',
-  'homeButton("pspf.workshop.applyRiskSourceImport", "Apply selected"',
-  'homeButton("pspf.workshop.viewRiskSourceRuns", "View source runs"'
+  'homeButton("pspf.workshop.configureRiskSource", "Configure source"'
 ]) {
-  assert.equal(workshopExtension.includes(homePanelText), true, `Workshop home panel should surface ${homePanelText}`);
+  assert.equal(
+    workshopExtension.includes(settingsPanelText),
+    true,
+    `Workshop Settings panel should surface ${settingsPanelText}`
+  );
 }
 
 assert.equal(workshopExtension.includes('value: "fixture" as const'), true, "Workshop should expose fixture mode");

@@ -69,13 +69,16 @@ test("requirement browser list shows a compact natural-language title preview", 
   assert.match(shellSource, /-webkit-line-clamp: 2/);
 });
 
-test("Workshop Strategy trends render labelled arrow indicators", async () => {
+test("Workshop Strategy trends render labelled pills without arrows", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
   assert.match(source, /function trendIndicator\(value: string\)/);
   assert.match(source, /trend: trendIndicator\(choice\.trend\)/);
-  assert.match(source, /trend: trendIndicator\(measure\.trend\)/);
+  assert.match(source, /trendIndicator\(measure\.trend\)/);
   assert.match(source, /class="trend-indicator"/);
+  const trendMatch = source.match(/function trendIndicator\(value: string\): string \{[\s\S]*?\n}/);
+  assert.ok(trendMatch, "trend indicator helper should be present");
+  assert.doesNotMatch(trendMatch[0], /&uarr;|&rarr;|&darr;|&ndash;/);
 });
 
 test("Essential Eight dashboard renders visual posture charts", async () => {
@@ -94,6 +97,7 @@ test("Essential Eight dashboard renders visual posture charts", async () => {
 
 test("Plan of Action exposes master schedule and slice controls", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const planModelSource = await readFile(new URL("../src/plan-of-action-board.ts", import.meta.url), "utf8");
 
   assert.match(source, /function renderPlanOfActionMasterSchedule/);
   assert.match(source, /data-poa-view="master"/);
@@ -105,11 +109,103 @@ test("Plan of Action exposes master schedule and slice controls", async () => {
   assert.match(source, /function renderPlanOfActionMasterTask/);
   assert.match(source, /class="poa-master-range"/);
   assert.match(source, /class="poa-master-today-marker"/);
-  assert.match(source, /poa-bar--unlabelled/);
+  assert.match(source, /function packPlanOfActionScheduleLanes/);
+  assert.match(source, /class="poa-integrated-lanes"/);
+  assert.match(source, /poa-bar--integrated/);
   assert.match(source, /function renderPlanOfActionMasterRuler/);
   assert.match(source, /function planOfActionDateRulerLabels/);
   assert.match(source, /class="poa-master-ruler"/);
-  assert.match(source, /<span>\$\{escapeHtml\(workstreamTitle\)\} · \$\{escapeHtml\(label\(task\.status\)\)\}<\/span>/);
+  assert.match(source, /function renderPlanOfActionWorklist/);
+  assert.match(source, /data-poa-worklist-search/);
+  assert.match(source, /data-poa-worklist-sort/);
+  assert.match(source, /data-poa-worklist-row/);
+  assert.match(source, /async function loadPubTeamPlanDates/);
+  assert.match(source, /function renderPlanOfActionTeamDateOverlay/);
+  assert.match(source, /class="poa-team-date-bar"/);
+  assert.match(source, /Pub Team Date Conflicts/);
+  assert.match(planModelSource, /timelineDateHints/);
+});
+
+test("Workshop Home is simplified and exposes one status graphic", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const homeMatch = source.match(
+    /function renderHomeView\(model: WorkshopHomeModel\): string \{[\s\S]*?async function openWelcome/
+  );
+  assert.ok(homeMatch, "home renderer should be present");
+  const homeSource = homeMatch[0];
+
+  assert.match(homeSource, /renderWorkshopStatusDonut\(model\)/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openMasterDashboard", "Dashboard"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.createRequirement", "Create requirement"/);
+  assert.match(homeSource, /homeButton\("pspf\.core\.exportBundle", "Export bundle"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.copyPostureBrief", "Copy brief"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.home\.refresh", "Refresh"/);
+  assert.match(homeSource, /<h2>Settings<\/h2>/);
+  assert.doesNotMatch(homeSource, /Continue next task/);
+  assert.doesNotMatch(homeSource, /Review evidence/);
+  assert.doesNotMatch(homeSource, /Digital CISO Magazine/);
+});
+
+test("Master Dashboard groups tools into portal sections", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /function portalGroup/);
+  assert.match(source, /class="portal-grid"/);
+  assert.match(source, /portalGroup\("Essentials"/);
+  assert.match(source, /portalCommand\([\s\S]*"pspf\.workshop\.openEssentialEightDashboard",[\s\S]*"Essential Eight"/);
+  assert.match(source, /portalCommand\([\s\S]*"pspf\.workshop\.openPspfGridView",[\s\S]*"Requirements pane"/);
+  assert.match(source, /portalCommand\([\s\S]*"pspf\.workshop\.browseIsmSourceControls",[\s\S]*"Controls pane"/);
+  assert.match(source, /portalGroup\("Planning"/);
+  assert.match(source, /portalGroup\("Traceability"/);
+  assert.match(source, /portalGroup\("Reporting"/);
+  assert.match(source, /function renderDecisionLoopCards/);
+  assert.match(source, /class="decision-loop-grid"/);
+  assert.match(source, /"pspf\.workshop\.openHumanCentredRiskView"/);
+  assert.match(source, /function renderStrategyPerformanceCards/);
+  assert.match(source, /class="strategy-performance-grid"/);
+});
+
+test("Strategy Map uses clearer framing, aligned choices, and grouped measures", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /class="strategy-map-frame"/);
+  assert.match(source, /class="strategy-map-statement"/);
+  assert.match(source, /class="strategy-risk-posture"/);
+  assert.match(source, /class="strategy-choice-grid"/);
+  assert.match(source, /class="strategy-choice-card__top"/);
+  assert.match(source, /function renderMeasuresGroupedByChoice/);
+  assert.match(source, /Posture Measures By Choice/);
+  assert.match(source, /class="measure-choice-group"/);
+});
+
+test("ISM controls expose principle groups and safe display names", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /class="ism-category-overview"/);
+  assert.match(source, /data-ism-category-shortcut/);
+  assert.match(source, /function ismSourceControlName/);
+  assert.match(source, /Unnamed ISM control/);
+});
+
+test("Workshop tree title menus link summaries to browse panels", async () => {
+  const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
+
+  assert.match(
+    manifest,
+    /"command": "pspf\.workshop\.openPspfGridView"[\s\S]*"view == pspfWorkshop\.requirementsView"/
+  );
+  assert.match(
+    manifest,
+    /"command": "pspf\.workshop\.openEvidenceReviewQueue"[\s\S]*"view == pspfWorkshop\.evidenceView"/
+  );
+  assert.match(
+    manifest,
+    /"command": "pspf\.workshop\.openPlanOfActionBoard"[\s\S]*"view == pspfWorkshop\.actionsView"/
+  );
+  assert.match(
+    manifest,
+    /"command": "pspf\.workshop\.openHumanCentredRiskView"[\s\S]*"view == pspfWorkshop\.risksView"/
+  );
 });
 
 test("Requirement 92 is excluded from Essential Eight dashboard matching", async () => {
@@ -196,7 +292,7 @@ test("ISM source controls browser exposes category filter", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
   assert.match(source, /ISM_SOURCE_CONTROL_CATEGORIES/);
-  assert.match(source, /homeButton\("pspf\.workshop\.browseIsmSourceControls", "ISM controls"/);
+  assert.match(source, /portalCommand\("pspf\.workshop\.browseIsmSourceControls", "Controls pane"/);
   assert.match(source, /allowedCommands = new Set\([\s\S]*"pspf\.workshop\.browseIsmSourceControls"/);
   assert.match(source, /id="ism-category-filter"/);
   assert.match(source, /data-category/);

@@ -1921,6 +1921,7 @@ function renderShopHomeHtml(store: ShopStore): string {
   const supplierCount = store.suppliers.length;
   const contractCount = store.contracts.length;
   const spendCount = store.spendItems.length;
+  const monthlyForecast = deriveForecastMonths(store.spendItems);
   const axes = `Schema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
 
   const createBody = `<div class="action-list">
@@ -1942,6 +1943,12 @@ function renderShopHomeHtml(store: ShopStore): string {
   </div>`;
 
   const body = [
+    `<style>
+      .shop-trendline { display: grid; gap: 8px; }
+      .shop-trendline svg { width: 100%; height: auto; display: block; overflow: visible; }
+      .shop-trendline__summary { display: flex; flex-wrap: wrap; gap: 6px; color: var(--vscode-descriptionForeground); font-size: 11.5px; }
+      .shop-trendline__summary span { border: 1px solid var(--pspf-border); border-radius: 999px; padding: 3px 8px; background: color-mix(in srgb, var(--pspf-home-accent) 8%, var(--vscode-editor-background)); }
+    </style>`,
     homePostureHeader({
       id: "overview",
       eyebrow: "Commercial planning",
@@ -1952,6 +1959,12 @@ function renderShopHomeHtml(store: ShopStore): string {
         { label: "Contracts", value: contractCount },
         { label: "Spend items", value: spendCount }
       ]
+    }),
+    homeSection({
+      id: "trend",
+      eyebrow: "Forecast",
+      heading: "Spending trend",
+      body: renderShopTrendline(monthlyForecast)
     }),
     homeSection({ id: "create", eyebrow: "Author", heading: "Create records", body: createBody }),
     homeSection({ id: "forecast", eyebrow: "Review", heading: "Forecast & savings", body: forecastBody }),
@@ -1967,12 +1980,51 @@ function renderShopHomeHtml(store: ShopStore): string {
     sensitivityBanner: "OFFICIAL: Sensitive · Local workspace writes stay in Shop until you snapshot or export.",
     nav: [
       { href: "overview", label: "Overview" },
+      { href: "trend", label: "Trend" },
       { href: "create", label: "Create" },
       { href: "forecast", label: "Forecast" },
       { href: "data", label: "Data" }
     ],
     body
   });
+}
+
+function renderShopTrendline(monthlyForecast: readonly ForecastMonth[]): string {
+  if (monthlyForecast.length === 0) {
+    return `<p class="muted">Add forecast dates or financial years to spend items to see the spending trend.</p>`;
+  }
+  const points = monthlyForecast.slice(0, 12);
+  const first = points[0];
+  const last = points.at(-1);
+  if (!first || !last) {
+    return `<p class="muted">Add forecast dates or financial years to spend items to see the spending trend.</p>`;
+  }
+  const maxSpend = Math.max(...points.map((month) => month.forecastSpend), 1);
+  const width = 260;
+  const height = 78;
+  const padding = 10;
+  const stepX = points.length === 1 ? 0 : (width - padding * 2) / (points.length - 1);
+  const linePoints = points
+    .map((month, index) => {
+      const x = padding + index * stepX;
+      const y = height - padding - (month.forecastSpend / maxSpend) * (height - padding * 2);
+      return `${Math.round(x)},${Math.round(y)}`;
+    })
+    .join(" ");
+  const total = points.reduce((sum, month) => sum + month.forecastSpend, 0);
+  return `<div class="shop-trendline" aria-label="Shop forecast spending trend">
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Forecast spending trend across ${points.length} month${points.length === 1 ? "" : "s"}">
+      <polyline fill="none" stroke="var(--pspf-home-accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${linePoints}" />
+      ${points
+        .map((month, index) => {
+          const x = padding + index * stepX;
+          const y = height - padding - (month.forecastSpend / maxSpend) * (height - padding * 2);
+          return `<circle cx="${Math.round(x)}" cy="${Math.round(y)}" r="3" fill="var(--pspf-home-accent)"><title>${escapeHtml(month.monthLabel)} ${escapeHtml(formatCurrency(month.forecastSpend))}</title></circle>`;
+        })
+        .join("")}
+    </svg>
+    <div class="shop-trendline__summary"><span>${escapeHtml(first.monthLabel)} to ${escapeHtml(last.monthLabel)}</span><span>${escapeHtml(formatCurrency(total))} forecast</span></div>
+  </div>`;
 }
 
 class ShopTreeItem extends vscode.TreeItem {

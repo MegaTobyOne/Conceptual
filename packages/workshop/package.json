@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.39.0",
+  "version": "1.41.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -383,9 +383,19 @@
           "group": "navigation@1"
         },
         {
+          "command": "pspf.workshop.openPspfGridView",
+          "when": "view == pspfWorkshop.requirementsView",
+          "group": "navigation@2"
+        },
+        {
           "command": "pspf.workshop.attachEvidence",
           "when": "view == pspfWorkshop.evidenceView",
           "group": "navigation@1"
+        },
+        {
+          "command": "pspf.workshop.openEvidenceReviewQueue",
+          "when": "view == pspfWorkshop.evidenceView",
+          "group": "navigation@2"
         },
         {
           "command": "pspf.workshop.createAction",
@@ -393,14 +403,29 @@
           "group": "navigation@1"
         },
         {
+          "command": "pspf.workshop.openPlanOfActionBoard",
+          "when": "view == pspfWorkshop.actionsView",
+          "group": "navigation@2"
+        },
+        {
           "command": "pspf.workshop.createRisk",
           "when": "view == pspfWorkshop.risksView",
           "group": "navigation@1"
         },
         {
+          "command": "pspf.workshop.openHumanCentredRiskView",
+          "when": "view == pspfWorkshop.risksView",
+          "group": "navigation@2"
+        },
+        {
           "command": "pspf.workshop.registerDirection",
           "when": "view == pspfWorkshop.directionsView",
           "group": "navigation@1"
+        },
+        {
+          "command": "pspf.workshop.openAssessmentDashboard",
+          "when": "view == pspfWorkshop.directionsView",
+          "group": "navigation@2"
         },
         {
           "command": "pspf.workshop.importBundle",

@@ -44,7 +44,9 @@ const axesByMinorVersion = new Map([
   [36, "1.12.0"],
   [37, "1.12.0"],
   [38, "1.13.0"],
-  [39, "1.14.0"]
+  [39, "1.14.0"],
+  [40, "1.14.0"],
+  [41, "1.14.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -80,85 +82,89 @@ assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleV
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
 const e2eScript =
-  minorVersion >= 39
-    ? "e2e:v1.39"
-    : minorVersion >= 38
-      ? "e2e:v1.38"
-      : minorVersion >= 37
-        ? "e2e:v1.37"
-        : minorVersion >= 36
-          ? "e2e:v1.36"
-          : minorVersion >= 35
-            ? "e2e:v1.35"
-            : minorVersion >= 34
-              ? "e2e:v1.34"
-              : minorVersion >= 33
-                ? "e2e:v1.33"
-                : minorVersion >= 32
-                  ? "e2e:v1.32"
-                  : minorVersion >= 31
-                    ? "e2e:v1.31"
-                    : minorVersion >= 30
-                      ? "e2e:v1.30"
-                      : minorVersion >= 29
-                        ? "e2e:v1.29"
-                        : minorVersion >= 28
-                          ? "e2e:v1.28"
-                          : minorVersion >= 27
-                            ? "e2e:v1.27"
-                            : minorVersion >= 26
-                              ? "e2e:v1.26"
-                              : minorVersion >= 25
-                                ? "e2e:v1.25"
-                                : minorVersion >= 24
-                                  ? "e2e:v1.24"
-                                  : minorVersion >= 23
-                                    ? "e2e:v1.23"
-                                    : minorVersion >= 22
-                                      ? "e2e:v1.22"
-                                      : minorVersion >= 21
-                                        ? "e2e:v1.21"
-                                        : minorVersion >= 20
-                                          ? "e2e:v1.20"
-                                          : minorVersion >= 19
-                                            ? "e2e:v1.19"
-                                            : minorVersion >= 18
-                                              ? "e2e:v1.18"
-                                              : minorVersion >= 17
-                                                ? "e2e:v1.17"
-                                                : minorVersion >= 16
-                                                  ? "e2e:v1.16"
-                                                  : minorVersion >= 14
-                                                    ? "e2e:v1.14"
-                                                    : minorVersion >= 13
-                                                      ? "e2e:v1.13"
-                                                      : minorVersion >= 12
-                                                        ? "e2e:v1.12"
-                                                        : minorVersion >= 11
-                                                          ? "e2e:v1.11"
-                                                          : minorVersion >= 10
-                                                            ? "e2e:v1.10"
-                                                            : /^1\.9\.\d+$/.test(expectedVersion)
-                                                              ? "e2e:v1.9"
-                                                              : /^1\.8\.\d+$/.test(expectedVersion)
-                                                                ? "e2e:v1.8"
-                                                                : /^1\.7\.\d+$/.test(expectedVersion)
-                                                                  ? "e2e:v1.7"
-                                                                  : /^1\.6\.\d+$/.test(expectedVersion)
-                                                                    ? "e2e:v1.6"
-                                                                    : /^1\.5\.\d+$/.test(expectedVersion)
-                                                                      ? "e2e:v1.5"
-                                                                      : /^1\.4\.\d+$/.test(expectedVersion)
-                                                                        ? "e2e:v1.4"
-                                                                        : /^1\.3\.\d+$/.test(expectedVersion)
-                                                                          ? "e2e:v1.3"
-                                                                          : /^1\.2\.\d+$/.test(expectedVersion)
-                                                                            ? "e2e:v1.2"
-                                                                            : isV11OrLaterRelease
-                                                                              ? "e2e:v1.1"
-                                                                              : isV1Release
-                                                                                ? "e2e:v1.0"
-                                                                                : "e2e:v0.9";
+  minorVersion >= 41
+    ? "e2e:v1.41"
+    : minorVersion >= 40
+      ? "e2e:v1.40"
+      : minorVersion >= 39
+        ? "e2e:v1.39"
+        : minorVersion >= 38
+          ? "e2e:v1.38"
+          : minorVersion >= 37
+            ? "e2e:v1.37"
+            : minorVersion >= 36
+              ? "e2e:v1.36"
+              : minorVersion >= 35
+                ? "e2e:v1.35"
+                : minorVersion >= 34
+                  ? "e2e:v1.34"
+                  : minorVersion >= 33
+                    ? "e2e:v1.33"
+                    : minorVersion >= 32
+                      ? "e2e:v1.32"
+                      : minorVersion >= 31
+                        ? "e2e:v1.31"
+                        : minorVersion >= 30
+                          ? "e2e:v1.30"
+                          : minorVersion >= 29
+                            ? "e2e:v1.29"
+                            : minorVersion >= 28
+                              ? "e2e:v1.28"
+                              : minorVersion >= 27
+                                ? "e2e:v1.27"
+                                : minorVersion >= 26
+                                  ? "e2e:v1.26"
+                                  : minorVersion >= 25
+                                    ? "e2e:v1.25"
+                                    : minorVersion >= 24
+                                      ? "e2e:v1.24"
+                                      : minorVersion >= 23
+                                        ? "e2e:v1.23"
+                                        : minorVersion >= 22
+                                          ? "e2e:v1.22"
+                                          : minorVersion >= 21
+                                            ? "e2e:v1.21"
+                                            : minorVersion >= 20
+                                              ? "e2e:v1.20"
+                                              : minorVersion >= 19
+                                                ? "e2e:v1.19"
+                                                : minorVersion >= 18
+                                                  ? "e2e:v1.18"
+                                                  : minorVersion >= 17
+                                                    ? "e2e:v1.17"
+                                                    : minorVersion >= 16
+                                                      ? "e2e:v1.16"
+                                                      : minorVersion >= 14
+                                                        ? "e2e:v1.14"
+                                                        : minorVersion >= 13
+                                                          ? "e2e:v1.13"
+                                                          : minorVersion >= 12
+                                                            ? "e2e:v1.12"
+                                                            : minorVersion >= 11
+                                                              ? "e2e:v1.11"
+                                                              : minorVersion >= 10
+                                                                ? "e2e:v1.10"
+                                                                : /^1\.9\.\d+$/.test(expectedVersion)
+                                                                  ? "e2e:v1.9"
+                                                                  : /^1\.8\.\d+$/.test(expectedVersion)
+                                                                    ? "e2e:v1.8"
+                                                                    : /^1\.7\.\d+$/.test(expectedVersion)
+                                                                      ? "e2e:v1.7"
+                                                                      : /^1\.6\.\d+$/.test(expectedVersion)
+                                                                        ? "e2e:v1.6"
+                                                                        : /^1\.5\.\d+$/.test(expectedVersion)
+                                                                          ? "e2e:v1.5"
+                                                                          : /^1\.4\.\d+$/.test(expectedVersion)
+                                                                            ? "e2e:v1.4"
+                                                                            : /^1\.3\.\d+$/.test(expectedVersion)
+                                                                              ? "e2e:v1.3"
+                                                                              : /^1\.2\.\d+$/.test(expectedVersion)
+                                                                                ? "e2e:v1.2"
+                                                                                : isV11OrLaterRelease
+                                                                                  ? "e2e:v1.1"
+                                                                                  : isV1Release
+                                                                                    ? "e2e:v1.0"
+                                                                                    : "e2e:v0.9";
 for (const scriptName of [
   e2eScript,
   "check:adr-coverage",

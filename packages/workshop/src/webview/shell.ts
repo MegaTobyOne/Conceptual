@@ -111,6 +111,30 @@ export function shellHtml(title: string, body: string): string {
     .cell-compact { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     th[data-field="controlId"], td[data-field="controlId"], th[data-field="coverage"], td[data-field="coverage"], th[data-field="profile"], td[data-field="profile"], th[data-field="confidence"], td[data-field="confidence"], th[data-field="reviewed"], td[data-field="reviewed"], th[data-field="drift"], td[data-field="drift"], th[data-field="release"], td[data-field="release"], th[data-field="status"], td[data-field="status"], th[data-field="freshness"], td[data-field="freshness"] { white-space: nowrap; width: 1%; font-variant-numeric: tabular-nums; }
     th[data-field="open"], td[data-field="open"] { white-space: nowrap; width: 1%; }
+    .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .portal-group { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: var(--surface-strong); }
+    .portal-group h3 { margin-top: 0; }
+    .portal-actions { display: grid; gap: 8px; }
+    .portal-card { display: grid; gap: 3px; width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); background: var(--surface); text-align: left; }
+    .portal-card:hover { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 8%, var(--surface)); }
+    .portal-card span { color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .decision-loop-grid, .strategy-performance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+    .decision-loop-card, .strategy-performance-card, .strategy-choice-card, .measure-choice-group { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: var(--surface-strong); }
+    .decision-loop-card { display: grid; gap: 8px; align-content: start; }
+    .decision-loop-card h3, .strategy-performance-card h3, .strategy-choice-card h3, .measure-choice-group h3 { margin-top: 0; }
+    .decision-loop-card__top { display: flex; justify-content: space-between; gap: 8px; align-items: center; color: var(--muted); font-size: 12px; }
+    .decision-loop-card__top strong { color: var(--text); font-size: 20px; font-variant-numeric: tabular-nums; }
+    .strategy-performance-card__meta, .strategy-map-meta, .strategy-choice-card__top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .strategy-map-frame { display: grid; gap: 10px; }
+    .strategy-map-statement { margin: 0; max-width: 78ch; font-size: 20px; line-height: 1.35; font-weight: 650; }
+    .strategy-risk-posture { border-left: 3px solid var(--workshop-blue); padding: 8px 10px; background: var(--surface-strong); border-radius: var(--radius-sm); }
+    .strategy-risk-posture p { margin-bottom: 0; }
+    .strategy-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 12px; align-items: stretch; }
+    .strategy-choice-card { display: grid; grid-template-rows: auto auto minmax(4.5rem, auto) auto auto auto 1fr; gap: 8px; }
+    .strategy-choice-card__top { min-height: 34px; justify-content: space-between; align-items: flex-start; }
+    .strategy-choice-card__top > span:first-child { color: var(--workshop-blue); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .strategy-choice-card > strong { font-size: 18px; line-height: 1.25; }
+    .measure-choice-stack { display: grid; gap: 12px; }
     .trend-indicator { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border); border-radius: 999px; padding: 3px 8px; font-size: 12px; font-weight: 700; white-space: nowrap; background: var(--surface-strong); }
     .trend-indicator[data-trend="improving"] { border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); color: var(--pspf-ok); background: var(--pspf-ok-soft); }
     .trend-indicator[data-trend="steady"] { border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); color: var(--pspf-warn); background: var(--pspf-warn-soft); }
@@ -167,13 +191,14 @@ export function shellHtml(title: string, body: string): string {
     .poa-master-range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 8px; color: var(--muted); font-size: 12px; }
     .poa-master-range strong { color: var(--text); font-size: 13px; }
     .poa-master-grid { position: relative; display: grid; gap: 7px; }
-    .poa-master-ruler { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 10px; align-items: end; color: var(--muted); font-size: 11px; }
-    .poa-master-ruler__spacer { font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .poa-master-ruler { display: grid; align-items: end; color: var(--muted); font-size: 11px; }
     .poa-ruler-track { position: relative; min-height: 24px; border-bottom: 1px solid var(--border); }
     .poa-ruler-label { position: absolute; bottom: 4px; transform: translateX(-50%); white-space: nowrap; }
     .poa-ruler-label:first-child { transform: translateX(0); }
     .poa-ruler-label:last-child { transform: translateX(-100%); }
     .poa-master-today-marker { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--amber); z-index: 3; pointer-events: none; }
+    .poa-integrated-lanes { position: relative; display: grid; gap: 7px; }
+    .poa-integrated-lane { position: relative; min-height: 44px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 0 1px, transparent 1px 28px), color-mix(in srgb, var(--surface-strong) 80%, transparent); overflow: hidden; }
     .poa-task { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 10px; align-items: center; }
     .poa-task[hidden] { display: none; }
     .poa-task__label { display: grid; gap: 2px; min-height: 34px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); background: var(--surface-strong); text-align: left; }
@@ -183,17 +208,26 @@ export function shellHtml(title: string, body: string): string {
     .poa-today-legend-line { display: inline-block; width: 0; height: 16px; border-left: 2px solid var(--amber); }
     .poa-track { position: relative; min-height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 0 1px, transparent 1px 28px), color-mix(in srgb, var(--surface-strong) 80%, transparent); overflow: hidden; }
     .poa-today-marker { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--amber); z-index: 2; pointer-events: none; }
-    .poa-bar { position: absolute; top: 5px; height: 22px; display: flex; align-items: center; min-width: 18px; max-width: calc(100% - 2px); border-radius: 999px; padding: 0 8px; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; box-sizing: border-box; overflow: hidden; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24); }
+    .poa-bar { position: absolute; top: 5px; height: 22px; display: flex; align-items: center; min-width: 18px; max-width: calc(100% - 2px); border: 0; border-radius: 999px; padding: 0 8px; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; box-sizing: border-box; overflow: hidden; white-space: nowrap; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24); }
+    .poa-bar--integrated { top: 6px; height: 32px; display: grid; align-content: center; gap: 1px; text-align: left; cursor: pointer; }
+    .poa-bar--integrated span, .poa-bar--integrated small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .poa-bar--integrated small { font-size: 10px; opacity: 0.88; }
     .poa-bar--unlabelled { padding: 0; }
     .poa-bar--blocked { background: #b42318; }
     .poa-bar--overdue { background: #b54708; }
     .poa-bar--due-soon { background: #1d4ed8; }
     .poa-bar--normal { background: #047857; }
+    .poa-team-date-schedule { background: linear-gradient(180deg, color-mix(in srgb, #4f7f9f 12%, var(--surface)), var(--surface)); }
+    .poa-team-date-track { min-width: max(760px, var(--poa-width)); height: 44px; }
+    .poa-team-date-bar { position: absolute; top: 6px; height: 32px; display: grid; align-content: center; gap: 1px; min-width: 18px; max-width: calc(100% - 2px); border: 1px solid color-mix(in srgb, #4f7f9f 62%, var(--border)); border-radius: 999px; padding: 0 8px; color: var(--text); background: color-mix(in srgb, #4f7f9f 20%, var(--surface-strong)); box-sizing: border-box; overflow: hidden; white-space: nowrap; }
+    .poa-team-date-bar strong, .poa-team-date-bar small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .poa-team-date-bar small { color: var(--muted); font-size: 10px; }
     .poa-controls { display: grid; gap: 12px; }
     .poa-controls h2, .poa-controls h3 { margin: 0; }
     .poa-controls h3 { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
     .poa-filter-group, .poa-view-toggle { margin: 8px 0 0; }
     .poa-master-schedule { background: linear-gradient(180deg, color-mix(in srgb, var(--pspf-ok) 8%, var(--surface)), var(--surface)); }
+    .poa-worklist-filters { display: grid; grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(150px, 1fr)); gap: 10px; margin: 10px 0; align-items: end; }
     .poa-status-filter[aria-pressed="false"] { opacity: 0.55; }
     .workshop-sensitivity { margin: 0; padding: 8px var(--pad-lg); }
     .muted { color: var(--muted); }
@@ -211,6 +245,7 @@ export function shellHtml(title: string, body: string): string {
       .requirement-browser__nav { position: static; max-height: none; }
       .requirement-browser__list { max-height: 320px; }
       .poa-task { grid-template-columns: 1fr; }
+      .poa-worklist-filters { grid-template-columns: 1fr; }
       .poa-task__label strong { white-space: normal; }
       table { min-width: 680px; }
       th[data-field="title"], td[data-field="title"], th[data-field="requirement"], td[data-field="requirement"], th[data-field="hint"], td[data-field="hint"] { min-width: 16rem; }

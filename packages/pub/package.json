@@ -2,7 +2,7 @@
   "name": "pspf-pub",
   "displayName": "PSPF Pub",
   "description": "PSPF people, role, team, assignment, and stakeholder relationship surface.",
-  "version": "1.39.0",
+  "version": "1.41.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -167,9 +167,19 @@
           "group": "navigation@1"
         },
         {
+          "command": "pspf.pub.openPeople",
+          "when": "view == pspfPub.peopleView",
+          "group": "navigation@2"
+        },
+        {
           "command": "pspf.pub.newTeam",
           "when": "view == pspfPub.teamsView",
           "group": "navigation@1"
+        },
+        {
+          "command": "pspf.pub.openTeams",
+          "when": "view == pspfPub.teamsView",
+          "group": "navigation@2"
         },
         {
           "command": "pspf.pub.newRole",
@@ -177,9 +187,19 @@
           "group": "navigation@1"
         },
         {
+          "command": "pspf.pub.openRoles",
+          "when": "view == pspfPub.rolesView",
+          "group": "navigation@2"
+        },
+        {
           "command": "pspf.pub.newAssignment",
           "when": "view == pspfPub.assignmentsView",
           "group": "navigation@1"
+        },
+        {
+          "command": "pspf.pub.openAssignments",
+          "when": "view == pspfPub.assignmentsView",
+          "group": "navigation@2"
         },
         {
           "command": "pspf.pub.recordRelationshipNote",
