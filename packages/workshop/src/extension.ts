@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { createHash, randomUUID } from "node:crypto";
 import {
   buildCisoMagazineModel,
+  type CisoMagazineEdition,
   buildCisoMasterPlanModel,
   renderCisoMagazineHtml,
   renderCisoMagazineMarkdown,
@@ -418,6 +419,9 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.filterRequirementsByTag", filterRequirementsByTag),
     vscode.commands.registerCommand("pspf.workshop.copyPostureBrief", copyPostureBrief),
     vscode.commands.registerCommand("pspf.workshop.openCisoNewsletterReview", openCisoNewsletterReview),
+    vscode.commands.registerCommand("pspf.workshop.openCsoMagazine", openCsoMagazine),
+    vscode.commands.registerCommand("pspf.workshop.copyCsoMagazine", copyCsoMagazine),
+    vscode.commands.registerCommand("pspf.workshop.exportCsoMagazine", exportCsoMagazine),
     vscode.commands.registerCommand("pspf.workshop.openCisoMagazine", openCisoMagazine),
     vscode.commands.registerCommand("pspf.workshop.copyCisoMagazine", copyCisoMagazine),
     vscode.commands.registerCommand("pspf.workshop.exportCisoMagazine", exportCisoMagazine),
@@ -572,6 +576,9 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.filterRequirementsByTag",
       "pspf.workshop.copyPostureBrief",
       "pspf.workshop.openCisoNewsletterReview",
+      "pspf.workshop.openCsoMagazine",
+      "pspf.workshop.copyCsoMagazine",
+      "pspf.workshop.exportCsoMagazine",
       "pspf.workshop.openCisoMagazine",
       "pspf.workshop.copyCisoMagazine",
       "pspf.workshop.exportCisoMagazine",
@@ -854,7 +861,8 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.exportBackupJson", "Export backup JSON")}
         ${homeButton("pspf.workshop.importBackupJson", "Import backup JSON")}
         ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
-        ${homeButton("pspf.workshop.openCisoMagazine", "Digital CISO Magazine", "Open the share-ready newsletter issue")}
+        ${homeButton("pspf.workshop.openCsoMagazine", "Digital CSO Magazine", "Open the broad executive assurance issue")}
+        ${homeButton("pspf.workshop.openCisoMagazine", "Digital CISO Magazine", "Open the Information and Technology issue")}
         ${homeButton("pspf.workshop.openCisoNewsletterReview", "Review newsletter", "Check generated content before export")}
         ${homeButton("pspf.workshop.openCisoMasterPlan", "CISO Master Plan", "Open the roadmap across strategy, action, risk and spend")}
         ${homeButton("pspf.workshop.copyCisoMasterPlan", "Copy CISO Master Plan", "Copy the adaptable master plan summary")}
@@ -1079,6 +1087,7 @@ async function attachEvidence(requirementId?: string): Promise<void> {
     },
     "workshop"
   );
+  const linkContext = await collectEvidenceLinkContext();
   const links = requirements.map((requirement) =>
     withEnvelope(
       "link",
@@ -1089,7 +1098,8 @@ async function attachEvidence(requirementId?: string): Promise<void> {
         fromId: requirement.id,
         fromType: "requirement",
         toId: evidence.id,
-        toType: "evidence"
+        toType: "evidence",
+        ...linkContext
       },
       "workshop"
     )
@@ -2846,7 +2856,7 @@ async function openMasterDashboard(): Promise<void> {
         <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
         <button type="button" data-command="pspf.core.createSnapshot">Snapshot</button>
         <button type="button" data-command="pspf.core.exportBundle">Export Bundle</button>
-        <button type="button" data-command="pspf.workshop.openCisoMagazine">Digital CISO Magazine</button>
+        <button type="button" data-command="pspf.workshop.openCsoMagazine">Digital CSO Magazine</button>
         <button type="button" data-command="pspf.workshop.openCisoMasterPlan">CISO Master Plan</button>
         <button type="button" data-command="pspf.workshop.copyCisoMasterPlan">Copy CISO Master Plan</button>
       </div>
@@ -3828,7 +3838,7 @@ function renderCyberAwarenessChangeStrategy(model: CyberAwarenessChangeStrategyM
       </div>
       <div class="form-actions">
         <button type="button" data-command="refresh">Refresh</button>
-        <button type="button" data-command="pspf.workshop.openCisoMagazine">Digital CISO Magazine</button>
+        <button type="button" data-command="pspf.workshop.openCsoMagazine">Digital CSO Magazine</button>
       </div>
     </section>
     <section>
@@ -6154,6 +6164,7 @@ function renderEvidenceReviewQueue(model: EvidenceReviewQueueModel): string {
         <button type="button" data-evidence-filter="actions">Actions</button>
         <button type="button" data-command="pspf.workshop.attachEvidence">Add evidence</button>
         <button type="button" data-command="copyEvidenceReviewSummary">Copy summary</button>
+        <button type="button" data-command="copyEvidencePackage">Copy package</button>
         <button type="button" data-command="refresh">Refresh</button>
       </div>
       <p class="muted" data-evidence-review-count></p>
@@ -6292,6 +6303,99 @@ async function copyEvidenceReviewQueueSummary(): Promise<void> {
   const summary = evidenceReviewQueueMarkdown(model);
   await vscode.env.clipboard.writeText(summary);
   await vscode.window.showInformationMessage("Evidence review summary copied to clipboard.");
+}
+
+async function copyEvidencePackage(): Promise<void> {
+  const allEntities = await listAllEntities();
+  const scope = await vscode.window.showQuickPick(
+    [
+      { label: "All domains", domainId: undefined },
+      ...PSPF_DOMAINS.map((domain) => ({ label: domain.title, domainId: domain.id }))
+    ],
+    {
+      title: "Copy Evidence Package",
+      placeHolder: "Choose the Requirement group to include",
+      ignoreFocusOut: true
+    }
+  );
+  if (!scope) {
+    return;
+  }
+  const packageMarkdown = evidencePackageMarkdown(allEntities, scope.domainId);
+  await vscode.env.clipboard.writeText(packageMarkdown);
+  await vscode.window.showInformationMessage("Evidence package copied to clipboard.");
+}
+
+function evidencePackageMarkdown(allEntities: readonly V01Entity[], domainId?: string): string {
+  const requirements = allEntities
+    .filter(
+      (entity): entity is RequirementEntity =>
+        entity.entityType === "requirement" &&
+        entity.recordStatus !== "deleted" &&
+        (!domainId || entity.domainId === domainId)
+    )
+    .sort(compareRequirementsForPicker);
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const evidenceById = new Map(
+    allEntities
+      .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence")
+      .map((entity) => [entity.id, entity])
+  );
+  const directionsById = new Map(
+    allEntities
+      .filter((entity): entity is DirectionEntity => entity.entityType === "direction")
+      .map((entity) => [entity.id, entity])
+  );
+  const scopeLabel = domainId ? domainName(domainId) : "All domains";
+  const lines = [
+    "# Evidence Package",
+    "",
+    `- Scope: ${scopeLabel}`,
+    `- Requirements: ${requirements.length}`,
+    `- Generated: ${formatDisplayDate(new Date())}`,
+    "",
+    "## Requirement Summary"
+  ];
+  for (const requirement of requirements) {
+    const evidence = links
+      .filter(
+        (link) =>
+          link.linkType === "supported-by" &&
+          link.fromType === "requirement" &&
+          link.toType === "evidence" &&
+          link.fromId === requirement.id
+      )
+      .map((link) => evidenceById.get(link.toId))
+      .filter((item): item is EvidenceEntity => Boolean(item));
+    const directions = links
+      .filter(
+        (link) =>
+          link.linkType === "targets" &&
+          link.fromType === "direction" &&
+          link.toType === "requirement" &&
+          link.toId === requirement.id
+      )
+      .map((link) => directionsById.get(link.fromId))
+      .filter((item): item is DirectionEntity => Boolean(item));
+    lines.push(
+      "",
+      `### ${requirement.title}`,
+      `- Domain: ${domainName(requirement.domainId)}`,
+      `- Status: ${label(requirement.assessmentStatus)}`,
+      `- Evidence: ${evidence.length}`,
+      `- Directions: ${directions.length}`
+    );
+    for (const item of evidence.slice(0, 6)) {
+      lines.push(`  - Evidence: ${item.title} · ${label(item.freshness)} · ${item.reference}`);
+    }
+    for (const direction of directions.slice(0, 4)) {
+      lines.push(`  - Direction: ${direction.title} · ${label(direction.responseState)}`);
+    }
+  }
+  lines.push("", "OFFICIAL: Sensitive · Review before sharing outside the local assurance team.");
+  return lines.join("\n");
 }
 
 function evidenceReviewQueueMarkdown(model: EvidenceReviewQueueModel): string {
@@ -6476,6 +6580,7 @@ async function linkEvidenceToRequirements(evidenceId: string): Promise<void> {
   if (!picked || picked.length === 0) {
     return;
   }
+  const linkContext = await collectEvidenceLinkContext();
   const links = picked.map(({ requirement }) =>
     withEnvelope(
       "link",
@@ -6486,7 +6591,8 @@ async function linkEvidenceToRequirements(evidenceId: string): Promise<void> {
         fromId: requirement.id,
         fromType: "requirement",
         toId: evidence.id,
-        toType: "evidence"
+        toType: "evidence",
+        ...linkContext
       },
       "workshop"
     )
@@ -6496,6 +6602,27 @@ async function linkEvidenceToRequirements(evidenceId: string): Promise<void> {
   await vscode.window.showInformationMessage(
     `Linked Evidence to ${picked.length} Requirement${picked.length === 1 ? "" : "s"}.`
   );
+}
+
+async function collectEvidenceLinkContext(): Promise<Pick<LinkEntity, "evidenceNote" | "evidenceSection">> {
+  const evidenceSection = trimOptional(
+    await vscode.window.showInputBox({
+      title: "Evidence Link Context",
+      prompt: "Evidence section, paragraph, or page range (optional)",
+      ignoreFocusOut: true
+    })
+  );
+  const evidenceNote = trimOptional(
+    await vscode.window.showInputBox({
+      title: "Evidence Link Context",
+      prompt: "Why this Evidence supports the selected Requirement(s) (optional, sensitive)",
+      ignoreFocusOut: true
+    })
+  );
+  return {
+    ...(evidenceSection ? { evidenceSection } : {}),
+    ...(evidenceNote ? { evidenceNote } : {})
+  };
 }
 
 function linkedRequirementsForEvidence(
@@ -8585,6 +8712,10 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         await copyEvidenceReviewQueueSummary();
         return;
       }
+      if (message.command === "copyEvidencePackage") {
+        await copyEvidencePackage();
+        return;
+      }
       if (message.command === "copyRequirementBrief" && message.requirementId) {
         await copyRequirementBrief(message.requirementId);
         return;
@@ -8788,6 +8919,9 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.manageTags",
         "pspf.workshop.copyPostureBrief",
         "pspf.workshop.openCisoNewsletterReview",
+        "pspf.workshop.openCsoMagazine",
+        "pspf.workshop.copyCsoMagazine",
+        "pspf.workshop.exportCsoMagazine",
         "pspf.workshop.openCisoMagazine",
         "pspf.workshop.copyCisoMagazine",
         "pspf.workshop.exportCisoMagazine",
@@ -9626,6 +9760,17 @@ function renderActionEditor(
   allEntities: readonly V01Entity[],
   browserOptions: RequirementBrowserOptions = {}
 ): string {
+  const linkedRequirements = linkedRequirementsForAction(action, allEntities);
+  const requirementTagActions = linkedRequirements.length
+    ? `<div class="form-actions action-linked-requirement-tags" aria-label="Tag linked Requirements">
+        ${linkedRequirements
+          .map(
+            (requirement) =>
+              `<button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(requirement.id)}">Apply tag to ${escapeHtml(requirementNumberLabel(requirement))}</button>`
+          )
+          .join("")}
+      </div>`
+    : "";
   const impact = action.impact;
   const readOnlyImpact = impact
     ? `
@@ -9659,9 +9804,34 @@ function renderActionEditor(
     ${inputField("endDate", "End date", formatShortAuDateTime(action.endDate) ?? "", false, "30 Sep 2026")}
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
     ${textareaField("newCommentary", "New commentary update", "")}
-  `
+  `,
+    undefined,
+    requirementTagActions
   )}${actionCommentaryHistorySection(action)}${readOnlyImpact}${commercialContextSection(action, allEntities)}`;
   return recordWorkbenchShell(action, allEntities, browserOptions, editorContent);
+}
+
+function linkedRequirementsForAction(
+  action: ActionEntity,
+  allEntities: readonly V01Entity[]
+): readonly RequirementEntity[] {
+  const requirementIds = new Set(
+    allEntities
+      .filter((entity): entity is LinkEntity => entity.entityType === "link")
+      .filter(
+        (link) =>
+          link.linkType === "addressed-by" &&
+          link.fromType === "requirement" &&
+          link.toType === "action" &&
+          link.toId === action.id
+      )
+      .map((link) => link.fromId)
+  );
+  return allEntities
+    .filter(
+      (entity): entity is RequirementEntity => entity.entityType === "requirement" && requirementIds.has(entity.id)
+    )
+    .sort(compareRequirementsForPicker);
 }
 
 function renderRiskEditor(
@@ -11195,22 +11365,31 @@ function describeShareNudge(
   return `${state.artefact} shared ${when} · ${changes.join(" · ")} since. A fresh copy may be worth sharing.`;
 }
 
+async function openCsoMagazine(): Promise<void> {
+  await openMagazineEdition("cso");
+}
+
 async function openCisoMagazine(): Promise<void> {
+  await openMagazineEdition("ciso");
+}
+
+async function openMagazineEdition(edition: CisoMagazineEdition): Promise<void> {
   await ensureCoreReady();
-  const input = buildShareArtefactInput(await listAllEntities());
+  const input = buildShareArtefactInput(await listAllEntities(), edition);
   const html = renderCisoMagazineHtml(input);
   const markdown = renderCisoMagazineMarkdown(input);
-  const panel = vscode.window.createWebviewPanel("pspfCisoMagazine", "Digital CISO Magazine", vscode.ViewColumn.One, {
+  const title = edition === "ciso" ? "Digital CISO Magazine" : "Digital CSO Magazine";
+  const panel = vscode.window.createWebviewPanel("pspfCisoMagazine", title, vscode.ViewColumn.One, {
     enableScripts: false
   });
   panel.webview.html = html;
   await vscode.env.clipboard.writeText(markdown);
-  await vscode.window.showInformationMessage("Digital CISO Magazine opened and email copy copied to clipboard.");
+  await vscode.window.showInformationMessage(`${title} opened and email copy copied to clipboard.`);
 }
 
 async function openCisoNewsletterReview(): Promise<void> {
   await ensureCoreReady();
-  const input = buildShareArtefactInput(await listAllEntities());
+  const input = buildShareArtefactInput(await listAllEntities(), "cso");
   const model = buildCisoMagazineModel(input);
   const actionRows = model.actionStrip.map((item) => ({
     openEntityType: "action",
@@ -11250,9 +11429,10 @@ async function openCisoNewsletterReview(): Promise<void> {
         ${metricCard("Commercial watch", model.commercialWatch.length)}
       </div>
       <div class="form-actions">
-        <button type="button" data-command="pspf.workshop.openCisoMagazine">Open magazine</button>
-        <button type="button" data-command="pspf.workshop.copyCisoMagazine">Copy Markdown</button>
-        <button type="button" data-command="pspf.workshop.exportCisoMagazine">Export file</button>
+        <button type="button" data-command="pspf.workshop.openCsoMagazine">Open CSO magazine</button>
+        <button type="button" data-command="pspf.workshop.copyCsoMagazine">Copy CSO Markdown</button>
+        <button type="button" data-command="pspf.workshop.exportCsoMagazine">Export CSO file</button>
+        <button type="button" data-command="pspf.workshop.openCisoMagazine">Open CISO edition</button>
         <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
       </div>
     </section>
@@ -11263,29 +11443,48 @@ async function openCisoNewsletterReview(): Promise<void> {
   );
 }
 
+async function copyCsoMagazine(): Promise<void> {
+  await copyMagazineEdition("cso");
+}
+
 async function copyCisoMagazine(): Promise<void> {
+  await copyMagazineEdition("ciso");
+}
+
+async function copyMagazineEdition(edition: CisoMagazineEdition): Promise<void> {
   await ensureCoreReady();
-  const markdown = renderCisoMagazineMarkdown(buildShareArtefactInput(await listAllEntities()));
+  const markdown = renderCisoMagazineMarkdown(buildShareArtefactInput(await listAllEntities(), edition));
   await vscode.env.clipboard.writeText(markdown);
-  await vscode.window.showInformationMessage("Digital CISO Magazine Markdown copied to clipboard.");
+  await vscode.window.showInformationMessage(
+    `${edition === "ciso" ? "Digital CISO Magazine" : "Digital CSO Magazine"} Markdown copied to clipboard.`
+  );
+}
+
+async function exportCsoMagazine(): Promise<void> {
+  await exportMagazineEdition("cso");
 }
 
 async function exportCisoMagazine(): Promise<void> {
+  await exportMagazineEdition("ciso");
+}
+
+async function exportMagazineEdition(edition: CisoMagazineEdition): Promise<void> {
   await ensureCoreReady();
+  const title = edition === "ciso" ? "Digital CISO Magazine" : "Digital CSO Magazine";
   const format = await vscode.window.showQuickPick(
     [
       { label: "Markdown", value: "md" as const },
       { label: "HTML", value: "html" as const }
     ],
-    { title: "Export Digital CISO Magazine", ignoreFocusOut: true }
+    { title: `Export ${title}`, ignoreFocusOut: true }
   );
   if (!format) {
     return;
   }
-  const input = buildShareArtefactInput(await listAllEntities());
+  const input = buildShareArtefactInput(await listAllEntities(), edition);
   const content = format.value === "html" ? renderCisoMagazineHtml(input) : renderCisoMagazineMarkdown(input);
   const target = await vscode.window.showSaveDialog({
-    defaultUri: vscode.Uri.file(`digital-ciso-magazine-${PSPF_SLICE_VERSION}.${format.value}`),
+    defaultUri: vscode.Uri.file(`digital-${edition}-magazine-${PSPF_SLICE_VERSION}.${format.value}`),
     filters: format.value === "html" ? { HTML: ["html"] } : { Markdown: ["md"] },
     saveLabel: "Export"
   });
@@ -11293,7 +11492,7 @@ async function exportCisoMagazine(): Promise<void> {
     return;
   }
   await vscode.workspace.fs.writeFile(target, new TextEncoder().encode(content));
-  await vscode.window.showInformationMessage(`Digital CISO Magazine exported to ${target.fsPath}.`);
+  await vscode.window.showInformationMessage(`${title} exported to ${target.fsPath}.`);
 }
 
 async function openCisoMasterPlan(): Promise<void> {
@@ -11376,7 +11575,7 @@ function renderCisoMasterPlanPanel(input: ReturnType<typeof buildShareArtefactIn
         <button type="button" data-command="pspf.workshop.addPlannerTask">Add planner task</button>
         <button type="button" data-command="pspf.workshop.addPlannerMilestone">Add milestone</button>
         <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
-        <button type="button" data-command="pspf.workshop.openCisoMagazine">Digital CISO Magazine</button>
+        <button type="button" data-command="pspf.workshop.openCsoMagazine">Digital CSO Magazine</button>
         <button type="button" data-command="pspf.workshop.copyCisoMasterPlan">Copy plan</button>
       </div>
     </section>
@@ -11461,14 +11660,15 @@ async function copyCisoMasterPlan(): Promise<void> {
   await vscode.window.showInformationMessage("CISO Master Plan copied to clipboard.");
 }
 
-function buildShareArtefactInput(allEntities: readonly V01Entity[]) {
+function buildShareArtefactInput(allEntities: readonly V01Entity[], edition: CisoMagazineEdition = "cso") {
   return {
     generatedAt: new Date(),
-    issueTitle: "Digital CISO Magazine",
+    issueTitle: edition === "ciso" ? "Digital CISO Magazine" : "Digital CSO Magazine",
     issueNumber: `Issue ${PSPF_SLICE_VERSION}`,
     periodLabel: formatDisplayDate(new Date()),
     audience: "internal" as const,
     domainScope: "all" as const,
+    edition,
     requirements: allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement"),
     evidence: allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence"),
     actions: allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action"),

@@ -25,7 +25,7 @@ const acscGuidanceCataloguePath = join(
   "cyber-reference-catalogue.json"
 );
 
-const GENERATED_SCHEMA_VERSION = "1.13.0";
+const GENERATED_SCHEMA_VERSION = "1.14.0";
 
 const PSPF_SOURCE = {
   sourceId: "pspf-release-2025-list-requirements",

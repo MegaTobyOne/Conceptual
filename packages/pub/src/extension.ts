@@ -16,6 +16,7 @@ const PUB_STORE_VERSION = "1.1.0";
 const PUB_STORE_PATH = [".pspf", "pub", "pub.json"] as const;
 const STAKEHOLDER_TYPES = ["staff", "service-provider", "customer", "partner", "other"] as const;
 const ASSIGNMENT_STATUSES = ["active", "planned", "rotating", "needs-backup"] as const;
+const ROLE_STATUSES = ["active", "archived"] as const;
 const PUB_WEBVIEW_COMMANDS = new Set<string>([
   "pspf.pub.loadSample",
   "pspf.pub.newPerson",
@@ -28,6 +29,7 @@ const PUB_WEBVIEW_COMMANDS = new Set<string>([
   "pspf.pub.newRole",
   "pspf.pub.openRoleDetail",
   "pspf.pub.editRole",
+  "pspf.pub.archiveRole",
   "pspf.pub.newAssignment",
   "pspf.pub.openAssignmentDetail",
   "pspf.pub.editAssignment",
@@ -72,12 +74,15 @@ interface RoleRecord {
   readonly id: string;
   readonly title: string;
   readonly teamId: string;
+  readonly status: RoleStatus;
   readonly reportsToRoleId: string;
   readonly functionalOutcome: string;
   readonly contribution: string;
   readonly positionDescriptionUrl: string;
   readonly positionDescriptionText: string;
 }
+
+type RoleStatus = (typeof ROLE_STATUSES)[number];
 
 interface TeamRecord {
   readonly id: string;
@@ -180,6 +185,7 @@ interface PersonEditorFields {
 interface RoleEditorFields {
   readonly title?: unknown;
   readonly teamId?: unknown;
+  readonly status?: unknown;
   readonly reportsToRoleId?: unknown;
   readonly functionalOutcome?: unknown;
   readonly contribution?: unknown;
@@ -293,7 +299,7 @@ class TeamsTreeProvider extends PubTreeProvider {
       return [new PubMessageTreeItem("No teams yet", "Use New Team or Load Sample", "info")];
     }
     return store.teams.map((team) => {
-      const roleCount = store.roles.filter((role) => role.teamId === team.id).length;
+      const roleCount = activeRolesForTeam(store, team.id).length;
       const detail = roleCount === 1 ? "1 role" : `${roleCount} roles`;
       return new PubRecordTreeItem(team.title, detail, "organization", "pspf.pub.openTeamDetail", team, "pspfPubTeam");
     });
@@ -378,6 +384,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.pub.newRole", newRole),
     vscode.commands.registerCommand("pspf.pub.openRoleDetail", openRoleDetail),
     vscode.commands.registerCommand("pspf.pub.editRole", editRole),
+    vscode.commands.registerCommand("pspf.pub.archiveRole", archiveRole),
     vscode.commands.registerCommand("pspf.pub.newAssignment", newAssignment),
     vscode.commands.registerCommand("pspf.pub.openAssignmentDetail", openAssignmentDetail),
     vscode.commands.registerCommand("pspf.pub.editAssignment", editAssignment),
@@ -578,6 +585,7 @@ async function newRole(): Promise<void> {
     id: localId("ROL"),
     title,
     teamId: team.id,
+    status: "active",
     reportsToRoleId: reportsToRole?.id ?? "",
     functionalOutcome,
     contribution,
@@ -605,6 +613,37 @@ async function editRole(): Promise<void> {
     return;
   }
   await openRoleEditor(role);
+}
+
+async function archiveRole(): Promise<void> {
+  const store = await loadStore();
+  const activeRoles = store.roles.filter((role) => role.status !== "archived");
+  if (activeRoles.length === 0) {
+    vscode.window.showInformationMessage("No active Pub roles are available to archive.");
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    activeRoles.map((role) => ({ label: role.title, description: teamForRole(store, role)?.title, role })),
+    { title: "Archive Pub Role", placeHolder: "Choose the role to remove from active coverage", ignoreFocusOut: true }
+  );
+  if (!picked) {
+    return;
+  }
+  const confirmed = await vscode.window.showWarningMessage(
+    `Archive ${picked.role.title}? Existing assignments stay local, but the role stops counting as active coverage.`,
+    { modal: true },
+    "Archive role"
+  );
+  if (confirmed !== "Archive role") {
+    return;
+  }
+  await saveStore({
+    ...store,
+    roles: store.roles.map((role) => (role.id === picked.role.id ? { ...role, status: "archived" } : role))
+  });
+  await refreshHome();
+  await openPubPanel("Roles", renderRolesHtml);
+  vscode.window.showInformationMessage(`Archived Pub role ${picked.role.title}.`);
 }
 
 async function openRoleEditor(role?: RoleRecord): Promise<void> {
@@ -806,7 +845,7 @@ function renderTeamScopeBriefMarkdown(
   }
   lines.push("");
 
-  const teamRoles = store.roles.filter((role) => role.teamId === team.id);
+  const teamRoles = activeRolesForTeam(store, team.id);
   lines.push("## Roles supporting this team");
   lines.push("");
   if (teamRoles.length === 0) {
@@ -1293,6 +1332,7 @@ function buildSampleStore(): PubStore {
       id: "PUB-ROL-access-review-owner",
       title: "Access review owner",
       teamId: "PUB-TEM-information-security",
+      status: "active",
       reportsToRoleId: "",
       functionalOutcome: "Sustained access review cadence",
       contribution: "Keeps review evidence current and makes reviewer backup visible.",
@@ -1304,6 +1344,7 @@ function buildSampleStore(): PubStore {
       id: "PUB-ROL-monitoring-provider",
       title: "Monitoring service provider",
       teamId: "PUB-TEM-external-soc-provider",
+      status: "active",
       reportsToRoleId: "PUB-ROL-access-review-owner",
       functionalOutcome: "Continuous monitoring coverage",
       contribution: "Shows where supplier roster coverage contributes to sustainable monitoring.",
@@ -1458,7 +1499,7 @@ function renderOrgChartHtml(store: PubStore): string {
     "PSPF Pub Organisation Chart",
     `<main>${sectionHtml(
       "Organisation chart",
-      "Local reporting structure from parent teams, role reporting lines, assignments, action badges, and control ownership. Person names stay local-only.",
+      "Local team hierarchy, role reporting lines, and who is assigned. Person names stay local-only.",
       graphic
     )}${sectionHtml(
       "Organisation chart detail",
@@ -1492,7 +1533,7 @@ function renderOrgChartTeamNode(
     .filter((candidate) => candidate.parentTeamId === team.id && !nextSeenTeamIds.has(candidate.id))
     .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
   const teamRoles = store.roles
-    .filter((role) => role.teamId === team.id)
+    .filter((role) => role.teamId === team.id && role.status !== "archived")
     .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
   const roleCards = teamRoles.length
     ? teamRoles.map((role) => renderOrgChartRoleCard(store, role)).join("")
@@ -1527,7 +1568,7 @@ function renderOrgChartRoleCard(store: PubStore, role: RoleRecord): string {
 }
 
 function renderOrgChartAssignmentChip(store: PubStore, assignment: AssignmentRecord): string {
-  return `<span class="org-assignment-chip"><strong>${escapeHtml(personName(store, assignment.personId))}</strong><small>${escapeHtml(label(assignment.status))}</small></span>`;
+  return `<span class="org-assignment-chip"><strong>${escapeHtml(personName(store, assignment.personId))}</strong></span>`;
 }
 
 function renderTeamsHtml(store: PubStore): string {
@@ -1555,7 +1596,7 @@ async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<st
       sectionHtml("Team not found", "This team exists only in Pub local storage and could not be resolved.", "")
     );
   }
-  const teamRoles = store.roles.filter((role) => role.teamId === team.id);
+  const teamRoles = activeRolesForTeam(store, team.id);
   const teamAssignments = store.assignments.filter((assignment) =>
     teamRoles.some((role) => role.id === assignment.roleId)
   );
@@ -1584,6 +1625,7 @@ async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<st
       </section>
       <section class="grid two" aria-label="Team health">
         ${summaryCard("Coverage", teamHealthBadges(store, team))}
+        ${summaryCard("Compliance status", teamComplianceStatus(store, team))}
         ${summaryCard("Local-only notes", escapeHtml(team.notes || "No local team notes recorded."))}
       </section>
       <section class="panel" aria-label="Team actions">
@@ -1592,6 +1634,7 @@ async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<st
           ${commandButton("pspf.pub.editTeam", "Edit team", "Update local control ownership")}
           ${commandButton("pspf.pub.exportTeamScopeBrief", "Share scope brief", "Export this team's scope and goals as Markdown")}
           ${commandButton("pspf.pub.newRole", "New role", "Add role coverage for a team")}
+          ${commandButton("pspf.pub.archiveRole", "Archive role", "Remove a role from active coverage without deleting it")}
           ${commandButton("pspf.pub.newAssignment", "New assignment", "Assign a person to a role")}
           ${commandButton("pspf.pub.recordRelationshipNote", "Relationship note", "Record local follow-up context")}
         </div>
@@ -1663,7 +1706,7 @@ function renderTeamEditorHtml(
   const selectedRequirementRefs = new Set(team?.ownedRequirementRefs ?? []);
   const knownRequirementIds = new Set(requirements.map((requirement) => requirement.id));
   const localRequirementRefs = (team?.ownedRequirementRefs ?? []).filter((ref) => !knownRequirementIds.has(ref));
-  const teamRoles = team ? store.roles.filter((role) => role.teamId === team.id) : [];
+  const teamRoles = team ? activeRolesForTeam(store, team.id) : [];
   const teamAssignments = store.assignments.filter((assignment) =>
     teamRoles.some((role) => role.id === assignment.roleId)
   );
@@ -1770,6 +1813,7 @@ function roleEditorFields(role: RoleRecord, store: PubStore): string {
   return `<fieldset class="nested-editor"><legend>${escapeHtml(isBlank ? "New role" : role.title)}</legend>
     <input type="hidden" name="role.${escapeHtml(role.id)}.id" value="${escapeHtml(role.id)}" />
     <label><span>Role title</span><input name="role.${escapeHtml(role.id)}.title" value="${escapeHtml(role.title)}" /></label>
+    <label><span>Status</span><select name="role.${escapeHtml(role.id)}.status">${ROLE_STATUSES.map((status) => `<option value="${escapeHtml(status)}"${status === role.status ? " selected" : ""}>${escapeHtml(label(status))}</option>`).join("")}</select></label>
     <label><span>Reports to</span><select name="role.${escapeHtml(role.id)}.reportsToRoleId"><option value="">No reporting role</option>${store.roles
       .filter((candidate) => candidate.id !== role.id)
       .map(
@@ -1950,6 +1994,7 @@ function renderRoleDetailHtml(store: PubStore, roleId: string): string {
         <h1>${escapeHtml(role.title)}</h1>
         <p>${escapeHtml(role.functionalOutcome || "No functional outcome recorded yet.")}</p>
         <div class="tags">
+          <span class="tag">${escapeHtml(label(role.status))}</span>
           <span class="tag">${escapeHtml(team?.title ?? "Unknown team")}</span>
           <span class="tag">Reports to ${escapeHtml(roleTitle(store, role.reportsToRoleId) || "no reporting role")}</span>
           <span class="tag">local-only</span>
@@ -1964,6 +2009,7 @@ function renderRoleDetailHtml(store: PubStore, roleId: string): string {
         <h1>Role actions</h1>
         <div class="action-list compact">
           ${commandButton("pspf.pub.editRole", "Edit role", "Update local role fields")}
+          ${commandButton("pspf.pub.archiveRole", "Archive role", "Remove a role from active coverage without deleting it")}
           ${commandButton("pspf.pub.newAssignment", "New assignment", "Assign a person to this role")}
           ${commandButton("pspf.pub.openTeamDetail", "Team detail", "Open the owning team")}
         </div>
@@ -1996,6 +2042,7 @@ function renderRoleEditorHtml(store: PubStore, role: RoleRecord | undefined): st
         <section class="panel">
           <h1>Role details</h1>
           <label><span>Role title</span><input name="title" value="${escapeHtml(current.title)}" required autofocus /></label>
+          <label><span>Status</span><select name="status">${ROLE_STATUSES.map((status) => `<option value="${escapeHtml(status)}"${status === current.status ? " selected" : ""}>${escapeHtml(label(status))}</option>`).join("")}</select></label>
           <label><span>Owning team</span><select name="teamId" required>${store.teams.map((team) => `<option value="${escapeHtml(team.id)}"${team.id === current.teamId ? " selected" : ""}>${escapeHtml(team.title)}</option>`).join("")}</select></label>
           <label><span>Reports to</span><select name="reportsToRoleId"><option value="">No reporting role</option>${store.roles
             .filter((candidate) => candidate.id !== role?.id)
@@ -2207,6 +2254,7 @@ function blankRole(teamId: string): RoleRecord {
     id: localId("ROL"),
     title: "",
     teamId,
+    status: "active",
     reportsToRoleId: "",
     functionalOutcome: "",
     contribution: "",
@@ -2633,16 +2681,20 @@ function parseRoleEditorFields(
   const roleIds = formIndexedIds(fields, "role");
   const editedRoleIds = new Set(roleIds);
   const editedRoles = roleIds
-    .map((roleId) => ({
-      id: roleId,
-      title: stringField(fields?.[`role.${roleId}.title`]).trim(),
-      teamId,
-      reportsToRoleId: stringField(fields?.[`role.${roleId}.reportsToRoleId`]),
-      functionalOutcome: stringField(fields?.[`role.${roleId}.functionalOutcome`]).trim(),
-      contribution: stringField(fields?.[`role.${roleId}.contribution`]).trim(),
-      positionDescriptionUrl: stringField(fields?.[`role.${roleId}.positionDescriptionUrl`]).trim(),
-      positionDescriptionText: stringField(fields?.[`role.${roleId}.positionDescriptionText`]).trim()
-    }))
+    .map((roleId) => {
+      const status = fields?.[`role.${roleId}.status`];
+      return {
+        id: roleId,
+        title: stringField(fields?.[`role.${roleId}.title`]).trim(),
+        teamId,
+        status: isRoleStatus(status) ? status : "active",
+        reportsToRoleId: stringField(fields?.[`role.${roleId}.reportsToRoleId`]),
+        functionalOutcome: stringField(fields?.[`role.${roleId}.functionalOutcome`]).trim(),
+        contribution: stringField(fields?.[`role.${roleId}.contribution`]).trim(),
+        positionDescriptionUrl: stringField(fields?.[`role.${roleId}.positionDescriptionUrl`]).trim(),
+        positionDescriptionText: stringField(fields?.[`role.${roleId}.positionDescriptionText`]).trim()
+      };
+    })
     .filter((role) => role.title.length > 0);
   return [...store.roles.filter((role) => !editedRoleIds.has(role.id)), ...editedRoles];
 }
@@ -2708,6 +2760,7 @@ function parseRoleFormFields(
     id: roleId && roleId.trim().length > 0 ? roleId : localId("ROL"),
     title,
     teamId,
+    status: isRoleStatus(fields?.status) ? fields.status : "active",
     reportsToRoleId: reportsToRoleId === roleId ? "" : reportsToRoleId,
     functionalOutcome: stringField(fields?.functionalOutcome).trim(),
     contribution: stringField(fields?.contribution).trim(),
@@ -2903,6 +2956,7 @@ function normaliseRoles(store: Partial<PubStore>, teams: readonly TeamRecord[]):
   return (store.roles as readonly (Partial<RoleRecord> & { team?: string })[]).map((role) => ({
     id: typeof role.id === "string" ? role.id : localId("ROL"),
     title: typeof role.title === "string" ? role.title : "Untitled role",
+    status: isRoleStatus(role.status) ? role.status : "active",
     teamId:
       typeof role.teamId === "string"
         ? role.teamId
@@ -2917,6 +2971,10 @@ function normaliseRoles(store: Partial<PubStore>, teams: readonly TeamRecord[]):
 
 function teamForRole(store: PubStore, role: RoleRecord): TeamRecord | undefined {
   return store.teams.find((team) => team.id === role.teamId);
+}
+
+function activeRolesForTeam(store: PubStore, teamId: string): readonly RoleRecord[] {
+  return store.roles.filter((role) => role.teamId === teamId && role.status !== "archived");
 }
 
 function teamTitle(store: PubStore, teamId: string): string | undefined {
@@ -2964,7 +3022,7 @@ function label(value: string): string {
 }
 
 function teamHealthBadges(store: PubStore, team: TeamRecord): string {
-  const roles = store.roles.filter((role) => role.teamId === team.id);
+  const roles = activeRolesForTeam(store, team.id);
   const assignments = store.assignments.filter((assignment) => roles.some((role) => role.id === assignment.roleId));
   const gaps = [
     team.ownedControlRefs.length === 0 && team.controlSetRefs.length === 0 ? "no controls" : "",
@@ -2975,6 +3033,23 @@ function teamHealthBadges(store: PubStore, team: TeamRecord): string {
   return gaps.length === 0
     ? '<span class="badge">covered</span>'
     : gaps.map((gap) => `<span class="badge">${escapeHtml(gap)}</span>`).join("");
+}
+
+function teamComplianceStatus(store: PubStore, team: TeamRecord): string {
+  const roles = activeRolesForTeam(store, team.id);
+  const assignments = store.assignments.filter((assignment) => roles.some((role) => role.id === assignment.roleId));
+  return [
+    `${team.ownedControlRefs.length} ISM control${team.ownedControlRefs.length === 1 ? "" : "s"}`,
+    `${team.ownedRequirementRefs.length} PSPF requirement${team.ownedRequirementRefs.length === 1 ? "" : "s"}`,
+    `${roles.length} active role${roles.length === 1 ? "" : "s"}`,
+    `${assignments.length} assignment${assignments.length === 1 ? "" : "s"}`
+  ]
+    .map((item) => `<span class="badge">${escapeHtml(item)}</span>`)
+    .join(" ");
+}
+
+function isRoleStatus(value: unknown): value is RoleStatus {
+  return typeof value === "string" && ROLE_STATUSES.includes(value as RoleStatus);
 }
 
 function splitRefs(value: string): readonly string[] {

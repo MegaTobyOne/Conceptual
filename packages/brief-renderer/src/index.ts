@@ -32,12 +32,15 @@ export interface PostureBriefInput {
 
 export type CisoMagazinePspfDomainScope = "all" | "GOV" | "RISK" | "INFO" | "TECH" | "PER" | "PHYS";
 
+export type CisoMagazineEdition = "cso" | "ciso";
+
 export interface CisoMagazineInput extends PostureBriefInput {
   readonly issueTitle?: string;
   readonly issueNumber?: string;
   readonly periodLabel?: string;
   readonly audience?: "internal" | "executive" | "external";
   readonly domainScope?: CisoMagazinePspfDomainScope;
+  readonly edition?: CisoMagazineEdition;
   readonly changeRecords?: BundleCollections["change-records"];
   readonly spendItems?: readonly SpendItemEntity[];
 }
@@ -52,6 +55,7 @@ export interface CisoMagazineModel {
   readonly bundleVersion?: string;
   readonly schemaVersion?: string;
   readonly audience: "internal" | "executive" | "external";
+  readonly edition: CisoMagazineEdition;
   readonly pspfDomainScope: CisoMagazinePspfDomainScope;
   readonly pspfDomainTitle: string;
   readonly coverHook: string;
@@ -156,11 +160,13 @@ export interface CisoMasterPlanDependency {
 }
 
 export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineModel {
+  const edition = input.edition ?? "cso";
   const pspfDomainScope = input.domainScope ?? "all";
-  const scopedDomains = selectPspfDomains(input.domains, pspfDomainScope);
+  const scopedDomains =
+    edition === "ciso" ? selectCisoTechnicalDomains(input.domains) : selectPspfDomains(input.domains, pspfDomainScope);
   const scopedDomainIds = new Set(scopedDomains.map((domain) => domain.id));
   const scopedRequirements = input.requirements.filter(
-    (requirement) => pspfDomainScope === "all" || scopedDomainIds.has(requirement.domainId)
+    (requirement) => (pspfDomainScope === "all" && edition !== "ciso") || scopedDomainIds.has(requirement.domainId)
   );
   const scopedRequirementIds = new Set(scopedRequirements.map((requirement) => requirement.id));
   const requirementsById = new Map(input.requirements.map((requirement) => [requirement.id, requirement]));
@@ -178,13 +184,17 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
   );
   const openActions = input.actions.filter(
     (action) =>
-      !["done", "cancelled"].includes(action.status) && (pspfDomainScope === "all" || scopedActionIds.has(action.id))
+      !["done", "cancelled"].includes(action.status) &&
+      (edition === "cso" && pspfDomainScope === "all" ? true : scopedActionIds.has(action.id))
   );
   const openRisks = input.risks.filter(
-    (risk) => risk.status !== "closed" && (pspfDomainScope === "all" || scopedRiskIds.has(risk.id))
+    (risk) =>
+      risk.status !== "closed" && (edition === "cso" && pspfDomainScope === "all" ? true : scopedRiskIds.has(risk.id))
   );
   const evidenceNeedingReview = input.evidence.filter(
-    (item) => item.freshness !== "current" && (pspfDomainScope === "all" || scopedEvidenceIds.has(item.id))
+    (item) =>
+      item.freshness !== "current" &&
+      (edition === "cso" && pspfDomainScope === "all" ? true : scopedEvidenceIds.has(item.id))
   );
   const requirementsNeedingAttention = scopedRequirements.filter((requirement) =>
     ["not-started", "in-progress", "partially-met", "not-met", "under-review"].includes(requirement.assessmentStatus)
@@ -192,10 +202,15 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
   const activeStrategy = (input.strategies ?? []).find((strategy) => strategy.recordStatus !== "deleted");
   const linkedSpendItems = (input.spendItems ?? []).filter(
     (item) =>
-      pspfDomainScope === "all" ||
+      (edition === "cso" && pspfDomainScope === "all") ||
       isSpendItemLinkedToScopedWork(item, input.links, scopedRequirementIds, scopedActionIds)
   );
-  const pspfDomainTitle = pspfDomainScope === "all" ? "All PSPF Domains" : (scopedDomains[0]?.title ?? pspfDomainScope);
+  const pspfDomainTitle =
+    edition === "ciso"
+      ? "Information + Technology"
+      : pspfDomainScope === "all"
+        ? "All PSPF Domains"
+        : (scopedDomains[0]?.title ?? pspfDomainScope);
   const masterPlan = buildCisoMasterPlanModel({
     generatedAt: input.generatedAt,
     requirements: scopedRequirements,
@@ -218,7 +233,7 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
 
   return {
     classification: "OFFICIAL: Sensitive",
-    title: input.issueTitle ?? "Digital CISO Magazine",
+    title: input.issueTitle ?? (edition === "ciso" ? "Digital CISO Magazine" : "Digital CSO Magazine"),
     issueNumber: input.issueNumber ?? "Issue 1",
     periodLabel: input.periodLabel ?? "Current assurance period",
     generatedAt: formatDisplayDate(input.generatedAt),
@@ -226,6 +241,7 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
     bundleVersion: input.bundleVersion,
     schemaVersion: input.schemaVersion,
     audience: input.audience ?? "internal",
+    edition,
     pspfDomainScope,
     pspfDomainTitle,
     coverHook: buildCoverHook(requirementsNeedingAttention.length, openActions.length, pspfDomainTitle),
@@ -630,6 +646,14 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
     model.bundleVersion ? `Bundle ${model.bundleVersion}` : undefined,
     model.schemaVersion ? `Schema ${model.schemaVersion}` : undefined
   ].filter((item): item is string => Boolean(item));
+  const theme =
+    model.edition === "ciso"
+      ? `:root { color-scheme: dark; --ink: #f4f7fb; --paper: #07111c; --panel: #0f1e2d; --line: #4fd1c5; --accent: #f6ad55; --muted: #b8c4d4; }`
+      : `:root { color-scheme: light; --ink: #201f1e; --paper: #fffaf0; --panel: #ffffff; --line: #2f6f73; --accent: #b54708; --muted: #62625f; }`;
+  const coverBackground =
+    model.edition === "ciso"
+      ? "linear-gradient(135deg, #07111c 0%, #10253a 55%, #163f45 100%)"
+      : "linear-gradient(135deg, #fffaf0 0%, #ffffff 60%, #d8f0ef 100%)";
   return `<!doctype html>
 <html lang="en-AU">
 <head>
@@ -637,12 +661,12 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(model.title)}</title>
   <style>
-    :root { color-scheme: light; --ink: #201f1e; --paper: #fffaf0; --panel: #ffffff; --line: #2f6f73; --accent: #b54708; --muted: #62625f; }
+    ${theme}
     * { box-sizing: border-box; }
     body { margin: 0; color: var(--ink); background: var(--paper); font-family: Georgia, 'Times New Roman', serif; }
     .issue { max-width: 1100px; margin: 0 auto; padding: 24px; }
     .classification { background: #f4c542; color: #1f1a00; font: 700 13px/1.4 Arial, sans-serif; padding: 8px 12px; text-transform: uppercase; }
-    .cover { border: 4px solid var(--ink); background: linear-gradient(135deg, #fffaf0 0%, #ffffff 60%, #d8f0ef 100%); padding: 24px; min-height: 360px; display: grid; gap: 20px; align-content: space-between; }
+    .cover { border: 4px solid var(--ink); background: ${coverBackground}; padding: 24px; min-height: 360px; display: grid; gap: 20px; align-content: space-between; }
     .kicker, .meta, .section-label, .footer { color: var(--muted); font: 700 12px/1.4 Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
     h1 { margin: 0; font-size: clamp(40px, 7vw, 86px); line-height: .95; letter-spacing: 0; }
     h2 { margin: 0 0 14px; font-size: 28px; line-height: 1.1; letter-spacing: 0; }
@@ -1168,6 +1192,12 @@ function selectPspfDomains(
     return domains;
   }
   return domains.filter((domain) => pspfDomainCode(domain) === scope);
+}
+
+function selectCisoTechnicalDomains(
+  domains: readonly Pick<DomainEntity, "id" | "title">[]
+): readonly Pick<DomainEntity, "id" | "title">[] {
+  return domains.filter((domain) => ["INFO", "TECH"].includes(pspfDomainCode(domain)));
 }
 
 function pspfDomainCode(

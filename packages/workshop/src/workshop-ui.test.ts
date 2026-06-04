@@ -118,6 +118,45 @@ test("Requirement 92 is excluded from Essential Eight dashboard matching", async
   assert.match(source, /requirement\.id === "REQ-PSPF-2025-092"/);
 });
 
+test("Action editor exposes Apply tag for linked Requirements", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /function linkedRequirementsForAction/);
+  assert.match(source, /class="form-actions action-linked-requirement-tags"/);
+  assert.match(source, /data-command="applyTag" data-requirement-id="\$\{escapeHtml\(requirement\.id\)\}"/);
+  assert.match(source, /Apply tag to \$\{escapeHtml\(requirementNumberLabel\(requirement\)\)\}/);
+});
+
+test("Evidence linking captures sensitive link context", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /async function collectEvidenceLinkContext/);
+  assert.match(source, /evidenceSection/);
+  assert.match(source, /evidenceNote/);
+  assert.match(source, /Why this Evidence supports the selected Requirement\(s\) \(optional, sensitive\)/);
+});
+
+test("Evidence review can copy a scoped evidence package", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /data-command="copyEvidencePackage"/);
+  assert.match(source, /async function copyEvidencePackage/);
+  assert.match(source, /function evidencePackageMarkdown/);
+  assert.match(source, /Choose the Requirement group to include/);
+  assert.match(source, /## Requirement Summary/);
+});
+
+test("Workshop exposes separate CSO and CISO magazine editions", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /pspf\.workshop\.openCsoMagazine/);
+  assert.match(source, /pspf\.workshop\.openCisoMagazine/);
+  assert.match(source, /Digital CSO Magazine/);
+  assert.match(source, /Digital CISO Magazine/);
+  assert.match(source, /buildShareArtefactInput\(await listAllEntities\(\), edition\)/);
+  assert.match(source, /edition === "ciso" \? "Digital CISO Magazine" : "Digital CSO Magazine"/);
+});
+
 test("Requirement cards are larger and render ISM controls", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 

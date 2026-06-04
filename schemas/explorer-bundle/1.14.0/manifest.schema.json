@@ -1,0 +1,121 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "./manifest.schema.json",
+    "title": "PSPF Explorer master bundle manifest",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "bundleType",
+        "bundleVersion",
+        "schemaVersion",
+        "apiVersion",
+        "generatedAt",
+        "generator",
+        "collections"
+    ],
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "bundleType": {
+            "const": "pspf-explorer-bundle"
+        },
+        "bundleVersion": {
+            "type": "string"
+        },
+        "schemaVersion": {
+            "type": "string"
+        },
+        "apiVersion": {
+            "type": "string"
+        },
+        "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "generator": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "product",
+                "mode",
+                "productVersion"
+            ],
+            "properties": {
+                "product": {
+                    "enum": [
+                        "pspf-core",
+                        "pspf-workshop",
+                        "pspf-explorer"
+                    ]
+                },
+                "mode": {
+                    "enum": [
+                        "publication",
+                        "local-authoring",
+                        "grc-capture",
+                        "work-import"
+                    ]
+                },
+                "productVersion": {
+                    "type": "string"
+                },
+                "workspaceId": {
+                    "type": "string"
+                },
+                "snapshotId": {
+                    "type": "string"
+                }
+            }
+        },
+        "compatibility": {
+            "type": "object"
+        },
+        "security": {
+            "type": "object"
+        },
+        "collections": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "name",
+                    "path",
+                    "count"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "count": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "hash": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "alg",
+                            "value"
+                        ],
+                        "properties": {
+                            "alg": {
+                                "const": "SHA-256"
+                            },
+                            "value": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "indexes": {
+            "type": "array"
+        }
+    }
+}

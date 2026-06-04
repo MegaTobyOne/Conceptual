@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.13.0",
-  bundleVersion: "1.13.0",
-  apiVersion: "1.13.0"
+  schemaVersion: "1.14.0",
+  bundleVersion: "1.14.0",
+  apiVersion: "1.14.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.38.1" as const;
+export const PSPF_SLICE_VERSION = "1.39.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -292,6 +292,8 @@ export function operatorLinkRulesForSource(sourceProduct: SourceProduct): readon
 
 export type RecordStatus = "active" | "archived" | "inactive" | "deleted";
 
+export type LifecycleStatus = "active" | "superseded" | "retired";
+
 export interface FieldPolicy {
   readonly field: string;
   readonly publication: PublicationPolicy;
@@ -311,6 +313,8 @@ export interface EntityEnvelope {
   readonly updatedAt: string;
   readonly sourceProduct: SourceProduct;
   readonly recordStatus: RecordStatus;
+  readonly lifecycleStatus?: LifecycleStatus;
+  readonly decisionDate?: string;
 }
 
 export interface DomainEntity extends EntityEnvelope {
@@ -404,6 +408,8 @@ export interface LinkEntity extends EntityEnvelope {
   readonly fromType: V01EntityType;
   readonly toId: string;
   readonly toType: V01EntityType;
+  readonly evidenceNote?: string;
+  readonly evidenceSection?: string;
 }
 
 export interface SnapshotEntity extends EntityEnvelope {
@@ -1085,21 +1091,25 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
   },
   {
     entityType: "link",
-    fields: publicFields(
-      "id",
-      "entityType",
-      "schemaVersion",
-      "title",
-      "createdAt",
-      "updatedAt",
-      "sourceProduct",
-      "recordStatus",
-      "linkType",
-      "fromId",
-      "fromType",
-      "toId",
-      "toType"
-    )
+    fields: [
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "title",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "linkType",
+        "fromId",
+        "fromType",
+        "toId",
+        "toType"
+      ),
+      { field: "evidenceNote", publication: "sensitive" },
+      { field: "evidenceSection", publication: "sensitive" }
+    ]
   },
   {
     entityType: "tag",
@@ -3104,7 +3114,8 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
 }
 
 function publicFields(...fields: readonly string[]): readonly FieldPolicy[] {
-  return fields.map((field) => ({ field, publication: "public" as const }));
+  const lifecycleFields = ["lifecycleStatus", "decisionDate"] as const;
+  return [...fields, ...lifecycleFields].map((field) => ({ field, publication: "public" as const }));
 }
 
 export function assertNever(value: never): never {
