@@ -2,7 +2,7 @@
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.38.1 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.13.0`.
+The repository currently ships PSPF v1.39.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
 
 ## Products
 
@@ -29,18 +29,18 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.38.1-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.39.0-readiness-report.md`.
 
 ## Current Workshop Slice
 
 Workshop is the main operator surface for evidence-backed assessment work. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
 
-Current v1.38 additions include:
+Current v1.39 additions include:
 
-- Cyber reference catalogue: curated ASD/ACSC cyber functions, Essential Eight and mitigation strategies, guidance frameworks, Trustworthy Software, secure configuration management, and queryable cyber-reference mappings.
-- Dataset diagnostics: `PSPF: Run Dataset Diagnostics` validates seeded cyber/reference counts, mapping endpoints, generated cyber links, schema versions, and public redaction, with a clean-start reset recovery action.
-- Explorer bundle schema `1.13.0`: publishes the new cyber reference collections and keeps mapping rationale sensitive by default.
-- v1.38.1 patch polish: Workshop feature buttons are covered by a rendered-command bridge guard, clipboard brief action references are compact, Directions lead with status, Requirement cards show ISM controls, and Pub's Organisation Chart is structure-first rather than detail-heavy.
+- Explorer bundle schema `1.14.0`: adds optional lifecycle decision metadata and sensitive/default-deny evidence link context while preserving earlier schema directories.
+- Workshop evidence operations: Action editors can apply tags to linked Requirements, evidence links can capture sensitive section/note context, and Evidence Review can copy a scoped evidence package by domain.
+- Executive reports: the broad newsletter is now the Digital CSO Magazine, while the Digital CISO Magazine is a dark Information + Technology edition.
+- Pub local ownership: roles can be archived without deleting local records, and team detail shows a compliance status summary from owned controls, owned Requirements, active roles, and assignments.
 
 Recent Workshop additions include:
 

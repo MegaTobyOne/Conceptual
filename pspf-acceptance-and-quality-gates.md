@@ -559,24 +559,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deferred-scope gate**: v1.37 does not add editable Explorer authoring, an authored organisation/team model, chart image export, or runtime network fetch.
 8. **Regression gate**: `e2e:v1.37`, `check:continuous-compliance`, `check:workshop-navigation`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
-### v1.38 candidate gates (Cyber reference catalogue and dataset diagnostics)
+### v1.39 candidate gates (Evidence lifecycle, reporting, and Pub ownership polish)
 
-1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.38.0`; `VERSION_AXES` are `1.13.0`; `schemas/explorer-bundle/1.13.0/` is published and earlier schema directories remain immutable.
-2. **Cyber reference data gate**: generated reference data includes curated ASD/ACSC cyber functions, mitigation strategies, guidance frameworks, Trustworthy Software, Secure Configuration Management, and queryable cyber-reference mappings.
-3. **Dataset diagnostics gate**: `PSPF: Run Dataset Diagnostics`, `runDatasetDiagnostics()`, and `check:cyber-reference-data` validate seeded cyber reference counts, mapping endpoint existence/type, generated cyber-link parity, schema versions, public redaction, export, and clean-start reset.
-4. **Mapping UX gate**: Requirement detail and ISM Control detail expose reciprocal open/edit actions so Requirement-to-control mappings can be inspected and edited from both ends.
-5. **Publication gate**: `cyber-reference-mapping.rationale` remains sensitive and is not emitted in public Explorer bundles.
-6. **No-runtime-egress gate**: the cyber reference catalogue is vendored/generated and no runtime network fetch is introduced.
-7. **Regression gate**: `e2e:v1.38`, `check:cyber-reference-data`, `check:schema-coverage`, `check:schema-policy`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
-
-### v1.38.1 patch gates (UI readiness and release hardening)
-
-1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.38.1`; `VERSION_AXES` remain `1.13.0`; no new schema directory, entity type, collection, link verb, or published field is introduced.
-2. **Workshop button bridge gate**: source-level tests enumerate rendered major-feature `pspf.*` webview commands and confirm the Workshop panel command bridge allows them, preventing inactive feature buttons.
-3. **Clipboard brief gate**: shared posture brief and Digital CISO Magazine renderers use compact linked Requirement references for Actions, and Directions render status first before title.
-4. **Requirement Card gate**: the card view remains enlarged for scanability and includes ISM control links alongside Evidence and Actions.
-5. **Pub structure gate**: the Pub Organisation Chart graphic and supporting table show structure, reporting lines, and assignment state without repeating detailed responsibilities, control ownership, or role outcome prose.
-6. **Regression gate**: `@pspf/brief-renderer`, `pspf-workshop`, and `pspf-pub` focused build/test suites pass before full `release:readiness`.
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.39.0`; `VERSION_AXES` are `1.14.0`; `schemas/explorer-bundle/1.14.0/` is published and earlier schema directories remain immutable.
+2. **Publication gate**: `link.evidenceNote` and `link.evidenceSection` are sensitive/default-deny, stripped by `sanitiseEntityForPublication`, and covered by schema-policy tests.
+3. **Workshop evidence gate**: Action editors expose Apply tag for linked Requirements, evidence links capture optional section/note context, and Evidence Review can copy a scoped evidence package.
+4. **Report gate**: Digital CSO Magazine remains the broad executive issue; Digital CISO Magazine is a dark Information + Technology edition, with renderer and Workshop command coverage.
+5. **Pub lifecycle gate**: Pub roles can be archived without deleting local records, and team detail shows compliance status from owned controls, owned Requirements, active roles, and assignments.
+6. **Regression gate**: `e2e:v1.39`, `check:schema-coverage`, `check:schema-policy`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 

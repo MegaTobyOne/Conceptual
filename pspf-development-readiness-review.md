@@ -6,7 +6,7 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.38.1 is a schema-neutral patch over v1.38.0. v1.38 adds the curated cyber reference catalogue, Explorer bundle schemas `1.13.0`, Core dataset diagnostics, clean-start reset recovery, reciprocal ISM mapping open/edit affordances, and the `check:cyber-reference-data` release gate; v1.38.1 adds Workshop button-bridge coverage, compact clipboard brief output, Requirement Card ISM control visibility, and a structure-first Pub Organisation Chart. Release readiness is expected to run through `e2e:v1.38:run` and validate `VERSION_AXES = 1.13.0`.
+**Current implementation note:** v1.39.0 is a schema-bearing release with Explorer bundle schemas `1.14.0`. It adds lifecycle decision metadata, sensitive/default-deny evidence link context, Workshop Action-to-Requirement tagging, scoped evidence package copy, the CSO/CISO magazine split, and Pub local role archive/compliance status. Release readiness is expected to run through `e2e:v1.39:run` and validate `VERSION_AXES = 1.14.0`.
 
 **Status: v1.9 saved-view expansion build implemented for test. v1.8 saved views build implemented; v1.7 tags and filters foundation build implemented; v1.6 Workshop import review and identity build implemented; v1.5.1 Explorer product-boundary and visual identity patch implemented; v1.5 plan-apply import and undo implemented; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
@@ -49,13 +49,13 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.38.1:
+`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.39.0:
 
-1. Spine workflow (headless `e2e:v1.9`).
+1. Spine workflow (headless `e2e:v1.39`).
 2. Schema-policy.
 3. Personal-data exclusion.
 4. AU-English lint.
-5. Per-version schema publication (`schemas/explorer-bundle/1.6.0/`).
+5. Per-version schema publication (`schemas/explorer-bundle/1.14.0/`).
 6. Writer lock.
 7. Integrity scan.
 8. Sample workspace.

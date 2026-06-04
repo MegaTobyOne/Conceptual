@@ -53,6 +53,18 @@ test("Pub exposes Role detail and edit CRUD panels", async () => {
   assert.match(source, /data-role-id=/);
 });
 
+test("Pub roles support local archive lifecycle and team compliance status", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /const ROLE_STATUSES = \["active", "archived"\] as const/);
+  assert.match(source, /registerCommand\("pspf\.pub\.archiveRole", archiveRole\)/);
+  assert.match(source, /function archiveRole\(\): Promise<void>/);
+  assert.match(source, /function activeRolesForTeam\(store: PubStore, teamId: string\): readonly RoleRecord\[\]/);
+  assert.match(source, /function teamComplianceStatus\(store: PubStore, team: TeamRecord\): string/);
+  assert.match(source, /Archive role/);
+  assert.match(source, /Compliance status/);
+});
+
 test("Pub Role CRUD remains local-only", async () => {
   const source = await readFile(sourcePath, "utf8");
 
@@ -134,4 +146,8 @@ test("Pub Organisation Chart keeps the graphic focused on structure", async () =
   assert.match(orgChartSource, /tableHtml\(\["Team", "Parent", "Role", "Reports to", "Assigned"\], rows, 5\)/);
   assert.doesNotMatch(orgChartSource, /teamOrgTags/);
   assert.doesNotMatch(orgChartSource, /No functional outcome recorded/);
+
+  const chipMatch = source.match(/function renderOrgChartAssignmentChip\(store: PubStore[\s\S]*?\n}/);
+  assert.ok(chipMatch, "assignment chip renderer should be present");
+  assert.doesNotMatch(chipMatch[0], /<small>/);
 });

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   DISALLOWED_PUBLICATION_FIELDS,
   PUBLICATION_FIELD_POLICIES,
+  type LinkEntity,
   type StrategyEntity,
   V0_1_ENTITY_TYPES,
   sanitiseEntityForPublication,
@@ -49,6 +50,29 @@ test("publication sanitiser fails closed on unknown fields", () => {
 
   requirement.unexpectedField = "This field has no publication policy.";
   assert.throws(() => sanitiseEntityForPublication(requirement), /Missing publication policy/);
+});
+
+test("link evidence notes are sensitive by default", () => {
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: "Evidence supports Requirement",
+      linkType: "supported-by",
+      fromId: "REQ-1",
+      fromType: "requirement",
+      toId: "EVD-1",
+      toType: "evidence",
+      evidenceNote: "Internal explanation of why this evidence is relevant.",
+      evidenceSection: "Chapter 4.2"
+    },
+    "workshop"
+  );
+
+  const published = sanitiseEntityForPublication(link) as LinkEntity;
+  assert.equal(published.evidenceNote, undefined);
+  assert.equal(published.evidenceSection, undefined);
+  assert.equal(published.linkType, "supported-by");
 });
 
 test("commercial publication policy excludes sensitive money and restricted supplier contact", () => {

@@ -68,7 +68,7 @@ test("browser posture brief renderer matches the package renderer", () => {
   assert.equal(renderer.pspfBriefRenderer.renderPostureBriefMarkdown(fixture), renderPostureBriefMarkdown(fixture));
 });
 
-test("CISO magazine supports INFO scope and excludes sensitive working notes", () => {
+test("CSO magazine supports INFO scope and excludes sensitive working notes", () => {
   const fixture = magazineFixture();
   const model = buildCisoMagazineModel(fixture);
   const markdown = renderCisoMagazineMarkdown(fixture);
@@ -81,7 +81,8 @@ test("CISO magazine supports INFO scope and excludes sensitive working notes", (
   assert.deepEqual(model.masterPlan.roleOwnership, [
     { role: "Information assurance owner", requirements: 1, controls: 1 }
   ]);
-  assert.match(markdown, /Digital CISO Magazine/);
+  assert.equal(model.edition, "cso");
+  assert.match(markdown, /Digital CSO Magazine/);
   assert.match(markdown, /## CISO Master Plan/);
   assert.match(markdown, /Information has 1 requirement\(s\) and 1 action\(s\) needing attention/);
   assert.match(
@@ -101,6 +102,63 @@ test("CISO magazine supports INFO scope and excludes sensitive working notes", (
   assert.doesNotMatch(html, /Sensitive finance assumption/);
   assert.match(html, /@media print/);
   assert.match(html, /OFFICIAL: Sensitive/);
+});
+
+test("CISO magazine edition is dark and scoped to Information and Technology", () => {
+  const fixture = magazineFixture();
+  const technologyDomain = withEnvelope(
+    "domain",
+    {
+      entityType: "domain",
+      title: "Technology",
+      code: "technology",
+      sortOrder: 4
+    },
+    "core"
+  );
+  const technologyRequirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Gateway controls are reviewed",
+      domainId: technologyDomain.id,
+      assessmentStatus: "in-progress"
+    },
+    "workshop"
+  );
+  const governanceDomain = PSPF_DOMAINS[0];
+  assert.ok(governanceDomain);
+  const governanceRequirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Governance cadence is reviewed",
+      domainId: governanceDomain.id,
+      assessmentStatus: "not-started"
+    },
+    "workshop"
+  );
+
+  const input = {
+    ...fixture,
+    issueTitle: undefined,
+    domainScope: "all" as const,
+    edition: "ciso" as const,
+    domains: [...fixture.domains, technologyDomain, governanceDomain],
+    requirements: [...fixture.requirements, technologyRequirement, governanceRequirement]
+  };
+  const model = buildCisoMagazineModel(input);
+  const markdown = renderCisoMagazineMarkdown(input);
+  const html = renderCisoMagazineHtml(input);
+
+  assert.equal(model.edition, "ciso");
+  assert.equal(model.title, "Digital CISO Magazine");
+  assert.equal(model.pspfDomainTitle, "Information + Technology");
+  assert.equal(model.postureSnapshot[0]?.value, "2");
+  assert.match(markdown, /Digital CISO Magazine/);
+  assert.match(markdown, /Information \+ Technology/);
+  assert.doesNotMatch(markdown, /Governance cadence is reviewed/);
+  assert.match(html, /color-scheme: dark/);
 });
 
 test("CISO magazine action strip uses compact linked requirement refs", () => {
@@ -545,7 +603,7 @@ function magazineFixture() {
 
   return {
     generatedAt: "2026-05-21T00:00:00.000Z",
-    issueTitle: "Digital CISO Magazine",
+    issueTitle: "Digital CSO Magazine",
     issueNumber: "Issue 27",
     periodLabel: "May 2026",
     domainScope: "INFO" as const,

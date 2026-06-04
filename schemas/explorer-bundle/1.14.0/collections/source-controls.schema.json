@@ -1,0 +1,150 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.14.0/collections/source-controls.schema.json",
+    "title": "PSPF Explorer Source Controls Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "title",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "controlId",
+            "statement",
+            "profileTags",
+            "statementChangeStatus",
+            "externalRefs",
+            "provenance"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^SRC-"
+            },
+            "entityType": {
+                "const": "source-control"
+            },
+            "schemaVersion": {
+                "const": "1.14.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "controlId": {
+                "type": "string",
+                "minLength": 1
+            },
+            "statement": {
+                "type": "string",
+                "minLength": 1
+            },
+            "profileTags": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            },
+            "statementChangeStatus": {
+                "enum": [
+                    "unchanged",
+                    "changed",
+                    "new",
+                    "removed"
+                ]
+            },
+            "externalRefs": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": [
+                        "scheme",
+                        "value"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                        "scheme": {
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "value": {
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    }
+                }
+            },
+            "provenance": {
+                "type": "object",
+                "required": [
+                    "oscalRelease",
+                    "catalog",
+                    "profile",
+                    "sourceUrl"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "oscalRelease": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "catalog": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "profile": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "sourceUrl": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            },
+            "lifecycleStatus": {
+                "enum": [
+                    "active",
+                    "superseded",
+                    "retired"
+                ]
+            },
+            "decisionDate": {
+                "type": "string",
+                "format": "date-time"
+            }
+        }
+    }
+}
