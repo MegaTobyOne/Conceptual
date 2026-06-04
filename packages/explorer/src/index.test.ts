@@ -14,6 +14,15 @@ test("Explorer publication mode requires every canonical collection exactly once
   assert.equal(new Set(explorerPublicationMode.requiredCollections).size, V0_1_COLLECTIONS.length);
 });
 
+test("Explorer browser loader accepts saved master JSON names and uses canonical collections", async () => {
+  const source = await readFile(new URL("../scripts/build-static.mjs", import.meta.url), "utf8");
+
+  assert.match(source, /const selfContainedBundleFile = namedBundleFile \|\| singleJsonFile/);
+  assert.match(source, /bundle && bundle\.manifest && bundle\.collections/);
+  assert.doesNotMatch(source, /const expectedCollections = \["domains", "requirements"/);
+  assert.match(source, /const expectedCollections = \$\{JSON\.stringify\(V0_1_COLLECTIONS\)\};/);
+});
+
 test("Explorer lists use tag filtering instead of saved-view controls", async () => {
   const source = await readFile(new URL("../scripts/build-static.mjs", import.meta.url), "utf8");
 

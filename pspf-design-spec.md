@@ -471,6 +471,10 @@ The Explorer identity variation should use a warmer, briefing-style expression o
 
 The visible Explorer local-editing surface is named `Local Changes`. Internal code identifiers and bundle exchange mode may continue to use `local-authoring` where that is the stable contract term.
 
+### Future bundle protection design hold
+
+Post-quantum protection for master JSON bundles is explicitly on hold. When revisited, it should be designed as a cryptographic envelope around the existing single master bundle rather than as another JSON exchange format. The likely direction is hybrid key establishment using a post-quantum KEM plus a classical KEM, authenticated encryption for the bundle payload, and optional post-quantum signatures over the manifest or canonical bundle. The design must keep redaction, schema validation, import review, and local key-management UX as first-class gates.
+
 ### Explorer page model
 
 Recommended top-level pages:

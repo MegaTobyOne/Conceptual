@@ -59,6 +59,43 @@ test("clipboard markdown uses compact action requirement refs and status-first D
   assert.match(brief, /- Yes - DIR-2026-01: Approve cloud control plan \(CISO\)/);
 });
 
+test("clipboard markdown does not repeat a Direction reference already in the title", () => {
+  const fixture = briefFixture();
+  const direction = withEnvelope(
+    "direction",
+    {
+      entityType: "direction",
+      title: "DIR-2026-01 Approve cloud control plan",
+      reference: "DIR-2026-01",
+      responseState: "yes",
+      sourceAuthority: "CISO"
+    },
+    "workshop"
+  );
+  const brief = renderPostureBriefMarkdown({
+    ...fixture,
+    directions: [direction]
+  });
+
+  assert.match(brief, /- Yes - DIR-2026-01 Approve cloud control plan \(CISO\)/);
+  assert.doesNotMatch(brief, /DIR-2026-01: DIR-2026-01/);
+});
+
+test("clipboard markdown renders action due dates as friendly date-only values", () => {
+  const fixture = briefFixture();
+  const baseAction = fixture.actions[0];
+  assert.ok(baseAction);
+  const brief = renderPostureBriefMarkdown({
+    ...fixture,
+    actions: [{ ...baseAction, dueDate: "2026-08-31T14:30:00.000Z" }]
+  });
+  const actionLine = brief.split("\n").find((line) => line.startsWith("- Confirm next governance review date"));
+
+  assert.match(brief, /Confirm next governance review date \(Todo, due \d{2} \w+ 2026\)/);
+  assert.ok(actionLine);
+  assert.doesNotMatch(actionLine, /14:30|2:30|PM|am|pm|2026-08-31T14:30:00\.000Z/);
+});
+
 test("browser posture brief renderer matches the package renderer", () => {
   const context = { globalThis: {} };
   const fixture = briefFixture();
@@ -185,6 +222,20 @@ test("CISO magazine tolerates malformed spend money fields", () => {
 
   assert.equal(model.commercialWatch[0]?.amount, "Not recorded");
   assert.match(markdown, /Not recorded/);
+});
+
+test("CISO magazine money values never render more than two decimal places", () => {
+  const fixture = magazineFixture();
+  fixture.spendItems = [
+    { ...fixture.spendItems[0], amount: { amount: 15000.129, currency: "AUD" } } as (typeof fixture.spendItems)[number]
+  ];
+
+  const model = buildCisoMagazineModel(fixture);
+  const markdown = renderCisoMagazineMarkdown(fixture);
+
+  assert.equal(model.commercialWatch[0]?.amount, "$15,000.13");
+  assert.match(markdown, /\$15,000\.13/);
+  assert.doesNotMatch(markdown, /\$\d[\d,]*\.\d{3,}/);
 });
 
 test("CISO Master Plan includes staged idea and initiative plans", () => {

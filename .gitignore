@@ -11,3 +11,5 @@ coverage/
 .pspf/
 playwright-report/
 test-results/
+debug-workspace/
+pspf-master-bundle-*.json

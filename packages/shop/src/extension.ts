@@ -1459,7 +1459,7 @@ function normaliseMoneyAmount(value: unknown): MoneyAmount | undefined {
     return undefined;
   }
   return {
-    amount: value.amount,
+    amount: roundMoneyAmount(value.amount),
     currency: typeof value.currency === "string" && value.currency ? value.currency : "AUD"
   };
 }
@@ -3716,7 +3716,11 @@ function getWorkspaceUri(fileName: string): vscode.Uri | undefined {
 }
 
 function moneyAmount(amount: number, currency = "AUD"): MoneyAmount {
-  return { amount, currency };
+  return { amount: roundMoneyAmount(amount), currency };
+}
+
+function roundMoneyAmount(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
 function iconFor(iconName: "contract" | "home" | "info" | "sample" | "spend" | "supplier"): string {

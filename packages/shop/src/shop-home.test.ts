@@ -12,3 +12,12 @@ test("Shop Home exposes one forecast trendline graphic", async () => {
   assert.match(source, /deriveForecastMonths\(store\.spendItems\)/);
   assert.match(source, /homeSection\(\{[\s\S]*id: "trend",[\s\S]*eyebrow: "Forecast",[\s\S]*heading: "Spending trend"/);
 });
+
+test("Shop money storage helpers round dollar values to cents", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /function roundMoneyAmount\(value: number\): number/);
+  assert.match(source, /return Math\.round\(value \* 100\) \/ 100/);
+  assert.match(source, /return \{ amount: roundMoneyAmount\(amount\), currency \}/);
+  assert.match(source, /amount: roundMoneyAmount\(value\.amount\)/);
+});

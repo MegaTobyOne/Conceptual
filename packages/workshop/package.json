@@ -66,6 +66,52 @@
         }
       ]
     },
+    "configuration": {
+      "title": "PSPF Workshop",
+      "properties": {
+        "pspf.workshop.riskSource.sourceMode": {
+          "type": "string",
+          "enum": [
+            "fixture",
+            "live"
+          ],
+          "default": "fixture",
+          "markdownDescription": "Risk-source mode for Workshop integrations. Use fixture mode for local validation, or live mode for an HTTPS 6clicks endpoint. For live credentials, run **PSPF: Set 6clicks Risk Source Credential**."
+        },
+        "pspf.workshop.riskSource.baseUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "HTTPS base URL for the live 6clicks risk source. Leave blank when the source mode is `fixture`."
+        },
+        "pspf.workshop.riskSource.endpointPath": {
+          "type": "string",
+          "default": "/api/v1/risks",
+          "markdownDescription": "Risk endpoint path used with the live 6clicks base URL."
+        },
+        "pspf.workshop.riskSource.authMode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "api-key-header",
+            "bearer-token"
+          ],
+          "default": "none",
+          "markdownDescription": "Authentication mode for the live 6clicks risk source. Use `none` only for fixture mode."
+        },
+        "pspf.workshop.riskSource.apiKeyHeaderName": {
+          "type": "string",
+          "default": "x-api-key",
+          "markdownDescription": "Header name used when `authMode` is `api-key-header`."
+        },
+        "pspf.workshop.riskSource.timeoutMs": {
+          "type": "number",
+          "default": 15000,
+          "minimum": 1000,
+          "maximum": 60000,
+          "markdownDescription": "Timeout in milliseconds for risk-source setup tests and integration runs."
+        }
+      }
+    },
     "commands": [
       {
         "command": "pspf.workshop.openHome",
@@ -85,17 +131,17 @@
       },
       {
         "command": "pspf.workshop.importBundle",
-        "title": "PSPF: Import Explorer Local JSON",
+        "title": "PSPF: Import Master JSON Bundle",
         "icon": "$(cloud-download)"
       },
       {
         "command": "pspf.workshop.exportBackupJson",
-        "title": "PSPF: Export Backup JSON",
+        "title": "PSPF: Export Master JSON Bundle",
         "icon": "$(cloud-upload)"
       },
       {
         "command": "pspf.workshop.importBackupJson",
-        "title": "PSPF: Import Backup JSON",
+        "title": "PSPF: Import Master JSON Bundle",
         "icon": "$(cloud-download)"
       },
       {
@@ -136,7 +182,18 @@
       },
       {
         "command": "pspf.workshop.configureRiskSource",
-        "title": "PSPF: Configure 6clicks Risk Source"
+        "title": "PSPF: Open Integration Settings",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "pspf.workshop.openRiskSourceSettings",
+        "title": "PSPF: Open Integration Settings in VS Code",
+        "icon": "$(settings)"
+      },
+      {
+        "command": "pspf.workshop.setRiskSourceCredential",
+        "title": "PSPF: Set 6clicks Risk Source Credential",
+        "icon": "$(key)"
       },
       {
         "command": "pspf.workshop.testRiskSource",
@@ -169,6 +226,10 @@
       {
         "command": "pspf.workshop.openRisksList",
         "title": "PSPF: Open Risks List"
+      },
+      {
+        "command": "pspf.workshop.openDirectionsList",
+        "title": "PSPF: Open Directions List"
       },
       {
         "command": "pspf.workshop.linkExistingEvidence",
@@ -277,7 +338,7 @@
       },
       {
         "command": "pspf.workshop.registerDirection",
-        "title": "PSPF: Register Direction"
+        "title": "PSPF: Create Direction"
       },
       {
         "command": "pspf.workshop.updateDirectionResponse",

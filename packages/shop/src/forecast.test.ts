@@ -225,7 +225,9 @@ describe("Shop forecast money arithmetic", () => {
 
   it("formats dollar values for display helpers", () => {
     assert.equal(formatMoneyAmount({ amount: 1234, currency: "AUD" }), "$1,234");
+    assert.equal(formatMoneyAmount({ amount: 1234.567, currency: "AUD" }), "$1,234.57");
     assert.equal(formatMoneyAmount({ amount: 0, currency: "AUD" }), "$0");
     assert.equal(moneyInputValue({ amount: 9876, currency: "AUD" }), "9876");
+    assert.equal(moneyInputValue({ amount: 9876.543, currency: "AUD" }), "9876.54");
   });
 });

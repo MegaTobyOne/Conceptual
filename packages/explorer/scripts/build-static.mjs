@@ -6,6 +6,7 @@ import { CONNECTED_VIEW_STYLES, CONNECTED_VIEW_BROWSER_SCRIPT } from "@pspf/conn
 import {
   DISALLOWED_PUBLICATION_FIELDS,
   PSPF_SLICE_VERSION,
+  V0_1_COLLECTIONS,
   VERSION_AXES,
   buildSampleWorkspaceEntities,
   buildHomeSampleWorkspaceEntities,
@@ -474,11 +475,19 @@ async function loadSampleBundle(event) {
 input.addEventListener("change", async () => {
   const files = Array.from(input.files || []);
   const byName = new Map(files.map((file) => [file.name, file]));
-  const bundleFile = byName.get("bundle.json");
-  if (bundleFile) {
-    const bundle = await readJson(bundleFile);
-    await render(bundle.manifest, bundle.collections || {});
-    return;
+  const namedBundleFile = byName.get("bundle.json");
+  const singleJsonFile = files.length === 1 && files[0]?.name.toLowerCase().endsWith(".json") ? files[0] : undefined;
+  const selfContainedBundleFile = namedBundleFile || singleJsonFile;
+  if (selfContainedBundleFile) {
+    const bundle = await readJson(selfContainedBundleFile);
+    if (bundle && bundle.manifest && bundle.collections) {
+      await render(bundle.manifest, bundle.collections || {});
+      return;
+    }
+    if (namedBundleFile) {
+      alert("bundle.json must contain a manifest and collections.");
+      return;
+    }
   }
 
   const manifestFile = byName.get("manifest.json");
@@ -1307,7 +1316,7 @@ async function writeClipboardText(value) {
 }
 
 async function validateBundle(manifest, collections, collectionTexts) {
-  const expectedCollections = ["domains", "requirements", "evidence", "actions", "risks", "snapshots", "links", "tags", "saved-views", "source-controls", "requirement-control-mappings", "directions", "change-records", "suppliers", "contracts", "spend-items", "strategies", "posture"];
+  const expectedCollections = ${JSON.stringify(V0_1_COLLECTIONS)};
   const manifestNames = (manifest.collections || []).map((entry) => entry.name);
   const checks = [
     check("Bundle version", hasCompatibleMajor(manifest.bundleVersion, "${VERSION_AXES.bundleVersion}"), manifest.bundleVersion || "missing"),

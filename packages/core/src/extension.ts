@@ -111,20 +111,20 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     }),
     vscode.commands.registerCommand("pspf.core.importBundle", async () => {
       return importBundlesFromPicker(output, {
-        openTitle: "Import PSPF Master Bundle(s)",
-        filterName: "PSPF bundle",
-        progressTitle: "Importing PSPF bundle",
+        openTitle: "Import PSPF Master JSON Bundle(s)",
+        filterName: "PSPF master JSON bundle",
+        progressTitle: "Importing PSPF master JSON bundle",
         completePrefix: "PSPF import complete",
-        errorPrefix: "PSPF bundle import failed"
+        errorPrefix: "PSPF master JSON bundle import failed"
       });
     }),
     vscode.commands.registerCommand("pspf.core.importExplorerLocalBundle", async () => {
       return importBundlesFromPicker(output, {
-        openTitle: "Import Explorer Local JSON Bundle(s)",
-        filterName: "Explorer local JSON",
-        progressTitle: "Importing Explorer local JSON",
-        completePrefix: "PSPF Explorer import complete",
-        errorPrefix: "PSPF Explorer import failed"
+        openTitle: "Import PSPF Master JSON Bundle(s)",
+        filterName: "PSPF master JSON bundle",
+        progressTitle: "Importing PSPF master JSON bundle",
+        completePrefix: "PSPF master JSON import complete",
+        errorPrefix: "PSPF master JSON import failed"
       });
     }),
     vscode.commands.registerCommand("pspf.core.showWriterLock", async () => {

@@ -843,7 +843,7 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
       ? ["- None recorded."]
       : openActions.map(
           (action) =>
-            `- ${action.title} (${label(action.status)}${action.dueDate ? `, due ${action.dueDate}` : ""}) - ${requirementSummariesByTargetId.get(action.id) ?? "No linked requirement"}${latestActionCommentary(action) ? `; latest update: ${latestActionCommentary(action)}` : ""}`
+            `- ${action.title} (${label(action.status)}${action.dueDate ? `, due ${formatDueDate(action.dueDate)}` : ""}) - ${requirementSummariesByTargetId.get(action.id) ?? "No linked requirement"}${latestActionCommentary(action) ? `; latest update: ${latestActionCommentary(action)}` : ""}`
         )),
     "",
     "## Open Risks",
@@ -861,11 +861,17 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
       ? ["- None registered."]
       : directions.map(
           (direction) =>
-            `- ${label(direction.responseState)} - ${direction.reference}: ${direction.title}${direction.sourceAuthority ? ` (${direction.sourceAuthority})` : ""}`
+            `- ${label(direction.responseState)} - ${directionBriefTitle(direction)}${direction.sourceAuthority ? ` (${direction.sourceAuthority})` : ""}`
         )),
     "",
     "Note: internal summaries and restricted personal fields are excluded from this brief."
   ].join("\n");
+}
+
+function directionBriefTitle(direction: DirectionEntity): string {
+  const reference = direction.reference.trim();
+  const title = direction.title.trim();
+  return title.toLowerCase().startsWith(reference.toLowerCase()) ? title : `${reference}: ${title}`;
 }
 
 function buildIsmControlPostureRows(
@@ -964,7 +970,7 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "",
       "## Open Actions",
       "",
-      ...(openActions.length === 0 ? ["- None recorded."] : openActions.map((action) => "- " + action.title + " (" + label(action.status) + (action.dueDate ? ", due " + action.dueDate : "") + ") - " + (requirementSummariesByTargetId.get(action.id) || "No linked requirement") + (latestActionCommentary(action) ? "; latest update: " + latestActionCommentary(action) : ""))),
+      ...(openActions.length === 0 ? ["- None recorded."] : openActions.map((action) => "- " + action.title + " (" + label(action.status) + (action.dueDate ? ", due " + formatDueDate(action.dueDate) : "") + ") - " + (requirementSummariesByTargetId.get(action.id) || "No linked requirement") + (latestActionCommentary(action) ? "; latest update: " + latestActionCommentary(action) : ""))),
       "",
       "## Open Risks",
       "",
@@ -972,10 +978,15 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "",
       "## Directions",
       "",
-      ...(directions.length === 0 ? ["- None registered."] : directions.map((direction) => "- " + label(direction.responseState) + " - " + direction.reference + ": " + direction.title + (direction.sourceAuthority ? " (" + direction.sourceAuthority + ")" : ""))),
+      ...(directions.length === 0 ? ["- None registered."] : directions.map((direction) => "- " + label(direction.responseState) + " - " + directionBriefTitle(direction) + (direction.sourceAuthority ? " (" + direction.sourceAuthority + ")" : ""))),
       "",
       "Note: internal summaries and restricted personal fields are excluded from this brief."
     ].join("\n");
+  }
+  function directionBriefTitle(direction) {
+    const reference = String(direction.reference || "").trim();
+    const title = String(direction.title || "").trim();
+    return title.toLowerCase().startsWith(reference.toLowerCase()) ? title : reference + ": " + title;
   }
   function statusRows(requirements) {
     const counts = countBy(requirements, (requirement) => requirement.assessmentStatus);
@@ -1084,6 +1095,9 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
   }
   function formatDisplayDate(value) {
     return value ? new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value)) : "unknown";
+  }
+  function formatDueDate(value) {
+    return value ? new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value)) : "unknown";
   }
   return { renderPostureBriefMarkdown };
 })();`;
@@ -1365,7 +1379,12 @@ function formatMoney(value: SpendItemEntity["amount"]): string {
     return "Not recorded";
   }
   const currency = typeof value.currency === "string" && value.currency ? value.currency : "AUD";
-  return new Intl.NumberFormat("en-AU", { style: "currency", currency }).format(value.amount);
+  return new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(value.amount);
 }
 
 function renderHtmlListPanel<T>(
@@ -1410,5 +1429,13 @@ function formatDisplayDate(value: Date | string): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit"
+  }).format(new Date(value));
+}
+
+function formatDueDate(value: Date | string): string {
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
   }).format(new Date(value));
 }

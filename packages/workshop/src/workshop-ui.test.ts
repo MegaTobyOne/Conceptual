@@ -101,17 +101,23 @@ test("Plan of Action exposes master schedule and slice controls", async () => {
 
   assert.match(source, /function renderPlanOfActionMasterSchedule/);
   assert.match(source, /data-poa-view="master"/);
+  assert.match(source, /data-poa-view="integrated"/);
   assert.match(source, /data-poa-view="workstreams"/);
   assert.match(source, /data-poa-workstream-filter/);
   assert.match(source, /data-poa-status-filter/);
   assert.match(source, /data-poa-workstream=/);
   assert.match(source, /<section data-poa-view-section="master">/);
+  assert.match(source, /<section data-poa-view-section="integrated" hidden>/);
   assert.match(source, /function renderPlanOfActionMasterTask/);
+  assert.match(source, /function renderPlanOfActionIntegratedSchedule/);
   assert.match(source, /class="poa-master-range"/);
   assert.match(source, /class="poa-master-today-marker"/);
   assert.match(source, /function packPlanOfActionScheduleLanes/);
   assert.match(source, /class="poa-integrated-lanes"/);
+  assert.match(source, /data-poa-integrated-lane/);
   assert.match(source, /poa-bar--integrated/);
+  assert.match(source, /every Action keeps its own row/);
+  assert.match(source, /lane\.hidden = !Array\.from\(lane\.querySelectorAll\(taskSelector\)\)/);
   assert.match(source, /function renderPlanOfActionMasterRuler/);
   assert.match(source, /function planOfActionDateRulerLabels/);
   assert.match(source, /class="poa-master-ruler"/);
@@ -137,17 +143,58 @@ test("Workshop Home is simplified and exposes one status graphic", async () => {
   assert.match(homeSource, /renderWorkshopStatusDonut\(model\)/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.openMasterDashboard", "Dashboard"/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.createRequirement", "Create requirement"/);
+  assert.match(homeSource, /<h2>Edit<\/h2>/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRequirementsList", "Edit requirements"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openEvidenceList", "Edit evidence"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openActionsList", "Edit actions"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRisksList", "Edit risks"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openDirectionsList", "Edit directions"/);
   assert.match(homeSource, /homeButton\("pspf\.core\.exportBundle", "Export bundle"/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.copyPostureBrief", "Copy brief"/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.home\.refresh", "Refresh"/);
-  assert.match(homeSource, /<h2>Settings<\/h2>/);
+  assert.match(homeSource, /<h2>Integrations<\/h2>/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.previewRiskSourceImport", "Run integrations"/);
+  assert.doesNotMatch(homeSource, /homeButton\("pspf\.workshop\.openRiskSourcePanel", "Risk Source"/);
+  assert.doesNotMatch(homeSource, /homeButton\("pspf\.workshop\.configureRiskSource", "Configure source"/);
   assert.doesNotMatch(homeSource, /Continue next task/);
   assert.doesNotMatch(homeSource, /Review evidence/);
   assert.doesNotMatch(homeSource, /Digital CISO Magazine/);
 });
 
+test("Workshop risk-source setup is contributed through VS Code settings", async () => {
+  const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(manifest, /"configuration": \{/);
+  assert.match(manifest, /"pspf\.workshop\.riskSource\.sourceMode"/);
+  assert.match(manifest, /"pspf\.workshop\.riskSource\.timeoutMs"/);
+  assert.match(manifest, /"command": "pspf\.workshop\.openRiskSourceSettings"/);
+  assert.match(manifest, /"command": "pspf\.workshop\.setRiskSourceCredential"/);
+  assert.match(source, /const riskSourceSettingsSection = "pspf\.workshop\.riskSource"/);
+  assert.match(source, /function readRiskSourceSettingsProfile/);
+  assert.match(source, /async function openIntegrationSettingsPanel/);
+  assert.match(source, /async function renderIntegrationSettingsPanel/);
+  assert.match(source, /<button type="button" data-command="pspf\.workshop\.testRiskSource">Test connection<\/button>/);
+  assert.match(source, /recordTable\("Available Commands"/);
+  assert.match(source, /async function openDirectionsList/);
+  assert.match(source, /workbench\.action\.openSettings/);
+});
+
+test("Workshop edit buttons open list pickers before edit panels", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /async function pickEntityForEdit/);
+  assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Requirement"/);
+  assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Evidence"/);
+  assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Action"/);
+  assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Risk"/);
+  assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Direction"/);
+  assert.doesNotMatch(source, /const initialDirection = directions\.at\(0\)/);
+});
+
 test("Master Dashboard groups tools into portal sections", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const shellSource = await readFile(new URL("../src/webview/shell.ts", import.meta.url), "utf8");
 
   assert.match(source, /function portalGroup/);
   assert.match(source, /class="portal-grid"/);
@@ -158,6 +205,8 @@ test("Master Dashboard groups tools into portal sections", async () => {
   assert.match(source, /portalGroup\("Planning"/);
   assert.match(source, /portalGroup\("Traceability"/);
   assert.match(source, /portalGroup\("Reporting"/);
+  assert.match(shellSource, /\.portal-group \{ display: grid; grid-template-rows:/);
+  assert.match(shellSource, /\.portal-actions \{ display: grid; grid-template-rows: repeat\(3,/);
   assert.match(source, /function renderDecisionLoopCards/);
   assert.match(source, /class="decision-loop-grid"/);
   assert.match(source, /"pspf\.workshop\.openHumanCentredRiskView"/);
@@ -274,6 +323,31 @@ test("major feature view buttons can pass through the panel command bridge", asy
   const missingCommands = [...new Set(renderedCommands.filter((command) => !allowedPanelCommands.has(command)))].sort();
 
   assert.deepEqual(missingCommands, []);
+});
+
+test("Workshop Home exposes core authoring and single bundle exchange actions", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
+
+  assert.match(source, /homeButton\("pspf\.workshop\.createRisk", "Create risk"\)/);
+  assert.match(source, /homeButton\("pspf\.workshop\.registerDirection", "Create direction"\)/);
+  assert.match(source, /homeButton\("pspf\.workshop\.importBundle", "Import bundle"\)/);
+  assert.match(manifest, /PSPF: Create Direction/);
+  assert.doesNotMatch(manifest, /Import Explorer Local JSON/);
+  assert.doesNotMatch(manifest, /Backup JSON/);
+});
+
+test("Master Dashboard cards align controls and use wider panel space", async () => {
+  const extensionSource = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const shellSource = await readFile(new URL("../src/webview/shell.ts", import.meta.url), "utf8");
+
+  assert.match(extensionSource, /<section class="master-dashboard">/);
+  assert.match(shellSource, /main \{ max-width: min\(1440px, calc\(100vw - 24px\)\)/);
+  assert.match(shellSource, /main:has\(\.master-dashboard\) \{ max-width: min\(1680px, calc\(100vw - 24px\)\)/);
+  assert.match(shellSource, /\.decision-loop-card \{ display: grid; grid-template-rows:/);
+  assert.match(shellSource, /\.decision-loop-card button \{ align-self: end; \}/);
+  assert.match(shellSource, /\.strategy-performance-card \{ display: grid; grid-template-rows:/);
+  assert.match(shellSource, /\.strategy-performance-card__meta \{ min-height: 28px;/);
 });
 
 test("Workshop exposes ISM Review Workbench queues", async () => {

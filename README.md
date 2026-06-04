@@ -44,7 +44,7 @@ Current v1.41 additions include:
 - UX and IA refinement: Workshop Home is simplified around frequent actions, the Master Dashboard is a portal with actionable decision loops, Strategy Map and ISM browsing are grouped for scanability, and tree views expose browse-panel shortcuts.
 - Pub planning context: the Organisation Chart uses team cards with roles on the front and accountable Requirements, controls, and team dates on the back. Team-wide news and dates can be stored locally and optionally surfaced on the Workshop Plan of Action.
 
-Not implemented in v1.41: Pub data is still never published to Explorer bundles; Pub team dates remain local planning context only; there is no automatic conflict resolution, calendar integration, notification engine, Pub delete/archive workflow beyond role archive, or roster/performance-management workflow.
+Not implemented in v1.41: Pub data is still never published to Explorer bundles; Pub team dates remain local planning context only; there is no automatic conflict resolution, calendar integration, notification engine, Pub delete/archive workflow beyond role archive, roster/performance-management workflow, or post-quantum encrypted master-bundle envelope. Post-quantum protection is a deferred decision item and must preserve the existing single master JSON bundle contract when revisited.
 
 Recent Workshop additions include:
 

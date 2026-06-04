@@ -1157,6 +1157,9 @@ for (const requiredText of [
   assert.equal(v124Adr.includes(requiredText), true, `v1.24 strategy ADR should mention ${requiredText}`);
 }
 const acceptanceGates = await readFile(join(root, "pspf-acceptance-and-quality-gates.md"), "utf8");
+const readme = await readFile(join(root, "README.md"), "utf8");
+const designSpec = await readFile(join(root, "pspf-design-spec.md"), "utf8");
+const specIndex = await readFile(join(root, "pspf-spec-consistency-index.md"), "utf8");
 assert.equal(
   acceptanceGates.includes("v1.24 candidate gates (Workshop Cyber Strategy Map, per ADR 0060)"),
   true,
@@ -1730,6 +1733,18 @@ if (isV1Release && minorVersion >= 37) {
       true,
       `e2e:v1.37 should run ${requiredScript}`
     );
+  }
+}
+
+if (isV1Release && minorVersion >= 41) {
+  for (const requiredText of [
+    "post-quantum encrypted master-bundle envelope",
+    "Post-quantum protection for master JSON bundles is explicitly on hold",
+    "post-quantum protection for master JSON bundles as an envelope",
+    "post-quantum encrypted bundle envelopes"
+  ]) {
+    const source = `${readme}\n${designSpec}\n${specIndex}\n${acceptanceGates}`;
+    assert.equal(source.includes(requiredText), true, `v1.41 deferred encryption notes should mention ${requiredText}`);
   }
 }
 

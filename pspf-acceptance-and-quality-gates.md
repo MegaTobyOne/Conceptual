@@ -575,7 +575,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 3. **Pub card-view gate**: Pub Organisation Chart renders team cards with team name, responsibility, active roles, and assignments on the front, and accountable PSPF Requirements, ISM controls/control sets, and team news/dates on the back.
 4. **Pub team-date gate**: Pub teams store local-only team-wide news/date items with title, type, date range, notes, and an explicit `includeInPlan` flag.
 5. **Plan of Action context gate**: Workshop Plan of Action reads local Pub team-date items only when `includeInPlan` is true, renders them as optional schedule context, and shows nearby action-date conflict cues without writing Pub data or publishing it to Explorer.
-6. **Deferred-scope gate**: v1.41 does not add Pub publication, calendar sync, automatic conflict resolution, notifications, Pub roster/performance-management workflows, or new schema-bearing Explorer bundle fields.
+6. **Deferred-scope gate**: v1.41 does not add Pub publication, calendar sync, automatic conflict resolution, notifications, Pub roster/performance-management workflows, post-quantum encrypted bundle envelopes, or new schema-bearing Explorer bundle fields.
 7. **Regression gate**: `e2e:v1.41`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)

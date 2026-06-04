@@ -131,6 +131,7 @@ const riskSourcePreviewKey = "pspf.workshop.riskSourcePreview.v1";
 const riskSourceRunsKey = "pspf.workshop.riskSourceRuns.v1";
 const riskSourceSecretKey = "pspf.workshop.6clicksRiskSource.credential";
 const riskSourceConfigFile = "integrations.json";
+const riskSourceSettingsSection = "pspf.workshop.riskSource";
 const STRATEGY_REFERENCE_ROLES = ["drives", "addresses", "blocked-by", "evidenced-by", "monitors"] as const;
 const ismSourceControlCategoryByControlId = new Map<string, string>(
   ISM_SOURCE_CONTROL_CATEGORIES.map((item) => [item.controlId, item.category] as const)
@@ -138,6 +139,11 @@ const ismSourceControlCategoryByControlId = new Map<string, string>(
 const ismSourceControlCategoryOrder = uniqueStrings(ISM_SOURCE_CONTROL_CATEGORIES.map((item) => item.category));
 let workshopContext: vscode.ExtensionContext | undefined;
 let homeViewProvider: WorkshopHomeViewProvider | undefined;
+type ConfigInspection<T> = {
+  readonly globalValue?: T;
+  readonly workspaceValue?: T;
+  readonly workspaceFolderValue?: T;
+};
 interface WorkshopMomentumSnapshot {
   readonly capturedAt: string;
   readonly requirements: number;
@@ -369,6 +375,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.createRisk", createRisk),
     vscode.commands.registerCommand("pspf.workshop.openRiskSourcePanel", openRiskSourcePanel),
     vscode.commands.registerCommand("pspf.workshop.configureRiskSource", configureRiskSource),
+    vscode.commands.registerCommand("pspf.workshop.openRiskSourceSettings", openRiskSourceSettings),
+    vscode.commands.registerCommand("pspf.workshop.setRiskSourceCredential", setRiskSourceCredential),
     vscode.commands.registerCommand("pspf.workshop.testRiskSource", testRiskSource),
     vscode.commands.registerCommand("pspf.workshop.previewRiskSourceImport", previewRiskSourceImport),
     vscode.commands.registerCommand("pspf.workshop.applyRiskSourceImport", applyRiskSourceImport),
@@ -377,6 +385,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openEvidenceList", openEvidenceList),
     vscode.commands.registerCommand("pspf.workshop.openActionsList", openActionsList),
     vscode.commands.registerCommand("pspf.workshop.openRisksList", openRisksList),
+    vscode.commands.registerCommand("pspf.workshop.openDirectionsList", openDirectionsList),
     vscode.commands.registerCommand("pspf.workshop.linkExistingEvidence", linkExistingEvidence),
     vscode.commands.registerCommand("pspf.workshop.linkExistingAction", linkExistingAction),
     vscode.commands.registerCommand("pspf.workshop.linkExistingRisk", linkExistingRisk),
@@ -538,6 +547,8 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.createRisk",
       "pspf.workshop.openRiskSourcePanel",
       "pspf.workshop.configureRiskSource",
+      "pspf.workshop.openRiskSourceSettings",
+      "pspf.workshop.setRiskSourceCredential",
       "pspf.workshop.testRiskSource",
       "pspf.workshop.previewRiskSourceImport",
       "pspf.workshop.applyRiskSourceImport",
@@ -546,6 +557,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openEvidenceList",
       "pspf.workshop.openActionsList",
       "pspf.workshop.openRisksList",
+      "pspf.workshop.openDirectionsList",
       "pspf.workshop.openAssessmentDashboard",
       "pspf.workshop.openMasterDashboard",
       "pspf.workshop.openPspfGridView",
@@ -862,6 +874,18 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.createRequirement", "Create requirement")}
         ${homeButton("pspf.workshop.attachEvidence", "Add evidence")}
         ${homeButton("pspf.workshop.createAction", "Create action")}
+        ${homeButton("pspf.workshop.createRisk", "Create risk")}
+        ${homeButton("pspf.workshop.registerDirection", "Create direction")}
+      </div>
+    </section>
+    <section>
+      <h2>Edit</h2>
+      <div class="action-list compact">
+        ${homeButton("pspf.workshop.openRequirementsList", "Edit requirements")}
+        ${homeButton("pspf.workshop.openEvidenceList", "Edit evidence")}
+        ${homeButton("pspf.workshop.openActionsList", "Edit actions")}
+        ${homeButton("pspf.workshop.openRisksList", "Edit risks")}
+        ${homeButton("pspf.workshop.openDirectionsList", "Edit directions")}
       </div>
     </section>
     <section>
@@ -869,6 +893,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
       ${model.shareNudge ? `<p class="momentum">${escapeHtml(model.shareNudge)}</p>` : ""}
       <div class="action-list compact">
         ${homeButton("pspf.core.exportBundle", "Export bundle")}
+        ${homeButton("pspf.workshop.importBundle", "Import bundle")}
         ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
       </div>
     </section>
@@ -879,10 +904,14 @@ function renderHomeView(model: WorkshopHomeModel): string {
       </div>
     </section>
     <section>
-      <h2>Settings</h2>
+      <h2>Integrations</h2>
       <div class="action-list compact">
-        ${homeButton("pspf.workshop.openRiskSourcePanel", "Risk Source", "Review integration status, previews, imports and run history")}
-        ${homeButton("pspf.workshop.configureRiskSource", "Configure source", "Choose fixture or live 6clicks mode")}
+        ${homeButton("pspf.workshop.previewRiskSourceImport", "Run integrations", "Fetch configured risk-source changes and prepare updates")}
+      </div>
+    </section>
+    <section>
+      <h2>Maintenance</h2>
+      <div class="action-list compact">
         ${homeButton("pspf.core.validateWorkspace", "Validate workspace")}
         ${homeButton("pspf.core.runDatasetDiagnostics", "Dataset diagnostics")}
       </div>
@@ -1652,6 +1681,44 @@ async function openRiskSourcePanel(): Promise<void> {
 }
 
 async function configureRiskSource(): Promise<void> {
+  await openIntegrationSettingsPanel();
+}
+
+async function openIntegrationSettingsPanel(): Promise<void> {
+  const panel = vscode.window.createWebviewPanel(
+    "pspfIntegrationSettings",
+    "PSPF Integration Settings",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = await renderIntegrationSettingsPanel();
+  });
+  panel.webview.html = await renderIntegrationSettingsPanel();
+}
+
+async function openRiskSourceSettings(): Promise<void> {
+  await vscode.commands.executeCommand("workbench.action.openSettings", "@ext:tobyharvey.pspf-workshop riskSource");
+}
+
+async function setRiskSourceCredential(): Promise<void> {
+  const context = requireWorkshopContext();
+  const authMode = readRiskSourceSettingsAuthMode() ?? readRiskSourceProfile()?.authMode;
+  const secret = await vscode.window.showInputBox({
+    title: "Set 6clicks Risk Source Credential",
+    prompt: authMode === "bearer-token" ? "Bearer token" : "API key",
+    password: true,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the credential value." : undefined)
+  });
+  if (!secret) {
+    return;
+  }
+  await context.secrets.store(riskSourceSecretKey, secret.trim());
+  await vscode.window.showInformationMessage("6clicks risk source credential saved in VS Code SecretStorage.");
+}
+
+async function legacyConfigureRiskSourceWizard(): Promise<void> {
   const context = requireWorkshopContext();
   const current = readRiskSourceProfile();
   const sourceMode = await vscode.window.showQuickPick(
@@ -1763,6 +1830,7 @@ async function configureRiskSource(): Promise<void> {
 async function testRiskSource(): Promise<void> {
   const profile = ensureRiskSourceProfile();
   try {
+    await writeRiskSourceConfig(profile);
     const records = await fetchSixClicksRiskRecords(profile);
     const errors = records.filter(isIncomingRiskError).length;
     await vscode.window.showInformationMessage(
@@ -1778,6 +1846,7 @@ async function previewRiskSourceImport(): Promise<void> {
   const profile = ensureRiskSourceProfile();
   const startedAt = new Date().toISOString();
   try {
+    await writeRiskSourceConfig(profile);
     const incoming = await fetchSixClicksRiskRecords(profile);
     const allEntities = await listAllEntities();
     const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
@@ -1957,8 +2026,52 @@ function requireWorkshopContext(): vscode.ExtensionContext {
 }
 
 function readRiskSourceProfile(): RiskSourceProfile | undefined {
+  const settingsProfile = readRiskSourceSettingsProfile();
+  if (settingsProfile) {
+    return settingsProfile;
+  }
   const profile = workshopContext?.workspaceState.get<RiskSourceProfile>(riskSourceProfileKey);
   return profile ? normaliseRiskSourceProfile(profile) : undefined;
+}
+
+function readRiskSourceSettingsProfile(): RiskSourceProfile | undefined {
+  const config = vscode.workspace.getConfiguration(riskSourceSettingsSection);
+  const keys = ["sourceMode", "baseUrl", "endpointPath", "authMode", "apiKeyHeaderName", "timeoutMs"] as const;
+  const hasSettingsOverride = keys.some((key) => hasConfiguredSetting(config.inspect(key)));
+  if (!hasSettingsOverride) {
+    return undefined;
+  }
+  const sourceMode = config.get<RiskSourceMode>("sourceMode") ?? "fixture";
+  const authMode = readRiskSourceSettingsAuthMode();
+  return normaliseRiskSourceProfile({
+    source: "6clicks",
+    sourceLabel: "6clicks",
+    sourceMode,
+    fixtureName: sourceMode === "fixture" ? "6clicks-risk-v1" : undefined,
+    baseUrl: trimOptional(config.get<string>("baseUrl") ?? ""),
+    endpointPath: (config.get<string>("endpointPath") ?? "/api/v1/risks").trim(),
+    authMode: sourceMode === "live" ? authMode : undefined,
+    apiKeyHeaderName: authMode === "api-key-header" ? (config.get<string>("apiKeyHeaderName") ?? "x-api-key").trim() : undefined,
+    secretRef: sourceMode === "live" ? riskSourceSecretKey : undefined,
+    mappingVersion: "6clicks-risk-v1",
+    applyPolicy: "safe-update",
+    timeoutMs: config.get<number>("timeoutMs") ?? 15_000,
+    updatedAt: "VS Code settings"
+  });
+}
+
+function readRiskSourceSettingsAuthMode(): RiskSourceAuthMode | undefined {
+  const value = vscode.workspace.getConfiguration(riskSourceSettingsSection).get<RiskSourceMetadataAuthMode>("authMode");
+  return value === "api-key-header" || value === "bearer-token" ? value : undefined;
+}
+
+function hasConfiguredSetting<T>(inspection: ConfigInspection<T> | undefined): boolean {
+  return Boolean(
+    inspection &&
+      (inspection.globalValue !== undefined ||
+        inspection.workspaceValue !== undefined ||
+        inspection.workspaceFolderValue !== undefined)
+  );
 }
 
 function ensureRiskSourceProfile(): RiskSourceProfile {
@@ -2372,6 +2485,82 @@ function riskSourcePreviewSummary(decisions: readonly RiskSourcePreviewDecision[
   return `${counts.new} new, ${counts.changed} changed, ${counts.unchanged} unchanged, ${counts.ambiguous} ambiguous, ${counts.errors} errors`;
 }
 
+async function renderIntegrationSettingsPanel(): Promise<string> {
+  const profile = readRiskSourceProfile();
+  const diagnostics = profile ? validateRiskSourceProfile(profile) : ["No 6clicks risk source profile configured."];
+  const readiness = diagnostics.length === 0 ? "Ready" : "Needs attention";
+  const settingsRows = [
+    {
+      setting: "Source mode",
+      value: profile ? label(profile.sourceMode) : "Not configured"
+    },
+    {
+      setting: "Endpoint",
+      value: profile?.baseUrl ? `${profile.baseUrl}${profile.endpointPath}` : "Fixture records"
+    },
+    {
+      setting: "Authentication",
+      value: profile?.authMode ?? (profile?.sourceMode === "fixture" ? "Not required" : "Not configured")
+    },
+    {
+      setting: "API key header",
+      value: profile?.apiKeyHeaderName ?? "Not required"
+    },
+    {
+      setting: "Timeout",
+      value: `${profile?.timeoutMs ?? 15_000} ms`
+    },
+    {
+      setting: "Credential",
+      value: profile?.sourceMode === "live" ? "Stored in VS Code SecretStorage" : "Not required for fixture mode"
+    },
+    {
+      setting: "Mirrored config",
+      value: riskSourceConfigDisplayPath()
+    }
+  ];
+  const commandRows = [
+    { command: "Open VS Code settings", purpose: "Edit non-secret source mode, endpoint, auth and timeout values" },
+    { command: "Set credential", purpose: "Store the live API key or bearer token in VS Code SecretStorage" },
+    { command: "Test connection", purpose: "Confirm the configured source can be read before using it" },
+    { command: "Run preview", purpose: "Fetch configured risks and stage local changes for review" },
+    { command: "Apply selected", purpose: "Apply reviewed preview changes after explicit confirmation" },
+    { command: "Open Risk Source panel", purpose: "Review source profile, preview decisions and run history" }
+  ];
+  return shellHtml(
+    "PSPF Integration Settings",
+    `
+    <section>
+      <p class="eyebrow">Workshop settings</p>
+      <h1>Integration Setup</h1>
+      <p class="muted">Configure, test and use the 6clicks risk-source integration from one place. Non-secret settings stay in VS Code settings; live credentials stay in VS Code SecretStorage.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Readiness", readiness)}
+        ${metricCard("Source mode", profile ? label(profile.sourceMode) : "Not configured")}
+        ${metricCard("Diagnostics", diagnostics.length)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openRiskSourceSettings">Open VS Code settings</button>
+        <button type="button" data-command="pspf.workshop.setRiskSourceCredential">Set credential</button>
+        <button type="button" data-command="pspf.workshop.testRiskSource">Test connection</button>
+        <button type="button" data-command="pspf.workshop.previewRiskSourceImport">Run preview</button>
+        <button type="button" data-command="pspf.workshop.applyRiskSourceImport">Apply selected</button>
+        <button type="button" data-command="pspf.workshop.openRiskSourcePanel">Open Risk Source panel</button>
+        <button type="button" data-command="refresh">Refresh</button>
+      </div>
+    </section>
+    ${recordTable("Current Settings", settingsRows, ["setting", "value"])}
+    ${recordTable("Available Commands", commandRows, ["command", "purpose"])}
+    ${recordTable(
+      "Readiness Checks",
+      diagnostics.map((diagnostic) => ({ check: diagnostic })),
+      ["check"]
+    )}
+  `
+  );
+}
+
 async function renderRiskSourcePanel(): Promise<string> {
   const profile = readRiskSourceProfile();
   const preview = readRiskSourcePreview();
@@ -2418,8 +2607,7 @@ async function renderRiskSourcePanel(): Promise<string> {
       <p class="muted">Non-secret settings are mirrored to ${escapeHtml(riskSourceConfigDisplayPath())}. Credentials remain in VS Code SecretStorage.</p>
       ${versionStrip()}
       <div class="form-actions">
-        <button type="button" data-command="pspf.workshop.configureRiskSource">Configure source</button>
-        <button type="button" data-command="pspf.workshop.testRiskSource">Test connection</button>
+        <button type="button" data-command="pspf.workshop.configureRiskSource">Open integration settings</button>
         <button type="button" data-command="pspf.workshop.previewRiskSourceImport">Run preview</button>
         <button type="button" data-command="pspf.workshop.applyRiskSourceImport">Apply selected</button>
         <button type="button" data-command="refresh">Refresh</button>
@@ -2850,7 +3038,7 @@ async function openMasterDashboard(): Promise<void> {
   panel.webview.html = shellHtml(
     "PSPF Master Dashboard",
     `
-    <section>
+    <section class="master-dashboard">
       <p class="eyebrow">Rogue CISO PSPF</p>
       <h1>Master Dashboard</h1>
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Digital management board for strategy, evidence, risk, action and reporting loops.</p>
@@ -4253,7 +4441,7 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel, teamDates: reado
     ${renderPlanOfActionScheduleControls(model)}
     <section data-poa-view-section="master">
       <h2>Master Schedule</h2>
-      <p class="muted">Single combined view of all Actions. Use the workstream and status filters to create a whole-of-work or sliced schedule.</p>
+      <p class="muted">One line per Action, preserving the full master view while workstream and status filters create a sliced schedule.</p>
       <div class="poa-master-range">
         <strong>${escapeHtml(model.timelineStart)}</strong>
         <span>to</span>
@@ -4262,6 +4450,11 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel, teamDates: reado
       </div>
       ${renderPlanOfActionMasterSchedule(model)}
       ${renderPlanOfActionTeamDateOverlay(model, teamDates)}
+    </section>
+    <section data-poa-view-section="integrated" hidden>
+      <h2>Integrated Schedule</h2>
+      <p class="muted">Compact combined view that packs Actions into the fewest practical lanes while keeping overlapping date ranges separated.</p>
+      ${renderPlanOfActionIntegratedSchedule(model)}
     </section>
     <section data-poa-view-section="workstreams">
       <h2>Workstream Timeline</h2>
@@ -4439,8 +4632,9 @@ function renderPlanOfActionScheduleControls(model: PlanOfActionBoardModel): stri
       <h2>Schedule View</h2>
       <div class="form-actions poa-view-toggle" data-poa-view-toggle>
         <button type="button" class="poa-status-filter" data-poa-view="master" aria-pressed="true">Master schedule</button>
+        <button type="button" class="poa-status-filter" data-poa-view="integrated" aria-pressed="false">Integrated schedule</button>
         <button type="button" class="poa-status-filter" data-poa-view="workstreams" aria-pressed="false">Workstreams</button>
-        <button type="button" class="poa-status-filter" data-poa-view="both" aria-pressed="false">Both</button>
+        <button type="button" class="poa-status-filter" data-poa-view="both" aria-pressed="false">All</button>
       </div>
     </div>
     <div>
@@ -4470,12 +4664,39 @@ function renderPlanOfActionMasterSchedule(model: PlanOfActionBoardModel): string
   if (tasks.length === 0) {
     return `<p class="muted">No Actions are available yet. Create Actions or load the sample workspace to populate the master schedule.</p>`;
   }
+  return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
+    <div class="poa-phase poa-master-schedule">
+      <div class="poa-phase__header">
+        <strong>Master Schedule</strong>
+        <span>${tasks.length} Action line${tasks.length === 1 ? "" : "s"}; every Action keeps its own row for auditability and review.</span>
+      </div>
+      <div class="poa-master-grid" style="--poa-width: ${model.timelineWidth}px;">
+        <div class="poa-master-today-marker" style="left: ${model.todayX}px;" aria-hidden="true" title="Today: ${escapeHtml(model.today)}"></div>
+        ${renderPlanOfActionMasterRuler(model)}
+        <div class="poa-phase__tasks">
+          ${tasks.map(({ task, phase }) => renderPlanOfActionTask(task, model.timelineWidth, model.todayX, model.today, phase.id, phase.title)).join("")}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderPlanOfActionIntegratedSchedule(model: PlanOfActionBoardModel): string {
+  const tasks = model.phases
+    .flatMap((phase) => phase.tasks.map((task) => ({ task, phase })))
+    .sort(
+      (left, right) =>
+        left.task.startDate.localeCompare(right.task.startDate) || left.task.title.localeCompare(right.task.title)
+    );
+  if (tasks.length === 0) {
+    return `<p class="muted">No Actions are available yet. Create Actions or load the sample workspace to populate the integrated schedule.</p>`;
+  }
   const lanes = packPlanOfActionScheduleLanes(tasks);
   return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
     <div class="poa-phase poa-master-schedule">
       <div class="poa-phase__header">
         <strong>Integrated Schedule</strong>
-        <span>${lanes.length} compact lane${lanes.length === 1 ? "" : "s"} across selected workstreams and statuses, packed so overlapping Actions do not collide.</span>
+        <span>${lanes.length} compact lane${lanes.length === 1 ? "" : "s"}, sequenced so overlapping Actions do not collide.</span>
       </div>
       <div class="poa-master-grid" style="--poa-width: ${model.timelineWidth}px;">
         <div class="poa-master-today-marker" style="left: ${model.todayX}px;" aria-hidden="true" title="Today: ${escapeHtml(model.today)}"></div>
@@ -4510,7 +4731,7 @@ function renderPlanOfActionIntegratedLane(
   lane: readonly { readonly task: PlanOfActionTaskModel; readonly phase: PlanOfActionPhaseModel }[],
   index: number
 ): string {
-  return `<div class="poa-integrated-lane" aria-label="Integrated schedule lane ${index + 1}">
+  return `<div class="poa-integrated-lane" data-poa-integrated-lane aria-label="Integrated schedule lane ${index + 1}">
     ${lane.map(({ task, phase }) => renderPlanOfActionMasterTask(task, phase.id, phase.title)).join("")}
   </div>`;
 }
@@ -4689,6 +4910,9 @@ function planOfActionFilterScript(): string {
     });
     document.querySelectorAll('[data-poa-phase]').forEach((phase) => {
       phase.hidden = !workstreams.has(phase.dataset.poaWorkstream) || !Array.from(phase.querySelectorAll(taskSelector)).some((task) => !task.hidden);
+    });
+    document.querySelectorAll('[data-poa-integrated-lane]').forEach((lane) => {
+      lane.hidden = !Array.from(lane.querySelectorAll(taskSelector)).some((task) => !task.hidden);
     });
     const view = selectedView();
     document.querySelectorAll('[data-poa-view-section]').forEach((section) => {
@@ -7063,13 +7287,21 @@ async function openRequirementsList(): Promise<void> {
     )
     .sort(compareRequirementsForPicker);
   const recentRequirementId = getRecentRequirementId();
-  const initialRequirement =
-    requirements.find((requirement) => requirement.id === recentRequirementId) ?? requirements.at(0);
-  if (!initialRequirement) {
+  const picked = await pickEntityForEdit(
+    requirements,
+    "Edit Requirement",
+    (requirement) => requirement.title,
+    (requirement) => label(requirement.assessmentStatus),
+    (requirement) => (requirement.id === recentRequirementId ? "Recent requirement" : requirement.id)
+  );
+  if (!picked) {
+    if (requirements.length > 0) {
+      return;
+    }
     await vscode.window.showInformationMessage("No Requirements found. Create or import Requirements first.");
     return;
   }
-  await openEntityEditor(initialRequirement, allEntities);
+  await openEntityEditor(picked, allEntities);
 }
 
 async function openEvidenceList(): Promise<void> {
@@ -7078,14 +7310,23 @@ async function openEvidenceList(): Promise<void> {
   const evidence = allEntities
     .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted")
     .sort(compareEvidenceRecords);
-  const initialEvidence = evidence.at(0);
-  if (!initialEvidence) {
+  const picked = await pickEntityForEdit(
+    evidence,
+    "Edit Evidence",
+    (item) => item.title,
+    (item) => label(item.freshness),
+    (item) => `${label(item.evidenceType)} · ${item.id}`
+  );
+  if (!picked) {
+    if (evidence.length > 0) {
+      return;
+    }
     await vscode.window.showInformationMessage(
       "No Evidence records found. Add evidence or load the sample workspace first."
     );
     return;
   }
-  await openEntityEditor(initialEvidence, allEntities);
+  await openEntityEditor(picked, allEntities);
 }
 
 async function openActionsList(): Promise<void> {
@@ -7094,14 +7335,23 @@ async function openActionsList(): Promise<void> {
   const actions = allEntities
     .filter((entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted")
     .sort(compareWorkbenchRecords);
-  const initialAction = actions.at(0);
-  if (!initialAction) {
+  const picked = await pickEntityForEdit(
+    actions,
+    "Edit Action",
+    (action) => action.title,
+    (action) => label(action.status),
+    (action) => (action.dueDate ? `Due ${action.dueDate}` : action.id)
+  );
+  if (!picked) {
+    if (actions.length > 0) {
+      return;
+    }
     await vscode.window.showInformationMessage(
       "No Action records found. Create an Action or load the sample workspace first."
     );
     return;
   }
-  await openEntityEditor(initialAction, allEntities);
+  await openEntityEditor(picked, allEntities);
 }
 
 async function openRisksList(): Promise<void> {
@@ -7110,14 +7360,70 @@ async function openRisksList(): Promise<void> {
   const risks = allEntities
     .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
     .sort(compareWorkbenchRecords);
-  const initialRisk = risks.at(0);
-  if (!initialRisk) {
+  const picked = await pickEntityForEdit(
+    risks,
+    "Edit Risk",
+    (risk) => risk.title,
+    (risk) => label(risk.status),
+    (risk) => `Likelihood ${risk.likelihood} · impact ${risk.impact}`
+  );
+  if (!picked) {
+    if (risks.length > 0) {
+      return;
+    }
     await vscode.window.showInformationMessage(
       "No Risk records found. Create a Risk or load the sample workspace first."
     );
     return;
   }
-  await openEntityEditor(initialRisk, allEntities);
+  await openEntityEditor(picked, allEntities);
+}
+
+async function openDirectionsList(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const directions = allEntities
+    .filter(
+      (entity): entity is DirectionEntity => entity.entityType === "direction" && entity.recordStatus !== "deleted"
+    )
+    .sort(compareDirectionsForPicker);
+  const picked = await pickEntityForEdit(
+    directions,
+    "Edit Direction",
+    (direction) => `${direction.reference}: ${direction.title}`,
+    (direction) => label(direction.responseState),
+    (direction) => direction.sourceAuthority ?? direction.id
+  );
+  if (!picked) {
+    if (directions.length > 0) {
+      return;
+    }
+    await vscode.window.showInformationMessage("No Direction records found. Create a Direction or load the sample workspace first.");
+    return;
+  }
+  await openEntityEditor(picked, allEntities);
+}
+
+async function pickEntityForEdit<Entity extends V01Entity>(
+  entities: readonly Entity[],
+  title: string,
+  labelForEntity: (entity: Entity) => string,
+  descriptionForEntity: (entity: Entity) => string,
+  detailForEntity: (entity: Entity) => string
+): Promise<Entity | undefined> {
+  if (entities.length === 0) {
+    return undefined;
+  }
+  const picked = await vscode.window.showQuickPick(
+    entities.map((entity) => ({
+      label: labelForEntity(entity),
+      description: descriptionForEntity(entity),
+      detail: detailForEntity(entity),
+      entity
+    })),
+    { title, placeHolder: "Choose a record to edit", ignoreFocusOut: true }
+  );
+  return picked?.entity;
 }
 
 async function openItemDetail(): Promise<void> {
@@ -9350,6 +9656,9 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.addPlannerMilestone",
         "pspf.workshop.openRiskSourcePanel",
         "pspf.workshop.configureRiskSource",
+        "pspf.workshop.openRiskSourceSettings",
+        "pspf.workshop.setRiskSourceCredential",
+        "pspf.workshop.openDirectionsList",
         "pspf.workshop.testRiskSource",
         "pspf.workshop.previewRiskSourceImport",
         "pspf.workshop.applyRiskSourceImport",
