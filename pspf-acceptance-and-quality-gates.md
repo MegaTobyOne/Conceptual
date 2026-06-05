@@ -568,6 +568,16 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 5. **Pub lifecycle gate**: Pub roles can be archived without deleting local records, and team detail shows compliance status from owned controls, owned Requirements, active roles, and assignments.
 6. **Regression gate**: `e2e:v1.39`, `check:schema-coverage`, `check:schema-policy`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
 
+### v1.41 candidate gates (UX IA refinement and Pub team planning context)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.41.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+2. **Workshop IA gate**: Workshop Home remains focused on high-frequency actions; Master Dashboard decision loops are actionable cards; Strategy Map uses a statement-first hierarchy with grouped measures; ISM controls expose principle groups and safe control display names; tree views expose browse/open panel actions.
+3. **Pub card-view gate**: Pub Organisation Chart renders team cards with team name, responsibility, active roles, and assignments on the front, and accountable PSPF Requirements, ISM controls/control sets, and team news/dates on the back.
+4. **Pub team-date gate**: Pub teams store local-only team-wide news/date items with title, type, date range, notes, and an explicit `includeInPlan` flag.
+5. **Plan of Action context gate**: Workshop Plan of Action reads local Pub team-date items only when `includeInPlan` is true, renders them as optional schedule context, and shows nearby action-date conflict cues without writing Pub data or publishing it to Explorer.
+6. **Deferred-scope gate**: v1.41 does not add Pub publication, calendar sync, automatic conflict resolution, notifications, Pub roster/performance-management workflows, post-quantum encrypted bundle envelopes, or new schema-bearing Explorer bundle fields.
+7. **Regression gate**: `e2e:v1.41`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

@@ -388,8 +388,13 @@ async function newSupplier(): Promise<void> {
   await openShopEditor("supplier");
 }
 
-async function editSupplier(supplier: SupplierRecord): Promise<void> {
-  await openShopEditor("supplier", supplier);
+async function editSupplier(supplier?: SupplierRecord): Promise<void> {
+  const store = await loadStore();
+  const selected = supplier ?? (await pickShopRecord(store.suppliers, "Edit supplier"));
+  if (!selected) {
+    return;
+  }
+  await openShopEditor("supplier", selected);
 }
 
 async function newContract(): Promise<void> {
@@ -401,8 +406,13 @@ async function newContract(): Promise<void> {
   await openShopEditor("contract");
 }
 
-async function editContract(contract: ContractRecord): Promise<void> {
-  await openShopEditor("contract", contract);
+async function editContract(contract?: ContractRecord): Promise<void> {
+  const store = await loadStore();
+  const selected = contract ?? (await pickShopRecord(store.contracts, "Edit contract"));
+  if (!selected) {
+    return;
+  }
+  await openShopEditor("contract", selected);
 }
 
 async function newSpendItem(): Promise<void> {
@@ -432,8 +442,28 @@ async function promptSpendItemAssuranceLink(spendItem: SpendItemRecord): Promise
   });
 }
 
-async function editSpendItem(spendItem: SpendItemRecord): Promise<void> {
-  await openShopEditor("spend-item", spendItem);
+async function editSpendItem(spendItem?: SpendItemRecord): Promise<void> {
+  const store = await loadStore();
+  const selected = spendItem ?? (await pickShopRecord(store.spendItems, "Edit spend item"));
+  if (!selected) {
+    return;
+  }
+  await openShopEditor("spend-item", selected);
+}
+
+async function pickShopRecord<T extends SupplierRecord | ContractRecord | SpendItemRecord>(
+  records: readonly T[],
+  title: string
+): Promise<T | undefined> {
+  if (records.length === 0) {
+    vscode.window.showInformationMessage(`No Shop records are available for ${title.toLocaleLowerCase("en-AU")}.`);
+    return undefined;
+  }
+  const selected = await vscode.window.showQuickPick(
+    records.map((record) => ({ label: commercialTitle(record), description: formatToken(record.entityType), record })),
+    { title, placeHolder: "Choose a Shop record to edit", ignoreFocusOut: true, canPickMany: false }
+  );
+  return selected?.record;
 }
 
 async function openShopDetail(entity: SupplierRecord | ContractRecord | SpendItemRecord): Promise<void> {
@@ -1459,7 +1489,7 @@ function normaliseMoneyAmount(value: unknown): MoneyAmount | undefined {
     return undefined;
   }
   return {
-    amount: value.amount,
+    amount: roundMoneyAmount(value.amount),
     currency: typeof value.currency === "string" && value.currency ? value.currency : "AUD"
   };
 }
@@ -1912,6 +1942,9 @@ const SHOP_HOME_ALLOWED_COMMANDS: ReadonlySet<string> = new Set([
   "pspf.shop.newSupplier",
   "pspf.shop.newContract",
   "pspf.shop.newSpendItem",
+  "pspf.shop.editSupplier",
+  "pspf.shop.editContract",
+  "pspf.shop.editSpendItem",
   "pspf.shop.openForecast",
   "pspf.shop.exportForecastCsv",
   "pspf.shop.exportForecastXls"
@@ -1921,12 +1954,19 @@ function renderShopHomeHtml(store: ShopStore): string {
   const supplierCount = store.suppliers.length;
   const contractCount = store.contracts.length;
   const spendCount = store.spendItems.length;
+  const monthlyForecast = deriveForecastMonths(store.spendItems);
   const axes = `Schema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
 
   const createBody = `<div class="action-list">
     ${homeActionButton("pspf.shop.newSupplier", "New supplier", "Capture a supplier")}
     ${homeActionButton("pspf.shop.newContract", "New contract", "Capture a supplier contract")}
     ${homeActionButton("pspf.shop.newSpendItem", "New spend item", "Capture planned or forecast spend")}
+  </div>`;
+
+  const editBody = `<div class="action-list compact">
+    ${homeActionButton("pspf.shop.editSupplier", "Edit supplier", "Choose and update a supplier")}
+    ${homeActionButton("pspf.shop.editContract", "Edit contract", "Choose and update a contract")}
+    ${homeActionButton("pspf.shop.editSpendItem", "Edit spend item", "Choose and update planned or forecast spend")}
   </div>`;
 
   const forecastBody = `<div class="action-list compact">
@@ -1942,6 +1982,12 @@ function renderShopHomeHtml(store: ShopStore): string {
   </div>`;
 
   const body = [
+    `<style>
+      .shop-trendline { display: grid; gap: 8px; }
+      .shop-trendline svg { width: 100%; height: auto; display: block; overflow: visible; }
+      .shop-trendline__summary { display: flex; flex-wrap: wrap; gap: 6px; color: var(--vscode-descriptionForeground); font-size: 11.5px; }
+      .shop-trendline__summary span { border: 1px solid var(--pspf-border); border-radius: 999px; padding: 3px 8px; background: color-mix(in srgb, var(--pspf-home-accent) 8%, var(--vscode-editor-background)); }
+    </style>`,
     homePostureHeader({
       id: "overview",
       eyebrow: "Commercial planning",
@@ -1953,7 +1999,14 @@ function renderShopHomeHtml(store: ShopStore): string {
         { label: "Spend items", value: spendCount }
       ]
     }),
+    homeSection({
+      id: "trend",
+      eyebrow: "Forecast",
+      heading: "Spending trend",
+      body: renderShopTrendline(monthlyForecast)
+    }),
     homeSection({ id: "create", eyebrow: "Author", heading: "Create records", body: createBody }),
+    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Edit records", body: editBody }),
     homeSection({ id: "forecast", eyebrow: "Review", heading: "Forecast & savings", body: forecastBody }),
     homeSection({ id: "data", eyebrow: "Data", heading: "Sample & import", body: dataBody })
   ].join("");
@@ -1967,12 +2020,52 @@ function renderShopHomeHtml(store: ShopStore): string {
     sensitivityBanner: "OFFICIAL: Sensitive · Local workspace writes stay in Shop until you snapshot or export.",
     nav: [
       { href: "overview", label: "Overview" },
+      { href: "trend", label: "Trend" },
       { href: "create", label: "Create" },
+      { href: "edit", label: "Edit" },
       { href: "forecast", label: "Forecast" },
       { href: "data", label: "Data" }
     ],
     body
   });
+}
+
+function renderShopTrendline(monthlyForecast: readonly ForecastMonth[]): string {
+  if (monthlyForecast.length === 0) {
+    return `<p class="muted">Add forecast dates or financial years to spend items to see the spending trend.</p>`;
+  }
+  const points = monthlyForecast.slice(0, 12);
+  const first = points[0];
+  const last = points.at(-1);
+  if (!first || !last) {
+    return `<p class="muted">Add forecast dates or financial years to spend items to see the spending trend.</p>`;
+  }
+  const maxSpend = Math.max(...points.map((month) => month.forecastSpend), 1);
+  const width = 260;
+  const height = 78;
+  const padding = 10;
+  const stepX = points.length === 1 ? 0 : (width - padding * 2) / (points.length - 1);
+  const linePoints = points
+    .map((month, index) => {
+      const x = padding + index * stepX;
+      const y = height - padding - (month.forecastSpend / maxSpend) * (height - padding * 2);
+      return `${Math.round(x)},${Math.round(y)}`;
+    })
+    .join(" ");
+  const total = points.reduce((sum, month) => sum + month.forecastSpend, 0);
+  return `<div class="shop-trendline" aria-label="Shop forecast spending trend">
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Forecast spending trend across ${points.length} month${points.length === 1 ? "" : "s"}">
+      <polyline fill="none" stroke="var(--pspf-home-accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${linePoints}" />
+      ${points
+        .map((month, index) => {
+          const x = padding + index * stepX;
+          const y = height - padding - (month.forecastSpend / maxSpend) * (height - padding * 2);
+          return `<circle cx="${Math.round(x)}" cy="${Math.round(y)}" r="3" fill="var(--pspf-home-accent)"><title>${escapeHtml(month.monthLabel)} ${escapeHtml(formatCurrency(month.forecastSpend))}</title></circle>`;
+        })
+        .join("")}
+    </svg>
+    <div class="shop-trendline__summary"><span>${escapeHtml(first.monthLabel)} to ${escapeHtml(last.monthLabel)}</span><span>${escapeHtml(formatCurrency(total))} forecast</span></div>
+  </div>`;
 }
 
 class ShopTreeItem extends vscode.TreeItem {
@@ -3664,7 +3757,11 @@ function getWorkspaceUri(fileName: string): vscode.Uri | undefined {
 }
 
 function moneyAmount(amount: number, currency = "AUD"): MoneyAmount {
-  return { amount, currency };
+  return { amount: roundMoneyAmount(amount), currency };
+}
+
+function roundMoneyAmount(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
 function iconFor(iconName: "contract" | "home" | "info" | "sample" | "spend" | "supplier"): string {

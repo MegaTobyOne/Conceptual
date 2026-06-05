@@ -590,7 +590,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   --cv-risk: var(--pspf-danger, #ff8c8c);
   --cv-action: var(--pspf-ok, #5dd4c2);
   --cv-direction: #87a8ff;
-  --cv-line: color-mix(in srgb, var(--cv-muted) 55%, transparent);
+  --cv-line: color-mix(in srgb, var(--cv-accent) 58%, var(--cv-muted));
   --cv-line-sel: var(--cv-accent);
   position: relative;
   display: flex;
@@ -707,7 +707,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 
 .cv-card {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   background: var(--cv-surface-strong);
   border: 1px solid var(--cv-border);
   border-left: 3px solid color-mix(in srgb, var(--cv-muted) 50%, transparent);
@@ -774,13 +774,13 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 .cv-card.cv-selected,
 .cv-card.cv-connected { opacity: 1 !important; }
 .cv-card.cv-selected {
-  z-index: 4;
+  z-index: 5;
   outline: 2px solid var(--cv-accent);
   outline-offset: 1px;
   background: color-mix(in srgb, var(--cv-accent) 16%, var(--cv-surface-strong));
 }
 .cv-card.cv-connected {
-  z-index: 3;
+  z-index: 4;
   background: color-mix(in srgb, var(--cv-accent) 7%, var(--cv-surface-strong));
   border-color: color-mix(in srgb, var(--cv-accent) 35%, var(--cv-border));
 }
@@ -799,19 +799,19 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 
 .cv-links {
   position: absolute; inset: 0;
-  z-index: 0;
+  z-index: 2;
   width: 100%; height: 100%;
   pointer-events: none; overflow: visible;
 }
 .cv-links path {
-  fill: none; stroke: var(--cv-line); stroke-width: 1.25;
-  opacity: 0.35;
+  fill: none; stroke: var(--cv-line); stroke-width: 2;
+  opacity: 0.72;
   transition: stroke 200ms ease, stroke-width 200ms ease, opacity 200ms ease;
 }
-.pspf-connected-view.cv-has-selection .cv-links path { opacity: 0.08; }
+.pspf-connected-view.cv-has-selection .cv-links path { opacity: 0.2; }
 .cv-links path.cv-highlight {
   stroke: var(--cv-line-sel);
-  stroke-width: 2;
+  stroke-width: 3;
   opacity: 1 !important;
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--cv-accent) 45%, transparent));
 }

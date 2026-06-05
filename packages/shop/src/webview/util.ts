@@ -30,8 +30,13 @@ export function formatToken(value: string): string {
 export function formatCurrency(value: number, currency = "AUD"): string {
   const amount = Number.isFinite(value) ? value : 0;
   try {
-    return new Intl.NumberFormat("en-AU", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
+    return new Intl.NumberFormat("en-AU", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(amount);
   } catch {
-    return `AUD ${new Intl.NumberFormat("en-AU", { maximumFractionDigits: 0 }).format(amount)}`;
+    return `AUD ${new Intl.NumberFormat("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amount)}`;
   }
 }

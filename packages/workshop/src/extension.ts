@@ -19,6 +19,8 @@ import { pill as shellPill } from "@pspf/webview-shell";
 import { escapeHtml, homeButton, homeShellHtml, shellHtml } from "./webview/shell.js";
 import {
   buildPlanOfActionBoardModel,
+  normalisePlanWorkstreamId,
+  PLAN_OF_ACTION_PHASES,
   type PlanOfActionBoardModel,
   type PlanOfActionPhaseModel,
   type PlanOfActionTaskModel
@@ -131,6 +133,7 @@ const riskSourcePreviewKey = "pspf.workshop.riskSourcePreview.v1";
 const riskSourceRunsKey = "pspf.workshop.riskSourceRuns.v1";
 const riskSourceSecretKey = "pspf.workshop.6clicksRiskSource.credential";
 const riskSourceConfigFile = "integrations.json";
+const riskSourceSettingsSection = "pspf.workshop.riskSource";
 const STRATEGY_REFERENCE_ROLES = ["drives", "addresses", "blocked-by", "evidenced-by", "monitors"] as const;
 const ismSourceControlCategoryByControlId = new Map<string, string>(
   ISM_SOURCE_CONTROL_CATEGORIES.map((item) => [item.controlId, item.category] as const)
@@ -138,6 +141,11 @@ const ismSourceControlCategoryByControlId = new Map<string, string>(
 const ismSourceControlCategoryOrder = uniqueStrings(ISM_SOURCE_CONTROL_CATEGORIES.map((item) => item.category));
 let workshopContext: vscode.ExtensionContext | undefined;
 let homeViewProvider: WorkshopHomeViewProvider | undefined;
+type ConfigInspection<T> = {
+  readonly globalValue?: T;
+  readonly workspaceValue?: T;
+  readonly workspaceFolderValue?: T;
+};
 interface WorkshopMomentumSnapshot {
   readonly capturedAt: string;
   readonly requirements: number;
@@ -161,6 +169,7 @@ interface WorkshopShareState {
   readonly metPercentage: number;
   readonly artefact: string;
 }
+type WorkshopActionWithPlanOverride = ActionEntity & { readonly planWorkstreamId?: unknown };
 let requirementWorkbenchController:
   | {
       open: (
@@ -369,6 +378,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.createRisk", createRisk),
     vscode.commands.registerCommand("pspf.workshop.openRiskSourcePanel", openRiskSourcePanel),
     vscode.commands.registerCommand("pspf.workshop.configureRiskSource", configureRiskSource),
+    vscode.commands.registerCommand("pspf.workshop.openRiskSourceSettings", openRiskSourceSettings),
+    vscode.commands.registerCommand("pspf.workshop.setRiskSourceCredential", setRiskSourceCredential),
     vscode.commands.registerCommand("pspf.workshop.testRiskSource", testRiskSource),
     vscode.commands.registerCommand("pspf.workshop.previewRiskSourceImport", previewRiskSourceImport),
     vscode.commands.registerCommand("pspf.workshop.applyRiskSourceImport", applyRiskSourceImport),
@@ -377,6 +388,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openEvidenceList", openEvidenceList),
     vscode.commands.registerCommand("pspf.workshop.openActionsList", openActionsList),
     vscode.commands.registerCommand("pspf.workshop.openRisksList", openRisksList),
+    vscode.commands.registerCommand("pspf.workshop.openDirectionsList", openDirectionsList),
     vscode.commands.registerCommand("pspf.workshop.linkExistingEvidence", linkExistingEvidence),
     vscode.commands.registerCommand("pspf.workshop.linkExistingAction", linkExistingAction),
     vscode.commands.registerCommand("pspf.workshop.linkExistingRisk", linkExistingRisk),
@@ -538,6 +550,8 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.createRisk",
       "pspf.workshop.openRiskSourcePanel",
       "pspf.workshop.configureRiskSource",
+      "pspf.workshop.openRiskSourceSettings",
+      "pspf.workshop.setRiskSourceCredential",
       "pspf.workshop.testRiskSource",
       "pspf.workshop.previewRiskSourceImport",
       "pspf.workshop.applyRiskSourceImport",
@@ -546,6 +560,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openEvidenceList",
       "pspf.workshop.openActionsList",
       "pspf.workshop.openRisksList",
+      "pspf.workshop.openDirectionsList",
       "pspf.workshop.openAssessmentDashboard",
       "pspf.workshop.openMasterDashboard",
       "pspf.workshop.openPspfGridView",
@@ -610,6 +625,7 @@ interface WorkshopHomeModel {
   readonly changeRecords: number;
   readonly recentRequirementTitle: string;
   readonly metPercentage: number;
+  readonly statusCounts: Readonly<Record<string, number>>;
   readonly momentum: string | undefined;
   readonly trend: readonly PostureHistoryPoint[];
   readonly shareNudge: string | undefined;
@@ -690,10 +706,37 @@ async function buildHomeModel(): Promise<WorkshopHomeModel> {
     changeRecords: changeRecords.length,
     recentRequirementTitle: recentRequirement?.title ?? "None selected yet",
     metPercentage,
+    statusCounts: requirements.reduce<Record<string, number>>((counts, requirement) => {
+      counts[requirement.assessmentStatus] = (counts[requirement.assessmentStatus] ?? 0) + 1;
+      return counts;
+    }, {}),
     momentum,
     trend,
     shareNudge
   };
+}
+
+function renderWorkshopStatusDonut(model: WorkshopHomeModel): string {
+  const met = model.statusCounts.met ?? 0;
+  const inProgress = model.statusCounts["in-progress"] ?? 0;
+  const notMet = model.statusCounts["not-met"] ?? 0;
+  const notApplicable = model.statusCounts["not-applicable"] ?? 0;
+  const total = Math.max(1, met + inProgress + notMet + notApplicable);
+  const metEnd = Math.round((met / total) * 100);
+  const inProgressEnd = metEnd + Math.round((inProgress / total) * 100);
+  const notMetEnd = inProgressEnd + Math.round((notMet / total) * 100);
+  return `<div class="workshop-status-donut" aria-label="Workshop status distribution">
+    <div class="workshop-status-donut__chart" role="img" aria-label="${met} met, ${inProgress} in progress, ${notMet} not met, ${notApplicable} not applicable" style="--met-end: ${metEnd}%; --progress-end: ${inProgressEnd}%; --not-met-end: ${notMetEnd}%;">
+      <strong>${model.metPercentage}%</strong>
+      <span>met</span>
+    </div>
+    <div class="workshop-status-donut__legend">
+      <span><i data-status="met"></i>${met} met</span>
+      <span><i data-status="in-progress"></i>${inProgress} in progress</span>
+      <span><i data-status="not-met"></i>${notMet} not met</span>
+      <span><i data-status="not-applicable"></i>${notApplicable} N/A</span>
+    </div>
+  </div>`;
 }
 
 function recordPostureHistory(metPercentage: number): readonly PostureHistoryPoint[] {
@@ -778,6 +821,19 @@ function renderHomeView(model: WorkshopHomeModel): string {
   return homeShellHtml(
     "Workshop Home",
     `
+    <style>
+      .workshop-status-donut { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; }
+      .workshop-status-donut__chart { width: 116px; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; align-content: center; background: conic-gradient(#047857 0 var(--met-end), #1d4ed8 var(--met-end) var(--progress-end), #b42318 var(--progress-end) var(--not-met-end), #64748b var(--not-met-end) 100%); box-shadow: inset 0 0 0 18px var(--vscode-sideBar-background), 0 0 0 1px var(--pspf-border); }
+      .workshop-status-donut__chart strong { font-size: 24px; line-height: 1; }
+      .workshop-status-donut__chart span { color: var(--vscode-descriptionForeground); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+      .workshop-status-donut__legend { display: grid; gap: 5px; color: var(--vscode-descriptionForeground); font-size: 12px; }
+      .workshop-status-donut__legend span { display: inline-flex; gap: 6px; align-items: center; }
+      .workshop-status-donut__legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+      .workshop-status-donut__legend i[data-status="met"] { background: #047857; }
+      .workshop-status-donut__legend i[data-status="in-progress"] { background: #1d4ed8; }
+      .workshop-status-donut__legend i[data-status="not-met"] { background: #b42318; }
+      .workshop-status-donut__legend i[data-status="not-applicable"] { background: #64748b; }
+    </style>
     <section class="hero-section">
       <p class="eyebrow">System of record</p>
       <h2>PSPF Workshop</h2>
@@ -795,6 +851,10 @@ function renderHomeView(model: WorkshopHomeModel): string {
       </div>
     </section>
     <section>
+      <h2>Status Distribution</h2>
+      ${renderWorkshopStatusDonut(model)}
+    </section>
+    <section>
       <h2>Where to focus next</h2>
       ${
         model.missingEvidence + model.evidenceReview + model.urgentActions + model.directionsNeedingResponse === 0
@@ -808,72 +868,55 @@ function renderHomeView(model: WorkshopHomeModel): string {
       }
       <p class="muted">Recent requirement: ${escapeHtml(model.recentRequirementTitle)}</p>
       <div class="action-list">
-        ${homeButton("pspf.workshop.home.continue", "Continue next task", "Open the highest-priority review surface")}
-        ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Review evidence", "Check missing, stale, and unlinked evidence")}
-        ${homeButton("pspf.workshop.openAssessmentDashboard", "Open dashboard", "View posture, Directions, and Action Impact")}
-        ${homeButton("pspf.workshop.openMasterDashboard", "Master Dashboard", "Open the CISO decision board")}
-        ${homeButton("pspf.workshop.openEssentialEightDashboard", "Essential Eight", "Track E8 posture, mappings, and uplift plan")}
-        ${homeButton("pspf.workshop.openIsmReviewWorkbench", "ISM Review", "Review controls needing mapping, evidence, actions, or drift attention")}
-        ${homeButton("pspf.workshop.openPentestWorkbench", "Penetration testing", "Manage third-party findings, retests, and supplier contract context")}
-        ${homeButton("pspf.workshop.browseIsmSourceControls", "ISM controls", "Browse ISM controls by category, drift, profile, and implementation state")}
-        ${homeButton("pspf.workshop.openPlanOfActionBoard", "Plan of Action", "Manage the action worklist")}
-        ${homeButton("pspf.workshop.openConnectedView", "Connected View", "Trace Directions, Requirements, Risks, and Actions")}
-        ${homeButton("pspf.workshop.openRequirementCardView", "Requirement Cards", "Flip through Requirements by Domain with RAG status and quick investigation")}
-        ${homeButton("pspf.workshop.openStrategyMap", "Strategy Map", "Connect strategic choices to Requirements, Risks, Actions, and Directions")}
-        ${homeButton("pspf.workshop.openChangeRecords", "Change records", "Review why important records changed")}
-        ${homeButton("pspf.workshop.manageSavedViews", "Saved views", "Save and reopen Workshop Requirement filters")}
-      </div>
-    </section>
-    <section>
-      <h2>Integrations</h2>
-      <div class="action-list compact">
-        ${homeButton("pspf.workshop.openRiskSourcePanel", "Risk Source", "Review 6clicks source status, previews, and runs")}
-        ${homeButton("pspf.workshop.configureRiskSource", "Configure source", "Choose fixture or live 6clicks mode")}
-        ${homeButton("pspf.workshop.testRiskSource", "Test source", "Validate the current Risk Source connection")}
-        ${homeButton("pspf.workshop.previewRiskSourceImport", "Preview risks", "Fetch and review source risks before applying")}
-        ${homeButton("pspf.workshop.applyRiskSourceImport", "Apply selected", "Apply selected new or changed source risks")}
-        ${homeButton("pspf.workshop.viewRiskSourceRuns", "View source runs", "Open recent Risk Source run history")}
+        ${homeButton("pspf.workshop.openMasterDashboard", "Dashboard", "Open essentials, controls, requirements and planning tools")}
       </div>
     </section>
     <section>
       <h2>Create</h2>
       <div class="action-list compact">
-        ${homeButton("pspf.workshop.createRequirement", "Requirement")}
+        ${homeButton("pspf.workshop.createRequirement", "Create requirement")}
         ${homeButton("pspf.workshop.attachEvidence", "Add evidence")}
         ${homeButton("pspf.workshop.createAction", "Create action")}
-        ${homeButton("pspf.workshop.createRoadmapInitiativePlan", "Roadmap initiative", "Add staged idea work to the Master Plan")}
         ${homeButton("pspf.workshop.createRisk", "Create risk")}
-        ${homeButton("pspf.workshop.registerDirection", "Direction")}
-        ${homeButton("pspf.workshop.recordSignificantChange", "Change record")}
-        ${homeButton("pspf.workshop.manageTags", "Tag")}
-        ${homeButton("pspf.workshop.manageSavedViews", "Saved view")}
+        ${homeButton("pspf.workshop.registerDirection", "Create direction")}
+      </div>
+    </section>
+    <section>
+      <h2>Edit</h2>
+      <div class="action-list compact">
+        ${homeButton("pspf.workshop.openRequirementsList", "Edit requirements")}
+        ${homeButton("pspf.workshop.openEvidenceList", "Edit evidence")}
+        ${homeButton("pspf.workshop.openActionsList", "Edit actions")}
+        ${homeButton("pspf.workshop.openRisksList", "Edit risks")}
+        ${homeButton("pspf.workshop.openDirectionsList", "Edit directions")}
       </div>
     </section>
     <section>
       <h2>Check And Share</h2>
       ${model.shareNudge ? `<p class="momentum">${escapeHtml(model.shareNudge)}</p>` : ""}
       <div class="action-list compact">
-        ${homeButton("pspf.core.validateWorkspace", "Validate")}
-        ${homeButton("pspf.core.runIntegrityScan", "Integrity scan")}
-        ${homeButton("pspf.core.runDatasetDiagnostics", "Dataset diagnostics")}
-        ${homeButton("pspf.core.resetWorkspace", "Reset workspace", "Clean start from reference data")}
-        ${homeButton("pspf.core.createSnapshot", "Snapshot")}
-        ${homeButton("pspf.workshop.exportBackupJson", "Export backup JSON")}
-        ${homeButton("pspf.workshop.importBackupJson", "Import backup JSON")}
+        ${homeButton("pspf.core.exportBundle", "Export bundle")}
+        ${homeButton("pspf.workshop.importBundle", "Import bundle")}
         ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
-        ${homeButton("pspf.workshop.openCsoMagazine", "Digital CSO Magazine", "Open the broad executive assurance issue")}
-        ${homeButton("pspf.workshop.openCisoMagazine", "Digital CISO Magazine", "Open the Information and Technology issue")}
-        ${homeButton("pspf.workshop.openCisoNewsletterReview", "Review newsletter", "Check generated content before export")}
-        ${homeButton("pspf.workshop.openCisoMasterPlan", "CISO Master Plan", "Open the roadmap across strategy, action, risk and spend")}
-        ${homeButton("pspf.workshop.copyCisoMasterPlan", "Copy CISO Master Plan", "Copy the adaptable master plan summary")}
       </div>
     </section>
     <section>
       <h2>Panel</h2>
       <div class="action-list compact">
         ${homeButton("pspf.workshop.home.refresh", "Refresh")}
-        ${homeButton("pspf.workshop.loadSampleWorkspace", "Load enterprise sample", "Load the full-featured AU government enterprise sample workspace")}
-        ${homeButton("pspf.workshop.loadHomeSampleWorkspace", "Load home sample", "Load the home and small business sample workspace")}
+      </div>
+    </section>
+    <section>
+      <h2>Integrations</h2>
+      <div class="action-list compact">
+        ${homeButton("pspf.workshop.previewRiskSourceImport", "Run integrations", "Fetch configured risk-source changes and prepare updates")}
+      </div>
+    </section>
+    <section>
+      <h2>Maintenance</h2>
+      <div class="action-list compact">
+        ${homeButton("pspf.core.validateWorkspace", "Validate workspace")}
+        ${homeButton("pspf.core.runDatasetDiagnostics", "Dataset diagnostics")}
       </div>
     </section>
   `
@@ -1641,117 +1684,47 @@ async function openRiskSourcePanel(): Promise<void> {
 }
 
 async function configureRiskSource(): Promise<void> {
-  const context = requireWorkshopContext();
-  const current = readRiskSourceProfile();
-  const sourceMode = await vscode.window.showQuickPick(
-    [
-      { label: "Fixture", description: "Use built-in non-tenant validation data", value: "fixture" as const },
-      { label: "Live 6clicks", description: "Fetch from an HTTPS 6clicks endpoint", value: "live" as const }
-    ],
-    { title: "Select 6clicks source mode", ignoreFocusOut: true }
+  await openIntegrationSettingsPanel();
+}
+
+async function openIntegrationSettingsPanel(): Promise<void> {
+  const panel = vscode.window.createWebviewPanel(
+    "pspfIntegrationSettings",
+    "PSPF Integration Settings",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
   );
-  if (!sourceMode) {
-    return;
-  }
-  const baseUrl = await vscode.window.showInputBox({
-    title: "Configure 6clicks Risk Source",
-    prompt:
-      sourceMode.value === "live"
-        ? "6clicks HTTPS base URL. Live mode requires https://."
-        : "Fixture mode does not use a tenant URL.",
-    value: current?.baseUrl ?? "",
-    ignoreFocusOut: true,
-    validateInput: (value) => {
-      if (sourceMode.value === "fixture" && value.trim().length > 0) {
-        return "Fixture mode must not set a live base URL.";
-      }
-      if (sourceMode.value === "live") {
-        return validateRiskSourceBaseUrl(value.trim());
-      }
-      return undefined;
-    }
+  wireWorkshopPanelMessages(panel, async () => {
+    panel.webview.html = await renderIntegrationSettingsPanel();
   });
-  if (baseUrl === undefined) {
-    return;
-  }
-  const endpointPath = await vscode.window.showInputBox({
-    title: "Configure 6clicks Risk Source",
-    prompt: "Risk endpoint path",
-    value: current?.endpointPath ?? "/api/v1/risks",
+  panel.webview.html = await renderIntegrationSettingsPanel();
+}
+
+async function openRiskSourceSettings(): Promise<void> {
+  await vscode.commands.executeCommand("workbench.action.openSettings", "@ext:tobyharvey.pspf-workshop riskSource");
+}
+
+async function setRiskSourceCredential(): Promise<void> {
+  const context = requireWorkshopContext();
+  const authMode = readRiskSourceSettingsAuthMode() ?? readRiskSourceProfile()?.authMode;
+  const secret = await vscode.window.showInputBox({
+    title: "Set 6clicks Risk Source Credential",
+    prompt: authMode === "bearer-token" ? "Bearer token" : "API key",
+    password: true,
     ignoreFocusOut: true,
-    validateInput: (value) => (value.trim().length === 0 ? "Enter an endpoint path." : undefined)
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the credential value." : undefined)
   });
-  if (!endpointPath) {
+  if (!secret) {
     return;
   }
-  const authMode =
-    sourceMode.value === "live"
-      ? await vscode.window.showQuickPick(
-          [
-            { label: "API key header", value: "api-key-header" as const },
-            { label: "Bearer token", value: "bearer-token" as const }
-          ],
-          { title: "Select 6clicks auth mode", ignoreFocusOut: true }
-        )
-      : undefined;
-  if (sourceMode.value === "live" && !authMode) {
-    return;
-  }
-  const apiKeyHeaderName =
-    authMode?.value === "api-key-header"
-      ? await vscode.window.showInputBox({
-          title: "Configure 6clicks Risk Source",
-          prompt: "API key header name",
-          value: current?.apiKeyHeaderName ?? "x-api-key",
-          ignoreFocusOut: true,
-          validateInput: (value) => (value.trim().length === 0 ? "Enter an API key header name." : undefined)
-        })
-      : undefined;
-  if (authMode?.value === "api-key-header" && !apiKeyHeaderName) {
-    return;
-  }
-  if (sourceMode.value === "live" && authMode) {
-    const secret = await vscode.window.showInputBox({
-      title: "Configure 6clicks Risk Source",
-      prompt: authMode.value === "api-key-header" ? "API key" : "Bearer token",
-      password: true,
-      ignoreFocusOut: true,
-      validateInput: (value) => (value.trim().length === 0 ? "Enter the credential value." : undefined)
-    });
-    if (!secret) {
-      return;
-    }
-    await context.secrets.store(riskSourceSecretKey, secret.trim());
-  }
-  const profile: RiskSourceProfile = {
-    source: "6clicks",
-    sourceLabel: "6clicks",
-    sourceMode: sourceMode.value,
-    fixtureName: sourceMode.value === "fixture" ? "6clicks-risk-v1" : undefined,
-    baseUrl: trimOptional(baseUrl),
-    endpointPath: endpointPath.trim(),
-    authMode: authMode?.value,
-    apiKeyHeaderName: apiKeyHeaderName?.trim(),
-    secretRef: sourceMode.value === "live" ? riskSourceSecretKey : undefined,
-    mappingVersion: "6clicks-risk-v1",
-    applyPolicy: "safe-update",
-    timeoutMs: 15_000,
-    updatedAt: new Date().toISOString()
-  };
-  const diagnostics = validateRiskSourceProfile(profile);
-  if (diagnostics.length > 0) {
-    await vscode.window.showWarningMessage(`6clicks risk source profile is incomplete: ${diagnostics.join("; ")}`);
-    return;
-  }
-  await context.workspaceState.update(riskSourceProfileKey, profile);
-  await writeRiskSourceConfig(profile);
-  await vscode.window.showInformationMessage("6clicks risk source profile saved.");
-  await openRiskSourcePanel();
+  await context.secrets.store(riskSourceSecretKey, secret.trim());
+  await vscode.window.showInformationMessage("6clicks risk source credential saved in VS Code SecretStorage.");
 }
 
 async function testRiskSource(): Promise<void> {
   const profile = ensureRiskSourceProfile();
   try {
+    await writeRiskSourceConfig(profile);
     const records = await fetchSixClicksRiskRecords(profile);
     const errors = records.filter(isIncomingRiskError).length;
     await vscode.window.showInformationMessage(
@@ -1767,6 +1740,7 @@ async function previewRiskSourceImport(): Promise<void> {
   const profile = ensureRiskSourceProfile();
   const startedAt = new Date().toISOString();
   try {
+    await writeRiskSourceConfig(profile);
     const incoming = await fetchSixClicksRiskRecords(profile);
     const allEntities = await listAllEntities();
     const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
@@ -1946,8 +1920,55 @@ function requireWorkshopContext(): vscode.ExtensionContext {
 }
 
 function readRiskSourceProfile(): RiskSourceProfile | undefined {
+  const settingsProfile = readRiskSourceSettingsProfile();
+  if (settingsProfile) {
+    return settingsProfile;
+  }
   const profile = workshopContext?.workspaceState.get<RiskSourceProfile>(riskSourceProfileKey);
   return profile ? normaliseRiskSourceProfile(profile) : undefined;
+}
+
+function readRiskSourceSettingsProfile(): RiskSourceProfile | undefined {
+  const config = vscode.workspace.getConfiguration(riskSourceSettingsSection);
+  const keys = ["sourceMode", "baseUrl", "endpointPath", "authMode", "apiKeyHeaderName", "timeoutMs"] as const;
+  const hasSettingsOverride = keys.some((key) => hasConfiguredSetting(config.inspect(key)));
+  if (!hasSettingsOverride) {
+    return undefined;
+  }
+  const sourceMode = config.get<RiskSourceMode>("sourceMode") ?? "fixture";
+  const authMode = readRiskSourceSettingsAuthMode();
+  return normaliseRiskSourceProfile({
+    source: "6clicks",
+    sourceLabel: "6clicks",
+    sourceMode,
+    fixtureName: sourceMode === "fixture" ? "6clicks-risk-v1" : undefined,
+    baseUrl: trimOptional(config.get<string>("baseUrl") ?? ""),
+    endpointPath: (config.get<string>("endpointPath") ?? "/api/v1/risks").trim(),
+    authMode: sourceMode === "live" ? authMode : undefined,
+    apiKeyHeaderName:
+      authMode === "api-key-header" ? (config.get<string>("apiKeyHeaderName") ?? "x-api-key").trim() : undefined,
+    secretRef: sourceMode === "live" ? riskSourceSecretKey : undefined,
+    mappingVersion: "6clicks-risk-v1",
+    applyPolicy: "safe-update",
+    timeoutMs: config.get<number>("timeoutMs") ?? 15_000,
+    updatedAt: "VS Code settings"
+  });
+}
+
+function readRiskSourceSettingsAuthMode(): RiskSourceAuthMode | undefined {
+  const value = vscode.workspace
+    .getConfiguration(riskSourceSettingsSection)
+    .get<RiskSourceMetadataAuthMode>("authMode");
+  return value === "api-key-header" || value === "bearer-token" ? value : undefined;
+}
+
+function hasConfiguredSetting<T>(inspection: ConfigInspection<T> | undefined): boolean {
+  return Boolean(
+    inspection &&
+    (inspection.globalValue !== undefined ||
+      inspection.workspaceValue !== undefined ||
+      inspection.workspaceFolderValue !== undefined)
+  );
 }
 
 function ensureRiskSourceProfile(): RiskSourceProfile {
@@ -2361,6 +2382,82 @@ function riskSourcePreviewSummary(decisions: readonly RiskSourcePreviewDecision[
   return `${counts.new} new, ${counts.changed} changed, ${counts.unchanged} unchanged, ${counts.ambiguous} ambiguous, ${counts.errors} errors`;
 }
 
+async function renderIntegrationSettingsPanel(): Promise<string> {
+  const profile = readRiskSourceProfile();
+  const diagnostics = profile ? validateRiskSourceProfile(profile) : ["No 6clicks risk source profile configured."];
+  const readiness = diagnostics.length === 0 ? "Ready" : "Needs attention";
+  const settingsRows = [
+    {
+      setting: "Source mode",
+      value: profile ? label(profile.sourceMode) : "Not configured"
+    },
+    {
+      setting: "Endpoint",
+      value: profile?.baseUrl ? `${profile.baseUrl}${profile.endpointPath}` : "Fixture records"
+    },
+    {
+      setting: "Authentication",
+      value: profile?.authMode ?? (profile?.sourceMode === "fixture" ? "Not required" : "Not configured")
+    },
+    {
+      setting: "API key header",
+      value: profile?.apiKeyHeaderName ?? "Not required"
+    },
+    {
+      setting: "Timeout",
+      value: `${profile?.timeoutMs ?? 15_000} ms`
+    },
+    {
+      setting: "Credential",
+      value: profile?.sourceMode === "live" ? "Stored in VS Code SecretStorage" : "Not required for fixture mode"
+    },
+    {
+      setting: "Mirrored config",
+      value: riskSourceConfigDisplayPath()
+    }
+  ];
+  const commandRows = [
+    { command: "Open VS Code settings", purpose: "Edit non-secret source mode, endpoint, auth and timeout values" },
+    { command: "Set credential", purpose: "Store the live API key or bearer token in VS Code SecretStorage" },
+    { command: "Test connection", purpose: "Confirm the configured source can be read before using it" },
+    { command: "Run preview", purpose: "Fetch configured risks and stage local changes for review" },
+    { command: "Apply selected", purpose: "Apply reviewed preview changes after explicit confirmation" },
+    { command: "Open Risk Source panel", purpose: "Review source profile, preview decisions and run history" }
+  ];
+  return shellHtml(
+    "PSPF Integration Settings",
+    `
+    <section>
+      <p class="eyebrow">Workshop settings</p>
+      <h1>Integration Setup</h1>
+      <p class="muted">Configure, test and use the 6clicks risk-source integration from one place. Non-secret settings stay in VS Code settings; live credentials stay in VS Code SecretStorage.</p>
+      ${versionStrip()}
+      <div class="grid">
+        ${metricCard("Readiness", readiness)}
+        ${metricCard("Source mode", profile ? label(profile.sourceMode) : "Not configured")}
+        ${metricCard("Diagnostics", diagnostics.length)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openRiskSourceSettings">Open VS Code settings</button>
+        <button type="button" data-command="pspf.workshop.setRiskSourceCredential">Set credential</button>
+        <button type="button" data-command="pspf.workshop.testRiskSource">Test connection</button>
+        <button type="button" data-command="pspf.workshop.previewRiskSourceImport">Run preview</button>
+        <button type="button" data-command="pspf.workshop.applyRiskSourceImport">Apply selected</button>
+        <button type="button" data-command="pspf.workshop.openRiskSourcePanel">Open Risk Source panel</button>
+        <button type="button" data-command="refresh">Refresh</button>
+      </div>
+    </section>
+    ${recordTable("Current Settings", settingsRows, ["setting", "value"])}
+    ${recordTable("Available Commands", commandRows, ["command", "purpose"])}
+    ${recordTable(
+      "Readiness Checks",
+      diagnostics.map((diagnostic) => ({ check: diagnostic })),
+      ["check"]
+    )}
+  `
+  );
+}
+
 async function renderRiskSourcePanel(): Promise<string> {
   const profile = readRiskSourceProfile();
   const preview = readRiskSourcePreview();
@@ -2407,8 +2504,7 @@ async function renderRiskSourcePanel(): Promise<string> {
       <p class="muted">Non-secret settings are mirrored to ${escapeHtml(riskSourceConfigDisplayPath())}. Credentials remain in VS Code SecretStorage.</p>
       ${versionStrip()}
       <div class="form-actions">
-        <button type="button" data-command="pspf.workshop.configureRiskSource">Configure source</button>
-        <button type="button" data-command="pspf.workshop.testRiskSource">Test connection</button>
+        <button type="button" data-command="pspf.workshop.configureRiskSource">Open integration settings</button>
         <button type="button" data-command="pspf.workshop.previewRiskSourceImport">Run preview</button>
         <button type="button" data-command="pspf.workshop.applyRiskSourceImport">Apply selected</button>
         <button type="button" data-command="refresh">Refresh</button>
@@ -2674,6 +2770,7 @@ async function openMasterDashboard(): Promise<void> {
   const strategies = allEntities.filter(
     (entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.recordStatus !== "deleted"
   );
+  const pentestWorkbench = buildPentestWorkbenchModel(allEntities);
   const evidenceRequirementIds = new Set(
     links
       .filter(
@@ -2720,35 +2817,45 @@ async function openMasterDashboard(): Promise<void> {
       "GOV / RISK",
       strategyChoices,
       `${strategyMeasures} measures`,
-      "Why this control here, why now?"
+      "Why this control here, why now?",
+      "pspf.workshop.openHumanCentredRiskView",
+      "Open risk panel"
     ),
     masterLoopRow(
       "Governance, Metrics and Reporting",
       "GOV",
       directions.length,
       `${directionResponses["not-set"]} Directions not set`,
-      "What needs AA, Audit Committee or CSO attention?"
+      "What needs AA, Audit Committee or CSO attention?",
+      "pspf.workshop.openAssessmentDashboard",
+      "Open dashboard"
     ),
     masterLoopRow(
       "Systems, Authorisation and Operations",
       "TECH / INFO",
       requirements.length,
       `${evidenceCoverage}% evidence coverage`,
-      "Which systems and controls can we stand behind?"
+      "Which systems and controls can we stand behind?",
+      "pspf.workshop.browseIsmSourceControls",
+      "Open controls"
     ),
     masterLoopRow(
       "Incident Management and Resilience",
       "GOV / TECH / RISK",
       changeRecords.length,
       `${changeRecords.length} change records`,
-      "What did we learn and what changed?"
+      "What did we learn and what changed?",
+      "pspf.workshop.openChangeRecords",
+      "Open changes"
     ),
     masterLoopRow(
       "People, Capability and Culture",
       "GOV / PER / RISK",
       openActions.length,
       `${blockedActions} blocked actions`,
-      "Where does capability constrain uplift?"
+      "Where does capability constrain uplift?",
+      "pspf.workshop.openPlanOfActionBoard",
+      "Open actions"
     )
   ];
   const streamRows = [
@@ -2829,7 +2936,7 @@ async function openMasterDashboard(): Promise<void> {
   panel.webview.html = shellHtml(
     "PSPF Master Dashboard",
     `
-    <section>
+    <section class="master-dashboard">
       <p class="eyebrow">Rogue CISO PSPF</p>
       <h1>Master Dashboard</h1>
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Digital management board for strategy, evidence, risk, action and reporting loops.</p>
@@ -2846,19 +2953,58 @@ async function openMasterDashboard(): Promise<void> {
         ${metricCard("Report signals", changeRecords.length + directions.length)}
       </div>
       <div class="form-actions">
-        <button type="button" data-command="pspf.workshop.openEssentialEightDashboard">Essential Eight</button>
-        <button type="button" data-command="pspf.workshop.openPspfGridView">PSPF Grid View</button>
-        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Plan of Action</button>
-        <button type="button" data-command="pspf.workshop.openHumanCentredRiskView">Human-Centred Risk</button>
-        <button type="button" data-command="pspf.workshop.openPentestWorkbench">Penetration Testing</button>
-        <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
-        <button type="button" data-command="pspf.workshop.openRequirementCardView">Requirement Cards</button>
-        <button type="button" data-command="pspf.workshop.openEvidenceReviewQueue">Evidence Review</button>
-        <button type="button" data-command="pspf.core.createSnapshot">Snapshot</button>
+        <button type="button" data-command="pspf.workshop.createRequirement">Create requirement</button>
         <button type="button" data-command="pspf.core.exportBundle">Export Bundle</button>
-        <button type="button" data-command="pspf.workshop.openCsoMagazine">Digital CSO Magazine</button>
-        <button type="button" data-command="pspf.workshop.openCisoMasterPlan">CISO Master Plan</button>
-        <button type="button" data-command="pspf.workshop.copyCisoMasterPlan">Copy CISO Master Plan</button>
+        <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
+      </div>
+    </section>
+    <section>
+      <h2>Portal</h2>
+      <div class="portal-grid">
+        ${portalGroup("Essentials", "Start with the high-frequency PSPF surfaces.", [
+          portalCommand(
+            "pspf.workshop.openEssentialEightDashboard",
+            "Essential Eight",
+            "E8 posture, mappings and uplift"
+          ),
+          portalCommand("pspf.workshop.openPspfGridView", "Requirements pane", "Simple requirement status view"),
+          portalCommand("pspf.workshop.browseIsmSourceControls", "Controls pane", "ISM controls by category and state")
+        ])}
+        ${portalGroup("Planning", "Move from posture into executable work.", [
+          portalCommand(
+            "pspf.workshop.openPlanOfActionBoard",
+            "Plan of Action",
+            "Integrated schedule and action worklist"
+          ),
+          portalCommand(
+            "pspf.workshop.openCisoMasterPlan",
+            "CISO Master Plan",
+            "Strategy, risk, spend and action roadmap"
+          ),
+          portalCommand("pspf.workshop.openStrategyMap", "Strategy Map", "Strategic choices and measures")
+        ])}
+        ${portalGroup("Traceability", "Follow the connections behind posture.", [
+          portalCommand(
+            "pspf.workshop.openConnectedView",
+            "Connected View",
+            "Directions, Requirements, risks and actions"
+          ),
+          portalCommand(
+            "pspf.workshop.openRequirementCardView",
+            "Requirement Cards",
+            "Readable requirement cards and ISM links"
+          ),
+          portalCommand("pspf.workshop.openEvidenceReviewQueue", "Evidence Review", "Evidence gaps and refresh work")
+        ])}
+        ${portalGroup("Reporting", "Prepare material for assurance and executive review.", [
+          portalCommand("pspf.core.createSnapshot", "Snapshot", "Freeze a local point-in-time record"),
+          portalCommand("pspf.workshop.openCsoMagazine", "Digital CSO Magazine", "Broad executive assurance issue"),
+          portalCommand(
+            "pspf.workshop.copyCisoMasterPlan",
+            "Copy CISO Master Plan",
+            "Copy the adaptable master plan summary"
+          )
+        ])}
       </div>
     </section>
     <section>
@@ -2872,8 +3018,9 @@ async function openMasterDashboard(): Promise<void> {
       </div>
       <p class="muted">Compliance and evidence coverage ignore ${completion.notApplicable} not applicable requirement${completion.notApplicable === 1 ? "" : "s"}. Including N/A: ${completion.metPercentageAll}% met, ${completion.evidenceCoverageAll}% evidence coverage.</p>
     </section>
-    ${recordTable("CISO Decision Loops", decisionLoopRows, ["loop", "maturity", "records", "signal", "question"])}
-    ${recordTable("Strategy And Performance", strategyRows, ["choice", "capability", "trend", "confidence", "outcomes", "measures", "target"])}
+    ${renderMasterDashboardPentestSummary(pentestWorkbench)}
+    ${renderDecisionLoopCards(decisionLoopRows)}
+    ${renderStrategyPerformanceCards(strategyRows)}
     ${recordTable("Plan Of Action Streams", streamRows, ["stream", "focus", "count", "leadSurface", "action"])}
     <section>
       <h2>Plan Of Action Board</h2>
@@ -2885,6 +3032,98 @@ async function openMasterDashboard(): Promise<void> {
     ${recordTable("Action Pressure", actionRows, ["title", "status", "urgency", "total", "dueDate"])}
   `
   );
+}
+
+function renderMasterDashboardPentestSummary(model: PentestWorkbenchModel): string {
+  const rows = model.assessments.slice(0, 6).map((assessment) => ({
+    target: assessment.engagement.target,
+    status: label(assessment.engagement.status),
+    progress: `${assessment.closurePercentage}% closed`,
+    planned: assessment.engagement.plannedWindow,
+    reportDue: formatPentestDashboardDate(assessment.engagement.reportDue),
+    retest: formatPentestDashboardDate(assessment.engagement.retestWindow),
+    criticalHigh: assessment.engagement.criticalHighFindings,
+    openActions: assessment.engagement.openFindingActions,
+    action: `<button type="button" data-command="pspf.workshop.openPentestWorkbench">Open workbench</button>`
+  }));
+  if (rows.length === 0) {
+    return `<section>
+      <h2>Penetration Testing</h2>
+      <p class="muted">No penetration testing assessments are tagged yet.</p>
+      <div class="form-actions"><button type="button" data-command="pspf.workshop.openPentestWorkbench">Open workbench</button></div>
+    </section>`;
+  }
+  return recordTable("Penetration Testing", rows, [
+    "target",
+    "status",
+    "progress",
+    "planned",
+    "reportDue",
+    "retest",
+    "criticalHigh",
+    "openActions",
+    "action"
+  ]);
+}
+
+function formatPentestDashboardDate(value: string): string {
+  if (value === "Not recorded" || value === "Not scheduled") {
+    return value;
+  }
+  return formatShortAuDateTime(value) ?? value;
+}
+
+function portalCommand(command: string, title: string, description: string): string {
+  return `<button type="button" class="portal-card" data-command="${escapeHtml(command)}"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(description)}</span></button>`;
+}
+
+function portalGroup(title: string, description: string, commands: readonly string[]): string {
+  return `<div class="portal-group"><h3>${escapeHtml(title)}</h3><p class="muted">${escapeHtml(description)}</p><div class="portal-actions">${commands.join("")}</div></div>`;
+}
+
+function renderDecisionLoopCards(rows: readonly ReturnType<typeof masterLoopRow>[]): string {
+  return `<section>
+    <h2>CISO Decision Loops</h2>
+    <div class="decision-loop-grid">
+      ${rows
+        .map(
+          (row) => `<article class="decision-loop-card">
+            <div class="decision-loop-card__top"><span>${escapeHtml(row.maturity)}</span><strong>${row.records}</strong></div>
+            <h3>${escapeHtml(row.loop)}</h3>
+            <p class="muted">${escapeHtml(row.signal)}</p>
+            <p>${escapeHtml(row.question)}</p>
+            <button type="button" data-command="${escapeHtml(row.command)}">${escapeHtml(row.actionLabel)}</button>
+          </article>`
+        )
+        .join("")}
+    </div>
+  </section>`;
+}
+
+function renderStrategyPerformanceCards(rows: readonly object[]): string {
+  if (rows.length === 0) {
+    return `<section><h2>Strategy And Performance</h2><p class="muted">No strategic choices are recorded yet.</p></section>`;
+  }
+  return `<section>
+    <h2>Strategy And Performance</h2>
+    <div class="strategy-performance-grid">
+      ${rows
+        .map((row) => {
+          const choice = String(readRecordField(row, "choice") ?? "Choice");
+          return `<article class="strategy-performance-card">
+            <h3>${escapeHtml(choice)}</h3>
+            <p class="muted">${escapeHtml(String(readRecordField(row, "capability") ?? "No capability recorded"))}</p>
+            <div class="strategy-performance-card__meta">
+              ${String(readRecordField(row, "trend") ?? "")}
+              ${shellPill(`${String(readRecordField(row, "measures") ?? "0")} measures`)}
+              ${shellPill(`${String(readRecordField(row, "outcomes") ?? "0")} outcomes`)}
+            </div>
+            <p>${escapeHtml(String(readRecordField(row, "target") ?? "No target posture recorded"))}</p>
+          </article>`;
+        })
+        .join("")}
+    </div>
+  </section>`;
 }
 
 async function openPspfGridView(): Promise<void> {
@@ -3186,6 +3425,9 @@ function renderPentestWorkbench(model: PentestWorkbenchModel): string {
       <div class="grid">
         ${metricCard("Assessments", model.totals.assessments)}
         ${metricCard("Findings", model.totals.findings)}
+        ${metricCard("Critical/high", model.totals.criticalHighFindings)}
+        ${metricCard("Other findings", model.totals.otherFindings)}
+        ${metricCard("Open remediation", model.totals.openFindingActions)}
         ${metricCard("Overdue", model.totals.overdue)}
         ${metricCard("SLA at risk", model.totals.slaAtRisk)}
         ${metricCard("Pending verification", model.totals.pendingVerification)}
@@ -3201,9 +3443,37 @@ function renderPentestWorkbench(model: PentestWorkbenchModel): string {
       </div>
       <p class="muted">SLA bands: ${severityLegend}. Severity is inferred from a linked severity Tag or the Action title; unknown severity defaults to Medium so the finding remains visible.</p>
     </section>
+    ${renderPentestPipeline(model)}
     ${assessments}
   `
   );
+}
+
+function renderPentestPipeline(model: PentestWorkbenchModel): string {
+  const rows = model.assessments.map((assessment) => ({
+    target: assessment.engagement.target,
+    status: label(assessment.engagement.status),
+    tester: assessment.engagement.tester,
+    method: assessment.engagement.method,
+    window: assessment.engagement.plannedWindow,
+    reportDue: assessment.engagement.reportDue,
+    retest: assessment.engagement.retestWindow,
+    criticalHigh: assessment.engagement.criticalHighFindings,
+    other: assessment.engagement.otherFindings,
+    openActions: assessment.engagement.openFindingActions
+  }));
+  return recordTable("Pentest Pipeline", rows, [
+    "target",
+    "status",
+    "tester",
+    "method",
+    "window",
+    "reportDue",
+    "retest",
+    "criticalHigh",
+    "other",
+    "openActions"
+  ]);
 }
 
 function renderPentestAssessment(assessment: PentestAssessmentModel): string {
@@ -3247,6 +3517,7 @@ function renderPentestAssessment(assessment: PentestAssessmentModel): string {
           ).join("")}
         </div>
       </header>
+      ${renderPentestEngagementProfile(assessment)}
       <div class="pentest-queue-grid">
         ${renderPentestFindingQueue("Overdue", "overdue", assessment.queues.overdue)}
         ${renderPentestFindingQueue("SLA at risk", "sla-at-risk", assessment.queues["sla-at-risk"])}
@@ -3258,6 +3529,21 @@ function renderPentestAssessment(assessment: PentestAssessmentModel): string {
     ${recordTable(`Commercial context · ${assessment.tagLabel}`, commercialRows, ["supplier", "contract", "contractRef"])}
     ${recordTable(`Residual risk · ${assessment.tagLabel}`, riskRows, ["title", "status", "score", "supplierLinked"])}
   `;
+}
+
+function renderPentestEngagementProfile(assessment: PentestAssessmentModel): string {
+  const engagement = assessment.engagement;
+  return `<div class="pentest-engagement-grid" aria-label="Penetration test planning and execution profile">
+    ${renderPentestEngagementCard("Target", escapeHtml(engagement.target), escapeHtml(engagement.targetType))}
+    ${renderPentestEngagementCard("Tester", escapeHtml(engagement.tester))}
+    ${renderPentestEngagementCard("Method", escapeHtml(engagement.method))}
+    ${renderPentestEngagementCard("Timing", escapeHtml(engagement.plannedWindow), `Report due ${escapeHtml(engagement.reportDue)} · Retest ${escapeHtml(engagement.retestWindow)}`)}
+    ${renderPentestEngagementCard("Finding split", escapeHtml(engagement.executionSummary))}
+  </div>`;
+}
+
+function renderPentestEngagementCard(title: string, body: string, detail = ""): string {
+  return `<article class="pentest-engagement-card"><h3>${escapeHtml(title)}</h3><p>${body}</p>${detail ? `<p class="muted">${detail}</p>` : ""}</article>`;
 }
 
 function renderPentestFindingQueue(
@@ -3308,6 +3594,10 @@ function pentestWorkbenchStyles(): string {
     .pentest-assessment { display: grid; gap: 12px; }
     .pentest-assessment__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .pentest-assessment__header h2 { margin: 0; }
+    .pentest-engagement-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+    .pentest-engagement-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 9px; background: var(--surface); display: grid; gap: 3px; align-content: start; }
+    .pentest-engagement-card h3, .pentest-engagement-card p { margin: 0; }
+    .pentest-engagement-card h3 { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
     .pentest-severity-counts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
     .pentest-severity-pill { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 700; white-space: nowrap; background: var(--surface); }
     .pentest-severity-pill[data-severity="critical"] { color: var(--pspf-warn); background: var(--pspf-warn-soft); border-color: color-mix(in srgb, var(--pspf-warn) 65%, var(--border)); }
@@ -4029,7 +4319,10 @@ function e8BarRow(labelText: string, value: number, total: number, swatch: strin
 async function openPlanOfActionBoard(): Promise<void> {
   await ensureCoreReady();
   const allEntities = await listAllEntities();
-  const model = buildPlanOfActionBoardModel(enrichActionsWithImpact(allEntities));
+  const teamDates = await loadPubTeamPlanDates();
+  const model = buildPlanOfActionBoardModel(enrichActionsWithImpact(allEntities), {
+    timelineDateHints: teamDates.map((item) => ({ startDate: item.startDate, endDate: item.endDate }))
+  });
   const panel = vscode.window.createWebviewPanel(
     "pspfPlanOfActionBoard",
     "PSPF Plan of Action",
@@ -4038,31 +4331,76 @@ async function openPlanOfActionBoard(): Promise<void> {
   );
   wireWorkshopPanelMessages(panel, async () => {
     const refreshedEntities = await listAllEntities();
+    const refreshedTeamDates = await loadPubTeamPlanDates();
     panel.webview.html = renderPlanOfActionBoard(
-      buildPlanOfActionBoardModel(enrichActionsWithImpact(refreshedEntities))
+      buildPlanOfActionBoardModel(enrichActionsWithImpact(refreshedEntities), {
+        timelineDateHints: refreshedTeamDates.map((item) => ({ startDate: item.startDate, endDate: item.endDate }))
+      }),
+      refreshedTeamDates
     );
   });
-  panel.webview.html = renderPlanOfActionBoard(model);
+  panel.webview.html = renderPlanOfActionBoard(model, teamDates);
 }
 
-function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
-  const taskRows = model.phases.flatMap((phase) =>
-    phase.tasks.map((task) => ({
-      openEntityType: "action",
-      openEntityId: task.actionId,
-      title: task.title,
-      stream: phase.title,
-      status: label(task.status),
-      urgency: label(task.urgency),
-      startDate: formatShortAuDateTime(task.startDate) ?? task.startDate,
-      endDate: formatShortAuDateTime(task.endDate) ?? task.endDate,
-      dueDate: formatShortAuDateTime(task.dueDate) ?? "Not set",
-      linkedRequirements: task.linkedRequirements,
-      linkedRisks: task.linkedRisks,
-      impact: task.impactTotal
-    }))
-  );
+interface PubTeamPlanDate {
+  readonly teamTitle: string;
+  readonly title: string;
+  readonly itemType: string;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly notes: string;
+}
 
+async function loadPubTeamPlanDates(): Promise<readonly PubTeamPlanDate[]> {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    return [];
+  }
+  const pubStoreUri = vscode.Uri.joinPath(workspaceFolder.uri, ".pspf", "pub", "pub.json");
+  try {
+    const content = await vscode.workspace.fs.readFile(pubStoreUri);
+    const parsed = JSON.parse(new TextDecoder().decode(content)) as { readonly teams?: readonly unknown[] };
+    return (parsed.teams ?? []).flatMap(pubTeamPlanDatesFromTeam);
+  } catch {
+    return [];
+  }
+}
+
+function pubTeamPlanDatesFromTeam(teamValue: unknown): readonly PubTeamPlanDate[] {
+  if (typeof teamValue !== "object" || teamValue === null) {
+    return [];
+  }
+  const team = teamValue as { readonly title?: unknown; readonly teamItems?: readonly unknown[] };
+  const teamTitle = typeof team.title === "string" ? team.title : "Untitled team";
+  return (team.teamItems ?? []).flatMap((itemValue) => {
+    if (typeof itemValue !== "object" || itemValue === null) {
+      return [];
+    }
+    const item = itemValue as {
+      readonly title?: unknown;
+      readonly itemType?: unknown;
+      readonly startDate?: unknown;
+      readonly endDate?: unknown;
+      readonly includeInPlan?: unknown;
+      readonly notes?: unknown;
+    };
+    if (item.includeInPlan !== true || typeof item.startDate !== "string" || item.startDate.trim().length === 0) {
+      return [];
+    }
+    return [
+      {
+        teamTitle,
+        title: typeof item.title === "string" && item.title.trim() ? item.title.trim() : "Team date",
+        itemType: typeof item.itemType === "string" && item.itemType.trim() ? item.itemType.trim() : "date",
+        startDate: item.startDate.trim(),
+        endDate: typeof item.endDate === "string" ? item.endDate.trim() : "",
+        notes: typeof item.notes === "string" ? item.notes.trim() : ""
+      }
+    ];
+  });
+}
+
+function renderPlanOfActionBoard(model: PlanOfActionBoardModel, teamDates: readonly PubTeamPlanDate[] = []): string {
   return shellHtml(
     "PSPF Plan of Action",
     `
@@ -4092,7 +4430,7 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
     ${renderPlanOfActionScheduleControls(model)}
     <section data-poa-view-section="master">
       <h2>Master Schedule</h2>
-      <p class="muted">Single combined view of all Actions. Use the workstream and status filters to create a whole-of-work or sliced schedule.</p>
+      <p class="muted">One line per Action, preserving the full master view while workstream and status filters create a sliced schedule.</p>
       <div class="poa-master-range">
         <strong>${escapeHtml(model.timelineStart)}</strong>
         <span>to</span>
@@ -4100,6 +4438,12 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
         <span>${model.totalDays} days · Today ${escapeHtml(model.today)}</span>
       </div>
       ${renderPlanOfActionMasterSchedule(model)}
+      ${renderPlanOfActionTeamDateOverlay(model, teamDates)}
+    </section>
+    <section data-poa-view-section="integrated" hidden>
+      <h2>Integrated Schedule</h2>
+      <p class="muted">Compact combined view that packs Actions into the fewest practical lanes while keeping overlapping date ranges separated.</p>
+      ${renderPlanOfActionIntegratedSchedule(model)}
     </section>
     <section data-poa-view-section="workstreams">
       <h2>Workstream Timeline</h2>
@@ -4111,10 +4455,113 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel): string {
       ${renderPlanOfActionTimeline(model)}
     </section>
     ${renderPlanOfActionSupportCallout(model)}
-    ${recordTable("Action Worklist", taskRows, ["title", "stream", "status", "urgency", "startDate", "endDate", "dueDate", "linkedRequirements", "linkedRisks", "impact"])}
+    ${renderPlanOfActionTeamDateConflicts(model, teamDates)}
+    ${renderPlanOfActionWorklist(model)}
     ${planOfActionFilterScript()}
   `
   );
+}
+
+function renderPlanOfActionTeamDateOverlay(
+  model: PlanOfActionBoardModel,
+  teamDates: readonly PubTeamPlanDate[]
+): string {
+  if (teamDates.length === 0) {
+    return `<p class="muted">No Pub team dates are marked for the Plan of Action yet.</p>`;
+  }
+  const bars = teamDates
+    .map((item) => renderPlanOfActionTeamDateBar(model, item))
+    .filter((value) => value.length > 0)
+    .join("");
+  return `<div class="poa-board poa-team-dates" style="--poa-width: ${model.timelineWidth}px;">
+    <div class="poa-phase poa-team-date-schedule">
+      <div class="poa-phase__header">
+        <strong>Pub Team Dates</strong>
+        <span>${teamDates.length} optional team-wide date${teamDates.length === 1 ? "" : "s"} from Pub, shown beside action work to expose calendar pressure.</span>
+      </div>
+      <div class="poa-track poa-team-date-track" style="width: ${model.timelineWidth}px;">
+        ${renderPlanOfActionTodayMarker(model.todayX, model.today)}
+        ${bars || `<span class="muted">Team dates are outside the current schedule range.</span>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderPlanOfActionTeamDateBar(model: PlanOfActionBoardModel, item: PubTeamPlanDate): string {
+  const start = parsePlanDate(item.startDate);
+  const end = parsePlanDate(item.endDate) ?? start;
+  const timelineStart = parsePlanDate(model.timelineStart);
+  if (!start || !end || !timelineStart) {
+    return "";
+  }
+  const x = Math.max(0, Math.round(diffPlanDays(timelineStart, start) * model.dayWidth));
+  const durationDays = Math.max(1, diffPlanDays(start <= end ? start : end, start <= end ? end : start) + 1);
+  const width = Math.max(18, Math.round(durationDays * model.dayWidth));
+  const labelText = `${item.teamTitle}: ${item.title}`;
+  return `<span class="poa-team-date-bar" style="left: ${x}px; width: ${width}px;" title="${escapeHtml(`${labelText} · ${item.startDate}${item.endDate ? ` to ${item.endDate}` : ""}`)}"><strong>${escapeHtml(fitTeamDateLabel(labelText, width))}</strong><small>${escapeHtml(label(item.itemType))}</small></span>`;
+}
+
+function renderPlanOfActionTeamDateConflicts(
+  model: PlanOfActionBoardModel,
+  teamDates: readonly PubTeamPlanDate[]
+): string {
+  if (teamDates.length === 0) {
+    return "";
+  }
+  const tasks = model.phases.flatMap((phase) => phase.tasks.map((task) => ({ task, phase })));
+  const rows = teamDates
+    .flatMap((teamDate) => {
+      const dateStart = parsePlanDate(teamDate.startDate);
+      const dateEnd = parsePlanDate(teamDate.endDate) ?? dateStart;
+      if (!dateStart || !dateEnd) {
+        return [];
+      }
+      const nearby = tasks.filter(({ task }) => {
+        const taskStart = parsePlanDate(task.startDate);
+        const taskEnd = parsePlanDate(task.endDate);
+        return taskStart && taskEnd ? dateRangesWithinDays(dateStart, dateEnd, taskStart, taskEnd, 3) : false;
+      });
+      return nearby.length > 0
+        ? nearby.map(({ task, phase }) => ({
+            teamDate,
+            actionTitle: task.title,
+            stream: phase.title,
+            actionDate: task.dueDate ?? task.endDate
+          }))
+        : [{ teamDate, actionTitle: "No nearby action date", stream: "-", actionDate: "-" }];
+    })
+    .map(
+      (row) =>
+        `<tr><td>${escapeHtml(row.teamDate.teamTitle)}</td><td>${escapeHtml(row.teamDate.title)}</td><td>${escapeHtml(row.teamDate.startDate)}${row.teamDate.endDate ? ` to ${escapeHtml(row.teamDate.endDate)}` : ""}</td><td>${escapeHtml(row.actionTitle)}</td><td>${escapeHtml(row.stream)}</td><td>${escapeHtml(row.actionDate)}</td></tr>`
+    )
+    .join("");
+  return `<section>
+    <h2>Pub Team Date Conflicts</h2>
+    <p class="muted">Optional team-wide dates from Pub are checked against action ranges within three days. This is local planning context only.</p>
+    <div class="table-wrap" tabindex="0" aria-label="Pub team date conflict table"><table><thead><tr><th>Team</th><th>Team date</th><th>Date</th><th>Nearby action</th><th>Stream</th><th>Action date</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </section>`;
+}
+
+function fitTeamDateLabel(labelText: string, width: number): string {
+  const maxCharacters = Math.max(6, Math.floor((width - 12) / 6));
+  return labelText.length <= maxCharacters ? labelText : `${labelText.slice(0, Math.max(3, maxCharacters - 3))}...`;
+}
+
+function dateRangesWithinDays(leftStart: Date, leftEnd: Date, rightStart: Date, rightEnd: Date, days: number): boolean {
+  return diffPlanDays(leftEnd, rightStart) <= days && diffPlanDays(rightEnd, leftStart) <= days;
+}
+
+function parsePlanDate(value: string | undefined): Date | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = new Date(`${value.slice(0, 10)}T00:00:00.000Z`);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+function diffPlanDays(startDate: Date, endDate: Date): number {
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((endDate.getTime() - startDate.getTime()) / millisecondsPerDay);
 }
 
 function renderPlanOfActionSupportCallout(model: PlanOfActionBoardModel): string {
@@ -4174,8 +4621,9 @@ function renderPlanOfActionScheduleControls(model: PlanOfActionBoardModel): stri
       <h2>Schedule View</h2>
       <div class="form-actions poa-view-toggle" data-poa-view-toggle>
         <button type="button" class="poa-status-filter" data-poa-view="master" aria-pressed="true">Master schedule</button>
+        <button type="button" class="poa-status-filter" data-poa-view="integrated" aria-pressed="false">Integrated schedule</button>
         <button type="button" class="poa-status-filter" data-poa-view="workstreams" aria-pressed="false">Workstreams</button>
-        <button type="button" class="poa-status-filter" data-poa-view="both" aria-pressed="false">Both</button>
+        <button type="button" class="poa-status-filter" data-poa-view="both" aria-pressed="false">All</button>
       </div>
     </div>
     <div>
@@ -4208,15 +4656,72 @@ function renderPlanOfActionMasterSchedule(model: PlanOfActionBoardModel): string
   return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
     <div class="poa-phase poa-master-schedule">
       <div class="poa-phase__header">
-        <strong>All Actions</strong>
-        <span>Combined schedule across selected workstreams and statuses.</span>
+        <strong>Master Schedule</strong>
+        <span>${tasks.length} Action line${tasks.length === 1 ? "" : "s"}; every Action keeps its own row for auditability and review.</span>
       </div>
       <div class="poa-master-grid" style="--poa-width: ${model.timelineWidth}px;">
-        <div class="poa-master-today-marker" style="left: calc(220px + 10px + ${model.todayX}px);" aria-hidden="true" title="Today: ${escapeHtml(model.today)}"></div>
+        <div class="poa-master-today-marker" style="left: ${model.todayX}px;" aria-hidden="true" title="Today: ${escapeHtml(model.today)}"></div>
         ${renderPlanOfActionMasterRuler(model)}
-        ${tasks.map(({ task, phase }) => renderPlanOfActionMasterTask(task, model.timelineWidth, phase.id, phase.title)).join("")}
+        <div class="poa-phase__tasks">
+          ${tasks.map(({ task, phase }) => renderPlanOfActionTask(task, model.timelineWidth, model.todayX, model.today, phase.id, phase.title)).join("")}
+        </div>
       </div>
     </div>
+  </div>`;
+}
+
+function renderPlanOfActionIntegratedSchedule(model: PlanOfActionBoardModel): string {
+  const tasks = model.phases
+    .flatMap((phase) => phase.tasks.map((task) => ({ task, phase })))
+    .sort(
+      (left, right) =>
+        left.task.startDate.localeCompare(right.task.startDate) || left.task.title.localeCompare(right.task.title)
+    );
+  if (tasks.length === 0) {
+    return `<p class="muted">No Actions are available yet. Create Actions or load the sample workspace to populate the integrated schedule.</p>`;
+  }
+  const lanes = packPlanOfActionScheduleLanes(tasks);
+  return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
+    <div class="poa-phase poa-master-schedule">
+      <div class="poa-phase__header">
+        <strong>Integrated Schedule</strong>
+        <span>${lanes.length} compact lane${lanes.length === 1 ? "" : "s"}, sequenced so overlapping Actions do not collide.</span>
+      </div>
+      <div class="poa-master-grid" style="--poa-width: ${model.timelineWidth}px;">
+        <div class="poa-master-today-marker" style="left: ${model.todayX}px;" aria-hidden="true" title="Today: ${escapeHtml(model.today)}"></div>
+        ${renderPlanOfActionMasterRuler(model)}
+        <div class="poa-integrated-lanes" style="width: ${model.timelineWidth}px;">
+          ${lanes.map((lane, index) => renderPlanOfActionIntegratedLane(lane, index)).join("")}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function packPlanOfActionScheduleLanes(
+  tasks: readonly { readonly task: PlanOfActionTaskModel; readonly phase: PlanOfActionPhaseModel }[]
+): readonly (readonly { readonly task: PlanOfActionTaskModel; readonly phase: PlanOfActionPhaseModel }[])[] {
+  const lanes: Array<Array<{ readonly task: PlanOfActionTaskModel; readonly phase: PlanOfActionPhaseModel }>> = [];
+  for (const item of tasks) {
+    const lane = lanes.find((candidate) => {
+      const previous = candidate[candidate.length - 1];
+      return previous ? previous.task.x + previous.task.width + 8 <= item.task.x : true;
+    });
+    if (lane) {
+      lane.push(item);
+    } else {
+      lanes.push([item]);
+    }
+  }
+  return lanes;
+}
+
+function renderPlanOfActionIntegratedLane(
+  lane: readonly { readonly task: PlanOfActionTaskModel; readonly phase: PlanOfActionPhaseModel }[],
+  index: number
+): string {
+  return `<div class="poa-integrated-lane" data-poa-integrated-lane aria-label="Integrated schedule lane ${index + 1}">
+    ${lane.map(({ task, phase }) => renderPlanOfActionMasterTask(task, phase.id, phase.title)).join("")}
   </div>`;
 }
 
@@ -4225,7 +4730,6 @@ function renderPlanOfActionMasterRuler(model: PlanOfActionBoardModel): string {
     (labelItem) => `<span class="poa-ruler-label" style="left: ${labelItem.x}px;">${escapeHtml(labelItem.label)}</span>`
   );
   return `<div class="poa-master-ruler" aria-label="Master schedule date ruler">
-    <span class="poa-master-ruler__spacer">Actions</span>
     <div class="poa-ruler-track" style="width: ${model.timelineWidth}px;">${labels.join("")}</div>
   </div>`;
 }
@@ -4289,10 +4793,11 @@ function renderPlanOfActionTask(
 ): string {
   const barClass = `poa-bar poa-bar--${task.urgency}`;
   const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
+  const sourceLabel = task.phaseSource === "override" ? " · manual stream" : "";
   return `<div class="poa-task" data-poa-task data-poa-status="${escapeHtml(task.status)}" data-poa-workstream="${escapeHtml(workstreamId)}">
     <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
       <strong>${escapeHtml(task.title)}</strong>
-      <span>${escapeHtml(workstreamTitle)} · ${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
+      <span>${escapeHtml(`${workstreamTitle}${sourceLabel}`)} · ${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
     </button>
     <div class="poa-track" style="width: ${timelineWidth}px;">
       ${renderPlanOfActionTodayMarker(todayX, today)}
@@ -4303,20 +4808,70 @@ function renderPlanOfActionTask(
 
 function renderPlanOfActionMasterTask(
   task: PlanOfActionTaskModel,
-  timelineWidth: number,
   workstreamId: string,
   workstreamTitle: string
 ): string {
   const barClass = `poa-bar poa-bar--${task.urgency}`;
-  return `<div class="poa-task poa-task--master" data-poa-task data-poa-status="${escapeHtml(task.status)}" data-poa-workstream="${escapeHtml(workstreamId)}">
-    <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
-      <strong>${escapeHtml(task.title)}</strong>
-      <span>${escapeHtml(workstreamTitle)} · ${escapeHtml(label(task.status))}</span>
-    </button>
-    <div class="poa-track" style="width: ${timelineWidth}px;">
-      <div class="${escapeHtml(barClass)} poa-bar--unlabelled" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}"></div>
+  return `<button type="button" class="${escapeHtml(barClass)} poa-bar--integrated" data-poa-task data-poa-status="${escapeHtml(task.status)}" data-poa-workstream="${escapeHtml(workstreamId)}" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}"><span>${escapeHtml(task.timelineLabel || task.title)}</span><small>${escapeHtml(workstreamTitle)} · ${escapeHtml(label(task.status))}</small></button>`;
+}
+
+function renderPlanOfActionWorklist(model: PlanOfActionBoardModel): string {
+  const rows = model.phases
+    .flatMap((phase) => phase.tasks.map((task) => ({ task, phase })))
+    .sort(
+      (left, right) =>
+        urgencySortValue(left.task.urgency) - urgencySortValue(right.task.urgency) ||
+        planOfActionTaskDueSortValue(left.task).localeCompare(planOfActionTaskDueSortValue(right.task)) ||
+        right.task.impactTotal - left.task.impactTotal
+    );
+  const body = rows.length
+    ? rows
+        .map(({ task, phase }) => {
+          const searchText = `${task.title} ${phase.title} ${label(task.status)} ${label(task.urgency)}`.toLowerCase();
+          return `<tr data-poa-worklist-row data-poa-status="${escapeHtml(task.status)}" data-poa-urgency="${escapeHtml(task.urgency)}" data-poa-workstream="${escapeHtml(phase.id)}" data-poa-search="${escapeHtml(searchText)}" data-poa-due="${escapeHtml(planOfActionTaskDueSortValue(task))}" data-poa-impact="${task.impactTotal}">
+            <td data-field="open"><button type="button" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">Open</button></td>
+            <td data-field="title"><span class="cell-compact">${escapeHtml(task.title)}</span></td>
+            <td data-field="stream">${escapeHtml(phase.title)}</td>
+            <td data-field="streamSource">${escapeHtml(task.phaseSource === "override" ? "Manual" : "Inferred")}</td>
+            <td data-field="status">${escapeHtml(label(task.status))}</td>
+            <td data-field="urgency">${escapeHtml(label(task.urgency))}</td>
+            <td data-field="startDate">${escapeHtml(formatShortAuDateTime(task.startDate) ?? task.startDate)}</td>
+            <td data-field="endDate">${escapeHtml(formatShortAuDateTime(task.endDate) ?? task.endDate)}</td>
+            <td data-field="dueDate">${escapeHtml(formatShortAuDateTime(task.dueDate) ?? "Not set")}</td>
+            <td data-field="linkedRequirements">${task.linkedRequirements}</td>
+            <td data-field="linkedRisks">${task.linkedRisks}</td>
+            <td data-field="impact">${task.impactTotal}</td>
+          </tr>`;
+        })
+        .join("")
+    : `<tr><td colspan="12">No Actions are available yet.</td></tr>`;
+  return `<section class="poa-worklist" data-poa-worklist>
+    <h2>Action Worklist</h2>
+    <div class="poa-worklist-filters" aria-label="Action worklist filters">
+      <label>Search <input type="search" data-poa-worklist-search placeholder="Title, stream, status or urgency"></label>
+      <label>Status <select data-poa-worklist-status><option value="all">All statuses</option>${actionStatusItems.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")}</select></label>
+      <label>Urgency <select data-poa-worklist-urgency><option value="all">All urgency</option><option value="blocked">Blocked</option><option value="overdue">Overdue</option><option value="due-soon">Due soon</option><option value="normal">Normal</option></select></label>
+      <label>Sort <select data-poa-worklist-sort><option value="urgency">Urgency</option><option value="due">Due date</option><option value="impact">Impact</option><option value="title">Title</option></select></label>
     </div>
-  </div>`;
+    <div class="table-wrap" tabindex="0" aria-label="Scrollable Action Worklist table"><table data-poa-worklist-table><thead><tr><th data-field="open">Open</th><th data-field="title">Title</th><th data-field="stream">Stream</th><th data-field="streamSource">Source</th><th data-field="status">Status</th><th data-field="urgency">Urgency</th><th data-field="startDate">Start date</th><th data-field="endDate">End date</th><th data-field="dueDate">Due date</th><th data-field="linkedRequirements">Linked requirements</th><th data-field="linkedRisks">Linked risks</th><th data-field="impact">Impact</th></tr></thead><tbody>${body}</tbody></table></div>
+  </section>`;
+}
+
+function planOfActionTaskDueSortValue(task: PlanOfActionTaskModel): string {
+  return task.dueDate ?? task.endDate ?? "9999-12-31";
+}
+
+function urgencySortValue(urgency: string): number {
+  if (urgency === "blocked") {
+    return 0;
+  }
+  if (urgency === "overdue") {
+    return 1;
+  }
+  if (urgency === "due-soon") {
+    return 2;
+  }
+  return 3;
 }
 
 function renderPlanOfActionTodayMarker(todayX: number, today: string): string {
@@ -4347,6 +4902,9 @@ function planOfActionFilterScript(): string {
     document.querySelectorAll('[data-poa-phase]').forEach((phase) => {
       phase.hidden = !workstreams.has(phase.dataset.poaWorkstream) || !Array.from(phase.querySelectorAll(taskSelector)).some((task) => !task.hidden);
     });
+    document.querySelectorAll('[data-poa-integrated-lane]').forEach((lane) => {
+      lane.hidden = !Array.from(lane.querySelectorAll(taskSelector)).some((task) => !task.hidden);
+    });
     const view = selectedView();
     document.querySelectorAll('[data-poa-view-section]').forEach((section) => {
       const name = section.dataset.poaViewSection;
@@ -4376,6 +4934,35 @@ function planOfActionFilterScript(): string {
       applyFilters();
     });
   });
+  const worklist = document.querySelector('[data-poa-worklist]');
+  if (worklist) {
+    const search = worklist.querySelector('[data-poa-worklist-search]');
+    const status = worklist.querySelector('[data-poa-worklist-status]');
+    const urgency = worklist.querySelector('[data-poa-worklist-urgency]');
+    const sort = worklist.querySelector('[data-poa-worklist-sort]');
+    const tbody = worklist.querySelector('tbody');
+    function urgencyRank(value) {
+      return value === 'blocked' ? 0 : value === 'overdue' ? 1 : value === 'due-soon' ? 2 : 3;
+    }
+    function applyWorklistFilters() {
+      const query = (search?.value || '').trim().toLowerCase();
+      const statusValue = status?.value || 'all';
+      const urgencyValue = urgency?.value || 'all';
+      const rows = Array.from(worklist.querySelectorAll('[data-poa-worklist-row]'));
+      rows.forEach((row) => {
+        row.hidden = (query && !row.dataset.poaSearch.includes(query)) || (statusValue !== 'all' && row.dataset.poaStatus !== statusValue) || (urgencyValue !== 'all' && row.dataset.poaUrgency !== urgencyValue);
+      });
+      const sorted = rows.sort((left, right) => {
+        if (sort?.value === 'due') return left.dataset.poaDue.localeCompare(right.dataset.poaDue);
+        if (sort?.value === 'impact') return Number(right.dataset.poaImpact || 0) - Number(left.dataset.poaImpact || 0);
+        if (sort?.value === 'title') return left.dataset.poaSearch.localeCompare(right.dataset.poaSearch);
+        return urgencyRank(left.dataset.poaUrgency) - urgencyRank(right.dataset.poaUrgency) || left.dataset.poaDue.localeCompare(right.dataset.poaDue);
+      });
+      sorted.forEach((row) => tbody?.appendChild(row));
+    }
+    [search, status, urgency, sort].forEach((control) => control?.addEventListener('input', applyWorklistFilters));
+    applyWorklistFilters();
+  }
   applyFilters();
 })();
 </script>`;
@@ -4386,9 +4973,19 @@ function masterLoopRow(
   maturity: string,
   records: number,
   signal: string,
-  question: string
-): { loop: string; maturity: string; records: number; signal: string; question: string } {
-  return { loop, maturity, records, signal, question };
+  question: string,
+  command: string,
+  actionLabel: string
+): {
+  loop: string;
+  maturity: string;
+  records: number;
+  signal: string;
+  question: string;
+  command: string;
+  actionLabel: string;
+} {
+  return { loop, maturity, records, signal, question, command, actionLabel };
 }
 
 const ESSENTIAL_EIGHT_STRATEGIES = [
@@ -4883,39 +5480,23 @@ async function openStrategyMap(): Promise<void> {
     linkedRecords: choice.references.length,
     target: choice.targetPosture
   }));
-  const measureRows = strategy.choices.flatMap((choice) =>
-    choice.outcomes.flatMap((outcome) =>
-      outcome.measures.map((measure) => ({
-        choice: choice.statement,
-        outcome: outcome.statement,
-        measure: measure.title,
-        class: label(measure.measureClass),
-        current: measure.current ?? "Not recorded",
-        target: measure.target ?? "Not recorded",
-        trend: trendIndicator(measure.trend),
-        confidence: label(measure.confidence)
-      }))
-    )
-  );
 
   panel.webview.html = shellHtml(
     "PSPF Cyber Strategy Map",
     `
-    <section>
+    <section class="strategy-map-frame">
       <p class="eyebrow">Leadership Strategy Map</p>
       <h1>${escapeHtml(strategy.title)}</h1>
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))}</p>
       ${versionStrip()}
-      <div class="grid">
-        ${metricCard("Scope", strategy.scope)}
-        ${metricCard("Time horizon", strategy.timeHorizon)}
-        ${metricCard("Choices", strategy.choices.length)}
-        ${metricCard("Frameworks", strategy.frameworks.join(", "))}
+      <p class="strategy-map-statement">${escapeHtml(strategy.strategyStatement)}</p>
+      <div class="strategy-map-meta">
+        ${shellPill(`Scope: ${strategy.scope}`)}
+        ${shellPill(`Time horizon: ${strategy.timeHorizon}`)}
+        ${shellPill(`${strategy.choices.length} choices`)}
+        ${shellPill(strategy.frameworks.join(", "))}
       </div>
-      <h2>Strategy Statement</h2>
-      <p>${escapeHtml(strategy.strategyStatement)}</p>
-      <h2>Risk Posture</h2>
-      <p>${escapeHtml(strategy.riskPostureStatement)}</p>
+      <aside class="strategy-risk-posture"><strong>Risk posture</strong><p>${escapeHtml(strategy.riskPostureStatement)}</p></aside>
       <div class="form-actions">
         <button type="button" data-command="pspf.workshop.editStrategySummary">Open strategy editor</button>
         <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
@@ -4923,14 +5504,49 @@ async function openStrategyMap(): Promise<void> {
     </section>
     <section>
       <h2>Strategic Choices</h2>
-      <div class="grid">
+      <div class="strategy-choice-grid">
         ${strategy.choices.map((choice) => strategyChoiceCard(choice, { requirements, risks, actions, directions })).join("")}
       </div>
     </section>
     ${recordTable("Choice Summary", choiceRows, ["choice", "capability", "trend", "confidence", "outcomes", "linkedRecords", "target"])}
-    ${recordTable("Posture Measures", measureRows, ["choice", "outcome", "measure", "class", "current", "target", "trend", "confidence"])}
+    ${renderMeasuresGroupedByChoice(strategy)}
   `
   );
+}
+
+function renderMeasuresGroupedByChoice(strategy: StrategyEntity): string {
+  return `<section>
+    <h2>Posture Measures By Choice</h2>
+    <div class="measure-choice-stack">
+      ${strategy.choices
+        .map((choice, index) => {
+          const measures = choice.outcomes.flatMap((outcome) =>
+            outcome.measures.map((measure) => ({ measure, outcome: outcome.statement }))
+          );
+          const rows = measures.length
+            ? measures
+                .map(
+                  ({ measure, outcome }) => `<tr>
+                    <td>${escapeHtml(outcome)}</td>
+                    <td><strong>${escapeHtml(measure.title)}</strong></td>
+                    <td>${escapeHtml(label(measure.measureClass))}</td>
+                    <td>${escapeHtml(measure.current ?? "Not recorded")}</td>
+                    <td>${escapeHtml(measure.target ?? "Not recorded")}</td>
+                    <td>${trendIndicator(measure.trend)}</td>
+                    <td>${escapeHtml(label(measure.confidence))}</td>
+                  </tr>`
+                )
+                .join("")
+            : `<tr><td colspan="7">No measures recorded for this choice.</td></tr>`;
+          return `<article class="measure-choice-group">
+            <h3>Choice ${index + 1}: ${escapeHtml(choice.statement)}</h3>
+            <p class="muted">${escapeHtml(choice.capabilityArea)} · ${measures.length} measure${measures.length === 1 ? "" : "s"}</p>
+            <div class="table-wrap"><table><thead><tr><th>Outcome</th><th>Measure</th><th>Class</th><th>Current</th><th>Target</th><th>Trend</th><th>Confidence</th></tr></thead><tbody>${rows}</tbody></table></div>
+          </article>`;
+        })
+        .join("")}
+    </div>
+  </section>`;
 }
 
 async function createDraftStrategy(): Promise<StrategyEntity | undefined> {
@@ -5948,11 +6564,14 @@ function strategyChoiceCard(
   `
     )
     .join("");
-  return `<article class="metric">
-    <span>${escapeHtml(choice.capabilityArea)}</span>
-    <strong style="font-size:18px;line-height:1.25;">${escapeHtml(choice.statement)}</strong>
+  return `<article class="strategy-choice-card">
+    <div class="strategy-choice-card__top">
+      <span>${escapeHtml(choice.capabilityArea)}</span>
+      ${trendIndicator(choice.trend)}
+    </div>
+    <strong>${escapeHtml(choice.statement)}</strong>
     <p>${escapeHtml(choice.summary)}</p>
-    <p class="muted">Trend: ${trendIndicator(choice.trend)} · Confidence: ${escapeHtml(label(choice.confidence))}</p>
+    <p class="muted">Confidence: ${escapeHtml(label(choice.confidence))}</p>
     <p>${escapeHtml(choice.targetPosture)}</p>
     <h3>Linked Records</h3>
     ${strategyReferenceList(choice.references, lookup)}
@@ -6659,13 +7278,21 @@ async function openRequirementsList(): Promise<void> {
     )
     .sort(compareRequirementsForPicker);
   const recentRequirementId = getRecentRequirementId();
-  const initialRequirement =
-    requirements.find((requirement) => requirement.id === recentRequirementId) ?? requirements.at(0);
-  if (!initialRequirement) {
+  const picked = await pickEntityForEdit(
+    requirements,
+    "Edit Requirement",
+    (requirement) => requirement.title,
+    (requirement) => label(requirement.assessmentStatus),
+    (requirement) => (requirement.id === recentRequirementId ? "Recent requirement" : requirement.id)
+  );
+  if (!picked) {
+    if (requirements.length > 0) {
+      return;
+    }
     await vscode.window.showInformationMessage("No Requirements found. Create or import Requirements first.");
     return;
   }
-  await openEntityEditor(initialRequirement, allEntities);
+  await openEntityEditor(picked, allEntities);
 }
 
 async function openEvidenceList(): Promise<void> {
@@ -6674,14 +7301,23 @@ async function openEvidenceList(): Promise<void> {
   const evidence = allEntities
     .filter((entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted")
     .sort(compareEvidenceRecords);
-  const initialEvidence = evidence.at(0);
-  if (!initialEvidence) {
+  const picked = await pickEntityForEdit(
+    evidence,
+    "Edit Evidence",
+    (item) => item.title,
+    (item) => label(item.freshness),
+    (item) => `${label(item.evidenceType)} · ${item.id}`
+  );
+  if (!picked) {
+    if (evidence.length > 0) {
+      return;
+    }
     await vscode.window.showInformationMessage(
       "No Evidence records found. Add evidence or load the sample workspace first."
     );
     return;
   }
-  await openEntityEditor(initialEvidence, allEntities);
+  await openEntityEditor(picked, allEntities);
 }
 
 async function openActionsList(): Promise<void> {
@@ -6690,14 +7326,23 @@ async function openActionsList(): Promise<void> {
   const actions = allEntities
     .filter((entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted")
     .sort(compareWorkbenchRecords);
-  const initialAction = actions.at(0);
-  if (!initialAction) {
+  const picked = await pickEntityForEdit(
+    actions,
+    "Edit Action",
+    (action) => action.title,
+    (action) => label(action.status),
+    (action) => (action.dueDate ? `Due ${action.dueDate}` : action.id)
+  );
+  if (!picked) {
+    if (actions.length > 0) {
+      return;
+    }
     await vscode.window.showInformationMessage(
       "No Action records found. Create an Action or load the sample workspace first."
     );
     return;
   }
-  await openEntityEditor(initialAction, allEntities);
+  await openEntityEditor(picked, allEntities);
 }
 
 async function openRisksList(): Promise<void> {
@@ -6706,14 +7351,72 @@ async function openRisksList(): Promise<void> {
   const risks = allEntities
     .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
     .sort(compareWorkbenchRecords);
-  const initialRisk = risks.at(0);
-  if (!initialRisk) {
+  const picked = await pickEntityForEdit(
+    risks,
+    "Edit Risk",
+    (risk) => risk.title,
+    (risk) => label(risk.status),
+    (risk) => `Likelihood ${risk.likelihood} · impact ${risk.impact}`
+  );
+  if (!picked) {
+    if (risks.length > 0) {
+      return;
+    }
     await vscode.window.showInformationMessage(
       "No Risk records found. Create a Risk or load the sample workspace first."
     );
     return;
   }
-  await openEntityEditor(initialRisk, allEntities);
+  await openEntityEditor(picked, allEntities);
+}
+
+async function openDirectionsList(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const directions = allEntities
+    .filter(
+      (entity): entity is DirectionEntity => entity.entityType === "direction" && entity.recordStatus !== "deleted"
+    )
+    .sort(compareDirectionsForPicker);
+  const picked = await pickEntityForEdit(
+    directions,
+    "Edit Direction",
+    (direction) => `${direction.reference}: ${direction.title}`,
+    (direction) => label(direction.responseState),
+    (direction) => direction.sourceAuthority ?? direction.id
+  );
+  if (!picked) {
+    if (directions.length > 0) {
+      return;
+    }
+    await vscode.window.showInformationMessage(
+      "No Direction records found. Create a Direction or load the sample workspace first."
+    );
+    return;
+  }
+  await openEntityEditor(picked, allEntities);
+}
+
+async function pickEntityForEdit<Entity extends V01Entity>(
+  entities: readonly Entity[],
+  title: string,
+  labelForEntity: (entity: Entity) => string,
+  descriptionForEntity: (entity: Entity) => string,
+  detailForEntity: (entity: Entity) => string
+): Promise<Entity | undefined> {
+  if (entities.length === 0) {
+    return undefined;
+  }
+  const picked = await vscode.window.showQuickPick(
+    entities.map((entity) => ({
+      label: labelForEntity(entity),
+      description: descriptionForEntity(entity),
+      detail: detailForEntity(entity),
+      entity
+    })),
+    { title, placeHolder: "Choose a record to edit", ignoreFocusOut: true }
+  );
+  return picked?.entity;
 }
 
 async function openItemDetail(): Promise<void> {
@@ -7096,6 +7799,18 @@ function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEn
       ${metricCard("OSCAL releases", releaseCount)}
       ${metricCard("Drift markers", changedCount)}
     </div>
+    <section class="ism-category-overview" aria-label="ISM principle groups">
+      <h2>Principle Groups</h2>
+      <p class="muted">Use the ISM category groups to move between related controls before opening the detailed control record.</p>
+      <div class="ism-category-grid">
+        ${categories
+          .map(
+            (category) =>
+              `<button type="button" class="ism-category-card" data-ism-category-shortcut="${escapeHtml(category.label)}"><strong>${escapeHtml(category.label)}</strong><span>${category.count} control${category.count === 1 ? "" : "s"}</span></button>`
+          )
+          .join("")}
+      </div>
+    </section>
     <div class="ism-browser__toolbar" role="search" aria-label="Filter ISM source controls">
       <label>
         <span>Search controls</span>
@@ -7154,13 +7869,14 @@ function renderIsmSourceControlsBrowser(sourceControls: readonly SourceControlEn
 
 function renderIsmSourceControlBrowserRow(sourceControl: SourceControlEntity): string {
   const category = ismSourceControlCategory(sourceControl);
+  const name = ismSourceControlName(sourceControl);
   const profiles = sourceControl.profileTags.join(", ");
   const drift = statementChangeLabel(sourceControl.statementChangeStatus);
   const implementation = implementationStatusLabel(sourceControl.implementationStatus);
   const release = sourceControl.provenance.oscalRelease;
   const searchText = [
     sourceControl.controlId,
-    sourceControl.title,
+    name,
     sourceControl.statement,
     profiles,
     release,
@@ -7170,10 +7886,10 @@ function renderIsmSourceControlBrowserRow(sourceControl: SourceControlEntity): s
   ]
     .join(" ")
     .toLocaleLowerCase("en-AU");
-  return `<tr data-search="${escapeHtml(searchText)}" data-category="${escapeHtml(category)}" data-profile="${escapeHtml(profiles)}" data-drift="${escapeHtml(drift)}" data-implementation="${escapeHtml(implementation)}" data-control-id="${escapeHtml(sourceControl.controlId)}" data-title="${escapeHtml(sourceControl.title)}" data-profiles="${escapeHtml(profiles)}" data-release="${escapeHtml(release)}">
+  return `<tr data-search="${escapeHtml(searchText)}" data-category="${escapeHtml(category)}" data-profile="${escapeHtml(profiles)}" data-drift="${escapeHtml(drift)}" data-implementation="${escapeHtml(implementation)}" data-control-id="${escapeHtml(sourceControl.controlId)}" data-title="${escapeHtml(name)}" data-profiles="${escapeHtml(profiles)}" data-release="${escapeHtml(release)}">
     <td data-field="action"><button type="button" data-command="openIsmControlDetail" data-source-control-id="${escapeHtml(sourceControl.id)}">Open</button></td>
     <td data-field="controlId"><strong>${escapeHtml(sourceControl.controlId)}</strong></td>
-    <td data-field="title">${escapeHtml(sourceControl.title)}<br><span class="muted">${escapeHtml(sourceControl.statement)}</span></td>
+    <td data-field="title"><strong>${escapeHtml(name)}</strong><br><span class="muted">${escapeHtml(sourceControl.statement)}</span></td>
     <td data-field="implementation">${escapeHtml(implementation)}</td>
     <td data-field="profiles">${escapeHtml(profiles || "Not tagged")}</td>
     <td data-field="release">${escapeHtml(release)}</td>
@@ -7181,8 +7897,24 @@ function renderIsmSourceControlBrowserRow(sourceControl: SourceControlEntity): s
   </tr>`;
 }
 
+function ismSourceControlName(sourceControl: SourceControlEntity): string {
+  const title = sourceControl.title.trim();
+  if (title) {
+    return title;
+  }
+  const statementLead = sourceControl.statement.trim().split(/[.;:]/)[0]?.trim();
+  return statementLead
+    ? `${sourceControl.controlId}: ${statementLead}`
+    : `${sourceControl.controlId}: Unnamed ISM control`;
+}
+
 function ismSourceControlsBrowserScript(totalCount: number): string {
   return `<style>
+    .ism-category-overview { margin-top: 1rem; }
+    .ism-category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
+    .ism-category-card { display: grid; gap: 0.25rem; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.75rem; color: var(--text); background: var(--surface-strong); text-align: left; }
+    .ism-category-card:hover { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 8%, var(--surface-strong)); }
+    .ism-category-card span { color: var(--muted); font-size: 0.8rem; }
     .ism-browser__toolbar { display: grid; grid-template-columns: minmax(18rem, 2fr) minmax(14rem, 1.4fr) minmax(12rem, 1fr) minmax(10rem, 1fr) minmax(10rem, 1fr) auto; gap: 0.75rem; align-items: end; margin: 1rem 0; }
     .ism-browser__toolbar label { display: grid; gap: 0.3rem; }
     .ism-browser__toolbar span { color: var(--vscode-descriptionForeground); font-size: 0.82rem; }
@@ -7201,6 +7933,7 @@ function ismSourceControlsBrowserScript(totalCount: number): string {
     (() => {
       const searchInput = document.getElementById('ism-control-search');
       const categoryFilter = document.getElementById('ism-category-filter');
+      const categoryShortcuts = Array.from(document.querySelectorAll('[data-ism-category-shortcut]'));
       const profileFilter = document.getElementById('ism-profile-filter');
       const driftFilter = document.getElementById('ism-drift-filter');
       const implementationFilter = document.getElementById('ism-implementation-filter');
@@ -7264,6 +7997,13 @@ function ismSourceControlsBrowserScript(totalCount: number): string {
         if (implementationFilter instanceof HTMLSelectElement) implementationFilter.value = '';
         applyFilters();
         searchInput?.focus();
+      });
+      categoryShortcuts.forEach((button) => {
+        button.addEventListener('click', () => {
+          if (categoryFilter instanceof HTMLSelectElement) categoryFilter.value = button.getAttribute('data-ism-category-shortcut') || '';
+          applyFilters();
+          document.getElementById('ism-controls-table')?.scrollIntoView({ block: 'start' });
+        });
       });
       table?.querySelectorAll('button[data-sort]').forEach((button) => {
         button.addEventListener('click', () => sortRows(button.getAttribute('data-sort') || 'controlId'));
@@ -8886,6 +9626,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.core.createSnapshot",
         "pspf.core.exportBundle",
         "pspf.shop.openForecast",
+        "pspf.workshop.createRequirement",
         "pspf.workshop.createAction",
         "pspf.workshop.createRisk",
         "pspf.workshop.attachEvidence",
@@ -8908,6 +9649,9 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.addPlannerMilestone",
         "pspf.workshop.openRiskSourcePanel",
         "pspf.workshop.configureRiskSource",
+        "pspf.workshop.openRiskSourceSettings",
+        "pspf.workshop.setRiskSourceCredential",
+        "pspf.workshop.openDirectionsList",
         "pspf.workshop.testRiskSource",
         "pspf.workshop.previewRiskSourceImport",
         "pspf.workshop.applyRiskSourceImport",
@@ -9012,6 +9756,7 @@ async function buildUpdatedEntity(
     case "action": {
       const title = fields.title?.trim();
       const status = fields.status;
+      const planWorkstreamId = normalisePlanWorkstreamId(fields.planWorkstreamId);
       if (!title) {
         await vscode.window.showWarningMessage("Enter an Action title before saving.");
         return undefined;
@@ -9020,8 +9765,9 @@ async function buildUpdatedEntity(
         await vscode.window.showWarningMessage("Select a valid Action status before saving.");
         return undefined;
       }
-      return {
-        ...entity,
+      const current = entity as WorkshopActionWithPlanOverride;
+      const next = {
+        ...current,
         title,
         status,
         startDate: normaliseShortAuDateTime(fields.startDate),
@@ -9030,6 +9776,11 @@ async function buildUpdatedEntity(
         commentary: actionCommentaryEntries(entity.commentary, fields.newCommentary, updatedAt),
         updatedAt
       };
+      if (planWorkstreamId) {
+        return { ...next, planWorkstreamId } as ActionEntity;
+      }
+      const { planWorkstreamId: _removedPlanWorkstreamId, ...withoutPlanWorkstreamId } = next;
+      return withoutPlanWorkstreamId as ActionEntity;
     }
     case "risk": {
       const title = fields.title?.trim();
@@ -9772,6 +10523,12 @@ function renderActionEditor(
       </div>`
     : "";
   const impact = action.impact;
+  const actionPlanWorkstreamId =
+    normalisePlanWorkstreamId((action as WorkshopActionWithPlanOverride).planWorkstreamId) ?? "";
+  const planWorkstreamOptions = [
+    { label: "Infer from impact", value: "" },
+    ...PLAN_OF_ACTION_PHASES.map((phase) => ({ label: phase.title, value: phase.id }))
+  ];
   const readOnlyImpact = impact
     ? `
     <section>
@@ -9803,6 +10560,7 @@ function renderActionEditor(
     ${inputField("startDate", "Start date", formatShortAuDateTime(action.startDate) ?? "", false, "today or 1 Jul 2026")}
     ${inputField("endDate", "End date", formatShortAuDateTime(action.endDate) ?? "", false, "30 Sep 2026")}
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
+    ${selectField("planWorkstreamId", "Plan of Action stream", planWorkstreamOptions, actionPlanWorkstreamId)}
     ${textareaField("newCommentary", "New commentary update", "")}
   `,
     undefined,
@@ -11575,7 +12333,6 @@ function renderCisoMasterPlanPanel(input: ReturnType<typeof buildShareArtefactIn
         <button type="button" data-command="pspf.workshop.addPlannerTask">Add planner task</button>
         <button type="button" data-command="pspf.workshop.addPlannerMilestone">Add milestone</button>
         <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
-        <button type="button" data-command="pspf.workshop.openCsoMagazine">Digital CSO Magazine</button>
         <button type="button" data-command="pspf.workshop.copyCisoMasterPlan">Copy plan</button>
       </div>
     </section>
@@ -12475,9 +13232,7 @@ function tableCell(record: object, field: string): string {
 
 function trendIndicator(value: string): string {
   const trend = value === "improving" || value === "steady" || value === "deteriorating" ? value : "unknown";
-  const arrow =
-    trend === "improving" ? "&uarr;" : trend === "steady" ? "&rarr;" : trend === "deteriorating" ? "&darr;" : "&ndash;";
-  return `<span class="trend-indicator" data-trend="${escapeHtml(trend)}"><span aria-hidden="true">${arrow}</span><span>${escapeHtml(label(trend))}</span></span>`;
+  return `<span class="trend-indicator" data-trend="${escapeHtml(trend)}"><span>${escapeHtml(label(trend))}</span></span>`;
 }
 
 function evidenceReferenceCell(reference: string): string {

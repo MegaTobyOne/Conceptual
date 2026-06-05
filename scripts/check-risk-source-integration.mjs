@@ -41,27 +41,33 @@ for (const requiredText of [
   assert.equal(workshopExtension.includes(requiredText), true, `Workshop integration should mention ${requiredText}`);
 }
 
-for (const homePanelText of [
-  "<h2>Integrations</h2>",
-  'homeButton("pspf.workshop.openRiskSourcePanel", "Risk Source"',
-  'homeButton("pspf.workshop.configureRiskSource", "Configure source"',
-  'homeButton("pspf.workshop.testRiskSource", "Test source"',
-  'homeButton("pspf.workshop.previewRiskSourceImport", "Preview risks"',
-  'homeButton("pspf.workshop.applyRiskSourceImport", "Apply selected"',
-  'homeButton("pspf.workshop.viewRiskSourceRuns", "View source runs"'
+for (const settingsPanelText of [
+  "PSPF Integration Settings",
+  "<h1>Integration Setup</h1>",
+  'data-command="pspf.workshop.openRiskSourceSettings"',
+  'data-command="pspf.workshop.setRiskSourceCredential"',
+  'data-command="pspf.workshop.previewRiskSourceImport"',
+  'data-command="pspf.workshop.applyRiskSourceImport"',
+  'data-command="pspf.workshop.openRiskSourcePanel"'
 ]) {
-  assert.equal(workshopExtension.includes(homePanelText), true, `Workshop home panel should surface ${homePanelText}`);
+  assert.equal(
+    workshopExtension.includes(settingsPanelText),
+    true,
+    `Workshop Settings panel should surface ${settingsPanelText}`
+  );
 }
 
-assert.equal(workshopExtension.includes('value: "fixture" as const'), true, "Workshop should expose fixture mode");
-assert.equal(workshopExtension.includes('value: "live" as const'), true, "Workshop should expose live mode");
+assert.equal(workshopPackage.includes('"fixture"'), true, "Workshop should expose fixture mode");
+assert.equal(workshopPackage.includes('"live"'), true, "Workshop should expose live mode");
 assert.equal(
   workshopExtension.includes('url.protocol === "https:"'),
   true,
   "Workshop should require HTTPS for live 6clicks sources"
 );
 assert.equal(
-  workshopExtension.includes('sourceMode.value === "live" ? riskSourceSecretKey : undefined'),
+  workshopExtension.includes('secretRef: sourceMode === "live" ? riskSourceSecretKey : undefined') &&
+    workshopExtension.includes('profile.sourceMode === "fixture"') &&
+    workshopExtension.includes("profile.secretRef"),
   true,
   "Workshop should keep fixture mode credential-free"
 );

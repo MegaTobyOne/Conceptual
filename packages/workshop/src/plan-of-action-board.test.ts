@@ -4,6 +4,7 @@ import { VERSION_AXES, type ActionEntity, type LinkEntity } from "@pspf/contract
 import {
   buildPlanOfActionBoardModel,
   fitPlanOfActionLabel,
+  normalisePlanWorkstreamId,
   normaliseTaskLabelVisibility
 } from "./plan-of-action-board.js";
 
@@ -26,6 +27,25 @@ test("plan of action classifies risk treatment Actions into the reduce risk work
 
   assert.equal(riskPhase?.tasks.length, 1);
   assert.equal(riskPhase?.tasks[0]?.title, "Treat gateway residual risk");
+  assert.equal(riskPhase?.tasks[0]?.phaseSource, "inferred");
+});
+
+test("plan of action honours explicit Action workstream override", () => {
+  const action = actionEntity({
+    title: "Report a risk-heavy activity under reporting",
+    dueDate: "2026-06-15T00:00:00.000Z",
+    riskReduction: 5,
+    planWorkstreamId: "prepare-reporting"
+  });
+  const model = buildPlanOfActionBoardModel([action], { now: new Date("2026-05-20T00:00:00.000Z") });
+  const reportingPhase = model.phases.find((phase) => phase.id === "prepare-reporting");
+  const riskPhase = model.phases.find((phase) => phase.id === "reduce-risk");
+
+  assert.equal(reportingPhase?.tasks[0]?.title, "Report a risk-heavy activity under reporting");
+  assert.equal(reportingPhase?.tasks[0]?.phaseSource, "override");
+  assert.equal(riskPhase?.tasks.length, 0);
+  assert.equal(normalisePlanWorkstreamId("reduce-risk"), "reduce-risk");
+  assert.equal(normalisePlanWorkstreamId("unknown"), undefined);
 });
 
 test("plan of action counts linked Requirements and Risks once", () => {
@@ -123,7 +143,8 @@ function actionEntity({
   startDate,
   endDate,
   dueDate,
-  riskReduction = 0
+  riskReduction = 0,
+  planWorkstreamId
 }: {
   readonly title: string;
   readonly status?: ActionEntity["status"];
@@ -131,8 +152,9 @@ function actionEntity({
   readonly endDate?: string;
   readonly dueDate: string;
   readonly riskReduction?: number;
+  readonly planWorkstreamId?: string;
 }): ActionEntity {
-  return {
+  const action = {
     id: `ACT-${title.replace(/[^A-Z0-9]/gi, "-").slice(0, 12)}`,
     entityType: "action",
     schemaVersion: VERSION_AXES.schemaVersion,
@@ -153,7 +175,8 @@ function actionEntity({
       urgency: "normal",
       explanation: []
     }
-  };
+  } satisfies ActionEntity;
+  return planWorkstreamId ? ({ ...action, planWorkstreamId } as ActionEntity) : action;
 }
 
 function linkEntity(input: Pick<LinkEntity, "id" | "fromId" | "fromType" | "toId" | "toType">): LinkEntity {

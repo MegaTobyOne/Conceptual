@@ -59,8 +59,8 @@ const checks = [
     workshopExtension.includes("pspf.workshop.createRoadmapInitiativePlan")
   ),
   check(
-    "Workshop Home explains the CISO Master Plan button",
-    workshopExtension.includes("Open the roadmap across strategy, action, risk and spend")
+    "Workshop portal explains the CISO Master Plan button",
+    workshopExtension.includes("Strategy, risk, spend and action roadmap")
   ),
   check("Plan of Action explains action worklist purpose", workshopExtension.includes("Operational action worklist")),
   check(
