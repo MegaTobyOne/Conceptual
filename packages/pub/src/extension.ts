@@ -2226,7 +2226,17 @@ function renderPersonDetailHtml(store: PubStore, personId: string): string {
         "Annual performance cycle",
         "Mandatory behaviours, role-specific capabilities, personal goals, targets, courses and certifications stay local-only.",
         tableHtml(
-          ["Year", "Status", "Mandatory behaviours", "Capabilities", "Goals", "Targets", "Courses", "Certifications", "Review by"],
+          [
+            "Year",
+            "Status",
+            "Mandatory behaviours",
+            "Capabilities",
+            "Goals",
+            "Targets",
+            "Courses",
+            "Certifications",
+            "Review by"
+          ],
           personPerformanceRows(person),
           9
         )
@@ -2678,7 +2688,17 @@ function renderPeopleHtml(store: PubStore): string {
         "People directory",
         "Local-only people and stakeholder context. Do not treat these display names as publishable data.",
         tableHtml(
-          ["Name", "Type", "Organisation", "Role", "Lifecycle", "Performance", "Resume link", "Resume text", "Next signal"],
+          [
+            "Name",
+            "Type",
+            "Organisation",
+            "Role",
+            "Lifecycle",
+            "Performance",
+            "Resume link",
+            "Resume text",
+            "Next signal"
+          ],
           rows,
           9
         )
@@ -2721,7 +2741,18 @@ function renderPeopleCultureHtml(store: PubStore): string {
         "People & Culture compliance board",
         "Acceptable use, orientation, probation, separation, behaviours, capabilities, goals, targets, courses and certifications are stored locally in Pub only.",
         tableHtml(
-          ["Person", "Role", "Lifecycle", "Missing lifecycle", "Cycle", "Status", "Targets", "Courses", "Certifications", "Review by"],
+          [
+            "Person",
+            "Role",
+            "Lifecycle",
+            "Missing lifecycle",
+            "Cycle",
+            "Status",
+            "Targets",
+            "Courses",
+            "Certifications",
+            "Review by"
+          ],
           rows,
           10
         )

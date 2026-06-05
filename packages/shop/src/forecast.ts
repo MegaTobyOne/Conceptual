@@ -203,7 +203,9 @@ export function moneyAmountValue(value: MoneyAmount | undefined): number {
 }
 
 export function moneyAmountNumber(value: MoneyAmount | undefined): number | undefined {
-  return typeof value?.amount === "number" && Number.isFinite(value.amount) ? roundMoneyAmount(value.amount) : undefined;
+  return typeof value?.amount === "number" && Number.isFinite(value.amount)
+    ? roundMoneyAmount(value.amount)
+    : undefined;
 }
 
 function roundMoneyAmount(value: number): number {

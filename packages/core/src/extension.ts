@@ -362,7 +362,7 @@ function importReviewHtml(
   </style>
 </head>
 <body>
-  <header><div><strong>PSPF Workshop</strong><span>System of record import review</span></div><div class="version-strip">${shellPill("Plan, review, apply", "accent")}${shellPill("Explorer local JSON")}</div></header>
+  <header><div><strong>PSPF Workshop</strong><span>System of record import review</span></div><div class="version-strip">${shellPill("Plan, review, apply", "accent")}${shellPill("Explorer local bundle")}</div></header>
   <div class="pspf-sensitivity-banner core-sensitivity">OFFICIAL: Sensitive · Review every Explorer local change before writing to Workshop</div>
   <main>
     <section>

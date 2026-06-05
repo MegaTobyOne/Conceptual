@@ -42,9 +42,13 @@ for (const requiredText of [
 }
 
 for (const settingsPanelText of [
-  "<h2>Settings</h2>",
-  'homeButton("pspf.workshop.openRiskSourcePanel", "Risk Source"',
-  'homeButton("pspf.workshop.configureRiskSource", "Configure source"'
+  "PSPF Integration Settings",
+  "<h1>Integration Setup</h1>",
+  'data-command="pspf.workshop.openRiskSourceSettings"',
+  'data-command="pspf.workshop.setRiskSourceCredential"',
+  'data-command="pspf.workshop.previewRiskSourceImport"',
+  'data-command="pspf.workshop.applyRiskSourceImport"',
+  'data-command="pspf.workshop.openRiskSourcePanel"'
 ]) {
   assert.equal(
     workshopExtension.includes(settingsPanelText),
@@ -53,15 +57,17 @@ for (const settingsPanelText of [
   );
 }
 
-assert.equal(workshopExtension.includes('value: "fixture" as const'), true, "Workshop should expose fixture mode");
-assert.equal(workshopExtension.includes('value: "live" as const'), true, "Workshop should expose live mode");
+assert.equal(workshopPackage.includes('"fixture"'), true, "Workshop should expose fixture mode");
+assert.equal(workshopPackage.includes('"live"'), true, "Workshop should expose live mode");
 assert.equal(
   workshopExtension.includes('url.protocol === "https:"'),
   true,
   "Workshop should require HTTPS for live 6clicks sources"
 );
 assert.equal(
-  workshopExtension.includes('sourceMode.value === "live" ? riskSourceSecretKey : undefined'),
+  workshopExtension.includes('secretRef: sourceMode === "live" ? riskSourceSecretKey : undefined') &&
+    workshopExtension.includes('profile.sourceMode === "fixture"') &&
+    workshopExtension.includes("profile.secretRef"),
   true,
   "Workshop should keep fixture mode credential-free"
 );

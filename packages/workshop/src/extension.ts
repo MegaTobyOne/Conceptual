@@ -1721,115 +1721,6 @@ async function setRiskSourceCredential(): Promise<void> {
   await vscode.window.showInformationMessage("6clicks risk source credential saved in VS Code SecretStorage.");
 }
 
-async function legacyConfigureRiskSourceWizard(): Promise<void> {
-  const context = requireWorkshopContext();
-  const current = readRiskSourceProfile();
-  const sourceMode = await vscode.window.showQuickPick(
-    [
-      { label: "Fixture", description: "Use built-in non-tenant validation data", value: "fixture" as const },
-      { label: "Live 6clicks", description: "Fetch from an HTTPS 6clicks endpoint", value: "live" as const }
-    ],
-    { title: "Select 6clicks source mode", ignoreFocusOut: true }
-  );
-  if (!sourceMode) {
-    return;
-  }
-  const baseUrl = await vscode.window.showInputBox({
-    title: "Configure 6clicks Risk Source",
-    prompt:
-      sourceMode.value === "live"
-        ? "6clicks HTTPS base URL. Live mode requires https://."
-        : "Fixture mode does not use a tenant URL.",
-    value: current?.baseUrl ?? "",
-    ignoreFocusOut: true,
-    validateInput: (value) => {
-      if (sourceMode.value === "fixture" && value.trim().length > 0) {
-        return "Fixture mode must not set a live base URL.";
-      }
-      if (sourceMode.value === "live") {
-        return validateRiskSourceBaseUrl(value.trim());
-      }
-      return undefined;
-    }
-  });
-  if (baseUrl === undefined) {
-    return;
-  }
-  const endpointPath = await vscode.window.showInputBox({
-    title: "Configure 6clicks Risk Source",
-    prompt: "Risk endpoint path",
-    value: current?.endpointPath ?? "/api/v1/risks",
-    ignoreFocusOut: true,
-    validateInput: (value) => (value.trim().length === 0 ? "Enter an endpoint path." : undefined)
-  });
-  if (!endpointPath) {
-    return;
-  }
-  const authMode =
-    sourceMode.value === "live"
-      ? await vscode.window.showQuickPick(
-          [
-            { label: "API key header", value: "api-key-header" as const },
-            { label: "Bearer token", value: "bearer-token" as const }
-          ],
-          { title: "Select 6clicks auth mode", ignoreFocusOut: true }
-        )
-      : undefined;
-  if (sourceMode.value === "live" && !authMode) {
-    return;
-  }
-  const apiKeyHeaderName =
-    authMode?.value === "api-key-header"
-      ? await vscode.window.showInputBox({
-          title: "Configure 6clicks Risk Source",
-          prompt: "API key header name",
-          value: current?.apiKeyHeaderName ?? "x-api-key",
-          ignoreFocusOut: true,
-          validateInput: (value) => (value.trim().length === 0 ? "Enter an API key header name." : undefined)
-        })
-      : undefined;
-  if (authMode?.value === "api-key-header" && !apiKeyHeaderName) {
-    return;
-  }
-  if (sourceMode.value === "live" && authMode) {
-    const secret = await vscode.window.showInputBox({
-      title: "Configure 6clicks Risk Source",
-      prompt: authMode.value === "api-key-header" ? "API key" : "Bearer token",
-      password: true,
-      ignoreFocusOut: true,
-      validateInput: (value) => (value.trim().length === 0 ? "Enter the credential value." : undefined)
-    });
-    if (!secret) {
-      return;
-    }
-    await context.secrets.store(riskSourceSecretKey, secret.trim());
-  }
-  const profile: RiskSourceProfile = {
-    source: "6clicks",
-    sourceLabel: "6clicks",
-    sourceMode: sourceMode.value,
-    fixtureName: sourceMode.value === "fixture" ? "6clicks-risk-v1" : undefined,
-    baseUrl: trimOptional(baseUrl),
-    endpointPath: endpointPath.trim(),
-    authMode: authMode?.value,
-    apiKeyHeaderName: apiKeyHeaderName?.trim(),
-    secretRef: sourceMode.value === "live" ? riskSourceSecretKey : undefined,
-    mappingVersion: "6clicks-risk-v1",
-    applyPolicy: "safe-update",
-    timeoutMs: 15_000,
-    updatedAt: new Date().toISOString()
-  };
-  const diagnostics = validateRiskSourceProfile(profile);
-  if (diagnostics.length > 0) {
-    await vscode.window.showWarningMessage(`6clicks risk source profile is incomplete: ${diagnostics.join("; ")}`);
-    return;
-  }
-  await context.workspaceState.update(riskSourceProfileKey, profile);
-  await writeRiskSourceConfig(profile);
-  await vscode.window.showInformationMessage("6clicks risk source profile saved.");
-  await openRiskSourcePanel();
-}
-
 async function testRiskSource(): Promise<void> {
   const profile = ensureRiskSourceProfile();
   try {
@@ -2054,7 +1945,8 @@ function readRiskSourceSettingsProfile(): RiskSourceProfile | undefined {
     baseUrl: trimOptional(config.get<string>("baseUrl") ?? ""),
     endpointPath: (config.get<string>("endpointPath") ?? "/api/v1/risks").trim(),
     authMode: sourceMode === "live" ? authMode : undefined,
-    apiKeyHeaderName: authMode === "api-key-header" ? (config.get<string>("apiKeyHeaderName") ?? "x-api-key").trim() : undefined,
+    apiKeyHeaderName:
+      authMode === "api-key-header" ? (config.get<string>("apiKeyHeaderName") ?? "x-api-key").trim() : undefined,
     secretRef: sourceMode === "live" ? riskSourceSecretKey : undefined,
     mappingVersion: "6clicks-risk-v1",
     applyPolicy: "safe-update",
@@ -2064,16 +1956,18 @@ function readRiskSourceSettingsProfile(): RiskSourceProfile | undefined {
 }
 
 function readRiskSourceSettingsAuthMode(): RiskSourceAuthMode | undefined {
-  const value = vscode.workspace.getConfiguration(riskSourceSettingsSection).get<RiskSourceMetadataAuthMode>("authMode");
+  const value = vscode.workspace
+    .getConfiguration(riskSourceSettingsSection)
+    .get<RiskSourceMetadataAuthMode>("authMode");
   return value === "api-key-header" || value === "bearer-token" ? value : undefined;
 }
 
 function hasConfiguredSetting<T>(inspection: ConfigInspection<T> | undefined): boolean {
   return Boolean(
     inspection &&
-      (inspection.globalValue !== undefined ||
-        inspection.workspaceValue !== undefined ||
-        inspection.workspaceFolderValue !== undefined)
+    (inspection.globalValue !== undefined ||
+      inspection.workspaceValue !== undefined ||
+      inspection.workspaceFolderValue !== undefined)
   );
 }
 
@@ -7495,7 +7389,9 @@ async function openDirectionsList(): Promise<void> {
     if (directions.length > 0) {
       return;
     }
-    await vscode.window.showInformationMessage("No Direction records found. Create a Direction or load the sample workspace first.");
+    await vscode.window.showInformationMessage(
+      "No Direction records found. Create a Direction or load the sample workspace first."
+    );
     return;
   }
   await openEntityEditor(picked, allEntities);
@@ -10627,7 +10523,8 @@ function renderActionEditor(
       </div>`
     : "";
   const impact = action.impact;
-  const actionPlanWorkstreamId = normalisePlanWorkstreamId((action as WorkshopActionWithPlanOverride).planWorkstreamId) ?? "";
+  const actionPlanWorkstreamId =
+    normalisePlanWorkstreamId((action as WorkshopActionWithPlanOverride).planWorkstreamId) ?? "";
   const planWorkstreamOptions = [
     { label: "Infer from impact", value: "" },
     ...PLAN_OF_ACTION_PHASES.map((phase) => ({ label: phase.title, value: phase.id }))

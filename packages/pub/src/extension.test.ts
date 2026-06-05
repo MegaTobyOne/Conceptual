@@ -188,8 +188,14 @@ test("Pub exposes People and Culture lifecycle and performance compliance", asyn
   const source = await readFile(sourcePath, "utf8");
   const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
 
-  assert.match(source, /const PERSON_LIFECYCLE_STEPS = \["acceptable-use", "orientation", "probation", "separation"\] as const/);
-  assert.match(source, /const PERFORMANCE_CYCLE_STATUSES = \["planned", "in-progress", "completed", "at-risk"\] as const/);
+  assert.match(
+    source,
+    /const PERSON_LIFECYCLE_STEPS = \["acceptable-use", "orientation", "probation", "separation"\] as const/
+  );
+  assert.match(
+    source,
+    /const PERFORMANCE_CYCLE_STATUSES = \["planned", "in-progress", "completed", "at-risk"\] as const/
+  );
   assert.match(source, /interface PersonLifecycleRecord/);
   assert.match(source, /interface PerformanceCycleRecord/);
   assert.match(source, /registerCommand\("pspf\.pub\.openPeopleCulture"/);

@@ -74,7 +74,7 @@
       },
       {
         "command": "pspf.core.importExplorerLocalBundle",
-        "title": "PSPF: Import Explorer Local JSON"
+        "title": "PSPF: Import Explorer Local Bundle"
       },
       {
         "command": "pspf.core.undoLastImport",
