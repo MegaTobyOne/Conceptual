@@ -160,13 +160,50 @@ test("Pub Home exposes one upcoming-actions graphic", async () => {
   assert.match(source, /deriveUpcomingBadges\(store\)/);
 });
 
+test("Pub Home exposes create and edit panels", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /homeSection\(\{ id: "create", eyebrow: "Author", heading: "Create local records"/);
+  assert.match(source, /homeSection\(\{ id: "edit", eyebrow: "Maintain", heading: "Edit local records"/);
+  assert.match(source, /homeActionButton\("pspf\.pub\.newPerson", "New person"/);
+  assert.match(source, /homeActionButton\("pspf\.pub\.editPerson", "Edit person"/);
+  assert.match(source, /homeActionButton\("pspf\.pub\.editTeam", "Edit team"/);
+  assert.match(source, /homeActionButton\("pspf\.pub\.editRole", "Edit role"/);
+  assert.match(source, /homeActionButton\("pspf\.pub\.editAssignment", "Edit assignment"/);
+});
+
 test("Pub tree title menus link summaries to management panels", async () => {
   const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
 
   assert.match(manifest, /"command": "pspf\.pub\.openPeople"[\s\S]*"view == pspfPub\.peopleView"/);
+  assert.match(manifest, /"command": "pspf\.pub\.editPerson"[\s\S]*"view == pspfPub\.peopleView"/);
   assert.match(manifest, /"command": "pspf\.pub\.openTeams"[\s\S]*"view == pspfPub\.teamsView"/);
+  assert.match(manifest, /"command": "pspf\.pub\.editTeam"[\s\S]*"view == pspfPub\.teamsView"/);
   assert.match(manifest, /"command": "pspf\.pub\.openRoles"[\s\S]*"view == pspfPub\.rolesView"/);
+  assert.match(manifest, /"command": "pspf\.pub\.editRole"[\s\S]*"view == pspfPub\.rolesView"/);
   assert.match(manifest, /"command": "pspf\.pub\.openAssignments"[\s\S]*"view == pspfPub\.assignmentsView"/);
+});
+
+test("Pub exposes People and Culture lifecycle and performance compliance", async () => {
+  const source = await readFile(sourcePath, "utf8");
+  const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
+
+  assert.match(source, /const PERSON_LIFECYCLE_STEPS = \["acceptable-use", "orientation", "probation", "separation"\] as const/);
+  assert.match(source, /const PERFORMANCE_CYCLE_STATUSES = \["planned", "in-progress", "completed", "at-risk"\] as const/);
+  assert.match(source, /interface PersonLifecycleRecord/);
+  assert.match(source, /interface PerformanceCycleRecord/);
+  assert.match(source, /registerCommand\("pspf\.pub\.openPeopleCulture"/);
+  assert.match(source, /function renderPeopleCultureHtml\(store: PubStore\): string/);
+  assert.match(source, /People & Culture compliance/);
+  assert.match(source, /Mandatory behaviours/);
+  assert.match(source, /Role-specific capabilities/);
+  assert.match(source, /personal goals/i);
+  assert.match(source, /targets/i);
+  assert.match(source, /courses/i);
+  assert.match(source, /certifications/i);
+  assert.match(source, /function parsePersonLifecycleFields/);
+  assert.match(source, /function parsePerformanceCycleFields/);
+  assert.match(manifest, /"command": "pspf\.pub\.openPeopleCulture"/);
 });
 
 test("Pub Organisation Chart keeps the graphic focused on structure", async () => {

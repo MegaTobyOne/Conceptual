@@ -13,6 +13,18 @@ test("Shop Home exposes one forecast trendline graphic", async () => {
   assert.match(source, /homeSection\(\{[\s\S]*id: "trend",[\s\S]*eyebrow: "Forecast",[\s\S]*heading: "Spending trend"/);
 });
 
+test("Shop Home exposes create and edit panels", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /homeSection\(\{ id: "create", eyebrow: "Author", heading: "Create records"/);
+  assert.match(source, /homeSection\(\{ id: "edit", eyebrow: "Maintain", heading: "Edit records"/);
+  assert.match(source, /homeActionButton\("pspf\.shop\.newSupplier", "New supplier"/);
+  assert.match(source, /homeActionButton\("pspf\.shop\.editSupplier", "Edit supplier"/);
+  assert.match(source, /homeActionButton\("pspf\.shop\.editContract", "Edit contract"/);
+  assert.match(source, /homeActionButton\("pspf\.shop\.editSpendItem", "Edit spend item"/);
+  assert.match(source, /async function pickShopRecord/);
+});
+
 test("Shop money storage helpers round dollar values to cents", async () => {
   const source = await readFile(sourcePath, "utf8");
 

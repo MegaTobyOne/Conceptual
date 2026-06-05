@@ -95,6 +95,29 @@ test("Essential Eight dashboard renders visual posture charts", async () => {
   assert.match(source, /readonly strategyStatusCounts/);
 });
 
+test("Penetration Testing Workbench exposes planning and execution pipeline", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const modelSource = await readFile(new URL("../src/pentest-workbench.ts", import.meta.url), "utf8");
+
+  assert.match(modelSource, /interface PentestEngagementModel/);
+  assert.match(modelSource, /criticalHighFindings/);
+  assert.match(modelSource, /otherFindings/);
+  assert.match(modelSource, /plannedWindow/);
+  assert.match(source, /function renderPentestPipeline/);
+  assert.match(source, /Pentest Pipeline/);
+  assert.match(source, /function renderMasterDashboardPentestSummary/);
+  assert.match(source, /Penetration Testing/);
+  assert.match(source, /pspf\.workshop\.openPentestWorkbench/);
+  assert.match(source, /function renderPentestEngagementProfile/);
+  assert.match(source, /Penetration test planning and execution profile/);
+  assert.match(source, /Critical\/high/);
+  assert.match(source, /Other findings/);
+  assert.match(source, /Open remediation/);
+  assert.match(source, /Finding split/);
+  assert.match(source, /Report due/);
+  assert.match(source, /Retest/);
+});
+
 test("Plan of Action exposes master schedule and slice controls", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
   const planModelSource = await readFile(new URL("../src/plan-of-action-board.ts", import.meta.url), "utf8");
@@ -121,6 +144,12 @@ test("Plan of Action exposes master schedule and slice controls", async () => {
   assert.match(source, /function renderPlanOfActionMasterRuler/);
   assert.match(source, /function planOfActionDateRulerLabels/);
   assert.match(source, /class="poa-master-ruler"/);
+  assert.match(source, /Plan of Action stream/);
+  assert.match(source, /planWorkstreamId/);
+  assert.match(source, /Infer from impact/);
+  assert.match(source, /Manual/);
+  assert.match(source, /Inferred/);
+  assert.match(source, /data-field="streamSource"/);
   assert.match(source, /function renderPlanOfActionWorklist/);
   assert.match(source, /data-poa-worklist-search/);
   assert.match(source, /data-poa-worklist-sort/);
@@ -300,6 +329,15 @@ test("Workshop exposes separate CSO and CISO magazine editions", async () => {
   assert.match(source, /Digital CISO Magazine/);
   assert.match(source, /buildShareArtefactInput\(await listAllEntities\(\), edition\)/);
   assert.match(source, /edition === "ciso" \? "Digital CISO Magazine" : "Digital CSO Magazine"/);
+});
+
+test("CISO Master Plan does not include a magazine shortcut", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const masterPlanMatch = source.match(/function renderCisoMasterPlanPanel\([\s\S]*?function roleOwnershipRows/);
+
+  assert.ok(masterPlanMatch, "CISO Master Plan renderer should be present");
+  assert.doesNotMatch(masterPlanMatch[0], /pspf\.workshop\.openCsoMagazine/);
+  assert.doesNotMatch(masterPlanMatch[0], /Digital CSO Magazine/);
 });
 
 test("Requirement cards are larger and render ISM controls", async () => {

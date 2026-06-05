@@ -157,6 +157,10 @@
       {
         "command": "pspf.pub.openRelationshipLog",
         "title": "PSPF: Open Pub Relationship Log"
+      },
+      {
+        "command": "pspf.pub.openPeopleCulture",
+        "title": "PSPF: Open Pub People and Culture"
       }
     ],
     "menus": {
@@ -172,6 +176,11 @@
           "group": "navigation@2"
         },
         {
+          "command": "pspf.pub.editPerson",
+          "when": "view == pspfPub.peopleView",
+          "group": "navigation@3"
+        },
+        {
           "command": "pspf.pub.newTeam",
           "when": "view == pspfPub.teamsView",
           "group": "navigation@1"
@@ -182,6 +191,11 @@
           "group": "navigation@2"
         },
         {
+          "command": "pspf.pub.editTeam",
+          "when": "view == pspfPub.teamsView",
+          "group": "navigation@3"
+        },
+        {
           "command": "pspf.pub.newRole",
           "when": "view == pspfPub.rolesView",
           "group": "navigation@1"
@@ -190,6 +204,11 @@
           "command": "pspf.pub.openRoles",
           "when": "view == pspfPub.rolesView",
           "group": "navigation@2"
+        },
+        {
+          "command": "pspf.pub.editRole",
+          "when": "view == pspfPub.rolesView",
+          "group": "navigation@3"
         },
         {
           "command": "pspf.pub.newAssignment",
@@ -210,6 +229,11 @@
           "command": "pspf.pub.openOrgChart",
           "when": "view == pspfPub.homeView",
           "group": "navigation@2"
+        },
+        {
+          "command": "pspf.pub.openPeopleCulture",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [

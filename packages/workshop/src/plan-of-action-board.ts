@@ -32,10 +32,13 @@ export const PLAN_OF_ACTION_PHASES = [
 
 export type PlanOfActionPhaseId = (typeof PLAN_OF_ACTION_PHASES)[number]["id"];
 
+type ActionWithPlanWorkstream = ActionEntity & { readonly planWorkstreamId?: unknown };
+
 export interface PlanOfActionTaskModel {
   readonly id: string;
   readonly actionId: string;
   readonly phaseId: PlanOfActionPhaseId;
+  readonly phaseSource: "override" | "inferred";
   readonly title: string;
   readonly status: string;
   readonly urgency: ActionImpactUrgency;
@@ -118,7 +121,8 @@ export function buildPlanOfActionBoardModel(
   const tasks = actions
     .map((action, index) => {
       const dates = taskDates[index] ?? deriveTaskDates(action, now, index);
-      const phaseId = classifyActionPhase(action);
+      const explicitPhaseId = normalisePlanWorkstreamId((action as ActionWithPlanWorkstream).planWorkstreamId);
+      const phaseId = explicitPhaseId ?? classifyActionPhase(action);
       const linkedCounts = countActionLinks(action.id, links);
       const x = Math.max(0, Math.round(diffDays(timelineStart, dates.startDate) * dayWidth));
       const durationDays = Math.max(1, diffDays(dates.startDate, dates.endDate) + 1);
@@ -128,6 +132,7 @@ export function buildPlanOfActionBoardModel(
         id: action.id,
         actionId: action.id,
         phaseId,
+        phaseSource: explicitPhaseId ? "override" : "inferred",
         title: action.title,
         status: action.status,
         urgency: action.impact?.urgency ?? "normal",
@@ -176,6 +181,12 @@ export function buildPlanOfActionBoardModel(
 
 export function normaliseTaskLabelVisibility(value?: boolean): boolean {
   return value !== false;
+}
+
+export function normalisePlanWorkstreamId(value: unknown): PlanOfActionPhaseId | undefined {
+  return typeof value === "string" && PLAN_OF_ACTION_PHASES.some((phase) => phase.id === value)
+    ? (value as PlanOfActionPhaseId)
+    : undefined;
 }
 
 export function fitPlanOfActionLabel(title: string, barWidth: number): string | undefined {

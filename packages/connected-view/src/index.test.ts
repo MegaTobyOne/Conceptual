@@ -50,12 +50,14 @@ test("renderConnectedViewBodyHtml exposes per-domain controls", () => {
   assert.match(html, /"revealMessage":"New relationship added"/);
 });
 
-test("Connected View styles keep selected cards above connector lines", () => {
+test("Connected View styles keep visible connector lines below cards", () => {
   assert.match(CONNECTED_VIEW_STYLES, /\.cv-board \{[\s\S]*?isolation: isolate;/);
-  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links \{[\s\S]*?z-index: 0;/);
-  assert.match(CONNECTED_VIEW_STYLES, /\.cv-card \{[\s\S]*?z-index: 2;/);
-  assert.match(CONNECTED_VIEW_STYLES, /\.cv-card\.cv-selected \{[\s\S]*?z-index: 4;/);
-  assert.match(CONNECTED_VIEW_STYLES, /\.cv-card\.cv-connected \{[\s\S]*?z-index: 3;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links \{[\s\S]*?z-index: 2;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links path \{[\s\S]*?stroke-width: 2;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links path \{[\s\S]*?opacity: 0\.72;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-card \{[\s\S]*?z-index: 3;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-card\.cv-selected \{[\s\S]*?z-index: 5;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-card\.cv-connected \{[\s\S]*?z-index: 4;/);
 });
 
 test("browser runtime applies initial selection and renders chain summary", async () => {

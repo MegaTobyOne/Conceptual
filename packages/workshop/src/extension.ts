@@ -19,6 +19,8 @@ import { pill as shellPill } from "@pspf/webview-shell";
 import { escapeHtml, homeButton, homeShellHtml, shellHtml } from "./webview/shell.js";
 import {
   buildPlanOfActionBoardModel,
+  normalisePlanWorkstreamId,
+  PLAN_OF_ACTION_PHASES,
   type PlanOfActionBoardModel,
   type PlanOfActionPhaseModel,
   type PlanOfActionTaskModel
@@ -167,6 +169,7 @@ interface WorkshopShareState {
   readonly metPercentage: number;
   readonly artefact: string;
 }
+type WorkshopActionWithPlanOverride = ActionEntity & { readonly planWorkstreamId?: unknown };
 let requirementWorkbenchController:
   | {
       open: (
@@ -2873,6 +2876,7 @@ async function openMasterDashboard(): Promise<void> {
   const strategies = allEntities.filter(
     (entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.recordStatus !== "deleted"
   );
+  const pentestWorkbench = buildPentestWorkbenchModel(allEntities);
   const evidenceRequirementIds = new Set(
     links
       .filter(
@@ -3120,6 +3124,7 @@ async function openMasterDashboard(): Promise<void> {
       </div>
       <p class="muted">Compliance and evidence coverage ignore ${completion.notApplicable} not applicable requirement${completion.notApplicable === 1 ? "" : "s"}. Including N/A: ${completion.metPercentageAll}% met, ${completion.evidenceCoverageAll}% evidence coverage.</p>
     </section>
+    ${renderMasterDashboardPentestSummary(pentestWorkbench)}
     ${renderDecisionLoopCards(decisionLoopRows)}
     ${renderStrategyPerformanceCards(strategyRows)}
     ${recordTable("Plan Of Action Streams", streamRows, ["stream", "focus", "count", "leadSurface", "action"])}
@@ -3133,6 +3138,45 @@ async function openMasterDashboard(): Promise<void> {
     ${recordTable("Action Pressure", actionRows, ["title", "status", "urgency", "total", "dueDate"])}
   `
   );
+}
+
+function renderMasterDashboardPentestSummary(model: PentestWorkbenchModel): string {
+  const rows = model.assessments.slice(0, 6).map((assessment) => ({
+    target: assessment.engagement.target,
+    status: label(assessment.engagement.status),
+    progress: `${assessment.closurePercentage}% closed`,
+    planned: assessment.engagement.plannedWindow,
+    reportDue: formatPentestDashboardDate(assessment.engagement.reportDue),
+    retest: formatPentestDashboardDate(assessment.engagement.retestWindow),
+    criticalHigh: assessment.engagement.criticalHighFindings,
+    openActions: assessment.engagement.openFindingActions,
+    action: `<button type="button" data-command="pspf.workshop.openPentestWorkbench">Open workbench</button>`
+  }));
+  if (rows.length === 0) {
+    return `<section>
+      <h2>Penetration Testing</h2>
+      <p class="muted">No penetration testing assessments are tagged yet.</p>
+      <div class="form-actions"><button type="button" data-command="pspf.workshop.openPentestWorkbench">Open workbench</button></div>
+    </section>`;
+  }
+  return recordTable("Penetration Testing", rows, [
+    "target",
+    "status",
+    "progress",
+    "planned",
+    "reportDue",
+    "retest",
+    "criticalHigh",
+    "openActions",
+    "action"
+  ]);
+}
+
+function formatPentestDashboardDate(value: string): string {
+  if (value === "Not recorded" || value === "Not scheduled") {
+    return value;
+  }
+  return formatShortAuDateTime(value) ?? value;
 }
 
 function portalCommand(command: string, title: string, description: string): string {
@@ -3487,6 +3531,9 @@ function renderPentestWorkbench(model: PentestWorkbenchModel): string {
       <div class="grid">
         ${metricCard("Assessments", model.totals.assessments)}
         ${metricCard("Findings", model.totals.findings)}
+        ${metricCard("Critical/high", model.totals.criticalHighFindings)}
+        ${metricCard("Other findings", model.totals.otherFindings)}
+        ${metricCard("Open remediation", model.totals.openFindingActions)}
         ${metricCard("Overdue", model.totals.overdue)}
         ${metricCard("SLA at risk", model.totals.slaAtRisk)}
         ${metricCard("Pending verification", model.totals.pendingVerification)}
@@ -3502,9 +3549,37 @@ function renderPentestWorkbench(model: PentestWorkbenchModel): string {
       </div>
       <p class="muted">SLA bands: ${severityLegend}. Severity is inferred from a linked severity Tag or the Action title; unknown severity defaults to Medium so the finding remains visible.</p>
     </section>
+    ${renderPentestPipeline(model)}
     ${assessments}
   `
   );
+}
+
+function renderPentestPipeline(model: PentestWorkbenchModel): string {
+  const rows = model.assessments.map((assessment) => ({
+    target: assessment.engagement.target,
+    status: label(assessment.engagement.status),
+    tester: assessment.engagement.tester,
+    method: assessment.engagement.method,
+    window: assessment.engagement.plannedWindow,
+    reportDue: assessment.engagement.reportDue,
+    retest: assessment.engagement.retestWindow,
+    criticalHigh: assessment.engagement.criticalHighFindings,
+    other: assessment.engagement.otherFindings,
+    openActions: assessment.engagement.openFindingActions
+  }));
+  return recordTable("Pentest Pipeline", rows, [
+    "target",
+    "status",
+    "tester",
+    "method",
+    "window",
+    "reportDue",
+    "retest",
+    "criticalHigh",
+    "other",
+    "openActions"
+  ]);
 }
 
 function renderPentestAssessment(assessment: PentestAssessmentModel): string {
@@ -3548,6 +3623,7 @@ function renderPentestAssessment(assessment: PentestAssessmentModel): string {
           ).join("")}
         </div>
       </header>
+      ${renderPentestEngagementProfile(assessment)}
       <div class="pentest-queue-grid">
         ${renderPentestFindingQueue("Overdue", "overdue", assessment.queues.overdue)}
         ${renderPentestFindingQueue("SLA at risk", "sla-at-risk", assessment.queues["sla-at-risk"])}
@@ -3559,6 +3635,21 @@ function renderPentestAssessment(assessment: PentestAssessmentModel): string {
     ${recordTable(`Commercial context · ${assessment.tagLabel}`, commercialRows, ["supplier", "contract", "contractRef"])}
     ${recordTable(`Residual risk · ${assessment.tagLabel}`, riskRows, ["title", "status", "score", "supplierLinked"])}
   `;
+}
+
+function renderPentestEngagementProfile(assessment: PentestAssessmentModel): string {
+  const engagement = assessment.engagement;
+  return `<div class="pentest-engagement-grid" aria-label="Penetration test planning and execution profile">
+    ${renderPentestEngagementCard("Target", escapeHtml(engagement.target), escapeHtml(engagement.targetType))}
+    ${renderPentestEngagementCard("Tester", escapeHtml(engagement.tester))}
+    ${renderPentestEngagementCard("Method", escapeHtml(engagement.method))}
+    ${renderPentestEngagementCard("Timing", escapeHtml(engagement.plannedWindow), `Report due ${escapeHtml(engagement.reportDue)} · Retest ${escapeHtml(engagement.retestWindow)}`)}
+    ${renderPentestEngagementCard("Finding split", escapeHtml(engagement.executionSummary))}
+  </div>`;
+}
+
+function renderPentestEngagementCard(title: string, body: string, detail = ""): string {
+  return `<article class="pentest-engagement-card"><h3>${escapeHtml(title)}</h3><p>${body}</p>${detail ? `<p class="muted">${detail}</p>` : ""}</article>`;
 }
 
 function renderPentestFindingQueue(
@@ -3609,6 +3700,10 @@ function pentestWorkbenchStyles(): string {
     .pentest-assessment { display: grid; gap: 12px; }
     .pentest-assessment__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .pentest-assessment__header h2 { margin: 0; }
+    .pentest-engagement-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+    .pentest-engagement-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 9px; background: var(--surface); display: grid; gap: 3px; align-content: start; }
+    .pentest-engagement-card h3, .pentest-engagement-card p { margin: 0; }
+    .pentest-engagement-card h3 { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
     .pentest-severity-counts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
     .pentest-severity-pill { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 700; white-space: nowrap; background: var(--surface); }
     .pentest-severity-pill[data-severity="critical"] { color: var(--pspf-warn); background: var(--pspf-warn-soft); border-color: color-mix(in srgb, var(--pspf-warn) 65%, var(--border)); }
@@ -4804,10 +4899,11 @@ function renderPlanOfActionTask(
 ): string {
   const barClass = `poa-bar poa-bar--${task.urgency}`;
   const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
+  const sourceLabel = task.phaseSource === "override" ? " · manual stream" : "";
   return `<div class="poa-task" data-poa-task data-poa-status="${escapeHtml(task.status)}" data-poa-workstream="${escapeHtml(workstreamId)}">
     <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
       <strong>${escapeHtml(task.title)}</strong>
-      <span>${escapeHtml(workstreamTitle)} · ${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
+      <span>${escapeHtml(`${workstreamTitle}${sourceLabel}`)} · ${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
     </button>
     <div class="poa-track" style="width: ${timelineWidth}px;">
       ${renderPlanOfActionTodayMarker(todayX, today)}
@@ -4842,6 +4938,7 @@ function renderPlanOfActionWorklist(model: PlanOfActionBoardModel): string {
             <td data-field="open"><button type="button" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">Open</button></td>
             <td data-field="title"><span class="cell-compact">${escapeHtml(task.title)}</span></td>
             <td data-field="stream">${escapeHtml(phase.title)}</td>
+            <td data-field="streamSource">${escapeHtml(task.phaseSource === "override" ? "Manual" : "Inferred")}</td>
             <td data-field="status">${escapeHtml(label(task.status))}</td>
             <td data-field="urgency">${escapeHtml(label(task.urgency))}</td>
             <td data-field="startDate">${escapeHtml(formatShortAuDateTime(task.startDate) ?? task.startDate)}</td>
@@ -4853,7 +4950,7 @@ function renderPlanOfActionWorklist(model: PlanOfActionBoardModel): string {
           </tr>`;
         })
         .join("")
-    : `<tr><td colspan="11">No Actions are available yet.</td></tr>`;
+    : `<tr><td colspan="12">No Actions are available yet.</td></tr>`;
   return `<section class="poa-worklist" data-poa-worklist>
     <h2>Action Worklist</h2>
     <div class="poa-worklist-filters" aria-label="Action worklist filters">
@@ -4862,7 +4959,7 @@ function renderPlanOfActionWorklist(model: PlanOfActionBoardModel): string {
       <label>Urgency <select data-poa-worklist-urgency><option value="all">All urgency</option><option value="blocked">Blocked</option><option value="overdue">Overdue</option><option value="due-soon">Due soon</option><option value="normal">Normal</option></select></label>
       <label>Sort <select data-poa-worklist-sort><option value="urgency">Urgency</option><option value="due">Due date</option><option value="impact">Impact</option><option value="title">Title</option></select></label>
     </div>
-    <div class="table-wrap" tabindex="0" aria-label="Scrollable Action Worklist table"><table data-poa-worklist-table><thead><tr><th data-field="open">Open</th><th data-field="title">Title</th><th data-field="stream">Stream</th><th data-field="status">Status</th><th data-field="urgency">Urgency</th><th data-field="startDate">Start date</th><th data-field="endDate">End date</th><th data-field="dueDate">Due date</th><th data-field="linkedRequirements">Linked requirements</th><th data-field="linkedRisks">Linked risks</th><th data-field="impact">Impact</th></tr></thead><tbody>${body}</tbody></table></div>
+    <div class="table-wrap" tabindex="0" aria-label="Scrollable Action Worklist table"><table data-poa-worklist-table><thead><tr><th data-field="open">Open</th><th data-field="title">Title</th><th data-field="stream">Stream</th><th data-field="streamSource">Source</th><th data-field="status">Status</th><th data-field="urgency">Urgency</th><th data-field="startDate">Start date</th><th data-field="endDate">End date</th><th data-field="dueDate">Due date</th><th data-field="linkedRequirements">Linked requirements</th><th data-field="linkedRisks">Linked risks</th><th data-field="impact">Impact</th></tr></thead><tbody>${body}</tbody></table></div>
   </section>`;
 }
 
@@ -9763,6 +9860,7 @@ async function buildUpdatedEntity(
     case "action": {
       const title = fields.title?.trim();
       const status = fields.status;
+      const planWorkstreamId = normalisePlanWorkstreamId(fields.planWorkstreamId);
       if (!title) {
         await vscode.window.showWarningMessage("Enter an Action title before saving.");
         return undefined;
@@ -9771,8 +9869,9 @@ async function buildUpdatedEntity(
         await vscode.window.showWarningMessage("Select a valid Action status before saving.");
         return undefined;
       }
-      return {
-        ...entity,
+      const current = entity as WorkshopActionWithPlanOverride;
+      const next = {
+        ...current,
         title,
         status,
         startDate: normaliseShortAuDateTime(fields.startDate),
@@ -9781,6 +9880,11 @@ async function buildUpdatedEntity(
         commentary: actionCommentaryEntries(entity.commentary, fields.newCommentary, updatedAt),
         updatedAt
       };
+      if (planWorkstreamId) {
+        return { ...next, planWorkstreamId } as ActionEntity;
+      }
+      const { planWorkstreamId: _removedPlanWorkstreamId, ...withoutPlanWorkstreamId } = next;
+      return withoutPlanWorkstreamId as ActionEntity;
     }
     case "risk": {
       const title = fields.title?.trim();
@@ -10523,6 +10627,11 @@ function renderActionEditor(
       </div>`
     : "";
   const impact = action.impact;
+  const actionPlanWorkstreamId = normalisePlanWorkstreamId((action as WorkshopActionWithPlanOverride).planWorkstreamId) ?? "";
+  const planWorkstreamOptions = [
+    { label: "Infer from impact", value: "" },
+    ...PLAN_OF_ACTION_PHASES.map((phase) => ({ label: phase.title, value: phase.id }))
+  ];
   const readOnlyImpact = impact
     ? `
     <section>
@@ -10554,6 +10663,7 @@ function renderActionEditor(
     ${inputField("startDate", "Start date", formatShortAuDateTime(action.startDate) ?? "", false, "today or 1 Jul 2026")}
     ${inputField("endDate", "End date", formatShortAuDateTime(action.endDate) ?? "", false, "30 Sep 2026")}
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
+    ${selectField("planWorkstreamId", "Plan of Action stream", planWorkstreamOptions, actionPlanWorkstreamId)}
     ${textareaField("newCommentary", "New commentary update", "")}
   `,
     undefined,
@@ -12326,7 +12436,6 @@ function renderCisoMasterPlanPanel(input: ReturnType<typeof buildShareArtefactIn
         <button type="button" data-command="pspf.workshop.addPlannerTask">Add planner task</button>
         <button type="button" data-command="pspf.workshop.addPlannerMilestone">Add milestone</button>
         <button type="button" data-command="pspf.workshop.openMasterDashboard">Master Dashboard</button>
-        <button type="button" data-command="pspf.workshop.openCsoMagazine">Digital CSO Magazine</button>
         <button type="button" data-command="pspf.workshop.copyCisoMasterPlan">Copy plan</button>
       </div>
     </section>

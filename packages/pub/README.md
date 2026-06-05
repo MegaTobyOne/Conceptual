@@ -12,6 +12,7 @@ PSPF Pub is the local **people, role, team, assignment, and stakeholder relation
 - Organisation Chart, Teams, People, Roles, Assignments, and Relationship Log views in a dedicated Activity Bar entry.
 - Organisation Chart card view with team name, responsibility, roles, and assignments on the front, plus accountable Requirements, controls, and team dates on the back.
 - Local-only detail and edit panels for each Pub record type with previous/next navigation.
+- People & Culture compliance view for acceptable use, orientation, probation, separation, and annual performance-cycle context.
 - Team-wide news and dated items for events such as enterprise bargaining, census windows, planning days, and local reminders. Items can optionally be marked for the Workshop Plan of Action.
 - Pub data stays on the workspace and is **never exported** to Explorer bundles. Sensitive person details, relationship notes, development context, performance-management context, roster planning, rotations, anniversaries, and team-event history remain local-only by default.
 
@@ -27,15 +28,16 @@ Pub requires **PSPF Core**.
 
 ## Current boundaries
 
-Implemented in v1.41: local team news/date storage, Organisation Chart team-card fronts/backs, Team detail date tables, and optional Workshop Plan of Action date visibility.
+Implemented in v1.41: local team news/date storage, Organisation Chart team-card fronts/backs, Team detail date tables, optional Workshop Plan of Action date visibility, and a simple local People & Culture lifecycle/performance compliance view.
 
-Not implemented in v1.41: publication of Pub data to Explorer, automatic calendar sync, conflict resolution, notifications, broader Pub delete/archive workflows, roster planning, performance-management workflows, or development-record publication.
+Not implemented in v1.41: publication of Pub data to Explorer, automatic calendar sync, conflict resolution, notifications, broader Pub delete/archive workflows, roster planning, advanced performance-management workflows, or development-record publication.
 
 ## Key commands
 
 - `PSPF: Open Pub`
 - `PSPF: Load Pub Sample`
 - `PSPF: New Pub Person` / `PSPF: Open Pub Person Detail` / `PSPF: Edit Pub Person`
+- `PSPF: Open Pub People and Culture`
 - `PSPF: New Pub Role` / `PSPF: Open Pub Role Detail` / `PSPF: Edit Pub Role`
 - `PSPF: New Pub Assignment` / `PSPF: Open Pub Assignment Detail` / `PSPF: Edit Pub Assignment`
 - `PSPF: Record Pub Relationship Note` / `PSPF: Open Pub Relationship Note Detail` / `PSPF: Edit Pub Relationship Note`

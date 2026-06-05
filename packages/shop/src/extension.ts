@@ -388,8 +388,13 @@ async function newSupplier(): Promise<void> {
   await openShopEditor("supplier");
 }
 
-async function editSupplier(supplier: SupplierRecord): Promise<void> {
-  await openShopEditor("supplier", supplier);
+async function editSupplier(supplier?: SupplierRecord): Promise<void> {
+  const store = await loadStore();
+  const selected = supplier ?? (await pickShopRecord(store.suppliers, "Edit supplier"));
+  if (!selected) {
+    return;
+  }
+  await openShopEditor("supplier", selected);
 }
 
 async function newContract(): Promise<void> {
@@ -401,8 +406,13 @@ async function newContract(): Promise<void> {
   await openShopEditor("contract");
 }
 
-async function editContract(contract: ContractRecord): Promise<void> {
-  await openShopEditor("contract", contract);
+async function editContract(contract?: ContractRecord): Promise<void> {
+  const store = await loadStore();
+  const selected = contract ?? (await pickShopRecord(store.contracts, "Edit contract"));
+  if (!selected) {
+    return;
+  }
+  await openShopEditor("contract", selected);
 }
 
 async function newSpendItem(): Promise<void> {
@@ -432,8 +442,28 @@ async function promptSpendItemAssuranceLink(spendItem: SpendItemRecord): Promise
   });
 }
 
-async function editSpendItem(spendItem: SpendItemRecord): Promise<void> {
-  await openShopEditor("spend-item", spendItem);
+async function editSpendItem(spendItem?: SpendItemRecord): Promise<void> {
+  const store = await loadStore();
+  const selected = spendItem ?? (await pickShopRecord(store.spendItems, "Edit spend item"));
+  if (!selected) {
+    return;
+  }
+  await openShopEditor("spend-item", selected);
+}
+
+async function pickShopRecord<T extends SupplierRecord | ContractRecord | SpendItemRecord>(
+  records: readonly T[],
+  title: string
+): Promise<T | undefined> {
+  if (records.length === 0) {
+    vscode.window.showInformationMessage(`No Shop records are available for ${title.toLocaleLowerCase("en-AU")}.`);
+    return undefined;
+  }
+  const selected = await vscode.window.showQuickPick(
+    records.map((record) => ({ label: commercialTitle(record), description: formatToken(record.entityType), record })),
+    { title, placeHolder: "Choose a Shop record to edit", ignoreFocusOut: true, canPickMany: false }
+  );
+  return selected?.record;
 }
 
 async function openShopDetail(entity: SupplierRecord | ContractRecord | SpendItemRecord): Promise<void> {
@@ -1912,6 +1942,9 @@ const SHOP_HOME_ALLOWED_COMMANDS: ReadonlySet<string> = new Set([
   "pspf.shop.newSupplier",
   "pspf.shop.newContract",
   "pspf.shop.newSpendItem",
+  "pspf.shop.editSupplier",
+  "pspf.shop.editContract",
+  "pspf.shop.editSpendItem",
   "pspf.shop.openForecast",
   "pspf.shop.exportForecastCsv",
   "pspf.shop.exportForecastXls"
@@ -1928,6 +1961,12 @@ function renderShopHomeHtml(store: ShopStore): string {
     ${homeActionButton("pspf.shop.newSupplier", "New supplier", "Capture a supplier")}
     ${homeActionButton("pspf.shop.newContract", "New contract", "Capture a supplier contract")}
     ${homeActionButton("pspf.shop.newSpendItem", "New spend item", "Capture planned or forecast spend")}
+  </div>`;
+
+  const editBody = `<div class="action-list compact">
+    ${homeActionButton("pspf.shop.editSupplier", "Edit supplier", "Choose and update a supplier")}
+    ${homeActionButton("pspf.shop.editContract", "Edit contract", "Choose and update a contract")}
+    ${homeActionButton("pspf.shop.editSpendItem", "Edit spend item", "Choose and update planned or forecast spend")}
   </div>`;
 
   const forecastBody = `<div class="action-list compact">
@@ -1967,6 +2006,7 @@ function renderShopHomeHtml(store: ShopStore): string {
       body: renderShopTrendline(monthlyForecast)
     }),
     homeSection({ id: "create", eyebrow: "Author", heading: "Create records", body: createBody }),
+    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Edit records", body: editBody }),
     homeSection({ id: "forecast", eyebrow: "Review", heading: "Forecast & savings", body: forecastBody }),
     homeSection({ id: "data", eyebrow: "Data", heading: "Sample & import", body: dataBody })
   ].join("");
@@ -1982,6 +2022,7 @@ function renderShopHomeHtml(store: ShopStore): string {
       { href: "overview", label: "Overview" },
       { href: "trend", label: "Trend" },
       { href: "create", label: "Create" },
+      { href: "edit", label: "Edit" },
       { href: "forecast", label: "Forecast" },
       { href: "data", label: "Data" }
     ],

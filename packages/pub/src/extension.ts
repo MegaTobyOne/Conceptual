@@ -17,6 +17,8 @@ const PUB_STORE_PATH = [".pspf", "pub", "pub.json"] as const;
 const STAKEHOLDER_TYPES = ["staff", "service-provider", "customer", "partner", "other"] as const;
 const ASSIGNMENT_STATUSES = ["active", "planned", "rotating", "needs-backup"] as const;
 const ROLE_STATUSES = ["active", "archived"] as const;
+const PERSON_LIFECYCLE_STEPS = ["acceptable-use", "orientation", "probation", "separation"] as const;
+const PERFORMANCE_CYCLE_STATUSES = ["planned", "in-progress", "completed", "at-risk"] as const;
 const PUB_WEBVIEW_COMMANDS = new Set<string>([
   "pspf.pub.loadSample",
   "pspf.pub.newPerson",
@@ -41,7 +43,8 @@ const PUB_WEBVIEW_COMMANDS = new Set<string>([
   "pspf.pub.openTeams",
   "pspf.pub.openRoles",
   "pspf.pub.openAssignments",
-  "pspf.pub.openRelationshipLog"
+  "pspf.pub.openRelationshipLog",
+  "pspf.pub.openPeopleCulture"
 ] as const);
 
 interface PubStore {
@@ -56,6 +59,28 @@ interface PubStore {
 
 type StakeholderType = (typeof STAKEHOLDER_TYPES)[number];
 type AssignmentStatus = (typeof ASSIGNMENT_STATUSES)[number];
+type PersonLifecycleStepId = (typeof PERSON_LIFECYCLE_STEPS)[number];
+type PerformanceCycleStatus = (typeof PERFORMANCE_CYCLE_STATUSES)[number];
+
+interface PersonLifecycleRecord {
+  readonly stepId: PersonLifecycleStepId;
+  readonly completed: boolean;
+  readonly completedAt: string;
+  readonly notes: string;
+}
+
+interface PerformanceCycleRecord {
+  readonly id: string;
+  readonly year: string;
+  readonly status: PerformanceCycleStatus;
+  readonly mandatoryBehaviours: string;
+  readonly roleSpecificCapabilities: string;
+  readonly personalGoals: string;
+  readonly targets: string;
+  readonly courses: string;
+  readonly certifications: string;
+  readonly reviewBy: string;
+}
 
 interface PersonRecord {
   readonly id: string;
@@ -67,6 +92,8 @@ interface PersonRecord {
   readonly resumeText: string;
   readonly nextMilestone: string;
   readonly nextAction: string;
+  readonly lifecycle: readonly PersonLifecycleRecord[];
+  readonly performanceCycles: readonly PerformanceCycleRecord[];
   readonly notes: string;
 }
 
@@ -183,6 +210,7 @@ interface TeamEditorFields {
 }
 
 interface PersonEditorFields {
+  readonly [key: string]: unknown;
   readonly displayName?: unknown;
   readonly stakeholderType?: unknown;
   readonly organisation?: unknown;
@@ -407,6 +435,9 @@ export function activate(context: vscode.ExtensionContext): void {
       openPubPanel("Organisation chart", renderOrgChartHtml)
     ),
     vscode.commands.registerCommand("pspf.pub.openPeople", () => openPubPanel("People", renderPeopleHtml)),
+    vscode.commands.registerCommand("pspf.pub.openPeopleCulture", () =>
+      openPubPanel("People and Culture", renderPeopleCultureHtml)
+    ),
     vscode.commands.registerCommand("pspf.pub.openTeams", () => openPubPanel("Teams", renderTeamsHtml)),
     vscode.commands.registerCommand("pspf.pub.openRoles", () => openPubPanel("Roles", renderRolesHtml)),
     vscode.commands.registerCommand("pspf.pub.openAssignments", () =>
@@ -483,6 +514,8 @@ async function newPerson(): Promise<void> {
     resumeText,
     nextMilestone,
     nextAction,
+    lifecycle: defaultPersonLifecycle(),
+    performanceCycles: [blankPerformanceCycle()],
     notes
   };
   await saveStore({ ...store, people: [...store.people, person] });
@@ -1293,8 +1326,55 @@ function normalisePeople(store: Partial<PubStore>): readonly PersonRecord[] {
     resumeText: typeof person.resumeText === "string" ? person.resumeText : "",
     nextMilestone: typeof person.nextMilestone === "string" ? person.nextMilestone : "",
     nextAction: typeof person.nextAction === "string" ? person.nextAction : "",
+    lifecycle: normalisePersonLifecycle(person.lifecycle),
+    performanceCycles: normalisePerformanceCycles(person.performanceCycles),
     notes: typeof person.notes === "string" ? person.notes : ""
   }));
+}
+
+function normalisePersonLifecycle(value: unknown): readonly PersonLifecycleRecord[] {
+  const incoming = Array.isArray(value) ? (value as readonly Partial<PersonLifecycleRecord>[]) : [];
+  return PERSON_LIFECYCLE_STEPS.map((stepId) => {
+    const existing = incoming.find((item) => item.stepId === stepId);
+    return {
+      stepId,
+      completed: existing?.completed === true,
+      completedAt: typeof existing?.completedAt === "string" ? existing.completedAt : "",
+      notes: typeof existing?.notes === "string" ? existing.notes : ""
+    };
+  });
+}
+
+function normalisePerformanceCycles(value: unknown): readonly PerformanceCycleRecord[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return (value as readonly Partial<PerformanceCycleRecord>[])
+    .map((cycle) => ({
+      id: typeof cycle.id === "string" ? cycle.id : localId("PFC"),
+      year: typeof cycle.year === "string" ? cycle.year : "",
+      status: isPerformanceCycleStatus(cycle.status) ? cycle.status : "planned",
+      mandatoryBehaviours: typeof cycle.mandatoryBehaviours === "string" ? cycle.mandatoryBehaviours : "",
+      roleSpecificCapabilities:
+        typeof cycle.roleSpecificCapabilities === "string" ? cycle.roleSpecificCapabilities : "",
+      personalGoals: typeof cycle.personalGoals === "string" ? cycle.personalGoals : "",
+      targets: typeof cycle.targets === "string" ? cycle.targets : "",
+      courses: typeof cycle.courses === "string" ? cycle.courses : "",
+      certifications: typeof cycle.certifications === "string" ? cycle.certifications : "",
+      reviewBy: typeof cycle.reviewBy === "string" ? cycle.reviewBy : ""
+    }))
+    .filter((cycle) =>
+      [
+        cycle.year,
+        cycle.mandatoryBehaviours,
+        cycle.roleSpecificCapabilities,
+        cycle.personalGoals,
+        cycle.targets,
+        cycle.courses,
+        cycle.certifications,
+        cycle.reviewBy
+      ].some(isNonEmptyString)
+    );
 }
 
 function normaliseAssignments(store: Partial<PubStore>): readonly AssignmentRecord[] {
@@ -1324,6 +1404,36 @@ function buildSampleStore(): PubStore {
       resumeText: "Access assurance, control operation, evidence review, and reviewer coordination.",
       nextMilestone: "2026-06-30 access review evidence",
       nextAction: "Confirm reviewer rotation",
+      lifecycle: [
+        {
+          stepId: "acceptable-use",
+          completed: true,
+          completedAt: "2026-01-12",
+          notes: "Annual acceptable use attestation recorded."
+        },
+        {
+          stepId: "orientation",
+          completed: true,
+          completedAt: "2026-01-19",
+          notes: "Security and evidence-handling orientation complete."
+        },
+        { stepId: "probation", completed: true, completedAt: "2026-04-12", notes: "Probation review completed." },
+        { stepId: "separation", completed: false, completedAt: "", notes: "Not applicable while active." }
+      ],
+      performanceCycles: [
+        {
+          id: "PUB-PFC-access-owner-2026",
+          year: "2026",
+          status: "in-progress",
+          mandatoryBehaviours: "Security-aware decision making and respectful collaboration",
+          roleSpecificCapabilities: "Access review coordination and evidence quality",
+          personalGoals: "Build backup reviewer coverage",
+          targets: "Quarterly access review completed within the evidence window",
+          courses: "Evidence handling refresher",
+          certifications: "Internal access reviewer authorisation",
+          reviewBy: "2026-12-01"
+        }
+      ],
       notes: "Local-only relationship context for planning coverage."
     },
     {
@@ -1336,6 +1446,41 @@ function buildSampleStore(): PubStore {
       resumeText: "Monitoring service delivery, escalation management, and service review participation.",
       nextMilestone: "2026-07-15 service review",
       nextAction: "Check escalation roster",
+      lifecycle: [
+        {
+          stepId: "acceptable-use",
+          completed: true,
+          completedAt: "2026-02-01",
+          notes: "Provider acceptable use acknowledgement recorded."
+        },
+        {
+          stepId: "orientation",
+          completed: true,
+          completedAt: "2026-02-08",
+          notes: "Local escalation and reporting orientation complete."
+        },
+        { stepId: "probation", completed: false, completedAt: "", notes: "Managed through provider governance." },
+        {
+          stepId: "separation",
+          completed: false,
+          completedAt: "",
+          notes: "Confirm offboarding with provider if engagement ends."
+        }
+      ],
+      performanceCycles: [
+        {
+          id: "PUB-PFC-provider-manager-2026",
+          year: "2026",
+          status: "planned",
+          mandatoryBehaviours: "Clear escalation communication",
+          roleSpecificCapabilities: "Monitoring handover and incident escalation",
+          personalGoals: "Reduce escalation ambiguity across service windows",
+          targets: "Service review actions closed by agreed dates",
+          courses: "Local incident escalation briefing",
+          certifications: "Provider SOC training maintained",
+          reviewBy: "2026-07-15"
+        }
+      ],
       notes: "Keep contact context local; publish role/team contribution only in a later slice if approved."
     }
   ];
@@ -1453,6 +1598,7 @@ function renderHomeHtml(store: PubStore): string {
 
   const coreActions = `<div class="action-list">
     ${homeActionButton("pspf.pub.openOrgChart", "Organisation chart", "See teams, roles, owned controls, and assignment badges")}
+    ${homeActionButton("pspf.pub.openPeopleCulture", "People & Culture", "Review lifecycle, probation, acceptable use, and performance cycles")}
     ${homeActionButton("pspf.pub.openRelationshipLog", "Relationship log", "Open the relationship log of stakeholder follow-up notes")}
     ${homeActionButton("pspf.pub.recordRelationshipNote", "Record relationship note", "Record a local follow-up")}
   </div>`;
@@ -1463,6 +1609,14 @@ function renderHomeHtml(store: PubStore): string {
     ${homeActionButton("pspf.pub.newRole", "New role", "Attach a role to a team")}
     ${homeActionButton("pspf.pub.newAssignment", "New assignment", "Assign a person to a role")}
     ${homeActionButton("pspf.pub.loadSample", "Load sample", "Replace current Pub data with sample records")}
+  </div>`;
+
+  const editActions = `<div class="action-list compact">
+    ${homeActionButton("pspf.pub.editPerson", "Edit person", "Choose and update a local person")}
+    ${homeActionButton("pspf.pub.editTeam", "Edit team", "Choose and update a team")}
+    ${homeActionButton("pspf.pub.editRole", "Edit role", "Choose and update a role")}
+    ${homeActionButton("pspf.pub.editAssignment", "Edit assignment", "Choose and update an assignment")}
+    ${homeActionButton("pspf.pub.editRelationshipNote", "Edit relationship note", "Choose and update a follow-up note")}
   </div>`;
 
   const body = [
@@ -1492,7 +1646,8 @@ function renderHomeHtml(store: PubStore): string {
       body: renderPubUpcomingActionsGraphic(upcomingBadges)
     }),
     homeSection({ id: "actions", eyebrow: "Open", heading: "People & relationship tools", body: coreActions }),
-    homeSection({ id: "create", eyebrow: "Author", heading: "Create local records", body: createActions })
+    homeSection({ id: "create", eyebrow: "Author", heading: "Create local records", body: createActions }),
+    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Edit local records", body: editActions })
   ].join("");
 
   return homePanelShellHtml({
@@ -1507,7 +1662,8 @@ function renderHomeHtml(store: PubStore): string {
       { href: "overview", label: "Overview" },
       { href: "signals", label: "Signals" },
       { href: "actions", label: "Open" },
-      { href: "create", label: "Create" }
+      { href: "create", label: "Create" },
+      { href: "edit", label: "Edit" }
     ],
     body
   });
@@ -1971,7 +2127,37 @@ function personEditorFields(person: PersonRecord): string {
     <label><span>Resume text</span><textarea name="person.${escapeHtml(person.id)}.resumeText" rows="5">${escapeHtml(person.resumeText)}</textarea></label>
     <label><span>Next milestone</span><input name="person.${escapeHtml(person.id)}.nextMilestone" value="${escapeHtml(person.nextMilestone)}" /></label>
     <label><span>Next action</span><input name="person.${escapeHtml(person.id)}.nextAction" value="${escapeHtml(person.nextAction)}" /></label>
+    ${personLifecycleEditorFields(person, `person.${person.id}.`)}
+    ${performanceCycleEditorFields(person.performanceCycles[0] ?? blankPerformanceCycle(), `person.${person.id}.`)}
     <label><span>Notes</span><textarea name="person.${escapeHtml(person.id)}.notes" rows="3">${escapeHtml(person.notes)}</textarea></label>
+  </fieldset>`;
+}
+
+function personLifecycleEditorFields(person: PersonRecord, prefix: string): string {
+  return PERSON_LIFECYCLE_STEPS.map((stepId) => {
+    const step = person.lifecycle.find((item) => item.stepId === stepId) ?? blankPersonLifecycleStep(stepId);
+    const fieldPrefix = `${prefix}lifecycle.${stepId}`;
+    return `<fieldset class="nested-editor"><legend>${escapeHtml(label(stepId))}</legend>
+      <label class="checkbox-line"><input type="checkbox" name="${escapeHtml(fieldPrefix)}.completed" value="true"${step.completed ? " checked" : ""} /> <span>Completed</span></label>
+      <label><span>Completed date</span><input name="${escapeHtml(fieldPrefix)}.completedAt" value="${escapeHtml(step.completedAt)}" placeholder="2026-06-30" /></label>
+      <label><span>Notes</span><textarea name="${escapeHtml(fieldPrefix)}.notes" rows="2">${escapeHtml(step.notes)}</textarea></label>
+    </fieldset>`;
+  }).join("");
+}
+
+function performanceCycleEditorFields(cycle: PerformanceCycleRecord, prefix: string): string {
+  const fieldPrefix = `${prefix}performanceCycle`;
+  return `<fieldset class="nested-editor"><legend>${escapeHtml(cycle.year || "Current cycle")}</legend>
+    <input type="hidden" name="${escapeHtml(fieldPrefix)}.id" value="${escapeHtml(cycle.id)}" />
+    <label><span>Cycle year</span><input name="${escapeHtml(fieldPrefix)}.year" value="${escapeHtml(cycle.year)}" placeholder="2026" /></label>
+    <label><span>Status</span><select name="${escapeHtml(fieldPrefix)}.status">${PERFORMANCE_CYCLE_STATUSES.map((status) => `<option value="${escapeHtml(status)}"${status === cycle.status ? " selected" : ""}>${escapeHtml(label(status))}</option>`).join("")}</select></label>
+    <label><span>Mandatory behaviours</span><textarea name="${escapeHtml(fieldPrefix)}.mandatoryBehaviours" rows="2">${escapeHtml(cycle.mandatoryBehaviours)}</textarea></label>
+    <label><span>Role-specific capabilities</span><textarea name="${escapeHtml(fieldPrefix)}.roleSpecificCapabilities" rows="2">${escapeHtml(cycle.roleSpecificCapabilities)}</textarea></label>
+    <label><span>Personal goals</span><textarea name="${escapeHtml(fieldPrefix)}.personalGoals" rows="2">${escapeHtml(cycle.personalGoals)}</textarea></label>
+    <label><span>Targets</span><textarea name="${escapeHtml(fieldPrefix)}.targets" rows="2">${escapeHtml(cycle.targets)}</textarea></label>
+    <label><span>Courses</span><textarea name="${escapeHtml(fieldPrefix)}.courses" rows="2">${escapeHtml(cycle.courses)}</textarea></label>
+    <label><span>Certifications</span><textarea name="${escapeHtml(fieldPrefix)}.certifications" rows="2">${escapeHtml(cycle.certifications)}</textarea></label>
+    <label><span>Review by</span><input name="${escapeHtml(fieldPrefix)}.reviewBy" value="${escapeHtml(cycle.reviewBy)}" placeholder="2026-12-01" /></label>
   </fieldset>`;
 }
 
@@ -2014,6 +2200,8 @@ function renderPersonDetailHtml(store: PubStore, personId: string): string {
       <section class="grid two" aria-label="Person local context">
         ${summaryCard("Resume", escapeHtml(person.resumeUrl || person.resumeText || "No resume context recorded."))}
         ${summaryCard("Next signal", escapeHtml(person.nextAction || person.nextMilestone || "No next signal recorded."))}
+        ${summaryCard("P&C lifecycle", escapeHtml(personLifecycleSummary(person)))}
+        ${summaryCard("Performance cycle", escapeHtml(personPerformanceSummary(person)))}
         ${summaryCard("Local-only notes", escapeHtml(person.notes || "No local notes recorded."))}
       </section>
       <section class="panel" aria-label="Person actions">
@@ -2028,6 +2216,20 @@ function renderPersonDetailHtml(store: PubStore, personId: string): string {
         "Assignments",
         "Assignments connect this local person to Pub roles without publishing person identity.",
         tableHtml(["Role", "Team", "Status", "Allocation", "Review by", "Badge"], assignmentRows, 6)
+      )}
+      ${sectionHtml(
+        "People & Culture lifecycle",
+        "Acceptable use, orientation, probation, and separation steps are tracked locally so assurance teams can see the people controls around relied-on roles.",
+        tableHtml(["Step", "Done", "Completed", "Notes"], personLifecycleRows(person), 4)
+      )}
+      ${sectionHtml(
+        "Annual performance cycle",
+        "Mandatory behaviours, role-specific capabilities, personal goals, targets, courses and certifications stay local-only.",
+        tableHtml(
+          ["Year", "Status", "Mandatory behaviours", "Capabilities", "Goals", "Targets", "Courses", "Certifications", "Review by"],
+          personPerformanceRows(person),
+          9
+        )
       )}
       ${sectionHtml(
         "Relationship notes",
@@ -2062,6 +2264,16 @@ function renderPersonEditorHtml(person: PersonRecord | undefined): string {
           <label><span>Resume text</span><textarea name="resumeText" rows="5">${escapeHtml(current.resumeText)}</textarea></label>
           <label><span>Next milestone</span><input name="nextMilestone" value="${escapeHtml(current.nextMilestone)}" /></label>
           <label><span>Next action</span><input name="nextAction" value="${escapeHtml(current.nextAction)}" /></label>
+        </section>
+        <section class="panel">
+          <h1>People & Culture lifecycle</h1>
+          <p class="muted">Track acceptable use, orientation, probation, and separation locally for P&C compliance assurance.</p>
+          ${personLifecycleEditorFields(current, "")}
+        </section>
+        <section class="panel">
+          <h1>Annual performance cycle</h1>
+          <p class="muted">Capture mandatory behaviours, role-specific capabilities, personal goals, targets, courses and certifications.</p>
+          ${performanceCycleEditorFields(current.performanceCycles[0] ?? blankPerformanceCycle(), "")}
         </section>
         <section class="panel">
           <h1>Local-only notes</h1>
@@ -2396,7 +2608,32 @@ function blankPerson(): PersonRecord {
     resumeText: "",
     nextMilestone: "",
     nextAction: "",
+    lifecycle: defaultPersonLifecycle(),
+    performanceCycles: [blankPerformanceCycle()],
     notes: ""
+  };
+}
+
+function defaultPersonLifecycle(): readonly PersonLifecycleRecord[] {
+  return PERSON_LIFECYCLE_STEPS.map(blankPersonLifecycleStep);
+}
+
+function blankPersonLifecycleStep(stepId: PersonLifecycleStepId): PersonLifecycleRecord {
+  return { stepId, completed: false, completedAt: "", notes: "" };
+}
+
+function blankPerformanceCycle(): PerformanceCycleRecord {
+  return {
+    id: localId("PFC"),
+    year: new Date().getFullYear().toString(),
+    status: "planned",
+    mandatoryBehaviours: "",
+    roleSpecificCapabilities: "",
+    personalGoals: "",
+    targets: "",
+    courses: "",
+    certifications: "",
+    reviewBy: ""
   };
 }
 
@@ -2422,7 +2659,7 @@ function renderPeopleHtml(store: PubStore): string {
   const rows = store.people
     .map(
       (person) =>
-        `<tr><td>${escapeHtml(person.displayName)}</td><td>${escapeHtml(label(person.stakeholderType))}</td><td>${escapeHtml(person.organisation)}</td><td>${escapeHtml(person.currentRole)}</td><td>${escapeHtml(person.resumeUrl || "Not linked")}</td><td>${escapeHtml(person.resumeText || "Not captured")}</td><td>${escapeHtml(person.nextAction || person.nextMilestone)}</td></tr>`
+        `<tr><td>${escapeHtml(person.displayName)}</td><td>${escapeHtml(label(person.stakeholderType))}</td><td>${escapeHtml(person.organisation)}</td><td>${escapeHtml(person.currentRole)}</td><td>${escapeHtml(personLifecycleSummary(person))}</td><td>${escapeHtml(personPerformanceSummary(person))}</td><td>${escapeHtml(person.resumeUrl || "Not linked")}</td><td>${escapeHtml(person.resumeText || "Not captured")}</td><td>${escapeHtml(person.nextAction || person.nextMilestone)}</td></tr>`
     )
     .join("");
   return pageHtml(
@@ -2433,13 +2670,61 @@ function renderPeopleHtml(store: PubStore): string {
         <div class="action-list compact">
           ${commandButton("pspf.pub.openPersonDetail", "Person detail", "Open a local person record")}
           ${commandButton("pspf.pub.editPerson", "Edit person", "Update all person fields")}
+          ${commandButton("pspf.pub.openPeopleCulture", "P&C compliance", "Open lifecycle and performance compliance")}
           ${commandButton("pspf.pub.newPerson", "New person", "Add local-only person context")}
         </div>
       </section>
       ${sectionHtml(
         "People directory",
         "Local-only people and stakeholder context. Do not treat these display names as publishable data.",
-        tableHtml(["Name", "Type", "Organisation", "Role", "Resume link", "Resume text", "Next signal"], rows, 7)
+        tableHtml(
+          ["Name", "Type", "Organisation", "Role", "Lifecycle", "Performance", "Resume link", "Resume text", "Next signal"],
+          rows,
+          9
+        )
+      )}
+    </main>`
+  );
+}
+
+function renderPeopleCultureHtml(store: PubStore): string {
+  const rows = store.people
+    .map((person) => {
+      const missing = missingLifecycleSteps(person).map(label).join(", ") || "Complete";
+      const cycle = latestPerformanceCycle(person);
+      return `<tr><td>${escapeHtml(person.displayName)}</td><td>${escapeHtml(person.currentRole || "Not recorded")}</td><td>${escapeHtml(personLifecycleSummary(person))}</td><td>${escapeHtml(missing)}</td><td>${escapeHtml(cycle?.year ?? "Not recorded")}</td><td>${escapeHtml(cycle ? label(cycle.status) : "Not recorded")}</td><td>${escapeHtml(cycle?.targets || "Not recorded")}</td><td>${escapeHtml(cycle?.courses || "Not recorded")}</td><td>${escapeHtml(cycle?.certifications || "Not recorded")}</td><td>${escapeHtml(cycle?.reviewBy || person.nextMilestone || "Not recorded")}</td></tr>`;
+    })
+    .join("");
+  return pageHtml(
+    "PSPF Pub People and Culture",
+    `<main>
+      <section class="hero">
+        <p class="meta">Pub local-only People & Culture view</p>
+        <h1>People & Culture compliance</h1>
+        <p>Lifecycle and annual performance-cycle context for the people relied on by PSPF teams, roles and assignments.</p>
+        <div class="tags">
+          <span class="tag">${store.people.length} people</span>
+          <span class="tag">${peopleWithCompleteLifecycle(store)} lifecycle complete</span>
+          <span class="tag">${peopleWithPerformanceCycles(store)} performance cycles</span>
+          <span class="tag">local-only</span>
+        </div>
+      </section>
+      <section class="panel" aria-label="People and Culture actions">
+        <h1>P&C actions</h1>
+        <div class="action-list compact">
+          ${commandButton("pspf.pub.editPerson", "Edit person", "Update lifecycle and performance fields")}
+          ${commandButton("pspf.pub.openPeople", "People directory", "Open the full people list")}
+          ${commandButton("pspf.pub.openAssignments", "Assignments", "Review relied-on roles and coverage")}
+        </div>
+      </section>
+      ${sectionHtml(
+        "People & Culture compliance board",
+        "Acceptable use, orientation, probation, separation, behaviours, capabilities, goals, targets, courses and certifications are stored locally in Pub only.",
+        tableHtml(
+          ["Person", "Role", "Lifecycle", "Missing lifecycle", "Cycle", "Status", "Targets", "Courses", "Certifications", "Review by"],
+          rows,
+          10
+        )
       )}
     </main>`
   );
@@ -2864,6 +3149,8 @@ function parsePeopleEditorFields(fields: TeamEditorFields | undefined, store: Pu
         resumeText: stringField(fields?.[`person.${personId}.resumeText`]).trim(),
         nextMilestone: stringField(fields?.[`person.${personId}.nextMilestone`]).trim(),
         nextAction: stringField(fields?.[`person.${personId}.nextAction`]).trim(),
+        lifecycle: parsePersonLifecycleFields(fields, `person.${personId}.`),
+        performanceCycles: parsePerformanceCycleFields(fields, `person.${personId}.`),
         notes: stringField(fields?.[`person.${personId}.notes`]).trim()
       };
     })
@@ -2890,8 +3177,43 @@ function parsePersonEditorFields(
     resumeText: stringField(fields?.resumeText).trim(),
     nextMilestone: stringField(fields?.nextMilestone).trim(),
     nextAction: stringField(fields?.nextAction).trim(),
+    lifecycle: parsePersonLifecycleFields(fields, ""),
+    performanceCycles: parsePerformanceCycleFields(fields, ""),
     notes: stringField(fields?.notes).trim()
   };
+}
+
+function parsePersonLifecycleFields(
+  fields: PersonEditorFields | TeamEditorFields | undefined,
+  prefix: string
+): readonly PersonLifecycleRecord[] {
+  return PERSON_LIFECYCLE_STEPS.map((stepId) => ({
+    stepId,
+    completed: booleanField(fields?.[`${prefix}lifecycle.${stepId}.completed`]),
+    completedAt: stringField(fields?.[`${prefix}lifecycle.${stepId}.completedAt`]).trim(),
+    notes: stringField(fields?.[`${prefix}lifecycle.${stepId}.notes`]).trim()
+  }));
+}
+
+function parsePerformanceCycleFields(
+  fields: PersonEditorFields | TeamEditorFields | undefined,
+  prefix: string
+): readonly PerformanceCycleRecord[] {
+  const fieldPrefix = `${prefix}performanceCycle`;
+  const status = fields?.[`${fieldPrefix}.status`];
+  const cycle: PerformanceCycleRecord = {
+    id: stringField(fields?.[`${fieldPrefix}.id`]).trim() || localId("PFC"),
+    year: stringField(fields?.[`${fieldPrefix}.year`]).trim(),
+    status: isPerformanceCycleStatus(status) ? status : "planned",
+    mandatoryBehaviours: stringField(fields?.[`${fieldPrefix}.mandatoryBehaviours`]).trim(),
+    roleSpecificCapabilities: stringField(fields?.[`${fieldPrefix}.roleSpecificCapabilities`]).trim(),
+    personalGoals: stringField(fields?.[`${fieldPrefix}.personalGoals`]).trim(),
+    targets: stringField(fields?.[`${fieldPrefix}.targets`]).trim(),
+    courses: stringField(fields?.[`${fieldPrefix}.courses`]).trim(),
+    certifications: stringField(fields?.[`${fieldPrefix}.certifications`]).trim(),
+    reviewBy: stringField(fields?.[`${fieldPrefix}.reviewBy`]).trim()
+  };
+  return normalisePerformanceCycles([cycle]);
 }
 
 function parseRoleFormFields(
@@ -3220,6 +3542,50 @@ function teamComplianceStatus(store: PubStore, team: TeamRecord): string {
     .join(" ");
 }
 
+function personLifecycleSummary(person: PersonRecord): string {
+  const completed = person.lifecycle.filter((step) => step.completed).length;
+  return `${completed} of ${PERSON_LIFECYCLE_STEPS.length} P&C lifecycle steps complete`;
+}
+
+function missingLifecycleSteps(person: PersonRecord): readonly PersonLifecycleStepId[] {
+  return PERSON_LIFECYCLE_STEPS.filter(
+    (stepId) => person.lifecycle.find((step) => step.stepId === stepId)?.completed !== true
+  );
+}
+
+function personLifecycleRows(person: PersonRecord): string {
+  return PERSON_LIFECYCLE_STEPS.map((stepId) => {
+    const step = person.lifecycle.find((item) => item.stepId === stepId) ?? blankPersonLifecycleStep(stepId);
+    return `<tr><td>${escapeHtml(label(step.stepId))}</td><td>${escapeHtml(step.completed ? "Yes" : "No")}</td><td>${escapeHtml(formatDate(step.completedAt) || "Not recorded")}</td><td>${escapeHtml(step.notes || "No notes")}</td></tr>`;
+  }).join("");
+}
+
+function latestPerformanceCycle(person: PersonRecord): PerformanceCycleRecord | undefined {
+  return [...person.performanceCycles].sort((left, right) => right.year.localeCompare(left.year))[0];
+}
+
+function personPerformanceSummary(person: PersonRecord): string {
+  const cycle = latestPerformanceCycle(person);
+  return cycle ? `${cycle.year} ${label(cycle.status)}` : "No annual performance cycle recorded";
+}
+
+function personPerformanceRows(person: PersonRecord): string {
+  return person.performanceCycles
+    .map(
+      (cycle) =>
+        `<tr><td>${escapeHtml(cycle.year || "Not recorded")}</td><td>${escapeHtml(label(cycle.status))}</td><td>${escapeHtml(cycle.mandatoryBehaviours || "Not recorded")}</td><td>${escapeHtml(cycle.roleSpecificCapabilities || "Not recorded")}</td><td>${escapeHtml(cycle.personalGoals || "Not recorded")}</td><td>${escapeHtml(cycle.targets || "Not recorded")}</td><td>${escapeHtml(cycle.courses || "Not recorded")}</td><td>${escapeHtml(cycle.certifications || "Not recorded")}</td><td>${escapeHtml(cycle.reviewBy || "Not recorded")}</td></tr>`
+    )
+    .join("");
+}
+
+function peopleWithCompleteLifecycle(store: PubStore): number {
+  return store.people.filter((person) => missingLifecycleSteps(person).length === 0).length;
+}
+
+function peopleWithPerformanceCycles(store: PubStore): number {
+  return store.people.filter((person) => person.performanceCycles.length > 0).length;
+}
+
 function isRoleStatus(value: unknown): value is RoleStatus {
   return typeof value === "string" && ROLE_STATUSES.includes(value as RoleStatus);
 }
@@ -3267,6 +3633,10 @@ function isStakeholderType(value: unknown): value is StakeholderType {
 
 function isAssignmentStatus(value: unknown): value is AssignmentStatus {
   return typeof value === "string" && ASSIGNMENT_STATUSES.includes(value as AssignmentStatus);
+}
+
+function isPerformanceCycleStatus(value: unknown): value is PerformanceCycleStatus {
+  return typeof value === "string" && PERFORMANCE_CYCLE_STATUSES.includes(value as PerformanceCycleStatus);
 }
 
 function personName(store: PubStore, personId: string): string {
