@@ -8791,7 +8791,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-6a038d68-893f-7000-a81b-91ce99c885ff",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Executive cyber security accountability",
+    "title": "GOV-01 - Executive cyber security accountability",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-01",
@@ -8804,6 +8804,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-01"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-01"
       }
     ],
     "provenance": {
@@ -8817,7 +8821,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-7d51c2cf-7317-7000-60db-afc243a73d0b",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Executive artificial intelligence accountability",
+    "title": "GOV-08 - Executive artificial intelligence accountability",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-08",
@@ -8830,6 +8834,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-08"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-08"
       }
     ],
     "provenance": {
@@ -8843,7 +8851,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-f42033d3-6276-7000-7df9-49b445886c79",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security leadership",
+    "title": "GOV-02 - Cyber security leadership",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-02",
@@ -8856,6 +8864,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-02"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-02"
       }
     ],
     "provenance": {
@@ -8869,7 +8881,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-9bab8b1e-53ff-7000-d1c2-74c7e648466d",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security resourcing",
+    "title": "GOV-04 - Cyber security resourcing",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-04",
@@ -8882,6 +8894,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-04"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-04"
       }
     ],
     "provenance": {
@@ -8895,7 +8911,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-eb6299dd-d4c6-7000-e0f7-157d78b46acf",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Security risk management responsibilities",
+    "title": "GOV-09 - Security risk management responsibilities",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-09",
@@ -8908,6 +8924,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-09"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-09"
       }
     ],
     "provenance": {
@@ -8921,7 +8941,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-e546938a-949d-7000-9777-fcd0a9d0ba71",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Security risk management assurance",
+    "title": "GOV-03 - Security risk management assurance",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-03",
@@ -8934,6 +8954,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-03"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-03"
       }
     ],
     "provenance": {
@@ -8947,7 +8971,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-a77ff8e7-c3fe-7000-18c7-fc010f77c70f",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Security risk acceptance",
+    "title": "GOV-05 - Security risk acceptance",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-05",
@@ -8960,6 +8984,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-05"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-05"
       }
     ],
     "provenance": {
@@ -8973,7 +9001,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-139c7217-f5c0-7000-7791-6790df4e1d3d",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Security risk communication",
+    "title": "GOV-06 - Security risk communication",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-06",
@@ -8986,6 +9014,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-06"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-06"
       }
     ],
     "provenance": {
@@ -8999,7 +9031,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-30e8ab5b-2789-7000-d9d5-727960e070ba",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "System exposure minimisation",
+    "title": "GOV-10 - System exposure minimisation",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-10",
@@ -9012,6 +9044,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-10"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-10"
       }
     ],
     "provenance": {
@@ -9025,7 +9061,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-69e2d8d5-bd2c-7000-bc2a-675fd0e73978",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Supplier cyber security assurance",
+    "title": "GOV-11 - Supplier cyber security assurance",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-11",
@@ -9038,6 +9074,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-11"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-11"
       }
     ],
     "provenance": {
@@ -9051,7 +9091,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-1cc6c1b1-60c5-7000-dc61-e4954923544f",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Personnel suitability assurance",
+    "title": "GOV-12 - Personnel suitability assurance",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-12",
@@ -9064,6 +9104,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-12"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-12"
       }
     ],
     "provenance": {
@@ -9077,7 +9121,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-c908e15d-a123-7000-7060-2f68a2af3550",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security and safety",
+    "title": "GOV-13 - Cyber security and safety",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-13",
@@ -9090,6 +9134,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-13"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-13"
       }
     ],
     "provenance": {
@@ -9103,7 +9151,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-f2553f9f-efeb-7000-04a0-9861f0988b44",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Legacy system management",
+    "title": "GOV-14 - Legacy system management",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-14",
@@ -9116,6 +9164,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-14"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-14"
       }
     ],
     "provenance": {
@@ -9129,7 +9181,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-568a099d-4a35-7000-caf3-e85292a4bbcb",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Continuous cyber security improvement",
+    "title": "GOV-07 - Continuous cyber security improvement",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-gov-07",
@@ -9142,6 +9194,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-gov-07"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "GOV-07"
       }
     ],
     "provenance": {
@@ -9155,7 +9211,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-7ff0a9c5-d191-7000-0185-935912bb92e3",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Asset identification",
+    "title": "IDE-01 - Asset identification",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-ide-01",
@@ -9168,6 +9224,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-ide-01"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "IDE-01"
       }
     ],
     "provenance": {
@@ -9181,7 +9241,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-e8f7c0ff-efea-7000-31c1-b21c8f7f2a48",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Asset interdependencies",
+    "title": "IDE-05 - Asset interdependencies",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-ide-05",
@@ -9194,6 +9254,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-ide-05"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "IDE-05"
       }
     ],
     "provenance": {
@@ -9207,7 +9271,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-c06b92c8-d22f-7000-cba7-e72cae524fe1",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Business criticality rating identification",
+    "title": "IDE-02 - Business criticality rating identification",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-ide-02",
@@ -9220,6 +9284,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-ide-02"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "IDE-02"
       }
     ],
     "provenance": {
@@ -9233,7 +9301,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-9b286220-7b6b-7000-0d19-606bb5570d73",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Security requirement identification",
+    "title": "IDE-03 - Security requirement identification",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-ide-03",
@@ -9246,6 +9314,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-ide-03"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "IDE-03"
       }
     ],
     "provenance": {
@@ -9259,7 +9331,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-6631e6de-8569-7000-3419-4eac6b8436a9",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Resilience requirement identification",
+    "title": "IDE-06 - Resilience requirement identification",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-ide-06",
@@ -9272,6 +9344,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-ide-06"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "IDE-06"
       }
     ],
     "provenance": {
@@ -9285,7 +9361,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-5b134e5f-a8c0-7000-635f-8868feb58bca",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Security risk identification",
+    "title": "IDE-04 - Security risk identification",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-ide-04",
@@ -9298,6 +9374,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-ide-04"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "IDE-04"
       }
     ],
     "provenance": {
@@ -9311,7 +9391,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-884ff8dd-b3e4-7000-2749-8454f011baae",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Secure system lifecycle",
+    "title": "PRO-01 - Secure system lifecycle",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-01",
@@ -9324,6 +9404,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-01"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-01"
       }
     ],
     "provenance": {
@@ -9337,7 +9421,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-9f065919-1bff-7000-451e-dcb95dc62254",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber supply chain security",
+    "title": "PRO-16 - Cyber supply chain security",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-16",
@@ -9350,6 +9434,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-16"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-16"
       }
     ],
     "provenance": {
@@ -9363,7 +9451,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-837339b0-7ee6-7000-27d1-4ba21da3c85e",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Identity, credential and access management",
+    "title": "PRO-13 - Identity, credential and access management",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-13",
@@ -9378,6 +9466,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-13"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-13"
       }
     ],
     "provenance": {
@@ -9391,7 +9483,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-9395f4eb-484e-7000-ac92-3eec45cf9699",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Least privilege access",
+    "title": "PRO-12 - Least privilege access",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-12",
@@ -9405,6 +9497,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-12"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-12"
       }
     ],
     "provenance": {
@@ -9418,7 +9514,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-1cac70f7-9ded-7000-7df8-2ed1b924e369",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Secure administration",
+    "title": "PRO-05 - Secure administration",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-05",
@@ -9431,6 +9527,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-05"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-05"
       }
     ],
     "provenance": {
@@ -9444,7 +9544,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-82f60a95-2c00-7000-aaf1-de1c799494df",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Secure configuration management",
+    "title": "PRO-04 - Secure configuration management",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-04",
@@ -9460,6 +9560,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-04"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-04"
       }
     ],
     "provenance": {
@@ -9473,7 +9577,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-66ad9ecb-95e2-7000-0ffa-4c879ad6a9b2",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Vulnerability management",
+    "title": "PRO-06 - Vulnerability management",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-06",
@@ -9489,6 +9593,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-06"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-06"
       }
     ],
     "provenance": {
@@ -9502,7 +9610,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-3762cf14-df9c-7000-dd9b-c47c9fb67cda",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Trustworthy software",
+    "title": "PRO-07 - Trustworthy software",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-07",
@@ -9517,6 +9625,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-07"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-07"
       }
     ],
     "provenance": {
@@ -9530,7 +9642,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-cb4082dc-597a-7000-2f55-74eab07b5146",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Data protection",
+    "title": "PRO-08 - Data protection",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-08",
@@ -9543,6 +9655,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-08"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-08"
       }
     ],
     "provenance": {
@@ -9556,7 +9672,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-7cce73d1-f413-7000-1853-2cca29c01437",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cryptographic agility",
+    "title": "PRO-17 - Cryptographic agility",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-17",
@@ -9569,6 +9685,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-17"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-17"
       }
     ],
     "provenance": {
@@ -9582,7 +9702,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-ca34e0b0-cd71-7000-4e80-93573adf7ebf",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Regular and proven backups",
+    "title": "PRO-10 - Regular and proven backups",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-10",
@@ -9595,6 +9715,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-10"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-10"
       }
     ],
     "provenance": {
@@ -9608,7 +9732,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-49ff7403-50a0-7000-928a-1a05fe84a7a6",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Network segmentation and segregation",
+    "title": "PRO-18 - Network segmentation and segregation",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-18",
@@ -9621,6 +9745,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-18"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-18"
       }
     ],
     "provenance": {
@@ -9634,7 +9762,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-1d1293fe-4a4e-7000-8be1-38d477ec5802",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Operational technology isolation",
+    "title": "PRO-19 - Operational technology isolation",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-19",
@@ -9647,6 +9775,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-19"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-19"
       }
     ],
     "provenance": {
@@ -9660,7 +9792,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-12ebb628-f6ba-7000-841b-9662d7a4e85c",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Remote access to operational technology",
+    "title": "PRO-20 - Remote access to operational technology",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-20",
@@ -9673,6 +9805,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-20"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-20"
       }
     ],
     "provenance": {
@@ -9686,7 +9822,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-21cc2796-10ee-7000-5a91-4b9a7f569011",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Content filtering",
+    "title": "PRO-09 - Content filtering",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-09",
@@ -9699,6 +9835,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-09"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-09"
       }
     ],
     "provenance": {
@@ -9712,7 +9852,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-3e4125ae-ff62-7000-f3b2-d8463a9336aa",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security awareness training",
+    "title": "PRO-14 - Cyber security awareness training",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-14",
@@ -9725,6 +9865,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-14"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-14"
       }
     ],
     "provenance": {
@@ -9738,7 +9882,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-231924eb-6012-7000-347f-034ea08315bb",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Physical access control",
+    "title": "PRO-15 - Physical access control",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-pro-15",
@@ -9751,6 +9895,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-pro-15"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "PRO-15"
       }
     ],
     "provenance": {
@@ -9764,7 +9912,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-73b91cb5-31ea-7000-acba-753f721ee5be",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Centralised event logging",
+    "title": "DET-01 - Centralised event logging",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-det-01",
@@ -9778,6 +9926,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-det-01"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "DET-01"
       }
     ],
     "provenance": {
@@ -9791,7 +9943,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-ae88c0a1-cb1e-7000-9f9f-d8236a060665",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Baselined high-risk access activities",
+    "title": "DET-04 - Baselined high-risk access activities",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-det-04",
@@ -9804,6 +9956,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-det-04"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "DET-04"
       }
     ],
     "provenance": {
@@ -9817,7 +9973,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-9542eabd-4363-7000-f249-f2cacde1f746",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security event detection",
+    "title": "DET-02 - Cyber security event detection",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-det-02",
@@ -9830,6 +9986,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-det-02"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "DET-02"
       }
     ],
     "provenance": {
@@ -9843,7 +10003,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-f8829ca3-3269-7000-bd3d-a05074e65f03",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security incident identification",
+    "title": "DET-03 - Cyber security incident identification",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-det-03",
@@ -9856,6 +10016,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-det-03"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "DET-03"
       }
     ],
     "provenance": {
@@ -9869,7 +10033,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-6f5ab5d1-c7f6-7000-28cb-e391063a7dec",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Detection capability efficacy",
+    "title": "DET-05 - Detection capability efficacy",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-det-05",
@@ -9882,6 +10046,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-det-05"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "DET-05"
       }
     ],
     "provenance": {
@@ -9895,7 +10063,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security incident planning",
+    "title": "RES-01 - Cyber security incident planning",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-res-01",
@@ -9910,6 +10078,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-res-01"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "RES-01"
       }
     ],
     "provenance": {
@@ -9923,7 +10095,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-d9edb8d0-f428-7000-1fba-ac1625941c82",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security incident coordination",
+    "title": "RES-05 - Cyber security incident coordination",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-res-05",
@@ -9936,6 +10108,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-res-05"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "RES-05"
       }
     ],
     "provenance": {
@@ -9949,7 +10125,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-4e8ff10d-dd89-7000-682b-746784e2e583",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security incident response",
+    "title": "RES-03 - Cyber security incident response",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-res-03",
@@ -9962,6 +10138,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-res-03"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "RES-03"
       }
     ],
     "provenance": {
@@ -9975,7 +10155,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-141b54e0-1dd5-7000-dbff-b45c3d2c8d59",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security incident reporting",
+    "title": "RES-02 - Cyber security incident reporting",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-res-02",
@@ -9988,6 +10168,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-res-02"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "RES-02"
       }
     ],
     "provenance": {
@@ -10001,7 +10185,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-5187c4b8-01e5-7000-901e-98b3c6ead1b6",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Cyber security incident insights",
+    "title": "RES-04 - Cyber security incident insights",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-res-04",
@@ -10014,6 +10198,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-res-04"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "RES-04"
       }
     ],
     "provenance": {
@@ -10027,7 +10215,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-1fa942b9-6d47-7000-5940-31df42a4fb5b",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "System recovery assurance",
+    "title": "REC-02 - System recovery assurance",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-rec-02",
@@ -10040,6 +10228,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-rec-02"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "REC-02"
       }
     ],
     "provenance": {
@@ -10053,7 +10245,7 @@ export const ISM_SOURCE_CONTROLS = [
     "id": "SRC-a88ea5af-be02-7000-201a-1d32093c7835",
     "entityType": "source-control",
     "schemaVersion": "1.14.0",
-    "title": "Business operations resumption",
+    "title": "REC-01 - Business operations resumption",
     "sourceProduct": "core",
     "recordStatus": "active",
     "controlId": "ism-principle-rec-01",
@@ -10066,6 +10258,10 @@ export const ISM_SOURCE_CONTROLS = [
       {
         "scheme": "oscal-control-id",
         "value": "ism-principle-rec-01"
+      },
+      {
+        "scheme": "ism-label",
+        "value": "REC-01"
       }
     ],
     "provenance": {
@@ -54011,7 +54207,7 @@ export const PREVIOUS_ISM_SOURCE_CONTROLS = [
 ] as const satisfies readonly Pick<SourceControlEntity, "controlId" | "statement" | "provenance">[];
 
 export const PSPF_REFERENCE_DATA_REPORT = {
-  "generatedAt": "2026-06-04T00:42:29.943Z",
+  "generatedAt": "2026-06-06T02:09:30.015Z",
   "sources": [
     {
       "sourceId": "pspf-release-2025-list-requirements",

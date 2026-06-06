@@ -140,6 +140,23 @@ assert.match(
   /ISM_SOURCE_CONTROL_CATEGORIES/,
   "generated reference data should export ISM source control categories"
 );
+const generatedIsmSourceControls = parseGeneratedConstArray(generated, "ISM_SOURCE_CONTROLS");
+const labelledIsmControls = generatedIsmSourceControls.filter((control) =>
+  control.externalRefs.some((ref) => ref.scheme === "ism-label")
+);
+assert.equal(
+  labelledIsmControls.length,
+  49,
+  "generated ISM source controls should preserve OSCAL human-readable labels"
+);
+assert.deepEqual(
+  labelledIsmControls.filter((control) => {
+    const label = control.externalRefs.find((ref) => ref.scheme === "ism-label")?.value;
+    return !label || !control.title.startsWith(`${label} - `);
+  }),
+  [],
+  "generated ISM source-control titles should include OSCAL labels where present"
+);
 assert.match(
   ismLibrary,
   /from "@pspf\/reference-data"/,
@@ -156,4 +173,14 @@ console.log("ok generated reference-data package, source hashes, PSPF anomaly re
 
 function sha256(buffer) {
   return createHash("sha256").update(buffer).digest("hex");
+}
+
+function parseGeneratedConstArray(source, exportName) {
+  const exportStart = source.indexOf(`export const ${exportName} = `);
+  assert.notEqual(exportStart, -1, `generated reference data should export ${exportName}`);
+  const arrayStart = source.indexOf("[", exportStart);
+  const typeStart = source.indexOf(" satisfies readonly", arrayStart);
+  assert.notEqual(arrayStart, -1, `${exportName} should start with an array literal`);
+  assert.notEqual(typeStart, -1, `${exportName} should use a readonly satisfies assertion`);
+  return JSON.parse(source.slice(arrayStart, typeStart).replace(/\s+as const\s*$/, ""));
 }

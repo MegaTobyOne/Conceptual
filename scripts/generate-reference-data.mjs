@@ -426,12 +426,13 @@ async function extractIsmSourceControls(catalogPath) {
   return controls.map(({ control, category }, index) => {
     const statement = normaliseWhitespace(collectProse(control).join(" ")) || control.title;
     const controlId = String(control.id ?? control.uuid ?? `ism-control-${index + 1}`);
+    const label = ismControlLabel(control);
     return {
       sourceControl: {
         id: `SRC-${stableUuid(controlId)}`,
         entityType: "source-control",
         schemaVersion: GENERATED_SCHEMA_VERSION,
-        title: String(control.title ?? controlId),
+        title: formatIsmSourceControlTitle(control.title, controlId, label),
         sourceProduct: "core",
         recordStatus: "active",
         controlId,
@@ -440,6 +441,7 @@ async function extractIsmSourceControls(catalogPath) {
         statementChangeStatus: index === 0 ? "changed" : "unchanged",
         externalRefs: [
           { scheme: "oscal-control-id", value: controlId },
+          ...(label ? [{ scheme: "ism-label", value: label }] : []),
           ...(control.uuid ? [{ scheme: "oscal-uuid", value: String(control.uuid) }] : [])
         ],
         provenance: {
@@ -748,6 +750,19 @@ function collectProse(node) {
     prose.push(...collectProse(part));
   }
   return prose;
+}
+
+function ismControlLabel(control) {
+  const label = (control.props ?? []).find((prop) => prop.name === "label")?.value;
+  return label ? normaliseWhitespace(String(label)) : "";
+}
+
+function formatIsmSourceControlTitle(title, controlId, label) {
+  const baseTitle = normaliseWhitespace(String(title ?? controlId));
+  if (!label || baseTitle.startsWith(`${label} `) || baseTitle.startsWith(`${label}:`)) {
+    return baseTitle;
+  }
+  return `${label} - ${baseTitle}`;
 }
 
 function buildPreviousIsmSourceControls(currentControls) {

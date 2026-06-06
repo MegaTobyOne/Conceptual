@@ -54,10 +54,18 @@ test("Connected View styles keep visible connector lines below cards", () => {
   assert.match(CONNECTED_VIEW_STYLES, /\.cv-board \{[\s\S]*?isolation: isolate;/);
   assert.match(CONNECTED_VIEW_STYLES, /\.cv-links \{[\s\S]*?z-index: 2;/);
   assert.match(CONNECTED_VIEW_STYLES, /\.cv-links path \{[\s\S]*?stroke-width: 2;/);
-  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links path \{[\s\S]*?opacity: 0\.72;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links path \{[\s\S]*?opacity: 0\.68;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.pspf-connected-view\.cv-has-selection \.cv-links path \{ opacity: 0\.16; \}/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links path\.cv-line-context \{[\s\S]*?opacity: 0\.44;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links path\.cv-line-relation-exposed-by \{[\s\S]*?stroke-dasharray: 6 4;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links path\.cv-line-hover \{[\s\S]*?opacity: 0\.86 !important;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links path\.cv-line-active \{[\s\S]*?stroke-width: 3;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-links \.cv-link-endpoint \{[\s\S]*?fill: var\(--cv-line-sel\);/);
+  assert.doesNotMatch(CONNECTED_VIEW_STYLES, /cv-has-selection \.cv-card \{ opacity:/);
+  assert.doesNotMatch(CONNECTED_VIEW_STYLES, /\.cv-lane \{[^}]*z-index:/);
   assert.match(CONNECTED_VIEW_STYLES, /\.cv-card \{[\s\S]*?z-index: 3;/);
   assert.match(CONNECTED_VIEW_STYLES, /\.cv-card\.cv-selected \{[\s\S]*?z-index: 5;/);
-  assert.match(CONNECTED_VIEW_STYLES, /\.cv-card\.cv-connected \{[\s\S]*?z-index: 4;/);
+  assert.match(CONNECTED_VIEW_STYLES, /\.cv-card\.cv-direct-context \{[\s\S]*?z-index: 4;/);
 });
 
 test("browser runtime applies initial selection and renders chain summary", async () => {
@@ -85,21 +93,55 @@ test("browser runtime applies initial selection and renders chain summary", asyn
         .evaluate((node) => node.classList.contains("cv-selected")),
       true
     );
-    assert.equal(await page.locator("[data-cv-links] path.cv-highlight").count(), 4);
+    assert.equal(await page.locator("[data-cv-links] path.cv-line-active").count(), 2);
+    assert.equal(await page.locator("[data-cv-links] .cv-link-endpoint").count(), 4);
+    assert.equal(
+      await page
+        .locator('[data-cv-card][data-cv-id="DIR-1"]:visible')
+        .evaluate((node) => node.classList.contains("cv-direct-context")),
+      true
+    );
+    assert.equal(
+      await page
+        .locator('[data-cv-card][data-cv-id="RSK-1"]:visible')
+        .evaluate((node) => node.classList.contains("cv-direct-context")),
+      true
+    );
+    assert.equal(
+      await page
+        .locator('[data-cv-card][data-cv-id="ACT-1"]:visible')
+        .evaluate((node) => node.classList.contains("cv-muted")),
+      true
+    );
     await assertConnectedViewPathsMeetCards(page);
+    await assertConnectorLayerStaysBehindCards(page);
+    await assertUnselectedCardsRemainOpaque(page);
     const summary = await page.locator("[data-cv-selection-summary]").textContent();
     assert.match(summary ?? "", /Selected chain/);
     assert.match(summary ?? "", /1 Direction/);
     assert.match(summary ?? "", /2 Requirements/);
     assert.match(summary ?? "", /1 Risk/);
     assert.match(summary ?? "", /1 Action/);
+    assert.match(summary ?? "", /Direct context: Set assurance priority · High exposure/);
     assert.match(summary ?? "", /Relationship effect/);
+
+    await page.locator('[data-cv-action="refresh"]').click();
+    await waitForConnectedViewFrames(page);
+    assert.equal(await page.locator('[data-cv-action="refresh"]').getAttribute("aria-busy"), null);
+    assert.equal(await page.locator("[data-cv-links] path").count(), 4);
+    assert.equal(await page.locator("[data-cv-links] path.cv-line-active").count(), 2);
+    assert.equal(
+      await page
+        .locator('[data-cv-card][data-cv-id="REQ-GOV"]:visible')
+        .evaluate((node) => node.classList.contains("cv-selected")),
+      true
+    );
   } finally {
     await browser.close();
   }
 });
 
-test("buildConnectedViewConnectorPath anchors horizontal and wrapped lanes on stable sides", () => {
+test("buildConnectedViewConnectorPath anchors every connector on card side edges", () => {
   const horizontal = buildConnectedViewConnectorPath(
     { left: 10, top: 20, width: 100, height: 40 },
     { left: 260, top: 28, width: 100, height: 40 }
@@ -112,9 +154,9 @@ test("buildConnectedViewConnectorPath anchors horizontal and wrapped lanes on st
     { left: 40, top: 20, width: 160, height: 48 },
     { left: 48, top: 220, width: 160, height: 48 }
   );
-  assert.equal(wrapped.fromSide, "bottom");
-  assert.equal(wrapped.toSide, "top");
-  assert.match(wrapped.path, /^M 120 68 C 120 /);
+  assert.equal(wrapped.fromSide, "right");
+  assert.equal(wrapped.toSide, "left");
+  assert.match(wrapped.path, /^M 200 44 C /);
 });
 
 test("browser runtime hides selected domains and redraws connected paths", async () => {
@@ -142,8 +184,36 @@ test("browser runtime hides selected domains and redraws connected paths", async
     await page.locator('[data-cv-card][data-cv-id="REQ-GOV"]:visible').click();
     await waitForConnectedViewFrames(page);
     await assertConnectedViewPathsMeetCards(page);
-    assert.equal(await topCardIdInLane(page, "lane-risks"), "RSK-1");
-    assert.equal(await topCardIdInLane(page, "lane-actions"), "ACT-1");
+    assert.equal(await topCardIdInLane(page, "lane-risks"), "RSK-0");
+    assert.equal(await topCardIdInLane(page, "lane-actions"), "ACT-0");
+
+    await page.mouse.move(8, 8);
+    await page.locator('[data-cv-card][data-cv-id="REQ-GOV"]:visible').hover();
+    await waitForConnectedViewFrames(page);
+    assert.equal(
+      await page
+        .locator('[data-cv-card][data-cv-id="REQ-GOV"]:visible')
+        .evaluate((node) => node.classList.contains("cv-hover-source")),
+      true
+    );
+    assert.equal(
+      await page
+        .locator('[data-cv-card][data-cv-id="DIR-1"]:visible')
+        .evaluate((node) => node.classList.contains("cv-hover-context")),
+      true
+    );
+    assert.equal(
+      await page
+        .locator('[data-cv-card][data-cv-id="RSK-1"]:visible')
+        .evaluate((node) => node.classList.contains("cv-hover-context")),
+      true
+    );
+    assert.equal(await page.locator("[data-cv-links] path.cv-line-hover").count(), 2);
+    assert.equal(await page.locator("[data-cv-links] path.cv-line-relation-targets").count(), 1);
+    assert.equal(await page.locator("[data-cv-links] path.cv-line-relation-exposed-by").count(), 1);
+    assert.equal(await page.locator('[data-cv-links] path[data-cv-link-label="Exposed by"]').count(), 1);
+    assert.match((await page.locator("[data-cv-hover]").textContent()) ?? "", /Targets/);
+    assert.match((await page.locator("[data-cv-hover]").textContent()) ?? "", /Exposed by/);
 
     await page.locator('[data-cv-action="clear"]').click();
     await waitForConnectedViewFrames(page);
@@ -310,15 +380,10 @@ async function assertConnectedViewPathsMeetCards(page: Page): Promise<void> {
     ) => {
       const onLeft = Math.abs(point.x - rect.left);
       const onRight = Math.abs(point.x - rect.right);
-      const onTop = Math.abs(point.y - rect.top);
-      const onBottom = Math.abs(point.y - rect.bottom);
-      const horizontalClamp = point.x >= rect.left - 0.75 && point.x <= rect.right + 0.75;
       const verticalClamp = point.y >= rect.top - 0.75 && point.y <= rect.bottom + 0.75;
       return Math.min(
         verticalClamp ? onLeft : Number.POSITIVE_INFINITY,
-        verticalClamp ? onRight : Number.POSITIVE_INFINITY,
-        horizontalClamp ? onTop : Number.POSITIVE_INFINITY,
-        horizontalClamp ? onBottom : Number.POSITIVE_INFINITY
+        verticalClamp ? onRight : Number.POSITIVE_INFINITY
       );
     };
     const endpointFromPath = (path: SVGPathElement, atEnd: boolean) => {
@@ -362,15 +427,10 @@ async function assertConnectedViewPathsVisuallyMeetCards(page: Page): Promise<vo
     const endpointDistance = (point: DOMPoint, rect: DOMRect) => {
       const onLeft = Math.abs(point.x - rect.left);
       const onRight = Math.abs(point.x - rect.right);
-      const onTop = Math.abs(point.y - rect.top);
-      const onBottom = Math.abs(point.y - rect.bottom);
-      const horizontalClamp = point.x >= rect.left - 1 && point.x <= rect.right + 1;
       const verticalClamp = point.y >= rect.top - 1 && point.y <= rect.bottom + 1;
       return Math.min(
         verticalClamp ? onLeft : Number.POSITIVE_INFINITY,
-        verticalClamp ? onRight : Number.POSITIVE_INFINITY,
-        horizontalClamp ? onTop : Number.POSITIVE_INFINITY,
-        horizontalClamp ? onBottom : Number.POSITIVE_INFINITY
+        verticalClamp ? onRight : Number.POSITIVE_INFINITY
       );
     };
     const svgElement = svg as SVGSVGElement;
@@ -406,6 +466,39 @@ async function assertConnectedViewPathsVisuallyMeetCards(page: Page): Promise<vo
     });
   });
   assert.deepEqual(mismatches, []);
+}
+
+async function assertUnselectedCardsRemainOpaque(page: Page): Promise<void> {
+  const transparentCards = await page
+    .locator("[data-cv-card]:not(.cv-selected):not(.cv-connected)")
+    .evaluateAll((cards) =>
+      cards
+        .filter((card) => card instanceof HTMLElement && card.offsetParent !== null)
+        .filter((card) => getComputedStyle(card).opacity !== "1")
+        .map((card) => card.getAttribute("data-cv-id") ?? "unknown")
+    );
+  assert.deepEqual(transparentCards, []);
+}
+
+async function assertConnectorLayerStaysBehindCards(page: Page): Promise<void> {
+  const layeringFailures = await page.locator("[data-cv-links]").evaluate((svg) => {
+    const linkZIndex = Number.parseInt(getComputedStyle(svg).zIndex, 10);
+    return Array.from(document.querySelectorAll<HTMLElement>("[data-cv-card]")).flatMap((card) => {
+      if (card.offsetParent === null) {
+        return [];
+      }
+      const lane = card.closest<HTMLElement>(".cv-lane");
+      const laneZIndex = lane ? getComputedStyle(lane).zIndex : "auto";
+      const cardZIndex = Number.parseInt(getComputedStyle(card).zIndex, 10);
+      if (laneZIndex !== "auto") {
+        return [`${card.dataset.cvId ?? "unknown"} is trapped in lane stacking context ${laneZIndex}`];
+      }
+      return cardZIndex > linkZIndex
+        ? []
+        : [`${card.dataset.cvId ?? "unknown"} z-index ${cardZIndex} is not above connector layer ${linkZIndex}`];
+    });
+  });
+  assert.deepEqual(layeringFailures, []);
 }
 
 function sampleInput(): Parameters<typeof buildConnectedViewModel>[0] {
