@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-06T02:09:30.015Z",
+  "generatedAt": "2026-06-06T04:13:07.719Z",
   "sources": [
     {
       "sourceId": "pspf-release-2025-list-requirements",
@@ -32,7 +32,7 @@
       "lastUpdated": "2026-06-02",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-      "sha256": "43e1201d26dbf6869377cf8753ad08c7eeb1544c571362f320a6d5f50b082dba"
+      "sha256": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f"
     }
   ],
   "pspf": {
@@ -64,7 +64,7 @@
     "mitigationStrategyCount": 9,
     "guidanceFrameworkCount": 6,
     "controlThemeCount": 2,
-    "cyberReferenceMappingCount": 29,
-    "cyberReferenceLinkCount": 29
+    "cyberReferenceMappingCount": 127,
+    "cyberReferenceLinkCount": 127
   }
 }

@@ -540,6 +540,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.core.runDatasetDiagnostics",
       "pspf.core.createSnapshot",
       "pspf.core.exportBundle",
+      "pspf.workshop.importBundle",
       "pspf.workshop.exportBackupJson",
       "pspf.workshop.importBackupJson",
       "pspf.workshop.loadSampleWorkspace",
@@ -1002,9 +1003,12 @@ async function loadSampleWorkspaceVariant(variant: "enterprise" | "home"): Promi
       : buildSampleWorkspaceEntities({ sourceControls });
   await vscode.commands.executeCommand("pspf.core.upsertEntities", entities);
   await refreshWorkshopSurfaces();
-  const label = variant === "home" ? "home and small business" : "enterprise";
+  if (variant === "home") {
+    await openMasterDashboard();
+    return;
+  }
   const action = await vscode.window.showInformationMessage(
-    `PSPF ${label} sample workspace loaded: ${entities.length} record(s).`,
+    `PSPF enterprise sample workspace loaded: ${entities.length} record(s).`,
     "Open Welcome",
     "Open Dashboard"
   );
@@ -2999,11 +3003,7 @@ async function openMasterDashboard(): Promise<void> {
         ${portalGroup("Reporting", "Prepare material for assurance and executive review.", [
           portalCommand("pspf.core.createSnapshot", "Snapshot", "Freeze a local point-in-time record"),
           portalCommand("pspf.workshop.openCsoMagazine", "Digital CSO Magazine", "Broad executive assurance issue"),
-          portalCommand(
-            "pspf.workshop.copyCisoMasterPlan",
-            "Copy CISO Master Plan",
-            "Copy the adaptable master plan summary"
-          )
+          portalCommand("pspf.workshop.openCisoMagazine", "CISO Newsletter", "Focused CISO assurance issue")
         ])}
       </div>
     </section>
@@ -3719,6 +3719,17 @@ function continuousComplianceStyles(): string {
     .cc-severity-pill[data-severity="high"] { color: var(--pspf-warn); border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); background: var(--pspf-warn-soft); }
     .cc-severity-pill[data-severity="medium"] { color: var(--workshop-blue); border-color: color-mix(in srgb, var(--workshop-blue) 55%, var(--border)); background: var(--workshop-blue-soft); }
     .cc-severity-pill[data-severity="low"] { color: var(--pspf-ok); border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); background: var(--pspf-ok-soft); }
+    .cc-risk-matrix-wrap { overflow-x: auto; }
+    .cc-risk-matrix { width: 100%; min-width: 560px; table-layout: fixed; border-collapse: separate; border-spacing: 4px; }
+    .cc-risk-matrix th, .cc-risk-matrix td { position: static; border: 0; border-radius: var(--radius-sm); padding: 8px; text-align: center; vertical-align: middle; }
+    .cc-risk-matrix th { background: transparent; color: var(--muted); font-size: 11.5px; }
+    .cc-risk-matrix__axis { width: 5.5rem; }
+    .cc-risk-matrix__cell { border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+    .cc-risk-matrix__cell strong { display: block; color: var(--text); font-size: 18px; line-height: 1.1; }
+    .cc-risk-matrix__cell span { display: block; margin-top: 3px; color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .cc-risk-matrix__cell[data-band="green"] { background: var(--pspf-ok-soft); border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); }
+    .cc-risk-matrix__cell[data-band="amber"] { background: var(--pspf-warn-soft); border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); }
+    .cc-risk-matrix__cell[data-band="red"] { background: var(--pspf-danger-soft); border-color: color-mix(in srgb, var(--pspf-danger) 55%, var(--border)); }
     .cc-metro-hub { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-strong); margin-bottom: 12px; }
     .cc-metro-hub__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--workshop-blue); box-shadow: 0 0 0 3px var(--workshop-blue-soft); }
     .cc-metro { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
@@ -3821,6 +3832,36 @@ function renderHumanCentredRiskItem(item: {
     </li>`;
 }
 
+function renderHumanCentredRiskMatrix(model: HumanCentredRiskModel): string {
+  const rows = [5, 4, 3, 2, 1]
+    .map((impact) => {
+      const cells = [1, 2, 3, 4, 5]
+        .map((likelihood) => {
+          const cell = model.riskMatrix.find(
+            (candidate) => candidate.impact === impact && candidate.likelihood === likelihood
+          );
+          const riskCount = cell?.riskCount ?? 0;
+          const band = cell?.band ?? "green";
+          return `<td class="cc-risk-matrix__cell" data-band="${escapeHtml(band)}"><strong>${riskCount}</strong><span>${escapeHtml(
+            band
+          )}</span></td>`;
+        })
+        .join("");
+      return `<tr><th scope="row">Impact ${impact}</th>${cells}</tr>`;
+    })
+    .join("");
+  return `<section>
+    <h2>Impact v Likelihood Matrix</h2>
+    <p class="muted">Risk count by score. Green is low exposure, amber is medium exposure, and red is high exposure.</p>
+    <div class="cc-risk-matrix-wrap">
+      <table class="cc-risk-matrix" aria-label="Risk matrix showing impact by likelihood">
+        <thead><tr><th class="cc-risk-matrix__axis" scope="col">Impact</th><th scope="col">Likelihood 1</th><th scope="col">Likelihood 2</th><th scope="col">Likelihood 3</th><th scope="col">Likelihood 4</th><th scope="col">Likelihood 5</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
 function renderHumanCentredRiskView(model: HumanCentredRiskModel): string {
   const groups = model.groups
     .map(
@@ -3872,6 +3913,7 @@ function renderHumanCentredRiskView(model: HumanCentredRiskModel): string {
         <button type="button" data-command="pspf.workshop.createRisk">Create risk</button>
       </div>
     </section>
+    ${renderHumanCentredRiskMatrix(model)}
     <section>
       <h2>Outcomes At Risk</h2>
       <p class="muted">Severity bands: ${legend}</p>
@@ -4212,7 +4254,7 @@ function renderEssentialEightDashboard(model: EssentialEightDashboardModel): str
         ${renderEssentialEightStrategyChart(model)}
       </div>
     </section>
-    ${recordTable("E8 Strategy Tracker", model.strategyRows, ["strategy", "target", "status", "requirements", "met", "evidence", "ismMappings", "openActions", "openRisks", "nextStep"])}
+    ${recordTable("E8 Strategy Tracker", model.strategyRows, ["strategy", "target", "status", "requirements", "met", "evidence", "ismMappings", "openActions", "openRisks", "nextStep"], "e8-strategy-tracker")}
     ${recordTable("E8 Uplift Plan", model.planRows, ["title", "strategy", "status", "urgency", "startDate", "endDate", "dueDate", "impact", "linkedRequirements"])}
     ${recordTable("E8 Requirements To Review", model.requirementRows, ["title", "status", "evidence", "actions", "risks", "ismMappings"])}
   `
@@ -4241,6 +4283,18 @@ function essentialEightVisualStyles(): string {
     .e8-bar span { display: block; min-width: 0; background: var(--swatch); }
     .e8-bar-stack span + span { box-shadow: inset 1px 0 0 color-mix(in srgb, var(--surface) 55%, transparent); }
     .e8-chart-note { color: var(--muted); font-size: 12px; margin-bottom: 0; }
+    .e8-strategy-tracker table { min-width: 92rem; table-layout: fixed; }
+    .e8-strategy-tracker th[data-field="strategy"], .e8-strategy-tracker td[data-field="strategy"] { width: 22rem; min-width: 22rem; max-width: 34rem; }
+    .e8-strategy-tracker th[data-field="target"], .e8-strategy-tracker td[data-field="target"] { width: 5.5rem; }
+    .e8-strategy-tracker th[data-field="status"], .e8-strategy-tracker td[data-field="status"] { width: 8rem; }
+    .e8-strategy-tracker th[data-field="requirements"], .e8-strategy-tracker td[data-field="requirements"] { width: 7rem; }
+    .e8-strategy-tracker th[data-field="met"], .e8-strategy-tracker td[data-field="met"] { width: 6rem; }
+    .e8-strategy-tracker th[data-field="evidence"], .e8-strategy-tracker td[data-field="evidence"] { width: 6.5rem; }
+    .e8-strategy-tracker th[data-field="ismMappings"], .e8-strategy-tracker td[data-field="ismMappings"] { width: 7rem; }
+    .e8-strategy-tracker th[data-field="openActions"], .e8-strategy-tracker td[data-field="openActions"] { width: 7rem; }
+    .e8-strategy-tracker th[data-field="openRisks"], .e8-strategy-tracker td[data-field="openRisks"] { width: 6.5rem; }
+    .e8-strategy-tracker th[data-field="nextStep"], .e8-strategy-tracker td[data-field="nextStep"] { width: 17rem; max-width: 22rem; }
+    .e8-strategy-tracker th[data-field="target"], .e8-strategy-tracker td[data-field="target"], .e8-strategy-tracker th[data-field="status"], .e8-strategy-tracker td[data-field="status"], .e8-strategy-tracker th[data-field="requirements"], .e8-strategy-tracker td[data-field="requirements"], .e8-strategy-tracker th[data-field="met"], .e8-strategy-tracker td[data-field="met"], .e8-strategy-tracker th[data-field="evidence"], .e8-strategy-tracker td[data-field="evidence"], .e8-strategy-tracker th[data-field="ismMappings"], .e8-strategy-tracker td[data-field="ismMappings"], .e8-strategy-tracker th[data-field="openActions"], .e8-strategy-tracker td[data-field="openActions"], .e8-strategy-tracker th[data-field="openRisks"], .e8-strategy-tracker td[data-field="openRisks"] { white-space: nowrap; overflow-wrap: normal; font-variant-numeric: tabular-nums; }
     @media (max-width: 820px) { .e8-chart-grid, .e8-donut-wrap { grid-template-columns: 1fr; } .e8-donut { margin: 0 auto; } }
   </style>`;
 }
@@ -4653,16 +4707,16 @@ function renderPlanOfActionMasterSchedule(model: PlanOfActionBoardModel): string
     return `<p class="muted">No Actions are available yet. Create Actions or load the sample workspace to populate the master schedule.</p>`;
   }
   return `<div class="poa-board" style="--poa-width: ${model.timelineWidth}px;">
-    <div class="poa-phase poa-master-schedule">
+    <div class="poa-phase poa-master-schedule poa-master-schedule--rows">
       <div class="poa-phase__header">
         <strong>Master Schedule</strong>
         <span>${tasks.length} Action line${tasks.length === 1 ? "" : "s"}; every Action keeps its own row for auditability and review.</span>
       </div>
-      <div class="poa-master-grid" style="--poa-width: ${model.timelineWidth}px;">
-        <div class="poa-master-today-marker" style="left: ${model.todayX}px;" aria-hidden="true" title="Today: ${escapeHtml(model.today)}"></div>
+      <div class="poa-master-grid poa-master-grid--rows" style="--poa-width: ${model.timelineWidth}px; --poa-today-x: ${model.todayX}px;">
+        <div class="poa-master-today-marker" aria-hidden="true" title="Today: ${escapeHtml(model.today)}"></div>
         ${renderPlanOfActionMasterRuler(model)}
         <div class="poa-phase__tasks">
-          ${tasks.map(({ task, phase }) => renderPlanOfActionTask(task, model.timelineWidth, model.todayX, model.today, phase.id, phase.title)).join("")}
+          ${tasks.map(({ task, phase }) => renderPlanOfActionTask(task, model.timelineWidth, model.todayX, model.today, phase.id, phase.title, false)).join("")}
         </div>
       </div>
     </div>
@@ -4788,18 +4842,20 @@ function renderPlanOfActionTask(
   todayX: number,
   today: string,
   workstreamId: string,
-  workstreamTitle: string
+  workstreamTitle: string,
+  showTodayMarker = true
 ): string {
   const barClass = `poa-bar poa-bar--${task.urgency}`;
   const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
   const sourceLabel = task.phaseSource === "override" ? " · manual stream" : "";
+  const todayMarker = showTodayMarker ? renderPlanOfActionTodayMarker(todayX, today) : "";
   return `<div class="poa-task" data-poa-task data-poa-status="${escapeHtml(task.status)}" data-poa-workstream="${escapeHtml(workstreamId)}">
     <button type="button" class="poa-task__label" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">
       <strong>${escapeHtml(task.title)}</strong>
       <span>${escapeHtml(`${workstreamTitle}${sourceLabel}`)} · ${escapeHtml(label(task.status))} · ${escapeHtml(task.startDate)} to ${escapeHtml(task.endDate)}</span>
     </button>
     <div class="poa-track" style="width: ${timelineWidth}px;">
-      ${renderPlanOfActionTodayMarker(todayX, today)}
+      ${todayMarker}
       <div class="${escapeHtml(barClass)}" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}">${barLabel}</div>
     </div>
   </div>`;
@@ -9624,6 +9680,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.core.validateWorkspace",
         "pspf.core.createSnapshot",
         "pspf.core.exportBundle",
+        "pspf.workshop.importBundle",
         "pspf.shop.openForecast",
         "pspf.workshop.createRequirement",
         "pspf.workshop.createAction",
@@ -13155,9 +13212,10 @@ function commercialRow(
   return { relationship: label(relationship), type, title, status: label(status), context };
 }
 
-function recordTable(title: string, records: readonly object[], fields: readonly string[]): string {
+function recordTable(title: string, records: readonly object[], fields: readonly string[], className?: string): string {
+  const sectionClass = className ? ` class="${escapeHtml(className)}"` : "";
   if (records.length === 0) {
-    return `<section><h2>${escapeHtml(title)}</h2><p class="muted">No records linked yet.</p></section>`;
+    return `<section${sectionClass}><h2>${escapeHtml(title)}</h2><p class="muted">No records linked yet.</p></section>`;
   }
   const hasOpenEntity = records.some(
     (record) =>
@@ -13172,7 +13230,7 @@ function recordTable(title: string, records: readonly object[], fields: readonly
         `<tr>${hasOpenEntity ? tableOpenCell(record) : ""}${fields.map((field) => tableCell(record, field)).join("")}</tr>`
     )
     .join("");
-  return `<section><h2>${escapeHtml(title)}</h2><div class="table-wrap" tabindex="0" aria-label="Scrollable ${escapeHtml(title)} table"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
+  return `<section${sectionClass}><h2>${escapeHtml(title)}</h2><div class="table-wrap" tabindex="0" aria-label="Scrollable ${escapeHtml(title)} table"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div></section>`;
 }
 
 function requirementNavigationStrip(requirement: RequirementEntity, allEntities: readonly V01Entity[]): string {

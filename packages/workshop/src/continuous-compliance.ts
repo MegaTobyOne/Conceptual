@@ -277,6 +277,8 @@ export function riskSeverityForScore(score: number): { readonly id: RiskSeverity
 export interface HumanCentredRiskItem {
   readonly riskId: string;
   readonly title: string;
+  readonly likelihood: number;
+  readonly impact: number;
   readonly severityId: RiskSeverityId;
   readonly severityLabel: string;
   readonly severityScore: number;
@@ -292,10 +294,20 @@ export interface HumanCentredOutcomeGroup {
   readonly risks: readonly HumanCentredRiskItem[];
 }
 
+export type HumanCentredRiskMatrixBand = "green" | "amber" | "red";
+
+export interface HumanCentredRiskMatrixCell {
+  readonly likelihood: number;
+  readonly impact: number;
+  readonly riskCount: number;
+  readonly band: HumanCentredRiskMatrixBand;
+}
+
 export interface HumanCentredRiskModel {
   readonly generatedAt: string;
   readonly groups: readonly HumanCentredOutcomeGroup[];
   readonly unassigned: readonly HumanCentredRiskItem[];
+  readonly riskMatrix: readonly HumanCentredRiskMatrixCell[];
   readonly counts: { readonly high: number; readonly medium: number; readonly low: number; readonly total: number };
   readonly treated: number;
   readonly untreated: number;
@@ -324,6 +336,8 @@ function toRiskItem(risk: RiskEntity, links: readonly LinkEntity[]): HumanCentre
   return {
     riskId: risk.id,
     title: risk.title,
+    likelihood: risk.likelihood,
+    impact: risk.impact,
     severityId: severity.id,
     severityLabel: severity.label,
     severityScore: score,
@@ -331,6 +345,37 @@ function toRiskItem(risk: RiskEntity, links: readonly LinkEntity[]): HumanCentre
     treatmentLabel,
     linkedActions
   };
+}
+
+function riskMatrixBandForScore(score: number): HumanCentredRiskMatrixBand {
+  if (score >= 15) {
+    return "red";
+  }
+  if (score >= 8) {
+    return "amber";
+  }
+  return "green";
+}
+
+function buildHumanCentredRiskMatrix(items: readonly HumanCentredRiskItem[]): readonly HumanCentredRiskMatrixCell[] {
+  const countsByCoordinate = new Map<string, number>();
+  for (const item of items) {
+    const key = `${item.impact}:${item.likelihood}`;
+    countsByCoordinate.set(key, (countsByCoordinate.get(key) ?? 0) + 1);
+  }
+
+  const cells: HumanCentredRiskMatrixCell[] = [];
+  for (let impact = 5; impact >= 1; impact -= 1) {
+    for (let likelihood = 1; likelihood <= 5; likelihood += 1) {
+      cells.push({
+        likelihood,
+        impact,
+        riskCount: countsByCoordinate.get(`${impact}:${likelihood}`) ?? 0,
+        band: riskMatrixBandForScore(likelihood * impact)
+      });
+    }
+  }
+  return cells;
 }
 
 export function buildHumanCentredRiskModel(
@@ -395,6 +440,7 @@ export function buildHumanCentredRiskModel(
     generatedAt: now.toISOString(),
     groups,
     unassigned,
+    riskMatrix: buildHumanCentredRiskMatrix(allItems),
     counts,
     treated,
     untreated: counts.total - treated

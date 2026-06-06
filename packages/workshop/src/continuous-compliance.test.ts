@@ -81,6 +81,29 @@ test("human-centred risk view lists risks with no outcome under unassigned", () 
   assert.equal(model.unassigned[0]?.treatmentLabel, "No treatment yet");
 });
 
+test("human-centred risk matrix counts risks by impact and likelihood", () => {
+  const entities: V01Entity[] = [
+    risk({ id: "RSK-1", title: "Low exposure", likelihood: 1, impact: 1, status: "open" }),
+    risk({ id: "RSK-2", title: "Medium exposure", likelihood: 4, impact: 2, status: "open" }),
+    risk({ id: "RSK-3", title: "High exposure", likelihood: 5, impact: 4, status: "open" })
+  ];
+  const model = buildHumanCentredRiskModel(entities, { now: NOW });
+
+  assert.equal(model.riskMatrix.length, 25);
+  assert.deepEqual(
+    model.riskMatrix.find((cell) => cell.likelihood === 1 && cell.impact === 1),
+    { likelihood: 1, impact: 1, riskCount: 1, band: "green" }
+  );
+  assert.deepEqual(
+    model.riskMatrix.find((cell) => cell.likelihood === 4 && cell.impact === 2),
+    { likelihood: 4, impact: 2, riskCount: 1, band: "amber" }
+  );
+  assert.deepEqual(
+    model.riskMatrix.find((cell) => cell.likelihood === 5 && cell.impact === 4),
+    { likelihood: 5, impact: 4, riskCount: 1, band: "red" }
+  );
+});
+
 test("metro map collapses duplicate capability areas and counts stations", () => {
   const entities: V01Entity[] = [
     strategy({
