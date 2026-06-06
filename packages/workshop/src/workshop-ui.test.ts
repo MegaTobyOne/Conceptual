@@ -135,6 +135,11 @@ test("Plan of Action exposes master schedule and slice controls", async () => {
   assert.match(source, /function renderPlanOfActionIntegratedSchedule/);
   assert.match(source, /class="poa-master-range"/);
   assert.match(source, /class="poa-master-today-marker"/);
+  const teamDateOverlaySource = source.match(
+    /function renderPlanOfActionTeamDateOverlay[\s\S]*?function renderPlanOfActionTeamDateBar/
+  )?.[0];
+  assert.ok(teamDateOverlaySource);
+  assert.doesNotMatch(teamDateOverlaySource, /renderPlanOfActionTodayMarker/);
   assert.match(source, /function packPlanOfActionScheduleLanes/);
   assert.match(source, /class="poa-integrated-lanes"/);
   assert.match(source, /data-poa-integrated-lane/);

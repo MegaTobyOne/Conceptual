@@ -19,7 +19,10 @@ function spendItem({
   title,
   status,
   ...overrides
-}: Partial<SpendItemRecord> & Pick<SpendItemRecord, "id" | "title" | "status">): SpendItemRecord {
+}: Partial<SpendItemRecord> & { readonly billingCadence?: "one-off" | "monthly" | "annual" } & Pick<
+    SpendItemRecord,
+    "id" | "title" | "status"
+  >): SpendItemRecord {
   return {
     id,
     entityType: "spend-item",
@@ -229,5 +232,109 @@ describe("Shop forecast money arithmetic", () => {
     assert.equal(formatMoneyAmount({ amount: 0, currency: "AUD" }), "$0");
     assert.equal(moneyInputValue({ amount: 9876, currency: "AUD" }), "9876");
     assert.equal(moneyInputValue({ amount: 9876.543, currency: "AUD" }), "9876.54");
+  });
+
+  it("expands recurring and one-off costs into forecast totals", () => {
+    const recurringItems = [
+      spendItem({
+        id: "spend-monthly-subscription",
+        title: "Monthly subscription",
+        status: "committed",
+        amount: { amount: 100, currency: "AUD" },
+        forecastCost: { amount: 100, currency: "AUD" },
+        billingCadence: "monthly",
+        forecastStartAt: "2025-07-01",
+        forecastEndAt: "2025-09-30"
+      }),
+      spendItem({
+        id: "spend-annual-subscription",
+        title: "Annual subscription",
+        status: "committed",
+        amount: { amount: 1200, currency: "AUD" },
+        forecastCost: { amount: 1200, currency: "AUD" },
+        billingCadence: "annual",
+        forecastStartAt: "2025-07-01",
+        forecastEndAt: "2026-06-30"
+      }),
+      spendItem({
+        id: "spend-one-month-only",
+        title: "One month only",
+        status: "approved",
+        amount: { amount: 450, currency: "AUD" },
+        forecastCost: { amount: 450, currency: "AUD" },
+        billingCadence: "one-off",
+        forecastStartAt: "2025-08-01",
+        forecastEndAt: "2025-08-31"
+      })
+    ];
+
+    assert.deepEqual(deriveForecast(recurringItems), [
+      {
+        financialYear: "2025-26",
+        plannedSpend: 1950,
+        forecastCost: 1950,
+        expectedSavings: 0,
+        netForecast: 1950,
+        itemCount: 3
+      }
+    ]);
+
+    const months = deriveForecastMonths(recurringItems);
+    assert.equal(months.find((month) => month.monthKey === "2025-07")?.forecastSpend, 200);
+    assert.equal(months.find((month) => month.monthKey === "2025-08")?.forecastSpend, 650);
+    assert.equal(months.find((month) => month.monthKey === "2025-10")?.forecastSpend, 100);
+  });
+
+  it("uses cashflow month to place spend in the monthly forecast", () => {
+    const cashflowItems = [
+      spendItem({
+        id: "spend-monthly-from-august",
+        title: "Monthly from August",
+        status: "committed",
+        amount: { amount: 100, currency: "AUD" },
+        forecastCost: { amount: 100, currency: "AUD" },
+        billingCadence: "monthly",
+        cashflowMonth: "2025-08"
+      }),
+      spendItem({
+        id: "spend-september-only",
+        title: "September only",
+        status: "approved",
+        amount: { amount: 450, currency: "AUD" },
+        forecastCost: { amount: 450, currency: "AUD" },
+        billingCadence: "one-off",
+        cashflowMonth: "2025-09"
+      }),
+      spendItem({
+        id: "spend-annual-october",
+        title: "Annual in October",
+        status: "committed",
+        amount: { amount: 1200, currency: "AUD" },
+        forecastCost: { amount: 1200, currency: "AUD" },
+        billingCadence: "annual",
+        cashflowMonth: "2025-10"
+      })
+    ];
+
+    assert.deepEqual(deriveForecast(cashflowItems), [
+      {
+        financialYear: "2025-26",
+        plannedSpend: 2750,
+        forecastCost: 2750,
+        expectedSavings: 0,
+        netForecast: 2750,
+        itemCount: 3
+      }
+    ]);
+
+    const months = deriveForecastMonths(cashflowItems);
+    assert.equal(
+      months.find((month) => month.monthKey === "2025-07"),
+      undefined
+    );
+    assert.equal(months.find((month) => month.monthKey === "2025-08")?.forecastSpend, 100);
+    assert.equal(months.find((month) => month.monthKey === "2025-09")?.forecastSpend, 550);
+    assert.equal(months.find((month) => month.monthKey === "2025-10")?.forecastSpend, 1300);
+    assert.equal(months.find((month) => month.monthKey === "2026-06")?.forecastSpend, 100);
   });
 });

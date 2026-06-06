@@ -187,12 +187,14 @@ test("browser runtime keeps connector endpoints attached after layout and zoom c
     );
     await waitForConnectedViewFrames(page);
     await assertConnectedViewPathsMeetCards(page);
+    await assertConnectedViewPathsVisuallyMeetCards(page);
 
     await page.locator('[data-cv-action="toggle-layout"]').click();
     await waitForConnectedViewFrames(page);
     assert.equal(await page.locator('[data-cv-lane="lane-requirements"] [data-cv-card]:visible').count(), 2);
     assert.equal(await page.locator("[data-cv-links] path").count(), 4);
     await assertConnectedViewPathsMeetCards(page);
+    await assertConnectedViewPathsVisuallyMeetCards(page);
 
     await page.locator('[data-cv-action="toggle-layout"]').click();
     await waitForConnectedViewFrames(page);
@@ -200,15 +202,18 @@ test("browser runtime keeps connector endpoints attached after layout and zoom c
     assert.equal(await page.locator('[data-cv-lane="lane-req-technology"] [data-cv-card]:visible').count(), 1);
     assert.equal(await page.locator("[data-cv-links] path").count(), 4);
     await assertConnectedViewPathsMeetCards(page);
+    await assertConnectedViewPathsVisuallyMeetCards(page);
 
     await page.locator('[data-cv-action="zoom-in"]').click();
     await waitForConnectedViewFrames(page);
     await assertConnectedViewPathsMeetCards(page);
+    await assertConnectedViewPathsVisuallyMeetCards(page);
 
     await page.locator('[data-cv-action="zoom-out"]').click();
     await page.locator('[data-cv-action="zoom-out"]').click();
     await waitForConnectedViewFrames(page);
     await assertConnectedViewPathsMeetCards(page);
+    await assertConnectedViewPathsVisuallyMeetCards(page);
   } finally {
     await browser.close();
   }
@@ -290,11 +295,13 @@ async function assertConnectedViewPathsMeetCards(page: Page): Promise<void> {
     };
     const cardRect = (card: HTMLElement) => {
       const rect = card.getBoundingClientRect();
+      const scaleX = boardRect.width && board.offsetWidth ? boardRect.width / board.offsetWidth : 1;
+      const scaleY = boardRect.height && board.offsetHeight ? boardRect.height / board.offsetHeight : 1;
       return {
-        left: rect.left - boardRect.left + board.scrollLeft,
-        top: rect.top - boardRect.top + board.scrollTop,
-        right: rect.right - boardRect.left + board.scrollLeft,
-        bottom: rect.bottom - boardRect.top + board.scrollTop
+        left: (rect.left - boardRect.left) / scaleX + board.scrollLeft,
+        top: (rect.top - boardRect.top) / scaleY + board.scrollTop,
+        right: (rect.right - boardRect.left) / scaleX + board.scrollLeft,
+        bottom: (rect.bottom - boardRect.top) / scaleY + board.scrollTop
       };
     };
     const endpointDistance = (
@@ -335,6 +342,65 @@ async function assertConnectedViewPathsMeetCards(page: Page): Promise<void> {
       }
       if (toDistance > 1.25) {
         failures.push(`${path.dataset.from}->${path.dataset.to} ends ${toDistance.toFixed(2)}px from target card edge`);
+      }
+      return failures;
+    });
+  });
+  assert.deepEqual(mismatches, []);
+}
+
+async function assertConnectedViewPathsVisuallyMeetCards(page: Page): Promise<void> {
+  const mismatches = await page.locator("[data-cv-links]").evaluate((svg) => {
+    const visibleCard = (id: string | undefined): HTMLElement | undefined => {
+      if (!id) {
+        return undefined;
+      }
+      return Array.from(document.querySelectorAll<HTMLElement>(`[data-cv-card][data-cv-id="${id}"]`)).find(
+        (card) => card.offsetParent !== null
+      );
+    };
+    const endpointDistance = (point: DOMPoint, rect: DOMRect) => {
+      const onLeft = Math.abs(point.x - rect.left);
+      const onRight = Math.abs(point.x - rect.right);
+      const onTop = Math.abs(point.y - rect.top);
+      const onBottom = Math.abs(point.y - rect.bottom);
+      const horizontalClamp = point.x >= rect.left - 1 && point.x <= rect.right + 1;
+      const verticalClamp = point.y >= rect.top - 1 && point.y <= rect.bottom + 1;
+      return Math.min(
+        verticalClamp ? onLeft : Number.POSITIVE_INFINITY,
+        verticalClamp ? onRight : Number.POSITIVE_INFINITY,
+        horizontalClamp ? onTop : Number.POSITIVE_INFINITY,
+        horizontalClamp ? onBottom : Number.POSITIVE_INFINITY
+      );
+    };
+    const svgElement = svg as SVGSVGElement;
+    const svgRect = svgElement.getBoundingClientRect();
+    const viewBox = svgElement.viewBox.baseVal;
+    const visualEndpointFromPath = (path: SVGPathElement, atEnd: boolean) => {
+      const length = path.getTotalLength();
+      const point = path.getPointAtLength(atEnd ? length : 0);
+      const scaleX = viewBox.width ? svgRect.width / viewBox.width : 1;
+      const scaleY = viewBox.height ? svgRect.height / viewBox.height : 1;
+      return new DOMPoint(svgRect.left + (point.x - viewBox.x) * scaleX, svgRect.top + (point.y - viewBox.y) * scaleY);
+    };
+    return Array.from(svg.querySelectorAll<SVGPathElement>("path")).flatMap((path) => {
+      const fromCard = visibleCard(path.dataset.from);
+      const toCard = visibleCard(path.dataset.to);
+      if (!fromCard || !toCard) {
+        return [`Missing visible endpoint for ${path.dataset.from ?? "unknown"}->${path.dataset.to ?? "unknown"}`];
+      }
+      const fromDistance = endpointDistance(visualEndpointFromPath(path, false), fromCard.getBoundingClientRect());
+      const toDistance = endpointDistance(visualEndpointFromPath(path, true), toCard.getBoundingClientRect());
+      const failures = [];
+      if (fromDistance > 1.5) {
+        failures.push(
+          `${path.dataset.from}->${path.dataset.to} visually starts ${fromDistance.toFixed(2)}px from source card edge`
+        );
+      }
+      if (toDistance > 1.5) {
+        failures.push(
+          `${path.dataset.from}->${path.dataset.to} visually ends ${toDistance.toFixed(2)}px from target card edge`
+        );
       }
       return failures;
     });

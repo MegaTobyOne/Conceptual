@@ -85,6 +85,7 @@ test("commercial publication policy excludes sensitive money and restricted supp
       status: "proposed",
       amount: { amount: 240000, currency: "AUD" },
       financialYear: "2026-27",
+      billingCadence: "annual",
       expectedSavings: { amount: 15000, currency: "AUD" },
       assumptions: "Commercial assumptions should not publish.",
       confidence: "medium"
@@ -95,6 +96,7 @@ test("commercial publication policy excludes sensitive money and restricted supp
   const published = sanitiseEntityForPublication(spendItem) as SpendItemEntity;
   assert.equal(published.title, "Security monitoring renewal");
   assert.equal(published.amount, undefined);
+  assert.equal(published.billingCadence, undefined);
   assert.equal(published.expectedSavings, undefined);
   assert.equal(published.assumptions, undefined);
 

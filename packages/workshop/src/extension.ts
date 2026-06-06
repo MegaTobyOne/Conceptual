@@ -4480,7 +4480,6 @@ function renderPlanOfActionTeamDateOverlay(
         <span>${teamDates.length} optional team-wide date${teamDates.length === 1 ? "" : "s"} from Pub, shown beside action work to expose calendar pressure.</span>
       </div>
       <div class="poa-track poa-team-date-track" style="width: ${model.timelineWidth}px;">
-        ${renderPlanOfActionTodayMarker(model.todayX, model.today)}
         ${bars || `<span class="muted">Team dates are outside the current schedule range.</span>`}
       </div>
     </div>

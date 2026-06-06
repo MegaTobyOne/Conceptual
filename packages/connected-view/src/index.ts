@@ -1163,11 +1163,13 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     function rectFor(el) {
       const br = board.getBoundingClientRect();
       const r = el.getBoundingClientRect();
+      const scaleX = br.width && board.offsetWidth ? br.width / board.offsetWidth : 1;
+      const scaleY = br.height && board.offsetHeight ? br.height / board.offsetHeight : 1;
       return {
-        left: r.left - br.left + board.scrollLeft,
-        top: r.top - br.top + board.scrollTop,
-        width: r.width,
-        height: r.height
+        left: (r.left - br.left) / scaleX + board.scrollLeft,
+        top: (r.top - br.top) / scaleY + board.scrollTop,
+        width: r.width / scaleX,
+        height: r.height / scaleY
       };
     }
     function centre(rect) { return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }
@@ -1204,6 +1206,8 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       svg.setAttribute("viewBox", "0 0 " + w + " " + h);
       svg.setAttribute("width", w);
       svg.setAttribute("height", h);
+      svg.style.width = w + "px";
+      svg.style.height = h + "px";
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       for (const edge of edges) {
         const a = visibleCard(edge.fromId);

@@ -552,6 +552,7 @@ Represents a spend commitment, uplift item, costed control activity, or investme
 | `status` | string | proposed, approved, committed, spent, cancelled |
 | `amount` | object | amount + currency |
 | `financialYear` | string | FY label |
+| `billingCadence` | string/null | one-off, monthly, annual; sensitive Shop planning metadata |
 | `forecastStartAt` | string/null | when forecast cost/saving begins |
 | `forecastEndAt` | string/null | when forecast cost/saving ends |
 | `forecastCost` | object/null | expected total cost over the forecast period |

@@ -925,7 +925,11 @@ function slugify(value: string): string {
 
 async function openTeamEditor(team?: TeamRecord): Promise<void> {
   const store = await loadStore();
-  const [sourceControls, requirements] = await Promise.all([listSourceControls(), listRequirements()]);
+  const [sourceControls, requirements, mappings] = await Promise.all([
+    listSourceControls(),
+    listRequirements(),
+    listRequirementControlMappings()
+  ]);
   const title = team ? `Edit Pub Team: ${team.title}` : "New Pub Team";
   if (teamEditorPanel) {
     teamEditorPanel.title = title;
@@ -941,7 +945,7 @@ async function openTeamEditor(team?: TeamRecord): Promise<void> {
       teamEditorPanel = undefined;
     });
   }
-  teamEditorPanel.webview.html = renderTeamEditorHtml(team, store, sourceControls, requirements);
+  teamEditorPanel.webview.html = renderTeamEditorHtml(team, store, sourceControls, requirements, mappings);
 }
 
 async function handleTeamEditorMessage(message: PubWebviewMessage): Promise<void> {
@@ -1949,7 +1953,8 @@ function renderTeamEditorHtml(
   team: TeamRecord | undefined,
   store: PubStore,
   sourceControls: readonly SourceControlRecord[],
-  requirements: readonly RequirementRecord[]
+  requirements: readonly RequirementRecord[],
+  mappings: readonly RequirementControlMappingRecord[]
 ): string {
   const selectedControlRefs = new Set(team?.ownedControlRefs ?? []);
   const knownControlIds = new Set(sourceControls.map((sourceControl) => sourceControl.controlId));
@@ -1965,11 +1970,20 @@ function renderTeamEditorHtml(
     teamAssignments.some((assignment) => assignment.personId === person.id)
   );
   const controlsBase = 5;
-  const additionalControlsTab = controlsBase + sourceControls.length;
+  const additionalControlsTab = controlsBase + 1;
   const requirementsBase = additionalControlsTab + 1;
-  const additionalRequirementsTab = requirementsBase + requirements.length;
+  const additionalRequirementsTab = requirementsBase + 1;
   const teamItemsTab = additionalRequirementsTab + 1;
   const notesTab = teamItemsTab + Math.max(1, team?.teamItems.length ?? 0) * 6;
+  const scopePickerHtml = renderTeamScopePicker(
+    sourceControls,
+    requirements,
+    mappings,
+    selectedControlRefs,
+    selectedRequirementRefs,
+    controlsBase,
+    requirementsBase
+  );
   return pageHtml(
     team ? `Edit Pub Team ${team.title}` : "New Pub Team",
     `<main>
@@ -2008,21 +2022,13 @@ function renderTeamEditorHtml(
           </label>
         </section>
         <section class="panel">
-          <h1>Owned ISM controls</h1>
-          <div class="checkbox-list">
-            ${sourceControls.length === 0 ? `<p class="muted">No ISM source controls are available from Core yet. Add local refs below.</p>` : sourceControls.map((sourceControl, index) => controlCheckbox(sourceControl, selectedControlRefs, controlsBase + index)).join("")}
-          </div>
+          <h1>Team scope picker</h1>
+          <p class="muted">Search and tick the PSPF requirements and ISM controls this team owns. Mapping hints show where Core already links requirements and controls.</p>
+          ${scopePickerHtml}
           <label>
             <span>Additional local control refs</span>
             <textarea name="additionalControlRefs" tabindex="${additionalControlsTab}" rows="3" placeholder="Comma-separated refs not in the ISM list">${escapeHtml(localControlRefs.join(", "))}</textarea>
           </label>
-        </section>
-        <section class="panel">
-          <h1>Linked PSPF requirements</h1>
-          <p class="muted">Tick the PSPF requirements this team is accountable for. Use this to make the team's scope and goals explicit, separate from the ISM controls they operate.</p>
-          <div class="checkbox-list">
-            ${requirements.length === 0 ? `<p class="muted">No PSPF requirements are available from Core yet. Add local refs below.</p>` : requirements.map((requirement, index) => requirementCheckbox(requirement, selectedRequirementRefs, requirementsBase + index)).join("")}
-          </div>
           <label>
             <span>Additional local requirement refs</span>
             <textarea name="additionalRequirementRefs" tabindex="${additionalRequirementsTab}" rows="3" placeholder="Comma-separated refs not in the PSPF list">${escapeHtml(localRequirementRefs.join(", "))}</textarea>
@@ -2647,22 +2653,100 @@ function blankPerformanceCycle(): PerformanceCycleRecord {
   };
 }
 
-function controlCheckbox(
+function renderTeamScopePicker(
+  sourceControls: readonly SourceControlRecord[],
+  requirements: readonly RequirementRecord[],
+  mappings: readonly RequirementControlMappingRecord[],
+  selectedControlRefs: ReadonlySet<string>,
+  selectedRequirementRefs: ReadonlySet<string>,
+  controlsTabIndex: number,
+  requirementsTabIndex: number
+): string {
+  const sourceControlsById = new Map(sourceControls.map((sourceControl) => [sourceControl.id, sourceControl]));
+  const requirementsById = new Map(requirements.map((requirement) => [requirement.id, requirement]));
+  const controlsByRequirement = new Map<string, string[]>();
+  const requirementsByControl = new Map<string, string[]>();
+  for (const mapping of mappings) {
+    const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+    const requirement = requirementsById.get(mapping.requirementId);
+    if (!sourceControl || !requirement) {
+      continue;
+    }
+    controlsByRequirement.set(requirement.id, [
+      ...(controlsByRequirement.get(requirement.id) ?? []),
+      `${sourceControl.controlId} ${sourceControl.title}`
+    ]);
+    requirementsByControl.set(sourceControl.controlId, [
+      ...(requirementsByControl.get(sourceControl.controlId) ?? []),
+      `${requirement.id} ${requirement.title}`
+    ]);
+  }
+  const requirementRows =
+    requirements.length === 0
+      ? `<p class="muted scope-picker-empty">No PSPF requirements are available from Core yet. Add local refs below.</p>`
+      : requirements
+          .map((requirement) =>
+            requirementPickerRow(
+              requirement,
+              selectedRequirementRefs,
+              controlsByRequirement.get(requirement.id) ?? [],
+              requirementsTabIndex
+            )
+          )
+          .join("");
+  const controlRows =
+    sourceControls.length === 0
+      ? `<p class="muted scope-picker-empty">No ISM source controls are available from Core yet. Add local refs below.</p>`
+      : sourceControls
+          .map((sourceControl) =>
+            controlPickerRow(
+              sourceControl,
+              selectedControlRefs,
+              requirementsByControl.get(sourceControl.controlId) ?? [],
+              controlsTabIndex
+            )
+          )
+          .join("");
+  return `<div class="scope-picker" data-scope-picker>
+    <div class="scope-picker-summary" aria-live="polite">
+      <span data-scope-count="requirements">${selectedRequirementRefs.size} requirements selected</span>
+      <span data-scope-count="controls">${selectedControlRefs.size} controls selected</span>
+    </div>
+    <div class="scope-picker-toolbar">
+      <label><span>Search scope</span><input type="search" data-scope-search placeholder="Search ID, title, status or mapped context" /></label>
+      <label><span>Filter</span><select data-scope-filter><option value="all">All</option><option value="selected">Selected</option><option value="mapped">Mapped</option><option value="unselected">Unselected</option></select></label>
+    </div>
+    <div class="scope-picker-tabs" role="tablist" aria-label="Team scope lists">
+      <button type="button" class="scope-picker-tab is-active" data-scope-tab="requirements" role="tab" aria-selected="true">Requirements</button>
+      <button type="button" class="scope-picker-tab" data-scope-tab="controls" role="tab" aria-selected="false">ISM controls</button>
+    </div>
+    <div class="scope-picker-list" data-scope-panel="requirements">${requirementRows}</div>
+    <div class="scope-picker-list" data-scope-panel="controls" hidden>${controlRows}</div>
+  </div>`;
+}
+
+function controlPickerRow(
   sourceControl: SourceControlRecord,
   selectedControlRefs: ReadonlySet<string>,
+  mappedRequirementLabels: readonly string[],
   tabIndex: number
 ): string {
   const checked = selectedControlRefs.has(sourceControl.controlId) ? " checked" : "";
-  return `<label class="checkbox-row"><input type="checkbox" name="ownedControlRefs" value="${escapeHtml(sourceControl.controlId)}" tabindex="${tabIndex}"${checked} /><span><strong>${escapeHtml(sourceControl.controlId)}</strong> ${escapeHtml(sourceControl.title)}</span></label>`;
+  const mappedText =
+    mappedRequirementLabels.length > 0 ? mappedRequirementLabels.join(" ") : "No mapped PSPF requirements";
+  return `<label class="checkbox-row scope-picker-row" data-scope-kind="control" data-selected="${checked ? "true" : "false"}" data-mapped="${mappedRequirementLabels.length > 0 ? "true" : "false"}" data-search="${escapeHtml(`${sourceControl.controlId} ${sourceControl.title} ${mappedText}`)}"><input type="checkbox" name="ownedControlRefs" value="${escapeHtml(sourceControl.controlId)}" tabindex="${tabIndex}"${checked} /><span><strong>${escapeHtml(sourceControl.controlId)}</strong> ${escapeHtml(sourceControl.title)}<small>${escapeHtml(mappedRequirementLabels.length > 0 ? `Mapped requirements: ${mappedRequirementLabels.slice(0, 3).join("; ")}` : "No mapped PSPF requirements")}</small></span></label>`;
 }
 
-function requirementCheckbox(
+function requirementPickerRow(
   requirement: RequirementRecord,
   selectedRequirementRefs: ReadonlySet<string>,
+  mappedControlLabels: readonly string[],
   tabIndex: number
 ): string {
   const checked = selectedRequirementRefs.has(requirement.id) ? " checked" : "";
-  return `<label class="checkbox-row"><input type="checkbox" name="ownedRequirementRefs" value="${escapeHtml(requirement.id)}" tabindex="${tabIndex}"${checked} /><span><strong>${escapeHtml(requirement.id)}</strong> ${escapeHtml(requirement.title)}</span></label>`;
+  const mappedText = mappedControlLabels.length > 0 ? mappedControlLabels.join(" ") : "No mapped ISM controls";
+  const status = requirement.assessmentStatus ?? "not-recorded";
+  return `<label class="checkbox-row scope-picker-row" data-scope-kind="requirement" data-selected="${checked ? "true" : "false"}" data-mapped="${mappedControlLabels.length > 0 ? "true" : "false"}" data-search="${escapeHtml(`${requirement.id} ${requirement.title} ${status} ${mappedText}`)}"><input type="checkbox" name="ownedRequirementRefs" value="${escapeHtml(requirement.id)}" tabindex="${tabIndex}"${checked} /><span><strong>${escapeHtml(requirement.id)}</strong> ${escapeHtml(requirement.title)}<small>${escapeHtml(`${label(status)} · ${mappedControlLabels.length > 0 ? `Mapped controls: ${mappedControlLabels.slice(0, 3).join("; ")}` : "No mapped ISM controls"}`)}</small></span></label>`;
 }
 
 function renderPeopleHtml(store: PubStore): string {
@@ -2908,7 +2992,18 @@ function pageHtml(title: string, body: string): string {
     .checkbox-list { display: grid; gap: 6px; max-height: 18rem; overflow: auto; padding-right: 4px; }
     .checkbox-row { grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 8px; margin-top: 0; padding: 6px; border: 1px solid var(--vscode-panel-border); border-radius: 6px; background: var(--vscode-editor-background); }
     .checkbox-row input { width: auto; margin-top: 2px; }
-    .checkbox-row span { overflow-wrap: anywhere; }
+    .checkbox-row span { display: grid; gap: 2px; overflow-wrap: anywhere; }
+    .checkbox-row small { color: var(--vscode-descriptionForeground); font-size: 0.76rem; line-height: 1.35; }
+    .scope-picker { display: grid; gap: 10px; margin-top: 12px; }
+    .scope-picker-summary { display: flex; flex-wrap: wrap; gap: 8px; }
+    .scope-picker-summary span { border: 1px solid var(--vscode-panel-border); border-radius: 999px; padding: 4px 8px; color: var(--vscode-descriptionForeground); font-size: 0.8rem; }
+    .scope-picker-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, 220px); gap: 10px; align-items: end; }
+    .scope-picker-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .scope-picker-tab { background: var(--vscode-button-secondaryBackground, var(--vscode-editor-background)); color: var(--vscode-button-secondaryForeground, var(--vscode-foreground)); }
+    .scope-picker-tab.is-active { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
+    .scope-picker-list { display: grid; gap: 6px; max-height: 24rem; overflow: auto; padding-right: 4px; }
+    .scope-picker-row[hidden], .scope-picker-list[hidden] { display: none; }
+    @media (max-width: 680px) { .scope-picker-toolbar { grid-template-columns: 1fr; } }
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th, td { border-bottom: 1px solid var(--vscode-panel-border); padding: 8px; text-align: left; vertical-align: top; }
     th { color: var(--vscode-descriptionForeground); font-weight: 650; }
@@ -2943,6 +3038,7 @@ function pageHtml(title: string, body: string): string {
         }
       }
       fields.ownedControlRefs = data.getAll("ownedControlRefs");
+      fields.ownedRequirementRefs = data.getAll("ownedRequirementRefs");
       vscode.postMessage({
         action: button.dataset.action,
         teamId: form.dataset.teamId,
@@ -2953,6 +3049,57 @@ function pageHtml(title: string, body: string): string {
         fields
       });
     });
+  });
+  document.querySelectorAll("[data-scope-picker]").forEach((picker) => {
+    const search = picker.querySelector("[data-scope-search]");
+    const filter = picker.querySelector("[data-scope-filter]");
+    const tabs = Array.from(picker.querySelectorAll("[data-scope-tab]"));
+    const panels = Array.from(picker.querySelectorAll("[data-scope-panel]"));
+    const updateCounts = () => {
+      const requirementCount = picker.querySelectorAll('input[name="ownedRequirementRefs"]:checked').length;
+      const controlCount = picker.querySelectorAll('input[name="ownedControlRefs"]:checked').length;
+      const requirementLabel = picker.querySelector('[data-scope-count="requirements"]');
+      const controlLabel = picker.querySelector('[data-scope-count="controls"]');
+      if (requirementLabel) {
+        requirementLabel.textContent = requirementCount + (requirementCount === 1 ? " requirement selected" : " requirements selected");
+      }
+      if (controlLabel) {
+        controlLabel.textContent = controlCount + (controlCount === 1 ? " control selected" : " controls selected");
+      }
+    };
+    const applyFilter = () => {
+      const query = String(search?.value || "").trim().toLocaleLowerCase("en-AU");
+      const mode = String(filter?.value || "all");
+      picker.querySelectorAll("[data-scope-kind]").forEach((row) => {
+        const input = row.querySelector('input[type="checkbox"]');
+        const isSelected = Boolean(input?.checked);
+        row.dataset.selected = isSelected ? "true" : "false";
+        const matchesQuery = !query || String(row.dataset.search || "").toLocaleLowerCase("en-AU").includes(query);
+        const matchesMode = mode === "all" || (mode === "selected" && isSelected) || (mode === "unselected" && !isSelected) || (mode === "mapped" && row.dataset.mapped === "true");
+        row.hidden = !(matchesQuery && matchesMode);
+      });
+      updateCounts();
+    };
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const active = tab.dataset.scopeTab;
+        tabs.forEach((candidate) => {
+          const selected = candidate.dataset.scopeTab === active;
+          candidate.classList.toggle("is-active", selected);
+          candidate.setAttribute("aria-selected", selected ? "true" : "false");
+        });
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.scopePanel !== active;
+        });
+        applyFilter();
+      });
+    });
+    search?.addEventListener("input", applyFilter);
+    filter?.addEventListener("change", applyFilter);
+    picker.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+      input.addEventListener("change", applyFilter);
+    });
+    applyFilter();
   });
 </script></body>
 </html>`;

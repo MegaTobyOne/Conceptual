@@ -61,6 +61,7 @@ const CRITICALITIES = ["low", "medium", "high", "critical"] as const;
 const CONTRACT_STATUSES = ["draft", "active", "expired", "terminated"] as const;
 const SPEND_TYPES = ["capex", "opex", "uplift", "licence", "service"] as const;
 const SPEND_STATUSES = ["proposed", "approved", "committed", "spent", "cancelled"] as const;
+const BILLING_CADENCES = ["one-off", "monthly", "annual"] as const;
 const SAVINGS_TYPES = [
   "avoided-cost",
   "efficiency",
@@ -225,6 +226,8 @@ interface ShopEditorFields {
   readonly amount?: unknown;
   readonly financialYear?: unknown;
   readonly costCentre?: unknown;
+  readonly billingCadence?: unknown;
+  readonly cashflowMonth?: unknown;
   readonly forecastStartAt?: unknown;
   readonly forecastEndAt?: unknown;
   readonly forecastCost?: unknown;
@@ -657,6 +660,7 @@ function buildSpendItemFromFields(fields: ShopEditorFields, current?: SpendItemR
   const status = includedField(SPEND_STATUSES, fields.status);
   const amount = requiredNumberField(fields.amount, "Amount");
   const financialYear = stringField(fields.financialYear);
+  const billingCadence = includedField(BILLING_CADENCES, fields.billingCadence) ?? "one-off";
   const forecastCost = optionalNumberField(fields.forecastCost, "Forecast cost");
   const expectedSavings = optionalNumberField(fields.expectedSavings, "Expected savings");
   const paybackPeriodMonths = optionalNumberField(fields.paybackPeriodMonths, "Payback period months");
@@ -682,6 +686,10 @@ function buildSpendItemFromFields(fields: ShopEditorFields, current?: SpendItemR
   if (forecastEndAt.error) {
     return forecastEndAt.error;
   }
+  const cashflowMonth = optionalCashflowMonthField(fields.cashflowMonth, financialYear);
+  if (cashflowMonth.error) {
+    return cashflowMonth.error;
+  }
   if (forecastCost.error || expectedSavings.error || paybackPeriodMonths.error) {
     return forecastCost.error ?? expectedSavings.error ?? paybackPeriodMonths.error ?? "Enter a positive number.";
   }
@@ -696,6 +704,8 @@ function buildSpendItemFromFields(fields: ShopEditorFields, current?: SpendItemR
     financialYear,
     updatedAt: new Date().toISOString(),
     ...(optionalStringField(fields.costCentre) ? { costCentre: optionalStringField(fields.costCentre) } : {}),
+    billingCadence,
+    ...(cashflowMonth.value ? { cashflowMonth: cashflowMonth.value } : {}),
     ...(forecastStartAt.value ? { forecastStartAt: forecastStartAt.value } : {}),
     ...(forecastEndAt.value ? { forecastEndAt: forecastEndAt.value } : {}),
     ...(forecastCost.value === undefined ? {} : { forecastCost: moneyAmount(forecastCost.value) }),
@@ -1469,6 +1479,8 @@ function normaliseSpendItemRecord(value: unknown): SpendItemRecord | undefined {
     amount,
     financialYear: value.financialYear,
     ...(typeof value.costCentre === "string" ? { costCentre: value.costCentre } : {}),
+    ...(isIncluded(BILLING_CADENCES, value.billingCadence) ? { billingCadence: value.billingCadence } : {}),
+    ...(typeof value.cashflowMonth === "string" ? { cashflowMonth: value.cashflowMonth } : {}),
     ...(typeof value.forecastStartAt === "string" ? { forecastStartAt: value.forecastStartAt } : {}),
     ...(typeof value.forecastEndAt === "string" ? { forecastEndAt: value.forecastEndAt } : {}),
     ...(forecastCost ? { forecastCost } : {}),
@@ -1794,6 +1806,28 @@ function optionalDateField(value: unknown, labelText: string): { readonly value?
     return {};
   }
   return validateOptionalDate(text) ? { error: `${labelText} must use YYYY-MM-DD.` } : { value: text };
+}
+
+function optionalCashflowMonthField(
+  value: unknown,
+  financialYear: string
+): { readonly value?: string; readonly error?: string } {
+  const text = stringField(value);
+  if (!text) {
+    return {};
+  }
+  const match = text.match(/^(\d{4})-(\d{2})$/);
+  if (!match) {
+    return { error: "Cashflow month must use YYYY-MM." };
+  }
+  const month = Number(match[2]);
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    return { error: "Cashflow month must use a valid month." };
+  }
+  if (!cashflowMonthOptions(financialYear, text).includes(text)) {
+    return { error: "Cashflow month must sit inside the financial year." };
+  }
+  return { value: text };
 }
 
 function cleanText(value: string | undefined): string | undefined {
@@ -2825,31 +2859,51 @@ function renderContractEditorFields(store: ShopStore, contract: ContractRecord |
 function renderSpendItemEditorFields(spendItem: SpendItemRecord | undefined): string {
   const currentYear = new Date().getFullYear();
   const defaultFinancialYear = `${currentYear}-${String((currentYear + 1) % 100).padStart(2, "0")}`;
+  const financialYear = spendItem?.financialYear ?? defaultFinancialYear;
   return `<section class="panel">
     <h2>Spend item</h2>
     ${inputControl("title", "Spend item title", spendItem?.title ?? "", true, "1")}
     <div class="two-col">
       ${selectControl("spendType", "Spend type", SPEND_TYPES, spendItem?.spendType ?? "uplift", "2")}
       ${selectControl("status", "Status", SPEND_STATUSES, spendItem?.status ?? "proposed", "3")}
-      ${inputControl("amount", "Amount (AUD)", moneyInputValue(spendItem?.amount), true, "4", "0")}
-      ${inputControl("financialYear", "Financial year", spendItem?.financialYear ?? defaultFinancialYear, true, "5", "YYYY-YY")}
+      ${inputControl("amount", "Amount per cadence (AUD)", moneyInputValue(spendItem?.amount), true, "4", "0")}
+      ${inputControl("financialYear", "Financial year", financialYear, true, "5", "YYYY-YY")}
       ${inputControl("costCentre", "Cost centre", spendItem?.costCentre ?? getDefaultCostCentre() ?? "", false, "6")}
-      ${selectControl("confidence", "Confidence", CONFIDENCE_LEVELS, spendItem?.confidence ?? "medium", "7")}
+      ${selectControl("billingCadence", "Cost cadence", BILLING_CADENCES, spendItem?.billingCadence ?? "one-off", "7")}
+      ${selectControl("confidence", "Confidence", CONFIDENCE_LEVELS, spendItem?.confidence ?? "medium", "8")}
     </div>
   </section>
   <section class="panel">
     <h2>Forecast and savings</h2>
     <div class="two-col">
-      ${inputControl("forecastStartAt", "Forecast start date", spendItem?.forecastStartAt ?? "", false, "8", "YYYY-MM-DD")}
-      ${inputControl("forecastEndAt", "Forecast end date", spendItem?.forecastEndAt ?? "", false, "9", "YYYY-MM-DD")}
-      ${inputControl("forecastCost", "Forecast cost (AUD)", moneyInputValue(spendItem?.forecastCost), false, "10", "0")}
-      ${inputControl("expectedSavings", "Expected savings (AUD)", moneyInputValue(spendItem?.expectedSavings), false, "11", "0")}
-      ${selectControl("savingsType", "Savings type", SAVINGS_TYPES, spendItem?.savingsType ?? "efficiency", "12")}
-      ${inputControl("paybackPeriodMonths", "Payback period months", spendItem?.paybackPeriodMonths?.toString() ?? "", false, "13", "0")}
+      ${selectControl("cashflowMonth", "Cashflow month", cashflowMonthOptions(financialYear, spendItem?.cashflowMonth), spendItem?.cashflowMonth ?? "", "9")}
+      ${inputControl("forecastStartAt", "Forecast start date", spendItem?.forecastStartAt ?? "", false, "10", "YYYY-MM-DD")}
+      ${inputControl("forecastEndAt", "Forecast end date", spendItem?.forecastEndAt ?? "", false, "11", "YYYY-MM-DD")}
+      ${inputControl("forecastCost", "Forecast cost per cadence (AUD)", moneyInputValue(spendItem?.forecastCost), false, "12", "0")}
+      ${inputControl("expectedSavings", "Expected savings (AUD)", moneyInputValue(spendItem?.expectedSavings), false, "13", "0")}
+      ${selectControl("savingsType", "Savings type", SAVINGS_TYPES, spendItem?.savingsType ?? "efficiency", "14")}
+      ${inputControl("paybackPeriodMonths", "Payback period months", spendItem?.paybackPeriodMonths?.toString() ?? "", false, "15", "0")}
     </div>
-    ${textareaControl("assumptions", "Assumptions", spendItem?.assumptions ?? "", "14")}
-    ${textareaControl("notes", "Notes", spendItem?.notes ?? "", "15")}
+    ${textareaControl("assumptions", "Assumptions", spendItem?.assumptions ?? "", "16")}
+    ${textareaControl("notes", "Notes", spendItem?.notes ?? "", "17")}
   </section>`;
+}
+
+function cashflowMonthOptions(financialYear: string, currentValue: string | undefined): readonly string[] {
+  const match = financialYear.match(/^(\d{4})-\d{2}$/);
+  const values = [""];
+  if (match) {
+    const startYear = Number(match[1]);
+    for (let index = 0; index < 12; index += 1) {
+      const month = (index + 6) % 12;
+      const year = index < 6 ? startYear : startYear + 1;
+      values.push(`${year}-${String(month + 1).padStart(2, "0")}`);
+    }
+  }
+  if (currentValue && !values.includes(currentValue)) {
+    values.push(currentValue);
+  }
+  return values;
 }
 
 function inputControl(
@@ -3001,6 +3055,8 @@ function shopDetailRows(
         { label: "Amount", value: formatMoneyAmount(entity.amount) },
         { label: "Financial year", value: entity.financialYear },
         { label: "Cost centre", value: entity.costCentre ?? "Not recorded" },
+        { label: "Cost cadence", value: formatToken(entity.billingCadence ?? "one-off") },
+        { label: "Cashflow month", value: entity.cashflowMonth ?? "Not recorded" },
         { label: "Confidence", value: formatToken(entity.confidence ?? "medium") },
         { label: "Forecast start", value: entity.forecastStartAt ?? "Not recorded" },
         { label: "Forecast end", value: entity.forecastEndAt ?? "Not recorded" },
