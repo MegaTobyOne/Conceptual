@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.14.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.41.0" as const;
+export const PSPF_SLICE_VERSION = "1.41.1" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -824,6 +824,7 @@ export interface ContractEntity extends EntityEnvelope {
 
 export type SpendType = "capex" | "opex" | "uplift" | "licence" | "service";
 export type SpendStatus = "proposed" | "approved" | "committed" | "spent" | "cancelled";
+export type SpendBillingCadence = "one-off" | "monthly" | "annual";
 export type SavingsType =
   | "avoided-cost"
   | "efficiency"
@@ -841,6 +842,8 @@ export interface SpendItemEntity extends EntityEnvelope {
   readonly amount: MoneyAmount;
   readonly financialYear: string;
   readonly costCentre?: string;
+  readonly billingCadence?: SpendBillingCadence;
+  readonly cashflowMonth?: string;
   readonly forecastStartAt?: string;
   readonly forecastEndAt?: string;
   readonly forecastCost?: MoneyAmount;
@@ -1299,6 +1302,8 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "confidence"
       ),
       { field: "costCentre", publication: "sensitive" },
+      { field: "billingCadence", publication: "sensitive" },
+      { field: "cashflowMonth", publication: "sensitive" },
       { field: "amount", publication: "sensitive" },
       { field: "forecastStartAt", publication: "sensitive" },
       { field: "forecastEndAt", publication: "sensitive" },

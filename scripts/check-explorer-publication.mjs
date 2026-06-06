@@ -495,11 +495,11 @@ try {
       JSON.stringify(connectedViewValues.before)
     ),
     check(
-      "Explorer Connected View selection highlights chain",
+      "Explorer Connected View selection highlights direct context",
       !connectedViewValues.skipped &&
         connectedViewValues.before.selectedRecordIds === 1 &&
-        connectedViewValues.before.connectedCards >= 3 &&
-        connectedViewValues.before.highlightedEdges >= 3,
+        connectedViewValues.before.connectedCards >= 2 &&
+        connectedViewValues.before.highlightedEdges >= 2,
       JSON.stringify(connectedViewValues.before)
     ),
     check(

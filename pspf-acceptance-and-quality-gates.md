@@ -570,7 +570,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 
 ### v1.41 candidate gates (UX IA refinement and Pub team planning context)
 
-1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.41.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.41.1`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
 2. **Workshop IA gate**: Workshop Home remains focused on high-frequency actions; Master Dashboard decision loops are actionable cards; Strategy Map uses a statement-first hierarchy with grouped measures; ISM controls expose principle groups and safe control display names; tree views expose browse/open panel actions.
 3. **Pub card-view gate**: Pub Organisation Chart renders team cards with team name, responsibility, active roles, and assignments on the front, and accountable PSPF Requirements, ISM controls/control sets, and team news/dates on the back.
 4. **Pub team-date gate**: Pub teams store local-only team-wide news/date items with title, type, date range, notes, and an explicit `includeInPlan` flag.

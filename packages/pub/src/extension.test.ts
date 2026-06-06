@@ -151,6 +151,20 @@ test("Pub teams store local team news dates for optional planning", async () => 
   assert.match(source, /Access review evidence window/);
 });
 
+test("Pub team editor has a searchable scope picker for requirements and controls", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /function renderTeamScopePicker/);
+  assert.match(source, /data-scope-picker/);
+  assert.match(source, /data-scope-search/);
+  assert.match(source, /data-scope-filter/);
+  assert.match(source, /data-scope-tab="requirements"/);
+  assert.match(source, /data-scope-tab="controls"/);
+  assert.match(source, /Mapped requirements:/);
+  assert.match(source, /Mapped controls:/);
+  assert.match(source, /fields\.ownedRequirementRefs = data\.getAll\("ownedRequirementRefs"\)/);
+});
+
 test("Pub Home exposes one upcoming-actions graphic", async () => {
   const source = await readFile(sourcePath, "utf8");
 

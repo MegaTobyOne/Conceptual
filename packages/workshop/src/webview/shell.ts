@@ -194,16 +194,19 @@ export function shellHtml(title: string, body: string): string {
     .poa-phase__tasks { display: grid; gap: 7px; }
     .poa-master-range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 8px; color: var(--muted); font-size: 12px; }
     .poa-master-range strong { color: var(--text); font-size: 13px; }
+    .poa-master-schedule--rows { --poa-row-label-width: 220px; --poa-row-gap: 10px; min-width: max(760px, calc(var(--poa-width) + var(--poa-row-label-width) + var(--poa-row-gap) + 20px)); }
     .poa-master-grid { position: relative; display: grid; gap: 7px; }
+    .poa-master-grid--rows .poa-master-ruler { width: var(--poa-width); margin-left: calc(var(--poa-row-label-width) + var(--poa-row-gap)); }
     .poa-master-ruler { display: grid; align-items: end; color: var(--muted); font-size: 11px; }
     .poa-ruler-track { position: relative; min-height: 24px; border-bottom: 1px solid var(--border); }
     .poa-ruler-label { position: absolute; bottom: 4px; transform: translateX(-50%); white-space: nowrap; }
     .poa-ruler-label:first-child { transform: translateX(0); }
     .poa-ruler-label:last-child { transform: translateX(-100%); }
     .poa-master-today-marker { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--amber); z-index: 3; pointer-events: none; }
+    .poa-master-grid--rows .poa-master-today-marker { left: calc(var(--poa-row-label-width) + var(--poa-row-gap) + var(--poa-today-x)); }
     .poa-integrated-lanes { position: relative; display: grid; gap: 7px; }
     .poa-integrated-lane { position: relative; min-height: 44px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 0 1px, transparent 1px 28px), color-mix(in srgb, var(--surface-strong) 80%, transparent); overflow: hidden; }
-    .poa-task { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 10px; align-items: center; }
+    .poa-task { display: grid; grid-template-columns: var(--poa-row-label-width, 220px) minmax(0, 1fr); gap: var(--poa-row-gap, 10px); align-items: center; }
     .poa-task[hidden] { display: none; }
     .poa-task__label { display: grid; gap: 2px; min-height: 34px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); background: var(--surface-strong); text-align: left; }
     .poa-task__label strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -76,7 +76,7 @@ export interface ConnectedViewModel {
   readonly compactLanes: readonly ConnectedViewLane[];
 }
 
-export type ConnectedViewAnchorSide = "left" | "right" | "top" | "bottom";
+export type ConnectedViewAnchorSide = "left" | "right";
 
 export interface ConnectedViewConnectorRect {
   readonly left: number;
@@ -266,27 +266,11 @@ export function buildConnectedViewConnectorPath(
   const fromCentre = rectCentre(fromRect);
   const toCentre = rectCentre(toRect);
   const xDelta = toCentre.x - fromCentre.x;
-  const yDelta = toCentre.y - fromCentre.y;
-  const useVerticalAnchors = Math.abs(yDelta) > Math.abs(xDelta) * 1.15;
-  const fromSide: ConnectedViewAnchorSide = useVerticalAnchors
-    ? yDelta >= 0
-      ? "bottom"
-      : "top"
-    : xDelta >= 0
-      ? "right"
-      : "left";
-  const toSide: ConnectedViewAnchorSide = useVerticalAnchors
-    ? yDelta >= 0
-      ? "top"
-      : "bottom"
-    : xDelta >= 0
-      ? "left"
-      : "right";
+  const fromSide: ConnectedViewAnchorSide = xDelta >= 0 ? "right" : "left";
+  const toSide: ConnectedViewAnchorSide = xDelta >= 0 ? "left" : "right";
   const from = anchorPoint(fromRect, fromSide);
   const to = anchorPoint(toRect, toSide);
-  const path = useVerticalAnchors
-    ? verticalConnectorPath(from, to, fromSide)
-    : horizontalConnectorPath(from, to, fromSide);
+  const path = horizontalConnectorPath(from, to, fromSide);
   return { fromSide, toSide, from, to, path };
 }
 
@@ -303,10 +287,6 @@ function anchorPoint(
       return { x: rect.left, y: rect.top + rect.height / 2 };
     case "right":
       return { x: rect.left + rect.width, y: rect.top + rect.height / 2 };
-    case "top":
-      return { x: rect.left + rect.width / 2, y: rect.top };
-    case "bottom":
-      return { x: rect.left + rect.width / 2, y: rect.top + rect.height };
   }
 }
 
@@ -318,16 +298,6 @@ function horizontalConnectorPath(
   const direction = fromSide === "right" ? 1 : -1;
   const handle = Math.max(40, Math.abs(to.x - from.x) * 0.45);
   return `M ${from.x} ${from.y} C ${from.x + handle * direction} ${from.y}, ${to.x - handle * direction} ${to.y}, ${to.x} ${to.y}`;
-}
-
-function verticalConnectorPath(
-  from: { readonly x: number; readonly y: number },
-  to: { readonly x: number; readonly y: number },
-  fromSide: ConnectedViewAnchorSide
-): string {
-  const direction = fromSide === "bottom" ? 1 : -1;
-  const handle = Math.max(40, Math.abs(to.y - from.y) * 0.45);
-  return `M ${from.x} ${from.y} C ${from.x} ${from.y + handle * direction}, ${to.x} ${to.y - handle * direction}, ${to.x} ${to.y}`;
 }
 
 /* -------------------- badge helpers -------------------- */
@@ -592,6 +562,9 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   --cv-direction: #87a8ff;
   --cv-line: color-mix(in srgb, var(--cv-accent) 58%, var(--cv-muted));
   --cv-line-sel: var(--cv-accent);
+  --cv-line-direction: var(--cv-direction);
+  --cv-line-risk: var(--cv-risk);
+  --cv-line-action: var(--cv-action);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -660,7 +633,6 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 
 .cv-lane {
   position: relative;
-  z-index: 1;
   display: flex; flex-direction: column;
   background: var(--cv-surface);
   border: 1px solid var(--cv-border);
@@ -768,21 +740,37 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 .cv-card-open:active { transform: scale(var(--pspf-button-active-scale, 0.97)); }
 .cv-card:hover .cv-card-open,
 .cv-card.cv-selected .cv-card-open,
-.cv-card.cv-connected .cv-card-open { opacity: 1; }
+.cv-card.cv-direct-context .cv-card-open { opacity: 1; }
 
-.pspf-connected-view.cv-has-selection .cv-card { opacity: 0.34; }
+.pspf-connected-view.cv-has-selection .cv-card {
+  color: color-mix(in srgb, var(--cv-text) 48%, var(--cv-muted));
+  background: color-mix(in srgb, var(--cv-surface-strong) 92%, var(--cv-muted) 8%);
+  border-color: color-mix(in srgb, var(--cv-border) 82%, var(--cv-muted) 18%);
+  filter: saturate(0.68);
+}
 .cv-card.cv-selected,
-.cv-card.cv-connected { opacity: 1 !important; }
+.cv-card.cv-direct-context {
+  color: var(--cv-text);
+  filter: none;
+}
 .cv-card.cv-selected {
   z-index: 5;
   outline: 2px solid var(--cv-accent);
   outline-offset: 1px;
   background: color-mix(in srgb, var(--cv-accent) 16%, var(--cv-surface-strong));
 }
-.cv-card.cv-connected {
+.cv-card.cv-direct-context {
   z-index: 4;
   background: color-mix(in srgb, var(--cv-accent) 7%, var(--cv-surface-strong));
   border-color: color-mix(in srgb, var(--cv-accent) 35%, var(--cv-border));
+}
+.cv-card.cv-hover-source {
+  background: color-mix(in srgb, var(--cv-accent) 12%, var(--cv-surface-strong));
+  border-color: color-mix(in srgb, var(--cv-accent) 55%, var(--cv-border));
+}
+.cv-card.cv-hover-context {
+  border-color: color-mix(in srgb, var(--cv-accent) 42%, var(--cv-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cv-accent) 22%, transparent);
 }
 .cv-card.cv-related-requirement {
   background: color-mix(in srgb, var(--cv-accent) 14%, var(--cv-surface-strong));
@@ -798,22 +786,40 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 }
 
 .cv-links {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; left: 0;
   z-index: 2;
   width: 100%; height: 100%;
   pointer-events: none; overflow: visible;
 }
 .cv-links path {
   fill: none; stroke: var(--cv-line); stroke-width: 2;
-  opacity: 0.72;
+  opacity: 0.68;
   transition: stroke 200ms ease, stroke-width 200ms ease, opacity 200ms ease;
 }
-.pspf-connected-view.cv-has-selection .cv-links path { opacity: 0.2; }
-.cv-links path.cv-highlight {
+.pspf-connected-view.cv-has-selection .cv-links path { opacity: 0.16; }
+.cv-links path.cv-line-context {
+  opacity: 0.44;
+}
+.cv-links path.cv-line-relation-targets { stroke: var(--cv-line-direction); }
+.cv-links path.cv-line-relation-exposed-by { stroke: var(--cv-line-risk); stroke-dasharray: 6 4; }
+.cv-links path.cv-line-relation-treated-by,
+.cv-links path.cv-line-relation-addressed-by,
+.cv-links path.cv-line-relation-supported-by { stroke: var(--cv-line-action); }
+.cv-links path.cv-line-hover {
+  stroke-width: 2.75;
+  opacity: 0.86 !important;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--cv-accent) 35%, transparent));
+}
+.cv-links path.cv-line-active {
   stroke: var(--cv-line-sel);
   stroke-width: 3;
   opacity: 1 !important;
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--cv-accent) 45%, transparent));
+}
+.cv-links .cv-link-endpoint {
+  fill: var(--cv-line-sel);
+  opacity: 0.95;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--cv-accent) 45%, transparent));
 }
 
 .cv-selection-summary {
@@ -851,6 +857,7 @@ export const CONNECTED_VIEW_STYLES = String.raw`
 }
 .cv-hover ul { margin: 0; padding-left: 14px; list-style: disc; }
 .cv-hover li { margin: 2px 0; }
+.cv-hover .cv-relation { color: var(--cv-accent); font-size: 10.5px; white-space: nowrap; }
 .cv-hover .cv-hover-empty { color: var(--cv-muted); font-style: italic; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1124,13 +1131,33 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
 
     const selection = new Set();
     let zoom = 1;
+    let hoverId = "";
 
     const neighbours = new Map();
+    const edgeByPair = new Map();
     for (const edge of edges) {
       if (!neighbours.has(edge.fromId)) neighbours.set(edge.fromId, new Set());
       if (!neighbours.has(edge.toId)) neighbours.set(edge.toId, new Set());
       neighbours.get(edge.fromId).add(edge.toId);
       neighbours.get(edge.toId).add(edge.fromId);
+      const normalisedEdge = { fromId: edge.fromId, toId: edge.toId, linkType: edge.linkType, label: edgeLabel(edge.linkType) };
+      edgeByPair.set(edgeKey(edge.fromId, edge.toId), normalisedEdge);
+      edgeByPair.set(edgeKey(edge.toId, edge.fromId), normalisedEdge);
+    }
+
+    function edgeKey(a, b) { return String(a || "") + "\u2192" + String(b || ""); }
+    function edgeLabel(linkType) {
+      switch (linkType) {
+        case "targets": return "Targets";
+        case "exposed-by": return "Exposed by";
+        case "treated-by": return "Treated by";
+        case "addressed-by": return "Addressed by";
+        case "supported-by": return "Supported by";
+        default: return String(linkType || "Linked").replace(/-/g, " ");
+      }
+    }
+    function linkTypeClass(linkType) {
+      return String(linkType || "linked").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "linked";
     }
 
     function transitive(seeds) {
@@ -1163,35 +1190,28 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     function rectFor(el) {
       const br = board.getBoundingClientRect();
       const r = el.getBoundingClientRect();
+      const scaleX = br.width && board.offsetWidth ? br.width / board.offsetWidth : 1;
+      const scaleY = br.height && board.offsetHeight ? br.height / board.offsetHeight : 1;
       return {
-        left: r.left - br.left + board.scrollLeft,
-        top: r.top - br.top + board.scrollTop,
-        width: r.width,
-        height: r.height
+        left: (r.left - br.left) / scaleX + board.scrollLeft,
+        top: (r.top - br.top) / scaleY + board.scrollTop,
+        width: r.width / scaleX,
+        height: r.height / scaleY
       };
     }
     function centre(rect) { return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }
     function point(rect, side) {
       if (side === "left") return { x: rect.left, y: rect.top + rect.height / 2 };
-      if (side === "right") return { x: rect.left + rect.width, y: rect.top + rect.height / 2 };
-      if (side === "top") return { x: rect.left + rect.width / 2, y: rect.top };
-      return { x: rect.left + rect.width / 2, y: rect.top + rect.height };
+      return { x: rect.left + rect.width, y: rect.top + rect.height / 2 };
     }
     function connectorPath(fromRect, toRect) {
       const fromCentre = centre(fromRect);
       const toCentre = centre(toRect);
       const xDelta = toCentre.x - fromCentre.x;
-      const yDelta = toCentre.y - fromCentre.y;
-      const vertical = Math.abs(yDelta) > Math.abs(xDelta) * 1.15;
-      const fromSide = vertical ? (yDelta >= 0 ? "bottom" : "top") : (xDelta >= 0 ? "right" : "left");
-      const toSide = vertical ? (yDelta >= 0 ? "top" : "bottom") : (xDelta >= 0 ? "left" : "right");
+      const fromSide = xDelta >= 0 ? "right" : "left";
+      const toSide = xDelta >= 0 ? "left" : "right";
       const from = point(fromRect, fromSide);
       const to = point(toRect, toSide);
-      if (vertical) {
-        const direction = fromSide === "bottom" ? 1 : -1;
-        const handle = Math.max(40, Math.abs(to.y - from.y) * 0.45);
-        return "M " + from.x + " " + from.y + " C " + from.x + " " + (from.y + handle * direction) + ", " + to.x + " " + (to.y - handle * direction) + ", " + to.x + " " + to.y;
-      }
       const direction = fromSide === "right" ? 1 : -1;
       const handle = Math.max(40, Math.abs(to.x - from.x) * 0.45);
       return "M " + from.x + " " + from.y + " C " + (from.x + handle * direction) + " " + from.y + ", " + (to.x - handle * direction) + " " + to.y + ", " + to.x + " " + to.y;
@@ -1199,11 +1219,15 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
 
     function drawLinks() {
       if (!svg) return;
-      const w = board.scrollWidth;
-      const h = board.scrollHeight;
-      svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+      const w = Math.max(1, board.clientWidth || board.scrollWidth);
+      const h = Math.max(1, board.clientHeight || board.scrollHeight);
+      svg.setAttribute("viewBox", board.scrollLeft + " " + board.scrollTop + " " + w + " " + h);
       svg.setAttribute("width", w);
       svg.setAttribute("height", h);
+      svg.style.width = w + "px";
+      svg.style.height = h + "px";
+      svg.style.left = board.scrollLeft + "px";
+      svg.style.top = board.scrollTop + "px";
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       for (const edge of edges) {
         const a = visibleCard(edge.fromId);
@@ -1213,6 +1237,9 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
         path.setAttribute("d", connectorPath(rectFor(a), rectFor(b)));
         path.dataset.from = edge.fromId;
         path.dataset.to = edge.toId;
+        path.dataset.linkType = edge.linkType;
+        path.setAttribute("data-cv-link-label", edgeLabel(edge.linkType));
+        path.classList.add("cv-line-relation-" + linkTypeClass(edge.linkType));
         svg.appendChild(path);
       }
       applySelectionStyles();
@@ -1242,21 +1269,61 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       return readCard(el);
     }
 
+    function summaryLabel(info) {
+      if (info.ref && info.ref !== info.id && !info.ref.endsWith("-" + info.id)) return info.ref;
+      return info.title || info.ref || info.id;
+    }
+
     function applySelectionOrdering(connected, hasSel) {
       root.querySelectorAll("[data-cv-card]").forEach(function (el) {
+        el.classList.remove("cv-promoted");
+        el.style.order = "";
+      });
+    }
+
+    function directContext(seeds) {
+      const out = new Set();
+      for (const id of seeds) {
+        const nb = neighbours.get(id);
+        if (!nb) continue;
+        for (const x of nb) if (!selection.has(x)) out.add(x);
+      }
+      return out;
+    }
+
+    function applyHoverPreview() {
+      const hoverDirect = hoverId && neighbours.has(hoverId) ? neighbours.get(hoverId) : new Set();
+      root.classList.toggle("cv-has-hover", Boolean(hoverId));
+      root.querySelectorAll("[data-cv-card]").forEach(function (el) {
         const id = el.dataset.cvId;
-        const isSelected = hasSel && selection.has(id);
-        const isConnected = hasSel && !isSelected && connected.has(id);
-        el.classList.toggle("cv-promoted", isSelected || isConnected);
-        if (!hasSel) {
-          el.style.order = "";
-        } else if (isSelected) {
-          el.style.order = "-20";
-        } else if (isConnected) {
-          el.style.order = "-10";
-        } else {
-          el.style.order = "";
-        }
+        el.classList.toggle("cv-hover-source", Boolean(hoverId && id === hoverId));
+        el.classList.toggle("cv-hover-context", Boolean(hoverId && hoverDirect.has(id)));
+      });
+      if (svg) {
+        svg.querySelectorAll("path").forEach(function (p) {
+          const touchesHover = Boolean(hoverId && (p.dataset.from === hoverId || p.dataset.to === hoverId));
+          p.classList.toggle("cv-line-hover", touchesHover);
+        });
+      }
+    }
+
+    function lineEndpoint(path, atEnd) {
+      const length = path.getTotalLength();
+      const point = path.getPointAtLength(atEnd ? length : 0);
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("class", "cv-link-endpoint");
+      circle.setAttribute("cx", point.x);
+      circle.setAttribute("cy", point.y);
+      circle.setAttribute("r", "3.5");
+      return circle;
+    }
+
+    function refreshLineEndpointDots() {
+      if (!svg) return;
+      svg.querySelectorAll(".cv-link-endpoint").forEach(function (dot) { dot.remove(); });
+      svg.querySelectorAll("path.cv-line-active").forEach(function (path) {
+        svg.appendChild(lineEndpoint(path, false));
+        svg.appendChild(lineEndpoint(path, true));
       });
     }
 
@@ -1270,26 +1337,38 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       root.classList.toggle("cv-has-selection", hasSel);
       if (clearBtn) clearBtn.hidden = !hasSel;
       const connected = hasSel ? transitive(Array.from(selection)) : new Set();
+      const direct = hasSel ? directContext(Array.from(selection)) : new Set();
       applySelectionOrdering(connected, hasSel);
       root.querySelectorAll("[data-cv-card]").forEach(function (el) {
         const id = el.dataset.cvId;
         const isSelected = selection.has(id);
-        const isConnected = !isSelected && connected.has(id);
+        const isDirect = !isSelected && direct.has(id);
         el.classList.toggle("cv-selected", isSelected);
-        el.classList.toggle("cv-connected", isConnected);
-        el.classList.toggle("cv-related-requirement", isConnected && el.dataset.cvKind === "requirement");
+        el.classList.toggle("cv-direct-context", isDirect);
+        el.classList.toggle("cv-connected", isDirect);
+        el.classList.toggle("cv-muted", hasSel && !isSelected && !isDirect);
+        el.classList.toggle("cv-related-requirement", isDirect && el.dataset.cvKind === "requirement");
       });
       if (svg) {
         svg.querySelectorAll("path").forEach(function (p) {
-          const inChain = connected.has(p.dataset.from) && connected.has(p.dataset.to);
-          p.classList.toggle("cv-highlight", hasSel && inChain);
+          const fromSelected = selection.has(p.dataset.from);
+          const toSelected = selection.has(p.dataset.to);
+          const fromDirect = direct.has(p.dataset.from);
+          const toDirect = direct.has(p.dataset.to);
+          const active = hasSel && ((fromSelected && (toSelected || toDirect)) || (toSelected && fromDirect));
+          const context = hasSel && !active && (fromDirect || toDirect);
+          p.classList.toggle("cv-line-active", active);
+          p.classList.toggle("cv-line-context", context);
+          p.classList.toggle("cv-highlight", active);
         });
+        applyHoverPreview();
+        refreshLineEndpointDots();
       }
-      updateSelectionSummary(connected, hasSel);
+      updateSelectionSummary(connected, direct, hasSel);
       if (hasSel) scrollSelectionIntoView(connected);
     }
 
-    function updateSelectionSummary(connected, hasSel) {
+    function updateSelectionSummary(connected, direct, hasSel) {
       if (!summaryEl) return;
       if (!hasSel) {
         summaryEl.hidden = true;
@@ -1306,7 +1385,15 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       if (counts.requirement) parts.push(counts.requirement + " Requirement" + (counts.requirement === 1 ? "" : "s"));
       if (counts.risk) parts.push(counts.risk + " Risk" + (counts.risk === 1 ? "" : "s"));
       if (counts.action) parts.push(counts.action + " Action" + (counts.action === 1 ? "" : "s"));
-      summaryEl.innerHTML = '<strong>Selected chain</strong><span>' + escHtml(parts.join(" · ") || "No connected records") + (revealMessage ? " · " + escHtml(revealMessage) : "") + '</span>';
+      const directParts = [];
+      direct.forEach(function (id) {
+        const info = nodeInfo(id);
+        if (info) directParts.push(summaryLabel(info));
+      });
+      const meaning = directParts.length
+        ? "Direct context: " + directParts.slice(0, 4).join(" · ") + (directParts.length > 4 ? " · " + (directParts.length - 4) + " more" : "")
+        : "No direct context records linked to the current selection";
+      summaryEl.innerHTML = '<strong>Selected chain</strong><span>' + escHtml(parts.join(" · ") || "No connected records") + (revealMessage ? " · " + escHtml(revealMessage) : "") + '</span><span class="cv-selection-meaning">' + escHtml(meaning) + '</span>';
       summaryEl.hidden = false;
     }
 
@@ -1399,7 +1486,7 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     }
     function section(title, items) {
       return '<div class="cv-section"><h4>' + escHtml(title) + ' (' + items.length + ')</h4><ul>' +
-        items.map(function (i) { return '<li>' + escHtml(i.ref) + ' \u2014 ' + escHtml(i.title) + '</li>'; }).join("") +
+        items.map(function (i) { return '<li>' + escHtml(i.ref) + ' \u2014 ' + escHtml(i.title) + (i.relation ? ' <span class="cv-relation">' + escHtml(i.relation) + '</span>' : '') + '</li>'; }).join("") +
         '</ul></div>';
     }
     function detailSection(detail) {
@@ -1418,7 +1505,8 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       if (directIds) {
         directIds.forEach(function (nid) {
           const ni = nodeInfo(nid);
-          if (ni && grouped[ni.kind]) grouped[ni.kind].push(ni);
+          const edge = edgeByPair.get(edgeKey(id, nid));
+          if (ni && grouped[ni.kind]) grouped[ni.kind].push(Object.assign({}, ni, { relation: edge ? edge.label : "" }));
         });
       }
       const sections = [];
@@ -1432,6 +1520,8 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
         '<h3>' + escHtml(info.title) + '</h3>' +
         detailSection(info.detail) +
         body;
+      hoverId = id;
+      applyHoverPreview();
       hoverEl.hidden = false;
       positionHover(card);
     }
@@ -1458,6 +1548,8 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     }
     function hideHover() {
       if (!hoverEl) return;
+      hoverId = "";
+      applyHoverPreview();
       hoverEl.hidden = true;
       hoverEl.innerHTML = "";
     }
@@ -1505,19 +1597,11 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
     });
     if (clearBtn) clearBtn.addEventListener("click", function () { selection.clear(); refreshSelection(); });
     if (refreshBtn) refreshBtn.addEventListener("click", function () {
-      try {
-        const shared = globalThis.__pspfWorkshopVscode;
-        if (shared && typeof shared.postMessage === "function") {
-          shared.postMessage({ command: "refresh" });
-          return;
-        }
-        if (typeof globalThis.acquireVsCodeApi === "function") {
-          if (!globalThis.__pspfCvVsCode) globalThis.__pspfCvVsCode = globalThis.acquireVsCodeApi();
-          globalThis.__pspfCvVsCode.postMessage({ command: "refresh" });
-          return;
-        }
-      } catch (e) { /* fall through */ }
-      location.reload();
+      refreshBtn.setAttribute("aria-busy", "true");
+      requestAnimationFrame(function () {
+        drawLinks();
+        refreshBtn.removeAttribute("aria-busy");
+      });
     });
     if (layoutBtn && layoutLabel) {
       layoutBtn.addEventListener("click", function () {
@@ -1583,7 +1667,7 @@ export const CONNECTED_VIEW_BROWSER_SCRIPT = String.raw`(() => {
       if (card) showHover(card);
     });
     board.addEventListener("focusout", function () { hideHover(); });
-    board.addEventListener("scroll", hideHover, { passive: true });
+    board.addEventListener("scroll", function () { hideHover(); requestAnimationFrame(drawLinks); }, { passive: true });
     window.addEventListener("scroll", hideHover, { passive: true });
 
     window.addEventListener("resize", drawLinks);

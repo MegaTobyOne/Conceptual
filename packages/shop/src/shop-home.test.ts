@@ -33,3 +33,16 @@ test("Shop money storage helpers round dollar values to cents", async () => {
   assert.match(source, /return \{ amount: roundMoneyAmount\(amount\), currency \}/);
   assert.match(source, /amount: roundMoneyAmount\(value\.amount\)/);
 });
+
+test("Shop spend item editor manages recurring cost cadence", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /const BILLING_CADENCES = \["one-off", "monthly", "annual"\] as const/);
+  assert.match(source, /readonly billingCadence\?: unknown/);
+  assert.match(source, /billingCadence = includedField\(BILLING_CADENCES, fields\.billingCadence\) \?\? "one-off"/);
+  assert.match(source, /selectControl\("billingCadence", "Cost cadence", BILLING_CADENCES/);
+  assert.match(source, /readonly cashflowMonth\?: unknown/);
+  assert.match(source, /selectControl\("cashflowMonth", "Cashflow month", cashflowMonthOptions/);
+  assert.match(source, /label: "Cost cadence", value: formatToken\(entity\.billingCadence \?\? "one-off"\)/);
+  assert.match(source, /label: "Cashflow month", value: entity\.cashflowMonth \?\? "Not recorded"/);
+});

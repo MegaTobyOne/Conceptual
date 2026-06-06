@@ -32,6 +32,10 @@ ISM:
 - `https://github.com/AustralianCyberSecurityCentre/ism-oscal`
 - Selected baseline release: `v2026.03.24`
 
+ASD/ACSC cyber guidance:
+- `https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping`
+- `https://www.cyber.gov.au/sites/default/files/2025-07/Essential%20Eight%20maturity%20model%20and%20ISM%20mapping%20%28October%202024%29.xlsx`
+
 ## Non-Negotiable Rules
 
 - Do not edit generated reference-data output by hand.

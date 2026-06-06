@@ -291,7 +291,7 @@ const generated =
   `export const CONTROL_THEMES = ${toConst(cyberReferenceData.controlThemes)} satisfies readonly Omit<ControlThemeEntity, "createdAt" | "updatedAt">[];\n\n` +
   `export const CYBER_REFERENCE_MAPPINGS = ${toConst(cyberReferenceData.cyberReferenceMappings)} satisfies readonly Omit<CyberReferenceMappingEntity, "createdAt" | "updatedAt">[];\n\n` +
   `export const CYBER_REFERENCE_LINKS = ${toConst(cyberReferenceData.cyberReferenceLinks)} satisfies readonly Omit<LinkEntity, "createdAt" | "updatedAt">[];\n\n` +
-  `export const ISM_SOURCE_CONTROLS = ${toConst(ismSourceControls)} satisfies readonly Omit<SourceControlEntity, "createdAt" | "updatedAt">[];\n\n` +
+  `export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt" | "updatedAt">[] = ${toConst(ismSourceControls)};\n\n` +
   `export const ISM_SOURCE_CONTROL_CATEGORIES = ${toConst(ismSourceControlCategories)};\n\n` +
   `export const PREVIOUS_ISM_SOURCE_CONTROLS = ${toConst(previousIsmSourceControls)} satisfies readonly Pick<SourceControlEntity, "controlId" | "statement" | "provenance">[];\n\n` +
   `export const PSPF_REFERENCE_DATA_REPORT = ${toConst(report)};\n`;
@@ -426,20 +426,32 @@ async function extractIsmSourceControls(catalogPath) {
   return controls.map(({ control, category }, index) => {
     const statement = normaliseWhitespace(collectProse(control).join(" ")) || control.title;
     const controlId = String(control.id ?? control.uuid ?? `ism-control-${index + 1}`);
+    const label = ismControlLabel(control);
+    const defaultNotApplicable = isOutOfScopeForOfficialSensitive(control.title, statement);
     return {
       sourceControl: {
         id: `SRC-${stableUuid(controlId)}`,
         entityType: "source-control",
         schemaVersion: GENERATED_SCHEMA_VERSION,
-        title: String(control.title ?? controlId),
+        title: formatIsmSourceControlTitle(control.title, controlId, label, statement),
         sourceProduct: "core",
         recordStatus: "active",
         controlId,
         statement,
-        profileTags: ["master-catalog"],
+        profileTags: defaultNotApplicable
+          ? ["master-catalog", "official-sensitive-not-applicable"]
+          : ["master-catalog"],
         statementChangeStatus: index === 0 ? "changed" : "unchanged",
+        ...(defaultNotApplicable
+          ? {
+              localApplicabilityNote:
+                "Defaulted not applicable for the OFFICIAL: Sensitive baseline because this ISM control is scoped to SECRET or TOP SECRET environments.",
+              implementationStatus: "not-applicable"
+            }
+          : {}),
         externalRefs: [
           { scheme: "oscal-control-id", value: controlId },
+          ...(label ? [{ scheme: "ism-label", value: label }] : []),
           ...(control.uuid ? [{ scheme: "oscal-uuid", value: String(control.uuid) }] : [])
         ],
         provenance: {
@@ -748,6 +760,42 @@ function collectProse(node) {
     prose.push(...collectProse(part));
   }
   return prose;
+}
+
+function ismControlLabel(control) {
+  const label = (control.props ?? []).find((prop) => prop.name === "label")?.value;
+  return label ? normaliseWhitespace(String(label)) : "";
+}
+
+function formatIsmSourceControlTitle(title, controlId, label, statement) {
+  const baseTitle = normaliseWhitespace(String(title ?? controlId));
+  if (!label || baseTitle.startsWith(`${label} `) || baseTitle.startsWith(`${label}:`)) {
+    if (/^Control:\s*ism-\d+$/i.test(baseTitle) || baseTitle.toLowerCase() === controlId.toLowerCase()) {
+      const summary = sourceControlTitleSummary(statement);
+      return summary ? `${controlId.toUpperCase()} - ${summary}` : baseTitle;
+    }
+    return baseTitle;
+  }
+  return `${label} - ${baseTitle}`;
+}
+
+function sourceControlTitleSummary(statement) {
+  const text = normaliseWhitespace(String(statement ?? ""));
+  const firstSentence = text.split(/(?<=[.!?])\s+/)[0]?.replace(/[.]$/, "") ?? "";
+  return firstSentence.length > 120 ? `${firstSentence.slice(0, 117).trimEnd()}...` : firstSentence;
+}
+
+function isOutOfScopeForOfficialSensitive(title, statement) {
+  const text = `${title ?? ""} ${statement ?? ""}`;
+  if (/\bTOP SECRET\b/i.test(text)) {
+    return true;
+  }
+  if (!/\bSECRET\b/i.test(text)) {
+    return false;
+  }
+  return !/OFFICIAL:\s*Sensitive|non-classified|SECRET or below|SECRET and below|classified as SECRET or below|PROTECTED and SECRET/i.test(
+    text
+  );
 }
 
 function buildPreviousIsmSourceControls(currentControls) {

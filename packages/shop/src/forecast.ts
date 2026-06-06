@@ -3,6 +3,12 @@ import { type SpendItemRecord } from "./relationship-rules.js";
 import { formatCurrency, formatToken } from "./webview/util.js";
 
 const MONTH_NAMES = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"] as const;
+const BILLING_CADENCES = ["one-off", "monthly", "annual"] as const;
+type BillingCadence = (typeof BILLING_CADENCES)[number];
+type SpendItemWithBilling = SpendItemRecord & {
+  readonly billingCadence?: BillingCadence;
+  readonly cashflowMonth?: string;
+};
 
 export interface ForecastYear {
   readonly financialYear: string;
@@ -75,7 +81,7 @@ export function deriveForecast(spendItems: readonly SpendItemRecord[]): Forecast
       netForecast: 0,
       itemCount: 0
     };
-    const plannedSpend = existing.plannedSpend + moneyAmountValue(item.amount);
+    const plannedSpend = existing.plannedSpend + plannedSpendValue(item);
     const forecastCost = existing.forecastCost + forecastCostValue(item);
     const expectedSavings = existing.expectedSavings + moneyAmountValue(item.expectedSavings);
     byYear.set(item.financialYear, {
@@ -97,7 +103,7 @@ export function deriveForecastMonths(spendItems: readonly SpendItemRecord[]): Fo
     if (months.length === 0) {
       continue;
     }
-    const monthlySpend = forecastCostValue(item) / months.length;
+    const monthlySpend = monthlyForecastCostValue(item, months.length);
     for (const month of months) {
       const existing = byMonth.get(month.monthKey) ?? {
         monthKey: month.monthKey,
@@ -168,14 +174,14 @@ export function deriveSpendItemReport(spendItems: readonly SpendItemRecord[]): S
       financialYear: item.financialYear,
       costCentre: item.costCentre ?? "",
       status: formatToken(item.status),
-      amount: moneyAmountValue(item.amount),
+      amount: plannedSpendValue(item),
       forecastCost: forecastCostValue(item),
       expectedSavings: moneyAmountValue(item.expectedSavings)
     }));
 }
 
 export function spendTotals(items: readonly SpendItemRecord[]): SpendTotals {
-  const plannedSpend = items.reduce((total, item) => total + moneyAmountValue(item.amount), 0);
+  const plannedSpend = items.reduce((total, item) => total + plannedSpendValue(item), 0);
   const forecastCost = items.reduce((total, item) => total + forecastCostValue(item), 0);
   const expectedSavings = items.reduce((total, item) => total + moneyAmountValue(item.expectedSavings), 0);
   return { plannedSpend, forecastCost, expectedSavings, netForecast: forecastCost - expectedSavings };
@@ -189,6 +195,13 @@ export function forecastMonthsForItem(item: SpendItemRecord): ForecastMonth[] {
   const explicitMonths = monthsBetween(item.forecastStartAt, item.forecastEndAt, item.financialYear);
   if (explicitMonths.length > 0) {
     return explicitMonths;
+  }
+  const cashflowMonth = cashflowMonthForItem(item);
+  if (cashflowMonth) {
+    if (billingCadenceForItem(item) === "monthly") {
+      return monthsFromCashflowMonthToFinancialYearEnd(cashflowMonth, item.financialYear);
+    }
+    return [cashflowMonth];
   }
   return monthsForFinancialYear(item.financialYear);
 }
@@ -220,7 +233,82 @@ export function formatMoneyAmount(value: MoneyAmount | undefined): string {
 }
 
 export function forecastCostValue(item: SpendItemRecord): number {
-  return moneyAmountNumber(item.forecastCost) ?? moneyAmountValue(item.amount);
+  const baseCost = moneyAmountNumber(item.forecastCost) ?? moneyAmountValue(item.amount);
+  const months = forecastMonthsForItem(item).length;
+  if (usesSingleCashflowMonth(item) && billingCadenceForItem(item) === "annual") {
+    return baseCost;
+  }
+  return totalForecastCostValue(baseCost, billingCadenceForItem(item), months);
+}
+
+export function plannedSpendValue(item: SpendItemRecord): number {
+  const months = forecastMonthsForItem(item).length;
+  if (usesSingleCashflowMonth(item) && billingCadenceForItem(item) === "annual") {
+    return moneyAmountValue(item.amount);
+  }
+  return totalForecastCostValue(moneyAmountValue(item.amount), billingCadenceForItem(item), months);
+}
+
+function monthlyForecastCostValue(item: SpendItemRecord, monthCount: number): number {
+  const baseCost = moneyAmountNumber(item.forecastCost) ?? moneyAmountValue(item.amount);
+  const cadence = billingCadenceForItem(item);
+  if (cadence === "monthly") {
+    return baseCost;
+  }
+  if (cadence === "annual") {
+    if (usesSingleCashflowMonth(item)) {
+      return baseCost;
+    }
+    return baseCost / 12;
+  }
+  return monthCount > 0 ? baseCost / monthCount : 0;
+}
+
+function cashflowMonthForItem(item: SpendItemRecord): ForecastMonth | undefined {
+  const value = (item as SpendItemWithBilling).cashflowMonth;
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const match = value.match(/^(\d{4})-(\d{2})$/);
+  if (!match) {
+    return undefined;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 0 || month > 11) {
+    return undefined;
+  }
+  const bucket = monthBucket(year, month, item.financialYear);
+  return bucket.financialYear === item.financialYear ? bucket : undefined;
+}
+
+function usesSingleCashflowMonth(item: SpendItemRecord): boolean {
+  return !item.forecastStartAt && !item.forecastEndAt && Boolean(cashflowMonthForItem(item));
+}
+
+function monthsFromCashflowMonthToFinancialYearEnd(startMonth: ForecastMonth, financialYear: string): ForecastMonth[] {
+  const allMonths = monthsForFinancialYear(financialYear);
+  const startIndex = allMonths.findIndex((month) => month.monthKey === startMonth.monthKey);
+  return startIndex >= 0 ? allMonths.slice(startIndex) : [startMonth];
+}
+
+function totalForecastCostValue(baseCost: number, cadence: BillingCadence, monthCount: number): number {
+  if (cadence === "monthly") {
+    return baseCost * monthCount;
+  }
+  if (cadence === "annual") {
+    return (baseCost * monthCount) / 12;
+  }
+  return baseCost;
+}
+
+function billingCadenceForItem(item: SpendItemRecord): BillingCadence {
+  const value = (item as SpendItemWithBilling).billingCadence;
+  return isBillingCadence(value) ? value : "one-off";
+}
+
+function isBillingCadence(value: unknown): value is BillingCadence {
+  return typeof value === "string" && BILLING_CADENCES.includes(value as BillingCadence);
 }
 
 function monthsBetween(
