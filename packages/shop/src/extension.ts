@@ -3419,7 +3419,7 @@ function renderForecastHtml(
             </tr>`
           )
           .join("");
-          const executiveContextHtml = renderForecastExecutiveContext(headlineYear, dashboard);
+  const executiveContextHtml = renderForecastExecutiveContext(headlineYear, dashboard);
 
   const maxWidth = mode === "panel" ? "1120px" : "none";
   return `<!doctype html>
@@ -3791,7 +3791,10 @@ function renderForecastExecutiveContext(
     0
   );
   const watchCount =
-    dashboard.uncontractedSpendItems.length + dashboard.renewals.length + dashboard.fundedActions.length + dashboard.supplierRisks.length;
+    dashboard.uncontractedSpendItems.length +
+    dashboard.renewals.length +
+    dashboard.fundedActions.length +
+    dashboard.supplierRisks.length;
   return `<section class="executive-context" aria-label="Forecast executive context">
     <article>
       <p class="eyebrow">Decision focus</p>

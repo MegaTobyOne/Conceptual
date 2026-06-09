@@ -285,7 +285,10 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
     overallCompliancePercent,
     complianceTrendSummary,
     postureSnapshot: [
-      { label: "Overall compliance", value: overallCompliancePercent === undefined ? "n/a" : `${overallCompliancePercent}%` },
+      {
+        label: "Overall compliance",
+        value: overallCompliancePercent === undefined ? "n/a" : `${overallCompliancePercent}%`
+      },
       { label: "PSPF Requirements in scope", value: String(scopedRequirements.length) },
       { label: "Requirements needing attention", value: String(requirementsNeedingAttention.length) },
       { label: "Open actions", value: String(openActions.length) },
@@ -809,7 +812,9 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
         ""
       )}
     </section>
-    ${model.masterPlan ? `<section class="grid" aria-label="CISO Master Plan">
+    ${
+      model.masterPlan
+        ? `<section class="grid" aria-label="CISO Master Plan">
       <article class="panel"><h2>${escapeHtml(model.masterPlan.newsletterArticle.title)}</h2><p>${escapeHtml(model.masterPlan.newsletterArticle.body)}</p></article>
       ${renderHtmlListPanel(
         "Plan streams",
@@ -825,7 +830,9 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
         "No linked supplier milestones, external plan inputs, or risk dependencies recorded in this scope.",
         ""
       )}
-    </section>` : ""}
+    </section>`
+        : ""
+    }
     <section class="grid" aria-label="Reader actions and next issue">
       ${renderHtmlListPanel("Reader actions", model.readerActions, (item) => item, "No reader actions generated.", "reader-actions")}
       <article class="panel"><h2>Next issue</h2><p>${escapeHtml(model.nextIssueTeaser)}</p></article>
@@ -1528,7 +1535,9 @@ function buildReaderActions(
         ];
   return [
     ...audienceActions,
-    actionCount > 0 ? `Confirm one owner, one next step, and one timeframe for ${actionCount} open action(s).` : undefined,
+    actionCount > 0
+      ? `Confirm one owner, one next step, and one timeframe for ${actionCount} open action(s).`
+      : undefined,
     evidenceCount > 0 ? `Refresh ${evidenceCount} evidence item(s) before the next assurance checkpoint.` : undefined,
     "Share this issue with accountable leaders and capture any contested priorities as Change Records."
   ].filter((item): item is string => Boolean(item));
@@ -1585,10 +1594,7 @@ function compliancePercent(requirements: readonly RequirementEntity[]): number |
   return Math.round((met / applicable.length) * 100);
 }
 
-function describeComplianceTrend(
-  trend: readonly CisoMagazineTrendPoint[],
-  currentPercent: number | undefined
-): string {
+function describeComplianceTrend(trend: readonly CisoMagazineTrendPoint[], currentPercent: number | undefined): string {
   if (currentPercent === undefined) {
     return "No applicable requirements in this scope.";
   }
@@ -1611,7 +1617,8 @@ function buildExecutiveFraming(
   riskCount: number,
   evidenceCount: number
 ): readonly CisoMagazineStory[] {
-  const complianceText = compliancePercentValue === undefined ? "no applicable requirements" : `${compliancePercentValue}% compliance`;
+  const complianceText =
+    compliancePercentValue === undefined ? "no applicable requirements" : `${compliancePercentValue}% compliance`;
   const audience = edition === "cso" ? "leaders and business owners" : "security leaders and delivery teams";
   return [
     {
@@ -1633,9 +1640,7 @@ function buildExecutiveFraming(
   ];
 }
 
-function buildRequirementOwnerRoles(
-  mappings: readonly RequirementControlMappingEntity[]
-): ReadonlyMap<string, string> {
+function buildRequirementOwnerRoles(mappings: readonly RequirementControlMappingEntity[]): ReadonlyMap<string, string> {
   const rolesByRequirementId = new Map<string, Set<string>>();
   for (const mapping of mappings.filter((item) => item.recordStatus !== "deleted")) {
     const role = mapping.reviewBy?.trim();
@@ -1672,10 +1677,13 @@ function buildRequirementActionLayers(
         requirement.id,
         {
           ownerRole: roleByRequirementId.get(requirement.id) ?? "Ownership not confirmed",
-          timeframe: priorityAction?.dueDate ? `Due ${formatDueDate(priorityAction.dueDate)}` : "Before the next assurance checkpoint",
+          timeframe: priorityAction?.dueDate
+            ? `Due ${formatDueDate(priorityAction.dueDate)}`
+            : "Before the next assurance checkpoint",
           why: `${requirementReference(requirement)} affects ${pspfDomainTitle} assurance and should be clear enough for leaders to act on.`,
           nextStep: priorityAction?.title ?? "Confirm evidence, remediation, or a risk decision for this requirement.",
-          expectedOutcome: "Evidence, action status, or an explicit risk decision is recorded before the next reporting cycle."
+          expectedOutcome:
+            "Evidence, action status, or an explicit risk decision is recorded before the next reporting cycle."
         }
       ];
     })
@@ -1703,7 +1711,8 @@ function buildActionItemLayer(action: ActionEntity, linkedRequirement: string | 
       action.status === "blocked"
         ? "Escalate the blocker and record the decision needed."
         : "Confirm the next delivery step and update the action commentary.",
-    expectedOutcome: "The action has a current status, a visible next step, and evidence or commentary showing movement."
+    expectedOutcome:
+      "The action has a current status, a visible next step, and evidence or commentary showing movement."
   };
 }
 

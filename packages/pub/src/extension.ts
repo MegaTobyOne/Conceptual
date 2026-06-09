@@ -1879,7 +1879,11 @@ async function renderTeamResponsibilityDetailHtml(store: PubStore): Promise<stri
     sectionHtml(
       "Team responsibility detail",
       "Detailed shareable view of Requirements and ISM controls each team is being asked to carry. Person names, identifiers, relationship notes, and team notes are excluded.",
-      tableHtml(["Team", "Requirement", "Status", "ISM controls", "Coverage and confidence", "Good looks like"], rows, 6)
+      tableHtml(
+        ["Team", "Requirement", "Status", "ISM controls", "Coverage and confidence", "Good looks like"],
+        rows,
+        6
+      )
     )
   );
 }

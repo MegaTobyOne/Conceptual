@@ -12506,7 +12506,8 @@ function buildShareArtefactInput(
   edition: CisoMagazineEdition = "cso"
 ): CisoMagazineInput {
   const editorNotes = workshopContext?.workspaceState.get<NewsletterEditorNoteState>(newsletterEditorNoteKey) ?? {};
-  const postureHistory = workshopContext?.workspaceState.get<NewsletterPostureHistoryState>(newsletterPostureHistoryKey) ?? {};
+  const postureHistory =
+    workshopContext?.workspaceState.get<NewsletterPostureHistoryState>(newsletterPostureHistoryKey) ?? {};
   const domainScope = "all" as const;
   return {
     generatedAt: new Date(),
@@ -12547,7 +12548,11 @@ function withRecordedNewsletterTrend(input: CisoMagazineInput): CisoMagazineInpu
   }
   return {
     ...input,
-    postureTrend: recordNewsletterPostureHistory(input.edition ?? "cso", input.domainScope ?? "all", model.overallCompliancePercent)
+    postureTrend: recordNewsletterPostureHistory(
+      input.edition ?? "cso",
+      input.domainScope ?? "all",
+      model.overallCompliancePercent
+    )
   };
 }
 
@@ -12565,7 +12570,10 @@ function recordNewsletterPostureHistory(
   return updated;
 }
 
-function newsletterScopeKey(edition: CisoMagazineEdition, domainScope: NonNullable<CisoMagazineInput["domainScope"]>): string {
+function newsletterScopeKey(
+  edition: CisoMagazineEdition,
+  domainScope: NonNullable<CisoMagazineInput["domainScope"]>
+): string {
   return `${edition}:${domainScope}`;
 }
 
