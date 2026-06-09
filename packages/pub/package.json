@@ -2,7 +2,7 @@
   "name": "pspf-pub",
   "displayName": "PSPF Pub",
   "description": "PSPF people, role, team, assignment, and stakeholder relationship surface.",
-  "version": "1.41.1",
+  "version": "1.41.2",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -97,6 +97,14 @@
       {
         "command": "pspf.pub.exportTeamScopeBrief",
         "title": "PSPF: Export Pub Team Scope Brief"
+      },
+      {
+        "command": "pspf.pub.openTeamResponsibilitySummary",
+        "title": "PSPF: Open Pub Team Responsibility Summary"
+      },
+      {
+        "command": "pspf.pub.openTeamResponsibilityDetail",
+        "title": "PSPF: Open Pub Team Responsibility Detail"
       },
       {
         "command": "pspf.pub.newRole",
@@ -194,6 +202,16 @@
           "command": "pspf.pub.editTeam",
           "when": "view == pspfPub.teamsView",
           "group": "navigation@3"
+        },
+        {
+          "command": "pspf.pub.openTeamResponsibilitySummary",
+          "when": "view == pspfPub.teamsView",
+          "group": "navigation@4"
+        },
+        {
+          "command": "pspf.pub.openTeamResponsibilityDetail",
+          "when": "view == pspfPub.teamsView",
+          "group": "navigation@5"
         },
         {
           "command": "pspf.pub.newRole",

@@ -28,6 +28,8 @@ const PUB_WEBVIEW_COMMANDS = new Set<string>([
   "pspf.pub.openTeamDetail",
   "pspf.pub.editTeam",
   "pspf.pub.exportTeamScopeBrief",
+  "pspf.pub.openTeamResponsibilitySummary",
+  "pspf.pub.openTeamResponsibilityDetail",
   "pspf.pub.newRole",
   "pspf.pub.openRoleDetail",
   "pspf.pub.editRole",
@@ -421,6 +423,12 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.pub.openTeamDetail", openTeamDetail),
     vscode.commands.registerCommand("pspf.pub.editTeam", editTeam),
     vscode.commands.registerCommand("pspf.pub.exportTeamScopeBrief", exportTeamScopeBrief),
+    vscode.commands.registerCommand("pspf.pub.openTeamResponsibilitySummary", () =>
+      openPubPanel("Team responsibility summary", renderTeamResponsibilitySummaryHtml)
+    ),
+    vscode.commands.registerCommand("pspf.pub.openTeamResponsibilityDetail", () =>
+      openPubPanel("Team responsibility detail", renderTeamResponsibilityDetailHtml)
+    ),
     vscode.commands.registerCommand("pspf.pub.newRole", newRole),
     vscode.commands.registerCommand("pspf.pub.openRoleDetail", openRoleDetail),
     vscode.commands.registerCommand("pspf.pub.editRole", editRole),
@@ -1827,9 +1835,105 @@ function renderTeamsHtml(store: PubStore): string {
     sectionHtml(
       "Team control ownership",
       "Teams own controls or control sets. Roles and assignments describe how people sustain that ownership locally.",
-      tableHtml(["Team", "Owned controls", "Control sets", "Responsibility", "Gaps", "Team dates", "Notes"], rows, 7)
+      `${tableHtml(["Team", "Owned controls", "Control sets", "Responsibility", "Gaps", "Team dates", "Notes"], rows, 7)}
+      <div class="form-actions">
+        ${commandButton("pspf.pub.openTeamResponsibilitySummary", "Team responsibility summary", "Simple count and requirement references by team")}
+        ${commandButton("pspf.pub.openTeamResponsibilityDetail", "Team responsibility detail", "Requirements and ISM controls each team is responsible for")}
+      </div>`
     )
   );
+}
+
+async function renderTeamResponsibilitySummaryHtml(store: PubStore): Promise<string> {
+  const requirements = await listRequirements();
+  const requirementsById = new Map(requirements.map((requirement) => [requirement.id, requirement]));
+  const rows = store.teams
+    .map((team) => {
+      const requirementRefs = team.ownedRequirementRefs
+        .map((ref) => requirementReference(requirementsById.get(ref), ref))
+        .sort((left, right) => left.localeCompare(right, "en-AU", { numeric: true }));
+      return `<tr><td>${escapeHtml(team.title)}</td><td>${team.ownedRequirementRefs.length}</td><td>${escapeHtml(requirementRefs.join(", ") || "No directly assigned requirements")}</td></tr>`;
+    })
+    .join("");
+  return pageHtml(
+    "PSPF Pub Team Responsibility Summary",
+    sectionHtml(
+      "Team responsibility summary",
+      "Simple shareable view of each Pub team with directly assigned PSPF Requirement references. Person names and local notes are excluded.",
+      tableHtml(["Team", "Requirement count", "Requirement references"], rows, 3)
+    )
+  );
+}
+
+async function renderTeamResponsibilityDetailHtml(store: PubStore): Promise<string> {
+  const [requirements, sourceControls, mappings] = await Promise.all([
+    listRequirements(),
+    listSourceControls(),
+    listRequirementControlMappings()
+  ]);
+  const rows = store.teams
+    .map((team) => renderTeamResponsibilityDetailRows(team, requirements, sourceControls, mappings))
+    .join("");
+  return pageHtml(
+    "PSPF Pub Team Responsibility Detail",
+    sectionHtml(
+      "Team responsibility detail",
+      "Detailed shareable view of Requirements and ISM controls each team is being asked to carry. Person names, identifiers, relationship notes, and team notes are excluded.",
+      tableHtml(
+        ["Team", "Requirement", "Status", "ISM controls", "Coverage and confidence", "Good looks like"],
+        rows,
+        6
+      )
+    )
+  );
+}
+
+function renderTeamResponsibilityDetailRows(
+  team: TeamRecord,
+  requirements: readonly RequirementRecord[],
+  sourceControls: readonly SourceControlRecord[],
+  mappings: readonly RequirementControlMappingRecord[]
+): string {
+  const requirementsById = new Map(requirements.map((requirement) => [requirement.id, requirement]));
+  const sourceControlsById = new Map(sourceControls.map((sourceControl) => [sourceControl.id, sourceControl]));
+  const ownedControlIds = new Set(team.ownedControlRefs.map((ref) => ref.toLocaleUpperCase("en-AU")));
+  const mappedRows = mappings.filter((mapping) => {
+    const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+    return sourceControl ? ownedControlIds.has(sourceControl.controlId.toLocaleUpperCase("en-AU")) : false;
+  });
+  const requirementIds = new Set([...team.ownedRequirementRefs, ...mappedRows.map((mapping) => mapping.requirementId)]);
+  return [...requirementIds]
+    .sort((left, right) =>
+      requirementReference(requirementsById.get(left), left).localeCompare(
+        requirementReference(requirementsById.get(right), right),
+        "en-AU",
+        { numeric: true }
+      )
+    )
+    .map((requirementId) => {
+      const requirement = requirementsById.get(requirementId);
+      const requirementMappings = mappedRows.filter((mapping) => mapping.requirementId === requirementId);
+      const controlText =
+        requirementMappings.length === 0
+          ? "Direct team requirement"
+          : requirementMappings
+              .map((mapping) => {
+                const sourceControl = sourceControlsById.get(mapping.sourceControlId);
+                return `${sourceControl?.controlId ?? mapping.sourceControlId}: ${sourceControl?.title ?? "Not found in Core"}`;
+              })
+              .join("; ");
+      const mappingText =
+        requirementMappings.length === 0
+          ? "Direct assignment"
+          : requirementMappings
+              .map(
+                (mapping) =>
+                  `${label(mapping.coverageQualifier ?? "not-recorded")} / ${label(mapping.confidence ?? "not-recorded")} confidence`
+              )
+              .join("; ");
+      return `<tr><td>${escapeHtml(team.title)}</td><td><strong>${escapeHtml(requirementReference(requirement, requirementId))}</strong><br>${escapeHtml(requirement?.title ?? "Not found in Core")}</td><td>${escapeHtml(label(requirement?.assessmentStatus ?? "not-recorded"))}</td><td>${escapeHtml(controlText)}</td><td>${escapeHtml(mappingText)}</td><td>${escapeHtml(teamRequirementOutcome(requirement))}</td></tr>`;
+    })
+    .join("");
 }
 
 async function renderTeamDetailHtml(store: PubStore, teamId: string): Promise<string> {
@@ -1947,6 +2051,30 @@ async function teamRequirementRows(team: TeamRecord): Promise<string> {
       return `<tr><td>${escapeHtml(sourceControl?.controlId ?? mapping.sourceControlId)}</td><td>${escapeHtml(requirement?.title ?? mapping.requirementId)}</td><td>${escapeHtml(label(mapping.coverageQualifier ?? "not-recorded"))}</td><td>${escapeHtml(mapping.applicabilityProfile ?? "Not recorded")}</td><td>${escapeHtml(label(mapping.confidence ?? "not-recorded"))}</td><td>${escapeHtml(label(requirement?.assessmentStatus ?? "not-recorded"))}</td></tr>`;
     })
     .join("");
+}
+
+function requirementReference(requirement: RequirementRecord | undefined, fallbackId: string): string {
+  const number = requirement?.title.match(/^\s*(\d+[A-Za-z]?)\b/)?.[1];
+  return number ? `Req ${number}` : `Req ${compactEntityId(fallbackId)}`;
+}
+
+function compactEntityId(id: string): string {
+  const parts = id.split("-").filter(Boolean);
+  return parts.at(-1) ?? id;
+}
+
+function teamRequirementOutcome(requirement: RequirementRecord | undefined): string {
+  const status = requirement?.assessmentStatus ?? "not-recorded";
+  if (status === "met") {
+    return "Evidence remains current and the team can explain the control or requirement during assurance review.";
+  }
+  if (status === "not-started") {
+    return "A responsible role, first action, and evidence path are recorded for the team.";
+  }
+  if (status === "not-recorded") {
+    return "Core requirement status is resolved before the team uses this as an assurance commitment.";
+  }
+  return "The team records current evidence, a remediation path, or an explicit risk decision before the next reporting cycle.";
 }
 
 function renderTeamEditorHtml(

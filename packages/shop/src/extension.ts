@@ -3419,6 +3419,7 @@ function renderForecastHtml(
             </tr>`
           )
           .join("");
+  const executiveContextHtml = renderForecastExecutiveContext(headlineYear, dashboard);
 
   const maxWidth = mode === "panel" ? "1120px" : "none";
   return `<!doctype html>
@@ -3451,6 +3452,11 @@ function renderForecastHtml(
       .annual-cost dl div { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); background: var(--pspf-surface); padding: var(--pspf-pad-sm); }
       .annual-cost dt { color: var(--pspf-muted); font-size: var(--pspf-type-label); text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
       .annual-cost dd { margin: 4px 0 0; font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+      .executive-context { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--pspf-gap); border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-gap); margin: 0 0 var(--pspf-gap-md); background: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+      .executive-context article { display: grid; gap: 6px; min-height: 7rem; }
+      .executive-context h2 { margin: 0; }
+      .executive-context strong { color: var(--shop-amber); font-size: 1.35rem; line-height: 1.1; }
+      .executive-context p { margin: 0; }
       .panel { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-gap); margin: 0 0 var(--pspf-gap-md); }
         .coverage { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
       .coverage-card { background: color-mix(in srgb, var(--pspf-surface) 92%, var(--shop-amber)); border-left: 3px solid var(--pspf-primary); padding: var(--pspf-gap); }
@@ -3485,6 +3491,7 @@ function renderForecastHtml(
           <span class="pspf-pill"><a href="${escapeHtml(commandUri("pspf.shop.exportForecastXls", []))}">Export XLS</a></span>
   </div>
     ${totalAnnualCostHtml}
+    ${executiveContextHtml}
     <section class="panel">
         <h2>Assurance coverage</h2>
         <div class="coverage">${coverageRows}</div>
@@ -3772,6 +3779,44 @@ function renderCoverageRow(group: CoverageGroup): string {
         <span>${unlinkedCount} unlinked</span><br>
         <span>${unlinkedCount === 0 ? "All active records have coverage links." : "Use Relationship actions below."}</span>
     </div>`;
+}
+
+function renderForecastExecutiveContext(
+  headlineYear: ForecastYear | undefined,
+  dashboard: CommercialCoverageDashboard
+): string {
+  const proposedScenario = dashboard.scenarioSummaries.find((scenario) => scenario.label === "Include proposed work");
+  const lowConfidenceCount = dashboard.scenarioSummaries.reduce(
+    (total, scenario) => Math.max(total, scenario.lowConfidenceCount),
+    0
+  );
+  const watchCount =
+    dashboard.uncontractedSpendItems.length +
+    dashboard.renewals.length +
+    dashboard.fundedActions.length +
+    dashboard.supplierRisks.length;
+  return `<section class="executive-context" aria-label="Forecast executive context">
+    <article>
+      <p class="eyebrow">Decision focus</p>
+      <h2>${escapeHtml(headlineYear ? `${headlineYear.financialYear} affordability` : "No forecast baseline")}</h2>
+      <p>${escapeHtml(headlineYear ? `Net forecast is ${formatCurrency(headlineYear.netForecast)} after expected savings.` : "Add forecast spend items before using this view for an executive decision.")}</p>
+    </article>
+    <article>
+      <p class="eyebrow">Planning pressure</p>
+      <strong>${escapeHtml(proposedScenario ? formatCurrency(proposedScenario.netForecast) : formatCurrency(0))}</strong>
+      <p>${escapeHtml(proposedScenario ? "Net forecast if proposed work is included." : "No proposed scenario has been calculated yet.")}</p>
+    </article>
+    <article>
+      <p class="eyebrow">Attention required</p>
+      <strong>${watchCount}</strong>
+      <p>${escapeHtml(`${dashboard.uncontractedSpendItems.length} funding link(s), ${dashboard.renewals.length} renewal(s), ${dashboard.fundedActions.length} funded action(s), and ${dashboard.supplierRisks.length} supplier risk(s) need review.`)}</p>
+    </article>
+    <article>
+      <p class="eyebrow">Good looks like</p>
+      <h2>Funded, linked, current</h2>
+      <p>${escapeHtml(`${lowConfidenceCount} low-confidence forecast item(s) should have a clearer assumption, assurance link, or risk decision before the next reporting cycle.`)}</p>
+    </article>
+  </section>`;
 }
 
 function renderAssuranceRelationshipActions(dashboard: CommercialCoverageDashboard): string {

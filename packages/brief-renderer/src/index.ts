@@ -38,6 +38,8 @@ export interface CisoMagazineInput extends PostureBriefInput {
   readonly issueTitle?: string;
   readonly issueNumber?: string;
   readonly periodLabel?: string;
+  readonly editorNoteOverride?: string;
+  readonly postureTrend?: readonly CisoMagazineTrendPoint[];
   readonly audience?: "internal" | "executive" | "external";
   readonly domainScope?: CisoMagazinePspfDomainScope;
   readonly edition?: CisoMagazineEdition;
@@ -60,14 +62,22 @@ export interface CisoMagazineModel {
   readonly pspfDomainTitle: string;
   readonly coverHook: string;
   readonly editorNote: string;
+  readonly overallCompliancePercent: number | undefined;
+  readonly complianceTrendSummary: string;
   readonly postureSnapshot: readonly CisoMagazineMetric[];
+  readonly executiveFraming: readonly CisoMagazineStory[];
   readonly featureStories: readonly CisoMagazineStory[];
   readonly attentionItems: readonly CisoMagazineAttentionItem[];
   readonly actionStrip: readonly CisoMagazineActionItem[];
   readonly commercialWatch: readonly CisoMagazineCommercialItem[];
-  readonly masterPlan: CisoMasterPlanModel;
+  readonly masterPlan?: CisoMasterPlanModel;
   readonly readerActions: readonly string[];
   readonly nextIssueTeaser: string;
+}
+
+export interface CisoMagazineTrendPoint {
+  readonly day: string;
+  readonly metPercentage: number;
 }
 
 export interface CisoMagazineMetric {
@@ -83,7 +93,9 @@ export interface CisoMagazineStory {
 export interface CisoMagazineAttentionItem {
   readonly title: string;
   readonly reason: string;
+  readonly description?: string;
   readonly pspfDomainTitle: string;
+  readonly actionLayer: CisoMagazineActionLayer;
 }
 
 export interface CisoMagazineActionItem {
@@ -93,6 +105,15 @@ export interface CisoMagazineActionItem {
   readonly dueDate?: string;
   readonly linkedRequirement?: string;
   readonly latestUpdate?: string;
+  readonly actionLayer: CisoMagazineActionLayer;
+}
+
+export interface CisoMagazineActionLayer {
+  readonly ownerRole: string;
+  readonly timeframe: string;
+  readonly why: string;
+  readonly nextStep: string;
+  readonly expectedOutcome: string;
 }
 
 export interface CisoMagazineCommercialItem {
@@ -199,6 +220,7 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
   const requirementsNeedingAttention = scopedRequirements.filter((requirement) =>
     ["not-started", "in-progress", "partially-met", "not-met", "under-review"].includes(requirement.assessmentStatus)
   );
+  const overallCompliancePercent = compliancePercent(scopedRequirements);
   const activeStrategy = (input.strategies ?? []).find((strategy) => strategy.recordStatus !== "deleted");
   const linkedSpendItems = (input.spendItems ?? []).filter(
     (item) =>
@@ -211,25 +233,39 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
       : pspfDomainScope === "all"
         ? "All PSPF Domains"
         : (scopedDomains[0]?.title ?? pspfDomainScope);
-  const masterPlan = buildCisoMasterPlanModel({
-    generatedAt: input.generatedAt,
-    requirements: scopedRequirements,
-    evidence: input.evidence,
-    actions: openActions,
-    risks: openRisks,
-    links: input.links,
-    domains: scopedDomains,
-    directions: input.directions,
-    strategies: activeStrategy ? [activeStrategy] : [],
-    spendItems: linkedSpendItems,
-    requirementControlMappings: (input.requirementControlMappings ?? []).filter((mapping) =>
-      scopedRequirementIds.has(mapping.requirementId)
-    ),
-    sourceControls: input.sourceControls,
-    sourceLabel: input.sourceLabel,
-    bundleVersion: input.bundleVersion,
-    schemaVersion: input.schemaVersion
-  });
+  const scopedRequirementControlMappings = (input.requirementControlMappings ?? []).filter((mapping) =>
+    scopedRequirementIds.has(mapping.requirementId)
+  );
+  const masterPlan =
+    edition === "ciso"
+      ? buildCisoMasterPlanModel({
+          generatedAt: input.generatedAt,
+          requirements: scopedRequirements,
+          evidence: input.evidence,
+          actions: openActions,
+          risks: openRisks,
+          links: input.links,
+          domains: scopedDomains,
+          directions: input.directions,
+          strategies: activeStrategy ? [activeStrategy] : [],
+          spendItems: linkedSpendItems,
+          requirementControlMappings: scopedRequirementControlMappings,
+          sourceControls: input.sourceControls,
+          sourceLabel: input.sourceLabel,
+          bundleVersion: input.bundleVersion,
+          schemaVersion: input.schemaVersion
+        })
+      : undefined;
+  const complianceTrendSummary = describeComplianceTrend(input.postureTrend ?? [], overallCompliancePercent);
+  const roleByRequirementId = buildRequirementOwnerRoles(scopedRequirementControlMappings);
+  const actionsById = new Map(input.actions.map((action) => [action.id, action]));
+  const actionLayersByRequirementId = buildRequirementActionLayers(
+    requirementsNeedingAttention,
+    targetIdsByRequirement,
+    actionsById,
+    roleByRequirementId,
+    pspfDomainTitle
+  );
 
   return {
     classification: "OFFICIAL: Sensitive",
@@ -244,26 +280,47 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
     edition,
     pspfDomainScope,
     pspfDomainTitle,
-    coverHook: buildCoverHook(requirementsNeedingAttention.length, openActions.length, pspfDomainTitle),
-    editorNote: buildEditorNote(pspfDomainTitle, activeStrategy),
+    coverHook: buildCoverHook(edition, requirementsNeedingAttention.length, openActions.length, pspfDomainTitle),
+    editorNote: buildEditorNote(edition, pspfDomainTitle, activeStrategy, input.editorNoteOverride),
+    overallCompliancePercent,
+    complianceTrendSummary,
     postureSnapshot: [
+      {
+        label: "Overall compliance",
+        value: overallCompliancePercent === undefined ? "n/a" : `${overallCompliancePercent}%`
+      },
       { label: "PSPF Requirements in scope", value: String(scopedRequirements.length) },
       { label: "Requirements needing attention", value: String(requirementsNeedingAttention.length) },
       { label: "Open actions", value: String(openActions.length) },
       { label: "Open risks", value: String(openRisks.length) },
       { label: "Evidence items needing review", value: String(evidenceNeedingReview.length) }
     ],
+    executiveFraming: buildExecutiveFraming(
+      edition,
+      pspfDomainTitle,
+      overallCompliancePercent,
+      requirementsNeedingAttention.length,
+      openActions.length,
+      openRisks.length,
+      evidenceNeedingReview.length
+    ),
     featureStories: buildFeatureStories(
       activeStrategy,
       requirementsNeedingAttention,
       input.changeRecords ?? [],
       masterPlan
     ),
-    attentionItems: buildAttentionItems(requirementsNeedingAttention, input.domains, domainTitlesById).slice(0, 8),
-    actionStrip: buildActionStrip(openActions, requirementSummariesByTargetId).slice(0, 8),
+    attentionItems: buildAttentionItems(
+      requirementsNeedingAttention,
+      input.domains,
+      domainTitlesById,
+      actionLayersByRequirementId
+    ).slice(0, 12),
+    actionStrip: buildActionStrip(openActions, requirementSummariesByTargetId).slice(0, 12),
     commercialWatch: buildCommercialWatch(linkedSpendItems).slice(0, 6),
     masterPlan,
     readerActions: buildReaderActions(
+      edition,
       requirementsNeedingAttention.length,
       openActions.length,
       evidenceNeedingReview.length
@@ -590,9 +647,14 @@ export function renderCisoMagazineMarkdown(input: CisoMagazineInput): string {
     "",
     model.editorNote,
     "",
+    "## Why This Matters",
+    "",
+    ...model.executiveFraming.map((item) => `- ${item.title}: ${item.body}`),
+    "",
     "## Current Posture Snapshot",
     "",
     ...model.postureSnapshot.map((metric) => `- ${metric.label}: ${metric.value}`),
+    `- Trend: ${model.complianceTrendSummary}`,
     "",
     "## Feature Stories",
     "",
@@ -601,7 +663,14 @@ export function renderCisoMagazineMarkdown(input: CisoMagazineInput): string {
     "",
     ...(model.attentionItems.length === 0
       ? ["- No immediate attention items in this PSPF Domain scope."]
-      : model.attentionItems.map((item) => `- ${item.title} (${item.pspfDomainTitle}) - ${item.reason}`)),
+      : model.attentionItems.flatMap((item) => [
+          `- ${item.title} (${item.pspfDomainTitle}) - ${item.reason}`,
+          item.description ? `  - Context: ${item.description}` : undefined,
+          `  - Why: ${item.actionLayer.why}`,
+          `  - Next step: ${item.actionLayer.nextStep}`,
+          `  - Owner and timeframe: ${item.actionLayer.ownerRole}; ${item.actionLayer.timeframe}`,
+          `  - Good looks like: ${item.actionLayer.expectedOutcome}`
+        ])),
     "",
     "## Action Strip",
     "",
@@ -609,7 +678,7 @@ export function renderCisoMagazineMarkdown(input: CisoMagazineInput): string {
       ? ["- No open actions in this PSPF Domain scope."]
       : model.actionStrip.map(
           (item) =>
-            `- ${item.title} (${item.status}${item.dueDate ? `, due ${item.dueDate}` : ""}) - ${item.linkedRequirement ?? "No linked Requirement"}${item.latestUpdate ? `; latest update: ${item.latestUpdate}` : ""}`
+            `- ${item.title} (${item.status}${item.dueDate ? `, due ${item.dueDate}` : ""}) - ${item.linkedRequirement ?? "No linked Requirement"}; next step: ${item.actionLayer.nextStep}; owner/timeframe: ${item.actionLayer.ownerRole}, ${item.actionLayer.timeframe}; good looks like: ${item.actionLayer.expectedOutcome}${item.latestUpdate ? `; latest update: ${item.latestUpdate}` : ""}`
         )),
     "",
     "## Commercial Watch",
@@ -618,12 +687,16 @@ export function renderCisoMagazineMarkdown(input: CisoMagazineInput): string {
       ? ["- No linked Shop spend items in this issue scope."]
       : model.commercialWatch.map((item) => `- ${item.title} (${item.status}) - ${item.amount}`)),
     "",
-    "## CISO Master Plan",
-    "",
-    model.masterPlan.newsletterArticle.body,
-    "",
-    ...model.masterPlan.streams.map((stream) => `- ${stream.title} (${stream.status}) - ${stream.basis}`),
-    "",
+    ...(model.masterPlan
+      ? [
+          "## CISO Master Plan",
+          "",
+          model.masterPlan.newsletterArticle.body,
+          "",
+          ...model.masterPlan.streams.map((stream) => `- ${stream.title} (${stream.status}) - ${stream.basis}`),
+          ""
+        ]
+      : []),
     "## Reader Actions",
     "",
     ...model.readerActions.map((action) => `- ${action}`),
@@ -677,6 +750,7 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
     .panel { border: 2px solid var(--ink); background: var(--panel); padding: 16px; box-shadow: 5px 5px 0 rgba(32,31,30,.15); }
     .metric { border-left: 6px solid var(--line); }
     .metric strong { display: block; font-size: 34px; line-height: 1; }
+    .trend p { margin: 8px 0 0; color: var(--muted); font: 700 12px/1.4 Arial, sans-serif; text-transform: uppercase; }
     .attention { border-left: 6px solid var(--accent); }
     .action-strip li, .reader-actions li { margin: 0 0 10px; }
     .footer { border-top: 2px solid var(--ink); margin-top: 28px; padding-top: 16px; }
@@ -701,9 +775,11 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
             `<article class="panel metric"><span>${escapeHtml(metric.label)}</span><strong>${escapeHtml(metric.value)}</strong></article>`
         )
         .join("\n      ")}
+      <article class="panel metric trend"><span>Compliance trend</span><strong>${escapeHtml(model.overallCompliancePercent === undefined ? "n/a" : `${model.overallCompliancePercent}%`)}</strong><p>${escapeHtml(model.complianceTrendSummary)}</p></article>
     </section>
     <section class="grid" aria-label="Magazine stories">
       <article class="panel"><div class="section-label">Editor's note</div><p>${escapeHtml(model.editorNote)}</p></article>
+      ${renderHtmlStoryPanel("Why this matters", model.executiveFraming)}
       ${model.featureStories
         .map(
           (story) =>
@@ -715,7 +791,8 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
       ${renderHtmlListPanel(
         "Attention required",
         model.attentionItems,
-        (item) => `${item.title} (${item.pspfDomainTitle}) - ${item.reason}`,
+        (item) =>
+          `${item.title} (${item.pspfDomainTitle}) - ${item.reason}; why: ${item.actionLayer.why}; next step: ${item.actionLayer.nextStep}; owner/timeframe: ${item.actionLayer.ownerRole}, ${item.actionLayer.timeframe}; good looks like: ${item.actionLayer.expectedOutcome}`,
         "No immediate attention items in this PSPF Domain scope.",
         "attention"
       )}
@@ -723,7 +800,7 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
         "Action strip",
         model.actionStrip,
         (item) =>
-          `${item.title} (${item.status}${item.dueDate ? `, due ${item.dueDate}` : ""}) - ${item.linkedRequirement ?? "No linked Requirement"}${item.latestUpdate ? `; latest update: ${item.latestUpdate}` : ""}`,
+          `${item.title} (${item.status}${item.dueDate ? `, due ${item.dueDate}` : ""}) - ${item.linkedRequirement ?? "No linked Requirement"}; next step: ${item.actionLayer.nextStep}; owner/timeframe: ${item.actionLayer.ownerRole}, ${item.actionLayer.timeframe}; good looks like: ${item.actionLayer.expectedOutcome}${item.latestUpdate ? `; latest update: ${item.latestUpdate}` : ""}`,
         "No open actions in this PSPF Domain scope.",
         "action-strip"
       )}
@@ -735,7 +812,9 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
         ""
       )}
     </section>
-    <section class="grid" aria-label="CISO Master Plan">
+    ${
+      model.masterPlan
+        ? `<section class="grid" aria-label="CISO Master Plan">
       <article class="panel"><h2>${escapeHtml(model.masterPlan.newsletterArticle.title)}</h2><p>${escapeHtml(model.masterPlan.newsletterArticle.body)}</p></article>
       ${renderHtmlListPanel(
         "Plan streams",
@@ -751,7 +830,9 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
         "No linked supplier milestones, external plan inputs, or risk dependencies recorded in this scope.",
         ""
       )}
-    </section>
+    </section>`
+        : ""
+    }
     <section class="grid" aria-label="Reader actions and next issue">
       ${renderHtmlListPanel("Reader actions", model.readerActions, (item) => item, "No reader actions generated.", "reader-actions")}
       <article class="panel"><h2>Next issue</h2><p>${escapeHtml(model.nextIssueTeaser)}</p></article>
@@ -782,6 +863,14 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
   const evidenceNeedsReview = input.evidence.filter((item) => item.freshness !== "current").length;
   const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings ?? []);
   const ismPostureRows = buildIsmControlPostureRows(input.sourceControls ?? [], input.links);
+  const postureFramingRows = buildPostureBriefFramingRows(
+    input.requirements.length,
+    openActions.length,
+    openRisks.length,
+    evidenceNeedsReview,
+    directionsNeedingResponse,
+    roleOwnership.length
+  );
   const metadata = [
     `Generated: ${formatDisplayDate(input.generatedAt)}`,
     input.sourceLabel ? `Source: ${input.sourceLabel}` : undefined,
@@ -807,6 +896,10 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
       ? `- Strategy: ${strategy.title} (${strategy.scope}, ${strategy.timeHorizon})`
       : "- Strategy: None recorded",
     `- Role ownership: ${roleOwnership.length} role(s), ${roleOwnership.reduce((total, item) => total + item.requirements, 0)} requirement coverage count, ${roleOwnership.reduce((total, item) => total + item.controls, 0)} control coverage count`,
+    "",
+    "## Why This Matters",
+    "",
+    ...postureFramingRows,
     "",
     "## Strategy",
     "",
@@ -901,6 +994,23 @@ function buildIsmControlPostureRows(
   ];
 }
 
+function buildPostureBriefFramingRows(
+  requirementCount: number,
+  openActionCount: number,
+  openRiskCount: number,
+  evidenceNeedsReview: number,
+  directionsNeedingResponse: number,
+  roleCount: number
+): readonly string[] {
+  return [
+    `- Mission impact: this posture brief connects ${requirementCount} PSPF Requirement(s) to the work needed to protect information integrity, defensible decisions, service reliability, and public trust.`,
+    `- Current state: ${openActionCount} open action(s), ${openRiskCount} open risk(s), and ${evidenceNeedsReview} evidence item(s) need visible follow-through.`,
+    `- Action required: confirm one next step, one responsible role or team, and one timeframe for each material gap before the next reporting cycle.`,
+    `- Who needs to act: ${roleCount > 0 ? `${roleCount} recorded role group(s)` : "ownership not confirmed"} should use this brief to update evidence, escalate blockers, and record risk decisions.`,
+    `- Escalate immediately: ${directionsNeedingResponse} Direction(s) still need a response and should not wait for the next reporting cycle.`
+  ];
+}
+
 export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRenderer = (() => {
   function renderPostureBriefMarkdown(input) {
     const requirementsById = new Map((input.requirements || []).map((requirement) => [requirement.id, requirement]));
@@ -916,6 +1026,7 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     const evidenceNeedsReview = (input.evidence || []).filter((item) => item.freshness !== "current").length;
     const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings || []);
     const ismPostureRows = buildIsmControlPostureRows(input.sourceControls || [], input.links || []);
+    const postureFramingRows = buildPostureBriefFramingRows((input.requirements || []).length, openActions.length, openRisks.length, evidenceNeedsReview, directionsNeedingResponse, roleOwnership.length);
     const metadata = [
       "Generated: " + formatDisplayDate(input.generatedAt),
       input.sourceLabel ? "Source: " + input.sourceLabel : undefined,
@@ -938,6 +1049,10 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "- Directions: " + directions.length + (directions.length > 0 ? " (" + directionsNeedingResponse + " need a response)" : ""),
       strategy ? "- Strategy: " + strategy.title + " (" + strategy.scope + ", " + strategy.timeHorizon + ")" : "- Strategy: None recorded",
       "- Role ownership: " + roleOwnership.length + " role(s), " + roleOwnership.reduce((total, item) => total + item.requirements, 0) + " requirement coverage count, " + roleOwnership.reduce((total, item) => total + item.controls, 0) + " control coverage count",
+      "",
+      "## Why This Matters",
+      "",
+      ...postureFramingRows,
       "",
       "## Strategy",
       "",
@@ -1027,6 +1142,15 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "- Controls with direct evidence, action, or risk links: " + directlyWorkedControls.size,
       "- Direct ISM control work links: " + directWorkLinks.length,
       "- Implementation status detail remains internal and is excluded from published Explorer bundles."
+    ];
+  }
+  function buildPostureBriefFramingRows(requirementCount, openActionCount, openRiskCount, evidenceNeedsReview, directionsNeedingResponse, roleCount) {
+    return [
+      "- Mission impact: this posture brief connects " + requirementCount + " PSPF Requirement(s) to the work needed to protect information integrity, defensible decisions, service reliability, and public trust.",
+      "- Current state: " + openActionCount + " open action(s), " + openRiskCount + " open risk(s), and " + evidenceNeedsReview + " evidence item(s) need visible follow-through.",
+      "- Action required: confirm one next step, one responsible role or team, and one timeframe for each material gap before the next reporting cycle.",
+      "- Who needs to act: " + (roleCount > 0 ? roleCount + " recorded role group(s)" : "ownership not confirmed") + " should use this brief to update evidence, escalate blockers, and record risk decisions.",
+      "- Escalate immediately: " + directionsNeedingResponse + " Direction(s) still need a response and should not wait for the next reporting cycle."
     ];
   }
   function strategyRows(strategy) {
@@ -1264,31 +1388,56 @@ function isSpendItemLinkedToScopedWork(
   );
 }
 
-function buildCoverHook(requirementCount: number, actionCount: number, pspfDomainTitle: string): string {
+function buildCoverHook(
+  edition: CisoMagazineEdition,
+  requirementCount: number,
+  actionCount: number,
+  pspfDomainTitle: string
+): string {
   if (requirementCount === 0 && actionCount === 0) {
-    return `${pspfDomainTitle} is steady this issue, with no immediate attention items in the selected scope.`;
+    return edition === "cso"
+      ? `${pspfDomainTitle} is steady this issue, with no immediate assurance items requiring whole-of-entity attention.`
+      : `${pspfDomainTitle} is steady this issue, with no immediate attention items in the selected scope.`;
+  }
+  if (edition === "cso") {
+    return `${pspfDomainTitle} has ${requirementCount} requirement(s) and ${actionCount} action(s) that need coordinated leadership, business, and security follow-through before the next assurance checkpoint.`;
   }
   return `${pspfDomainTitle} has ${requirementCount} requirement(s) and ${actionCount} action(s) needing attention before the next assurance checkpoint.`;
 }
 
-function buildEditorNote(pspfDomainTitle: string, strategy?: StrategyEntity): string {
+function buildEditorNote(
+  edition: CisoMagazineEdition,
+  pspfDomainTitle: string,
+  strategy?: StrategyEntity,
+  override?: string
+): string {
+  const cleanedOverride = override?.trim();
+  if (cleanedOverride) {
+    return cleanedOverride;
+  }
   const educationCue =
     " PSPF sets the assurance obligations, and ISM controls provide the implementation patterns that help teams show those obligations are being met.";
+  const audienceCue =
+    edition === "cso"
+      ? " This edition is written for whole-of-entity action: leaders remove blockers, business owners confirm impacts, and security teams coordinate the response."
+      : " This edition is written for security leadership and delivery teams, with emphasis on control ownership, evidence, and action follow-through.";
   if (!strategy) {
-    return `${pspfDomainTitle} is summarised from current PSPF records so leaders can see what changed, what needs attention, and what to do next.${educationCue}`;
+    return `${pspfDomainTitle} is summarised from current PSPF records so leaders can see what changed, what needs attention, and what to do next.${educationCue}${audienceCue}`;
   }
   const strategyStatement = strategy.strategyStatement.trim().replace(/[.?!]\s*$/u, "");
-  return `${pspfDomainTitle} is framed against ${strategy.title}: ${strategyStatement}.${educationCue}`;
+  return `${pspfDomainTitle} is framed against ${strategy.title}: ${strategyStatement}.${educationCue}${audienceCue}`;
 }
 
 function buildFeatureStories(
   strategy: StrategyEntity | undefined,
   requirements: readonly RequirementEntity[],
   changeRecords: BundleCollections["change-records"],
-  masterPlan: CisoMasterPlanModel
+  masterPlan?: CisoMasterPlanModel
 ): readonly CisoMagazineStory[] {
   const stories: CisoMagazineStory[] = [];
-  stories.push(masterPlan.newsletterArticle);
+  if (masterPlan) {
+    stories.push(masterPlan.newsletterArticle);
+  }
   if (strategy?.choices[0]) {
     stories.push({ title: strategy.choices[0].statement, body: strategy.choices[0].targetPosture });
   }
@@ -1308,13 +1457,15 @@ function buildFeatureStories(
 function buildAttentionItems(
   requirements: readonly RequirementEntity[],
   domains: readonly Pick<DomainEntity, "id" | "title">[],
-  domainTitlesById: ReadonlyMap<string, string>
+  domainTitlesById: ReadonlyMap<string, string>,
+  actionLayersByRequirementId: ReadonlyMap<string, CisoMagazineActionLayer>
 ): readonly CisoMagazineAttentionItem[] {
   const fallbackDomainTitle = domains[0]?.title ?? "Unmapped PSPF Domain";
   return requirements.map((requirement) => ({
     title: requirement.title,
-    reason: `Assessment is ${label(requirement.assessmentStatus)}.`,
-    pspfDomainTitle: domainTitlesById.get(requirement.domainId) ?? fallbackDomainTitle
+    reason: constructiveAssessmentPhrase(requirement.assessmentStatus),
+    pspfDomainTitle: domainTitlesById.get(requirement.domainId) ?? fallbackDomainTitle,
+    actionLayer: actionLayersByRequirementId.get(requirement.id) ?? buildDefaultRequirementActionLayer(requirement)
   }));
 }
 
@@ -1330,7 +1481,8 @@ function buildActionStrip(
       status: label(action.status),
       dueDate: action.dueDate,
       linkedRequirement: requirementSummariesByTargetId.get(action.id),
-      latestUpdate: latestActionCommentary(action)
+      latestUpdate: latestActionCommentary(action),
+      actionLayer: buildActionItemLayer(action, requirementSummariesByTargetId.get(action.id))
     }));
 }
 
@@ -1360,10 +1512,32 @@ function buildCommercialWatch(spendItems: readonly SpendItemEntity[]): readonly 
     .map((item) => ({ title: item.title, status: label(item.status), amount: formatMoney(item.amount) }));
 }
 
-function buildReaderActions(requirementCount: number, actionCount: number, evidenceCount: number): readonly string[] {
+function buildReaderActions(
+  edition: CisoMagazineEdition,
+  requirementCount: number,
+  actionCount: number,
+  evidenceCount: number
+): readonly string[] {
+  const audienceActions =
+    edition === "cso"
+      ? [
+          requirementCount > 0
+            ? `Executives: remove blockers and require follow-through for ${requirementCount} requirement(s) needing evidence, remediation, or a risk decision.`
+            : "Executives: keep blockers visible and require follow-through when a requirement, evidence gap, or risk decision emerges.",
+          "Business owners: confirm the systems, data, and decisions most affected by the items in this issue.",
+          "Team managers: use this issue to brief staff on what to update, escalate, or evidence this month."
+        ]
+      : [
+          requirementCount > 0
+            ? `Security leaders: validate the ${requirementCount} requirement(s) needing attention and assign the next control or evidence step.`
+            : "Security leaders: keep control ownership, evidence currency, and escalation paths visible for the next assurance cycle.",
+          "Delivery teams: update evidence, action commentary, and control implementation notes so the next issue shows movement."
+        ];
   return [
-    requirementCount > 0 ? `Review ${requirementCount} PSPF Requirement(s) that still need attention.` : undefined,
-    actionCount > 0 ? `Confirm owners and next steps for ${actionCount} open action(s).` : undefined,
+    ...audienceActions,
+    actionCount > 0
+      ? `Confirm one owner, one next step, and one timeframe for ${actionCount} open action(s).`
+      : undefined,
     evidenceCount > 0 ? `Refresh ${evidenceCount} evidence item(s) before the next assurance checkpoint.` : undefined,
     "Share this issue with accountable leaders and capture any contested priorities as Change Records."
   ].filter((item): item is string => Boolean(item));
@@ -1400,6 +1574,159 @@ function renderHtmlListPanel<T>(
       ? `<p>${escapeHtml(emptyText)}</p>`
       : `<ul>${items.map((item) => `<li>${escapeHtml(formatItem(item))}</li>`).join("")}</ul>`;
   return `<article class="${className}"><h2>${escapeHtml(title)}</h2>${list}</article>`;
+}
+
+function renderHtmlStoryPanel(title: string, stories: readonly CisoMagazineStory[]): string {
+  if (stories.length === 0) {
+    return "";
+  }
+  return `<article class="panel"><h2>${escapeHtml(title)}</h2>${stories
+    .map((story) => `<p><strong>${escapeHtml(story.title)}.</strong> ${escapeHtml(story.body)}</p>`)
+    .join("")}</article>`;
+}
+
+function compliancePercent(requirements: readonly RequirementEntity[]): number | undefined {
+  const applicable = requirements.filter((requirement) => requirement.assessmentStatus !== "not-applicable");
+  if (applicable.length === 0) {
+    return undefined;
+  }
+  const met = applicable.filter((requirement) => requirement.assessmentStatus === "met").length;
+  return Math.round((met / applicable.length) * 100);
+}
+
+function describeComplianceTrend(trend: readonly CisoMagazineTrendPoint[], currentPercent: number | undefined): string {
+  if (currentPercent === undefined) {
+    return "No applicable requirements in this scope.";
+  }
+  const points = trend.length > 0 ? trend : [{ day: "current", metPercentage: currentPercent }];
+  if (points.length < 2) {
+    return `${currentPercent}% met; trend starts from this issue.`;
+  }
+  const firstValue = points[0]?.metPercentage ?? currentPercent;
+  const lastValue = points[points.length - 1]?.metPercentage ?? currentPercent;
+  const direction = lastValue > firstValue ? "rising" : lastValue < firstValue ? "easing" : "steady";
+  return `${firstValue}% -> ${lastValue}% met over ${points.length} issue point(s); ${direction}.`;
+}
+
+function buildExecutiveFraming(
+  edition: CisoMagazineEdition,
+  pspfDomainTitle: string,
+  compliancePercentValue: number | undefined,
+  requirementCount: number,
+  actionCount: number,
+  riskCount: number,
+  evidenceCount: number
+): readonly CisoMagazineStory[] {
+  const complianceText =
+    compliancePercentValue === undefined ? "no applicable requirements" : `${compliancePercentValue}% compliance`;
+  const audience = edition === "cso" ? "leaders and business owners" : "security leaders and delivery teams";
+  return [
+    {
+      title: "Mission impact",
+      body: `${pspfDomainTitle} reporting protects the integrity of the information, services, and decisions the organisation depends on.`
+    },
+    {
+      title: "Current state",
+      body: `The current scope is at ${complianceText}, with ${requirementCount} requirement(s), ${actionCount} action(s), and ${evidenceCount} evidence item(s) needing follow-through.`
+    },
+    {
+      title: "Risk if unchanged",
+      body: `${riskCount} open risk(s) remain visible to decision-makers; unresolved gaps can weaken defensible decisions, regulatory confidence, and public trust.`
+    },
+    {
+      title: "Who needs to act",
+      body: `${audience} should confirm the next practical step, the responsible role or team, and the timeframe before the next assurance cycle.`
+    }
+  ];
+}
+
+function buildRequirementOwnerRoles(mappings: readonly RequirementControlMappingEntity[]): ReadonlyMap<string, string> {
+  const rolesByRequirementId = new Map<string, Set<string>>();
+  for (const mapping of mappings.filter((item) => item.recordStatus !== "deleted")) {
+    const role = mapping.reviewBy?.trim();
+    if (!role) {
+      continue;
+    }
+    const roles = rolesByRequirementId.get(mapping.requirementId) ?? new Set<string>();
+    roles.add(role);
+    rolesByRequirementId.set(mapping.requirementId, roles);
+  }
+  return new Map(
+    [...rolesByRequirementId.entries()].map(([requirementId, roles]) => [
+      requirementId,
+      [...roles].sort((left, right) => left.localeCompare(right, "en-AU", { sensitivity: "base" })).join(", ")
+    ])
+  );
+}
+
+function buildRequirementActionLayers(
+  requirements: readonly RequirementEntity[],
+  targetIdsByRequirement: ReadonlyMap<string, { readonly actions: readonly string[] }>,
+  actionsById: ReadonlyMap<string, ActionEntity>,
+  roleByRequirementId: ReadonlyMap<string, string>,
+  pspfDomainTitle: string
+): ReadonlyMap<string, CisoMagazineActionLayer> {
+  return new Map(
+    requirements.map((requirement) => {
+      const linkedActions = (targetIdsByRequirement.get(requirement.id)?.actions ?? [])
+        .map((actionId) => actionsById.get(actionId))
+        .filter((action): action is ActionEntity => Boolean(action && !["done", "cancelled"].includes(action.status)))
+        .sort((left, right) => actionPriority(right) - actionPriority(left));
+      const priorityAction = linkedActions[0];
+      return [
+        requirement.id,
+        {
+          ownerRole: roleByRequirementId.get(requirement.id) ?? "Ownership not confirmed",
+          timeframe: priorityAction?.dueDate
+            ? `Due ${formatDueDate(priorityAction.dueDate)}`
+            : "Before the next assurance checkpoint",
+          why: `${requirementReference(requirement)} affects ${pspfDomainTitle} assurance and should be clear enough for leaders to act on.`,
+          nextStep: priorityAction?.title ?? "Confirm evidence, remediation, or a risk decision for this requirement.",
+          expectedOutcome:
+            "Evidence, action status, or an explicit risk decision is recorded before the next reporting cycle."
+        }
+      ];
+    })
+  );
+}
+
+function buildDefaultRequirementActionLayer(requirement: RequirementEntity): CisoMagazineActionLayer {
+  return {
+    ownerRole: "Ownership not confirmed",
+    timeframe: "Before the next assurance checkpoint",
+    why: `${requirementReference(requirement)} needs a clear next step so teams can protect service integrity and public trust.`,
+    nextStep: "Confirm the responsible role and the evidence, remediation, or risk decision required.",
+    expectedOutcome: "The requirement has an accountable role, current evidence, or a recorded risk decision."
+  };
+}
+
+function buildActionItemLayer(action: ActionEntity, linkedRequirement: string | undefined): CisoMagazineActionLayer {
+  return {
+    ownerRole: "Action owner role not confirmed",
+    timeframe: action.dueDate ? `Due ${formatDueDate(action.dueDate)}` : "Before the next assurance checkpoint",
+    why: linkedRequirement
+      ? `${linkedRequirement} depends on this action moving from visibility to completion.`
+      : "This action needs a clear owner and timeframe so the next report shows progress.",
+    nextStep:
+      action.status === "blocked"
+        ? "Escalate the blocker and record the decision needed."
+        : "Confirm the next delivery step and update the action commentary.",
+    expectedOutcome:
+      "The action has a current status, a visible next step, and evidence or commentary showing movement."
+  };
+}
+
+function constructiveAssessmentPhrase(status: RequirementEntity["assessmentStatus"]): string {
+  const phrases: Record<RequirementEntity["assessmentStatus"], string> = {
+    met: "Evidence indicates this requirement is met.",
+    "partially-met": "Needs targeted evidence, remediation, or a risk decision.",
+    "in-progress": "Work is underway and needs a clear next evidence or completion step.",
+    "not-met": "Needs evidence, remediation, or a risk decision before the next reporting cycle.",
+    "not-started": "Needs an owner, a practical first step, and a timeframe.",
+    "under-review": "Needs review confirmation and a recorded decision.",
+    "not-applicable": "Recorded as not applicable for this scope."
+  };
+  return phrases[status] ?? `Needs review: ${label(status)}.`;
 }
 
 function escapeHtml(value: string): string {
