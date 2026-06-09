@@ -2,7 +2,9 @@ import * as vscode from "vscode";
 import { createHash, randomUUID } from "node:crypto";
 import {
   buildCisoMagazineModel,
+  type CisoMagazineInput,
   type CisoMagazineEdition,
+  type CisoMagazineTrendPoint,
   buildCisoMasterPlanModel,
   renderCisoMagazineHtml,
   renderCisoMagazineMarkdown,
@@ -127,6 +129,8 @@ void QUESTIONNAIRE_RERUN_MODE_LABEL;
 const recentRequirementKey = "pspf.workshop.recentRequirementId";
 const momentumSnapshotKey = "pspf.workshop.momentumSnapshot.v1";
 const postureHistoryKey = "pspf.workshop.postureHistory.v1";
+const newsletterEditorNoteKey = "pspf.workshop.newsletterEditorNote.v1";
+const newsletterPostureHistoryKey = "pspf.workshop.newsletterPostureHistory.v1";
 const lastSharedKey = "pspf.workshop.lastShared.v1";
 const riskSourceProfileKey = "pspf.workshop.riskSourceProfile.v1";
 const riskSourcePreviewKey = "pspf.workshop.riskSourcePreview.v1";
@@ -161,6 +165,11 @@ interface PostureHistoryPoint {
   readonly day: string;
   readonly metPercentage: number;
 }
+interface NewsletterEditorNoteState {
+  readonly cso?: string;
+  readonly ciso?: string;
+}
+type NewsletterPostureHistoryState = Readonly<Record<string, readonly CisoMagazineTrendPoint[]>>;
 interface WorkshopShareState {
   readonly sharedAt: string;
   readonly requirements: number;
@@ -9491,9 +9500,19 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       readonly savedViewId?: string;
       readonly direction?: string;
       readonly evidenceReference?: string;
+      readonly newsletterEdition?: string;
+      readonly fields?: Readonly<Record<string, unknown>>;
     }) => {
       if (message.command === "refresh") {
         await refreshPanel?.();
+        return;
+      }
+      if (message.command === "saveNewsletterEditorNote" && isCisoMagazineEdition(message.newsletterEdition)) {
+        await saveNewsletterEditorNote(message.newsletterEdition, String(message.fields?.editorNote ?? ""));
+        await refreshPanel?.();
+        void vscode.window.showInformationMessage(
+          `${message.newsletterEdition === "ciso" ? "CISO" : "CSO"} newsletter Editor's Note saved.`
+        );
         return;
       }
       if (message.command === "openEntity" && message.entityType && message.entityId) {
@@ -12189,7 +12208,7 @@ async function openCisoMagazine(): Promise<void> {
 
 async function openMagazineEdition(edition: CisoMagazineEdition): Promise<void> {
   await ensureCoreReady();
-  const input = buildShareArtefactInput(await listAllEntities(), edition);
+  const input = withRecordedNewsletterTrend(buildShareArtefactInput(await listAllEntities(), edition));
   const html = renderCisoMagazineHtml(input);
   const markdown = renderCisoMagazineMarkdown(input);
   const title = edition === "ciso" ? "Digital CISO Magazine" : "Digital CSO Magazine";
@@ -12203,8 +12222,11 @@ async function openMagazineEdition(edition: CisoMagazineEdition): Promise<void> 
 
 async function openCisoNewsletterReview(): Promise<void> {
   await ensureCoreReady();
-  const input = buildShareArtefactInput(await listAllEntities(), "cso");
+  const allEntities = await listAllEntities();
+  const input = buildShareArtefactInput(allEntities, "cso");
+  const cisoInput = buildShareArtefactInput(allEntities, "ciso");
   const model = buildCisoMagazineModel(input);
+  const cisoModel = buildCisoMagazineModel(cisoInput);
   const actionRows = model.actionStrip.map((item) => ({
     openEntityType: "action",
     openEntityId: item.actionId,
@@ -12236,6 +12258,10 @@ async function openCisoNewsletterReview(): Promise<void> {
       <p class="muted">${escapeHtml(model.issueNumber)} · ${escapeHtml(model.periodLabel)} · ${escapeHtml(model.pspfDomainTitle)} · generated ${escapeHtml(model.generatedAt)}</p>
       <p>Review the generated newsletter inputs before copying or exporting. Action commentary appears as the latest timestamped update, so open any Action that needs a cleaner update before export.</p>
       ${versionStrip()}
+      <div class="strategy-editor__two-col">
+        ${newsletterEditorNoteForm("cso", model.editorNote)}
+        ${newsletterEditorNoteForm("ciso", cisoModel.editorNote)}
+      </div>
       <div class="grid">
         ${metricCard("Stories", model.featureStories.length)}
         ${metricCard("Attention items", model.attentionItems.length)}
@@ -12267,7 +12293,9 @@ async function copyCisoMagazine(): Promise<void> {
 
 async function copyMagazineEdition(edition: CisoMagazineEdition): Promise<void> {
   await ensureCoreReady();
-  const markdown = renderCisoMagazineMarkdown(buildShareArtefactInput(await listAllEntities(), edition));
+  const markdown = renderCisoMagazineMarkdown(
+    withRecordedNewsletterTrend(buildShareArtefactInput(await listAllEntities(), edition))
+  );
   await vscode.env.clipboard.writeText(markdown);
   await vscode.window.showInformationMessage(
     `${edition === "ciso" ? "Digital CISO Magazine" : "Digital CSO Magazine"} Markdown copied to clipboard.`
@@ -12295,7 +12323,7 @@ async function exportMagazineEdition(edition: CisoMagazineEdition): Promise<void
   if (!format) {
     return;
   }
-  const input = buildShareArtefactInput(await listAllEntities(), edition);
+  const input = withRecordedNewsletterTrend(buildShareArtefactInput(await listAllEntities(), edition));
   const content = format.value === "html" ? renderCisoMagazineHtml(input) : renderCisoMagazineMarkdown(input);
   const target = await vscode.window.showSaveDialog({
     defaultUri: vscode.Uri.file(`digital-${edition}-magazine-${PSPF_SLICE_VERSION}.${format.value}`),
@@ -12473,15 +12501,23 @@ async function copyCisoMasterPlan(): Promise<void> {
   await vscode.window.showInformationMessage("CISO Master Plan copied to clipboard.");
 }
 
-function buildShareArtefactInput(allEntities: readonly V01Entity[], edition: CisoMagazineEdition = "cso") {
+function buildShareArtefactInput(
+  allEntities: readonly V01Entity[],
+  edition: CisoMagazineEdition = "cso"
+): CisoMagazineInput {
+  const editorNotes = workshopContext?.workspaceState.get<NewsletterEditorNoteState>(newsletterEditorNoteKey) ?? {};
+  const postureHistory = workshopContext?.workspaceState.get<NewsletterPostureHistoryState>(newsletterPostureHistoryKey) ?? {};
+  const domainScope = "all" as const;
   return {
     generatedAt: new Date(),
     issueTitle: edition === "ciso" ? "Digital CISO Magazine" : "Digital CSO Magazine",
     issueNumber: `Issue ${PSPF_SLICE_VERSION}`,
     periodLabel: formatDisplayDate(new Date()),
     audience: "internal" as const,
-    domainScope: "all" as const,
+    domainScope,
     edition,
+    editorNoteOverride: editorNotes[edition],
+    postureTrend: postureHistory[newsletterScopeKey(edition, domainScope)] ?? [],
     requirements: allEntities.filter((entity): entity is RequirementEntity => entity.entityType === "requirement"),
     evidence: allEntities.filter((entity): entity is EvidenceEntity => entity.entityType === "evidence"),
     actions: allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action"),
@@ -12502,6 +12538,53 @@ function buildShareArtefactInput(allEntities: readonly V01Entity[], edition: Cis
     bundleVersion: VERSION_AXES.bundleVersion,
     schemaVersion: VERSION_AXES.schemaVersion
   };
+}
+
+function withRecordedNewsletterTrend(input: CisoMagazineInput): CisoMagazineInput {
+  const model = buildCisoMagazineModel(input);
+  if (model.overallCompliancePercent === undefined) {
+    return input;
+  }
+  return {
+    ...input,
+    postureTrend: recordNewsletterPostureHistory(input.edition ?? "cso", input.domainScope ?? "all", model.overallCompliancePercent)
+  };
+}
+
+function recordNewsletterPostureHistory(
+  edition: CisoMagazineEdition,
+  domainScope: NonNullable<CisoMagazineInput["domainScope"]>,
+  metPercentage: number
+): readonly CisoMagazineTrendPoint[] {
+  const day = new Date().toISOString().slice(0, 10);
+  const state = workshopContext?.workspaceState.get<NewsletterPostureHistoryState>(newsletterPostureHistoryKey) ?? {};
+  const key = newsletterScopeKey(edition, domainScope);
+  const withoutToday = (state[key] ?? []).filter((point) => point.day !== day);
+  const updated = [...withoutToday, { day, metPercentage }].slice(-30);
+  void workshopContext?.workspaceState.update(newsletterPostureHistoryKey, { ...state, [key]: updated });
+  return updated;
+}
+
+function newsletterScopeKey(edition: CisoMagazineEdition, domainScope: NonNullable<CisoMagazineInput["domainScope"]>): string {
+  return `${edition}:${domainScope}`;
+}
+
+async function saveNewsletterEditorNote(edition: CisoMagazineEdition, editorNote: string): Promise<void> {
+  const state = workshopContext?.workspaceState.get<NewsletterEditorNoteState>(newsletterEditorNoteKey) ?? {};
+  await workshopContext?.workspaceState.update(newsletterEditorNoteKey, { ...state, [edition]: editorNote.trim() });
+}
+
+function newsletterEditorNoteForm(edition: CisoMagazineEdition, editorNote: string): string {
+  const label = edition === "ciso" ? "CISO Editor's Note" : "CSO Editor's Note";
+  return `<form class="form-grid">
+    <input type="hidden" name="newsletterEdition" value="${escapeHtml(edition)}">
+    <label>${escapeHtml(label)}<textarea name="editorNote" rows="8">${escapeHtml(editorNote)}</textarea></label>
+    <div class="form-actions"><button type="button" data-command="saveNewsletterEditorNote" data-newsletter-edition="${escapeHtml(edition)}">Save ${escapeHtml(edition.toUpperCase())} Editor's Note</button></div>
+  </form>`;
+}
+
+function isCisoMagazineEdition(value: string | undefined): value is CisoMagazineEdition {
+  return value === "cso" || value === "ciso";
 }
 
 async function listAllEntities(): Promise<V01Entity[]> {

@@ -99,6 +99,14 @@
         "title": "PSPF: Export Pub Team Scope Brief"
       },
       {
+        "command": "pspf.pub.openTeamResponsibilitySummary",
+        "title": "PSPF: Open Pub Team Responsibility Summary"
+      },
+      {
+        "command": "pspf.pub.openTeamResponsibilityDetail",
+        "title": "PSPF: Open Pub Team Responsibility Detail"
+      },
+      {
         "command": "pspf.pub.newRole",
         "title": "PSPF: New Pub Role"
       },
@@ -194,6 +202,16 @@
           "command": "pspf.pub.editTeam",
           "when": "view == pspfPub.teamsView",
           "group": "navigation@3"
+        },
+        {
+          "command": "pspf.pub.openTeamResponsibilitySummary",
+          "when": "view == pspfPub.teamsView",
+          "group": "navigation@4"
+        },
+        {
+          "command": "pspf.pub.openTeamResponsibilityDetail",
+          "when": "view == pspfPub.teamsView",
+          "group": "navigation@5"
         },
         {
           "command": "pspf.pub.newRole",

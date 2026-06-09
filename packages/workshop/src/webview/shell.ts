@@ -431,6 +431,11 @@ export function shellHtml(title: string, body: string): string {
       if (command === 'createStrategyDraft') {
         vscode.postMessage({ command });
       }
+      if (command === 'saveNewsletterEditorNote') {
+        const form = button.closest('form');
+        const fields = form ? pspfFormFields(form) : {};
+        vscode.postMessage({ command, newsletterEdition: button.getAttribute('data-newsletter-edition'), fields });
+      }
       if (command === 'openStrategyArea') {
         vscode.postMessage({ command, strategyArea: button.getAttribute('data-strategy-area') });
       }

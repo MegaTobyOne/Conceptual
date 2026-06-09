@@ -18,6 +18,8 @@ test("posture brief includes evidence basis and excludes sensitive requirement s
 
   assert.match(brief, /OFFICIAL: Sensitive/);
   assert.match(brief, /## Evidence Basis/);
+  assert.match(brief, /## Why This Matters/);
+  assert.match(brief, /Mission impact: this posture brief connects/);
   assert.match(brief, /## Strategy/);
   assert.match(brief, /Focus cyber uplift on governance assurance/);
   assert.match(brief, /Requirements with current evidence: 1/);

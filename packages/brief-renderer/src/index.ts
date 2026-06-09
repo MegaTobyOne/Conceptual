@@ -856,6 +856,14 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
   const evidenceNeedsReview = input.evidence.filter((item) => item.freshness !== "current").length;
   const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings ?? []);
   const ismPostureRows = buildIsmControlPostureRows(input.sourceControls ?? [], input.links);
+  const postureFramingRows = buildPostureBriefFramingRows(
+    input.requirements.length,
+    openActions.length,
+    openRisks.length,
+    evidenceNeedsReview,
+    directionsNeedingResponse,
+    roleOwnership.length
+  );
   const metadata = [
     `Generated: ${formatDisplayDate(input.generatedAt)}`,
     input.sourceLabel ? `Source: ${input.sourceLabel}` : undefined,
@@ -881,6 +889,10 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
       ? `- Strategy: ${strategy.title} (${strategy.scope}, ${strategy.timeHorizon})`
       : "- Strategy: None recorded",
     `- Role ownership: ${roleOwnership.length} role(s), ${roleOwnership.reduce((total, item) => total + item.requirements, 0)} requirement coverage count, ${roleOwnership.reduce((total, item) => total + item.controls, 0)} control coverage count`,
+    "",
+    "## Why This Matters",
+    "",
+    ...postureFramingRows,
     "",
     "## Strategy",
     "",
@@ -975,6 +987,23 @@ function buildIsmControlPostureRows(
   ];
 }
 
+function buildPostureBriefFramingRows(
+  requirementCount: number,
+  openActionCount: number,
+  openRiskCount: number,
+  evidenceNeedsReview: number,
+  directionsNeedingResponse: number,
+  roleCount: number
+): readonly string[] {
+  return [
+    `- Mission impact: this posture brief connects ${requirementCount} PSPF Requirement(s) to the work needed to protect information integrity, defensible decisions, service reliability, and public trust.`,
+    `- Current state: ${openActionCount} open action(s), ${openRiskCount} open risk(s), and ${evidenceNeedsReview} evidence item(s) need visible follow-through.`,
+    `- Action required: confirm one next step, one responsible role or team, and one timeframe for each material gap before the next reporting cycle.`,
+    `- Who needs to act: ${roleCount > 0 ? `${roleCount} recorded role group(s)` : "ownership not confirmed"} should use this brief to update evidence, escalate blockers, and record risk decisions.`,
+    `- Escalate immediately: ${directionsNeedingResponse} Direction(s) still need a response and should not wait for the next reporting cycle.`
+  ];
+}
+
 export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRenderer = (() => {
   function renderPostureBriefMarkdown(input) {
     const requirementsById = new Map((input.requirements || []).map((requirement) => [requirement.id, requirement]));
@@ -990,6 +1019,7 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     const evidenceNeedsReview = (input.evidence || []).filter((item) => item.freshness !== "current").length;
     const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings || []);
     const ismPostureRows = buildIsmControlPostureRows(input.sourceControls || [], input.links || []);
+    const postureFramingRows = buildPostureBriefFramingRows((input.requirements || []).length, openActions.length, openRisks.length, evidenceNeedsReview, directionsNeedingResponse, roleOwnership.length);
     const metadata = [
       "Generated: " + formatDisplayDate(input.generatedAt),
       input.sourceLabel ? "Source: " + input.sourceLabel : undefined,
@@ -1012,6 +1042,10 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "- Directions: " + directions.length + (directions.length > 0 ? " (" + directionsNeedingResponse + " need a response)" : ""),
       strategy ? "- Strategy: " + strategy.title + " (" + strategy.scope + ", " + strategy.timeHorizon + ")" : "- Strategy: None recorded",
       "- Role ownership: " + roleOwnership.length + " role(s), " + roleOwnership.reduce((total, item) => total + item.requirements, 0) + " requirement coverage count, " + roleOwnership.reduce((total, item) => total + item.controls, 0) + " control coverage count",
+      "",
+      "## Why This Matters",
+      "",
+      ...postureFramingRows,
       "",
       "## Strategy",
       "",
@@ -1101,6 +1135,15 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
       "- Controls with direct evidence, action, or risk links: " + directlyWorkedControls.size,
       "- Direct ISM control work links: " + directWorkLinks.length,
       "- Implementation status detail remains internal and is excluded from published Explorer bundles."
+    ];
+  }
+  function buildPostureBriefFramingRows(requirementCount, openActionCount, openRiskCount, evidenceNeedsReview, directionsNeedingResponse, roleCount) {
+    return [
+      "- Mission impact: this posture brief connects " + requirementCount + " PSPF Requirement(s) to the work needed to protect information integrity, defensible decisions, service reliability, and public trust.",
+      "- Current state: " + openActionCount + " open action(s), " + openRiskCount + " open risk(s), and " + evidenceNeedsReview + " evidence item(s) need visible follow-through.",
+      "- Action required: confirm one next step, one responsible role or team, and one timeframe for each material gap before the next reporting cycle.",
+      "- Who needs to act: " + (roleCount > 0 ? roleCount + " recorded role group(s)" : "ownership not confirmed") + " should use this brief to update evidence, escalate blockers, and record risk decisions.",
+      "- Escalate immediately: " + directionsNeedingResponse + " Direction(s) still need a response and should not wait for the next reporting cycle."
     ];
   }
   function strategyRows(strategy) {
