@@ -71,8 +71,13 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       const report = await getService().runDatasetDiagnostics();
       const action = await vscode.window.showInformationMessage(
         report.ok ? report.summary : `PSPF dataset diagnostics failed: ${report.summary}`,
-        ...(report.ok ? [] : ["Reset workspace"])
+        ...(report.ok ? [] : ["Copy diagnostics", "Reset workspace"])
       );
+      if (action === "Copy diagnostics") {
+        await vscode.env.clipboard.writeText(JSON.stringify(report, null, 2));
+        await vscode.window.showInformationMessage("PSPF dataset diagnostics copied to clipboard.");
+        return report;
+      }
       if (action === "Reset workspace") {
         return vscode.commands.executeCommand("pspf.core.resetWorkspace");
       }

@@ -98,6 +98,28 @@ test("clipboard markdown renders action due dates as friendly date-only values",
   assert.doesNotMatch(actionLine, /14:30|2:30|PM|am|pm|2026-08-31T14:30:00\.000Z/);
 });
 
+test("brief and newsletter renderers tolerate invalid date values", () => {
+  const fixture = briefFixture();
+  const baseAction = fixture.actions[0];
+  assert.ok(baseAction);
+  const badDateFixture = {
+    ...fixture,
+    generatedAt: "not-a-date",
+    actions: [
+      {
+        ...baseAction,
+        dueDate: "not-a-date",
+        commentary: [{ createdAt: "not-a-date", text: "Invalid dated update still renders." }]
+      }
+    ]
+  };
+
+  assert.doesNotThrow(() => renderPostureBriefMarkdown(badDateFixture));
+  assert.doesNotThrow(() => renderCisoMagazineMarkdown(badDateFixture));
+  assert.match(renderPostureBriefMarkdown(badDateFixture), /Generated: unknown/);
+  assert.match(renderCisoMagazineMarkdown(badDateFixture), /Generated: unknown/);
+});
+
 test("browser posture brief renderer matches the package renderer", () => {
   const context = { globalThis: {} };
   const fixture = briefFixture();

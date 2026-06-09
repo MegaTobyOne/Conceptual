@@ -398,9 +398,9 @@ INSERT INTO metadata(key, value) VALUES ('apiVersion', '${VERSION_AXES.apiVersio
   await insertReferenceEntitiesIfMissing(workspaceRoot, [
     ...seededRequirements,
     ...seededDirections,
-    ...seededDirectionLinks,
-    ...seededCyberReferenceEntities
+    ...seededDirectionLinks
   ]);
+  await upsertEntities(workspaceRoot, seededCyberReferenceEntities);
   return paths;
 }
 
@@ -1120,6 +1120,9 @@ function additiveMergeWriteSet(
       writeSet.push(incoming);
       continue;
     }
+    if (isProtectedCoreReferenceImport(existing, incoming)) {
+      continue;
+    }
 
     const merged = { ...incoming, createdAt: existing.createdAt } as V01Entity;
     if (canonicalEntityJson(merged) !== canonicalEntityJson(existing)) {
@@ -1127,6 +1130,36 @@ function additiveMergeWriteSet(
     }
   }
   return writeSet;
+}
+
+function isProtectedCoreReferenceImport(existing: V01Entity, incoming: V01Entity): boolean {
+  if (existing.sourceProduct !== "core" || incoming.sourceProduct !== "core") {
+    return false;
+  }
+  if (existing.schemaVersion === incoming.schemaVersion) {
+    return false;
+  }
+  return isCoreReferenceEntity(existing) && isCoreReferenceEntity(incoming);
+}
+
+function isCoreReferenceEntity(entity: V01Entity): boolean {
+  if (
+    [
+      "domain",
+      "source-control",
+      "direction",
+      "cyber-function",
+      "mitigation-strategy",
+      "guidance-framework",
+      "control-theme",
+      "cyber-reference-mapping"
+    ].includes(entity.entityType)
+  ) {
+    return true;
+  }
+  return (
+    entity.entityType === "link" && (entity.id.startsWith("LNK-CYBER-") || entity.id.startsWith("LNK-PSPF-DIRECTION-"))
+  );
 }
 
 function canonicalEntityJson(entity: V01Entity): string {
@@ -1826,9 +1859,9 @@ async function refreshReferenceData(workspaceRoot: string): Promise<void> {
   await insertReferenceEntitiesIfMissing(workspaceRoot, [
     ...seededRequirements,
     ...seededDirections,
-    ...seededDirectionLinks,
-    ...seededCyberReferenceEntities
+    ...seededDirectionLinks
   ]);
+  await upsertCoreReferenceEntitiesIfChanged(workspaceRoot, seededCyberReferenceEntities);
 }
 
 async function deleteRetiredCoreReferenceEntities(
@@ -1867,6 +1900,31 @@ async function insertReferenceEntitiesIfMissing(workspaceRoot: string, entities:
   }
   const paths = getWorkspacePaths(workspaceRoot);
   await runSql(paths.db, ["BEGIN IMMEDIATE;", ...entities.map(insertEntityIfMissingSql), "COMMIT;"].join("\n"));
+}
+
+async function upsertCoreReferenceEntitiesIfChanged(
+  workspaceRoot: string,
+  entities: readonly V01Entity[]
+): Promise<void> {
+  if (entities.length === 0) {
+    return;
+  }
+  const paths = getWorkspacePaths(workspaceRoot);
+  const storedEntities = await readStoredEntities(paths);
+  const storedById = new Map(storedEntities.map((entity) => [entity.id, entity]));
+  const changedEntities = entities.filter((entity) => {
+    const stored = storedById.get(entity.id);
+    return !stored || referenceComparableJson(stored) !== referenceComparableJson(entity);
+  });
+  if (changedEntities.length === 0) {
+    return;
+  }
+  await runSql(paths.db, ["BEGIN IMMEDIATE;", ...changedEntities.map(upsertEntitySql), "COMMIT;"].join("\n"));
+}
+
+function referenceComparableJson(entity: V01Entity): string {
+  const { createdAt: _createdAt, updatedAt: _updatedAt, ...comparable } = entity;
+  return JSON.stringify(comparable);
 }
 
 function insertEntityIfMissingSql(entity: V01Entity): string {
@@ -2015,10 +2073,21 @@ async function openSqlDatabase(SQL: SqlJsStatic, dbPath: string): Promise<SqlJsD
 }
 
 async function persistSqlDatabase(db: SqlJsDatabase, dbPath: string): Promise<void> {
-  const tmpPath = `${dbPath}.tmp-${process.pid}-${Date.now()}`;
   await mkdir(dirname(dbPath), { recursive: true });
-  await writeFile(tmpPath, Buffer.from(db.export()));
-  await rename(tmpPath, dbPath);
+  const database = Buffer.from(db.export());
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const tmpPath = `${dbPath}.tmp-${process.pid}-${Date.now()}-${attempt}`;
+    try {
+      await writeFile(tmpPath, database);
+      await rename(tmpPath, dbPath);
+      return;
+    } catch (error) {
+      lastError = error;
+      await rm(tmpPath, { force: true }).catch(() => undefined);
+    }
+  }
+  throw lastError;
 }
 
 function sqlResultsToJson(results: readonly SqlJsQueryResult[]): string {

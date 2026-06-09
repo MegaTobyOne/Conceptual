@@ -1218,10 +1218,19 @@ export const POSTURE_BRIEF_BROWSER_SCRIPT = String.raw`globalThis.pspfBriefRende
     return latest ? formatDisplayDate(latest.createdAt) + " - " + latest.text : undefined;
   }
   function formatDisplayDate(value) {
-    return value ? new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value)) : "unknown";
+    const date = safeDate(value);
+    return date ? new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date) : "unknown";
   }
   function formatDueDate(value) {
-    return value ? new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value)) : "unknown";
+    const date = safeDate(value);
+    return date ? new Intl.DateTimeFormat("en-AU", { day: "2-digit", month: "short", year: "numeric" }).format(date) : "unknown";
+  }
+  function safeDate(value) {
+    if (!value) {
+      return undefined;
+    }
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date : undefined;
   }
   return { renderPostureBriefMarkdown };
 })();`;
@@ -1750,19 +1759,35 @@ function label(value: string): string {
 }
 
 function formatDisplayDate(value: Date | string): string {
+  const date = safeDate(value);
+  if (!date) {
+    return "unknown";
+  }
   return new Intl.DateTimeFormat("en-AU", {
     day: "2-digit",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit"
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function formatDueDate(value: Date | string): string {
+  const date = safeDate(value);
+  if (!date) {
+    return "unknown";
+  }
   return new Intl.DateTimeFormat("en-AU", {
     day: "2-digit",
     month: "short",
     year: "numeric"
-  }).format(new Date(value));
+  }).format(date);
+}
+
+function safeDate(value: Date | string | undefined): Date | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : undefined;
 }
