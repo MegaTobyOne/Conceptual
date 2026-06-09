@@ -174,6 +174,48 @@ test("dataset diagnostics validate cyber reference mappings and clean reset", as
   assert.equal(report.counts.publicationLeaks, 0);
 });
 
+test("dataset diagnostics refresh stale cyber reference records without reset", async () => {
+  const workspaceRoot = await freshWorkspace("dataset-diagnostics-refresh-stale-reference-data");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+  const cyberFunction = (await service.listEntities("cyber-function"))[0];
+  assert.ok(cyberFunction);
+  await service.upsertEntity({ ...cyberFunction, schemaVersion: "0.0.0", title: "Stale cyber function title" });
+
+  const report = await service.runDatasetDiagnostics();
+  const refreshedCyberFunction = (await service.listEntities("cyber-function")).find(
+    (entity) => entity.id === cyberFunction.id
+  );
+
+  assert.equal(report.ok, true, report.summary);
+  assert.equal(report.counts.schemaVersionMismatches, 0);
+  assert.equal(refreshedCyberFunction?.schemaVersion, cyberFunction.schemaVersion);
+  assert.equal(refreshedCyberFunction?.title, cyberFunction.title);
+});
+
+test("additive import does not downgrade existing Core reference data", async () => {
+  const workspaceRoot = await freshWorkspace("additive-import-skips-older-core-reference-data");
+  const bundlePath = join(workspaceRoot, "older-core-reference-bundle.json");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+  const cyberFunction = (await service.listEntities("cyber-function"))[0];
+  assert.ok(cyberFunction);
+  await writeBundle(bundlePath, {
+    "cyber-functions": [{ ...cyberFunction, schemaVersion: "1.5.0", title: "Older public cyber function" }]
+  });
+
+  const result = await service.importBundle(bundlePath, "additive-merge");
+  const currentCyberFunction = (await service.listEntities("cyber-function")).find(
+    (entity) => entity.id === cyberFunction.id
+  );
+
+  assert.equal(result.imported, 0);
+  assert.equal(result.summary.written, 0);
+  assert.equal(result.summary.unchanged, 1);
+  assert.equal(currentCyberFunction?.schemaVersion, cyberFunction.schemaVersion);
+  assert.equal(currentCyberFunction?.title, cyberFunction.title);
+});
+
 test("mutating operations require an initialised workspace", async () => {
   const workspaceRoot = await freshWorkspace("mutating-requires-initialised-workspace");
   const service = createCoreService(workspaceRoot);
