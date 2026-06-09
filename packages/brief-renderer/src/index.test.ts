@@ -114,14 +114,13 @@ test("CSO magazine supports INFO scope and excludes sensitive working notes", ()
 
   assert.equal(model.pspfDomainScope, "INFO");
   assert.equal(model.pspfDomainTitle, "Information");
-  assert.equal(model.masterPlan.title, "CISO Master Plan");
-  assert.deepEqual(model.masterPlan.roleOwnership, [
-    { role: "Information assurance owner", requirements: 1, controls: 1 }
-  ]);
+  assert.equal(model.masterPlan, undefined);
   assert.equal(model.edition, "cso");
   assert.match(markdown, /Digital CSO Magazine/);
-  assert.match(markdown, /## CISO Master Plan/);
-  assert.match(markdown, /Information has 1 requirement\(s\) and 1 action\(s\) needing attention/);
+  assert.doesNotMatch(markdown, /## CISO Master Plan/);
+  assert.match(markdown, /## Why This Matters/);
+  assert.match(markdown, /Overall compliance: 0%/);
+  assert.match(markdown, /Information has 1 requirement\(s\) and 1 action\(s\) that need coordinated leadership/);
   assert.match(
     markdown,
     /PSPF sets the assurance obligations, and ISM controls provide the implementation patterns that help teams show those obligations are being met\./
@@ -191,8 +190,11 @@ test("CISO magazine edition is dark and scoped to Information and Technology", (
   assert.equal(model.edition, "ciso");
   assert.equal(model.title, "Digital CISO Magazine");
   assert.equal(model.pspfDomainTitle, "Information + Technology");
-  assert.equal(model.postureSnapshot[0]?.value, "2");
+  assert.ok(model.masterPlan);
+  assert.equal(model.masterPlan.title, "CISO Master Plan");
+  assert.equal(model.postureSnapshot[1]?.value, "2");
   assert.match(markdown, /Digital CISO Magazine/);
+  assert.match(markdown, /## CISO Master Plan/);
   assert.match(markdown, /Information \+ Technology/);
   assert.doesNotMatch(markdown, /Governance cadence is reviewed/);
   assert.match(html, /color-scheme: dark/);

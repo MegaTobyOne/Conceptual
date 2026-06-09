@@ -15,11 +15,15 @@ const bundle = JSON.parse(
   await readFile(join(root, "packages", "contracts", "test-fixtures", "standard", "bundle.json"), "utf8")
 );
 const fixture = buildMagazineFixture(bundle);
-const markdown = renderCisoMagazineMarkdown(fixture);
-const html = renderCisoMagazineHtml(fixture);
-const planMarkdown = renderCisoMasterPlanMarkdown(fixture);
-const infoMarkdown = renderCisoMagazineMarkdown({ ...fixture, domainScope: "INFO" });
-const infoHtml = renderCisoMagazineHtml({ ...fixture, domainScope: "INFO" });
+const csoFixture = { ...fixture, issueTitle: "Digital CSO Magazine", edition: "cso" };
+const cisoFixture = { ...fixture, issueTitle: "Digital CISO Magazine", edition: "ciso" };
+const markdown = renderCisoMagazineMarkdown(csoFixture);
+const html = renderCisoMagazineHtml(csoFixture);
+const cisoMarkdown = renderCisoMagazineMarkdown(cisoFixture);
+const cisoHtml = renderCisoMagazineHtml(cisoFixture);
+const planMarkdown = renderCisoMasterPlanMarkdown(cisoFixture);
+const infoMarkdown = renderCisoMagazineMarkdown({ ...cisoFixture, domainScope: "INFO" });
+const infoHtml = renderCisoMagazineHtml({ ...cisoFixture, domainScope: "INFO" });
 const workshopExtension = await readFile(join(root, "packages", "workshop", "src", "extension.ts"), "utf8");
 const workshopManifest = await readFile(join(root, "packages", "workshop", "package.json"), "utf8");
 
@@ -36,16 +40,21 @@ const forbidden = [
 
 const checks = [
   check("Markdown includes classification", markdown.includes("OFFICIAL: Sensitive")),
-  check("Markdown includes magazine title", markdown.includes("Digital CISO Magazine")),
+  check("CSO Markdown includes magazine title", markdown.includes("Digital CSO Magazine")),
   check("Markdown includes attention section", markdown.includes("## Attention Required")),
   check("Markdown includes action strip", markdown.includes("## Action Strip")),
   check("Markdown includes commercial watch", markdown.includes("## Commercial Watch")),
-  check("Markdown includes CISO Master Plan article", markdown.includes("## CISO Master Plan")),
+  check("Markdown includes why this matters", markdown.includes("## Why This Matters")),
+  check("Markdown includes overall compliance", markdown.includes("Overall compliance")),
+  check("CSO Markdown excludes CISO Master Plan article", !markdown.includes("## CISO Master Plan")),
+  check("CISO Markdown includes CISO Master Plan article", cisoMarkdown.includes("## CISO Master Plan")),
+  check("CISO Markdown includes tailored security leader action", cisoMarkdown.includes("Security leaders:")),
   check("Master Plan markdown is generated", planMarkdown.includes("# CISO Master Plan")),
   check("Master Plan includes streams", planMarkdown.includes("## Streams")),
   check("HTML includes print stylesheet", html.includes("@media print")),
   check("HTML includes accessible main element", html.includes('<main class="issue">')),
-  check("HTML includes CISO Master Plan article", html.includes("CISO Master Plan")),
+  check("CSO HTML excludes CISO Master Plan article", !html.includes("CISO Master Plan")),
+  check("CISO HTML includes CISO Master Plan article", cisoHtml.includes("CISO Master Plan")),
   check("INFO Markdown is scoped to Information", infoMarkdown.includes("Information")),
   check("INFO HTML is generated", infoHtml.includes("Digital CISO Magazine")),
   check("Workshop registers magazine command", workshopExtension.includes("pspf.workshop.openCisoMagazine")),
@@ -93,6 +102,8 @@ const checks = [
       `Output excludes ${value}`,
       !markdown.includes(value) &&
         !html.includes(value) &&
+        !cisoMarkdown.includes(value) &&
+        !cisoHtml.includes(value) &&
         !planMarkdown.includes(value) &&
         !infoMarkdown.includes(value) &&
         !infoHtml.includes(value)
@@ -103,6 +114,8 @@ const checks = [
 const failed = checks.filter((item) => !item.ok);
 await writeFile(join(reportDirectory, "digital-ciso-magazine.md"), `${markdown}\n`, "utf8");
 await writeFile(join(reportDirectory, "digital-ciso-magazine.html"), `${html}\n`, "utf8");
+await writeFile(join(reportDirectory, "digital-ciso-magazine-ciso.md"), `${cisoMarkdown}\n`, "utf8");
+await writeFile(join(reportDirectory, "digital-ciso-magazine-ciso.html"), `${cisoHtml}\n`, "utf8");
 await writeFile(join(reportDirectory, "ciso-master-plan.md"), `${planMarkdown}\n`, "utf8");
 await writeFile(join(reportDirectory, "digital-ciso-magazine-info.md"), `${infoMarkdown}\n`, "utf8");
 await writeFile(
