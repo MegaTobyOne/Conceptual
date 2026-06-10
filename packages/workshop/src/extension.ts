@@ -2693,16 +2693,22 @@ async function openAssessmentDashboard(): Promise<void> {
   const domainRows = PSPF_DOMAINS.map((domain) => {
     const domainRequirements = requirements.filter((requirement) => requirement.domainId === domain.id);
     const applicableRequirements = domainRequirements.filter((requirement) => !isNotApplicableRequirement(requirement));
+    const statusCounts = dashboardRequirementStatusCounts(domainRequirements);
     return {
+      domainId: domain.id,
       domain: domain.title,
-      requirements: applicableRequirements.length,
-      notApplicable: domainRequirements.length - applicableRequirements.length,
+      requirements: domainRequirements.length,
+      applicable: applicableRequirements.length,
+      met: statusCounts.met,
+      partiallyMet: statusCounts["partially-met"],
+      inProgress: statusCounts["in-progress"],
+      notMet: statusCounts["not-met"],
+      notStarted: statusCounts["not-started"],
+      underReview: statusCounts["under-review"],
+      notApplicable: statusCounts["not-applicable"],
       evidenceGaps: applicableRequirements.filter((requirement) => !evidenceRequirementIds.has(requirement.id)).length,
-      inProgress: applicableRequirements.filter((requirement) => requirement.assessmentStatus === "in-progress").length,
-      met: applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met").length,
-      notMet: applicableRequirements.filter(
-        (requirement) => requirement.assessmentStatus === "not-met" || requirement.assessmentStatus === "partially-met"
-      ).length
+      metPercent:
+        applicableRequirements.length === 0 ? 0 : Math.round((statusCounts.met / applicableRequirements.length) * 100)
     };
   });
   const nextRequirements = requirements
@@ -2755,14 +2761,210 @@ async function openAssessmentDashboard(): Promise<void> {
       <p class="muted">Direction responses: ${directionChips(directionResponseCounts)}</p>
       <p class="muted">Recent requirement: ${escapeHtml(recentRequirement?.title ?? "None selected yet")}</p>
     </section>
+    ${domainStatsWidget(domainRows)}
     ${recordTable("Validation Hints", validationHints, ["priority", "requirement", "hint"])}
-    ${recordTable("Domain Summary", domainRows, ["domain", "requirements", "notApplicable", "evidenceGaps", "inProgress", "met", "notMet"])}
+    ${recordTable("Domain Summary", domainRows, ["domain", "requirements", "applicable", "met", "partiallyMet", "inProgress", "notMet", "notStarted", "underReview", "notApplicable", "evidenceGaps", "metPercent"])}
     ${recordTable("Action Impact — Top 5", actionImpactRows, ["title", "status", "urgency", "total", "postureUplift", "evidenceUplift", "riskReduction", "directionUplift", "explanation"])}
     ${recordTable("Directions", directionRows, ["reference", "title", "responseState", "sourceAuthority", "issuedAt"])}
     ${recordTable("Next Requirements To Review", nextRequirements, ["title", "domain", "status", "evidence"])}
     ${recordTable("Latest Activity", recentActivity, ["type", "title", "created"])}
   `
   );
+}
+
+type DashboardDomainStatusRow = {
+  readonly domainId: string;
+  readonly domain: string;
+  readonly requirements: number;
+  readonly applicable: number;
+  readonly met: number;
+  readonly partiallyMet: number;
+  readonly inProgress: number;
+  readonly notMet: number;
+  readonly notStarted: number;
+  readonly underReview: number;
+  readonly notApplicable: number;
+  readonly evidenceGaps: number;
+  readonly metPercent: number;
+};
+
+function dashboardRequirementStatusCounts(
+  requirements: readonly RequirementEntity[]
+): Record<AssessmentStatus, number> {
+  return {
+    met: requirements.filter((requirement) => requirement.assessmentStatus === "met").length,
+    "partially-met": requirements.filter((requirement) => requirement.assessmentStatus === "partially-met").length,
+    "in-progress": requirements.filter((requirement) => requirement.assessmentStatus === "in-progress").length,
+    "not-met": requirements.filter((requirement) => requirement.assessmentStatus === "not-met").length,
+    "not-started": requirements.filter((requirement) => requirement.assessmentStatus === "not-started").length,
+    "under-review": requirements.filter((requirement) => requirement.assessmentStatus === "under-review").length,
+    "not-applicable": requirements.filter((requirement) => requirement.assessmentStatus === "not-applicable").length
+  };
+}
+
+function domainStatsWidget(rows: readonly DashboardDomainStatusRow[]): string {
+  const totals = aggregateDomainStats(rows);
+  const filters = rows
+    .map(
+      (row) =>
+        `<button type="button" data-domain-stat-filter="${escapeHtml(row.domainId)}" aria-pressed="false">${escapeHtml(row.domain)} <span>${row.requirements}</span></button>`
+    )
+    .join("");
+  const rowHtml = rows.map(domainStatsTableRow).join("");
+  return `<section class="domain-stats" data-domain-stats-widget>
+    <style>
+      .domain-stats { display: grid; gap: 12px; }
+      .domain-stats__filters { display: flex; flex-wrap: wrap; gap: 8px; }
+      .domain-stats__filters button { display: inline-flex; align-items: center; gap: 6px; width: auto; min-width: 0; }
+      .domain-stats__filters button[aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 14%, var(--surface-strong)); }
+      .domain-stats__filters span { color: var(--muted); font-size: 12px; }
+      .domain-stats__summary { display: grid; grid-template-columns: minmax(220px, .7fr) minmax(260px, 1.3fr); gap: 12px; align-items: stretch; }
+      .domain-stats__score { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: var(--surface-strong); }
+      .domain-stats__score span { display: block; color: var(--muted); font-size: var(--pspf-type-label); text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+      .domain-stats__score strong { display: block; margin-top: 6px; font-size: 34px; line-height: 1; color: var(--workshop-blue); }
+      .domain-stats__bar { display: grid; gap: 7px; align-content: center; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: var(--surface-strong); }
+      .domain-stats__bar-row { display: grid; grid-template-columns: 110px minmax(0, 1fr) 42px; gap: 8px; align-items: center; }
+      .domain-stats__track { height: 12px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--border) 55%, transparent); }
+      .domain-stats__fill { display: block; width: var(--value); height: 100%; border-radius: inherit; background: var(--fill); }
+      .domain-stats__table table { min-width: min(760px, 100%); }
+      .domain-stats__table th, .domain-stats__table td { white-space: nowrap; }
+      .domain-stats__table th:first-child, .domain-stats__table td:first-child { white-space: normal; min-width: 10rem; }
+      @media (max-width: 760px) { .domain-stats__summary { grid-template-columns: 1fr; } }
+    </style>
+    <h2>Domain Stats</h2>
+    <p class="muted">Filter by one or more PSPF Domains to see compliance status counts for the selected scope.</p>
+    <div class="domain-stats__filters" role="group" aria-label="Filter Domain Stats by Domain">
+      <button type="button" data-domain-stat-filter="all" aria-pressed="true">All Domains <span>${rows.length}</span></button>
+      ${filters}
+    </div>
+    <div class="domain-stats__summary" aria-live="polite">
+      <article class="domain-stats__score"><span>Selected scope</span><strong data-domain-stat-value="metPercent">${totals.metPercent}%</strong><p class="muted" data-domain-stat-value="scopeLabel">All Domains · ${totals.requirements} requirement(s)</p></article>
+      <article class="domain-stats__bar">
+        ${domainStatsBarRow("Met", "met", totals.met, totals.requirements, "var(--pspf-ok)")}
+        ${domainStatsBarRow("Partial", "partiallyMet", totals.partiallyMet, totals.requirements, "var(--pspf-warn)")}
+        ${domainStatsBarRow("Not met", "notMet", totals.notMet, totals.requirements, "var(--pspf-danger)")}
+        ${domainStatsBarRow("Not started", "notStarted", totals.notStarted, totals.requirements, "var(--muted)")}
+      </article>
+    </div>
+    <div class="table-wrap domain-stats__table" tabindex="0" aria-label="Domain status counts table">
+      <table>
+        <thead><tr><th>Domain</th><th>Total</th><th>Applicable</th><th>Met</th><th>Partial</th><th>In progress</th><th>Not met</th><th>Not started</th><th>Under review</th><th>N/A</th><th>Evidence gaps</th><th>Met %</th></tr></thead>
+        <tbody>${rowHtml}</tbody>
+      </table>
+    </div>
+    ${domainStatsScript()}
+  </section>`;
+}
+
+function domainStatsBarRow(labelText: string, key: string, value: number, total: number, fill: string): string {
+  const percent = total === 0 ? 0 : Math.round((value / total) * 100);
+  return `<div class="domain-stats__bar-row"><span>${escapeHtml(labelText)}</span><div class="domain-stats__track"><span class="domain-stats__fill" data-domain-stat-bar="${escapeHtml(key)}" style="--value: ${percent}%; --fill: ${fill};"></span></div><strong data-domain-stat-value="${escapeHtml(key)}">${value}</strong></div>`;
+}
+
+function domainStatsTableRow(row: DashboardDomainStatusRow): string {
+  const stats = JSON.stringify(row).replaceAll("&", "&amp;").replaceAll("'", "&#39;");
+  return `<tr data-domain-stat-row data-domain="${escapeHtml(row.domainId)}" data-stats='${stats}'>
+    <td>${escapeHtml(row.domain)}</td><td>${row.requirements}</td><td>${row.applicable}</td><td>${row.met}</td><td>${row.partiallyMet}</td><td>${row.inProgress}</td><td>${row.notMet}</td><td>${row.notStarted}</td><td>${row.underReview}</td><td>${row.notApplicable}</td><td>${row.evidenceGaps}</td><td>${row.metPercent}%</td>
+  </tr>`;
+}
+
+function aggregateDomainStats(rows: readonly DashboardDomainStatusRow[]): DashboardDomainStatusRow {
+  const totals = rows.reduce(
+    (current, row) => ({
+      domainId: "all",
+      domain: "All Domains",
+      requirements: current.requirements + row.requirements,
+      applicable: current.applicable + row.applicable,
+      met: current.met + row.met,
+      partiallyMet: current.partiallyMet + row.partiallyMet,
+      inProgress: current.inProgress + row.inProgress,
+      notMet: current.notMet + row.notMet,
+      notStarted: current.notStarted + row.notStarted,
+      underReview: current.underReview + row.underReview,
+      notApplicable: current.notApplicable + row.notApplicable,
+      evidenceGaps: current.evidenceGaps + row.evidenceGaps,
+      metPercent: 0
+    }),
+    {
+      domainId: "all",
+      domain: "All Domains",
+      requirements: 0,
+      applicable: 0,
+      met: 0,
+      partiallyMet: 0,
+      inProgress: 0,
+      notMet: 0,
+      notStarted: 0,
+      underReview: 0,
+      notApplicable: 0,
+      evidenceGaps: 0,
+      metPercent: 0
+    }
+  );
+  return { ...totals, metPercent: totals.applicable === 0 ? 0 : Math.round((totals.met / totals.applicable) * 100) };
+}
+
+function domainStatsScript(): string {
+  return `<script>
+    (() => {
+      const widget = document.querySelector('[data-domain-stats-widget]');
+      if (!widget) return;
+      const buttons = Array.from(widget.querySelectorAll('[data-domain-stat-filter]'));
+      const rows = Array.from(widget.querySelectorAll('[data-domain-stat-row]'));
+      const selected = new Set();
+      const readStats = (row) => JSON.parse(row.getAttribute('data-stats') || '{}');
+      const sum = (items, key) => items.reduce((total, item) => total + Number(item[key] || 0), 0);
+      const setText = (key, value) => {
+        const element = widget.querySelector('[data-domain-stat-value="' + key + '"]');
+        if (element) element.textContent = String(value);
+      };
+      const setBar = (key, value, total) => {
+        const element = widget.querySelector('[data-domain-stat-bar="' + key + '"]');
+        if (element) element.style.setProperty('--value', (total > 0 ? Math.round((value / total) * 100) : 0) + '%');
+      };
+      const refresh = () => {
+        const allSelected = selected.size === 0;
+        const visibleRows = rows.filter((row) => allSelected || selected.has(row.getAttribute('data-domain')));
+        const stats = visibleRows.map(readStats);
+        rows.forEach((row) => { row.hidden = !(allSelected || selected.has(row.getAttribute('data-domain'))); });
+        buttons.forEach((button) => {
+          const id = button.getAttribute('data-domain-stat-filter');
+          button.setAttribute('aria-pressed', id === 'all' ? String(allSelected) : String(selected.has(id)));
+        });
+        const requirements = sum(stats, 'requirements');
+        const applicable = sum(stats, 'applicable');
+        const met = sum(stats, 'met');
+        const partiallyMet = sum(stats, 'partiallyMet');
+        const notMet = sum(stats, 'notMet');
+        const notStarted = sum(stats, 'notStarted');
+        const metPercent = applicable > 0 ? Math.round((met / applicable) * 100) : 0;
+        setText('metPercent', metPercent + '%');
+        setText('scopeLabel', (allSelected ? 'All Domains' : stats.map((item) => item.domain).join(', ')) + ' · ' + requirements + ' requirement(s)');
+        setText('met', met);
+        setText('partiallyMet', partiallyMet);
+        setText('notMet', notMet);
+        setText('notStarted', notStarted);
+        setBar('met', met, requirements);
+        setBar('partiallyMet', partiallyMet, requirements);
+        setBar('notMet', notMet, requirements);
+        setBar('notStarted', notStarted, requirements);
+      };
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-domain-stat-filter');
+          if (id === 'all') {
+            selected.clear();
+          } else if (selected.has(id)) {
+            selected.delete(id);
+          } else {
+            selected.add(id);
+          }
+          refresh();
+        });
+      });
+      refresh();
+    })();
+  </script>`;
 }
 
 async function openMasterDashboard(): Promise<void> {
@@ -2980,7 +3182,7 @@ async function openMasterDashboard(): Promise<void> {
             "Essential Eight",
             "E8 posture, mappings and uplift"
           ),
-          portalCommand("pspf.workshop.openPspfGridView", "Requirements pane", "Simple requirement status view"),
+          portalCommand("pspf.workshop.openRequirementsList", "Requirements", "Main requirement editing workbench"),
           portalCommand("pspf.workshop.browseIsmSourceControls", "Controls pane", "ISM controls by category and state")
         ])}
         ${portalGroup("Planning", "Move from posture into executable work.", [
