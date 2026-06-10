@@ -278,6 +278,7 @@ test("Master Dashboard groups tools into portal sections", async () => {
   assert.match(source, /portalGroup\("Essentials"/);
   assert.match(source, /portalCommand\([\s\S]*"pspf\.workshop\.openEssentialEightDashboard",[\s\S]*"Essential Eight"/);
   assert.match(source, /portalCommand\([\s\S]*"pspf\.workshop\.openRequirementsList",[\s\S]*"Requirements"/);
+  assert.match(source, /allowedPanelCommands = new Set\(\[[\s\S]*"pspf\.workshop\.openRequirementsList"/);
   assert.match(source, /portalCommand\([\s\S]*"pspf\.workshop\.browseIsmSourceControls",[\s\S]*"Controls pane"/);
   assert.match(source, /portalGroup\("Planning"/);
   assert.match(source, /portalGroup\("Traceability"/);

@@ -9913,6 +9913,7 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.openConnectedView",
         "pspf.workshop.openMasterDashboard",
         "pspf.workshop.openEssentialEightDashboard",
+        "pspf.workshop.openRequirementsList",
         "pspf.workshop.openPspfGridView",
         "pspf.workshop.openHumanCentredRiskView",
         "pspf.workshop.openContinuousComplianceMetro",
