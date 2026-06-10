@@ -1,5 +1,7 @@
 # PSPF Error and Diagnostics Model
 
+Status: **aspirational**
+
 ## Purpose
 
 This document defines a stable diagnostic model for API, storage, migration, import/export, and workflow validation behaviour.

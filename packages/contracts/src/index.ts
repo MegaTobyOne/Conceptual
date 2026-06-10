@@ -4,9 +4,102 @@ export const VERSION_AXES = {
   apiVersion: "1.14.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.41.4" as const;
+export const PSPF_SLICE_VERSION = "1.42.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
+
+export const PSPF_DIAGNOSTIC_CODES = [
+  "PSPF_STORAGE_DB_MISSING",
+  "PSPF_STORAGE_DB_CORRUPT",
+  "PSPF_INTEGRITY_CHECK_FAILED",
+  "PSPF_MIGRATION_REQUIRED",
+  "PSPF_MIGRATION_NOT_SAFE",
+  "PSPF_MIGRATION_FAILED",
+  "PSPF_COMPAT_API_MISMATCH",
+  "PSPF_COMPAT_SCHEMA_MISMATCH",
+  "PSPF_VERSION_UNSUPPORTED",
+  "PSPF_SCHEMA_INCOMPATIBLE",
+  "PSPF_API_UNAUTHORIZED_CALLER",
+  "PSPF_IMPORT_BUNDLE_INVALID",
+  "PSPF_IMPORT_LIMIT_EXCEEDED",
+  "PSPF_EXPORT_POLICY_BLOCKED",
+  "PSPF_EXPORT_SCHEMA_UNSUPPORTED",
+  "PSPF_EXPORT_PERSONAL_FIELD_LEAK",
+  "PSPF_VALIDATION_REQUIRED_LINK_MISSING",
+  "PSPF_VALIDATION_STATE_INCONSISTENT",
+  "PSPF_VALIDATION_LINKTYPE_UNKNOWN",
+  "PSPF_VALIDATION_LINKTYPE_TRIPLE_INVALID",
+  "PSPF_VALIDATION_FIELD_POLICY_MISSING",
+  "PSPF_REDACTION_EVENT_RECORDED",
+  "PSPF_PURGE_CONFIRMATION_REQUIRED",
+  "PSPF_PURGE_COMPLETED",
+  "PSPF_PURGE_DENIED_NOT_TRUSTED",
+  "PSPF_WRITER_LOCK_HELD",
+  "PSPF_PUBLICATION_POLICY_VIOLATION",
+  "PSPF_PACK_INCOMPATIBLE"
+] as const;
+
+export type PspfDiagnosticCode = (typeof PSPF_DIAGNOSTIC_CODES)[number];
+export type PspfDiagnosticSeverity = "info" | "warning" | "error" | "fatal";
+export type PspfDiagnosticCategory =
+  | "storage"
+  | "migration"
+  | "compatibility"
+  | "import"
+  | "export"
+  | "validation"
+  | "redaction"
+  | "purge"
+  | "policy";
+
+export interface PspfDiagnostic {
+  readonly code: PspfDiagnosticCode;
+  readonly severity: PspfDiagnosticSeverity;
+  readonly category: PspfDiagnosticCategory;
+  readonly message: string;
+  readonly retryable: boolean;
+  readonly recommendedAction: string;
+  readonly detail?: Record<string, unknown>;
+}
+
+export class PspfError extends Error implements PspfDiagnostic {
+  readonly code: PspfDiagnosticCode;
+  readonly severity: PspfDiagnosticSeverity;
+  readonly category: PspfDiagnosticCategory;
+  readonly retryable: boolean;
+  readonly recommendedAction: string;
+  readonly detail?: Record<string, unknown>;
+
+  constructor(diagnostic: PspfDiagnostic) {
+    super(diagnostic.message);
+    this.name = "PspfError";
+    this.code = diagnostic.code;
+    this.severity = diagnostic.severity;
+    this.category = diagnostic.category;
+    this.retryable = diagnostic.retryable;
+    this.recommendedAction = diagnostic.recommendedAction;
+    this.detail = diagnostic.detail;
+  }
+}
+
+export function getSemverMajor(version: string): number | undefined {
+  const match = version.match(/^(\d+)\.\d+\.\d+$/);
+  return match ? Number(match[1]) : undefined;
+}
+
+export function hasCompatibleMajorVersion(actual: string, expected: string): boolean {
+  const actualMajor = getSemverMajor(actual);
+  const expectedMajor = getSemverMajor(expected);
+  return actualMajor !== undefined && expectedMajor !== undefined && actualMajor === expectedMajor;
+}
+
+export function isCompatibleVersionAxes(candidate: Partial<Record<keyof VersionAxes, string>>): boolean {
+  return (
+    hasCompatibleMajorVersion(candidate.schemaVersion ?? "", VERSION_AXES.schemaVersion) &&
+    hasCompatibleMajorVersion(candidate.bundleVersion ?? "", VERSION_AXES.bundleVersion) &&
+    hasCompatibleMajorVersion(candidate.apiVersion ?? "", VERSION_AXES.apiVersion)
+  );
+}
 
 export const V0_1_ENTITY_TYPES = [
   "domain",

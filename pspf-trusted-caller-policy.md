@@ -1,5 +1,7 @@
 # PSPF Trusted Caller Policy
 
+Status: **partial**
+
 ## Purpose
 
 This policy defines how PSPF Core gates access to its in-process extension API. The intent is **API discipline and accidental-misuse prevention**, not a security boundary. Anything running inside the same VS Code window as Core can, in principle, reach Core's exports; the policy ensures that only intentionally-developed PSPF products call privileged commands, and that the surface the operator sees is predictable.

@@ -1,5 +1,7 @@
 # PSPF Core Architecture Specification
 
+Status: **implemented**
+
 ## Overview
 
 This specification defines **PSPF Core** as the shared platform backbone for the PSPF extension ecosystem. PSPF Core is the system of record for all VS Code-based products in the ecosystem, provides the shared storage and schema authority, exposes a local extension API for trusted companion products, and offers a small administrative user surface for configuration, integrity, and shared platform operations.

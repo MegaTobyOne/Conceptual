@@ -1,5 +1,7 @@
 # Explorer Screen and Workflow Specification
 
+Status: **implemented**
+
 ## Purpose
 
 This specification defines the screen model, information architecture, navigation, and user workflows for **PSPF Explorer**, the static web app that operates in two modes simultaneously (see ADR 0004):

@@ -1,5 +1,7 @@
 # PSPF UX Consistency Refactor Plan
 
+Status: **implemented**
+
 ## Decision
 
 Plan for an ecosystem-wide consistency refactor, but deliver it as staged vertical slices rather than a single broad rewrite. The goal is that similar actions feel the same across Core, Workshop, Explorer, Shop, and Pub while preserving the current business behaviour and publication boundaries.

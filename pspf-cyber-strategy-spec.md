@@ -1,5 +1,7 @@
 # PSPF-Aligned Cybersecurity Strategy Management Spec
 
+Status: **implemented**
+
 ## Overview
 This specification describes a lightweight product design for creating, maintaining and sharing a cybersecurity strategy in a form that is distinct from operational plans, but still traceable to execution and reporting.[cite:1][cite:2] The design is intended for Australian Government or PSPF-aligned contexts where strategy needs to express risk posture, target state, priorities, measures and assurance, while remaining usable inside an application.[cite:1][cite:4]
 

@@ -1,5 +1,7 @@
 # PSPF Design Specification
 
+Status: **implemented**
+
 ## Overview
 
 This specification defines the visual language, interface behaviour, information hierarchy, and user-facing content strategy for the PSPF product ecosystem. It covers the four VS Code extensions (PSPF Core, PSPF Workshop, PSPF Shop, PSPF Pub) published independently to the Marketplace, and the standalone Explorer web application. See ADR 0001 and ADR 0007.

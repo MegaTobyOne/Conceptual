@@ -1,5 +1,7 @@
 # PSPF VS Code Extension Surface Specification
 
+Status: **implemented**
+
 ## Overview
 
 This specification defines the Visual Studio Code extension surface for the PSPF platform products, with emphasis on **PSPF Core** and **PSPF Workshop**, and supporting patterns for Shop and Pub. It covers extension manifests, contribution points, commands, views, menus, settings, status bar items, walkthroughs, activation events, and the division between Tree Views and Webviews.

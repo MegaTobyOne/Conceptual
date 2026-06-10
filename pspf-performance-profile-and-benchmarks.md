@@ -1,5 +1,7 @@
 # PSPF Performance Profile and Benchmark Methodology
 
+Status: **partial**
+
 ## Purpose
 
 This document defines performance assumptions, benchmark method, and acceptance thresholds for PSPF v1.

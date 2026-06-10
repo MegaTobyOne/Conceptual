@@ -1,5 +1,7 @@
 # PSPF Backup and Restore Runbook
 
+Status: **partial**
+
 ## Purpose
 
 This runbook defines the operational procedure for backing up and restoring the PSPF Core workspace data store and associated platform metadata. It is written for a local-first PSPF environment using SQLite as the system of record, with PSPF Core and PSPF Workshop running in Visual Studio Code, and PSPF Explorer consuming exported JSON bundles separately. SQLite provides a built-in backup mechanism for creating consistent copies of a database, and `PRAGMA integrity_check` is the standard low-level consistency check for validating a SQLite database file.

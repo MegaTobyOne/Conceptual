@@ -1,5 +1,7 @@
 # PSPF Explorer JSON Bundle and Schema Specification
 
+Status: **implemented**
+
 ## Overview
 
 This specification defines the **single master JSON bundle format** used for every Explorer data exchange. Per ADR 0009, there is one bundle, one schema, one validator, one set of version axes — used for all of:

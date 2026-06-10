@@ -1,5 +1,7 @@
 # PSPF Glossary
 
+Status: **implemented**
+
 ## Purpose
 
 This glossary is the single source of truth for **terminology and spelling** across the PSPF spec set, code, and user-facing copy. It exists to:

@@ -1,5 +1,7 @@
 # PSPF Security and Redaction Controls
 
+Status: **implemented**
+
 ## Purpose
 
 This document defines the **default-deny per-field publication policy** that governs what data is allowed on which surface, plus the surface-level UI rules that follow from it.

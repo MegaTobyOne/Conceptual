@@ -1,5 +1,7 @@
 # PSPF Acceptance and Quality Gates
 
+Status: **implemented**
+
 ## Purpose
 
 This specification defines measurable acceptance criteria and release gates for PSPF v0.1 and v1. It closes the gap between descriptive design intent and verifiable delivery outcomes.
@@ -577,6 +579,18 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 5. **Plan of Action context gate**: Workshop Plan of Action reads local Pub team-date items only when `includeInPlan` is true, renders them as optional schedule context, and shows nearby action-date conflict cues without writing Pub data or publishing it to Explorer.
 6. **Deferred-scope gate**: v1.41 does not add Pub publication, calendar sync, automatic conflict resolution, notifications, Pub roster/performance-management workflows, post-quantum encrypted bundle envelopes, or new schema-bearing Explorer bundle fields.
 7. **Regression gate**: `e2e:v1.41`, `check:ux-coverage`, `check:gates`, `package:check`, `validate:debug-workspace`, `lint`, `check:release-candidate`, and `typecheck` pass.
+
+### v1.42 candidate gates (T0-T2 remediation foundation)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.42.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+2. **Documentation truth gate**: every root Markdown specification has a `Status` header; stale v0.1 agent instructions are removed; `pspf-grand-plan.md` is the active forward-plan source.
+3. **ADR hygiene gate**: `scripts/check-adr-coverage.mjs` is restored from a non-empty implementation; `adr/README.md` indexes all ADRs through 0076; no duplicate ADR numbers remain.
+4. **Gate integrity gate**: `check:gate-integrity` confirms every gate referenced by `check:gates:run` is non-empty, parseable, and contains an enforcement path.
+5. **Spec drift gate**: `check:spec-drift` confirms root spec status headers and rejects `implemented` specs that declare `PSPF_*` identifiers absent from source.
+6. **CI/action gate**: CI uses pnpm cache, enables Corepack, runs `pnpm test`, and release readiness is driven by `release-gates.json` through `scripts/run-release-gates.mjs`.
+7. **Import boundary gate**: Core rejects malformed, oversized, incompatible, count-mismatched, checksum-mismatched, or entity-envelope-invalid master bundles before planning writes.
+8. **Diagnostics and durability gate**: shared diagnostic codes and `PspfError` exist in contracts; writer-lock rejections use `PSPF_WRITER_LOCK_HELD`; database persistence fsyncs the temp file before rename; workspace open checks stored schema compatibility.
+9. **Regression gate**: `e2e:v1.42`, `check:gate-integrity`, `check:spec-drift`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, `typecheck`, and `release:readiness` pass.
 
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 

@@ -1,5 +1,7 @@
 # PSPF Migration Safety Runbook
 
+Status: **aspirational**
+
 ## Purpose
 
 This runbook defines how schema migrations are classified, approved, executed, and recovered in PSPF v1.

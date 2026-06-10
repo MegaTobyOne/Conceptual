@@ -1,5 +1,7 @@
 # PSPF Core and Workshop Screen and Workflow Specification
 
+Status: **implemented**
+
 ## Overview
 
 This specification defines the screen model and principal user workflows for **PSPF Core** and **PSPF Workshop** inside Visual Studio Code. It assumes the extension surface model already defined elsewhere: Core is compact and administrative, while Workshop is the primary operational environment for authoring, evidence linkage, action tracking, and reporting preparation. VS Code UX guidance recommends using Tree Views for displaying data, keeping the number of views low, and limiting custom Webview Views to situations where they add real value.
@@ -663,7 +665,7 @@ This is intentionally not a full-screen editor first; it should feel like a stru
 
 **Goal:** populate (or refresh) the workspace from plain-English yes/no/partial/unknown/N-A answers, producing a custom first daily bundle and a re-runnable posture refresh path.
 
-**Authoritative spec:** [pspf-questionnaire-spec.md](pspf-questionnaire-spec.md). **ADR:** [adr/0069-questionnaire-population.md](adr/0069-questionnaire-population.md).
+**Authoritative spec:** [pspf-questionnaire-spec.md](pspf-questionnaire-spec.md). **ADR:** [adr/0075-questionnaire-population.md](adr/0075-questionnaire-population.md).
 
 **Entry points:**
 - `PSPF: Run Quickstart Questionnaire` (Starter pack),

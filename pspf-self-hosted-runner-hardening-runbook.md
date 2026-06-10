@@ -1,5 +1,7 @@
 # PSPF Self-Hosted Runner Hardening Runbook
 
+Status: **partial**
+
 ## Purpose
 
 Run the VentraIP deployment step from a controlled macOS host with a stable allowlisted IP, without turning the maintainer workstation into a general CI execution surface.

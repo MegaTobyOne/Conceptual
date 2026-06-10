@@ -22,24 +22,32 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.15.0'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: npx pnpm@10.10.0 install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npx pnpm@10.10.0 run build
+        run: pnpm run build
 
       - name: Typecheck
-        run: npx pnpm@10.10.0 run typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm test
 
       - name: Package shape
-        run: npx pnpm@10.10.0 run package:check
+        run: pnpm run package:check
 
       - name: Release candidate
-        run: npx pnpm@10.10.0 run check:release-candidate
+        run: pnpm run check:release-candidate
 
       - name: Deployment safety
-        run: npx pnpm@10.10.0 run check:deployment-safety
+        run: pnpm run check:deployment-safety
 
       - name: Lint
-        run: npx pnpm@10.10.0 run lint
+        run: pnpm run lint

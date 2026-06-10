@@ -279,10 +279,33 @@ async function importBundlesFromPicker(
     }
     return results.length === 1 ? results[0] : results;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    await vscode.window.showErrorMessage(`${labels.errorPrefix}: ${message}`);
+    await vscode.window.showErrorMessage(`${labels.errorPrefix}: ${formatDiagnosticError(error)}`);
     return undefined;
   }
+}
+
+function formatDiagnosticError(error: unknown): string {
+  if (isStructuredDiagnostic(error)) {
+    return `${error.code}: ${error.message} ${error.recommendedAction}`;
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
+function isStructuredDiagnostic(error: unknown): error is {
+  readonly code: string;
+  readonly message: string;
+  readonly recommendedAction: string;
+} {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    "message" in error &&
+    "recommendedAction" in error &&
+    typeof error.code === "string" &&
+    typeof error.message === "string" &&
+    typeof error.recommendedAction === "string"
+  );
 }
 
 function openImportReviewSurface(

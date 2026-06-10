@@ -1,5 +1,7 @@
 # PSPF Developer and Pipeline Specification
 
+Status: **partial**
+
 ## Overview
 
 This specification defines the development model, repository strategy, CI/CD pipelines, release approach, maintenance process, and agent opportunities for the PSPF ecosystem. It is written to support a local-first VS Code extension platform, a standalone Explorer web application published to VentraIP cPanel (see ADR 0038), and an ongoing maintenance model that uses GitHub Copilot as a core development aid rather than as an autonomous authority.
@@ -11,7 +13,7 @@ The delivery model needs to support four realities at once:
 - Explorer is a static web application and deploys cleanly to VentraIP cPanel through GitHub Actions over SSH.
 - AI assistance is useful across coding, review, migration, and documentation, but must remain bounded by tests, contracts, and explicit human approval.
 
-The development environment assumed by this spec is **VS Code on macOS** with a personal **GitHub Pro** subscription. Linux and Windows are supported by CI; the local dev loop is documented for macOS first.
+The development environment assumed by this spec is **VS Code on macOS** with a personal **GitHub Pro** subscription. The primary CI lane runs on GitHub-hosted Linux; Windows and macOS runner coverage are deferred until a compatibility issue justifies the extra matrix cost. The local dev loop is documented for macOS first.
 
 ## Delivery principles
 
@@ -29,20 +31,20 @@ The pipeline should follow these principles:
 
 The ecosystem lives in a **single private GitHub repository** at `https://github.com/MegaTobyOne/Conceptual.git` on the maintainer's GitHub account. Each PSPF product is a workspace package; each VSIX-producing package still releases independently (ADR 0007). The earlier polyrepo proposal (`pspf-contracts` + `pspf-core` + `pspf-workshop` + `pspf-shop` + `pspf-pub` + `pspf-explorer`) is **retired**.
 
-| Path | Contents | Releases as |
-|---|---|---|
-| `packages/contracts/` | Shared schema, SDK, API contract types, ID utilities, importer/exporter, brief renderer, chart renderer, contract tests, fixtures | Internal workspace packages only |
-| `packages/core/` | Core extension (system of record, storage, trust, migrations) | `core/<version>` tag → signed VSIX |
-| `packages/workshop/` | Workshop extension (authoring) | `workshop/<version>` tag → signed VSIX |
-| `packages/shop/` | Shop extension (suppliers/contracts; v0.2+) | `shop/<version>` tag → signed VSIX |
-| `packages/pub/` | Pub extension (people/roles; v0.2+) | `pub/<version>` tag → signed VSIX |
-| `packages/explorer/` | Explorer SPA + static-host pipeline | `explorer/<version>` tag → VentraIP production deploy |
-| `docs/` | Specs, ADRs, runbooks, glossary, onboarding | Lives with the code |
-| `schemas/explorer-bundle/<schemaVersion>/` | Per-version bundle JSON Schemas | Served same-origin from the Explorer site (E23) |
+| Path                                       | Contents                                                                                                                          | Releases as                                           |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `packages/contracts/`                      | Shared schema, SDK, API contract types, ID utilities, importer/exporter, brief renderer, chart renderer, contract tests, fixtures | Internal workspace packages only                      |
+| `packages/core/`                           | Core extension (system of record, storage, trust, migrations)                                                                     | `core/<version>` tag → signed VSIX                    |
+| `packages/workshop/`                       | Workshop extension (authoring)                                                                                                    | `workshop/<version>` tag → signed VSIX                |
+| `packages/shop/`                           | Shop extension (suppliers/contracts; v0.2+)                                                                                       | `shop/<version>` tag → signed VSIX                    |
+| `packages/pub/`                            | Pub extension (people/roles; v0.2+)                                                                                               | `pub/<version>` tag → signed VSIX                     |
+| `packages/explorer/`                       | Explorer SPA + static-host pipeline                                                                                               | `explorer/<version>` tag → VentraIP production deploy |
+| `docs/`                                    | Specs, ADRs, runbooks, glossary, onboarding                                                                                       | Lives with the code                                   |
+| `schemas/explorer-bundle/<schemaVersion>/` | Per-version bundle JSON Schemas                                                                                                   | Served same-origin from the Explorer site (E23)       |
 
 ### Why a monorepo (and not the earlier polyrepo)
 
-For a single maintainer working in VS Code on macOS with GitHub Pro, polyrepo coordination was the dominant cost. A monorepo lets one PR land a coordinated change across schema, API, Core, Workshop, and Explorer; it keeps contract tests in-tree against the source they will publish; and it keeps specs, ADRs, and runbooks alongside the code that implements them. Independent VSIX *publishing* is preserved by per-package release tags and per-package release workflows. See ADR 0013 for the full reasoning and trade-offs.
+For a single maintainer working in VS Code on macOS with GitHub Pro, polyrepo coordination was the dominant cost. A monorepo lets one PR land a coordinated change across schema, API, Core, Workshop, and Explorer; it keeps contract tests in-tree against the source they will publish; and it keeps specs, ADRs, and runbooks alongside the code that implements them. Independent VSIX _publishing_ is preserved by per-package release tags and per-package release workflows. See ADR 0013 for the full reasoning and trade-offs.
 
 ### Repo settings (GitHub Pro features used)
 
@@ -51,7 +53,7 @@ For a single maintainer working in VS Code on macOS with GitHub Pro, polyrepo co
 - **Secret scanning with push protection** (default for GitHub Pro accounts).
 - **Dependabot** for npm/pnpm and GitHub Actions.
 - **CodeQL** code scanning on JavaScript/TypeScript.
-- **Required status checks**: lint, typecheck, unit tests, contract tests, fixture round-trips, schema-policy gate, personal-data-exclusion gate, AU-English lint, accessibility floor smoke.
+- **Required status checks**: current `ci.yml` runs build, typecheck, all package unit tests, package-shape checks, release-candidate checks, deployment-safety checks, and lint on Ubuntu. Additional governance workflows remain scoped by path or release/deploy trigger.
 - **GitHub Actions minutes**: GitHub Pro allowance covers the v0.1 CI footprint comfortably; macOS runners are reserved for benchmarks that need Apple Silicon parity.
 - **Static web host**: Explorer and the public landing page are published from `web-release.yml` to VentraIP cPanel (see ADR 0038). GitHub Pages is not used.
 - **Approval environments**: `production-web` (VentraIP production) and `marketplace` (VS Code Marketplace) require manual reviewer approval before any job that holds production secrets can run. `test-web` deploys automatically from `develop` after CI gates pass.
@@ -202,11 +204,11 @@ Use semantic versioning for:
 
 Maintain a published compatibility matrix such as:
 
-| Product | Compatible with |
-|---|---|
-| Shop 0.6.x | Core API 1.2.x, Schema 1.4.x |
-| Pub 0.4.x | Core API 1.2.x, Schema 1.4.x |
-| Explorer 0.8.x | Export bundle schema 1.4.x |
+| Product        | Compatible with              |
+| -------------- | ---------------------------- |
+| Shop 0.6.x     | Core API 1.2.x, Schema 1.4.x |
+| Pub 0.4.x      | Core API 1.2.x, Schema 1.4.x |
+| Explorer 0.8.x | Export bundle schema 1.4.x   |
 
 This should be machine-checked where possible, not just documented.
 
@@ -340,25 +342,26 @@ GitHub Copilot guidance emphasizes that AI-generated code should still be review
 
 All workflow files live in `.github/workflows/` at the repo root. Each is scoped by triggers and `paths:` filters so a Workshop-only PR does not run the Pub package's heavy bench job.
 
-| Workflow | Trigger | Purpose |
-|---|---|---|
-| `ci.yml` | PR, push to `develop` or `main` | lint, typecheck, build, unit tests, contract tests across all packages affected by the diff |
-| `accessibility.yml` | PR touching `packages/explorer/**` | `axe-core` per primary route on the standard fixture |
-| `schema-publish.yml` | PR touching `schemas/**` | hash-match validator vs served schema; remote `$ref` lint; per-version directory check (E23) |
-| `personal-data-gate.yml` | every PR | exporter run against personal-data fixture; fail-closed assertion (N6, S7) |
-| `deployment-safety.yml` | every PR and release/deploy tag | static deployment and publication-bundle safety scan; blocks hosted sensitive/restricted fields, personal data, secrets, and workspace/runtime artefacts |
-| `au-english-lint.yml` | every PR | scan `docs/**` and extracted UI strings against the spelling allowlist |
-| `marketplace.yml` | `workflow_dispatch` from `main` with `target=core\|workshop\|shop\|both\|all` and optional `dry_run` | build once, package selected VSIX(es), show explicit dry-run state, gate on `marketplace` environment approval, publish via `vsce` when `dry_run=false`, then create `core/<v>`, `workshop/<v>`, and/or `shop/<v>` tags and GitHub releases as receipts |
-| `pub-release.yml` | tag `pub/<v>` | as above for Pub (v0.2+) |
-| `web-release.yml` | tag `explorer/<v>` from `main` (production) or push to `develop` (test) | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment |
-| `sync-develop.yml` | push to `main`, or `workflow_dispatch` | keep `develop` aligned with `main` after a release merge: opens or updates a `main → develop` sync pull request whenever `main` has commits not yet on `develop` |
-| `nightly-bench.yml` | nightly | full performance benchmarks against reference machine fixture |
+| Workflow                 | Trigger                                                                                              | Purpose                                                                                                                                                                                                                                                 |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`                 | PR, push to `develop` or `main`                                                                      | Ubuntu lane for build, typecheck, all package tests, package-shape checks, release-candidate checks, deployment-safety checks, and lint                                                                                                                 |
+| `accessibility.yml`      | PR touching `packages/explorer/**`                                                                   | `axe-core` per primary route on the standard fixture                                                                                                                                                                                                    |
+| `schema-publish.yml`     | PR touching `schemas/**`                                                                             | hash-match validator vs served schema; remote `$ref` lint; per-version directory check (E23)                                                                                                                                                            |
+| `personal-data-gate.yml` | every PR                                                                                             | exporter run against personal-data fixture; fail-closed assertion (N6, S7)                                                                                                                                                                              |
+| `deployment-safety.yml`  | every PR and release/deploy tag                                                                      | static deployment and publication-bundle safety scan; blocks hosted sensitive/restricted fields, personal data, secrets, and workspace/runtime artefacts                                                                                                |
+| `au-english-lint.yml`    | every PR                                                                                             | scan `docs/**` and extracted UI strings against the spelling allowlist                                                                                                                                                                                  |
+| `marketplace.yml`        | `workflow_dispatch` from `main` with `target=core\|workshop\|shop\|both\|all` and optional `dry_run` | build once, package selected VSIX(es), show explicit dry-run state, gate on `marketplace` environment approval, publish via `vsce` when `dry_run=false`, then create `core/<v>`, `workshop/<v>`, and/or `shop/<v>` tags and GitHub releases as receipts |
+| `pub-release.yml`        | tag `pub/<v>`                                                                                        | as above for Pub (v0.2+)                                                                                                                                                                                                                                |
+| `web-release.yml`        | tag `explorer/<v>` from `main` (production) or push to `develop` (test)                              | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment                                                                                                                                                                |
+| `sync-develop.yml`       | push to `main`, or `workflow_dispatch`                                                               | keep `develop` aligned with `main` after a release merge: opens or updates a `main → develop` sync pull request whenever `main` has commits not yet on `develop`                                                                                        |
+| `nightly-bench.yml`      | nightly                                                                                              | full performance benchmarks against reference machine fixture                                                                                                                                                                                           |
 
 ### Marketplace publishing
 
 VS Code extensions publish through `vsce` invoked from GitHub Actions, with the `VSCE_TOKEN` stored as an environment-scoped secret on the `marketplace` environment. The v1.0 Marketplace publisher is `tobyharvey`. Open VSX is not used for v1.0 and should be added later only through a separate decision and environment-scoped `OVSX_TOKEN`.
 
 Release pattern:
+
 - package the `.vsix` in CI from the relevant `packages/<name>/`,
 - attach to the GitHub release,
 - publish only from signed-off tags,
@@ -390,13 +393,13 @@ Explorer and the public landing page (`pspf-ecosystem.html` at site root, Explor
 
 Explorer uses the repo-level workflows listed above. Product-specific Explorer jobs are:
 
-| Workflow | Trigger | Purpose |
-|---|---|---|
-| `ci.yml` | PR, push | lint, typecheck, test, build when `packages/explorer/**` changes |
-| `preview.yml` | PR | optional preview artefact or test-subdomain preview strategy |
-| `web-release.yml` | push to `develop` (test) or release tag from `main` (production) | build static bundle and deploy to VentraIP test or production document root |
-| `bundle-verify.yml` | PR touching schema/import/export | validate JSON bundle compatibility |
-| `deployment-safety.yml` | PR, push, release tag | run `pnpm run check:deployment-safety` before any static deployment or Marketplace release |
+| Workflow                | Trigger                                                          | Purpose                                                                                    |
+| ----------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `ci.yml`                | PR, push                                                         | lint, typecheck, test, build when `packages/explorer/**` changes                           |
+| `preview.yml`           | PR                                                               | optional preview artefact or test-subdomain preview strategy                               |
+| `web-release.yml`       | push to `develop` (test) or release tag from `main` (production) | build static bundle and deploy to VentraIP test or production document root                |
+| `bundle-verify.yml`     | PR touching schema/import/export                                 | validate JSON bundle compatibility                                                         |
+| `deployment-safety.yml` | PR, push, release tag                                            | run `pnpm run check:deployment-safety` before any static deployment or Marketplace release |
 
 ### VentraIP deployment requirements
 
@@ -412,6 +415,7 @@ The web release workflow should:
 ### Explorer release practice
 
 Explorer should keep deployments reversible and legible:
+
 - one test build per commit to `develop` and one production build per release tag,
 - visible build artefacts,
 - version displayed in the app footer or about screen,
@@ -425,13 +429,13 @@ For VentraIP deployments, keep separate release directories and deploy keys for 
 
 The ecosystem should use five test layers:
 
-| Layer | Purpose |
-|---|---|
-| Unit | fast behaviour checks inside packages and components |
-| Integration | storage, API, import/export, UI module behaviour |
-| Contract | schema/API compatibility across workspace packages |
-| Fixture/regression | stable JSON bundles and workspace cases |
-| Smoke/end-to-end | packaging, launch, basic workflow execution |
+| Layer              | Purpose                                              |
+| ------------------ | ---------------------------------------------------- |
+| Unit               | fast behaviour checks inside packages and components |
+| Integration        | storage, API, import/export, UI module behaviour     |
+| Contract           | schema/API compatibility across workspace packages   |
+| Fixture/regression | stable JSON bundles and workspace cases              |
+| Smoke/end-to-end   | packaging, launch, basic workflow execution          |
 
 ### Golden fixtures
 
@@ -465,6 +469,7 @@ The repo should maintain:
 Keep Architecture Decision Records in `docs/adr/` for platform decisions and cross-link them from package READMEs where they inherit those decisions.
 
 Recommended ADR subjects:
+
 - repo strategy,
 - ID format,
 - workspace layout,
@@ -541,20 +546,24 @@ The ecosystem is a good fit for a few bounded, useful agents. These should be as
 ### 1. Schema impact agent
 
 Purpose:
+
 - detect schema/API changes in PRs,
 - identify impacted products,
 - suggest compatibility updates,
 - and flag missing migrations or fixture updates.
 
 Good inputs:
+
 - changed files under schema, api-contract, importer/exporter.
 
 Good outputs:
+
 - PR comment with affected packages, fixtures, and release notes.
 
 ### 2. Fixture and migration agent
 
 Purpose:
+
 - generate or refresh test fixtures from current schema,
 - compare expected and actual bundle shapes,
 - and propose migration skeletons.
@@ -564,6 +573,7 @@ This is especially useful because the platform depends on durable import/export 
 ### 3. Documentation sync agent
 
 Purpose:
+
 - compare code, commands, and workflows to docs,
 - flag stale setup instructions,
 - and propose README/runbook updates.
@@ -573,6 +583,7 @@ This is valuable because solo or small-team projects often let docs drift first.
 ### 4. PR review agent
 
 Purpose:
+
 - perform first-pass review for maintainability, missing tests, compatibility hints, and risk areas.
 
 GitHub Copilot supports code review workflows and automatic review features, which makes this a practical early agent use case.
@@ -580,6 +591,7 @@ GitHub Copilot supports code review workflows and automatic review features, whi
 ### 5. Release notes agent
 
 Purpose:
+
 - assemble release notes from merged PRs,
 - classify schema/API/UI/pipeline changes,
 - and highlight breaking changes or required migrations.
@@ -587,6 +599,7 @@ Purpose:
 ### 6. Explorer content integrity agent
 
 Purpose:
+
 - check whether exported bundle fields expected by Explorer are present,
 - detect broken narrative summaries,
 - and flag stale UI copy or field mismatches before web deployment.
@@ -594,6 +607,7 @@ Purpose:
 ### 7. Release, test, and deploy agent
 
 Purpose:
+
 - enforce ADR 0039 branch promotion rules before release work starts,
 - confirm `develop` test deploy readiness and `main` release-tag readiness,
 - run or verify `release:readiness`, web staging, deployment safety, and VSIX dry packaging,
@@ -629,11 +643,11 @@ Across all workflows:
 
 ### Recommended secrets
 
-| Secret | Repo | Purpose |
-|---|---|---|
-| `VSCE_TOKEN` | `Conceptual` / `marketplace` environment | VS Code Marketplace publishing for Core, Workshop, and Shop under publisher `tobyharvey` |
-| `OVSX_TOKEN` | not configured for v1.0 | Reserved for a future Open VSX decision |
-| `GITHUB_TOKEN` | `Conceptual` | standard workflow operations |
+| Secret         | Repo                                     | Purpose                                                                                  |
+| -------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `VSCE_TOKEN`   | `Conceptual` / `marketplace` environment | VS Code Marketplace publishing for Core, Workshop, and Shop under publisher `tobyharvey` |
+| `OVSX_TOKEN`   | not configured for v1.0                  | Reserved for a future Open VSX decision                                                  |
+| `GITHUB_TOKEN` | `Conceptual`                             | standard workflow operations                                                             |
 
 Web deployment uses environment-scoped `VENTRAIP_DEPLOY_KEY_TEST` and `VENTRAIP_DEPLOY_KEY_PROD` SSH private keys, each authorised against a separate cPanel deploy key for the matching document root. Production deploys require manual reviewer approval on the `production-web` environment.
 

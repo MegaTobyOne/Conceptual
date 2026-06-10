@@ -1,5 +1,7 @@
 # PSPF Threat Model
 
+Status: **implemented**
+
 ## Purpose
 
 This document records the threat model for the PSPF ecosystem in v1. Every security control claimed elsewhere in the specification set must map back to a threat enumerated here. If a control does not address a listed threat, it is either redundant or the threat list is incomplete; both outcomes are useful.

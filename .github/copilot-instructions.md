@@ -1,6 +1,6 @@
 # PSPF Repository Instructions
 
-This repository implements the PSPF product ecosystem at v1.41.4: four VS Code extensions, a static Explorer web app, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
+This repository implements the PSPF product ecosystem at v1.42.0: four VS Code extensions, a static Explorer web app, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
 
 ## First Checks
 
