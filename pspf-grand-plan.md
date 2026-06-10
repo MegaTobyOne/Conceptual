@@ -30,7 +30,7 @@ Outcome: specs, agent instructions, and indexes describe v1.41 reality; aspirati
 
 | # | Work item | Done when |
 | --- | --- | --- |
-| 0.1 | Rewrite `.github/copilot-instructions.md` to describe the current 11-package, shipped-to-Marketplace reality (Shop and Pub are live; Explorer is dual-mode; current commands and gates). | Agent instructions match `package.json` and the package tree. |
+| 0.1 | **Implemented 2026-06-10.** Rewrite `.github/copilot-instructions.md` to describe the current 11-package, shipped-to-Marketplace reality (Shop and Pub are live; Explorer is dual-mode; current commands and gates). | Agent instructions match `package.json` and the package tree. |
 | 0.2 | Add `Status: implemented / partial / aspirational` headers to all root specs, starting with `pspf-error-and-diagnostics-model.md` (aspirational), `pspf-migration-safety-runbook.md` (aspirational), `pspf-developer-pipeline-spec.md` (partial). | Every root spec carries a status header. |
 | 0.3 | Add a spec-drift gate: greps spec-declared identifiers (e.g. `PSPF_*` error codes, mandated limits) against `packages/*/src`; specs marked `implemented` with missing identifiers fail CI. | `check:spec-drift` in `check:gates:run`. |
 | 0.4 | Repair ADR hygiene: regenerate `adr/README.md` index (0070+ are unindexed), renumber the duplicate ADR 0069, backfill or waive ADRs for v1.38/v1.40/v1.41. | Index complete; no duplicate IDs. |
@@ -137,6 +137,26 @@ graph LR
 ## UX and polish work folded into tranches
 
 The review's UX findings are scheduled inside the tranches that touch the same surfaces, not as a separate stream: marketplace metadata (icons/categories/keywords) and the Explorer remembered-bundle "forget" control + cache-busting ship with T1 (release-engineering work); native onboarding (`viewsWelcome`, walkthroughs), Workshop command rationalisation, and the shared CSP webview shell migration ship with T2/T3 (the surfaces being modified anyway); the Pub rename and de-jargoning ship with the first tranche that next touches each extension.
+
+## Holistic plan review notes
+
+The 2026-06-10 review keeps the tranche ordering unchanged. F4 remains first because untruthful specs and agent instructions directly increase implementation risk; T1 follows because no later feature should rely on gates that can silently become no-ops; T2 remains the architectural foundation for all connected capability because Graph, AI, Office outputs, and assurance publishing all depend on structured diagnostics and a closed import/export boundary.
+
+Recorded decisions:
+
+- **F4 first.** Documentation truthfulness is the first implementation tranche, not housekeeping.
+- **Office outputs before Graph.** Word, Excel, and PowerPoint exports start as offline OOXML artefacts before any Microsoft 365 network integration is introduced.
+- **Graph is isolated.** Microsoft Graph capability is planned as a separately installable `pspf-connect` extension, not as a network dependency in Core, Workshop, Shop, or Pub.
+- **AI is optional infrastructure.** AI assistance is planned behind a three-level kill switch and should prefer the VS Code Language Model API before any direct remote model provider is considered.
+- **Assurance publishing is signed publication, not just another report.** Assurance findings get their own data model, review state, redaction gates, and post-quantum-safe attestation before being treated as publishable.
+- **Connected extension name.** The first connected-capability extension is named and presented as **PSPF Connect**; Microsoft 365 / Graph details belong in the description and ADR, not the primary product name.
+- **First AI provider.** The first AI implementation is limited to the VS Code Language Model API. Direct Azure OpenAI, private endpoint, or other enterprise provider integration is deferred to a later ADR.
+- **First assurance signing custody.** The first assurance signing key is owned by the workspace assurance lead role. Organisation-wide or per-operator signing can be evaluated after the first signed-publication slice.
+
+Open questions for ADR drafting:
+
+1. Should signed assurance bundles be verifiable entirely offline in Explorer, or is an optional online trust-list / public-key-discovery mechanism acceptable later?
+2. Should Office exports be treated as publication artefacts only, or should some internal working documents be allowed to include sensitive-but-not-restricted fields behind a separate local-only policy?
 
 ## Governance
 
