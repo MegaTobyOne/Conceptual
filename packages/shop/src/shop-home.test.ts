@@ -25,6 +25,21 @@ test("Shop Home exposes create and edit panels", async () => {
   assert.match(source, /async function pickShopRecord/);
 });
 
+test("Shop Forecast exposes contract risk attention signals", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /interface ContractRisk/);
+  assert.match(source, /function deriveContractRisks/);
+  assert.match(source, /contractRisks: deriveContractRisks\(store, links, supplierRisks, supplierById, today\)/);
+  assert.match(source, /<h2>Contract risk<\/h2>/);
+  assert.match(
+    source,
+    /Derived attention view across renewal pressure, supplier criticality, linked supplier risks, assurance links, funding links, and contract value/
+  );
+  assert.match(source, /csvSection\("Contract risk"/);
+  assert.match(source, /htmlTable\("Contract risk"/);
+});
+
 test("Shop money storage helpers round dollar values to cents", async () => {
   const source = await readFile(sourcePath, "utf8");
 

@@ -160,12 +160,25 @@ interface SupplierRisk {
   readonly score: number;
 }
 
+interface ContractRisk {
+  readonly contract: ContractRecord;
+  readonly supplierName: string;
+  readonly status: "review" | "watch" | "ok";
+  readonly score: number;
+  readonly renewalSignal: string;
+  readonly supplierRiskSignal: string;
+  readonly coverageSignal: string;
+  readonly valueSignal: string;
+  readonly attention: string;
+}
+
 interface CommercialCoverageDashboard {
   readonly coverage: readonly CoverageGroup[];
   readonly uncontractedSpendItems: readonly SpendItemRecord[];
   readonly renewals: readonly ContractRenewal[];
   readonly fundedActions: readonly FundedAction[];
   readonly supplierRisks: readonly SupplierRisk[];
+  readonly contractRisks: readonly ContractRisk[];
   readonly supplierManagement: readonly SupplierManagementSignal[];
   readonly contractArtefacts: readonly ContractArtefactSignal[];
   readonly spendItemReport: readonly SpendItemReportRow[];
@@ -2226,6 +2239,16 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
   const supplierById = new Map(store.suppliers.map((supplier) => [supplier.id, supplier]));
   const today = startOfUtcDay(new Date());
   const savingSchedule = deriveSavingSchedule(store, links);
+  const supplierRisks = links
+    .filter(isSupplierRiskLink)
+    .map((link) => {
+      const supplier = store.suppliers.find((candidate) => candidate.id === link.fromId);
+      const risk = riskById.get(link.toId);
+      const score = risk ? risk.likelihood * risk.impact : 0;
+      return supplier && risk && (risk.status === "open" || score >= 12) ? { supplier, risk, score } : undefined;
+    })
+    .filter(isDefined)
+    .sort((first, second) => second.score - first.score || first.risk.title.localeCompare(second.risk.title));
 
   return {
     coverage: [
@@ -2283,16 +2306,8 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
           urgencyRank(first.urgency) - urgencyRank(second.urgency) ||
           first.action.title.localeCompare(second.action.title)
       ),
-    supplierRisks: links
-      .filter(isSupplierRiskLink)
-      .map((link) => {
-        const supplier = store.suppliers.find((candidate) => candidate.id === link.fromId);
-        const risk = riskById.get(link.toId);
-        const score = risk ? risk.likelihood * risk.impact : 0;
-        return supplier && risk && (risk.status === "open" || score >= 12) ? { supplier, risk, score } : undefined;
-      })
-      .filter(isDefined)
-      .sort((first, second) => second.score - first.score || first.risk.title.localeCompare(second.risk.title)),
+    supplierRisks,
+    contractRisks: deriveContractRisks(store, links, supplierRisks, supplierById, today),
     supplierManagement: deriveSupplierManagement(store),
     contractArtefacts: deriveContractArtefacts(store),
     spendItemReport: deriveSpendItemReport(store.spendItems),
@@ -2688,6 +2703,157 @@ function isSpendAssuranceLink(link: LinkEntity): boolean {
 
 function isSupplierRiskLink(link: LinkEntity): boolean {
   return link.fromType === "supplier" && link.toType === "risk" && link.linkType === "associated-with";
+}
+
+function deriveContractRisks(
+  store: ShopStore,
+  links: readonly LinkEntity[],
+  supplierRisks: readonly SupplierRisk[],
+  supplierById: ReadonlyMap<string, SupplierRecord>,
+  today: Date
+): ContractRisk[] {
+  return store.contracts
+    .map((contract) => {
+      const supplier = supplierById.get(contract.supplierId);
+      const daysUntilEnd = daysUntil(contract.endsAt, today);
+      const supplierRiskItems = supplierRisks.filter((item) => item.supplier.id === contract.supplierId);
+      const maxSupplierRisk = Math.max(...supplierRiskItems.map((item) => item.score), 0);
+      const hasRequirementLink = links.some((link) => isContractRequirementLink(link) && link.fromId === contract.id);
+      const fundedSpendLinks = links.filter(
+        (link) => isContractFundingLink(link) && link.fromId === contract.id
+      ).length;
+      const value = moneyAmountValue(contract.value);
+      const renewalScore = contractRenewalRiskScore(contract, daysUntilEnd);
+      const supplierScore =
+        supplierCriticalityRiskScore(supplier) + supplierLinkedRiskScore(maxSupplierRisk, supplierRiskItems.length);
+      const coverageScore = (hasRequirementLink ? 0 : 2) + (fundedSpendLinks > 0 ? 0 : 1);
+      const valueScore = value >= 1_000_000 ? 2 : value >= 250_000 ? 1 : 0;
+      const score = renewalScore + supplierScore + coverageScore + valueScore;
+      return {
+        contract,
+        supplierName: supplier?.name ?? "Unknown supplier",
+        status: score >= 7 ? "review" : score >= 3 ? "watch" : "ok",
+        score,
+        renewalSignal: contractRenewalSignal(contract, daysUntilEnd),
+        supplierRiskSignal: supplierRiskSignal(supplier, maxSupplierRisk, supplierRiskItems.length),
+        coverageSignal: contractCoverageSignal(hasRequirementLink, fundedSpendLinks),
+        valueSignal: value > 0 ? formatCurrency(value) : "Value not recorded",
+        attention: contractRiskAttention(score, renewalScore, supplierScore, coverageScore, valueScore)
+      } satisfies ContractRisk;
+    })
+    .sort(
+      (first, second) =>
+        second.score - first.score ||
+        moneyAmountValue(second.contract.value) - moneyAmountValue(first.contract.value) ||
+        first.contract.title.localeCompare(second.contract.title)
+    );
+}
+
+function isContractRequirementLink(link: LinkEntity): boolean {
+  return link.fromType === "contract" && link.toType === "requirement" && link.linkType === "supports";
+}
+
+function contractRenewalRiskScore(contract: ContractRecord, daysUntilEnd: number | undefined): number {
+  if (contract.status === "expired" || contract.status === "terminated") {
+    return 2;
+  }
+  if (contract.status !== "active") {
+    return 1;
+  }
+  if (daysUntilEnd === undefined) {
+    return 2;
+  }
+  if (daysUntilEnd < 0) {
+    return 5;
+  }
+  if (daysUntilEnd <= 30) {
+    return 4;
+  }
+  if (daysUntilEnd <= NEAR_TERM_REVIEW_DAYS) {
+    return 3;
+  }
+  return 0;
+}
+
+function supplierCriticalityRiskScore(supplier: SupplierRecord | undefined): number {
+  if (!supplier) {
+    return 2;
+  }
+  if (supplier.criticality === "critical") {
+    return 3;
+  }
+  if (supplier.criticality === "high") {
+    return 2;
+  }
+  if (supplier.criticality === "medium") {
+    return 1;
+  }
+  return 0;
+}
+
+function supplierLinkedRiskScore(maxSupplierRisk: number, riskCount: number): number {
+  if (maxSupplierRisk >= 16) {
+    return 4;
+  }
+  if (maxSupplierRisk >= 12) {
+    return 3;
+  }
+  if (riskCount > 0) {
+    return 2;
+  }
+  return 0;
+}
+
+function contractRenewalSignal(contract: ContractRecord, daysUntilEnd: number | undefined): string {
+  if (contract.status === "expired" || contract.status === "terminated") {
+    return formatToken(contract.status);
+  }
+  if (contract.status !== "active") {
+    return formatToken(contract.status);
+  }
+  if (daysUntilEnd === undefined) {
+    return "No end date";
+  }
+  if (daysUntilEnd < 0) {
+    return `${Math.abs(daysUntilEnd)} day(s) past end date`;
+  }
+  if (daysUntilEnd <= NEAR_TERM_REVIEW_DAYS) {
+    return `${daysUntilEnd} day(s) to end date`;
+  }
+  return "Outside review window";
+}
+
+function supplierRiskSignal(supplier: SupplierRecord | undefined, maxSupplierRisk: number, riskCount: number): string {
+  const criticality = supplier ? formatToken(supplier.criticality) : "Unknown criticality";
+  if (riskCount === 0) {
+    return criticality;
+  }
+  return `${criticality}; ${riskCount} linked risk(s), max score ${maxSupplierRisk}`;
+}
+
+function contractCoverageSignal(hasRequirementLink: boolean, fundedSpendLinks: number): string {
+  const requirement = hasRequirementLink ? "Requirement linked" : "Needs Requirement link";
+  const funding = fundedSpendLinks > 0 ? `${fundedSpendLinks} spend link(s)` : "Needs spend link";
+  return `${requirement}; ${funding}`;
+}
+
+function contractRiskAttention(
+  score: number,
+  renewalScore: number,
+  supplierScore: number,
+  coverageScore: number,
+  valueScore: number
+): string {
+  if (score === 0) {
+    return "No immediate signal";
+  }
+  const signals = [
+    renewalScore > 0 ? "renewal/status" : undefined,
+    supplierScore > 0 ? "supplier exposure" : undefined,
+    coverageScore > 0 ? "missing links" : undefined,
+    valueScore > 0 ? "high value" : undefined
+  ].filter(isDefined);
+  return signals.join(", ");
 }
 
 function daysUntil(dateText: string | undefined, today: Date): number | undefined {
@@ -3123,6 +3289,7 @@ function renderCompactForecastHtml(
     (total, contract) => total + contract.artefacts.filter((artefact) => artefact.status === "needed").length,
     0
   );
+  const contractAttentionCount = dashboard.contractRisks.filter((item) => item.status !== "ok").length;
   const nextDividend = dashboard.efficiencyDividends[0];
   const proposedScenario = dashboard.scenarioSummaries.find((scenario) => scenario.label === "Include proposed work");
   const annualCostLabel = nextForecast
@@ -3160,6 +3327,7 @@ function renderCompactForecastHtml(
         <span class="pspf-pill"><strong>${unlinkedCount}</strong> unlinked assurance records</span>
         <span class="pspf-pill"><strong>${uncontractedSpendCount}</strong> spend items need contract funding links</span>
         <span class="pspf-pill"><strong>${dashboard.renewals.length}</strong> contracts in review window</span>
+        <span class="pspf-pill"><strong>${contractAttentionCount}</strong> contract risk signals</span>
         <span class="pspf-pill"><strong>${urgentActions}</strong> funded blocked or overdue Actions</span>
         <span class="pspf-pill"><strong>${managementReviews}</strong> supplier management checks due</span>
         <span class="pspf-pill"><strong>${artefactGaps}</strong> contract artefact gaps</span>
@@ -3369,6 +3537,25 @@ function renderForecastHtml(
             )
           )
           .join("");
+  const contractRiskRows =
+    dashboard.contractRisks.length === 0
+      ? '<tr><td colspan="9">No contracts yet.</td></tr>'
+      : dashboard.contractRisks
+          .map(
+            (item) => `
+            <tr>
+                <td>${escapeHtml(item.contract.title)}</td>
+                <td>${escapeHtml(item.supplierName)}</td>
+                <td><span class="status status-${escapeHtml(item.status)}">${escapeHtml(formatToken(item.status))}</span></td>
+                <td>${item.score}</td>
+                <td>${escapeHtml(item.renewalSignal)}</td>
+                <td>${escapeHtml(item.supplierRiskSignal)}</td>
+                <td>${escapeHtml(item.coverageSignal)}</td>
+                <td>${escapeHtml(item.valueSignal)}</td>
+                <td>${escapeHtml(item.attention)}</td>
+            </tr>`
+          )
+          .join("");
   const spendItemReportRows =
     dashboard.spendItemReport.length === 0
       ? '<tr><td colspan="7">No spend items yet.</td></tr>'
@@ -3495,6 +3682,14 @@ function renderForecastHtml(
     <section class="panel">
         <h2>Assurance coverage</h2>
         <div class="coverage">${coverageRows}</div>
+    </section>
+    <section>
+      <h2>Contract risk</h2>
+      <p class="muted">Derived attention view across renewal pressure, supplier criticality, linked supplier risks, assurance links, funding links, and contract value.</p>
+      <table>
+        <thead><tr><th>Contract</th><th>Supplier</th><th>Signal</th><th>Score</th><th>Renewal</th><th>Supplier risk</th><th>Coverage</th><th>Value</th><th>Why attention</th></tr></thead>
+        <tbody>${contractRiskRows}</tbody>
+      </table>
     </section>
     ${relationshipActions}
     <section>
@@ -3656,6 +3851,20 @@ function renderForecastReportCsv(
         scenario.unlinkedItemCount
       ])
     ]),
+    csvSection("Contract risk", [
+      ["Contract", "Supplier", "Signal", "Score", "Renewal", "Supplier risk", "Coverage", "Value", "Why attention"],
+      ...dashboard.contractRisks.map((item) => [
+        item.contract.title,
+        item.supplierName,
+        item.status,
+        item.score,
+        item.renewalSignal,
+        item.supplierRiskSignal,
+        item.coverageSignal,
+        item.valueSignal,
+        item.attention
+      ])
+    ]),
     csvSection("Spend by Requirement tag and Action", [
       [
         "Scope",
@@ -3739,6 +3948,7 @@ function renderForecastReportXls(
 ${htmlTable("Forecast spend by month", [["Month", "Financial year", "Items", "Forecast spend", "Planned saving"], ...monthlyForecast.map((month) => [month.monthLabel, month.financialYear, month.itemCount, month.forecastSpend, month.forecastSavings])])}
 ${htmlTable("Forecast spend by financial year", [["Financial year", "Items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast"], ...forecast.map((year) => [year.financialYear, year.itemCount, year.plannedSpend, year.forecastCost, year.expectedSavings, year.netForecast])])}
 ${htmlTable("Scenario comparison", [["Scenario", "Description", "Items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast", "Low confidence items", "Items needing assurance links"], ...dashboard.scenarioSummaries.map((scenario) => [scenario.label, scenario.description, scenario.itemCount, scenario.plannedSpend, scenario.forecastCost, scenario.expectedSavings, scenario.netForecast, scenario.lowConfidenceCount, scenario.unlinkedItemCount])])}
+${htmlTable("Contract risk", [["Contract", "Supplier", "Signal", "Score", "Renewal", "Supplier risk", "Coverage", "Value", "Why attention"], ...dashboard.contractRisks.map((item) => [item.contract.title, item.supplierName, item.status, item.score, item.renewalSignal, item.supplierRiskSignal, item.coverageSignal, item.valueSignal, item.attention])])}
 ${htmlTable("Spend by Requirement tag and Action", [["Scope", "Name", "Context", "Items", "Multi-linked items", "Planned spend", "Forecast cost", "Expected savings", "Net forecast", "Confidence"], ...dashboard.assuranceSpend.map((row) => [row.scope, row.title, row.secondary, row.itemCount, row.multiLinkedItemCount, row.plannedSpend, row.forecastCost, row.expectedSavings, row.netForecast, row.confidence])])}
 ${htmlTable("Spend item report", [["Spend item", "Financial year", "Cost centre", "Status", "Planned spend", "Forecast cost", "Expected savings"], ...dashboard.spendItemReport.map((item) => [item.title, item.financialYear, item.costCentre, item.status, item.amount, item.forecastCost, item.expectedSavings])])}
 ${htmlTable("Planned savings schedule", [["Spend item", "Financial year", "Cost centre", "From", "To", "Planned saving", "Saving type", "Confidence", "Replacement context"], ...dashboard.savingSchedule.map((saving) => [saving.spendItem.title, saving.financialYear, saving.spendItem.costCentre ?? "", saving.scheduledFrom, saving.scheduledTo, saving.plannedSaving, saving.savingsType, saving.confidence, saving.replacementContext])])}
@@ -3794,7 +4004,8 @@ function renderForecastExecutiveContext(
     dashboard.uncontractedSpendItems.length +
     dashboard.renewals.length +
     dashboard.fundedActions.length +
-    dashboard.supplierRisks.length;
+    dashboard.supplierRisks.length +
+    dashboard.contractRisks.filter((item) => item.status !== "ok").length;
   return `<section class="executive-context" aria-label="Forecast executive context">
     <article>
       <p class="eyebrow">Decision focus</p>
@@ -3809,7 +4020,7 @@ function renderForecastExecutiveContext(
     <article>
       <p class="eyebrow">Attention required</p>
       <strong>${watchCount}</strong>
-      <p>${escapeHtml(`${dashboard.uncontractedSpendItems.length} funding link(s), ${dashboard.renewals.length} renewal(s), ${dashboard.fundedActions.length} funded action(s), and ${dashboard.supplierRisks.length} supplier risk(s) need review.`)}</p>
+      <p>${escapeHtml(`${dashboard.uncontractedSpendItems.length} funding link(s), ${dashboard.renewals.length} renewal(s), ${dashboard.fundedActions.length} funded action(s), ${dashboard.supplierRisks.length} supplier risk(s), and ${dashboard.contractRisks.filter((item) => item.status !== "ok").length} contract risk signal(s) need review.`)}</p>
     </article>
     <article>
       <p class="eyebrow">Good looks like</p>

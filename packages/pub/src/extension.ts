@@ -1609,7 +1609,9 @@ function renderHomeHtml(store: PubStore): string {
   const posture = `${store.people.length} ${store.people.length === 1 ? "person" : "people"} across ${store.teams.length} ${store.teams.length === 1 ? "team" : "teams"} · local-only, never exported to Explorer.`;
 
   const coreActions = `<div class="action-list">
-    ${homeActionButton("pspf.pub.openOrgChart", "Organisation chart", "See teams, roles, owned controls, and assignment badges")}
+    ${homeActionButton("pspf.pub.openOrgChart", "Organisation chart", "Simple team hierarchy at a glance")}
+    ${homeActionButton("pspf.pub.openTeamResponsibilitySummary", "Team responsibility summary", "Requirement counts and references by team")}
+    ${homeActionButton("pspf.pub.openTeamResponsibilityDetail", "Team responsibility detail", "Requirements and ISM controls by team")}
     ${homeActionButton("pspf.pub.openPeopleCulture", "People & Culture", "Review lifecycle, probation, acceptable use, and performance cycles")}
     ${homeActionButton("pspf.pub.openRelationshipLog", "Relationship log", "Open the relationship log of stakeholder follow-up notes")}
     ${homeActionButton("pspf.pub.recordRelationshipNote", "Record relationship note", "Record a local follow-up")}
@@ -1702,31 +1704,16 @@ function renderPubUpcomingActionsGraphic(upcomingBadges: readonly string[]): str
 function renderOrgChartHtml(store: PubStore): string {
   const teamDepth = teamDepthMap(store.teams);
   const graphic = renderOrgChartGraphic(store, teamDepth);
-  const rows = [...store.teams]
-    .sort(
-      (left, right) =>
-        (teamDepth.get(left.id) ?? 0) - (teamDepth.get(right.id) ?? 0) || left.title.localeCompare(right.title)
-    )
-    .flatMap((team) => {
-      const teamRoles = store.roles.filter((role) => role.teamId === team.id);
-      return (teamRoles.length > 0 ? teamRoles : [blankRole(team.id)]).map((role) => {
-        const assignments = store.assignments.filter((assignment) => assignment.roleId === role.id);
-        const assignedPeople =
-          assignments.map((assignment) => personName(store, assignment.personId)).join(", ") || "No assignment";
-        return `<tr><td>${escapeHtml(`${"  ".repeat(teamDepth.get(team.id) ?? 0)}${team.title}`)}</td><td>${escapeHtml(teamTitle(store, team.parentTeamId) || "Top level")}</td><td>${escapeHtml(role.title || "No role yet")}</td><td>${escapeHtml(roleTitle(store, role.reportsToRoleId) || "No reporting role")}</td><td>${escapeHtml(assignedPeople)}</td></tr>`;
-      });
-    })
-    .join("");
   return pageHtml(
     "PSPF Pub Organisation Chart",
     `<main>${sectionHtml(
       "Organisation chart",
-      "Local team hierarchy, role reporting lines, and who is assigned. Person names stay local-only.",
+      "Simple local team hierarchy for quick scanning. Use the team responsibility reports for Requirement and ISM control detail.",
       graphic
     )}${sectionHtml(
-      "Organisation chart detail",
-      "Supporting table for scanning structure, reporting lines, and current assignments.",
-      tableHtml(["Team", "Parent", "Role", "Reports to", "Assigned"], rows, 5)
+      "Team responsibility reports",
+      "Open the short team summary or the detailed Requirements and ISM control report from here.",
+      pubTeamReportActions()
     )}</main>`
   );
 }
@@ -1757,10 +1744,10 @@ function renderOrgChartTeamNode(
   const teamRoles = store.roles
     .filter((role) => role.teamId === team.id && role.status !== "archived")
     .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
-  const roleCards = teamRoles.length
-    ? teamRoles.map((role) => renderOrgChartRoleCard(store, role)).join("")
-    : `<article class="org-role-card org-role-card--empty"><strong>No role yet</strong><span>Add roles to show coverage and reporting lines.</span></article>`;
-  const backItems = renderOrgChartTeamBack(team);
+  const assignmentCount = teamRoles.reduce(
+    (total, role) => total + store.assignments.filter((assignment) => assignment.roleId === role.id).length,
+    0
+  );
   const childHtml = childTeams.length
     ? `<div class="org-child-teams" role="group">${childTeams
         .map((childTeam) => renderOrgChartTeamNode(store, childTeam, teamDepth, nextSeenTeamIds))
@@ -1769,58 +1756,22 @@ function renderOrgChartTeamNode(
 
   return `<article class="org-team-node" role="treeitem" aria-level="${(teamDepth.get(team.id) ?? 0) + 1}">
     <div class="org-team-card">
-      <div class="org-card-face org-card-face--front">
-        <div class="org-team-heading"><span class="org-node-kicker">Team</span><h2>${escapeHtml(team.title)}</h2></div>
-        <p class="muted">${escapeHtml(team.responsibility || "No team responsibility recorded yet.")}</p>
-        <div class="org-role-grid">${roleCards}</div>
-      </div>
-      <div class="org-card-face org-card-face--back" aria-label="${escapeHtml(team.title)} accountabilities and team dates">
-        ${backItems}
+      <div class="org-team-heading"><span class="org-node-kicker">Team</span><h2>${escapeHtml(team.title)}</h2></div>
+      <div class="org-team-stats" aria-label="${escapeHtml(team.title)} structure counts">
+        <span><strong>${teamRoles.length}</strong> role${teamRoles.length === 1 ? "" : "s"}</span>
+        <span><strong>${assignmentCount}</strong> assignment${assignmentCount === 1 ? "" : "s"}</span>
+        <span><strong>${childTeams.length}</strong> child team${childTeams.length === 1 ? "" : "s"}</span>
       </div>
     </div>
     ${childHtml}
   </article>`;
 }
 
-function renderOrgChartTeamBack(team: TeamRecord): string {
-  const requirements = team.ownedRequirementRefs.length
-    ? team.ownedRequirementRefs.map((ref) => `<span class="tag">${escapeHtml(ref)}</span>`).join("")
-    : `<span class="org-card-empty">No PSPF requirements linked</span>`;
-  const controls = [...team.ownedControlRefs, ...team.controlSetRefs].length
-    ? [...team.ownedControlRefs, ...team.controlSetRefs]
-        .map((ref) => `<span class="tag">${escapeHtml(ref)}</span>`)
-        .join("")
-    : `<span class="org-card-empty">No controls linked</span>`;
-  const dates = team.teamItems.length
-    ? `<ul class="org-team-date-list">${team.teamItems
-        .map(
-          (item) =>
-            `<li><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(formatTeamItemDateRange(item))}${item.includeInPlan ? " · Plan date" : ""}</span></li>`
-        )
-        .join("")}</ul>`
-    : `<p class="org-card-empty">No team news or dates recorded.</p>`;
-  return `<h3>Accountable scope</h3>
-    <div class="org-back-group"><strong>Requirements</strong><div class="tags">${requirements}</div></div>
-    <div class="org-back-group"><strong>Controls</strong><div class="tags">${controls}</div></div>
-    <div class="org-back-group"><strong>Team news and dates</strong>${dates}</div>`;
-}
-
-function renderOrgChartRoleCard(store: PubStore, role: RoleRecord): string {
-  const assignments = store.assignments
-    .filter((assignment) => assignment.roleId === role.id)
-    .sort((left, right) => personName(store, left.personId).localeCompare(personName(store, right.personId), "en-AU"));
-  const assignmentHtml = assignments.length
-    ? assignments.map((assignment) => renderOrgChartAssignmentChip(store, assignment)).join("")
-    : `<span class="org-assignment-chip org-assignment-chip--gap">No assignment</span>`;
-  const reportsTo = roleTitle(store, role.reportsToRoleId);
-  return `<article class="org-role-card">
-    <div class="org-role-heading"><strong>${escapeHtml(role.title)}</strong>${reportsTo ? `<span>Reports to ${escapeHtml(reportsTo)}</span>` : `<span>No reporting role</span>`}</div>
-    <div class="org-assignment-row">${assignmentHtml}</div>
-  </article>`;
-}
-
-function renderOrgChartAssignmentChip(store: PubStore, assignment: AssignmentRecord): string {
-  return `<span class="org-assignment-chip"><strong>${escapeHtml(personName(store, assignment.personId))}</strong></span>`;
+function pubTeamReportActions(): string {
+  return `<div class="action-list compact">
+    ${commandButton("pspf.pub.openTeamResponsibilitySummary", "Team responsibility summary", "Short count and Requirement references by team")}
+    ${commandButton("pspf.pub.openTeamResponsibilityDetail", "Team responsibility detail", "Requirements and ISM controls each team carries")}
+  </div>`;
 }
 
 function renderTeamsHtml(store: PubStore): string {
@@ -2947,6 +2898,8 @@ function renderPeopleCultureHtml(store: PubStore): string {
           ${commandButton("pspf.pub.editPerson", "Edit person", "Update lifecycle and performance fields")}
           ${commandButton("pspf.pub.openPeople", "People directory", "Open the full people list")}
           ${commandButton("pspf.pub.openAssignments", "Assignments", "Review relied-on roles and coverage")}
+          ${commandButton("pspf.pub.openTeamResponsibilitySummary", "Team responsibility summary", "Short team Requirement report")}
+          ${commandButton("pspf.pub.openTeamResponsibilityDetail", "Team responsibility detail", "Team Requirements and ISM controls")}
         </div>
       </section>
       ${sectionHtml(
@@ -3775,10 +3728,6 @@ function teamForRole(store: PubStore, role: RoleRecord): TeamRecord | undefined 
 
 function activeRolesForTeam(store: PubStore, teamId: string): readonly RoleRecord[] {
   return store.roles.filter((role) => role.teamId === teamId && role.status !== "archived");
-}
-
-function teamTitle(store: PubStore, teamId: string): string | undefined {
-  return store.teams.find((team) => team.id === teamId)?.title;
 }
 
 function roleTitle(store: PubStore, roleId: string): string | undefined {

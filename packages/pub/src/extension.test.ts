@@ -130,12 +130,12 @@ test("Pub Organisation Chart renders a graphic team and role view", async () => 
   assert.match(source, /function renderOrgChartGraphic\(store: PubStore/);
   assert.match(source, /class="org-chart-graphic"/);
   assert.match(source, /class="org-team-node"/);
-  assert.match(source, /class="org-role-card"/);
-  assert.match(source, /class="org-assignment-chip"/);
-  assert.match(source, /class="org-card-face org-card-face--front"/);
-  assert.match(source, /class="org-card-face org-card-face--back"/);
-  assert.match(source, /function renderOrgChartTeamBack\(team: TeamRecord\): string/);
-  assert.match(source, /Organisation chart detail/);
+  assert.match(source, /class="org-team-stats"/);
+  assert.match(source, /Team responsibility reports/);
+  assert.match(source, /function pubTeamReportActions\(\): string/);
+  assert.doesNotMatch(source, /class="org-card-face org-card-face--front"/);
+  assert.doesNotMatch(source, /class="org-card-face org-card-face--back"/);
+  assert.doesNotMatch(source, /function renderOrgChartTeamBack/);
 });
 
 test("Pub teams store local team news dates for optional planning", async () => {
@@ -186,6 +186,21 @@ test("Pub Home exposes create and edit panels", async () => {
   assert.match(source, /homeActionButton\("pspf\.pub\.editAssignment", "Edit assignment"/);
 });
 
+test("Pub Home and People Culture expose team responsibility reports", async () => {
+  const source = await readFile(sourcePath, "utf8");
+
+  assert.match(source, /homeActionButton\("pspf\.pub\.openTeamResponsibilitySummary", "Team responsibility summary"/);
+  assert.match(source, /homeActionButton\("pspf\.pub\.openTeamResponsibilityDetail", "Team responsibility detail"/);
+  assert.match(
+    source,
+    /commandButton\("pspf\.pub\.openTeamResponsibilitySummary", "Team responsibility summary", "Short team Requirement report"\)/
+  );
+  assert.match(
+    source,
+    /commandButton\("pspf\.pub\.openTeamResponsibilityDetail", "Team responsibility detail", "Team Requirements and ISM controls"\)/
+  );
+});
+
 test("Pub tree title menus link summaries to management panels", async () => {
   const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
 
@@ -229,17 +244,16 @@ test("Pub exposes People and Culture lifecycle and performance compliance", asyn
 test("Pub Organisation Chart keeps the graphic focused on structure", async () => {
   const source = await readFile(sourcePath, "utf8");
   const orgChartMatch = source.match(
-    /function renderOrgChartHtml\(store: PubStore\): string \{[\s\S]*?function renderOrgChartAssignmentChip/
+    /function renderOrgChartHtml\(store: PubStore\): string \{[\s\S]*?function renderTeamsHtml/
   );
   assert.ok(orgChartMatch, "organisation chart renderer should be present");
   const orgChartSource = orgChartMatch[0];
 
-  assert.match(orgChartSource, /tableHtml\(\["Team", "Parent", "Role", "Reports to", "Assigned"\], rows, 5\)/);
+  assert.match(orgChartSource, /Simple local team hierarchy for quick scanning/);
+  assert.match(orgChartSource, /pubTeamReportActions\(\)/);
+  assert.match(orgChartSource, /org-team-stats/);
   assert.doesNotMatch(orgChartSource, /teamOrgTags/);
   assert.doesNotMatch(orgChartSource, /No functional outcome recorded/);
-  assert.match(orgChartSource, /Team news and dates/);
-
-  const chipMatch = source.match(/function renderOrgChartAssignmentChip\(store: PubStore[\s\S]*?\n}/);
-  assert.ok(chipMatch, "assignment chip renderer should be present");
-  assert.doesNotMatch(chipMatch[0], /<small>/);
+  assert.doesNotMatch(orgChartSource, /Team news and dates/);
+  assert.doesNotMatch(orgChartSource, /personName\(store, assignment\.personId\)/);
 });
