@@ -637,7 +637,7 @@ Across all workflows:
 
 - use reusable workflow fragments where sensible,
 - pin action versions,
-- install Playwright browser binaries before any release job runs `release:readiness`, because the Explorer readiness gates launch Chromium on fresh GitHub-hosted runners,
+- install Playwright browser binaries before CI or release jobs run browser-backed tests/readiness gates, because the Connected View and Explorer checks launch Chromium on fresh GitHub-hosted runners,
 - store Marketplace and VentraIP credentials as repository secrets, scoped to the `marketplace`, `production-web`, and `test-web` environments,
 - and keep environments explicit for release and deploy jobs.
 
