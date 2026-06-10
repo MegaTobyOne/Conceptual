@@ -1,5 +1,7 @@
 # PSPF Invariants
 
+Status: **implemented**
+
 ## Purpose
 
 This document records the **machine-checkable invariants** that must hold across the PSPF specification set, code, schemas, fixtures, and published artefacts. It is the operational counterpart to [pspf-spec-consistency-index.md](pspf-spec-consistency-index.md): the index says which spec owns a topic; this document says which exact strings, formats, and shapes must match wherever that topic appears.

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, open, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, open, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -13,6 +13,7 @@ import {
   type EntityByCollection,
   type LinkEntity,
   DEFAULT_TAG_COLOUR,
+  PspfError,
   PSPF_SLICE_VERSION,
   SAVED_VIEW_EVIDENCE_COVERAGE,
   SAVED_VIEW_LIMITS,
@@ -35,6 +36,8 @@ import {
   V0_1_COLLECTIONS,
   enrichActionsWithImpact,
   isValidSingleGrapheme,
+  hasCompatibleMajorVersion,
+  isCompatibleVersionAxes,
   isValidSavedViewName,
   isValidTagLabel,
   normaliseSavedViewName,
@@ -59,6 +62,15 @@ import {
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
 
 const SQLITE_BUSY_TIMEOUT_MS = 5000;
+const IMPORT_LIMITS = {
+  maxBundleBytes: 50 * 1024 * 1024,
+  maxItemsPerCollection: 200_000,
+  maxTotalEntities: 1_000_000,
+  maxStringLength: 64 * 1024,
+  maxDepth: 16,
+  maxCollections: 64,
+  maxLinks: 2_000_000
+} as const;
 const workspaceOperationQueues = new Map<string, Promise<void>>();
 let sqlJsPromise: Promise<SqlJsStatic> | undefined;
 
@@ -86,6 +98,20 @@ export interface ManifestCollection {
     readonly alg: "SHA-256";
     readonly value: string;
   };
+}
+
+interface ImportBundleManifest {
+  readonly bundleType?: string;
+  readonly bundleVersion?: string;
+  readonly schemaVersion?: string;
+  readonly apiVersion?: string;
+  readonly generator?: { readonly mode?: string };
+  readonly collections?: readonly ManifestCollection[];
+}
+
+interface ImportBundlePayload {
+  readonly manifest?: ImportBundleManifest;
+  readonly collections?: Partial<BundleCollections>;
 }
 
 export interface CoreService {
@@ -921,9 +947,7 @@ async function buildImportPlan(
   bundlePath: string,
   mode: ImportMode
 ): Promise<{ incomingEntities: readonly V01Entity[]; writeSet: readonly V01Entity[]; summary: ImportSummary }> {
-  const bundle = JSON.parse(await readFile(bundlePath, "utf8")) as {
-    readonly collections?: Partial<BundleCollections>;
-  };
+  const bundle = await readAndValidateImportBundle(bundlePath);
   let incomingEntities = flattenImportEntities(bundle.collections ?? {});
   if (mode === "full-replace") {
     incomingEntities = await includeExistingReferencedSourceControls(workspaceRoot, incomingEntities);
@@ -957,6 +981,178 @@ async function buildImportPlan(
       ...savedViewImportResult.conflicts
     ])
   };
+}
+
+async function readAndValidateImportBundle(bundlePath: string): Promise<ImportBundlePayload> {
+  const bundleStat = await stat(bundlePath);
+  if (bundleStat.size > IMPORT_LIMITS.maxBundleBytes) {
+    throwImportLimitExceeded("Total bundle size", IMPORT_LIMITS.maxBundleBytes, bundleStat.size);
+  }
+
+  let bundle: ImportBundlePayload;
+  try {
+    bundle = JSON.parse(await readFile(bundlePath, "utf8")) as ImportBundlePayload;
+  } catch (error) {
+    throw new PspfError({
+      code: "PSPF_IMPORT_BUNDLE_INVALID",
+      severity: "error",
+      category: "import",
+      message: `PSPF bundle import failed because ${basename(bundlePath)} is not valid JSON.`,
+      retryable: false,
+      recommendedAction: "Select a valid PSPF master bundle JSON file and try again.",
+      detail: { cause: error instanceof Error ? error.message : String(error) }
+    });
+  }
+
+  if (!bundle || typeof bundle !== "object" || !bundle.manifest || !bundle.collections) {
+    throwInvalidImportBundle("Bundle must contain a manifest and collections object.");
+  }
+
+  const manifest = bundle.manifest;
+  if (manifest.bundleType !== "pspf-explorer-bundle") {
+    throwInvalidImportBundle(`Unsupported bundleType: ${String(manifest.bundleType ?? "missing")}.`);
+  }
+  if (!isCompatibleVersionAxes(manifest)) {
+    throw new PspfError({
+      code: "PSPF_VERSION_UNSUPPORTED",
+      severity: "error",
+      category: "compatibility",
+      message: `PSPF bundle ${String(manifest.schemaVersion ?? "unknown")} is not compatible with schema ${VERSION_AXES.schemaVersion}.`,
+      retryable: false,
+      recommendedAction: "Use a bundle with the same major schema, bundle, and API versions, or update PSPF Core.",
+      detail: {
+        bundleVersion: manifest.bundleVersion,
+        schemaVersion: manifest.schemaVersion,
+        apiVersion: manifest.apiVersion,
+        expected: VERSION_AXES
+      }
+    });
+  }
+
+  const manifestCollections = manifest.collections ?? [];
+  const isLocalAuthoringBundle = manifest.generator?.mode === "local-authoring";
+  if (manifestCollections.length > IMPORT_LIMITS.maxCollections) {
+    throwImportLimitExceeded("Number of collections", IMPORT_LIMITS.maxCollections, manifestCollections.length);
+  }
+
+  const manifestByName = new Map(manifestCollections.map((collection) => [collection.name, collection]));
+  let totalEntities = 0;
+  let totalLinks = 0;
+  for (const collectionName of V0_1_COLLECTIONS) {
+    const collectionPresent = Object.hasOwn(bundle.collections, collectionName);
+    const records = bundle.collections[collectionName] ?? [];
+    if (!Array.isArray(records)) {
+      throwInvalidImportBundle(`Collection ${collectionName} must be an array.`);
+    }
+    if (records.length > IMPORT_LIMITS.maxItemsPerCollection) {
+      throwImportLimitExceeded(`${collectionName} items`, IMPORT_LIMITS.maxItemsPerCollection, records.length);
+    }
+    totalEntities += records.length;
+    if (collectionName === "links") {
+      totalLinks = records.length;
+    }
+
+    const manifestCollection =
+      collectionPresent && !isLocalAuthoringBundle ? manifestByName.get(collectionName) : undefined;
+    if (manifestCollection) {
+      if (manifestCollection.count !== records.length) {
+        throwInvalidImportBundle(
+          `Collection ${collectionName} count mismatch: manifest says ${manifestCollection.count}, bundle contains ${records.length}.`
+        );
+      }
+      const serialised = `${JSON.stringify(records, null, 2)}\n`;
+      if (manifestCollection.hash?.alg !== "SHA-256" || manifestCollection.hash.value !== sha256(serialised)) {
+        throwInvalidImportBundle(`Collection ${collectionName} checksum does not match the manifest.`);
+      }
+    }
+
+    validateImportDepthAndStrings(records, collectionName);
+    for (const record of records) {
+      validateImportEntityEnvelope(record, collectionName);
+    }
+  }
+
+  if (totalEntities > IMPORT_LIMITS.maxTotalEntities) {
+    throwImportLimitExceeded("Total entities across all collections", IMPORT_LIMITS.maxTotalEntities, totalEntities);
+  }
+  if (totalLinks > IMPORT_LIMITS.maxLinks) {
+    throwImportLimitExceeded("Number of links", IMPORT_LIMITS.maxLinks, totalLinks);
+  }
+
+  return bundle;
+}
+
+function validateImportEntityEnvelope(record: unknown, collectionName: V01Collection): asserts record is V01Entity {
+  if (!record || typeof record !== "object") {
+    throwInvalidImportBundle(`Collection ${collectionName} contains a non-object record.`);
+  }
+  const candidate = record as Partial<V01Entity>;
+  if (typeof candidate.id !== "string" || candidate.id.length === 0) {
+    throwInvalidImportBundle(`Collection ${collectionName} contains a record without a valid id.`);
+  }
+  if (typeof candidate.entityType !== "string" || !(candidate.entityType in COLLECTION_BY_ENTITY_TYPE)) {
+    throwInvalidImportBundle(`Record ${candidate.id} has unsupported entityType ${String(candidate.entityType)}.`);
+  }
+  if (COLLECTION_BY_ENTITY_TYPE[candidate.entityType as V01Entity["entityType"]] !== collectionName) {
+    throwInvalidImportBundle(
+      `Record ${candidate.id} is in ${collectionName} but has entityType ${candidate.entityType}.`
+    );
+  }
+  if (
+    typeof candidate.schemaVersion !== "string" ||
+    !hasCompatibleMajorVersion(candidate.schemaVersion, VERSION_AXES.schemaVersion)
+  ) {
+    throwInvalidImportBundle(
+      `Record ${candidate.id} has unsupported schemaVersion ${String(candidate.schemaVersion)}.`
+    );
+  }
+}
+
+function validateImportDepthAndStrings(value: unknown, location: string, depth = 0): void {
+  if (depth > IMPORT_LIMITS.maxDepth) {
+    throwImportLimitExceeded(`${location} nesting depth`, IMPORT_LIMITS.maxDepth, depth);
+  }
+  if (typeof value === "string") {
+    if (value.length > IMPORT_LIMITS.maxStringLength) {
+      throwImportLimitExceeded(`${location} string length`, IMPORT_LIMITS.maxStringLength, value.length);
+    }
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      validateImportDepthAndStrings(item, location, depth + 1);
+    }
+    return;
+  }
+  if (value && typeof value === "object") {
+    for (const [key, child] of Object.entries(value)) {
+      validateImportDepthAndStrings(child, `${location}.${key}`, depth + 1);
+    }
+  }
+}
+
+function throwInvalidImportBundle(message: string): never {
+  throw new PspfError({
+    code: "PSPF_IMPORT_BUNDLE_INVALID",
+    severity: "error",
+    category: "import",
+    message: `PSPF bundle import rejected: ${message}`,
+    retryable: false,
+    recommendedAction: "Export a fresh PSPF master bundle, or inspect the bundle validation errors before importing.",
+    detail: { message }
+  });
+}
+
+function throwImportLimitExceeded(limitName: string, threshold: number, observed: number): never {
+  throw new PspfError({
+    code: "PSPF_IMPORT_LIMIT_EXCEEDED",
+    severity: "error",
+    category: "import",
+    message: `PSPF bundle import rejected: ${limitName} exceeds the supported limit.`,
+    retryable: false,
+    recommendedAction: "Reduce the bundle size or split the data before importing.",
+    detail: { limitName, threshold, observed }
+  });
 }
 
 function summariseImportChanges(
@@ -1760,12 +1956,50 @@ async function ensureInitialised(workspaceRoot: string, createIfMissing = true):
     if (createIfMissing) {
       return initialiseWorkspace(workspaceRoot);
     }
-    throw new Error(`PSPF workspace is not initialised at ${workspaceRoot}.`);
+    throw new PspfError({
+      code: "PSPF_STORAGE_DB_MISSING",
+      severity: "error",
+      category: "storage",
+      message: `PSPF workspace is not initialised at ${workspaceRoot}.`,
+      retryable: false,
+      recommendedAction: "Run PSPF: Initialise PSPF Workspace before using this command.",
+      detail: { workspaceRoot }
+    });
   }
+  await assertWorkspaceSchemaCompatible(paths);
   if (createIfMissing) {
     await refreshReferenceData(workspaceRoot);
   }
   return paths;
+}
+
+async function assertWorkspaceSchemaCompatible(paths: WorkspacePaths): Promise<void> {
+  const output = await runSql(paths.db, "SELECT value FROM metadata WHERE key = 'schemaVersion';", ["-json"]);
+  const rows = output.trim() === "" ? [] : (JSON.parse(output) as readonly { value: string }[]);
+  const storedSchemaVersion = rows[0]?.value;
+  if (!storedSchemaVersion) {
+    throw new PspfError({
+      code: "PSPF_MIGRATION_REQUIRED",
+      severity: "error",
+      category: "migration",
+      message: "PSPF workspace schema metadata is missing.",
+      retryable: false,
+      recommendedAction: "Back up the workspace, then re-initialise or restore from a known-good backup.",
+      detail: { expected: VERSION_AXES.schemaVersion }
+    });
+  }
+  if (!hasCompatibleMajorVersion(storedSchemaVersion, VERSION_AXES.schemaVersion)) {
+    throw new PspfError({
+      code: "PSPF_MIGRATION_REQUIRED",
+      severity: "error",
+      category: "migration",
+      message: `PSPF workspace schema ${storedSchemaVersion} is not compatible with ${VERSION_AXES.schemaVersion}.`,
+      retryable: false,
+      recommendedAction:
+        "Open the workspace with a compatible PSPF Core version or run an explicit migration once available.",
+      detail: { storedSchemaVersion, expected: VERSION_AXES.schemaVersion }
+    });
+  }
 }
 
 async function refreshReferenceData(workspaceRoot: string): Promise<void> {
@@ -1936,7 +2170,15 @@ ON CONFLICT(id) DO NOTHING;`;
 async function assertWritable(paths: WorkspacePaths): Promise<void> {
   const lock = await acquireWriterLock(paths);
   if (!lock.writable) {
-    throw new Error(lock.detail);
+    throw new PspfError({
+      code: "PSPF_WRITER_LOCK_HELD",
+      severity: "error",
+      category: "storage",
+      message: lock.detail,
+      retryable: true,
+      recommendedAction: "Close the other PSPF workspace window or use the writer-lock recovery flow before retrying.",
+      detail: { holderPid: lock.holderPid, currentPid: lock.currentPid }
+    });
   }
 }
 
@@ -2079,8 +2321,15 @@ async function persistSqlDatabase(db: SqlJsDatabase, dbPath: string): Promise<vo
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const tmpPath = `${dbPath}.tmp-${process.pid}-${Date.now()}-${attempt}`;
     try {
-      await writeFile(tmpPath, database);
+      const tmpFile = await open(tmpPath, "w");
+      try {
+        await tmpFile.writeFile(database);
+        await tmpFile.sync();
+      } finally {
+        await tmpFile.close();
+      }
       await rename(tmpPath, dbPath);
+      await syncDirectory(dirname(dbPath));
       return;
     } catch (error) {
       lastError = error;
@@ -2088,6 +2337,18 @@ async function persistSqlDatabase(db: SqlJsDatabase, dbPath: string): Promise<vo
     }
   }
   throw lastError;
+}
+
+async function syncDirectory(directoryPath: string): Promise<void> {
+  let directory: Awaited<ReturnType<typeof open>> | undefined;
+  try {
+    directory = await open(directoryPath, "r");
+    await directory.sync();
+  } catch {
+    // Directory fsync is not available on every platform; the temp-file fsync still protects the database bytes.
+  } finally {
+    await directory?.close().catch(() => undefined);
+  }
 }
 
 function sqlResultsToJson(results: readonly SqlJsQueryResult[]): string {

@@ -1,5 +1,7 @@
 # PSPF Reference Data Baseline Specification
 
+Status: **implemented**
+
 ## Purpose
 
 This specification defines how PSPF v1.0 should carry authoritative PSPF and ISM reference data as an offline, verifiable asset. It exists because reference data is not ordinary sample data: source text, source versions, provenance, update cadence, attribution, and drift all affect whether an operator can trust assessment results.

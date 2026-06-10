@@ -1,5 +1,7 @@
 # PSPF Canonical Entity and Link Specification
 
+Status: **implemented**
+
 ## Overview
 
 This specification defines the canonical entity model and relationship model for the PSPF ecosystem. It is intended to support the Core runtime datastore, the Core API, JSON import/export bundles, Explorer compatibility, fixture generation, and long-term schema governance.

@@ -1,5 +1,7 @@
 # PSPF Web Rollback Runbook
 
+Status: **partial**
+
 ## Purpose
 
 Restore `tobyharvey.online` or `test.tobyharvey.online` to a previous static web release after a bad deploy, broken route, header issue, or accidental content problem.

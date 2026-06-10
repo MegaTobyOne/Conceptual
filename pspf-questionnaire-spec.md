@@ -1,5 +1,7 @@
 # PSPF Questionnaire Specification
 
+Status: **implemented**
+
 ## Purpose
 
 This specification defines the **questionnaire-driven workspace population
@@ -9,7 +11,7 @@ records (Requirements, Evidence, Actions, Risks, and links), how the result
 becomes a custom first daily bundle, and how the same flow is re-run later as
 a posture refresh.
 
-This spec implements [adr/0069-questionnaire-population.md](adr/0069-questionnaire-population.md)
+This spec implements [adr/0075-questionnaire-population.md](adr/0075-questionnaire-population.md)
 and slots into the v0.8 first-run test path as a sibling of
 `PSPF: Load Sample Workspace`.
 

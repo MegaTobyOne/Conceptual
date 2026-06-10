@@ -1,5 +1,7 @@
 # PSPF Onboarding Specification
 
+Status: **implemented**
+
 ## Purpose
 
 This specification pins the end-to-end first-run experience across every install permutation. It exists because the existing specs each describe their half — Core's bootstrap, Workshop's activation, Explorer's first load — but no single spec walks the user from "I have nothing installed" to "I have a master bundle published".
@@ -73,7 +75,7 @@ For initial assurance-user testing, v0.8 adds a shorter sample-driven path witho
 
 The same sample path is enforced by `pnpm run check:sample-workspace`.
 
-> **Questionnaire-driven population (v0.8 sibling).** Between steps 3 and 4 the operator may instead — or in addition — run `PSPF: Run Quickstart Questionnaire` to populate the workspace from real-world yes/no/partial/unknown/N-A answers. See [pspf-questionnaire-spec.md](pspf-questionnaire-spec.md) and [adr/0069-questionnaire-population.md](adr/0069-questionnaire-population.md). The remainder of the path (Integrity Scan, Export, Explorer) is unchanged. The questionnaire is re-runnable as a posture refresh.
+> **Questionnaire-driven population (v0.8 sibling).** Between steps 3 and 4 the operator may instead — or in addition — run `PSPF: Run Quickstart Questionnaire` to populate the workspace from real-world yes/no/partial/unknown/N-A answers. See [pspf-questionnaire-spec.md](pspf-questionnaire-spec.md) and [adr/0075-questionnaire-population.md](adr/0075-questionnaire-population.md). The remainder of the path (Integrity Scan, Export, Explorer) is unchanged. The questionnaire is re-runnable as a posture refresh.
 
 ## v1.0 release test path
 

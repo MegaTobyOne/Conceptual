@@ -1,5 +1,7 @@
 # PSPF ISM Integration Specification
 
+Status: **implemented**
+
 ## Status
 
 Active. Phases 1-3 are **implemented** for the current seeded source-library slice (see [pspf-development-readiness-review.md](pspf-development-readiness-review.md)): read-only ISM source library (`SRC-*`), first-class Requirement to ISM control mapping (`MAP-*`) with confidence and review metadata, drift visibility, and the posture-brief ISM coverage section. Phases 1-3 are governed by [adr/0017-ism-integration-roadmap.md](adr/0017-ism-integration-roadmap.md), and fixed by [adr/0018-ism-source-library.md](adr/0018-ism-source-library.md), [adr/0019-requirement-control-mapping.md](adr/0019-requirement-control-mapping.md), and [adr/0020-ism-mapping-quality-and-drift.md](adr/0020-ism-mapping-quality-and-drift.md).

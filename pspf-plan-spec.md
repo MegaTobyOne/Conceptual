@@ -1,5 +1,7 @@
 # 12-Month Cyber Plan Application Specification
 
+Status: **implemented**
+
 ## Purpose
 This specification captures the discussion outcomes, decisions, and agreed direction for a simplified application that helps articulate, manage, and evolve a 12-month cyber plan.
 

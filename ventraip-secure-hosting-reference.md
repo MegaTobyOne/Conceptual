@@ -1,5 +1,7 @@
 # VentraIP secure hosting reference design
 
+Status: **reference**
+
 This design is intended for small static sites and single-page apps hosted on a VentraIP cPanel account, with builds performed externally and deployments pushed into a tightly controlled runtime environment.[cite:5][cite:14] For PSPF, this pattern is the **sole approved production static host** per ADR 0038: VentraIP serves the public landing page (`pspf-ecosystem.html`) at the site root and the Explorer publication-mode SPA under `/explorer`. Core and Workshop remain local-first VS Code extensions and are not hosted on VentraIP. GitHub Pages is not used.
 
 ## Pinned values for v1.0

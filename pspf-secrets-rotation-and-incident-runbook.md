@@ -1,5 +1,7 @@
 # PSPF Secrets Rotation and Incident Response Runbook
 
+Status: **partial**
+
 ## Purpose
 
 This runbook defines credential rotation and security incident response actions for the PSPF monorepo and release pipelines.

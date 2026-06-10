@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+env:
+  PNPM_VERSION: 10.10.0
+  NODE_VERSION: 22.15.0
+
 jobs:
   gates:
     name: Build and gates
@@ -21,25 +25,63 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22.15.0'
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-
 
       - name: Install dependencies
-        run: npx pnpm@10.10.0 install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       - name: Build
-        run: npx pnpm@10.10.0 run build
+        run: pnpm run build
 
       - name: Typecheck
-        run: npx pnpm@10.10.0 run typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm test
 
       - name: Package shape
-        run: npx pnpm@10.10.0 run package:check
+        run: pnpm run package:check
 
       - name: Release candidate
-        run: npx pnpm@10.10.0 run check:release-candidate
+        run: pnpm run check:release-candidate
 
       - name: Deployment safety
-        run: npx pnpm@10.10.0 run check:deployment-safety
+        run: pnpm run check:deployment-safety
 
       - name: Lint
-        run: npx pnpm@10.10.0 run lint
+        run: pnpm run lint

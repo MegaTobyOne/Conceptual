@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { PSPF_DOMAINS, type RequirementEntity, withEnvelope } from "@pspf/contracts";
+import { PSPF_DOMAINS, PSPF_SLICE_VERSION, type RequirementEntity, VERSION_AXES, withEnvelope } from "@pspf/contracts";
 import { createCoreService } from "./service.js";
 
 const testRoot = join(process.cwd(), ".tmp", "core-service-tests");
@@ -241,7 +242,25 @@ async function freshWorkspace(name: string): Promise<string> {
 }
 
 async function writeBundle(path: string, collections: Record<string, readonly unknown[]>): Promise<void> {
-  await writeFile(path, `${JSON.stringify({ collections }, null, 2)}\n`, "utf8");
+  const manifestCollections = Object.entries(collections).map(([name, records]) => {
+    const serialised = `${JSON.stringify(records, null, 2)}\n`;
+    return {
+      name,
+      path: `./collections/${name}.json`,
+      count: records.length,
+      hash: { alg: "SHA-256", value: createHash("sha256").update(serialised).digest("hex") }
+    };
+  });
+  const manifest = {
+    bundleType: "pspf-explorer-bundle",
+    bundleVersion: VERSION_AXES.bundleVersion,
+    schemaVersion: VERSION_AXES.schemaVersion,
+    apiVersion: VERSION_AXES.apiVersion,
+    generatedAt: "2026-06-10T00:00:00.000Z",
+    generator: { product: "pspf-core-test", mode: "publication", productVersion: PSPF_SLICE_VERSION },
+    collections: manifestCollections
+  };
+  await writeFile(path, `${JSON.stringify({ manifest, collections }, null, 2)}\n`, "utf8");
 }
 
 async function writeLockState(

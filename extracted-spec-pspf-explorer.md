@@ -1,5 +1,7 @@
 # PSPF Explorer — Extracted Specification
 
+Status: **reference**
+
 ## 0. Source and scope
 
 - **Source**: PSPF Explorer workspace at HEAD; package version `3.2.0-alpha.3`; examined on the date in this conversation. No git history was inspected — limitation noted.

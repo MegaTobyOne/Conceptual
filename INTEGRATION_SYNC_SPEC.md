@@ -1,5 +1,7 @@
 # PSPF External Risk Source Integration Planning Specification
 
+Status: **partial**
+
 **Date**: 24 May 2026  
 **Status**: v1.31 hardening plan  
 **Audience**: Product owner, CISO, delivery lead, engineering

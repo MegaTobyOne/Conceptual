@@ -1,5 +1,7 @@
 # PSPF Contract Test Governance Specification
 
+Status: **partial**
+
 ## Purpose
 
 This specification defines ownership, tooling expectations, and CI policy for schema and API contract tests across PSPF workspace packages in the single `pspf` monorepo.

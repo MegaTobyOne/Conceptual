@@ -1,5 +1,7 @@
 # PSPF Core API v1 Contract Specification
 
+Status: **implemented**
+
 ## Overview
 
 This specification defines the local-only Core API contract for the PSPF extension ecosystem. It is the contract exposed by PSPF Core to trusted companion extensions such as Workshop, Shop, and Pub, and it governs commands, queries, events, platform negotiation, capability checks, and error handling.

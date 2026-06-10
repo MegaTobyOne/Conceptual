@@ -29,6 +29,14 @@ Adopt a **single GitHub repository** that houses every PSPF product as a workspa
 
 ### Workspace layout
 
+**Current v1.42 implementation note:** code, schemas, scripts, and packages follow
+the monorepo layout below, but authoritative specifications, runbooks, and ADRs
+remain at the repository root and `adr/`. The originally planned mechanical move
+into `docs/specs`, `docs/runbooks`, and `docs/adr` is deferred because existing
+spec links, Marketplace documentation, release checks, and agent instructions all
+depend on the root paths. Any future docs move must be a dedicated migration with
+a link-rewrite gate; until then, root specs and `adr/` are the source of truth.
+
 ```text
 pspf/
 ├── packages/
@@ -111,7 +119,11 @@ Each VSIX-producing package keeps its own version, changelog, and release tag. T
 
 ### Migration
 
-The current docs-only workspace at `/Users/toby/Dev/Conceptual` is reorganised into the layout above. The reorganisation itself is tracked in ADR 0014 (v0.1 thin slice) so it lands as the first commit on `main`.
+The code workspace was reorganised into the monorepo package layout, but the
+documentation move is explicitly deferred as of v1.42. The authoritative paths
+remain the repository root and `adr/`; this avoids a broad link churn while the
+T0-T2 remediation work closes higher-risk documentation truth, gate integrity,
+and trust-boundary gaps.
 
 ## Alternatives considered
 
