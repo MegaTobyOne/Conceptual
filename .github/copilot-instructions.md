@@ -4,6 +4,7 @@ This repository implements the PSPF product ecosystem at v1.42.0: four VS Code e
 
 ## First Checks
 
+- For routine code changes, start with `docs/AGENT_ORIENTATION.md` to identify the smallest owning file, test, and spec before loading larger root specifications.
 - Read `pspf-grand-plan.md` before roadmap, remediation, Graph, AI, assurance-publishing, CI, diagnostics, or release-sequencing work. It is the active forward plan and deliberately fixes documentation truthfulness first.
 - Use `pspf-spec-consistency-index.md` to find the owner spec for a topic before changing architecture, schema, API, workflow, publication policy, or pipeline behaviour.
 - Read `pspf-acceptance-and-quality-gates.md` before claiming a slice is done.
@@ -14,7 +15,7 @@ This repository implements the PSPF product ecosystem at v1.42.0: four VS Code e
 ## Current Workspace
 
 - Package manager: pnpm workspaces, pinned by `packageManager` in `package.json`.
-- Current repo version: `1.41.4`; all workspace packages are expected to remain version-aligned.
+- Current repo version: `1.42.0`; all workspace packages are expected to remain version-aligned.
 - Shipped VS Code extensions:
   - `packages/core` (`pspf-core`) — local system of record, workspace bootstrap, validation, snapshots, import/export, and Core command API.
   - `packages/workshop` (`pspf-workshop`) — authoring surface for requirements, evidence, actions, risks, strategy, posture, and reporting workflows.
