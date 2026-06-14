@@ -33,6 +33,7 @@ Out of scope for v1:
 4. **Bundle boundary** — JSON bundles that cross between Core/Workshop and Explorer, possibly across organisations.
 5. **Publication boundary** — the static Explorer site published to GitHub Pages vs. the authoring workspace it was generated from.
 6. **Browser local-data boundary** — Explorer's `localStorage`/`IndexedDB` per origin vs. anything else on the user's machine.
+7. **AI provider boundary** — optional Workshop AI prompts and model responses crossing from the extension host to the VS Code Language Model API.
 
 ## Assets
 
@@ -98,6 +99,9 @@ A subject (a Person record) requests access, correction, or destruction. The sys
 | T14 | Hostile workspace activates Core and exfiltrates on open | A3 | Local data, network | Activation is narrow and gated by `.pspf/` markers; sensitive actions require Workspace Trust; no outbound network calls in v1 |
 | T15 | ID format leaks creation timestamps for Person records | A7 | Personal data | UUIDv7 used internally; the time bits are stripped from any ID that appears in a bundle eligible for publication |
 | T16 | User believes Explorer's data is authoritative | A — generic user error | Decision quality | Every Explorer page declares experimental status, source bundle, and "not for relied-upon decisions" notice |
+| T17 | AI prompt includes sensitive or restricted PSPF data | A1, A3, operator error | Entity records, personal data | AI disabled by default; workspace policy must explicitly allow; existing entity prompts use `sanitiseEntityForPublication`; `check:ai-kill-switch` and AI prompt-redaction gates |
+| T18 | AI output is accepted as authoritative without review | A — generic user error | Decision quality | AI features are draft-and-confirm only; operator must explicitly accept before any write; provenance wording discloses AI assistance |
+| T19 | AI provider outage or unavailable entitlement breaks Workshop | Provider failure | Workflow availability | AI is optional and hidden when provider is unavailable; core Workshop workflows remain local-first and network-free |
 
 ## Residual risks accepted in v1
 
@@ -128,3 +132,4 @@ A subject (a Person record) requests access, correction, or destruction. The sys
 | `pspf-secrets-rotation-and-incident-runbook.md` | T07, T08 |
 | `pspf-developer-pipeline-spec.md` | T07, T08 |
 | `pspf-backup-and-restore-runbook.md` | T06, T10 |
+| `adr/0077-ai-capability-boundary.md` | T17, T18, T19 |

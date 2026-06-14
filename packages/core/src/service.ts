@@ -347,7 +347,12 @@ async function initialiseWorkspace(workspaceRoot: string): Promise<WorkspacePath
     classification: "OFFICIAL: Sensitive"
   });
   await writeJson(join(paths.config, "products.json"), { trustedCallerOverrides: [] });
-  await writeJson(join(paths.config, "policies.json"), { publicationDefault: "sensitive" });
+  await writeJson(join(paths.config, "policies.json"), {
+    publicationDefault: "sensitive",
+    ai: {
+      disabled: true
+    }
+  });
 
   await runSql(
     paths.db,

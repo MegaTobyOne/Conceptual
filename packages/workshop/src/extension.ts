@@ -105,6 +105,9 @@ import {
   normaliseSavedViewName,
   normaliseTagLabel,
   operatorLinkRuleForEndpoints,
+  isAiEnabled,
+  sanitiseEntityForPublication,
+  PspfError,
   withEnvelope
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
@@ -138,6 +141,9 @@ const riskSourceRunsKey = "pspf.workshop.riskSourceRuns.v1";
 const riskSourceSecretKey = "pspf.workshop.6clicksRiskSource.credential";
 const riskSourceConfigFile = "integrations.json";
 const riskSourceSettingsSection = "pspf.workshop.riskSource";
+const aiSettingsSection = "pspf.ai";
+const aiContextEnabledKey = "pspf:aiEnabled";
+const aiPoliciesFileName = "policies.json";
 const STRATEGY_REFERENCE_ROLES = ["drives", "addresses", "blocked-by", "evidenced-by", "monitors"] as const;
 const ismSourceControlCategoryByControlId = new Map<string, string>(
   ISM_SOURCE_CONTROL_CATEGORIES.map((item) => [item.controlId, item.category] as const)
@@ -364,6 +370,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const directionsTree = new DirectionsTreeProvider();
   workshopTreeProviders.length = 0;
   workshopTreeProviders.push(requirementsTree, evidenceTree, actionsTree, risksTree, directionsTree);
+  void refreshAiEnablementContext();
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("pspfWorkshop.homeView", homeViewProvider),
@@ -376,6 +383,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openTreeEntity", openTreeEntity),
     vscode.commands.registerCommand("pspf.workshop.openHome", openHome),
     vscode.commands.registerCommand("pspf.workshop.createRequirement", createRequirement),
+    vscode.commands.registerCommand("pspf.workshop.aiDraftRequirementFromInterview", aiDraftRequirementFromInterview),
+    vscode.commands.registerCommand("pspf.workshop.aiSuggestIsmMappings", aiSuggestIsmMappings),
     vscode.commands.registerCommand("pspf.workshop.openWelcome", openWelcome),
     vscode.commands.registerCommand("pspf.workshop.loadSampleWorkspace", loadSampleWorkspace),
     vscode.commands.registerCommand("pspf.workshop.loadHomeSampleWorkspace", loadHomeSampleWorkspace),
@@ -450,12 +459,292 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.copyCisoMasterPlan", copyCisoMasterPlan),
     vscode.commands.registerCommand("pspf.workshop.runQuickstartQuestionnaire", runQuickstartQuestionnaire),
     vscode.commands.registerCommand("pspf.workshop.runDomainDeepDive", runDomainDeepDive),
-    vscode.commands.registerCommand("pspf.workshop.openQuestionnaireHistory", openQuestionnaireHistory)
+    vscode.commands.registerCommand("pspf.workshop.openQuestionnaireHistory", openQuestionnaireHistory),
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration(aiSettingsSection)) {
+        void refreshAiEnablementContext();
+      }
+    }),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      void refreshAiEnablementContext();
+    }),
+    vscode.workspace.onDidSaveTextDocument((document) => {
+      if (isAiPolicyDocument(document.uri)) {
+        void refreshAiEnablementContext();
+      }
+    })
   );
 }
 
 export function deactivate(): void {
   // No runtime resources to dispose yet.
+}
+
+interface WorkshopAiSettings {
+  readonly enabled: boolean;
+  readonly provider: "vscode-lm";
+  readonly modelId: string;
+}
+
+interface WorkspaceAiPolicy {
+  readonly ai?: {
+    readonly disabled?: boolean;
+  };
+}
+
+interface WorkshopAiContext {
+  readonly settings: WorkshopAiSettings;
+}
+
+function readWorkshopAiSettings(): WorkshopAiSettings {
+  const config = vscode.workspace.getConfiguration(aiSettingsSection);
+  const provider = config.get<string>("provider", "vscode-lm");
+  return {
+    enabled: config.get<boolean>("enabled", false),
+    provider: provider === "vscode-lm" ? "vscode-lm" : "vscode-lm",
+    modelId: config.get<string>("modelId", "")
+  };
+}
+
+async function refreshAiEnablementContext(): Promise<void> {
+  const settings = readWorkshopAiSettings();
+  const policyDisabled = await readWorkspaceAiPolicyDisabled();
+  const providerAvailable = settings.provider === "vscode-lm" ? isVscodeLanguageModelAvailable() : false;
+  const enabled = isAiEnabled({
+    settingEnabled: settings.enabled,
+    policyDisabled,
+    capabilityInstalled: true,
+    providerAvailable
+  });
+  await vscode.commands.executeCommand("setContext", aiContextEnabledKey, enabled);
+}
+
+function isVscodeLanguageModelAvailable(): boolean {
+  return (vscode as unknown as { readonly lm?: unknown }).lm !== undefined;
+}
+
+function isAiPolicyDocument(uri: vscode.Uri): boolean {
+  if (uri.scheme !== "file") {
+    return false;
+  }
+  const normalisedPath = uri.path.toLowerCase();
+  return normalisedPath.endsWith(`/.pspf/config/${aiPoliciesFileName}`);
+}
+
+async function readWorkspaceAiPolicyDisabled(): Promise<boolean | undefined> {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    return true;
+  }
+  const policyUri = vscode.Uri.joinPath(workspaceFolder.uri, ".pspf", "config", aiPoliciesFileName);
+  try {
+    const bytes = await vscode.workspace.fs.readFile(policyUri);
+    const raw = JSON.parse(new TextDecoder().decode(bytes)) as WorkspaceAiPolicy;
+    return raw.ai?.disabled !== false;
+  } catch {
+    return true;
+  }
+}
+
+async function ensureAiCommandReady(): Promise<WorkshopAiContext | undefined> {
+  const settings = readWorkshopAiSettings();
+  const policyDisabled = await readWorkspaceAiPolicyDisabled();
+  const providerAvailable = settings.provider === "vscode-lm" ? isVscodeLanguageModelAvailable() : false;
+  const enabled = isAiEnabled({
+    settingEnabled: settings.enabled,
+    policyDisabled,
+    capabilityInstalled: true,
+    providerAvailable
+  });
+  if (!enabled) {
+    await vscode.window.showWarningMessage(
+      "AI assistance is disabled by settings, policy, or provider availability. Enable pspf.ai and review workspace policy."
+    );
+    return undefined;
+  }
+  return { settings };
+}
+
+async function requestAiText(prompt: string, context: WorkshopAiContext): Promise<string | undefined> {
+  try {
+    const lm = (
+      vscode as unknown as {
+        readonly lm?: {
+          selectChatModels: () => Promise<readonly unknown[]>;
+        };
+        readonly LanguageModelChatMessage?: {
+          User: (content: string) => unknown;
+        };
+      }
+    ).lm;
+    const messageFactory = (
+      vscode as unknown as {
+        readonly LanguageModelChatMessage?: {
+          User: (content: string) => unknown;
+        };
+      }
+    ).LanguageModelChatMessage;
+    if (!lm || !messageFactory?.User) {
+      throw new PspfError({
+        code: "PSPF_AI_MODEL_UNAVAILABLE",
+        severity: "warning",
+        category: "ai",
+        message: "VS Code Language Model API is unavailable in this environment.",
+        retryable: true,
+        recommendedAction: "Confirm Copilot model access and try again."
+      });
+    }
+
+    const models = await lm.selectChatModels();
+    if (!models || models.length === 0) {
+      throw new PspfError({
+        code: "PSPF_AI_MODEL_UNAVAILABLE",
+        severity: "warning",
+        category: "ai",
+        message: "No chat models are available from VS Code Language Model API.",
+        retryable: true,
+        recommendedAction: "Sign in with a model entitlement and retry."
+      });
+    }
+
+    const preferredModelId = context.settings.modelId.trim().toLowerCase();
+    const model =
+      models.find((candidate) => {
+        if (!preferredModelId) {
+          return false;
+        }
+        const id = String((candidate as { readonly id?: unknown }).id ?? "").toLowerCase();
+        return id === preferredModelId;
+      }) ?? models[0];
+
+    const request = (
+      model as {
+        sendRequest: (messages: readonly unknown[]) => Promise<{ readonly text?: AsyncIterable<unknown> | string }>;
+      }
+    ).sendRequest;
+    if (typeof request !== "function") {
+      throw new PspfError({
+        code: "PSPF_AI_MODEL_UNAVAILABLE",
+        severity: "warning",
+        category: "ai",
+        message: "Selected model does not support chat requests.",
+        retryable: true,
+        recommendedAction: "Select a different model and retry."
+      });
+    }
+
+    const response = await request([messageFactory.User(prompt)]);
+    const text = await collectAiResponseText(response?.text);
+    if (!text.trim()) {
+      throw new PspfError({
+        code: "PSPF_AI_MODEL_UNAVAILABLE",
+        severity: "warning",
+        category: "ai",
+        message: "Model response was empty.",
+        retryable: true,
+        recommendedAction: "Retry with more context."
+      });
+    }
+    return text;
+  } catch (error) {
+    await showAiError(error);
+    return undefined;
+  }
+}
+
+async function collectAiResponseText(textStream: AsyncIterable<unknown> | string | undefined): Promise<string> {
+  if (typeof textStream === "string") {
+    return textStream;
+  }
+  if (!textStream) {
+    return "";
+  }
+  const chunks: string[] = [];
+  for await (const chunk of textStream) {
+    const value = (chunk as { readonly value?: unknown }).value;
+    if (typeof value === "string") {
+      chunks.push(value);
+      continue;
+    }
+    if (typeof chunk === "string") {
+      chunks.push(chunk);
+      continue;
+    }
+    chunks.push(String(value ?? chunk ?? ""));
+  }
+  return chunks.join("");
+}
+
+function parseAiJson<T>(raw: string): T | undefined {
+  const trimmed = raw.trim();
+  const fenceMatch = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const payload = typeof fenceMatch?.[1] === "string" ? fenceMatch[1].trim() : trimmed;
+  try {
+    return JSON.parse(payload) as T;
+  } catch {
+    return undefined;
+  }
+}
+
+function normaliseAssessmentStatus(value: string | undefined): AssessmentStatus {
+  switch ((value ?? "").trim()) {
+    case "met":
+    case "in-progress":
+    case "not-met":
+    case "not-applicable":
+      return value as AssessmentStatus;
+    default:
+      return "in-progress";
+  }
+}
+
+function normaliseMappingConfidence(value: string | undefined): MappingConfidence {
+  switch ((value ?? "").trim()) {
+    case "high":
+    case "medium":
+    case "low":
+      return value as MappingConfidence;
+    default:
+      return "medium";
+  }
+}
+
+function rankSourceControlsForRequirement(
+  requirement: RequirementEntity,
+  controls: readonly SourceControlEntity[],
+  limit: number
+): readonly SourceControlEntity[] {
+  const tokens = tokenizeRequirementHint(`${requirement.title} ${requirement.summary ?? ""}`);
+  const scored = controls.map((control) => {
+    const haystack = `${control.controlId} ${control.title} ${control.statement}`.toLowerCase();
+    const score = tokens.reduce((total, token) => (haystack.includes(token) ? total + 1 : total), 0);
+    return { control, score };
+  });
+  return scored
+    .sort((left, right) => right.score - left.score || left.control.controlId.localeCompare(right.control.controlId))
+    .slice(0, Math.max(limit, 10))
+    .map((item) => item.control);
+}
+
+function tokenizeRequirementHint(input: string): readonly string[] {
+  const stopWords = new Set(["the", "and", "for", "with", "that", "from", "this", "into", "under", "over"]);
+  return [
+    ...new Set(
+      input
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((part) => part.length >= 4 && !stopWords.has(part))
+    )
+  ];
+}
+
+async function showAiError(error: unknown): Promise<void> {
+  if (error instanceof PspfError) {
+    await vscode.window.showErrorMessage(`${error.code}: ${error.message} ${error.recommendedAction}`);
+    return;
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  await vscode.window.showErrorMessage(`AI command failed: ${message}`);
 }
 
 async function openHome(): Promise<void> {
@@ -1080,6 +1369,311 @@ async function createRequirement(): Promise<void> {
   await rememberRequirement(requirement);
   const action = await vscode.window.showInformationMessage(
     `Requirement created: ${requirement.title}`,
+    "Open Item Detail"
+  );
+  if (action === "Open Item Detail") {
+    await openItemDetailForRequirement(requirement);
+  }
+}
+
+async function aiDraftRequirementFromInterview(): Promise<void> {
+  await ensureCoreReady();
+  const aiContext = await ensureAiCommandReady();
+  if (!aiContext) {
+    return;
+  }
+
+  const domain = await vscode.window.showQuickPick(
+    PSPF_DOMAINS.map((item) => ({ label: item.title, description: item.code, domainId: item.id })),
+    { title: "AI Requirement Draft", placeHolder: "Choose PSPF domain", ignoreFocusOut: true }
+  );
+  if (!domain) {
+    return;
+  }
+
+  const objective = await vscode.window.showInputBox({
+    title: "AI Requirement Draft",
+    prompt: "Public-safe outcome only. Do not include names, secrets, sensitive systems, or incident details.",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the intended outcome." : undefined)
+  });
+  if (!objective) {
+    return;
+  }
+
+  const currentState = await vscode.window.showInputBox({
+    title: "AI Requirement Draft",
+    prompt: "Public-safe current state or control maturity. Keep sensitive detail out of the AI prompt.",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the current state." : undefined)
+  });
+  if (!currentState) {
+    return;
+  }
+
+  const gap = await vscode.window.showInputBox({
+    title: "AI Requirement Draft",
+    prompt: "Public-safe primary gap or risk to close. Use roles/categories instead of people or systems.",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the primary gap." : undefined)
+  });
+  if (!gap) {
+    return;
+  }
+
+  const evidenceCue = await vscode.window.showInputBox({
+    title: "AI Requirement Draft",
+    prompt: "Optional public-safe evidence cue (document/process/source). Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (evidenceCue === undefined) {
+    return;
+  }
+
+  const interviewPayload = {
+    domain: domain.label,
+    objective: objective.trim(),
+    currentState: currentState.trim(),
+    gap: gap.trim(),
+    evidenceCue: evidenceCue.trim()
+  };
+
+  const prompt = [
+    "Draft a PSPF requirement proposal from this interview payload.",
+    "Return strict JSON only with keys: title, summary, assessmentStatus, reasoning.",
+    "assessmentStatus must be one of: met, in-progress, not-met, not-applicable.",
+    "Use concise Australian-English writing and no markdown.",
+    JSON.stringify(interviewPayload)
+  ].join("\n\n");
+
+  const aiText = await requestAiText(prompt, aiContext);
+  if (!aiText) {
+    return;
+  }
+
+  const parsed = parseAiJson<{ title?: string; summary?: string; assessmentStatus?: string; reasoning?: string }>(
+    aiText
+  );
+  if (!parsed) {
+    await vscode.window.showWarningMessage("AI returned an unreadable draft. Please try again.");
+    return;
+  }
+
+  const suggestedTitle = (parsed.title ?? "").trim() || objective.trim();
+  const suggestedSummary = (parsed.summary ?? "").trim() || `${currentState.trim()} Gap: ${gap.trim()}`;
+  const suggestedStatus = normaliseAssessmentStatus(parsed.assessmentStatus);
+
+  const title = await vscode.window.showInputBox({
+    title: "Review AI Requirement Draft",
+    prompt: "Requirement title",
+    value: suggestedTitle,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a requirement title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+
+  const assessmentStatus = await vscode.window.showQuickPick(
+    assessmentStatusItems.map((item) => ({ ...item, picked: item.value === suggestedStatus })),
+    { title: "Review AI Requirement Draft", placeHolder: "Assessment status", ignoreFocusOut: true }
+  );
+  if (!assessmentStatus) {
+    return;
+  }
+
+  const summary = await vscode.window.showInputBox({
+    title: "Review AI Requirement Draft",
+    prompt: "Internal summary, not published by default",
+    value: suggestedSummary,
+    ignoreFocusOut: true
+  });
+  if (summary === undefined) {
+    return;
+  }
+
+  const confirm = await vscode.window.showInformationMessage(
+    "Create this AI-drafted requirement now?",
+    { modal: true },
+    "Create",
+    "Cancel"
+  );
+  if (confirm !== "Create") {
+    return;
+  }
+
+  const requirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: title.trim(),
+      domainId: domain.domainId,
+      assessmentStatus: assessmentStatus.value,
+      summary: summary.trim() || undefined
+    },
+    "workshop"
+  );
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", requirement);
+  await refreshWorkshopSurfaces();
+  await rememberRequirement(requirement);
+  const action = await vscode.window.showInformationMessage(
+    `AI draft accepted and created: ${requirement.title}`,
+    "Open Item Detail"
+  );
+  if (action === "Open Item Detail") {
+    await openItemDetailForRequirement(requirement);
+  }
+}
+
+async function aiSuggestIsmMappings(): Promise<void> {
+  await ensureCoreReady();
+  const aiContext = await ensureAiCommandReady();
+  if (!aiContext) {
+    return;
+  }
+
+  const requirement = await pickRequirement();
+  if (!requirement) {
+    return;
+  }
+
+  const sourceControls = await listSourceControls();
+  if (sourceControls.length === 0) {
+    await vscode.window.showWarningMessage("No ISM source controls are loaded.");
+    return;
+  }
+
+  const requirementPublic = sanitiseEntityForPublication(requirement) as RequirementEntity;
+  const candidates = rankSourceControlsForRequirement(requirement, sourceControls, 80);
+  const candidateLines = candidates
+    .map((sourceControl) => `${sourceControl.controlId} | ${sourceControl.title}`)
+    .join("\n");
+
+  const prompt = [
+    "Suggest ISM controls for this PSPF requirement.",
+    "Return strict JSON only with key suggestions containing up to 5 items.",
+    "Each suggestion item keys: controlId, confidence (high|medium|low), rationale.",
+    "Only choose controlId values from the provided candidate list.",
+    "Requirement:",
+    JSON.stringify(requirementPublic),
+    "Candidate controls:",
+    candidateLines
+  ].join("\n\n");
+
+  const aiText = await requestAiText(prompt, aiContext);
+  if (!aiText) {
+    return;
+  }
+
+  const parsed = parseAiJson<{ suggestions?: Array<{ controlId?: string; confidence?: string; rationale?: string }> }>(
+    aiText
+  );
+  if (!parsed?.suggestions?.length) {
+    await vscode.window.showWarningMessage("AI did not return mapping suggestions.");
+    return;
+  }
+
+  const candidateByControlId = new Map(candidates.map((control) => [control.controlId, control] as const));
+  const validSuggestions = parsed.suggestions
+    .map((suggestion) => {
+      const controlId = (suggestion.controlId ?? "").trim();
+      const sourceControl = candidateByControlId.get(controlId);
+      if (!sourceControl) {
+        return undefined;
+      }
+      return {
+        sourceControl,
+        confidence: normaliseMappingConfidence(suggestion.confidence),
+        rationale: (suggestion.rationale ?? "").trim()
+      };
+    })
+    .filter((item): item is { sourceControl: SourceControlEntity; confidence: MappingConfidence; rationale: string } =>
+      Boolean(item)
+    );
+
+  if (validSuggestions.length === 0) {
+    await vscode.window.showWarningMessage("AI returned suggestions outside the candidate set.");
+    return;
+  }
+
+  const picked = await vscode.window.showQuickPick(
+    validSuggestions.map((suggestion) => ({
+      label: `${suggestion.sourceControl.controlId}: ${suggestion.sourceControl.title}`,
+      description: `${label(suggestion.confidence)} confidence`,
+      detail: suggestion.rationale || "No rationale provided.",
+      picked: suggestion.confidence !== "low",
+      suggestion
+    })),
+    {
+      title: `AI suggestions for ${requirement.title}`,
+      placeHolder: "Select mappings to create as drafts",
+      canPickMany: true,
+      ignoreFocusOut: true
+    }
+  );
+
+  if (!picked || picked.length === 0) {
+    return;
+  }
+
+  const existingMappings = (await listAllEntities()).filter(
+    (entity): entity is RequirementControlMappingEntity =>
+      entity.entityType === "requirement-control-mapping" &&
+      entity.recordStatus !== "deleted" &&
+      entity.requirementId === requirement.id
+  );
+  const existingControlIds = new Set(existingMappings.map((mapping) => mapping.sourceControlId));
+  const toCreate = picked.filter((item) => !existingControlIds.has(item.suggestion.sourceControl.id));
+  const duplicates = picked.length - toCreate.length;
+
+  if (toCreate.length === 0) {
+    await vscode.window.showInformationMessage("All selected suggestions already have mappings for this requirement.");
+    return;
+  }
+
+  const confirm = await vscode.window.showInformationMessage(
+    `Create ${toCreate.length} AI-suggested mapping draft(s)?${duplicates > 0 ? ` ${duplicates} duplicate(s) will be skipped.` : ""}`,
+    { modal: true },
+    "Create mappings",
+    "Cancel"
+  );
+  if (confirm !== "Create mappings") {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const mappings = toCreate.map((item) => {
+    const sourceControl = item.suggestion.sourceControl;
+    const profile = profileItems(sourceControl)[0]?.value ?? "all";
+    return withEnvelope(
+      "requirement-control-mapping",
+      {
+        entityType: "requirement-control-mapping",
+        title: `${requirement.title} mapped to ${sourceControl.controlId}`,
+        requirementId: requirement.id,
+        sourceControlId: sourceControl.id,
+        coverageQualifier: "partial",
+        applicabilityProfile: profile,
+        confidence: item.suggestion.confidence,
+        lastReviewedAt: now,
+        reviewBy: "AI-assisted draft",
+        rationale: item.suggestion.rationale || "AI-assisted draft suggestion pending operator review.",
+        provenance: {
+          author: "workshop",
+          createdAt: now,
+          oscalRelease: sourceControl.provenance.oscalRelease
+        }
+      },
+      "workshop"
+    );
+  });
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", mappings);
+  await refreshWorkshopSurfaces();
+  await rememberRequirement(requirement);
+  const action = await vscode.window.showInformationMessage(
+    `Created ${mappings.length} AI-assisted mapping draft(s).`,
     "Open Item Detail"
   );
   if (action === "Open Item Detail") {

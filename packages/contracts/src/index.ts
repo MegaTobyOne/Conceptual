@@ -36,7 +36,12 @@ export const PSPF_DIAGNOSTIC_CODES = [
   "PSPF_PURGE_DENIED_NOT_TRUSTED",
   "PSPF_WRITER_LOCK_HELD",
   "PSPF_PUBLICATION_POLICY_VIOLATION",
-  "PSPF_PACK_INCOMPATIBLE"
+  "PSPF_PACK_INCOMPATIBLE",
+  "PSPF_AI_MODEL_UNAVAILABLE",
+  "PSPF_AI_ACCESS_DENIED",
+  "PSPF_AI_TIMEOUT",
+  "PSPF_AI_PROMPT_REDACTION_FAILED",
+  "PSPF_AI_POLICY_INVALID"
 ] as const;
 
 export type PspfDiagnosticCode = (typeof PSPF_DIAGNOSTIC_CODES)[number];
@@ -50,7 +55,33 @@ export type PspfDiagnosticCategory =
   | "validation"
   | "redaction"
   | "purge"
-  | "policy";
+  | "policy"
+  | "ai";
+
+export type AiProvider = "vscode-lm";
+
+export interface AiEnablementInput {
+  readonly settingEnabled: boolean;
+  readonly policyDisabled?: boolean;
+  readonly capabilityInstalled?: boolean;
+  readonly providerAvailable?: boolean;
+}
+
+export function isAiEnabled(input: AiEnablementInput): boolean {
+  if (!input.settingEnabled) {
+    return false;
+  }
+  if (input.policyDisabled === true) {
+    return false;
+  }
+  if (input.capabilityInstalled === false) {
+    return false;
+  }
+  if (input.providerAvailable === false) {
+    return false;
+  }
+  return true;
+}
 
 export interface PspfDiagnostic {
   readonly code: PspfDiagnosticCode;

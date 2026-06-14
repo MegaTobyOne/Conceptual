@@ -69,6 +69,24 @@
     "configuration": {
       "title": "PSPF Workshop",
       "properties": {
+        "pspf.ai.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enable PSPF AI assistance. When disabled, AI commands and views are hidden and no model calls are allowed."
+        },
+        "pspf.ai.provider": {
+          "type": "string",
+          "enum": [
+            "vscode-lm"
+          ],
+          "default": "vscode-lm",
+          "markdownDescription": "AI provider. Release 1 supports VS Code Language Model API only."
+        },
+        "pspf.ai.modelId": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Optional preferred model identifier for VS Code Language Model API selection."
+        },
         "pspf.workshop.riskSource.sourceMode": {
           "type": "string",
           "enum": [
@@ -147,6 +165,16 @@
       {
         "command": "pspf.workshop.createRequirement",
         "title": "PSPF: Create Requirement"
+      },
+      {
+        "command": "pspf.workshop.aiDraftRequirementFromInterview",
+        "title": "PSPF: AI Draft Requirement from Interview",
+        "enablement": "pspf:aiEnabled"
+      },
+      {
+        "command": "pspf.workshop.aiSuggestIsmMappings",
+        "title": "PSPF: AI Suggest ISM Mappings",
+        "enablement": "pspf:aiEnabled"
       },
       {
         "command": "pspf.workshop.attachEvidence",
@@ -435,6 +463,14 @@
         {
           "command": "pspf.workshop.openTreeEntity",
           "when": "false"
+        },
+        {
+          "command": "pspf.workshop.aiDraftRequirementFromInterview",
+          "when": "pspf:aiEnabled"
+        },
+        {
+          "command": "pspf.workshop.aiSuggestIsmMappings",
+          "when": "pspf:aiEnabled"
         }
       ],
       "view/title": [

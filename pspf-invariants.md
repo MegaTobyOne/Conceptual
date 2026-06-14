@@ -138,6 +138,9 @@ See N6. The exporter MUST fail closed on any disallowed personal field.
 ### S8 — Single-writer lock
 Core MUST acquire an exclusive OS-level lock at `.pspf/core/locks/writer.lock` on activation. A second VS Code window opening the same workspace MUST detect the held lock by live PID, open in read-only mode, return `PSPF_WRITER_LOCK_HELD` from any mutating command, and surface a Health-view banner offering "Take over as writer". See [pspf-core-architecture-spec.md](pspf-core-architecture-spec.md) § Writer lock and [pspf-onboarding-spec.md](pspf-onboarding-spec.md) § Concurrent-window behaviour.
 
+### S9 — AI capability boundary
+AI assistance MUST be disabled unless all of these are true: `pspf.ai.enabled=true`, `.pspf/config/policies.json` explicitly sets `ai.disabled=false`, and the configured provider is available. When disabled, AI commands and views MUST be hidden and no model call path may be reachable. Release 1 supports only the VS Code Language Model API. Existing PSPF entities used in prompts MUST first pass through `sanitiseEntityForPublication`; AI output MUST remain draft-only until explicit operator acceptance.
+
 ## Explorer behavioural invariants
 
 These invariants codify behaviours validated by the standalone PSPF Explorer prototype (see `extracted-spec-pspf-explorer.md`) that the rewrite MUST preserve. Each is testable. The owning specification is `explorer-screen-workflow-spec.md` § Behavioural rules.

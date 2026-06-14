@@ -88,6 +88,8 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0073 | v1.37 Workshop Continuous Compliance Outputs | accepted |
 | 0074 | ADR 0074: v1.39 Evidence Lifecycle And Reporting Polish | Accepted |
 | 0075 | Questionnaire-driven workspace population | Accepted. Ships in v1.33 as the v1.33 questionnaire-driven population |
+| 0076 | v1.42 remediation foundation | accepted |
+| 0077 | AI capability boundary | accepted |
 
 ## Template
 
