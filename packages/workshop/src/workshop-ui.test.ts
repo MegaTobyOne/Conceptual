@@ -52,10 +52,24 @@ test("requirement browser exposes domain tabs, Directions lens, and clearable fi
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
   assert.match(source, /class="requirement-page__tabs"/);
+  assert.match(source, /data-requirement-tab="all"/);
   assert.match(source, /data-requirement-tab="directions"/);
   assert.match(source, /data-requirement-content="directions"/);
   assert.match(source, /data-clear-requirement-filters/);
   assert.match(source, /directionTargetRequirementIds/);
+  assert.match(source, /selectedTab !== 'all'/);
+  assert.match(source, /data-requirement-tab'\) === 'all'/);
+});
+
+test("Assessment Dashboard exposes action-first Requirement queue from Domain Stats", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /function requirementNeedsAttention/);
+  assert.match(source, /function domainStatsAttentionTableRow/);
+  assert.match(source, /data-domain-stat-attention-row/);
+  assert.match(source, /Requirements needing action table/);
+  assert.match(source, /Met and not applicable Requirements are for monitoring/);
+  assert.match(source, /data-command="openEntity" data-entity-type="requirement"/);
 });
 
 test("requirement browser list shows a compact natural-language title preview", async () => {
@@ -207,6 +221,7 @@ test("Workshop Home is simplified and exposes one status graphic", async () => {
 
   assert.match(homeSource, /renderWorkshopStatusDonut\(model\)/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.openMasterDashboard", "Dashboard"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openAssessmentDashboard", "Assessment"/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.createRequirement", "Create requirement"/);
   assert.match(homeSource, /<h2>Edit<\/h2>/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.openRequirementsList", "Edit requirements"/);

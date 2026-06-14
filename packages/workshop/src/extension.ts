@@ -1168,6 +1168,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
       <p class="muted">Recent requirement: ${escapeHtml(model.recentRequirementTitle)}</p>
       <div class="action-list">
         ${homeButton("pspf.workshop.openMasterDashboard", "Dashboard", "Open essentials, controls, requirements and planning tools")}
+        ${homeButton("pspf.workshop.openAssessmentDashboard", "Assessment", "Open domain posture and Requirements needing action")}
       </div>
     </section>
     <section>
@@ -3305,6 +3306,20 @@ async function openAssessmentDashboard(): Promise<void> {
         applicableRequirements.length === 0 ? 0 : Math.round((statusCounts.met / applicableRequirements.length) * 100)
     };
   });
+  const attentionRequirements = requirements
+    .filter((requirement) => requirementNeedsAttention(requirement, evidenceRequirementIds))
+    .sort(compareAttentionRequirements(evidenceRequirementIds))
+    .slice(0, 16)
+    .map((requirement) => ({
+      openEntityType: "requirement" as const,
+      openEntityId: requirement.id,
+      title: requirement.title,
+      domainId: requirement.domainId,
+      domain: domainName(requirement.domainId),
+      status: label(requirement.assessmentStatus),
+      evidence: evidenceRequirementIds.has(requirement.id) ? "Linked" : "Missing",
+      nextStep: requirementAttentionNextStep(requirement, evidenceRequirementIds)
+    }));
   const nextRequirements = requirements
     .filter(
       (requirement) =>
@@ -3354,8 +3369,13 @@ async function openAssessmentDashboard(): Promise<void> {
       </div>
       <p class="muted">Direction responses: ${directionChips(directionResponseCounts)}</p>
       <p class="muted">Recent requirement: ${escapeHtml(recentRequirement?.title ?? "None selected yet")}</p>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openRequirementsList">Open Requirements list</button>
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Open Plan of Action</button>
+        <button type="button" data-command="pspf.workshop.createRequirement">Create requirement</button>
+      </div>
     </section>
-    ${domainStatsWidget(domainRows)}
+    ${domainStatsWidget(domainRows, attentionRequirements)}
     ${recordTable("Validation Hints", validationHints, ["priority", "requirement", "hint"])}
     ${recordTable("Domain Summary", domainRows, ["domain", "requirements", "applicable", "met", "partiallyMet", "inProgress", "notMet", "notStarted", "underReview", "notApplicable", "evidenceGaps", "metPercent"])}
     ${recordTable("Action Impact — Top 5", actionImpactRows, ["title", "status", "urgency", "total", "postureUplift", "evidenceUplift", "riskReduction", "directionUplift", "explanation"])}
@@ -3382,6 +3402,17 @@ type DashboardDomainStatusRow = {
   readonly metPercent: number;
 };
 
+type DashboardAttentionRequirementRow = {
+  readonly openEntityType: "requirement";
+  readonly openEntityId: string;
+  readonly title: string;
+  readonly domainId: string;
+  readonly domain: string;
+  readonly status: string;
+  readonly evidence: string;
+  readonly nextStep: string;
+};
+
 function dashboardRequirementStatusCounts(
   requirements: readonly RequirementEntity[]
 ): Record<AssessmentStatus, number> {
@@ -3396,7 +3427,57 @@ function dashboardRequirementStatusCounts(
   };
 }
 
-function domainStatsWidget(rows: readonly DashboardDomainStatusRow[]): string {
+function requirementNeedsAttention(
+  requirement: RequirementEntity,
+  evidenceRequirementIds: ReadonlySet<string>
+): boolean {
+  return (
+    !isNotApplicableRequirement(requirement) &&
+    (requirement.assessmentStatus !== "met" || !evidenceRequirementIds.has(requirement.id))
+  );
+}
+
+function requirementAttentionNextStep(
+  requirement: RequirementEntity,
+  evidenceRequirementIds: ReadonlySet<string>
+): string {
+  if (!evidenceRequirementIds.has(requirement.id)) {
+    return "Attach or link evidence";
+  }
+  if (requirement.assessmentStatus === "not-met" || requirement.assessmentStatus === "partially-met") {
+    return "Create or update an action";
+  }
+  if (requirement.assessmentStatus === "in-progress" || requirement.assessmentStatus === "under-review") {
+    return "Confirm progress and close gaps";
+  }
+  return "Start assessment work";
+}
+
+function compareAttentionRequirements(evidenceRequirementIds: ReadonlySet<string>) {
+  const statusRank: Record<AssessmentStatus, number> = {
+    "not-met": 0,
+    "partially-met": 1,
+    "not-started": 2,
+    "in-progress": 3,
+    "under-review": 4,
+    met: 5,
+    "not-applicable": 6
+  };
+  return (left: RequirementEntity, right: RequirementEntity): number => {
+    const leftHasEvidence = evidenceRequirementIds.has(left.id) ? 1 : 0;
+    const rightHasEvidence = evidenceRequirementIds.has(right.id) ? 1 : 0;
+    return (
+      leftHasEvidence - rightHasEvidence ||
+      statusRank[left.assessmentStatus] - statusRank[right.assessmentStatus] ||
+      left.title.localeCompare(right.title, "en-AU", { numeric: true, sensitivity: "base" })
+    );
+  };
+}
+
+function domainStatsWidget(
+  rows: readonly DashboardDomainStatusRow[],
+  attentionRows: readonly DashboardAttentionRequirementRow[]
+): string {
   const totals = aggregateDomainStats(rows);
   const filters = rows
     .map(
@@ -3405,6 +3486,7 @@ function domainStatsWidget(rows: readonly DashboardDomainStatusRow[]): string {
     )
     .join("");
   const rowHtml = rows.map(domainStatsTableRow).join("");
+  const attentionHtml = attentionRows.map(domainStatsAttentionTableRow).join("");
   return `<section class="domain-stats" data-domain-stats-widget>
     <style>
       .domain-stats { display: grid; gap: 12px; }
@@ -3423,10 +3505,12 @@ function domainStatsWidget(rows: readonly DashboardDomainStatusRow[]): string {
       .domain-stats__table table { min-width: min(760px, 100%); }
       .domain-stats__table th, .domain-stats__table td { white-space: nowrap; }
       .domain-stats__table th:first-child, .domain-stats__table td:first-child { white-space: normal; min-width: 10rem; }
+      .domain-stats__attention table { min-width: min(900px, 100%); }
+      .domain-stats__attention td[data-field="title"] { min-width: 18rem; white-space: normal; }
       @media (max-width: 760px) { .domain-stats__summary { grid-template-columns: 1fr; } }
     </style>
     <h2>Domain Stats</h2>
-    <p class="muted">Filter by one or more PSPF Domains to see compliance status counts for the selected scope.</p>
+    <p class="muted">Filter by one or more PSPF Domains to see compliance status counts and the Requirements that need action.</p>
     <div class="domain-stats__filters" role="group" aria-label="Filter Domain Stats by Domain">
       <button type="button" data-domain-stat-filter="all" aria-pressed="true">All Domains <span>${rows.length}</span></button>
       ${filters}
@@ -3440,10 +3524,17 @@ function domainStatsWidget(rows: readonly DashboardDomainStatusRow[]): string {
         ${domainStatsBarRow("Not started", "notStarted", totals.notStarted, totals.requirements, "var(--muted)")}
       </article>
     </div>
+    <div class="domain-stats__score"><span>Needs action</span><strong data-domain-stat-value="attentionCount">${attentionRows.length}</strong><p class="muted">Met and not applicable Requirements are for monitoring; the table below is the work queue.</p></div>
     <div class="table-wrap domain-stats__table" tabindex="0" aria-label="Domain status counts table">
       <table>
         <thead><tr><th>Domain</th><th>Total</th><th>Applicable</th><th>Met</th><th>Partial</th><th>In progress</th><th>Not met</th><th>Not started</th><th>Under review</th><th>N/A</th><th>Evidence gaps</th><th>Met %</th></tr></thead>
         <tbody>${rowHtml}</tbody>
+      </table>
+    </div>
+    <div class="table-wrap domain-stats__attention" tabindex="0" aria-label="Requirements needing action table">
+      <table>
+        <thead><tr><th>Open</th><th data-field="title">Requirement</th><th>Domain</th><th>Status</th><th>Evidence</th><th>Next step</th></tr></thead>
+        <tbody>${attentionHtml || '<tr><td colspan="6">No Requirements need action in the selected scope.</td></tr>'}</tbody>
       </table>
     </div>
     ${domainStatsScript()}
@@ -3459,6 +3550,12 @@ function domainStatsTableRow(row: DashboardDomainStatusRow): string {
   const stats = JSON.stringify(row).replaceAll("&", "&amp;").replaceAll("'", "&#39;");
   return `<tr data-domain-stat-row data-domain="${escapeHtml(row.domainId)}" data-stats='${stats}'>
     <td>${escapeHtml(row.domain)}</td><td>${row.requirements}</td><td>${row.applicable}</td><td>${row.met}</td><td>${row.partiallyMet}</td><td>${row.inProgress}</td><td>${row.notMet}</td><td>${row.notStarted}</td><td>${row.underReview}</td><td>${row.notApplicable}</td><td>${row.evidenceGaps}</td><td>${row.metPercent}%</td>
+  </tr>`;
+}
+
+function domainStatsAttentionTableRow(row: DashboardAttentionRequirementRow): string {
+  return `<tr data-domain-stat-attention-row data-domain="${escapeHtml(row.domainId)}">
+    <td><button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(row.openEntityId)}">Open</button></td><td data-field="title">${escapeHtml(row.title)}</td><td>${escapeHtml(row.domain)}</td><td>${escapeHtml(row.status)}</td><td>${escapeHtml(row.evidence)}</td><td>${escapeHtml(row.nextStep)}</td>
   </tr>`;
 }
 
@@ -3505,6 +3602,7 @@ function domainStatsScript(): string {
       if (!widget) return;
       const buttons = Array.from(widget.querySelectorAll('[data-domain-stat-filter]'));
       const rows = Array.from(widget.querySelectorAll('[data-domain-stat-row]'));
+      const attentionRows = Array.from(widget.querySelectorAll('[data-domain-stat-attention-row]'));
       const selected = new Set();
       const readStats = (row) => JSON.parse(row.getAttribute('data-stats') || '{}');
       const sum = (items, key) => items.reduce((total, item) => total + Number(item[key] || 0), 0);
@@ -3521,6 +3619,12 @@ function domainStatsScript(): string {
         const visibleRows = rows.filter((row) => allSelected || selected.has(row.getAttribute('data-domain')));
         const stats = visibleRows.map(readStats);
         rows.forEach((row) => { row.hidden = !(allSelected || selected.has(row.getAttribute('data-domain'))); });
+        let visibleAttention = 0;
+        attentionRows.forEach((row) => {
+          const visible = allSelected || selected.has(row.getAttribute('data-domain'));
+          row.hidden = !visible;
+          if (visible) visibleAttention += 1;
+        });
         buttons.forEach((button) => {
           const id = button.getAttribute('data-domain-stat-filter');
           button.setAttribute('aria-pressed', id === 'all' ? String(allSelected) : String(selected.has(id)));
@@ -3538,6 +3642,7 @@ function domainStatsScript(): string {
         setText('partiallyMet', partiallyMet);
         setText('notMet', notMet);
         setText('notStarted', notStarted);
+        setText('attentionCount', visibleAttention);
         setBar('met', met, requirements);
         setBar('partiallyMet', partiallyMet, requirements);
         setBar('notMet', notMet, requirements);
@@ -3762,6 +3867,8 @@ async function openMasterDashboard(): Promise<void> {
         ${metricCard("Report signals", changeRecords.length + directions.length)}
       </div>
       <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openAssessmentDashboard">Assessment dashboard</button>
+        <button type="button" data-command="pspf.workshop.openRequirementsList">Requirements needing work</button>
         <button type="button" data-command="pspf.workshop.createRequirement">Create requirement</button>
         <button type="button" data-command="pspf.core.exportBundle">Export Bundle</button>
         <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
@@ -9885,6 +9992,8 @@ type SaveEntityMessage = {
 
 type RequirementBrowserOptions = {
   readonly filterText?: string;
+  readonly domainId?: string;
+  readonly assessmentStatus?: AssessmentStatus;
   readonly savedView?: SavedViewEntity;
 };
 
@@ -11010,8 +11119,10 @@ function requirementPageTabs(
   const directionsCount = allEntities.filter(
     (entity): entity is DirectionEntity => entity.entityType === "direction" && entity.recordStatus !== "deleted"
   ).length;
+  const selectedDomainId = options.domainId ?? options.savedView?.filters.domainIds?.[0] ?? "all";
   return `<nav class="requirement-page__tabs" aria-label="Requirement domain tabs">
-    ${tabs.map((domain) => `<button type="button" data-requirement-tab="${escapeHtml(domain.id)}" aria-pressed="${domain.id === requirement.domainId ? "true" : "false"}">${escapeHtml(domain.label)} ${domain.count}</button>`).join("")}
+    <button type="button" data-requirement-tab="all" aria-pressed="${selectedDomainId === "all" ? "true" : "false"}">All ${requirements.length}</button>
+    ${tabs.map((domain) => `<button type="button" data-requirement-tab="${escapeHtml(domain.id)}" aria-pressed="${domain.id === selectedDomainId ? "true" : "false"}">${escapeHtml(domain.label)} ${domain.count}</button>`).join("")}
     <button type="button" data-requirement-tab="directions" aria-pressed="false">Directions ${directionsCount}</button>
   </nav>`;
 }
@@ -11089,6 +11200,7 @@ function requirementBrowserNav(
   const currentIndex = requirements.findIndex((candidate) => candidate.id === requirement.id);
   const position = currentIndex >= 0 ? `${currentIndex + 1} of ${requirements.length}` : `${requirements.length} total`;
   const filterText = options.filterText?.trim() ?? "";
+  const selectedStatus = options.assessmentStatus ?? options.savedView?.filters.assessmentStatuses?.[0] ?? "all";
   const statusCounts = requirementStatusCounts(requirements);
   const items = requirements
     .map((candidate) =>
@@ -11104,8 +11216,8 @@ function requirementBrowserNav(
     <h2>Requirements</h2>
     <input class="requirement-browser__filter" type="search" aria-label="Filter requirements" placeholder="Filter by title, domain, or status" value="${escapeHtml(filterText)}">
     <div class="requirement-browser__filters" aria-label="Requirement status filters">
-      <button type="button" data-requirement-status-filter="all" aria-pressed="true">All ${requirements.length}</button>
-      ${assessmentStatusItems.map((item) => `<button type="button" data-requirement-status-filter="${escapeHtml(item.value)}">${escapeHtml(item.label)} ${statusCounts.get(item.value) ?? 0}</button>`).join("")}
+      <button type="button" data-requirement-status-filter="all" aria-pressed="${selectedStatus === "all" ? "true" : "false"}">All ${requirements.length}</button>
+      ${assessmentStatusItems.map((item) => `<button type="button" data-requirement-status-filter="${escapeHtml(item.value)}" aria-pressed="${item.value === selectedStatus ? "true" : "false"}">${escapeHtml(item.label)} ${statusCounts.get(item.value) ?? 0}</button>`).join("")}
     </div>
     <div class="requirement-browser__list" role="list" aria-label="Scrollable Requirements list">
       ${items || '<p class="muted">No Requirements found.</p>'}
@@ -11175,7 +11287,7 @@ function requirementBrowserScript(): string {
           item.hidden = !matches;
           if (matches) visible += 1;
         }
-        const filtered = Boolean(query) || selectedStatus !== 'all';
+        const filtered = Boolean(query) || selectedStatus !== 'all' || selectedTab !== 'all';
         if (count) count.textContent = (filtered ? 'Showing ' : '') + visible + ' of ' + items.length + ' Requirements';
         if (clearButton instanceof HTMLButtonElement) clearButton.hidden = !filtered;
         if (requirementPanel instanceof HTMLElement) requirementPanel.hidden = selectedTab === 'directions';
@@ -11193,6 +11305,7 @@ function requirementBrowserScript(): string {
       clearButton?.addEventListener('click', () => {
         if (input instanceof HTMLInputElement) input.value = '';
         statusButtons.forEach((item) => item.setAttribute('aria-pressed', String(item.getAttribute('data-requirement-status-filter') === 'all')));
+        tabButtons.forEach((item) => item.setAttribute('aria-pressed', String(item.getAttribute('data-requirement-tab') === 'all')));
         applyRequirementFilters();
       });
       applyRequirementFilters();

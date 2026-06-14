@@ -4,7 +4,7 @@ Status: **active**
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.42.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
+The repository currently ships PSPF v1.42.1 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
 
 ## Products
 
@@ -31,7 +31,7 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.42.0-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.42.1-readiness-report.md`.
 
 ## Current Workshop Slice
 

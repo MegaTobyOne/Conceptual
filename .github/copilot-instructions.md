@@ -1,6 +1,6 @@
 # PSPF Repository Instructions
 
-This repository implements the PSPF product ecosystem at v1.42.0: four VS Code extensions, a static Explorer web app, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
+This repository implements the PSPF product ecosystem at v1.42.1: four VS Code extensions, a static Explorer web app, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
 
 ## First Checks
 
@@ -15,7 +15,7 @@ This repository implements the PSPF product ecosystem at v1.42.0: four VS Code e
 ## Current Workspace
 
 - Package manager: pnpm workspaces, pinned by `packageManager` in `package.json`.
-- Current repo version: `1.42.0`; all workspace packages are expected to remain version-aligned.
+- Current repo version: `1.42.1`; all workspace packages are expected to remain version-aligned.
 - Shipped VS Code extensions:
   - `packages/core` (`pspf-core`) — local system of record, workspace bootstrap, validation, snapshots, import/export, and Core command API.
   - `packages/workshop` (`pspf-workshop`) — authoring surface for requirements, evidence, actions, risks, strategy, posture, and reporting workflows.

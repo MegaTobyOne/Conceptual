@@ -590,7 +590,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 
 ### v1.42 candidate gates (T0-T2 remediation foundation)
 
-1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.42.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.42.1`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
 2. **Documentation truth gate**: every root Markdown specification has a `Status` header; stale v0.1 agent instructions are removed; `pspf-grand-plan.md` is the active forward-plan source.
 3. **ADR hygiene gate**: `scripts/check-adr-coverage.mjs` is restored from a non-empty implementation; `adr/README.md` indexes all ADRs through 0076; no duplicate ADR numbers remain.
 4. **Gate integrity gate**: `check:gate-integrity` confirms every gate referenced by `check:gates:run` is non-empty, parseable, and contains an enforcement path.
