@@ -105,6 +105,9 @@ import {
   normaliseSavedViewName,
   normaliseTagLabel,
   operatorLinkRuleForEndpoints,
+  isAiEnabled,
+  sanitiseEntityForPublication,
+  PspfError,
   withEnvelope
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
@@ -138,6 +141,9 @@ const riskSourceRunsKey = "pspf.workshop.riskSourceRuns.v1";
 const riskSourceSecretKey = "pspf.workshop.6clicksRiskSource.credential";
 const riskSourceConfigFile = "integrations.json";
 const riskSourceSettingsSection = "pspf.workshop.riskSource";
+const aiSettingsSection = "pspf.ai";
+const aiContextEnabledKey = "pspf:aiEnabled";
+const aiPoliciesFileName = "policies.json";
 const STRATEGY_REFERENCE_ROLES = ["drives", "addresses", "blocked-by", "evidenced-by", "monitors"] as const;
 const ismSourceControlCategoryByControlId = new Map<string, string>(
   ISM_SOURCE_CONTROL_CATEGORIES.map((item) => [item.controlId, item.category] as const)
@@ -364,6 +370,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const directionsTree = new DirectionsTreeProvider();
   workshopTreeProviders.length = 0;
   workshopTreeProviders.push(requirementsTree, evidenceTree, actionsTree, risksTree, directionsTree);
+  void refreshAiEnablementContext();
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("pspfWorkshop.homeView", homeViewProvider),
@@ -376,6 +383,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openTreeEntity", openTreeEntity),
     vscode.commands.registerCommand("pspf.workshop.openHome", openHome),
     vscode.commands.registerCommand("pspf.workshop.createRequirement", createRequirement),
+    vscode.commands.registerCommand("pspf.workshop.aiDraftRequirementFromInterview", aiDraftRequirementFromInterview),
+    vscode.commands.registerCommand("pspf.workshop.aiSuggestIsmMappings", aiSuggestIsmMappings),
     vscode.commands.registerCommand("pspf.workshop.openWelcome", openWelcome),
     vscode.commands.registerCommand("pspf.workshop.loadSampleWorkspace", loadSampleWorkspace),
     vscode.commands.registerCommand("pspf.workshop.loadHomeSampleWorkspace", loadHomeSampleWorkspace),
@@ -450,12 +459,292 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.copyCisoMasterPlan", copyCisoMasterPlan),
     vscode.commands.registerCommand("pspf.workshop.runQuickstartQuestionnaire", runQuickstartQuestionnaire),
     vscode.commands.registerCommand("pspf.workshop.runDomainDeepDive", runDomainDeepDive),
-    vscode.commands.registerCommand("pspf.workshop.openQuestionnaireHistory", openQuestionnaireHistory)
+    vscode.commands.registerCommand("pspf.workshop.openQuestionnaireHistory", openQuestionnaireHistory),
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration(aiSettingsSection)) {
+        void refreshAiEnablementContext();
+      }
+    }),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      void refreshAiEnablementContext();
+    }),
+    vscode.workspace.onDidSaveTextDocument((document) => {
+      if (isAiPolicyDocument(document.uri)) {
+        void refreshAiEnablementContext();
+      }
+    })
   );
 }
 
 export function deactivate(): void {
   // No runtime resources to dispose yet.
+}
+
+interface WorkshopAiSettings {
+  readonly enabled: boolean;
+  readonly provider: "vscode-lm";
+  readonly modelId: string;
+}
+
+interface WorkspaceAiPolicy {
+  readonly ai?: {
+    readonly disabled?: boolean;
+  };
+}
+
+interface WorkshopAiContext {
+  readonly settings: WorkshopAiSettings;
+}
+
+function readWorkshopAiSettings(): WorkshopAiSettings {
+  const config = vscode.workspace.getConfiguration(aiSettingsSection);
+  const provider = config.get<string>("provider", "vscode-lm");
+  return {
+    enabled: config.get<boolean>("enabled", false),
+    provider: provider === "vscode-lm" ? "vscode-lm" : "vscode-lm",
+    modelId: config.get<string>("modelId", "")
+  };
+}
+
+async function refreshAiEnablementContext(): Promise<void> {
+  const settings = readWorkshopAiSettings();
+  const policyDisabled = await readWorkspaceAiPolicyDisabled();
+  const providerAvailable = settings.provider === "vscode-lm" ? isVscodeLanguageModelAvailable() : false;
+  const enabled = isAiEnabled({
+    settingEnabled: settings.enabled,
+    policyDisabled,
+    capabilityInstalled: true,
+    providerAvailable
+  });
+  await vscode.commands.executeCommand("setContext", aiContextEnabledKey, enabled);
+}
+
+function isVscodeLanguageModelAvailable(): boolean {
+  return (vscode as unknown as { readonly lm?: unknown }).lm !== undefined;
+}
+
+function isAiPolicyDocument(uri: vscode.Uri): boolean {
+  if (uri.scheme !== "file") {
+    return false;
+  }
+  const normalisedPath = uri.path.toLowerCase();
+  return normalisedPath.endsWith(`/.pspf/config/${aiPoliciesFileName}`);
+}
+
+async function readWorkspaceAiPolicyDisabled(): Promise<boolean | undefined> {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    return true;
+  }
+  const policyUri = vscode.Uri.joinPath(workspaceFolder.uri, ".pspf", "config", aiPoliciesFileName);
+  try {
+    const bytes = await vscode.workspace.fs.readFile(policyUri);
+    const raw = JSON.parse(new TextDecoder().decode(bytes)) as WorkspaceAiPolicy;
+    return raw.ai?.disabled !== false;
+  } catch {
+    return true;
+  }
+}
+
+async function ensureAiCommandReady(): Promise<WorkshopAiContext | undefined> {
+  const settings = readWorkshopAiSettings();
+  const policyDisabled = await readWorkspaceAiPolicyDisabled();
+  const providerAvailable = settings.provider === "vscode-lm" ? isVscodeLanguageModelAvailable() : false;
+  const enabled = isAiEnabled({
+    settingEnabled: settings.enabled,
+    policyDisabled,
+    capabilityInstalled: true,
+    providerAvailable
+  });
+  if (!enabled) {
+    await vscode.window.showWarningMessage(
+      "AI assistance is disabled by settings, policy, or provider availability. Enable pspf.ai and review workspace policy."
+    );
+    return undefined;
+  }
+  return { settings };
+}
+
+async function requestAiText(prompt: string, context: WorkshopAiContext): Promise<string | undefined> {
+  try {
+    const lm = (
+      vscode as unknown as {
+        readonly lm?: {
+          selectChatModels: () => Promise<readonly unknown[]>;
+        };
+        readonly LanguageModelChatMessage?: {
+          User: (content: string) => unknown;
+        };
+      }
+    ).lm;
+    const messageFactory = (
+      vscode as unknown as {
+        readonly LanguageModelChatMessage?: {
+          User: (content: string) => unknown;
+        };
+      }
+    ).LanguageModelChatMessage;
+    if (!lm || !messageFactory?.User) {
+      throw new PspfError({
+        code: "PSPF_AI_MODEL_UNAVAILABLE",
+        severity: "warning",
+        category: "ai",
+        message: "VS Code Language Model API is unavailable in this environment.",
+        retryable: true,
+        recommendedAction: "Confirm Copilot model access and try again."
+      });
+    }
+
+    const models = await lm.selectChatModels();
+    if (!models || models.length === 0) {
+      throw new PspfError({
+        code: "PSPF_AI_MODEL_UNAVAILABLE",
+        severity: "warning",
+        category: "ai",
+        message: "No chat models are available from VS Code Language Model API.",
+        retryable: true,
+        recommendedAction: "Sign in with a model entitlement and retry."
+      });
+    }
+
+    const preferredModelId = context.settings.modelId.trim().toLowerCase();
+    const model =
+      models.find((candidate) => {
+        if (!preferredModelId) {
+          return false;
+        }
+        const id = String((candidate as { readonly id?: unknown }).id ?? "").toLowerCase();
+        return id === preferredModelId;
+      }) ?? models[0];
+
+    const request = (
+      model as {
+        sendRequest: (messages: readonly unknown[]) => Promise<{ readonly text?: AsyncIterable<unknown> | string }>;
+      }
+    ).sendRequest;
+    if (typeof request !== "function") {
+      throw new PspfError({
+        code: "PSPF_AI_MODEL_UNAVAILABLE",
+        severity: "warning",
+        category: "ai",
+        message: "Selected model does not support chat requests.",
+        retryable: true,
+        recommendedAction: "Select a different model and retry."
+      });
+    }
+
+    const response = await request([messageFactory.User(prompt)]);
+    const text = await collectAiResponseText(response?.text);
+    if (!text.trim()) {
+      throw new PspfError({
+        code: "PSPF_AI_MODEL_UNAVAILABLE",
+        severity: "warning",
+        category: "ai",
+        message: "Model response was empty.",
+        retryable: true,
+        recommendedAction: "Retry with more context."
+      });
+    }
+    return text;
+  } catch (error) {
+    await showAiError(error);
+    return undefined;
+  }
+}
+
+async function collectAiResponseText(textStream: AsyncIterable<unknown> | string | undefined): Promise<string> {
+  if (typeof textStream === "string") {
+    return textStream;
+  }
+  if (!textStream) {
+    return "";
+  }
+  const chunks: string[] = [];
+  for await (const chunk of textStream) {
+    const value = (chunk as { readonly value?: unknown }).value;
+    if (typeof value === "string") {
+      chunks.push(value);
+      continue;
+    }
+    if (typeof chunk === "string") {
+      chunks.push(chunk);
+      continue;
+    }
+    chunks.push(String(value ?? chunk ?? ""));
+  }
+  return chunks.join("");
+}
+
+function parseAiJson<T>(raw: string): T | undefined {
+  const trimmed = raw.trim();
+  const fenceMatch = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const payload = typeof fenceMatch?.[1] === "string" ? fenceMatch[1].trim() : trimmed;
+  try {
+    return JSON.parse(payload) as T;
+  } catch {
+    return undefined;
+  }
+}
+
+function normaliseAssessmentStatus(value: string | undefined): AssessmentStatus {
+  switch ((value ?? "").trim()) {
+    case "met":
+    case "in-progress":
+    case "not-met":
+    case "not-applicable":
+      return value as AssessmentStatus;
+    default:
+      return "in-progress";
+  }
+}
+
+function normaliseMappingConfidence(value: string | undefined): MappingConfidence {
+  switch ((value ?? "").trim()) {
+    case "high":
+    case "medium":
+    case "low":
+      return value as MappingConfidence;
+    default:
+      return "medium";
+  }
+}
+
+function rankSourceControlsForRequirement(
+  requirement: RequirementEntity,
+  controls: readonly SourceControlEntity[],
+  limit: number
+): readonly SourceControlEntity[] {
+  const tokens = tokenizeRequirementHint(`${requirement.title} ${requirement.summary ?? ""}`);
+  const scored = controls.map((control) => {
+    const haystack = `${control.controlId} ${control.title} ${control.statement}`.toLowerCase();
+    const score = tokens.reduce((total, token) => (haystack.includes(token) ? total + 1 : total), 0);
+    return { control, score };
+  });
+  return scored
+    .sort((left, right) => right.score - left.score || left.control.controlId.localeCompare(right.control.controlId))
+    .slice(0, Math.max(limit, 10))
+    .map((item) => item.control);
+}
+
+function tokenizeRequirementHint(input: string): readonly string[] {
+  const stopWords = new Set(["the", "and", "for", "with", "that", "from", "this", "into", "under", "over"]);
+  return [
+    ...new Set(
+      input
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((part) => part.length >= 4 && !stopWords.has(part))
+    )
+  ];
+}
+
+async function showAiError(error: unknown): Promise<void> {
+  if (error instanceof PspfError) {
+    await vscode.window.showErrorMessage(`${error.code}: ${error.message} ${error.recommendedAction}`);
+    return;
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  await vscode.window.showErrorMessage(`AI command failed: ${message}`);
 }
 
 async function openHome(): Promise<void> {
@@ -879,6 +1168,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
       <p class="muted">Recent requirement: ${escapeHtml(model.recentRequirementTitle)}</p>
       <div class="action-list">
         ${homeButton("pspf.workshop.openMasterDashboard", "Dashboard", "Open essentials, controls, requirements and planning tools")}
+        ${homeButton("pspf.workshop.openAssessmentDashboard", "Assessment", "Open domain posture and Requirements needing action")}
       </div>
     </section>
     <section>
@@ -1080,6 +1370,311 @@ async function createRequirement(): Promise<void> {
   await rememberRequirement(requirement);
   const action = await vscode.window.showInformationMessage(
     `Requirement created: ${requirement.title}`,
+    "Open Item Detail"
+  );
+  if (action === "Open Item Detail") {
+    await openItemDetailForRequirement(requirement);
+  }
+}
+
+async function aiDraftRequirementFromInterview(): Promise<void> {
+  await ensureCoreReady();
+  const aiContext = await ensureAiCommandReady();
+  if (!aiContext) {
+    return;
+  }
+
+  const domain = await vscode.window.showQuickPick(
+    PSPF_DOMAINS.map((item) => ({ label: item.title, description: item.code, domainId: item.id })),
+    { title: "AI Requirement Draft", placeHolder: "Choose PSPF domain", ignoreFocusOut: true }
+  );
+  if (!domain) {
+    return;
+  }
+
+  const objective = await vscode.window.showInputBox({
+    title: "AI Requirement Draft",
+    prompt: "Public-safe outcome only. Do not include names, secrets, sensitive systems, or incident details.",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the intended outcome." : undefined)
+  });
+  if (!objective) {
+    return;
+  }
+
+  const currentState = await vscode.window.showInputBox({
+    title: "AI Requirement Draft",
+    prompt: "Public-safe current state or control maturity. Keep sensitive detail out of the AI prompt.",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the current state." : undefined)
+  });
+  if (!currentState) {
+    return;
+  }
+
+  const gap = await vscode.window.showInputBox({
+    title: "AI Requirement Draft",
+    prompt: "Public-safe primary gap or risk to close. Use roles/categories instead of people or systems.",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the primary gap." : undefined)
+  });
+  if (!gap) {
+    return;
+  }
+
+  const evidenceCue = await vscode.window.showInputBox({
+    title: "AI Requirement Draft",
+    prompt: "Optional public-safe evidence cue (document/process/source). Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (evidenceCue === undefined) {
+    return;
+  }
+
+  const interviewPayload = {
+    domain: domain.label,
+    objective: objective.trim(),
+    currentState: currentState.trim(),
+    gap: gap.trim(),
+    evidenceCue: evidenceCue.trim()
+  };
+
+  const prompt = [
+    "Draft a PSPF requirement proposal from this interview payload.",
+    "Return strict JSON only with keys: title, summary, assessmentStatus, reasoning.",
+    "assessmentStatus must be one of: met, in-progress, not-met, not-applicable.",
+    "Use concise Australian-English writing and no markdown.",
+    JSON.stringify(interviewPayload)
+  ].join("\n\n");
+
+  const aiText = await requestAiText(prompt, aiContext);
+  if (!aiText) {
+    return;
+  }
+
+  const parsed = parseAiJson<{ title?: string; summary?: string; assessmentStatus?: string; reasoning?: string }>(
+    aiText
+  );
+  if (!parsed) {
+    await vscode.window.showWarningMessage("AI returned an unreadable draft. Please try again.");
+    return;
+  }
+
+  const suggestedTitle = (parsed.title ?? "").trim() || objective.trim();
+  const suggestedSummary = (parsed.summary ?? "").trim() || `${currentState.trim()} Gap: ${gap.trim()}`;
+  const suggestedStatus = normaliseAssessmentStatus(parsed.assessmentStatus);
+
+  const title = await vscode.window.showInputBox({
+    title: "Review AI Requirement Draft",
+    prompt: "Requirement title",
+    value: suggestedTitle,
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a requirement title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+
+  const assessmentStatus = await vscode.window.showQuickPick(
+    assessmentStatusItems.map((item) => ({ ...item, picked: item.value === suggestedStatus })),
+    { title: "Review AI Requirement Draft", placeHolder: "Assessment status", ignoreFocusOut: true }
+  );
+  if (!assessmentStatus) {
+    return;
+  }
+
+  const summary = await vscode.window.showInputBox({
+    title: "Review AI Requirement Draft",
+    prompt: "Internal summary, not published by default",
+    value: suggestedSummary,
+    ignoreFocusOut: true
+  });
+  if (summary === undefined) {
+    return;
+  }
+
+  const confirm = await vscode.window.showInformationMessage(
+    "Create this AI-drafted requirement now?",
+    { modal: true },
+    "Create",
+    "Cancel"
+  );
+  if (confirm !== "Create") {
+    return;
+  }
+
+  const requirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: title.trim(),
+      domainId: domain.domainId,
+      assessmentStatus: assessmentStatus.value,
+      summary: summary.trim() || undefined
+    },
+    "workshop"
+  );
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", requirement);
+  await refreshWorkshopSurfaces();
+  await rememberRequirement(requirement);
+  const action = await vscode.window.showInformationMessage(
+    `AI draft accepted and created: ${requirement.title}`,
+    "Open Item Detail"
+  );
+  if (action === "Open Item Detail") {
+    await openItemDetailForRequirement(requirement);
+  }
+}
+
+async function aiSuggestIsmMappings(): Promise<void> {
+  await ensureCoreReady();
+  const aiContext = await ensureAiCommandReady();
+  if (!aiContext) {
+    return;
+  }
+
+  const requirement = await pickRequirement();
+  if (!requirement) {
+    return;
+  }
+
+  const sourceControls = await listSourceControls();
+  if (sourceControls.length === 0) {
+    await vscode.window.showWarningMessage("No ISM source controls are loaded.");
+    return;
+  }
+
+  const requirementPublic = sanitiseEntityForPublication(requirement) as RequirementEntity;
+  const candidates = rankSourceControlsForRequirement(requirement, sourceControls, 80);
+  const candidateLines = candidates
+    .map((sourceControl) => `${sourceControl.controlId} | ${sourceControl.title}`)
+    .join("\n");
+
+  const prompt = [
+    "Suggest ISM controls for this PSPF requirement.",
+    "Return strict JSON only with key suggestions containing up to 5 items.",
+    "Each suggestion item keys: controlId, confidence (high|medium|low), rationale.",
+    "Only choose controlId values from the provided candidate list.",
+    "Requirement:",
+    JSON.stringify(requirementPublic),
+    "Candidate controls:",
+    candidateLines
+  ].join("\n\n");
+
+  const aiText = await requestAiText(prompt, aiContext);
+  if (!aiText) {
+    return;
+  }
+
+  const parsed = parseAiJson<{ suggestions?: Array<{ controlId?: string; confidence?: string; rationale?: string }> }>(
+    aiText
+  );
+  if (!parsed?.suggestions?.length) {
+    await vscode.window.showWarningMessage("AI did not return mapping suggestions.");
+    return;
+  }
+
+  const candidateByControlId = new Map(candidates.map((control) => [control.controlId, control] as const));
+  const validSuggestions = parsed.suggestions
+    .map((suggestion) => {
+      const controlId = (suggestion.controlId ?? "").trim();
+      const sourceControl = candidateByControlId.get(controlId);
+      if (!sourceControl) {
+        return undefined;
+      }
+      return {
+        sourceControl,
+        confidence: normaliseMappingConfidence(suggestion.confidence),
+        rationale: (suggestion.rationale ?? "").trim()
+      };
+    })
+    .filter((item): item is { sourceControl: SourceControlEntity; confidence: MappingConfidence; rationale: string } =>
+      Boolean(item)
+    );
+
+  if (validSuggestions.length === 0) {
+    await vscode.window.showWarningMessage("AI returned suggestions outside the candidate set.");
+    return;
+  }
+
+  const picked = await vscode.window.showQuickPick(
+    validSuggestions.map((suggestion) => ({
+      label: `${suggestion.sourceControl.controlId}: ${suggestion.sourceControl.title}`,
+      description: `${label(suggestion.confidence)} confidence`,
+      detail: suggestion.rationale || "No rationale provided.",
+      picked: suggestion.confidence !== "low",
+      suggestion
+    })),
+    {
+      title: `AI suggestions for ${requirement.title}`,
+      placeHolder: "Select mappings to create as drafts",
+      canPickMany: true,
+      ignoreFocusOut: true
+    }
+  );
+
+  if (!picked || picked.length === 0) {
+    return;
+  }
+
+  const existingMappings = (await listAllEntities()).filter(
+    (entity): entity is RequirementControlMappingEntity =>
+      entity.entityType === "requirement-control-mapping" &&
+      entity.recordStatus !== "deleted" &&
+      entity.requirementId === requirement.id
+  );
+  const existingControlIds = new Set(existingMappings.map((mapping) => mapping.sourceControlId));
+  const toCreate = picked.filter((item) => !existingControlIds.has(item.suggestion.sourceControl.id));
+  const duplicates = picked.length - toCreate.length;
+
+  if (toCreate.length === 0) {
+    await vscode.window.showInformationMessage("All selected suggestions already have mappings for this requirement.");
+    return;
+  }
+
+  const confirm = await vscode.window.showInformationMessage(
+    `Create ${toCreate.length} AI-suggested mapping draft(s)?${duplicates > 0 ? ` ${duplicates} duplicate(s) will be skipped.` : ""}`,
+    { modal: true },
+    "Create mappings",
+    "Cancel"
+  );
+  if (confirm !== "Create mappings") {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const mappings = toCreate.map((item) => {
+    const sourceControl = item.suggestion.sourceControl;
+    const profile = profileItems(sourceControl)[0]?.value ?? "all";
+    return withEnvelope(
+      "requirement-control-mapping",
+      {
+        entityType: "requirement-control-mapping",
+        title: `${requirement.title} mapped to ${sourceControl.controlId}`,
+        requirementId: requirement.id,
+        sourceControlId: sourceControl.id,
+        coverageQualifier: "partial",
+        applicabilityProfile: profile,
+        confidence: item.suggestion.confidence,
+        lastReviewedAt: now,
+        reviewBy: "AI-assisted draft",
+        rationale: item.suggestion.rationale || "AI-assisted draft suggestion pending operator review.",
+        provenance: {
+          author: "workshop",
+          createdAt: now,
+          oscalRelease: sourceControl.provenance.oscalRelease
+        }
+      },
+      "workshop"
+    );
+  });
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", mappings);
+  await refreshWorkshopSurfaces();
+  await rememberRequirement(requirement);
+  const action = await vscode.window.showInformationMessage(
+    `Created ${mappings.length} AI-assisted mapping draft(s).`,
     "Open Item Detail"
   );
   if (action === "Open Item Detail") {
@@ -2711,6 +3306,20 @@ async function openAssessmentDashboard(): Promise<void> {
         applicableRequirements.length === 0 ? 0 : Math.round((statusCounts.met / applicableRequirements.length) * 100)
     };
   });
+  const attentionRequirements = requirements
+    .filter((requirement) => requirementNeedsAttention(requirement, evidenceRequirementIds))
+    .sort(compareAttentionRequirements(evidenceRequirementIds))
+    .slice(0, 16)
+    .map((requirement) => ({
+      openEntityType: "requirement" as const,
+      openEntityId: requirement.id,
+      title: requirement.title,
+      domainId: requirement.domainId,
+      domain: domainName(requirement.domainId),
+      status: label(requirement.assessmentStatus),
+      evidence: evidenceRequirementIds.has(requirement.id) ? "Linked" : "Missing",
+      nextStep: requirementAttentionNextStep(requirement, evidenceRequirementIds)
+    }));
   const nextRequirements = requirements
     .filter(
       (requirement) =>
@@ -2760,8 +3369,13 @@ async function openAssessmentDashboard(): Promise<void> {
       </div>
       <p class="muted">Direction responses: ${directionChips(directionResponseCounts)}</p>
       <p class="muted">Recent requirement: ${escapeHtml(recentRequirement?.title ?? "None selected yet")}</p>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openRequirementsList">Open Requirements list</button>
+        <button type="button" data-command="pspf.workshop.openPlanOfActionBoard">Open Plan of Action</button>
+        <button type="button" data-command="pspf.workshop.createRequirement">Create requirement</button>
+      </div>
     </section>
-    ${domainStatsWidget(domainRows)}
+    ${domainStatsWidget(domainRows, attentionRequirements)}
     ${recordTable("Validation Hints", validationHints, ["priority", "requirement", "hint"])}
     ${recordTable("Domain Summary", domainRows, ["domain", "requirements", "applicable", "met", "partiallyMet", "inProgress", "notMet", "notStarted", "underReview", "notApplicable", "evidenceGaps", "metPercent"])}
     ${recordTable("Action Impact — Top 5", actionImpactRows, ["title", "status", "urgency", "total", "postureUplift", "evidenceUplift", "riskReduction", "directionUplift", "explanation"])}
@@ -2788,6 +3402,17 @@ type DashboardDomainStatusRow = {
   readonly metPercent: number;
 };
 
+type DashboardAttentionRequirementRow = {
+  readonly openEntityType: "requirement";
+  readonly openEntityId: string;
+  readonly title: string;
+  readonly domainId: string;
+  readonly domain: string;
+  readonly status: string;
+  readonly evidence: string;
+  readonly nextStep: string;
+};
+
 function dashboardRequirementStatusCounts(
   requirements: readonly RequirementEntity[]
 ): Record<AssessmentStatus, number> {
@@ -2802,7 +3427,57 @@ function dashboardRequirementStatusCounts(
   };
 }
 
-function domainStatsWidget(rows: readonly DashboardDomainStatusRow[]): string {
+function requirementNeedsAttention(
+  requirement: RequirementEntity,
+  evidenceRequirementIds: ReadonlySet<string>
+): boolean {
+  return (
+    !isNotApplicableRequirement(requirement) &&
+    (requirement.assessmentStatus !== "met" || !evidenceRequirementIds.has(requirement.id))
+  );
+}
+
+function requirementAttentionNextStep(
+  requirement: RequirementEntity,
+  evidenceRequirementIds: ReadonlySet<string>
+): string {
+  if (!evidenceRequirementIds.has(requirement.id)) {
+    return "Attach or link evidence";
+  }
+  if (requirement.assessmentStatus === "not-met" || requirement.assessmentStatus === "partially-met") {
+    return "Create or update an action";
+  }
+  if (requirement.assessmentStatus === "in-progress" || requirement.assessmentStatus === "under-review") {
+    return "Confirm progress and close gaps";
+  }
+  return "Start assessment work";
+}
+
+function compareAttentionRequirements(evidenceRequirementIds: ReadonlySet<string>) {
+  const statusRank: Record<AssessmentStatus, number> = {
+    "not-met": 0,
+    "partially-met": 1,
+    "not-started": 2,
+    "in-progress": 3,
+    "under-review": 4,
+    met: 5,
+    "not-applicable": 6
+  };
+  return (left: RequirementEntity, right: RequirementEntity): number => {
+    const leftHasEvidence = evidenceRequirementIds.has(left.id) ? 1 : 0;
+    const rightHasEvidence = evidenceRequirementIds.has(right.id) ? 1 : 0;
+    return (
+      leftHasEvidence - rightHasEvidence ||
+      statusRank[left.assessmentStatus] - statusRank[right.assessmentStatus] ||
+      left.title.localeCompare(right.title, "en-AU", { numeric: true, sensitivity: "base" })
+    );
+  };
+}
+
+function domainStatsWidget(
+  rows: readonly DashboardDomainStatusRow[],
+  attentionRows: readonly DashboardAttentionRequirementRow[]
+): string {
   const totals = aggregateDomainStats(rows);
   const filters = rows
     .map(
@@ -2811,6 +3486,7 @@ function domainStatsWidget(rows: readonly DashboardDomainStatusRow[]): string {
     )
     .join("");
   const rowHtml = rows.map(domainStatsTableRow).join("");
+  const attentionHtml = attentionRows.map(domainStatsAttentionTableRow).join("");
   return `<section class="domain-stats" data-domain-stats-widget>
     <style>
       .domain-stats { display: grid; gap: 12px; }
@@ -2829,10 +3505,12 @@ function domainStatsWidget(rows: readonly DashboardDomainStatusRow[]): string {
       .domain-stats__table table { min-width: min(760px, 100%); }
       .domain-stats__table th, .domain-stats__table td { white-space: nowrap; }
       .domain-stats__table th:first-child, .domain-stats__table td:first-child { white-space: normal; min-width: 10rem; }
+      .domain-stats__attention table { min-width: min(900px, 100%); }
+      .domain-stats__attention td[data-field="title"] { min-width: 18rem; white-space: normal; }
       @media (max-width: 760px) { .domain-stats__summary { grid-template-columns: 1fr; } }
     </style>
     <h2>Domain Stats</h2>
-    <p class="muted">Filter by one or more PSPF Domains to see compliance status counts for the selected scope.</p>
+    <p class="muted">Filter by one or more PSPF Domains to see compliance status counts and the Requirements that need action.</p>
     <div class="domain-stats__filters" role="group" aria-label="Filter Domain Stats by Domain">
       <button type="button" data-domain-stat-filter="all" aria-pressed="true">All Domains <span>${rows.length}</span></button>
       ${filters}
@@ -2846,10 +3524,17 @@ function domainStatsWidget(rows: readonly DashboardDomainStatusRow[]): string {
         ${domainStatsBarRow("Not started", "notStarted", totals.notStarted, totals.requirements, "var(--muted)")}
       </article>
     </div>
+    <div class="domain-stats__score"><span>Needs action</span><strong data-domain-stat-value="attentionCount">${attentionRows.length}</strong><p class="muted">Met and not applicable Requirements are for monitoring; the table below is the work queue.</p></div>
     <div class="table-wrap domain-stats__table" tabindex="0" aria-label="Domain status counts table">
       <table>
         <thead><tr><th>Domain</th><th>Total</th><th>Applicable</th><th>Met</th><th>Partial</th><th>In progress</th><th>Not met</th><th>Not started</th><th>Under review</th><th>N/A</th><th>Evidence gaps</th><th>Met %</th></tr></thead>
         <tbody>${rowHtml}</tbody>
+      </table>
+    </div>
+    <div class="table-wrap domain-stats__attention" tabindex="0" aria-label="Requirements needing action table">
+      <table>
+        <thead><tr><th>Open</th><th data-field="title">Requirement</th><th>Domain</th><th>Status</th><th>Evidence</th><th>Next step</th></tr></thead>
+        <tbody>${attentionHtml || '<tr><td colspan="6">No Requirements need action in the selected scope.</td></tr>'}</tbody>
       </table>
     </div>
     ${domainStatsScript()}
@@ -2865,6 +3550,12 @@ function domainStatsTableRow(row: DashboardDomainStatusRow): string {
   const stats = JSON.stringify(row).replaceAll("&", "&amp;").replaceAll("'", "&#39;");
   return `<tr data-domain-stat-row data-domain="${escapeHtml(row.domainId)}" data-stats='${stats}'>
     <td>${escapeHtml(row.domain)}</td><td>${row.requirements}</td><td>${row.applicable}</td><td>${row.met}</td><td>${row.partiallyMet}</td><td>${row.inProgress}</td><td>${row.notMet}</td><td>${row.notStarted}</td><td>${row.underReview}</td><td>${row.notApplicable}</td><td>${row.evidenceGaps}</td><td>${row.metPercent}%</td>
+  </tr>`;
+}
+
+function domainStatsAttentionTableRow(row: DashboardAttentionRequirementRow): string {
+  return `<tr data-domain-stat-attention-row data-domain="${escapeHtml(row.domainId)}">
+    <td><button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(row.openEntityId)}">Open</button></td><td data-field="title">${escapeHtml(row.title)}</td><td>${escapeHtml(row.domain)}</td><td>${escapeHtml(row.status)}</td><td>${escapeHtml(row.evidence)}</td><td>${escapeHtml(row.nextStep)}</td>
   </tr>`;
 }
 
@@ -2911,6 +3602,7 @@ function domainStatsScript(): string {
       if (!widget) return;
       const buttons = Array.from(widget.querySelectorAll('[data-domain-stat-filter]'));
       const rows = Array.from(widget.querySelectorAll('[data-domain-stat-row]'));
+      const attentionRows = Array.from(widget.querySelectorAll('[data-domain-stat-attention-row]'));
       const selected = new Set();
       const readStats = (row) => JSON.parse(row.getAttribute('data-stats') || '{}');
       const sum = (items, key) => items.reduce((total, item) => total + Number(item[key] || 0), 0);
@@ -2927,6 +3619,12 @@ function domainStatsScript(): string {
         const visibleRows = rows.filter((row) => allSelected || selected.has(row.getAttribute('data-domain')));
         const stats = visibleRows.map(readStats);
         rows.forEach((row) => { row.hidden = !(allSelected || selected.has(row.getAttribute('data-domain'))); });
+        let visibleAttention = 0;
+        attentionRows.forEach((row) => {
+          const visible = allSelected || selected.has(row.getAttribute('data-domain'));
+          row.hidden = !visible;
+          if (visible) visibleAttention += 1;
+        });
         buttons.forEach((button) => {
           const id = button.getAttribute('data-domain-stat-filter');
           button.setAttribute('aria-pressed', id === 'all' ? String(allSelected) : String(selected.has(id)));
@@ -2944,6 +3642,7 @@ function domainStatsScript(): string {
         setText('partiallyMet', partiallyMet);
         setText('notMet', notMet);
         setText('notStarted', notStarted);
+        setText('attentionCount', visibleAttention);
         setBar('met', met, requirements);
         setBar('partiallyMet', partiallyMet, requirements);
         setBar('notMet', notMet, requirements);
@@ -3168,6 +3867,8 @@ async function openMasterDashboard(): Promise<void> {
         ${metricCard("Report signals", changeRecords.length + directions.length)}
       </div>
       <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openAssessmentDashboard">Assessment dashboard</button>
+        <button type="button" data-command="pspf.workshop.openRequirementsList">Requirements needing work</button>
         <button type="button" data-command="pspf.workshop.createRequirement">Create requirement</button>
         <button type="button" data-command="pspf.core.exportBundle">Export Bundle</button>
         <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
@@ -9291,6 +9992,8 @@ type SaveEntityMessage = {
 
 type RequirementBrowserOptions = {
   readonly filterText?: string;
+  readonly domainId?: string;
+  readonly assessmentStatus?: AssessmentStatus;
   readonly savedView?: SavedViewEntity;
 };
 
@@ -10416,8 +11119,10 @@ function requirementPageTabs(
   const directionsCount = allEntities.filter(
     (entity): entity is DirectionEntity => entity.entityType === "direction" && entity.recordStatus !== "deleted"
   ).length;
+  const selectedDomainId = options.domainId ?? options.savedView?.filters.domainIds?.[0] ?? "all";
   return `<nav class="requirement-page__tabs" aria-label="Requirement domain tabs">
-    ${tabs.map((domain) => `<button type="button" data-requirement-tab="${escapeHtml(domain.id)}" aria-pressed="${domain.id === requirement.domainId ? "true" : "false"}">${escapeHtml(domain.label)} ${domain.count}</button>`).join("")}
+    <button type="button" data-requirement-tab="all" aria-pressed="${selectedDomainId === "all" ? "true" : "false"}">All ${requirements.length}</button>
+    ${tabs.map((domain) => `<button type="button" data-requirement-tab="${escapeHtml(domain.id)}" aria-pressed="${domain.id === selectedDomainId ? "true" : "false"}">${escapeHtml(domain.label)} ${domain.count}</button>`).join("")}
     <button type="button" data-requirement-tab="directions" aria-pressed="false">Directions ${directionsCount}</button>
   </nav>`;
 }
@@ -10495,6 +11200,7 @@ function requirementBrowserNav(
   const currentIndex = requirements.findIndex((candidate) => candidate.id === requirement.id);
   const position = currentIndex >= 0 ? `${currentIndex + 1} of ${requirements.length}` : `${requirements.length} total`;
   const filterText = options.filterText?.trim() ?? "";
+  const selectedStatus = options.assessmentStatus ?? options.savedView?.filters.assessmentStatuses?.[0] ?? "all";
   const statusCounts = requirementStatusCounts(requirements);
   const items = requirements
     .map((candidate) =>
@@ -10510,8 +11216,8 @@ function requirementBrowserNav(
     <h2>Requirements</h2>
     <input class="requirement-browser__filter" type="search" aria-label="Filter requirements" placeholder="Filter by title, domain, or status" value="${escapeHtml(filterText)}">
     <div class="requirement-browser__filters" aria-label="Requirement status filters">
-      <button type="button" data-requirement-status-filter="all" aria-pressed="true">All ${requirements.length}</button>
-      ${assessmentStatusItems.map((item) => `<button type="button" data-requirement-status-filter="${escapeHtml(item.value)}">${escapeHtml(item.label)} ${statusCounts.get(item.value) ?? 0}</button>`).join("")}
+      <button type="button" data-requirement-status-filter="all" aria-pressed="${selectedStatus === "all" ? "true" : "false"}">All ${requirements.length}</button>
+      ${assessmentStatusItems.map((item) => `<button type="button" data-requirement-status-filter="${escapeHtml(item.value)}" aria-pressed="${item.value === selectedStatus ? "true" : "false"}">${escapeHtml(item.label)} ${statusCounts.get(item.value) ?? 0}</button>`).join("")}
     </div>
     <div class="requirement-browser__list" role="list" aria-label="Scrollable Requirements list">
       ${items || '<p class="muted">No Requirements found.</p>'}
@@ -10581,7 +11287,7 @@ function requirementBrowserScript(): string {
           item.hidden = !matches;
           if (matches) visible += 1;
         }
-        const filtered = Boolean(query) || selectedStatus !== 'all';
+        const filtered = Boolean(query) || selectedStatus !== 'all' || selectedTab !== 'all';
         if (count) count.textContent = (filtered ? 'Showing ' : '') + visible + ' of ' + items.length + ' Requirements';
         if (clearButton instanceof HTMLButtonElement) clearButton.hidden = !filtered;
         if (requirementPanel instanceof HTMLElement) requirementPanel.hidden = selectedTab === 'directions';
@@ -10599,6 +11305,7 @@ function requirementBrowserScript(): string {
       clearButton?.addEventListener('click', () => {
         if (input instanceof HTMLInputElement) input.value = '';
         statusButtons.forEach((item) => item.setAttribute('aria-pressed', String(item.getAttribute('data-requirement-status-filter') === 'all')));
+        tabButtons.forEach((item) => item.setAttribute('aria-pressed', String(item.getAttribute('data-requirement-tab') === 'all')));
         applyRequirementFilters();
       });
       applyRequirementFilters();

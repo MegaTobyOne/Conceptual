@@ -2046,6 +2046,7 @@ function renderShopHomeHtml(store: ShopStore): string {
         { label: "Spend items", value: spendCount }
       ]
     }),
+    homeSection({ id: "forecast", eyebrow: "Review", heading: "Forecast & savings", body: forecastBody }),
     homeSection({
       id: "trend",
       eyebrow: "Forecast",
@@ -2054,7 +2055,6 @@ function renderShopHomeHtml(store: ShopStore): string {
     }),
     homeSection({ id: "create", eyebrow: "Author", heading: "Create records", body: createBody }),
     homeSection({ id: "edit", eyebrow: "Maintain", heading: "Edit records", body: editBody }),
-    homeSection({ id: "forecast", eyebrow: "Review", heading: "Forecast & savings", body: forecastBody }),
     homeSection({ id: "data", eyebrow: "Data", heading: "Sample & import", body: dataBody })
   ].join("");
 
@@ -2067,10 +2067,10 @@ function renderShopHomeHtml(store: ShopStore): string {
     sensitivityBanner: "OFFICIAL: Sensitive · Local workspace writes stay in Shop until you snapshot or export.",
     nav: [
       { href: "overview", label: "Overview" },
+      { href: "forecast", label: "Forecast" },
       { href: "trend", label: "Trend" },
       { href: "create", label: "Create" },
       { href: "edit", label: "Edit" },
-      { href: "forecast", label: "Forecast" },
       { href: "data", label: "Data" }
     ],
     body

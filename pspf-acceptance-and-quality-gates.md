@@ -53,6 +53,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **ISM drift gate**: `check:ism-drift` reports mappings affected by changed, new, or removed source-control statements.
 5. **Mapping quality round trip**: export → import preserves `confidence`, `lastReviewedAt`, `reviewBy`, endpoints, `coverageQualifier`, and `applicabilityProfile`.
 
+### AI Release 1 gates (optional assistance, per ADR 0077)
+
+1. **AI kill-switch gate**: `check:ai-kill-switch` proves AI commands are hidden unless `pspf:aiEnabled` is true, `pspf.ai.enabled` defaults to false, Core seeds `ai.disabled: true`, and Workshop requires explicit workspace policy `ai.disabled=false` before enabling AI.
+2. **AI provider boundary gate**: Release 1 supports only the VS Code Language Model API and introduces no direct `fetch`-based model or endpoint calls.
+3. **AI prompt-redaction gate**: existing PSPF entities used in AI prompts pass through `sanitiseEntityForPublication`; sensitive Requirement summaries, names, and emails in the fixture are excluded from prompt payloads.
+4. **AI draft-and-confirm gate**: guided Requirement drafting and Requirement-to-ISM mapping suggestions must require explicit operator confirmation before any write.
+5. **AI degraded-mode gate**: unavailable model/provider paths surface stable `PSPF_AI_*` diagnostics and leave normal Workshop workflows usable.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.
@@ -582,7 +590,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 
 ### v1.42 candidate gates (T0-T2 remediation foundation)
 
-1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.42.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.42.1`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
 2. **Documentation truth gate**: every root Markdown specification has a `Status` header; stale v0.1 agent instructions are removed; `pspf-grand-plan.md` is the active forward-plan source.
 3. **ADR hygiene gate**: `scripts/check-adr-coverage.mjs` is restored from a non-empty implementation; `adr/README.md` indexes all ADRs through 0076; no duplicate ADR numbers remain.
 4. **Gate integrity gate**: `check:gate-integrity` confirms every gate referenced by `check:gates:run` is non-empty, parseable, and contains an enforcement path.

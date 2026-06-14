@@ -13,6 +13,17 @@ test("Shop Home exposes one forecast trendline graphic", async () => {
   assert.match(source, /homeSection\(\{[\s\S]*id: "trend",[\s\S]*eyebrow: "Forecast",[\s\S]*heading: "Spending trend"/);
 });
 
+test("Shop puts Forecast before maintenance surfaces", async () => {
+  const source = await readFile(sourcePath, "utf8");
+  const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
+
+  assert.ok(manifest.indexOf('"id": "pspfShop.forecastView"') < manifest.indexOf('"id": "pspfShop.homeView"'));
+  assert.ok(source.indexOf('homeSection({ id: "forecast"') < source.indexOf('homeSection({ id: "create"'));
+  assert.ok(
+    source.indexOf('{ href: "forecast", label: "Forecast" }') < source.indexOf('{ href: "trend", label: "Trend" }')
+  );
+});
+
 test("Shop Home exposes create and edit panels", async () => {
   const source = await readFile(sourcePath, "utf8");
 

@@ -2,7 +2,7 @@
   "name": "pspf-shop",
   "displayName": "PSPF Shop",
   "description": "PSPF commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.",
-  "version": "1.42.0",
+  "version": "1.42.1",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -46,6 +46,11 @@
       "pspfShop": [
         {
           "type": "webview",
+          "id": "pspfShop.forecastView",
+          "name": "Forecast"
+        },
+        {
+          "type": "webview",
           "id": "pspfShop.homeView",
           "name": "Shop Home"
         },
@@ -62,12 +67,6 @@
         {
           "id": "pspfShop.spendView",
           "name": "Spend",
-          "visibility": "collapsed"
-        },
-        {
-          "type": "webview",
-          "id": "pspfShop.forecastView",
-          "name": "Forecast",
           "visibility": "collapsed"
         }
       ]

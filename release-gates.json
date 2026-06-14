@@ -10,7 +10,7 @@
       {
         "name": "quality gates",
         "parallel": false,
-        "commands": ["pnpm run check:gates:run"]
+        "commands": ["pnpm run check:gates:run", "pnpm run check:ai-kill-switch"]
       },
       {
         "name": "debug workspace validation",

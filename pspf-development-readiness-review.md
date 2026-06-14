@@ -8,7 +8,7 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.42.0 is a schema-neutral UX and local planning patch release on Explorer bundle schemas `1.14.0`. It keeps the v1.39 schema-bearing evidence lifecycle/reporting changes, adds Workshop UX/IA refinements, and adds Pub team-card Organisation Chart backs plus local team news/date items that can optionally appear on the Workshop Plan of Action. Release readiness is expected to run through `e2e:v1.42:run` and validate `VERSION_AXES = 1.14.0`.
+**Current implementation note:** v1.42.1 is a schema-neutral UX and local planning patch release on Explorer bundle schemas `1.14.0`. It keeps the v1.39 schema-bearing evidence lifecycle/reporting changes, adds Workshop UX/IA refinements, adds Pub team-card Organisation Chart backs plus local team news/date items, promotes the Assessment Dashboard and Shop Forecast surfaces, and keeps Release 1 optional AI controls default-off. Release readiness is expected to run through `e2e:v1.42:run` and validate `VERSION_AXES = 1.14.0`.
 
 **Status: v1.9 saved-view expansion build implemented for test. v1.8 saved views build implemented; v1.7 tags and filters foundation build implemented; v1.6 Workshop import review and identity build implemented; v1.5.1 Explorer product-boundary and visual identity patch implemented; v1.5 plan-apply import and undo implemented; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
@@ -51,7 +51,7 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.42.0:
+`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.42.1:
 
 1. Spine workflow (headless `e2e:v1.42`).
 2. Schema-policy.
@@ -119,8 +119,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.42.0, including Workshop UX/IA refinement, Pub Organisation Chart card fronts/backs, local team news/date editing, optional Plan of Action team-date context, and the existing Workshop, Explorer, Shop, Pub, import, and release-dry-run regression surfaces.
+The next sequence is manual validation of v1.42.1, including Workshop UX/IA refinement, Assessment Dashboard action navigation, Shop Forecast prominence, Pub Organisation Chart card fronts/backs, local team news/date editing, optional Plan of Action team-date context, and the existing Workshop, Explorer, Shop, Pub, import, and release-dry-run regression surfaces.
 
 ## Review conclusion
 
-The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, Explorer tag filters, Explorer Requirements saved views, Explorer local status overlays, Explorer local evidence references, Explorer local Actions, Explorer local Risks, local status conflict display, Workshop import review, plan-apply import, last-import undo, latest-bundle refresh restore, Workshop/Explorer identity boundary, Shop commercial planning, Pub local CRUD, Workshop UX/IA refinement, and Pub team-date planning context are implemented for v1.42.0 readiness. Manual validation still needs to confirm the visible v1.42 Pub card view and Plan of Action team-date context in the Extension Host.
+The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, Explorer tag filters, Explorer Requirements saved views, Explorer local status overlays, Explorer local evidence references, Explorer local Actions, Explorer local Risks, local status conflict display, Workshop import review, plan-apply import, last-import undo, latest-bundle refresh restore, Workshop/Explorer identity boundary, Shop commercial planning, Pub local CRUD, Workshop UX/IA refinement, Assessment Dashboard action navigation, Shop Forecast prominence, optional AI controls, and Pub team-date planning context are implemented for v1.42.1 readiness. Manual validation still needs to confirm the visible v1.42 Pub card view and Plan of Action team-date context in the Extension Host.

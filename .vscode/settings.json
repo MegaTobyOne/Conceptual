@@ -23,5 +23,32 @@
     "**/node_modules": true,
     "**/dist": true,
     "**/coverage": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "**/.tmp": true,
+    "**/debug-workspace": true,
+    "**/playwright-report": true,
+    "**/test-results": true,
+    "**/*.tsbuildinfo": true,
+    "pnpm-lock.yaml": true,
+    "schemas/explorer-bundle/**": true,
+    "packages/reference-data/data/**": true,
+    "packages/reference-data/src/generated/**": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/coverage/**": true,
+    "**/.tmp/**": true,
+    "**/debug-workspace/**": true,
+    "**/playwright-report/**": true,
+    "**/test-results/**": true,
+    "**/*.tsbuildinfo": true,
+    "schemas/explorer-bundle/**": true,
+    "packages/reference-data/data/**": true,
+    "packages/reference-data/src/generated/**": true
   }
 }
