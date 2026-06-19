@@ -121,27 +121,32 @@ test("Essential Eight dashboard renders visual posture charts", async () => {
   assert.match(source, /readonly strategyStatusCounts/);
 });
 
-test("Penetration Testing Workbench exposes planning and execution pipeline", async () => {
+test("Penetration Testing Workbench is handed off to PSPF Assurance", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
-  const modelSource = await readFile(new URL("../src/pentest-workbench.ts", import.meta.url), "utf8");
+  const assuranceSource = await readFile(new URL("../../assurance/src/extension.ts", import.meta.url), "utf8");
+  const assuranceModelSource = await readFile(
+    new URL("../../assurance/src/pentest-workbench.ts", import.meta.url),
+    "utf8"
+  );
 
-  assert.match(modelSource, /interface PentestEngagementModel/);
-  assert.match(modelSource, /criticalHighFindings/);
-  assert.match(modelSource, /otherFindings/);
-  assert.match(modelSource, /plannedWindow/);
-  assert.match(source, /function renderPentestPipeline/);
-  assert.match(source, /Pentest Pipeline/);
+  assert.match(assuranceModelSource, /interface PentestEngagementModel/);
+  assert.match(assuranceModelSource, /criticalHighFindings/);
+  assert.match(assuranceModelSource, /otherFindings/);
+  assert.match(assuranceModelSource, /plannedWindow/);
+  assert.match(assuranceSource, /function renderPentestPipeline/);
+  assert.match(assuranceSource, /Pentest Pipeline/);
   assert.match(source, /function renderMasterDashboardPentestSummary/);
   assert.match(source, /Penetration Testing/);
   assert.match(source, /pspf\.workshop\.openPentestWorkbench/);
-  assert.match(source, /function renderPentestEngagementProfile/);
-  assert.match(source, /Penetration test planning and execution profile/);
-  assert.match(source, /Critical\/high/);
-  assert.match(source, /Other findings/);
-  assert.match(source, /Open remediation/);
-  assert.match(source, /Finding split/);
-  assert.match(source, /Report due/);
-  assert.match(source, /Retest/);
+  assert.match(source, /pspf\.assurance\.openPentestWorkbench/);
+  assert.match(assuranceSource, /function renderPentestEngagementProfile/);
+  assert.match(assuranceSource, /Penetration test planning and execution profile/);
+  assert.match(assuranceSource, /Critical\/high/);
+  assert.match(assuranceSource, /Other findings/);
+  assert.match(assuranceSource, /Open remediation/);
+  assert.match(assuranceSource, /Finding split/);
+  assert.match(assuranceSource, /Report due/);
+  assert.match(assuranceSource, /Retest/);
 });
 
 test("Plan of Action exposes master schedule and slice controls", async () => {

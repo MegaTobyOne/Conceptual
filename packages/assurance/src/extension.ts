@@ -23,17 +23,32 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("pspfAssurance.homeView", homeProvider),
     statusItem,
-    vscode.window.registerTreeDataProvider("pspfAssurance.assessmentsView", new StaticTreeProvider("Open Assurance Home to review assessments", "shield")),
-    vscode.window.registerTreeDataProvider("pspfAssurance.findingsView", new StaticTreeProvider("Open the Penetration Testing Workbench to review findings", "bug")),
-    vscode.window.registerTreeDataProvider("pspfAssurance.verificationView", new StaticTreeProvider("Verification queues are shown in the workbench", "verified")),
-    vscode.window.registerTreeDataProvider("pspfAssurance.publicationsView", new StaticTreeProvider("Publication readiness checks are planned", "file-lock")),
+    vscode.window.registerTreeDataProvider(
+      "pspfAssurance.assessmentsView",
+      new StaticTreeProvider("Open Assurance Home to review assessments", "shield")
+    ),
+    vscode.window.registerTreeDataProvider(
+      "pspfAssurance.findingsView",
+      new StaticTreeProvider("Open the Penetration Testing Workbench to review findings", "bug")
+    ),
+    vscode.window.registerTreeDataProvider(
+      "pspfAssurance.verificationView",
+      new StaticTreeProvider("Verification queues are shown in the workbench", "verified")
+    ),
+    vscode.window.registerTreeDataProvider(
+      "pspfAssurance.publicationsView",
+      new StaticTreeProvider("Publication readiness checks are planned", "file-lock")
+    ),
     vscode.commands.registerCommand("pspf.assurance.openHome", openHome),
     vscode.commands.registerCommand("pspf.assurance.openAssessmentWorkbench", openPentestWorkbench),
     vscode.commands.registerCommand("pspf.assurance.openPentestWorkbench", openPentestWorkbench),
     vscode.commands.registerCommand("pspf.assurance.newAssessment", plannedCommand("New Assessment")),
     vscode.commands.registerCommand("pspf.assurance.newFinding", plannedCommand("New Finding")),
     vscode.commands.registerCommand("pspf.assurance.openVerificationQueue", openPentestWorkbench),
-    vscode.commands.registerCommand("pspf.assurance.prepareAssuranceReport", plannedCommand("Prepare Assurance Report")),
+    vscode.commands.registerCommand(
+      "pspf.assurance.prepareAssuranceReport",
+      plannedCommand("Prepare Assurance Report")
+    ),
     vscode.commands.registerCommand("pspf.assurance.runPublicationReadiness", runPublicationReadiness)
   );
 }
@@ -139,7 +154,9 @@ async function runPublicationReadiness(): Promise<void> {
       : undefined
   ].filter((item): item is string => Boolean(item));
   if (issues.length === 0) {
-    await vscode.window.showInformationMessage("Assurance publication readiness check passed for the current pentest slice.");
+    await vscode.window.showInformationMessage(
+      "Assurance publication readiness check passed for the current pentest slice."
+    );
     return;
   }
   await vscode.window.showWarningMessage(`Assurance publication readiness needs attention: ${issues.join("; ")}.`);
@@ -162,11 +179,13 @@ async function listAllEntities(): Promise<readonly V01Entity[]> {
 }
 
 function wirePanelMessages(panel: vscode.WebviewPanel, refresh: () => Promise<void> = async () => undefined): void {
-  panel.webview.onDidReceiveMessage((message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string }) => {
-    void handlePanelMessage(message, refresh).catch(async (error: unknown) => {
-      await vscode.window.showErrorMessage(`PSPF Assurance action failed: ${errorMessage(error)}`);
-    });
-  });
+  panel.webview.onDidReceiveMessage(
+    (message: { readonly command?: string; readonly entityType?: string; readonly entityId?: string }) => {
+      void handlePanelMessage(message, refresh).catch(async (error: unknown) => {
+        await vscode.window.showErrorMessage(`PSPF Assurance action failed: ${errorMessage(error)}`);
+      });
+    }
+  );
 }
 
 async function handlePanelMessage(
@@ -181,7 +200,14 @@ async function handlePanelMessage(
     return;
   }
   if (message.command === "openEntity" && message.entityType && message.entityId) {
-    await vscode.commands.executeCommand("pspf.workshop.openItemDetail", message.entityType, message.entityId);
+    const entity = (await listAllEntities()).find(
+      (item) => item.entityType === message.entityType && item.id === message.entityId
+    );
+    if (!entity) {
+      await vscode.window.showWarningMessage("This record no longer exists in this workspace.");
+      return;
+    }
+    await vscode.commands.executeCommand("pspf.workshop.openTreeEntity", entity);
     return;
   }
   const allowedCommands = new Set([
@@ -444,12 +470,7 @@ function recordTable(title: string, rows: readonly Record<string, unknown>[], co
   }
   const header = columns.map((column) => `<th>${escapeHtml(label(column))}</th>`).join("");
   const body = rows
-    .map(
-      (row) =>
-        `<tr>${columns
-          .map((column) => `<td>${cellValue(row[column])}</td>`)
-          .join("")}</tr>`
-    )
+    .map((row) => `<tr>${columns.map((column) => `<td>${cellValue(row[column])}</td>`).join("")}</tr>`)
     .join("");
   return `<section><h2>${escapeHtml(title)}</h2><div class="table-wrap"><table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div></section>`;
 }

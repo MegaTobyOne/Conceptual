@@ -19,6 +19,21 @@ const extensionPackages = [
     ]
   },
   {
+    name: "Assurance",
+    directory: "packages/assurance",
+    dependency: "tobyharvey.pspf-core",
+    expectedCommands: [
+      "pspf.assurance.openHome",
+      "pspf.assurance.openAssessmentWorkbench",
+      "pspf.assurance.openPentestWorkbench",
+      "pspf.assurance.newAssessment",
+      "pspf.assurance.newFinding",
+      "pspf.assurance.openVerificationQueue",
+      "pspf.assurance.prepareAssuranceReport",
+      "pspf.assurance.runPublicationReadiness"
+    ]
+  },
+  {
     name: "Workshop",
     directory: "packages/workshop",
     dependency: "tobyharvey.pspf-core",
@@ -140,6 +155,40 @@ for (const extensionPackage of extensionPackages) {
       "Workshop contributes the Home webview view"
     );
   }
+  if (extensionPackage.name === "Assurance") {
+    assert.equal(
+      manifest.contributes?.viewsContainers?.activitybar?.some((container) => container.id === "pspfAssurance"),
+      true,
+      "Assurance contributes an Activity Bar container"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some(
+        (view) => view.id === "pspfAssurance.homeView" && view.type === "webview"
+      ),
+      true,
+      "Assurance contributes the Home webview view"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some((view) => view.id === "pspfAssurance.assessmentsView"),
+      true,
+      "Assurance contributes the Assessments tree view"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some((view) => view.id === "pspfAssurance.findingsView"),
+      true,
+      "Assurance contributes the Findings tree view"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some((view) => view.id === "pspfAssurance.verificationView"),
+      true,
+      "Assurance contributes the Verification tree view"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some((view) => view.id === "pspfAssurance.publicationsView"),
+      true,
+      "Assurance contributes the Publications tree view"
+    );
+  }
   if (extensionPackage.name === "Shop") {
     assert.equal(
       manifest.contributes?.viewsContainers?.activitybar?.some((container) => container.id === "pspfShop"),
@@ -190,4 +239,6 @@ for (const extensionPackage of extensionPackages) {
   }
 }
 
-console.log("ok Core, Workshop, Shop, and Pub extension package shapes match the Marketplace deployment baseline");
+console.log(
+  "ok Core, Assurance, Workshop, Shop, and Pub extension package shapes match the Marketplace deployment baseline"
+);

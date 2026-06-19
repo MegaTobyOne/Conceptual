@@ -4066,17 +4066,13 @@ async function openRequirementCardView(): Promise<void> {
 }
 
 async function openPentestWorkbench(): Promise<void> {
-  await ensureCoreReady();
-  const panel = vscode.window.createWebviewPanel(
-    "pspfPentestWorkbench",
-    "Penetration Testing Workbench",
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-  wireWorkshopPanelMessages(panel, async () => {
-    panel.webview.html = renderPentestWorkbench(buildPentestWorkbenchModel(await listAllEntities()));
-  });
-  panel.webview.html = renderPentestWorkbench(buildPentestWorkbenchModel(await listAllEntities()));
+  try {
+    await vscode.commands.executeCommand("pspf.assurance.openPentestWorkbench");
+  } catch {
+    await vscode.window.showWarningMessage(
+      "PSPF Assurance owns the Penetration Testing Workbench. Install or enable PSPF Assurance to open it."
+    );
+  }
 }
 
 function renderRequirementCardView(model: RequirementCardViewModel): string {
@@ -4316,7 +4312,7 @@ function requirementCardViewScript(): string {
   </script>`;
 }
 
-function renderPentestWorkbench(model: PentestWorkbenchModel): string {
+function _renderPentestWorkbench(model: PentestWorkbenchModel): string {
   const assessments =
     model.assessments.length > 0
       ? model.assessments.map(renderPentestAssessment).join("")

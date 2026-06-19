@@ -292,7 +292,12 @@ const coverage = [
     "check:spec-drift",
     "check:release-candidate"
   ]),
-  adr("0077-ai-capability-boundary.md", "automated", ["check:ai-kill-switch", "check:gates", "release:readiness"])
+  adr("0077-ai-capability-boundary.md", "automated", ["check:ai-kill-switch", "check:gates", "release:readiness"]),
+  adr("0078-pspf-assurance-extension-boundary.md", "automated", [
+    "check:assurance-redaction",
+    "package:check",
+    "release:readiness"
+  ])
 ];
 
 const adrFiles = (await readdir(adrDirectory)).filter((file) => /^\d{4}-.*\.md$/.test(file)).sort();

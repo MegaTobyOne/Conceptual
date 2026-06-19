@@ -61,9 +61,9 @@ for (const output of outputs) {
 
 assert.equal(extension.includes("function openPentestWorkbench"), true, "Pentest: openPentestWorkbench should exist");
 assert.equal(
-  extension.includes("function renderPentestWorkbench"),
+  extension.includes('executeCommand("pspf.assurance.openPentestWorkbench")'),
   true,
-  "Pentest: renderPentestWorkbench should exist"
+  "Pentest: Workshop command should hand off to Assurance"
 );
 assert.match(
   extension,
