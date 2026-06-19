@@ -916,11 +916,12 @@ async function exportBundle(
 async function exportTeamShareBundle(workspaceRoot: string): Promise<{ bundlePath: string; collectionCount: number }> {
   const paths = await ensureInitialised(workspaceRoot);
   await assertWritable(paths);
+  // Ensure the share directory exists for workspaces initialised before this feature was added.
   await mkdir(paths.share, { recursive: true });
 
   const collections = await getBundleCollections(workspaceRoot, paths);
 
-  // Sort each collection by id for deterministic, Git-diffable output.
+  // Sort each collection by id for stable, Git-diffable output: same data → same record order.
   const sortById = <T extends { id: string }>(records: T[]): T[] =>
     [...records].sort((a, b) => a.id.localeCompare(b.id, "en"));
 
@@ -929,6 +930,8 @@ async function exportTeamShareBundle(workspaceRoot: string): Promise<{ bundlePat
   for (const collectionName of V0_1_COLLECTIONS) {
     const sorted = sortById(collections[collectionName] as { id: string }[]);
     const serialised = `${JSON.stringify(sorted, null, 2)}\n`;
+    // path is a conventional placeholder for Explorer split-bundle compatibility;
+    // team-share bundles are always written as a single self-contained bundle.json.
     manifestCollections.push({
       name: collectionName,
       path: `./collections/${collectionName}.json`,

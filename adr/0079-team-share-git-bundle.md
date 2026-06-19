@@ -20,7 +20,7 @@ This ADR records the decision to add a dedicated **team share bundle** export pa
 - **Local-first**: the feature uses no network access. The bundle is written to the local workspace file system.
 - **Default-deny publication**: the same `sanitiseEntityForPublication` redaction used by `exportBundle` applies. Sensitive and restricted fields are stripped.
 - **Offline-first**: the fixed bundle path is inside `.pspf/share/` which is inside the workspace folder. Users decide whether to track this in Git — the product does not commit or push on their behalf.
-- **Deterministic output**: same data → same file bytes (except for `generatedAt` in the manifest, which is intentionally updated on each export to record freshness but does not affect the per-collection hashes used for integrity verification).
+- **Deterministic output**: same data → same collection bytes (records are sorted by `id` so the order is stable). The `generatedAt` timestamp in the manifest header updates on every export to record freshness, but does not affect the per-collection SHA-256 hashes used for integrity verification. Git will therefore show a diff only when actual entity data changes.
 
 ## Decision
 
