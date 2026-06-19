@@ -69,6 +69,10 @@
         "title": "PSPF: Export Master Bundle"
       },
       {
+        "command": "pspf.core.exportTeamShareBundle",
+        "title": "PSPF: Export Team Share Bundle"
+      },
+      {
         "command": "pspf.core.importBundle",
         "title": "PSPF: Import Master Bundle"
       },

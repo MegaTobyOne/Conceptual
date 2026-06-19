@@ -17,6 +17,7 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     runDatasetDiagnostics: () => getService().runDatasetDiagnostics(),
     createSnapshot: () => getService().createSnapshot(),
     exportBundle: () => getService().exportBundle(),
+    exportTeamShareBundle: () => getService().exportTeamShareBundle(),
     planImportBundle: getService().planImportBundle,
     importBundle: getService().importBundle,
     undoLastImport: getService().undoLastImport,
@@ -113,6 +114,17 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
         await vscode.commands.executeCommand("vscode.open", saveUri);
       }
       return { ...result, bundlePath: saveUri.fsPath };
+    }),
+    vscode.commands.registerCommand("pspf.core.exportTeamShareBundle", async () => {
+      const result = await getService().exportTeamShareBundle();
+      const action = await vscode.window.showInformationMessage(
+        `PSPF team share bundle written to ${result.bundlePath} — commit this file to share your posture data with colleagues.`,
+        "Open File"
+      );
+      if (action === "Open File") {
+        await vscode.commands.executeCommand("vscode.open", vscode.Uri.file(result.bundlePath));
+      }
+      return result;
     }),
     vscode.commands.registerCommand("pspf.core.importBundle", async () => {
       return importBundlesFromPicker(output, {

@@ -390,6 +390,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.loadHomeSampleWorkspace", loadHomeSampleWorkspace),
     vscode.commands.registerCommand("pspf.workshop.importBundle", importBundle),
     vscode.commands.registerCommand("pspf.workshop.exportBackupJson", exportBackupJson),
+    vscode.commands.registerCommand("pspf.workshop.exportTeamShareBundle", exportTeamShareBundle),
     vscode.commands.registerCommand("pspf.workshop.importBackupJson", importBackupJson),
     vscode.commands.registerCommand("pspf.workshop.attachEvidence", attachEvidence),
     vscode.commands.registerCommand("pspf.workshop.createAction", createAction),
@@ -759,6 +760,13 @@ async function importBundle(): Promise<void> {
 
 async function exportBackupJson(): Promise<void> {
   await vscode.commands.executeCommand("pspf.core.exportBundle");
+  await homeViewProvider?.refresh();
+}
+
+async function exportTeamShareBundle(): Promise<void> {
+  await vscode.commands.executeCommand("pspf.core.exportTeamShareBundle");
+  const allEntities = await listAllEntities();
+  await recordShareState(allEntities, "Team share bundle");
   await homeViewProvider?.refresh();
 }
 
@@ -1196,6 +1204,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
       ${model.shareNudge ? `<p class="momentum">${escapeHtml(model.shareNudge)}</p>` : ""}
       <div class="action-list compact">
         ${homeButton("pspf.core.exportBundle", "Export bundle")}
+        ${homeButton("pspf.workshop.exportTeamShareBundle", "Share with team", "Write a redacted bundle to .pspf/share/bundle.json for Git-based team sharing")}
         ${homeButton("pspf.workshop.importBundle", "Import bundle")}
         ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
       </div>

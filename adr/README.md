@@ -91,6 +91,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0076 | v1.42 remediation foundation | accepted |
 | 0077 | AI capability boundary | accepted |
 | 0078 | PSPF Assurance extension boundary | accepted |
+| 0079 | Team share Git bundle | accepted |
 
 ## Template
 
