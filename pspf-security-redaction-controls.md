@@ -64,6 +64,13 @@ For Change Records, `title`, `summary`, classification enums, and dates may be p
 3. `sensitive` fields are dropped unless the active profile explicitly opts them in by name.
 4. Bundle metadata records the active profile and the schema's policy version.
 
+### Assurance surfaces
+
+1. PSPF Assurance treats assessment notes, finding detail, proof-of-concept detail, affected-system identifiers, tester observations, management responses, and reviewer commentary as `sensitive` by default.
+2. Reviewer identity, tester identity, contact details, management-response owner, and personal assignment references are `restricted` unless a later schema ADR explicitly narrows the field to a non-personal role reference.
+3. Assurance Home, status bars, and notifications show counts, states, dates, and diagnostic codes only; they must not surface exploit detail, affected-system identifiers, personal names, email addresses, or unrestricted free text.
+4. Assurance publication packages, Office outputs, AI prompts, Graph payloads, Explorer artefacts, and signed bundles use publication-sanitised projections and fail closed on unknown assurance fields.
+
 ## Export profiles
 
 Profiles are small, declarative, and inspectable. The default `explorer-default` profile opts in **no** `sensitive` fields. A profile opting in any `sensitive` field MUST list each opted-in field by name; wildcards are forbidden.
@@ -99,3 +106,4 @@ The following tests MUST exist and MUST pass for every Core release:
 5. **Surface redaction** — status bar, notifications, and log fixtures never emit values from `sensitive` or `restricted` fields.
 6. **Secret scan** — secret-pattern scan passes for changed files.
 7. **Profile shape** — every export profile parses cleanly, contains no wildcards in `opts-in-sensitive`, and references only fields that exist in the current schema.
+8. **Assurance redaction** — assurance fixtures containing populated sensitive finding detail, tester/reviewer identities, management responses, and proof-of-concept notes produce no restricted fields and no unlisted sensitive fields in any publication artefact.

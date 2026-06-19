@@ -2,10 +2,11 @@
 
 - Status: accepted
 - Date: 2026-05-10
+- Superseded by: 0078 (current product count only)
 
 ## Context
 
-The PSPF spec set as drafted commits v1 to **five products** (Core, Workshop, Shop, Pub, Explorer), full Explorer dual-mode, ranked Action Impact, posture brief, shareable charts and briefs, Shop spend forecasting and savings opportunities, Pub assignment management, full WCAG 2.2 AA-aligned accessibility, per-version schema publication, contract tests across products, and 30 enforced Explorer behavioural invariants.
+The PSPF spec set as drafted committed v1 to **five products** (Core, Workshop, Shop, Pub, Explorer), full Explorer dual-mode, ranked Action Impact, posture brief, shareable charts and briefs, Shop spend forecasting and savings opportunities, Pub assignment management, full WCAG 2.2 AA-aligned accessibility, per-version schema publication, contract tests across products, and 30 enforced Explorer behavioural invariants. ADR 0078 later added PSPF Assurance as a sixth product; this ADR remains the historical v0.1 thin-slice decision.
 
 That is a credible v1 surface. It is not a credible v0.1 surface — the first cut a single maintainer can put in front of an Australian Government assurance team to get useful feedback. Pretending v1 is the floor will slow the project to the point that the feedback never arrives.
 

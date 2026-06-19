@@ -26,7 +26,7 @@ Contract tests must cover:
 
 1. `packages/contracts/` owns canonical contract definitions and fixture baselines.
 2. `packages/core/` owns producer compatibility suites for the Core API and system-of-record shape.
-3. `packages/workshop/`, `packages/shop/`, `packages/pub/`, and `packages/explorer/` own consumer compatibility suites for the package surfaces they consume.
+3. `packages/workshop/`, `packages/shop/`, `packages/pub/`, `packages/assurance/`, and `packages/explorer/` own consumer compatibility suites for the package surfaces they consume.
 4. Contract-breaking proposals require explicit approval from both producer and consumer owners, even when the same maintainer approves both sides in a solo-maintained repo.
 
 ## Test artefact model
@@ -82,3 +82,5 @@ Every contract-impacting PR should include:
 - expected compatibility outcome,
 - fixture updates,
 - migration notes where required.
+
+For the initial PSPF Assurance implementation, the first contract checks are intentionally narrow: Core trust authorisation for `tobyharvey.pspf-assurance`, read-only entity listing compatibility, write/link capability denial or approval by scope, and fixture parity for the migrated pentest read model. Schema compatibility checks broaden only when the `assurance-finding` entity ADR lands.

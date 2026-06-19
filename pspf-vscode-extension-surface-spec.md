@@ -4,7 +4,7 @@ Status: **implemented**
 
 ## Overview
 
-This specification defines the Visual Studio Code extension surface for the PSPF platform products, with emphasis on **PSPF Core** and **PSPF Workshop**, and supporting patterns for Shop and Pub. It covers extension manifests, contribution points, commands, views, menus, settings, status bar items, walkthroughs, activation events, and the division between Tree Views and Webviews.
+This specification defines the Visual Studio Code extension surface for the PSPF platform products, with emphasis on **PSPF Core** and **PSPF Workshop**, and supporting patterns for Shop, Pub, and Assurance. It covers extension manifests, contribution points, commands, views, menus, settings, status bar items, walkthroughs, activation events, and the division between Tree Views and Webviews.
 
 Every VS Code extension requires a `package.json` manifest, and the extension surface is primarily declared through the manifest’s `contributes` and `activationEvents` fields.
 
@@ -48,11 +48,13 @@ Primary responsibilities:
 - local validation feedback,
 - and report/export preparation.
 
-### Shop and Pub
+### Shop, Pub, and Assurance
 
-Shop and Pub should follow the same surface rules but narrower domain-specific navigation. They should reuse shared command, menu, and view patterns wherever possible.
+Shop, Pub, and Assurance should follow the same surface rules but narrower domain-specific navigation. They should reuse shared command, menu, and view patterns wherever possible.
 
 Shop's additional responsibility is commercial planning: supplier, contract, and spend workflows must be able to show forecast cost, expected savings, payback, and where investment now may reduce future cost, effort, or risk.
+
+Assurance's additional responsibility is assessment lifecycle management: penetration testing, third-party assurance assessments, assurance findings, verification/retest queues, management responses, approval state, and secure publication-readiness workflows. It is offline-first and reads/writes through Core; Microsoft Graph or external delivery belongs to PSPF Connect, not Assurance.
 
 ## Manifest model
 
@@ -80,6 +82,7 @@ Use a consistent command and setting namespace:
 - Workshop: `pspf.workshop.*`
 - Shop: `pspf.shop.*`
 - Pub: `pspf.pub.*`
+- Assurance: `pspf.assurance.*`
 - Shared platform settings where needed: `pspf.*`
 
 ### Extension IDs
@@ -92,6 +95,7 @@ Suggested IDs:
 | Workshop | `your-org.pspf-workshop` |
 | Shop | `your-org.pspf-shop` |
 | Pub | `your-org.pspf-pub` |
+| Assurance | `your-org.pspf-assurance` |
 
 ## Surface architecture
 
@@ -187,6 +191,23 @@ Suggested views under Shop:
 | `pspfShop.spendView` | Tree View | spend items grouped by financial year/status |
 | `pspfShop.forecastView` | WebviewView | spend forecast, savings opportunities, payback, and investment timeline |
 
+### Assurance view container
+
+Suggested container:
+- `pspfAssurance`
+- title: `PSPF Assurance`
+- icon: assurance/review glyph
+
+Suggested views under Assurance:
+
+| View ID | Type | Purpose |
+|---|---|---|
+| `pspfAssurance.homeView` | WebviewView | Assurance Home with assessment counts, urgent findings, pending verification, and publication-readiness status |
+| `pspfAssurance.assessmentsView` | Tree View | third-party assessments grouped by status, method, supplier, and reporting window |
+| `pspfAssurance.findingsView` | Tree View | assurance findings and pentest findings grouped by severity, status, due state, and review state |
+| `pspfAssurance.verificationView` | Tree View | retest and verification backlog drawn from linked Evidence and finding status |
+| `pspfAssurance.publicationsView` | Tree View | assurance report packages, redaction checks, approval state, and signed-publication readiness |
+
 ## Commands
 
 Commands are a core extension mechanism in VS Code and should map to meaningful actions users can discover through the Command Palette, view title actions, context menus, and internal flow triggers.
@@ -256,6 +277,19 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 | `pspf.shop.linkContractToRequirement` | Shop: Link Contract to Requirement | contract item context |
 | `pspf.shop.linkContractToSpendItem` | Shop: Link Contract to Spend Item | contract item context |
 | `pspf.shop.linkSpendToRequirement` | Shop: Link Spend to Requirement | spend item context |
+
+### Assurance commands
+
+| Command ID | Title | Placement |
+|---|---|---|
+| `pspf.assurance.openHome` | Assurance: Open Home | activity bar, status bar, command palette |
+| `pspf.assurance.openAssessmentWorkbench` | Assurance: Open Assessment Workbench | palette, Assurance Home, Assessments view title |
+| `pspf.assurance.openPentestWorkbench` | Assurance: Open Penetration Testing Workbench | palette, Assurance Home, Findings view title |
+| `pspf.assurance.newAssessment` | Assurance: New Assessment | palette, Assessments view title |
+| `pspf.assurance.newFinding` | Assurance: New Finding | palette, Findings view title, Assessment Workbench |
+| `pspf.assurance.openVerificationQueue` | Assurance: Open Verification Queue | palette, Verification view title |
+| `pspf.assurance.prepareAssuranceReport` | Assurance: Prepare Assurance Report | palette, Publications view title |
+| `pspf.assurance.runPublicationReadiness` | Assurance: Run Publication Readiness Checks | palette, Publications view title |
 
 ### Shared hidden/internal commands
 
@@ -348,6 +382,22 @@ Suggested Workshop activation:
   "onView:pspfWorkshop.summaryView",
   "workspaceContains:.pspf/config/workspace.json",
   "workspaceContains:**/*.pspf.json"
+]
+```
+
+### Assurance activation events
+
+Suggested Assurance activation:
+
+```json
+"activationEvents": [
+  "onView:pspfAssurance.homeView",
+  "onView:pspfAssurance.assessmentsView",
+  "onView:pspfAssurance.findingsView",
+  "onView:pspfAssurance.verificationView",
+  "onView:pspfAssurance.publicationsView",
+  "workspaceContains:.pspf/config/workspace.json",
+  "workspaceContains:.pspf/core/pspf-core.db"
 ]
 ```
 

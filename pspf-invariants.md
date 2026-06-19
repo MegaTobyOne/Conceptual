@@ -34,6 +34,7 @@ Canonical IDs are `<PREFIX>-<TOKEN>` where `<TOKEN>` is a UUIDv7 with the high t
 - Workshop: `pspf.workshop.*`
 - Shop: `pspf.shop.*`
 - Pub: `pspf.pub.*`
+- Assurance: `pspf.assurance.*`
 - Explorer: `pspf.explorer.*` (browser-internal only; not a VS Code namespace)
 - Shared: `pspf.*`
 

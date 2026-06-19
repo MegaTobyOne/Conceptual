@@ -186,7 +186,7 @@ pspf/
 
 ### Per-package contents
 
-Each `packages/<name>/` directory has its own `src/`, `tests/`, `package.json`, and `tsconfig.json`. TypeScript project references link them so editor IntelliSense and incremental builds work cleanly. The VSIX-producing packages (`core`, `workshop`, `shop`, `pub`) include a `vsce`-compatible manifest at the package root.
+Each `packages/<name>/` directory has its own `src/`, `tests/`, `package.json`, and `tsconfig.json`. TypeScript project references link them so editor IntelliSense and incremental builds work cleanly. The VSIX-producing packages (`core`, `workshop`, `shop`, `pub`, `assurance`) include a `vsce`-compatible manifest at the package root.
 
 ## Package management and versioning
 
@@ -197,7 +197,7 @@ Use semantic versioning for:
 - schema package,
 - SDK package,
 - API contract package,
-- each extension VSIX (`pspf-core`, `pspf-workshop`, `pspf-shop`, `pspf-pub`),
+- each extension VSIX (`pspf-core`, `pspf-workshop`, `pspf-shop`, `pspf-pub`, `pspf-assurance`),
 - Explorer export schema (the bundle `bundleVersion`).
 
 ### Compatibility model
@@ -307,7 +307,7 @@ Every PR should pass:
 - schema compatibility tests,
 - smoke packaging check.
 
-Platform changes that affect schema or APIs should also trigger downstream compatibility checks for Shop, Pub, and Explorer fixtures.
+Platform changes that affect schema or APIs should also trigger downstream compatibility checks for Shop, Pub, Assurance, and Explorer fixtures.
 
 ### Specification governance checks
 

@@ -90,6 +90,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0075 | Questionnaire-driven workspace population | Accepted. Ships in v1.33 as the v1.33 questionnaire-driven population |
 | 0076 | v1.42 remediation foundation | accepted |
 | 0077 | AI capability boundary | accepted |
+| 0078 | PSPF Assurance extension boundary | accepted |
 
 ## Template
 

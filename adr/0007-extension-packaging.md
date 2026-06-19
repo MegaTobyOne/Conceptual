@@ -1,8 +1,8 @@
 # 0007 — Extension packaging and trust registry
 
-- Status: accepted (source-layout aspect superseded by ADR 0013)
+- Status: accepted (source-layout aspect superseded by ADR 0013; packaging count superseded by ADR 0078)
 - Date: 2026-05-09
-- Superseded by: 0013 (source layout only; the four-extension packaging decision below stands)
+- Superseded by: 0013 (source layout only), 0078 (packaging count only)
 
 ## Context
 
@@ -17,7 +17,7 @@ Both questions affect the same security boundary: which code is allowed to call 
 
 ### Packaging
 
-- Core, Workshop, Shop, and Pub are **four separate VS Code extensions**, each published independently to the Marketplace.
+- Core, Workshop, Shop, Pub, and Assurance are **five separate VS Code extensions**, each published independently to the Marketplace. Assurance was added by ADR 0078; earlier text in this ADR referred to four extensions.
 - Workshop, Shop, and Pub each declare a peer-extension dependency on Core via documented compatibility metadata; activation defers any privileged work until Core's API is reachable.
 - Onboarding documentation recommends installing Core+Workshop together for the most common use case, but that is a UX recommendation, not a packaging fact.
 
