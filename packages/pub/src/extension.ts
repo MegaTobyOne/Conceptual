@@ -1709,8 +1709,8 @@ function renderHomeHtml(store: PubStore): string {
       body: renderPubUpcomingActionsGraphic(upcomingBadges)
     }),
     homeSection({ id: "actions", eyebrow: "Open", heading: "People & relationship tools", body: coreActions }),
-    homeSection({ id: "create", eyebrow: "Author", heading: "Capture New Records", body: createActions }),
-    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Review And Update", body: editActions }),
+    homeSection({ id: "create", eyebrow: "Author", heading: "Create local records", body: createActions }),
+    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Edit local records", body: editActions }),
     homeSection({ id: "advanced", eyebrow: "Advanced", heading: "Advanced Tools", body: advancedActions })
   ].join("");
 
