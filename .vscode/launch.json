@@ -2,13 +2,26 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run PSPF Core + Workshop",
+      "name": "Run PSPF Core + Assurance + Workshop",
       "type": "extensionHost",
       "request": "launch",
       "preLaunchTask": "pnpm: build",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/packages/core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/assurance",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/workshop",
+        "${workspaceFolder}/debug-workspace"
+      ],
+      "outFiles": ["${workspaceFolder}/packages/*/dist/**/*.js"]
+    },
+    {
+      "name": "Run PSPF Core + Assurance",
+      "type": "extensionHost",
+      "request": "launch",
+      "preLaunchTask": "pnpm: build",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/assurance",
         "${workspaceFolder}/debug-workspace"
       ],
       "outFiles": ["${workspaceFolder}/packages/*/dist/**/*.js"]
@@ -30,12 +43,13 @@
       "outFiles": ["${workspaceFolder}/packages/*/dist/**/*.js"]
     },
     {
-      "name": "Run PSPF Core + Workshop + Shop",
+      "name": "Run PSPF Core + Assurance + Workshop + Shop",
       "type": "extensionHost",
       "request": "launch",
       "preLaunchTask": "pnpm: build",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/packages/core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/assurance",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/workshop",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/shop",
         "${workspaceFolder}/debug-workspace"
@@ -43,12 +57,13 @@
       "outFiles": ["${workspaceFolder}/packages/*/dist/**/*.js"]
     },
     {
-      "name": "Run PSPF Core + Workshop + Shop + Pub",
+      "name": "Run PSPF Core + Assurance + Workshop + Shop + Pub",
       "type": "extensionHost",
       "request": "launch",
       "preLaunchTask": "pnpm: build",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/packages/core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/assurance",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/workshop",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/shop",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/pub",

@@ -38,6 +38,8 @@ import {
   type UnifiedSecurityOperatingModel,
   buildCyberAwarenessChangeStrategyModel,
   type CyberAwarenessChangeStrategyModel,
+  buildStrategyPrioritySummary,
+  type StrategyPrioritySummary,
   CONTINUOUS_COMPLIANCE_ASSURANCE_BANDS,
   CONTINUOUS_COMPLIANCE_RISK_SEVERITIES
 } from "./continuous-compliance.js";
@@ -390,6 +392,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.loadHomeSampleWorkspace", loadHomeSampleWorkspace),
     vscode.commands.registerCommand("pspf.workshop.importBundle", importBundle),
     vscode.commands.registerCommand("pspf.workshop.exportBackupJson", exportBackupJson),
+    vscode.commands.registerCommand("pspf.workshop.exportTeamShareBundle", exportTeamShareBundle),
     vscode.commands.registerCommand("pspf.workshop.importBackupJson", importBackupJson),
     vscode.commands.registerCommand("pspf.workshop.attachEvidence", attachEvidence),
     vscode.commands.registerCommand("pspf.workshop.createAction", createAction),
@@ -762,6 +765,13 @@ async function exportBackupJson(): Promise<void> {
   await homeViewProvider?.refresh();
 }
 
+async function exportTeamShareBundle(): Promise<void> {
+  await vscode.commands.executeCommand("pspf.core.exportTeamShareBundle");
+  const allEntities = await listAllEntities();
+  await recordShareState(allEntities, "Team share bundle");
+  await homeViewProvider?.refresh();
+}
+
 async function importBackupJson(): Promise<void> {
   await vscode.commands.executeCommand("pspf.core.importBundle");
   await homeViewProvider?.refresh();
@@ -1117,6 +1127,20 @@ async function continueNextTask(): Promise<void> {
 }
 
 function renderHomeView(model: WorkshopHomeModel): string {
+  const hasPendingTriage =
+    model.missingEvidence + model.evidenceReview + model.urgentActions + model.directionsNeedingResponse > 0;
+  const hasNoCoreRecords =
+    model.counts.requirements +
+      model.counts.evidence +
+      model.counts.actions +
+      model.counts.risks +
+      model.counts.directions ===
+    0;
+  const hasOperationalSignals = hasPendingTriage || model.changeRecords > 0;
+  const nextActionDescription = hasPendingTriage
+    ? "Go straight to evidence and urgent actions that need triage"
+    : "No urgent triage right now; open the assessment dashboard";
+
   return homeShellHtml(
     "Workshop Home",
     `
@@ -1154,7 +1178,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
       ${renderWorkshopStatusDonut(model)}
     </section>
     <section>
-      <h2>Where to focus next</h2>
+      <h2>Where To Focus Next</h2>
       ${
         model.missingEvidence + model.evidenceReview + model.urgentActions + model.directionsNeedingResponse === 0
           ? `<p class="muted">All clear right now — nothing waiting on you. A good moment to review posture or capture new evidence.</p>`
@@ -1165,14 +1189,26 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${metricCard("Directions not set", model.directionsNeedingResponse)}
       </div>`
       }
+      ${
+        hasNoCoreRecords
+          ? `<p class="momentum">First success path: create a requirement, add evidence, then open assessment dashboard to confirm posture.</p>
+      <div class="action-list compact">
+        ${homeButton("pspf.workshop.createRequirement", "Add first requirement")}
+        ${homeButton("pspf.workshop.attachEvidence", "Add first evidence")}
+        ${homeButton("pspf.workshop.loadSampleWorkspace", "Load enterprise sample")}
+      </div>`
+          : ""
+      }
       <p class="muted">Recent requirement: ${escapeHtml(model.recentRequirementTitle)}</p>
       <div class="action-list">
-        ${homeButton("pspf.workshop.openMasterDashboard", "Dashboard", "Open essentials, controls, requirements and planning tools")}
-        ${homeButton("pspf.workshop.openAssessmentDashboard", "Assessment", "Open domain posture and Requirements needing action")}
+        ${homeButton("pspf.workshop.home.continue", "Continue next task", nextActionDescription)}
+        ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Open Evidence Triage", "Review missing, stale, and urgent evidence-linked work")}
+        ${homeButton("pspf.workshop.openAssessmentDashboard", "Open Assessment Dashboard", "Open domain posture and requirements needing action")}
+        ${homeButton("pspf.workshop.openMasterDashboard", "Open Workspace Dashboard", "Open essentials, controls, requirements, and planning tools")}
       </div>
     </section>
     <section>
-      <h2>Create</h2>
+      <h2>Capture New Records</h2>
       <div class="action-list compact">
         ${homeButton("pspf.workshop.createRequirement", "Create requirement")}
         ${homeButton("pspf.workshop.attachEvidence", "Add evidence")}
@@ -1182,42 +1218,48 @@ function renderHomeView(model: WorkshopHomeModel): string {
       </div>
     </section>
     <section>
-      <h2>Edit</h2>
+      <h2>Review And Update</h2>
       <div class="action-list compact">
-        ${homeButton("pspf.workshop.openRequirementsList", "Edit requirements")}
-        ${homeButton("pspf.workshop.openEvidenceList", "Edit evidence")}
-        ${homeButton("pspf.workshop.openActionsList", "Edit actions")}
-        ${homeButton("pspf.workshop.openRisksList", "Edit risks")}
-        ${homeButton("pspf.workshop.openDirectionsList", "Edit directions")}
+        ${homeButton("pspf.workshop.openRequirementsList", "Review requirements")}
+        ${homeButton("pspf.workshop.openEvidenceList", "Review evidence")}
+        ${homeButton("pspf.workshop.openActionsList", "Review actions")}
+        ${homeButton("pspf.workshop.openRisksList", "Review risks")}
+        ${homeButton("pspf.workshop.openDirectionsList", "Review directions")}
       </div>
     </section>
     <section>
-      <h2>Check And Share</h2>
+      <h2>Validate And Share</h2>
       ${model.shareNudge ? `<p class="momentum">${escapeHtml(model.shareNudge)}</p>` : ""}
       <div class="action-list compact">
-        ${homeButton("pspf.core.exportBundle", "Export bundle")}
-        ${homeButton("pspf.workshop.importBundle", "Import bundle")}
-        ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
+        ${homeButton("pspf.core.exportBundle", "Export Explorer bundle")}
+        ${homeButton("pspf.workshop.exportTeamShareBundle", "Share with team", "Write a redacted bundle to .pspf/share/bundle.json for Git-based team sharing")}
+        ${homeButton("pspf.workshop.importBundle", "Import Explorer bundle")}
+        ${homeButton("pspf.workshop.copyPostureBrief", "Copy posture brief")}
       </div>
     </section>
     <section>
-      <h2>Panel</h2>
-      <div class="action-list compact">
-        ${homeButton("pspf.workshop.home.refresh", "Refresh")}
-      </div>
-    </section>
-    <section>
-      <h2>Integrations</h2>
-      <div class="action-list compact">
-        ${homeButton("pspf.workshop.previewRiskSourceImport", "Run integrations", "Fetch configured risk-source changes and prepare updates")}
-      </div>
-    </section>
-    <section>
-      <h2>Maintenance</h2>
-      <div class="action-list compact">
-        ${homeButton("pspf.core.validateWorkspace", "Validate workspace")}
-        ${homeButton("pspf.core.runDatasetDiagnostics", "Dataset diagnostics")}
-      </div>
+      <h2>Advanced Tools</h2>
+      ${
+        hasOperationalSignals
+          ? `<p class="muted">Operational signals are active. Use these tools when data quality, integrations, or derived views look out of date.</p>`
+          : `<p class="muted">Use these tools only when needed. Day-to-day assessment work should usually stay in the sections above.</p>`
+      }
+      <details>
+        <summary><strong>Integrations</strong></summary>
+        <p class="muted">Use when importing risk-source changes into Workshop.</p>
+        <div class="action-list compact">
+          ${homeButton("pspf.workshop.previewRiskSourceImport", "Run integrations", "Fetch configured risk-source changes and prepare updates")}
+        </div>
+      </details>
+      <details>
+        <summary><strong>Maintenance</strong></summary>
+        <p class="muted">Use when validating workspace health or diagnosing dataset issues.</p>
+        <div class="action-list compact">
+          ${homeButton("pspf.core.validateWorkspace", "Validate workspace")}
+          ${homeButton("pspf.core.runDatasetDiagnostics", "Dataset diagnostics")}
+          ${homeButton("pspf.workshop.home.refresh", "Refresh")}
+        </div>
+      </details>
     </section>
   `
   );
@@ -4066,17 +4108,13 @@ async function openRequirementCardView(): Promise<void> {
 }
 
 async function openPentestWorkbench(): Promise<void> {
-  await ensureCoreReady();
-  const panel = vscode.window.createWebviewPanel(
-    "pspfPentestWorkbench",
-    "Penetration Testing Workbench",
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-  wireWorkshopPanelMessages(panel, async () => {
-    panel.webview.html = renderPentestWorkbench(buildPentestWorkbenchModel(await listAllEntities()));
-  });
-  panel.webview.html = renderPentestWorkbench(buildPentestWorkbenchModel(await listAllEntities()));
+  try {
+    await vscode.commands.executeCommand("pspf.assurance.openPentestWorkbench");
+  } catch {
+    await vscode.window.showWarningMessage(
+      "PSPF Assurance owns the Penetration Testing Workbench. Install or enable PSPF Assurance to open it."
+    );
+  }
 }
 
 function renderRequirementCardView(model: RequirementCardViewModel): string {
@@ -4316,7 +4354,7 @@ function requirementCardViewScript(): string {
   </script>`;
 }
 
-function renderPentestWorkbench(model: PentestWorkbenchModel): string {
+function _renderPentestWorkbench(model: PentestWorkbenchModel): string {
   const assessments =
     model.assessments.length > 0
       ? model.assessments.map(renderPentestAssessment).join("")
@@ -6425,7 +6463,7 @@ async function openStrategyMap(): Promise<void> {
       `
       <section>
         <h1>Cyber Strategy Map</h1>
-        <p class="muted">No Strategy record is available in this workspace yet. Create a draft strategy or load the sample workspace to test the v1.24 strategy view.</p>
+        <p class="muted">No Strategy record is available in this workspace yet. Create a draft strategy or load the sample workspace to preview the strategy view.</p>
         ${versionStrip()}
         <div class="form-actions">
           <button type="button" data-command="createStrategyDraft">Create draft strategy</button>
@@ -6438,15 +6476,21 @@ async function openStrategyMap(): Promise<void> {
     return;
   }
 
-  const choiceRows = strategy.choices.map((choice) => ({
-    choice: choice.statement,
-    capability: choice.capabilityArea,
-    trend: trendIndicator(choice.trend),
-    confidence: label(choice.confidence),
-    outcomes: choice.outcomes.length,
-    linkedRecords: choice.references.length,
-    target: choice.targetPosture
-  }));
+  const choiceRows = strategy.choices.map((choice) => {
+    const priority = buildStrategyPrioritySummary(choice, risks);
+    return {
+      choice: choice.statement,
+      capability: choice.capabilityArea,
+      priority: priority.bandLabel,
+      blockers: priority.topRisks.length,
+      linkedWork: priority.linkedActionCount,
+      trend: trendIndicator(choice.trend),
+      confidence: label(choice.confidence),
+      outcomes: choice.outcomes.length,
+      linkedRecords: choice.references.length,
+      target: choice.targetPosture
+    };
+  });
 
   panel.webview.html = shellHtml(
     "PSPF Cyber Strategy Map",
@@ -6475,7 +6519,7 @@ async function openStrategyMap(): Promise<void> {
         ${strategy.choices.map((choice) => strategyChoiceCard(choice, { requirements, risks, actions, directions })).join("")}
       </div>
     </section>
-    ${recordTable("Choice Summary", choiceRows, ["choice", "capability", "trend", "confidence", "outcomes", "linkedRecords", "target"])}
+    ${recordTable("Choice Summary", choiceRows, ["choice", "capability", "priority", "blockers", "linkedWork", "trend", "confidence", "outcomes", "linkedRecords", "target"])}
     ${renderMeasuresGroupedByChoice(strategy)}
   `
   );
@@ -6604,12 +6648,13 @@ async function editStrategySummary(): Promise<void> {
 async function openStrategyEditorPanel(strategy: StrategyEntity): Promise<void> {
   let currentStrategy = strategy;
   let currentArea = "frame";
+  let currentRisks = riskMapFromEntities(await listAllEntities());
   const panel = vscode.window.createWebviewPanel("pspfStrategyEditor", "PSPF Strategy Editor", vscode.ViewColumn.One, {
     enableScripts: true
   });
 
   const refresh = (): void => {
-    panel.webview.html = renderStrategyEditorPanel(currentStrategy, currentArea);
+    panel.webview.html = renderStrategyEditorPanel(currentStrategy, currentArea, currentRisks);
   };
 
   const runPendingCommand = async (message: SaveEntityMessage): Promise<void> => {
@@ -6707,7 +6752,9 @@ async function openStrategyEditorPanel(strategy: StrategyEntity): Promise<void> 
       return;
     }
     if (message.command === "refresh") {
-      const latest = (await listAllEntities()).find(
+      const allEntities = await listAllEntities();
+      currentRisks = riskMapFromEntities(allEntities);
+      const latest = allEntities.find(
         (entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.id === currentStrategy.id
       );
       if (latest) {
@@ -6743,7 +6790,11 @@ async function openStrategyEditorPanel(strategy: StrategyEntity): Promise<void> 
   refresh();
 }
 
-function renderStrategyEditorPanel(strategy: StrategyEntity, currentArea: string): string {
+function renderStrategyEditorPanel(
+  strategy: StrategyEntity,
+  currentArea: string,
+  risksById: ReadonlyMap<string, RiskEntity>
+): string {
   return shellHtml(
     "PSPF Strategy Editor",
     `
@@ -6767,7 +6818,7 @@ function renderStrategyEditorPanel(strategy: StrategyEntity, currentArea: string
         <input type="hidden" name="entityType" value="strategy">
         <input type="hidden" name="entityId" value="${escapeHtml(strategy.id)}">
         <input type="hidden" name="strategyArea" value="${escapeHtml(currentArea)}">
-        ${renderStrategyAreaReadiness(strategy, currentArea)}
+        ${renderStrategyAreaReadiness(strategy, currentArea, risksById)}
         ${renderStrategyEditorArea(strategy, currentArea)}
         <section>
           <h2>Save</h2>
@@ -6818,9 +6869,16 @@ function strategyAreaNavItem(area: string, title: string, detail: string, curren
   return `<button type="button" class="strategy-editor__nav-item${nested ? " strategy-editor__nav-item--nested" : ""}" data-command="openStrategyArea" data-strategy-area="${escapeHtml(area)}"${area === currentArea ? ' aria-current="page"' : ""}><strong>${escapeHtml(title)}</strong><span>${escapeHtml(detail)}</span></button>`;
 }
 
-function renderStrategyAreaReadiness(strategy: StrategyEntity, currentArea: string): string {
-  const summary = strategyAreaReadiness(strategy, currentArea);
+function renderStrategyAreaReadiness(
+  strategy: StrategyEntity,
+  currentArea: string,
+  risksById: ReadonlyMap<string, RiskEntity>
+): string {
+  const summary = strategyAreaReadiness(strategy, currentArea, risksById);
   const missingItems = summary.missing.length > 0 ? summary.missing : ["No obvious gaps for this area."];
+  const priorityCue = summary.priority
+    ? `<div class="strategy-editor__cue"><h3>Priority logic</h3><p>${escapeHtml(summary.priority.rationale)}</p><p class="muted">Score uses likelihood x impact, then adjusts for choice trend and confidence. Direct Strategy action references are counted as linked work.</p></div>`
+    : "";
   return `<section class="strategy-editor__readiness">
     <p class="eyebrow">Area readiness</p>
     <h2>${escapeHtml(summary.title)}</h2>
@@ -6832,10 +6890,13 @@ function renderStrategyAreaReadiness(strategy: StrategyEntity, currentArea: stri
       ${metricCard("Directions", summary.referenceCounts.direction)}
       ${metricCard("Outcomes", summary.outcomeCount)}
       ${metricCard("Measures", summary.measureCount)}
+      ${summary.priority ? metricCard("Priority", summary.priority.bandLabel) : ""}
+      ${summary.priority ? metricCard("Linked work", summary.priority.linkedActionCount) : ""}
     </div>
     <div class="strategy-editor__cue-grid strategy-editor__cue-grid--text">
       <div class="strategy-editor__cue"><h3>Next useful checks</h3><ul>${missingItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></div>
       <div class="strategy-editor__cue"><h3>Publication posture</h3><p>${escapeHtml(summary.publicationCue)}</p></div>
+      ${priorityCue}
     </div>
   </section>`;
 }
@@ -6846,11 +6907,16 @@ type StrategyAreaReadiness = {
   readonly referenceCounts: Readonly<Record<"requirement" | "risk" | "action" | "direction", number>>;
   readonly outcomeCount: number;
   readonly measureCount: number;
+  readonly priority?: StrategyPrioritySummary;
   readonly missing: readonly string[];
   readonly publicationCue: string;
 };
 
-function strategyAreaReadiness(strategy: StrategyEntity, currentArea: string): StrategyAreaReadiness {
+function strategyAreaReadiness(
+  strategy: StrategyEntity,
+  currentArea: string,
+  risksById: ReadonlyMap<string, RiskEntity>
+): StrategyAreaReadiness {
   if (currentArea === "frame") {
     const allReferences = strategy.choices.flatMap((choice) => [
       ...choice.references,
@@ -6886,17 +6952,21 @@ function strategyAreaReadiness(strategy: StrategyEntity, currentArea: string): S
   if (outcomeMatch) {
     const choiceIndex = Number(outcomeMatch[1]);
     const outcomeIndex = Number(outcomeMatch[2]);
+    const choice = strategy.choices[choiceIndex];
     const outcome = strategy.choices[choiceIndex]?.outcomes[outcomeIndex];
-    if (outcome) {
+    if (choice && outcome) {
+      const priority = buildStrategyPrioritySummary({ ...choice, references: [], outcomes: [outcome] }, risksById);
       return {
         title: `Outcome ${choiceIndex + 1}.${outcomeIndex + 1}`,
         description: "Outcome workspace for intended change, measures, and linked work.",
         referenceCounts: strategyReferenceCounts(outcome.references),
         outcomeCount: 1,
         measureCount: outcome.measures.length,
+        priority,
         missing: compactStrings([
           outcome.statement.trim() ? "" : "Add the outcome statement.",
           outcome.summary.trim() ? "" : "Add an outcome summary for executive readers.",
+          priority.band !== "none" ? "" : "Link a Risk so priority can be inferred for this outcome.",
           outcome.references.length > 0
             ? ""
             : "Link at least one Requirement so this outcome traces to assurance work.",
@@ -6917,16 +6987,19 @@ function strategyAreaReadiness(strategy: StrategyEntity, currentArea: string): S
     const choice = strategy.choices[choiceIndex];
     if (choice) {
       const measureCount = choice.outcomes.reduce((total, outcome) => total + outcome.measures.length, 0);
+      const priority = buildStrategyPrioritySummary(choice, risksById);
       return {
         title: `Strategic choice ${choiceIndex + 1}`,
         description: "Choice context for intent, owner, target posture, rationale, constraints, and outcomes.",
         referenceCounts: strategyReferenceCounts(choice.references),
         outcomeCount: choice.outcomes.length,
         measureCount,
+        priority,
         missing: compactStrings([
           choice.statement.trim() ? "" : "Add the choice statement.",
           choice.summary.trim() ? "" : "Add a choice summary that can feed the Master Plan.",
           choice.targetPosture.trim() ? "" : "Add the target posture for this choice.",
+          priority.band !== "none" ? "" : "Link risks under this choice so priority can be inferred.",
           choice.references.length > 0 ? "" : "Link at least one Requirement to ground the choice.",
           choice.outcomes.length > 0 ? "" : "Add outcomes under this choice.",
           measureCount > 0 ? "" : "Add measures under the outcomes."
@@ -6937,7 +7010,7 @@ function strategyAreaReadiness(strategy: StrategyEntity, currentArea: string): S
     }
   }
 
-  return strategyAreaReadiness(strategy, "frame");
+  return strategyAreaReadiness(strategy, "frame", risksById);
 }
 
 function strategyReferenceCounts(
@@ -7522,6 +7595,15 @@ function strategyChoiceCard(
     readonly directions: ReadonlyMap<string, DirectionEntity>;
   }
 ): string {
+  const priority = buildStrategyPrioritySummary(choice, lookup.risks);
+  const topRisks = priority.topRisks.length
+    ? `<ul class="strategy-priority-list">${priority.topRisks
+        .map(
+          (risk) =>
+            `<li><strong>${escapeHtml(risk.severityLabel)}</strong> ${escapeHtml(risk.title)}${risk.outcomeStatement ? ` <span class="muted">(${escapeHtml(risk.outcomeStatement)})</span>` : ""}</li>`
+        )
+        .join("")}</ul>`
+    : `<p class="muted">${escapeHtml(priority.rationale)}</p>`;
   const outcomes = choice.outcomes
     .map(
       (outcome) => `
@@ -7538,6 +7620,15 @@ function strategyChoiceCard(
     </div>
     <strong>${escapeHtml(choice.statement)}</strong>
     <p>${escapeHtml(choice.summary)}</p>
+    <div class="strategy-priority-panel">
+      <div class="strategy-choice-card__top">
+        ${shellPill(priority.bandLabel)}
+        ${shellPill(`${priority.linkedActionCount} linked action${priority.linkedActionCount === 1 ? "" : "s"}`)}
+      </div>
+      <p class="muted">${escapeHtml(priority.rationale)}</p>
+      <h3>Top blockers</h3>
+      ${topRisks}
+    </div>
     <p class="muted">Confidence: ${escapeHtml(label(choice.confidence))}</p>
     <p>${escapeHtml(choice.targetPosture)}</p>
     <h3>Linked Records</h3>
@@ -7572,6 +7663,14 @@ function strategyReferenceList(
     })
     .join("");
   return `<ul>${rows}</ul>`;
+}
+
+function riskMapFromEntities(entities: readonly V01Entity[]): ReadonlyMap<string, RiskEntity> {
+  return new Map(
+    entities
+      .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
+      .map((risk) => [risk.id, risk])
+  );
 }
 
 interface ConnectedViewOpenOptions {

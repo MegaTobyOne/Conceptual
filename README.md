@@ -4,7 +4,7 @@ Status: **active**
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.42.1 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
+The repository currently ships PSPF v1.43.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
 
 ## Products
 
@@ -31,13 +31,17 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.42.1-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.43.0-readiness-report.md`.
 
 ## Current Workshop Slice
 
 Workshop is the main operator surface for evidence-backed assessment work. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
 
-Current v1.42 remediation additions include:
+Current v1.43 additions:
+
+- Strategy priority inference (risk → priority → choice): strategic choices that link risks now derive a priority band (Critical, High, Medium, Low, or none) from the linked risks' severity (likelihood × impact), adjusted by the choice's trend and confidence. The Strategy Map and Strategy Editor show the band, a plain-language rationale, the top blocking risks, and repair cues for unresolved risk links. This is a derived read model only — no new schema, entity, or link verb, and `VERSION_AXES` remain `1.14.0`.
+
+Earlier v1.42 remediation additions include:
 
 - Explorer bundle schema `1.14.0`: adds optional lifecycle decision metadata and sensitive/default-deny evidence link context while preserving earlier schema directories.
 - Workshop evidence operations: Action editors can apply tags to linked Requirements, evidence links can capture sensitive section/note context, and Evidence Review can copy a scoped evidence package by domain.
@@ -46,7 +50,7 @@ Current v1.42 remediation additions include:
 - UX and IA refinement: Workshop Home is simplified around frequent actions, the Master Dashboard is a portal with actionable decision loops, Strategy Map and ISM browsing are grouped for scanability, and tree views expose browse-panel shortcuts.
 - Pub planning context: the Organisation Chart uses team cards with roles on the front and accountable Requirements, controls, and team dates on the back. Team-wide news and dates can be stored locally and optionally surfaced on the Workshop Plan of Action.
 
-Still not implemented in v1.42: Pub data is still never published to Explorer bundles; Pub team dates remain local planning context only; there is no automatic conflict resolution, calendar integration, notification engine, Pub delete/archive workflow beyond role archive, roster/performance-management workflow, or post-quantum encrypted master-bundle envelope. Post-quantum protection is a deferred decision item and must preserve the existing single master JSON bundle contract when revisited.
+Still deferred after v1.43: Pub data is still never published to Explorer bundles; Pub team dates remain local planning context only; there is no automatic conflict resolution, calendar integration, notification engine, Pub delete/archive workflow beyond role archive, roster/performance-management workflow, or post-quantum encrypted master-bundle envelope. Post-quantum protection is a deferred decision item and must preserve the existing single master JSON bundle contract when revisited.
 
 Recent Workshop additions include:
 

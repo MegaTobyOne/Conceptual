@@ -19,6 +19,21 @@ const extensionPackages = [
     ]
   },
   {
+    name: "Assurance",
+    directory: "packages/assurance",
+    dependency: "tobyharvey.pspf-core",
+    expectedCommands: [
+      "pspf.assurance.openHome",
+      "pspf.assurance.openAssessmentWorkbench",
+      "pspf.assurance.openPentestWorkbench",
+      "pspf.assurance.newAssessment",
+      "pspf.assurance.newFinding",
+      "pspf.assurance.openVerificationQueue",
+      "pspf.assurance.prepareAssuranceReport",
+      "pspf.assurance.runPublicationReadiness"
+    ]
+  },
+  {
     name: "Workshop",
     directory: "packages/workshop",
     dependency: "tobyharvey.pspf-core",
@@ -117,6 +132,7 @@ for (const extensionPackage of extensionPackages) {
     `${extensionPackage.name} publisher metadata matches the v1.0 Marketplace publisher`
   );
   assert.equal(manifest.main, "./dist/extension.js", `${extensionPackage.name} main points at built extension output`);
+  await access(join(root, extensionPackage.directory, ".vscodeignore"));
   await access(join(root, extensionPackage.directory, "dist", "extension.js"));
   const commands = new Set((manifest.contributes?.commands ?? []).map((command) => command.command));
   for (const expectedCommand of extensionPackage.expectedCommands) {
@@ -138,6 +154,49 @@ for (const extensionPackage of extensionPackages) {
       ),
       true,
       "Workshop contributes the Home webview view"
+    );
+  }
+  if (extensionPackage.name === "Assurance") {
+    const activityBarContainer = manifest.contributes?.viewsContainers?.activitybar?.find(
+      (container) => container.id === "pspfAssurance"
+    );
+    assert.equal(Boolean(activityBarContainer), true, "Assurance contributes an Activity Bar container");
+    assert.equal(
+      activityBarContainer?.icon,
+      "resources/assurance.svg",
+      "Assurance Activity Bar container uses the coloured Assurance icon"
+    );
+    assert.match(
+      await readFile(join(root, extensionPackage.directory, "resources", "assurance.svg"), "utf8"),
+      /stroke="#0f766e"/,
+      "Assurance Activity Bar icon uses the Assurance teal stroke"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some(
+        (view) => view.id === "pspfAssurance.homeView" && view.type === "webview"
+      ),
+      true,
+      "Assurance contributes the Home webview view"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some((view) => view.id === "pspfAssurance.assessmentsView"),
+      true,
+      "Assurance contributes the Assessments tree view"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some((view) => view.id === "pspfAssurance.findingsView"),
+      true,
+      "Assurance contributes the Findings tree view"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some((view) => view.id === "pspfAssurance.verificationView"),
+      true,
+      "Assurance contributes the Verification tree view"
+    );
+    assert.equal(
+      manifest.contributes?.views?.pspfAssurance?.some((view) => view.id === "pspfAssurance.publicationsView"),
+      true,
+      "Assurance contributes the Publications tree view"
     );
   }
   if (extensionPackage.name === "Shop") {
@@ -190,4 +249,6 @@ for (const extensionPackage of extensionPackages) {
   }
 }
 
-console.log("ok Core, Workshop, Shop, and Pub extension package shapes match the Marketplace deployment baseline");
+console.log(
+  "ok Core, Assurance, Workshop, Shop, and Pub extension package shapes match the Marketplace deployment baseline"
+);

@@ -15,6 +15,7 @@ import {
   buildCyberAwarenessChangeStrategyModel,
   buildHumanCentredRiskModel,
   buildPspfGridModel,
+  buildStrategyPrioritySummary,
   buildUnifiedSecurityOperatingModel,
   riskSeverityForScore
 } from "./continuous-compliance.js";
@@ -102,6 +103,180 @@ test("human-centred risk matrix counts risks by impact and likelihood", () => {
     model.riskMatrix.find((cell) => cell.likelihood === 5 && cell.impact === 4),
     { likelihood: 5, impact: 4, riskCount: 1, band: "red" }
   );
+});
+
+test("strategy priority reports no priority before risks are linked", () => {
+  const summary = buildStrategyPrioritySummary(
+    strategy({
+      capabilityArea: "Identity and access",
+      executiveOwner: "Identity Team",
+      outcomeId: "OUT-1",
+      outcomeStatement: "Trusted access to critical services"
+    }).choices[0]!,
+    new Map()
+  );
+
+  assert.equal(summary.band, "none");
+  assert.equal(summary.score, 0);
+  assert.match(summary.rationale, /No linked risks yet/);
+});
+
+test("strategy priority weights linked risk severity with choice trend and confidence", () => {
+  const highRisk = risk({ id: "RSK-1", title: "Legacy identity exposure", likelihood: 5, impact: 4, status: "open" });
+  const choice = strategy({
+    capabilityArea: "Identity and access",
+    executiveOwner: "Identity Team",
+    outcomeId: "OUT-1",
+    outcomeStatement: "Trusted access to critical services",
+    riskRefId: "RSK-1",
+    trend: "deteriorating",
+    confidence: "low"
+  }).choices[0]!;
+  const summary = buildStrategyPrioritySummary(choice, new Map([[highRisk.id, highRisk]]));
+
+  assert.equal(summary.band, "critical");
+  assert.equal(summary.score, 28);
+  assert.equal(summary.highRiskCount, 1);
+  assert.equal(summary.topRisks[0]?.adjustedScore, 28);
+  assert.match(summary.rationale, /Critical priority/);
+});
+
+test("strategy priority bands follow fixed adjusted-score thresholds", () => {
+  const cases: Array<{
+    readonly name: string;
+    readonly likelihood: number;
+    readonly impact: number;
+    readonly trend: StrategyEntity["choices"][number]["trend"];
+    readonly confidence: StrategyEntity["choices"][number]["confidence"];
+    readonly expectedScore: number;
+    readonly expectedBand: "critical" | "high" | "medium" | "low";
+  }> = [
+    {
+      name: "low lower edge",
+      likelihood: 1,
+      impact: 1,
+      trend: "improving",
+      confidence: "high",
+      expectedScore: 1,
+      expectedBand: "low"
+    },
+    {
+      name: "below medium",
+      likelihood: 4,
+      impact: 2,
+      trend: "improving",
+      confidence: "medium",
+      expectedScore: 9,
+      expectedBand: "low"
+    },
+    {
+      name: "medium lower edge",
+      likelihood: 3,
+      impact: 3,
+      trend: "improving",
+      confidence: "medium",
+      expectedScore: 10,
+      expectedBand: "medium"
+    },
+    {
+      name: "below high",
+      likelihood: 4,
+      impact: 4,
+      trend: "steady",
+      confidence: "medium",
+      expectedScore: 19,
+      expectedBand: "medium"
+    },
+    {
+      name: "high lower edge",
+      likelihood: 5,
+      impact: 4,
+      trend: "improving",
+      confidence: "high",
+      expectedScore: 20,
+      expectedBand: "high"
+    },
+    {
+      name: "below critical",
+      likelihood: 5,
+      impact: 5,
+      trend: "steady",
+      confidence: "high",
+      expectedScore: 27,
+      expectedBand: "high"
+    },
+    {
+      name: "critical lower edge",
+      likelihood: 5,
+      impact: 4,
+      trend: "deteriorating",
+      confidence: "low",
+      expectedScore: 28,
+      expectedBand: "critical"
+    }
+  ];
+
+  for (const entry of cases) {
+    const linkedRisk = risk({
+      id: `RSK-${entry.expectedScore}`,
+      title: entry.name,
+      likelihood: entry.likelihood,
+      impact: entry.impact,
+      status: "open"
+    });
+    const choice = strategy({
+      capabilityArea: "Identity and access",
+      executiveOwner: "Identity Team",
+      outcomeId: "OUT-1",
+      outcomeStatement: "Trusted access to critical services",
+      riskRefId: linkedRisk.id,
+      trend: entry.trend,
+      confidence: entry.confidence
+    }).choices[0]!;
+    const summary = buildStrategyPrioritySummary(choice, new Map([[linkedRisk.id, linkedRisk]]));
+
+    assert.equal(summary.score, entry.expectedScore, entry.name);
+    assert.equal(summary.band, entry.expectedBand, entry.name);
+  }
+});
+
+test("strategy priority deduplicates direct risk and action references", () => {
+  const linkedRisk = risk({ id: "RSK-1", title: "Identity exposure", likelihood: 4, impact: 4, status: "open" });
+  const choice = strategy({
+    capabilityArea: "Identity and access",
+    executiveOwner: "Identity Team",
+    outcomeId: "OUT-1",
+    outcomeStatement: "Trusted access to critical services",
+    riskRefId: "RSK-1",
+    actionRefId: "ACT-1"
+  }).choices[0]!;
+  const duplicatedChoice = {
+    ...choice,
+    references: [
+      ...choice.references,
+      { entityType: "risk", entityId: "RSK-1", role: "blocked-by" },
+      { entityType: "action", entityId: "ACT-1", role: "addresses" }
+    ]
+  } satisfies StrategyEntity["choices"][number];
+  const summary = buildStrategyPrioritySummary(duplicatedChoice, new Map([[linkedRisk.id, linkedRisk]]));
+
+  assert.equal(summary.topRisks.length, 1);
+  assert.equal(summary.linkedActionCount, 1);
+});
+
+test("strategy priority excludes unresolved risks but keeps repair cue", () => {
+  const choice = strategy({
+    capabilityArea: "Identity and access",
+    executiveOwner: "Identity Team",
+    outcomeId: "OUT-1",
+    outcomeStatement: "Trusted access to critical services",
+    riskRefId: "RSK-MISSING"
+  }).choices[0]!;
+  const summary = buildStrategyPrioritySummary(choice, new Map());
+
+  assert.equal(summary.band, "none");
+  assert.equal(summary.unresolvedRiskReferenceCount, 1);
+  assert.match(summary.rationale, /unresolved risk reference/);
 });
 
 test("metro map collapses duplicate capability areas and counts stations", () => {
@@ -211,7 +386,14 @@ function strategy(input: {
   readonly outcomeId: string;
   readonly outcomeStatement: string;
   readonly riskRefId?: string;
+  readonly actionRefId?: string;
+  readonly trend?: StrategyEntity["choices"][number]["trend"];
+  readonly confidence?: StrategyEntity["choices"][number]["confidence"];
 }): StrategyEntity {
+  const references: StrategyEntity["choices"][number]["outcomes"][number]["references"] = [
+    ...(input.riskRefId ? ([{ entityType: "risk", entityId: input.riskRefId, role: "blocked-by" }] as const) : []),
+    ...(input.actionRefId ? ([{ entityType: "action", entityId: input.actionRefId, role: "addresses" }] as const) : [])
+  ];
   return {
     ...envelope("STR-1", "strategy"),
     entityType: "strategy",
@@ -230,8 +412,8 @@ function strategy(input: {
         capabilityArea: input.capabilityArea,
         targetPosture: "Managed",
         executiveOwner: input.executiveOwner,
-        trend: "improving",
-        confidence: "medium",
+        trend: input.trend ?? "improving",
+        confidence: input.confidence ?? "medium",
         references: [],
         outcomes: [
           {
@@ -239,7 +421,7 @@ function strategy(input: {
             statement: input.outcomeStatement,
             summary: "",
             measures: [],
-            references: input.riskRefId ? [{ entityType: "risk", entityId: input.riskRefId, role: "addresses" }] : []
+            references
           }
         ]
       }

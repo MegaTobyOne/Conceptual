@@ -1,7 +1,8 @@
 # 0073 - v1.37 Workshop Continuous Compliance Outputs
 
-- Status: accepted
+- Status: accepted; Pentest Workbench placement superseded by ADR 0078
 - Date: 2026-05-30
+- Superseded by: 0078 (Pentest Workbench placement only)
 
 ## Context
 
@@ -26,7 +27,7 @@ A single module (`packages/workshop/src/continuous-compliance.ts`) holds the fix
 
 Five new commands (`openPspfGridView`, `openHumanCentredRiskView`, `openContinuousComplianceMetro`, `openUnifiedSecurityOperatingModel`, `openCyberAwarenessChangeStrategy`) are registered, allowlisted on Workshop Home, and exposed in the view title menu. O2 reuses the existing Plan of Action command.
 
-A second module (`packages/workshop/src/pentest-workbench.ts`) adds a **Penetration Testing Workbench** as a no-schema read model over Actions, Evidence, Risks, Tags, and commercial links:
+A second module (`packages/workshop/src/pentest-workbench.ts`) initially added a **Penetration Testing Workbench** as a no-schema read model over Actions, Evidence, Risks, Tags, and commercial links. ADR 0078 moves the owning product boundary for pentest and assurance lifecycle work to PSPF Assurance; Workshop may keep compatibility entry points during migration, but must not grow this workbench further.
 
 - **Assessment grouping** — findings are Actions tagged with a `PENTEST-<YYYY>-<ref>` Tag (operator-created using the existing Tag authoring surface). The workbench lists active assessments by Tag label and surfaces per-assessment metrics.
 - **Finding queues** — Actions carrying a pentest assessment Tag are sorted into per-assessment queues by inferred severity and due-date state:

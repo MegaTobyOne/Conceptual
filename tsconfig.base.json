@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "composite": true,
-    "baseUrl": ".",
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
@@ -17,11 +16,11 @@
     "noUncheckedIndexedAccess": true,
     "outDir": "dist",
     "paths": {
-      "@pspf/brief-renderer": ["packages/brief-renderer/src/index.ts"],
-      "@pspf/contracts": ["packages/contracts/src/index.ts"],
-      "@pspf/ism-source-library": ["packages/ism-source-library/src/index.ts"],
-      "@pspf/reference-data": ["packages/reference-data/src/index.ts"],
-      "@pspf/webview-shell": ["packages/webview-shell/src/index.ts"]
+      "@pspf/brief-renderer": ["./packages/brief-renderer/src/index.ts"],
+      "@pspf/contracts": ["./packages/contracts/src/index.ts"],
+      "@pspf/ism-source-library": ["./packages/ism-source-library/src/index.ts"],
+      "@pspf/reference-data": ["./packages/reference-data/src/index.ts"],
+      "@pspf/webview-shell": ["./packages/webview-shell/src/index.ts"]
     },
     "resolveJsonModule": true,
     "rootDir": "src",

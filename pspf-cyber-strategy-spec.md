@@ -112,6 +112,24 @@ Store references to:
 
 The relationship should be many-to-many. A single strategic choice may need several initiatives, and one initiative may support several strategic choices.
 
+## Strategic Priority Inference
+Strategy should make priority explicit rather than leaving it implied. The model derives the priority of each strategic choice from the risks it links, so that risk drives priority and priority drives the choices leadership attends to first.
+
+For each strategic choice, the inference reads the risks referenced by the choice and by its outcomes, ignoring deleted or unresolved references but counting them as repair cues. Each linked risk contributes a severity score of `likelihood × impact`. That score is adjusted by two choice-level signals:
+
+- **Trend**: deteriorating `+5`, steady `+2`, unknown `+1`, improving `+0`.
+- **Confidence**: low `+3`, medium `+1`, high `+0`.
+
+The choice priority score is the peak adjusted score across its linked risks (the single most pressing risk), which keeps one severe, deteriorating, low-confidence risk from being diluted by several minor ones. The score maps to a band:
+
+- **Critical priority** — score `≥ 28`
+- **High priority** — score `≥ 20`
+- **Medium priority** — score `≥ 10`
+- **Low priority** — score `≥ 1`
+- **No risk priority yet** — score `< 1` (no resolvable linked risks)
+
+The surface shows the band, a plain-language rationale (linked risk count, high-risk count, linked action count, and any unresolved references needing repair), and the top blocking risks. This is a derived read model only: it adds no entity, link verb, schema field, or Explorer publication change, and is implemented as a pure builder (`buildStrategyPrioritySummary`) so the same inference powers the Strategy Map, the Strategy Editor, and area readiness without drifting.
+
 ## Recommended Screen Model
 The main screen should be organised as a strategy map rather than a project dashboard.
 

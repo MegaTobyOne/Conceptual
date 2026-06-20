@@ -1,7 +1,8 @@
 # 0001 — Product set and naming
 
-- Status: accepted
+- Status: accepted; product count superseded by ADR 0078
 - Date: 2026-05-09
+- Superseded by: 0078 (product count only)
 
 ## Context
 
@@ -9,7 +10,7 @@ Earlier drafts of the specification set used inconsistent product counts and a s
 
 ## Decision
 
-The PSPF ecosystem has **five products**:
+The PSPF ecosystem originally had **five products**. ADR 0078 supersedes this count by adding PSPF Assurance as a sixth product. The original five were:
 
 1. **Core** — local platform, system of record, admin surface.
 2. **Workshop** — primary authoring surface for requirements, evidence, actions, risks.
@@ -19,13 +20,13 @@ The PSPF ecosystem has **five products**:
 
 The earlier names (`Hearth`, `Trail`, `Lookout`, `Skylight`) are retired. They MUST NOT appear in specs, code, or UI. Where Workshop or Explorer needs internal sub-views for actions, risks, or reporting, those are sub-views and use direct nouns (`Actions`, `Risks`, `Reporting`).
 
-Core and Workshop are **separate VS Code extensions**, published independently to the Marketplace, with a documented compatibility relationship rather than a single bundled VSIX.
+Core and Workshop were established here as **separate VS Code extensions**, published independently to the Marketplace, with a documented compatibility relationship rather than a single bundled VSIX. ADR 0078 extends that packaging pattern to PSPF Assurance.
 
 ## Consequences
 
-- The trusted-caller policy applies to Core ↔ Workshop calls just like Core ↔ Shop and Core ↔ Pub.
-- The compatibility matrix has one more product axis: Workshop release independent of Core release.
-- Documentation, README, marketing, and onboarding refer to five products. Where users want Core+Workshop together, the recommended path is "install both"; the user-facing onboarding makes that one click.
+- The trusted-caller policy applies to Core ↔ Workshop calls just like Core ↔ Shop, Core ↔ Pub, and Core ↔ Assurance.
+- The compatibility matrix has one more product axis per Core satellite release, including Assurance.
+- Current documentation, README, marketing, and onboarding refer to six products. Where users want Core+Workshop together, the recommended path is "install both"; where users want assurance lifecycle management, the recommended path is "install Core+Assurance" or the relevant extension pack.
 - The earlier "container names" idea is dropped; navigation uses direct nouns.
 
 ## Alternatives considered

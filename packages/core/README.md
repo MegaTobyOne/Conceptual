@@ -39,3 +39,5 @@ Install Core first, then add Workshop, Shop, and Pub as needed.
 - Explorer (publication view): <https://tobyharvey.online/explorer/>
 
 This is an independent project. Not affiliated with the Department of Home Affairs, the Attorney-General's Department, or any other Australian Government entity. Do not enter information classified above OFFICIAL: Sensitive.
+
+This is an independent project. Not affiliated with the Department of Home Affairs, the Attorney-General's Department, or any other Australian Government entity. Do not enter information classified above OFFICIAL: Sensitive.

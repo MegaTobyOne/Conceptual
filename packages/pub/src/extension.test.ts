@@ -37,7 +37,7 @@ test("Pub Person CRUD remains local-only", async () => {
 
   assert.match(source, /Person detail stays in Pub local storage/);
   assert.match(source, /Save writes to \.pspf\/pub\/pub\.json only/);
-  assert.match(source, /no Explorer publication in v1\.29/);
+  assert.match(source, /no Explorer publication/);
 });
 
 test("Pub exposes Role detail and edit CRUD panels", async () => {
@@ -70,7 +70,7 @@ test("Pub Role CRUD remains local-only", async () => {
 
   assert.match(source, /Role detail stays in Pub local storage/);
   assert.match(source, /Save writes to \.pspf\/pub\/pub\.json only/);
-  assert.match(source, /no Explorer publication in v1\.29/);
+  assert.match(source, /no Explorer publication/);
 });
 
 test("Pub exposes Assignment detail and edit CRUD panels", async () => {
@@ -94,7 +94,7 @@ test("Pub Assignment CRUD remains local-only", async () => {
 
   assert.match(source, /Assignment detail stays in Pub local storage/);
   assert.match(source, /Save writes to \.pspf\/pub\/pub\.json only/);
-  assert.match(source, /no Explorer publication in v1\.29/);
+  assert.match(source, /no Explorer publication/);
 });
 
 test("Pub exposes Relationship Note detail and edit CRUD panels", async () => {
@@ -121,7 +121,7 @@ test("Pub Relationship Note CRUD remains local-only", async () => {
 
   assert.match(source, /Relationship note detail stays in Pub local storage/);
   assert.match(source, /Save writes to \.pspf\/pub\/pub\.json only/);
-  assert.match(source, /no Explorer publication in v1\.29/);
+  assert.match(source, /no Explorer publication/);
 });
 
 test("Pub Organisation Chart renders a graphic team and role view", async () => {
@@ -177,8 +177,8 @@ test("Pub Home exposes one upcoming-actions graphic", async () => {
 test("Pub Home exposes create and edit panels", async () => {
   const source = await readFile(sourcePath, "utf8");
 
-  assert.match(source, /homeSection\(\{ id: "create", eyebrow: "Author", heading: "Create local records"/);
-  assert.match(source, /homeSection\(\{ id: "edit", eyebrow: "Maintain", heading: "Edit local records"/);
+  assert.match(source, /homeSection\(\{ id: "create", eyebrow: "Author", heading: "Capture New Records"/);
+  assert.match(source, /homeSection\(\{ id: "edit", eyebrow: "Maintain", heading: "Review And Update"/);
   assert.match(source, /homeActionButton\("pspf\.pub\.newPerson", "New person"/);
   assert.match(source, /homeActionButton\("pspf\.pub\.editPerson", "Edit person"/);
   assert.match(source, /homeActionButton\("pspf\.pub\.editTeam", "Edit team"/);

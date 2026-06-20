@@ -42,7 +42,7 @@ A workspace `products.json` MUST NOT add new entries, grant new scopes, or chang
 ### Required fields per caller (Core-distribution registry)
 
 - `extensionId`: unique VS Code extension identifier
-- `product`: `core`, `workshop`, `shop`, `pub`
+- `product`: `core`, `workshop`, `shop`, `pub`, `assurance`
 - `allowedScopes`: list of capability scopes
 - `status`: `active` or `blocked`
 - `introducedIn`: minimum compatible Core API version
@@ -59,6 +59,8 @@ Minimum v1 scopes:
 - `import`
 - `migration-admin`
 - `repair-admin`
+
+Initial PSPF Assurance scope should request the smallest working set: `read`, `write-entity`, and `write-link` only. Export, import, snapshot, migration-admin, and repair-admin scopes remain absent until a later ADR requires them.
 
 ## Authorisation rules
 

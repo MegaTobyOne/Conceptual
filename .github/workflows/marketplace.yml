@@ -14,6 +14,7 @@ on:
           - workshop
           - shop
           - pub
+          - assurance
           - both
           - all
       dry_run:
@@ -46,10 +47,12 @@ jobs:
       publish_workshop: ${{ steps.targets.outputs.publish_workshop }}
       publish_shop: ${{ steps.targets.outputs.publish_shop }}
       publish_pub: ${{ steps.targets.outputs.publish_pub }}
+      publish_assurance: ${{ steps.targets.outputs.publish_assurance }}
       core_version: ${{ steps.versions.outputs.core_version }}
       workshop_version: ${{ steps.versions.outputs.workshop_version }}
       shop_version: ${{ steps.versions.outputs.shop_version }}
       pub_version: ${{ steps.versions.outputs.pub_version }}
+      assurance_version: ${{ steps.versions.outputs.assurance_version }}
       dry_run: ${{ steps.targets.outputs.dry_run }}
     steps:
       - name: Refuse non-main dispatch
@@ -59,7 +62,7 @@ jobs:
           exit 1
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -73,13 +76,15 @@ jobs:
           publish_workshop=false
           publish_shop=false
           publish_pub=false
+          publish_assurance=false
           case "$target" in
             core) publish_core=true ;;
             workshop) publish_workshop=true ;;
             shop) publish_shop=true ;;
             pub) publish_pub=true ;;
+            assurance) publish_assurance=true ;;
             both) publish_core=true; publish_workshop=true ;;
-            all) publish_core=true; publish_workshop=true; publish_shop=true; publish_pub=true ;;
+            all) publish_core=true; publish_workshop=true; publish_shop=true; publish_pub=true; publish_assurance=true ;;
             *) echo "Unknown target: $target" >&2; exit 1 ;;
           esac
           {
@@ -87,6 +92,7 @@ jobs:
             echo "publish_workshop=$publish_workshop"
             echo "publish_shop=$publish_shop"
             echo "publish_pub=$publish_pub"
+            echo "publish_assurance=$publish_assurance"
             echo "dry_run=$dry"
           } >> "$GITHUB_OUTPUT"
           {
@@ -102,12 +108,12 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
@@ -117,7 +123,7 @@ jobs:
         run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
 
       - name: Cache pnpm store
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -129,7 +135,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -161,10 +167,12 @@ jobs:
           workshop_version=$(jq -r '.version' packages/workshop/package.json)
           shop_version=$(jq -r '.version' packages/shop/package.json)
           pub_version=$(jq -r '.version' packages/pub/package.json)
+          assurance_version=$(jq -r '.version' packages/assurance/package.json)
           echo "core_version=$core_version" >> "$GITHUB_OUTPUT"
           echo "workshop_version=$workshop_version" >> "$GITHUB_OUTPUT"
           echo "shop_version=$shop_version" >> "$GITHUB_OUTPUT"
           echo "pub_version=$pub_version" >> "$GITHUB_OUTPUT"
+          echo "assurance_version=$assurance_version" >> "$GITHUB_OUTPUT"
 
       - name: Create VSIX output directory
         run: mkdir -p .tmp/vsix
@@ -213,8 +221,19 @@ jobs:
             --skip-license \
             --out "../../.tmp/vsix/pspf-pub-${{ steps.versions.outputs.pub_version }}.vsix"
 
+      - name: Package Assurance VSIX
+        if: steps.targets.outputs.publish_assurance == 'true'
+        working-directory: packages/assurance
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 package \
+            --no-dependencies \
+            --allow-missing-repository \
+            --skip-license \
+            --out "../../.tmp/vsix/pspf-assurance-${{ steps.versions.outputs.assurance_version }}.vsix"
+
       - name: Upload VSIX artefact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pspf-marketplace-vsix
           path: .tmp/vsix
@@ -229,10 +248,10 @@ jobs:
     environment: marketplace
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download VSIX artefact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pspf-marketplace-vsix
           path: .tmp/vsix
@@ -303,10 +322,10 @@ jobs:
     environment: marketplace
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download VSIX artefact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pspf-marketplace-vsix
           path: .tmp/vsix
@@ -377,10 +396,10 @@ jobs:
     environment: marketplace
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download VSIX artefact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pspf-marketplace-vsix
           path: .tmp/vsix
@@ -451,10 +470,10 @@ jobs:
     environment: marketplace
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download VSIX artefact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pspf-marketplace-vsix
           path: .tmp/vsix
@@ -515,4 +534,78 @@ jobs:
             echo "## Pub receipt tag verified"
             echo ""
             echo "Found pub/${{ needs.build.outputs.pub_version }} on origin after Marketplace publication."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish-assurance:
+    name: Publish Assurance to Marketplace
+    needs: build
+    if: needs.build.outputs.publish_assurance == 'true'
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download VSIX artefact
+        uses: actions/download-artifact@v8
+        with:
+          name: pspf-marketplace-vsix
+          path: .tmp/vsix
+
+      - name: Dry-run summary
+        if: needs.build.outputs.dry_run == 'true'
+        run: |
+          echo "Dry run: skipping vsce publish, GitHub release, and tag for Assurance."
+          ls -l .tmp/vsix
+          {
+            echo "## Assurance Marketplace publication skipped"
+            echo ""
+            echo "This was a dry run. No Assurance extension was published, no GitHub release was created, and no assurance/${{ needs.build.outputs.assurance_version }} receipt tag was created."
+            echo ""
+            echo "To publish Assurance, rerun this workflow from main with target=assurance or target=all and dry_run=false, then approve the marketplace environment gate."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish to VS Code Marketplace
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes @vscode/vsce@3.7.1 publish \
+            --packagePath ".tmp/vsix/pspf-assurance-${{ needs.build.outputs.assurance_version }}.vsix" \
+            --pat "$VSCE_PAT"
+
+      - name: Verify Marketplace version
+        if: needs.build.outputs.dry_run != 'true'
+        env:
+          EXTENSION_ID: tobyharvey.pspf-assurance
+          EXPECTED_VERSION: ${{ needs.build.outputs.assurance_version }}
+        run: |
+          set -euo pipefail
+          node scripts/verify-marketplace-version.mjs
+          {
+            echo "## Assurance Marketplace version verified"
+            echo ""
+            echo "Marketplace Gallery reports $EXTENSION_ID@$EXPECTED_VERSION."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tag and GitHub release
+        if: needs.build.outputs.dry_run != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: assurance/${{ needs.build.outputs.assurance_version }}
+          name: Assurance ${{ needs.build.outputs.assurance_version }}
+          target_commitish: ${{ github.sha }}
+          files: .tmp/vsix/pspf-assurance-${{ needs.build.outputs.assurance_version }}.vsix
+          generate_release_notes: true
+
+      - name: Verify receipt tag
+        if: needs.build.outputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          git ls-remote --exit-code origin "refs/tags/assurance/${{ needs.build.outputs.assurance_version }}"
+          {
+            echo "## Assurance receipt tag verified"
+            echo ""
+            echo "Found assurance/${{ needs.build.outputs.assurance_version }} on origin after Marketplace publication."
           } >> "$GITHUB_STEP_SUMMARY"

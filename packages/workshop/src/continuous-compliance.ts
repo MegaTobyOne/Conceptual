@@ -4,6 +4,7 @@ import type {
   LinkEntity,
   RequirementEntity,
   RiskEntity,
+  StrategicChoice,
   StrategyEntity,
   V01Entity
 } from "@pspf/contracts";
@@ -445,6 +446,194 @@ export function buildHumanCentredRiskModel(
     treated,
     untreated: counts.total - treated
   };
+}
+
+// ---------------------------------------------------------------------------
+// Strategy priority: risk -> priority -> choices
+// ---------------------------------------------------------------------------
+
+export type StrategyPriorityBand = "critical" | "high" | "medium" | "low" | "none";
+
+export interface StrategyPriorityRisk {
+  readonly riskId: string;
+  readonly title: string;
+  readonly likelihood: number;
+  readonly impact: number;
+  readonly severityId: RiskSeverityId;
+  readonly severityLabel: string;
+  readonly severityScore: number;
+  readonly adjustedScore: number;
+  readonly outcomeId?: string;
+  readonly outcomeStatement?: string;
+}
+
+export interface StrategyPrioritySummary {
+  readonly choiceId: string;
+  readonly band: StrategyPriorityBand;
+  readonly bandLabel: string;
+  readonly score: number;
+  readonly highRiskCount: number;
+  readonly averageAdjustedScore: number;
+  readonly topRisks: readonly StrategyPriorityRisk[];
+  readonly linkedActionCount: number;
+  readonly unresolvedRiskReferenceCount: number;
+  readonly rationale: string;
+}
+
+const STRATEGY_PRIORITY_BANDS = [
+  { id: "critical", label: "Critical priority", minScore: 28 },
+  { id: "high", label: "High priority", minScore: 20 },
+  { id: "medium", label: "Medium priority", minScore: 10 },
+  { id: "low", label: "Low priority", minScore: 1 },
+  { id: "none", label: "No risk priority yet", minScore: 0 }
+] as const;
+
+function strategyTrendModifier(trend: StrategicChoice["trend"]): number {
+  switch (trend) {
+    case "deteriorating":
+      return 5;
+    case "steady":
+      return 2;
+    case "unknown":
+      return 1;
+    case "improving":
+      return 0;
+  }
+}
+
+function strategyConfidenceModifier(confidence: StrategicChoice["confidence"]): number {
+  switch (confidence) {
+    case "low":
+      return 3;
+    case "medium":
+      return 1;
+    case "high":
+      return 0;
+  }
+}
+
+function strategyPriorityBandForScore(score: number): { readonly id: StrategyPriorityBand; readonly label: string } {
+  const band = STRATEGY_PRIORITY_BANDS.find((candidate) => score >= candidate.minScore)!;
+  return { id: band.id, label: band.label };
+}
+
+export function buildStrategyPrioritySummary(
+  choice: StrategicChoice,
+  risksById: ReadonlyMap<string, RiskEntity>
+): StrategyPrioritySummary {
+  const riskRefs: Array<{ readonly riskId: string; readonly outcomeId?: string; readonly outcomeStatement?: string }> =
+    [
+      ...choice.references
+        .filter((reference) => reference.entityType === "risk")
+        .map((reference) => ({ riskId: reference.entityId })),
+      ...choice.outcomes.flatMap((outcome) =>
+        outcome.references
+          .filter((reference) => reference.entityType === "risk")
+          .map((reference) => ({
+            riskId: reference.entityId,
+            outcomeId: outcome.id,
+            outcomeStatement: outcome.statement
+          }))
+      )
+    ];
+  const actionIds = new Set([
+    ...choice.references
+      .filter((reference) => reference.entityType === "action")
+      .map((reference) => reference.entityId),
+    ...choice.outcomes.flatMap((outcome) =>
+      outcome.references.filter((reference) => reference.entityType === "action").map((reference) => reference.entityId)
+    )
+  ]);
+  const seenRiskIds = new Set<string>();
+  const unresolvedRiskIds = new Set<string>();
+  const modifier = strategyTrendModifier(choice.trend) + strategyConfidenceModifier(choice.confidence);
+  const priorityRisks: StrategyPriorityRisk[] = [];
+
+  for (const reference of riskRefs) {
+    if (seenRiskIds.has(reference.riskId)) {
+      continue;
+    }
+    seenRiskIds.add(reference.riskId);
+    const risk = risksById.get(reference.riskId);
+    if (!risk || risk.recordStatus === "deleted") {
+      unresolvedRiskIds.add(reference.riskId);
+      continue;
+    }
+    const severityScore = risk.likelihood * risk.impact;
+    const severity = riskSeverityForScore(severityScore);
+    priorityRisks.push({
+      riskId: risk.id,
+      title: risk.title,
+      likelihood: risk.likelihood,
+      impact: risk.impact,
+      severityId: severity.id,
+      severityLabel: severity.label,
+      severityScore,
+      adjustedScore: severityScore + modifier,
+      outcomeId: reference.outcomeId,
+      outcomeStatement: reference.outcomeStatement
+    });
+  }
+
+  const sortedRisks = priorityRisks.sort(
+    (left, right) =>
+      right.adjustedScore - left.adjustedScore ||
+      right.severityScore - left.severityScore ||
+      left.title.localeCompare(right.title, "en-AU")
+  );
+  const score = sortedRisks[0]?.adjustedScore ?? 0;
+  const band = strategyPriorityBandForScore(score);
+  const highRiskCount = sortedRisks.filter((risk) => risk.severityId === "high").length;
+  const averageAdjustedScore = sortedRisks.length
+    ? Number((sortedRisks.reduce((total, risk) => total + risk.adjustedScore, 0) / sortedRisks.length).toFixed(1))
+    : 0;
+  const rationale = strategyPriorityRationale({
+    bandLabel: band.label,
+    riskCount: sortedRisks.length,
+    highRiskCount,
+    linkedActionCount: actionIds.size,
+    unresolvedRiskReferenceCount: unresolvedRiskIds.size,
+    score
+  });
+
+  return {
+    choiceId: choice.id,
+    band: band.id,
+    bandLabel: band.label,
+    score,
+    highRiskCount,
+    averageAdjustedScore,
+    topRisks: sortedRisks.slice(0, 3),
+    linkedActionCount: actionIds.size,
+    unresolvedRiskReferenceCount: unresolvedRiskIds.size,
+    rationale
+  };
+}
+
+function strategyPriorityRationale(input: {
+  readonly bandLabel: string;
+  readonly riskCount: number;
+  readonly highRiskCount: number;
+  readonly linkedActionCount: number;
+  readonly unresolvedRiskReferenceCount: number;
+  readonly score: number;
+}): string {
+  if (input.riskCount === 0) {
+    return input.unresolvedRiskReferenceCount > 0
+      ? `${input.unresolvedRiskReferenceCount} unresolved risk reference${input.unresolvedRiskReferenceCount === 1 ? "" : "s"} need repair before priority can be calculated.`
+      : "No linked risks yet. Link risks to infer strategic priority.";
+  }
+  const riskText = `${input.riskCount} linked risk${input.riskCount === 1 ? "" : "s"}`;
+  const highRiskText =
+    input.highRiskCount > 0
+      ? `, including ${input.highRiskCount} high risk${input.highRiskCount === 1 ? "" : "s"}`
+      : "";
+  const actionText = `${input.linkedActionCount} linked action${input.linkedActionCount === 1 ? "" : "s"}`;
+  const repairText =
+    input.unresolvedRiskReferenceCount > 0
+      ? ` ${input.unresolvedRiskReferenceCount} unresolved risk reference${input.unresolvedRiskReferenceCount === 1 ? "" : "s"} also need repair.`
+      : "";
+  return `${input.bandLabel} from ${riskText}${highRiskText}; score ${input.score}; ${actionText}.${repairText}`;
 }
 
 // ---------------------------------------------------------------------------

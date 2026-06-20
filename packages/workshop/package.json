@@ -2,7 +2,16 @@
   "name": "pspf-workshop",
   "displayName": "PSPF Workshop",
   "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
-  "version": "1.42.1",
+  "keywords": [
+    "PSPF",
+    "ISM",
+    "protective security",
+    "compliance",
+    "requirements",
+    "evidence",
+    "risk"
+  ],
+  "version": "1.43.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -149,17 +158,22 @@
       },
       {
         "command": "pspf.workshop.importBundle",
-        "title": "PSPF: Import Master JSON Bundle",
+        "title": "PSPF: Import Explorer Bundle",
         "icon": "$(cloud-download)"
       },
       {
         "command": "pspf.workshop.exportBackupJson",
-        "title": "PSPF: Export Master JSON Bundle",
+        "title": "PSPF: Export Explorer Bundle",
         "icon": "$(cloud-upload)"
       },
       {
+        "command": "pspf.workshop.exportTeamShareBundle",
+        "title": "PSPF: Export Team Share Bundle",
+        "icon": "$(repo-push)"
+      },
+      {
         "command": "pspf.workshop.importBackupJson",
-        "title": "PSPF: Import Master JSON Bundle",
+        "title": "PSPF: Import Master Bundle",
         "icon": "$(cloud-download)"
       },
       {

@@ -541,9 +541,9 @@ These bundles should be:
 
 ### Product packaging
 
-Core, Workshop, Shop, and Pub are **four separate VS Code extensions**, each published independently to the Marketplace. See ADR 0007.
+Core, Workshop, Shop, Pub, and Assurance are **five separate VS Code extensions**, each published independently to the Marketplace. See ADR 0007 as superseded by ADR 0078 for the packaging count.
 
-Workshop, Shop, and Pub each declare a peer-extension dependency on Core via documented compatibility metadata. Activation defers any privileged work until Core's API is reachable. The recommended onboarding flow installs Core+Workshop together for new users, but that is a UX recommendation, not a packaging fact.
+Workshop, Shop, Pub, and Assurance each declare a peer-extension dependency on Core via documented compatibility metadata. Activation defers any privileged work until Core's API is reachable. The recommended onboarding flow installs Core+Workshop together for new users, and Core+Assurance for assurance lifecycle work, but those are UX recommendations, not packaging facts.
 
 No single "platform VSIX" exists. The earlier `pspf-platform` bundling proposal is retired.
 
@@ -558,6 +558,7 @@ Per ADR 0013, the entire ecosystem lives in a **single private GitHub repository
 | `packages/workshop/` | Workshop extension: authoring surface, depends on Core |
 | `packages/shop/` | Shop extension: supplier/contract surface (v0.2+), depends on Core |
 | `packages/pub/` | Pub extension: people/role/assignment surface (v0.2+), depends on Core |
+| `packages/assurance/` | Assurance extension: third-party assessments, pentest lifecycle, assurance findings, review, approval, and publication-readiness surface, depends on Core |
 | `packages/explorer/` | Explorer SPA and schema-boundary tooling |
 | `docs/` | Specs, ADRs, runbooks, glossary, onboarding |
 | `schemas/explorer-bundle/<schemaVersion>/` | Per-version bundle JSON Schemas (E23) |

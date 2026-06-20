@@ -121,27 +121,32 @@ test("Essential Eight dashboard renders visual posture charts", async () => {
   assert.match(source, /readonly strategyStatusCounts/);
 });
 
-test("Penetration Testing Workbench exposes planning and execution pipeline", async () => {
+test("Penetration Testing Workbench is handed off to PSPF Assurance", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
-  const modelSource = await readFile(new URL("../src/pentest-workbench.ts", import.meta.url), "utf8");
+  const assuranceSource = await readFile(new URL("../../assurance/src/extension.ts", import.meta.url), "utf8");
+  const assuranceModelSource = await readFile(
+    new URL("../../assurance/src/pentest-workbench.ts", import.meta.url),
+    "utf8"
+  );
 
-  assert.match(modelSource, /interface PentestEngagementModel/);
-  assert.match(modelSource, /criticalHighFindings/);
-  assert.match(modelSource, /otherFindings/);
-  assert.match(modelSource, /plannedWindow/);
-  assert.match(source, /function renderPentestPipeline/);
-  assert.match(source, /Pentest Pipeline/);
+  assert.match(assuranceModelSource, /interface PentestEngagementModel/);
+  assert.match(assuranceModelSource, /criticalHighFindings/);
+  assert.match(assuranceModelSource, /otherFindings/);
+  assert.match(assuranceModelSource, /plannedWindow/);
+  assert.match(assuranceSource, /function renderPentestPipeline/);
+  assert.match(assuranceSource, /Pentest Pipeline/);
   assert.match(source, /function renderMasterDashboardPentestSummary/);
   assert.match(source, /Penetration Testing/);
   assert.match(source, /pspf\.workshop\.openPentestWorkbench/);
-  assert.match(source, /function renderPentestEngagementProfile/);
-  assert.match(source, /Penetration test planning and execution profile/);
-  assert.match(source, /Critical\/high/);
-  assert.match(source, /Other findings/);
-  assert.match(source, /Open remediation/);
-  assert.match(source, /Finding split/);
-  assert.match(source, /Report due/);
-  assert.match(source, /Retest/);
+  assert.match(source, /pspf\.assurance\.openPentestWorkbench/);
+  assert.match(assuranceSource, /function renderPentestEngagementProfile/);
+  assert.match(assuranceSource, /Penetration test planning and execution profile/);
+  assert.match(assuranceSource, /Critical\/high/);
+  assert.match(assuranceSource, /Other findings/);
+  assert.match(assuranceSource, /Open remediation/);
+  assert.match(assuranceSource, /Finding split/);
+  assert.match(assuranceSource, /Report due/);
+  assert.match(assuranceSource, /Retest/);
 });
 
 test("Plan of Action exposes master schedule and slice controls", async () => {
@@ -220,24 +225,22 @@ test("Workshop Home is simplified and exposes one status graphic", async () => {
   const homeSource = homeMatch[0];
 
   assert.match(homeSource, /renderWorkshopStatusDonut\(model\)/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openMasterDashboard", "Dashboard"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openAssessmentDashboard", "Assessment"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openMasterDashboard", "Open Workspace Dashboard"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openAssessmentDashboard", "Open Assessment Dashboard"/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.createRequirement", "Create requirement"/);
-  assert.match(homeSource, /<h2>Edit<\/h2>/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRequirementsList", "Edit requirements"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openEvidenceList", "Edit evidence"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openActionsList", "Edit actions"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRisksList", "Edit risks"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openDirectionsList", "Edit directions"/);
-  assert.match(homeSource, /homeButton\("pspf\.core\.exportBundle", "Export bundle"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.copyPostureBrief", "Copy brief"/);
+  assert.match(homeSource, /<h2>Review And Update<\/h2>/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRequirementsList", "Review requirements"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openEvidenceList", "Review evidence"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openActionsList", "Review actions"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRisksList", "Review risks"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openDirectionsList", "Review directions"/);
+  assert.match(homeSource, /homeButton\("pspf\.core\.exportBundle", "Export Explorer bundle"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.copyPostureBrief", "Copy posture brief"/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.home\.refresh", "Refresh"/);
-  assert.match(homeSource, /<h2>Integrations<\/h2>/);
+  assert.match(homeSource, /<summary><strong>Integrations<\/strong><\/summary>/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.previewRiskSourceImport", "Run integrations"/);
   assert.doesNotMatch(homeSource, /homeButton\("pspf\.workshop\.openRiskSourcePanel", "Risk Source"/);
   assert.doesNotMatch(homeSource, /homeButton\("pspf\.workshop\.configureRiskSource", "Configure source"/);
-  assert.doesNotMatch(homeSource, /Continue next task/);
-  assert.doesNotMatch(homeSource, /Review evidence/);
   assert.doesNotMatch(homeSource, /Digital CISO Magazine/);
 });
 
@@ -322,6 +325,10 @@ test("Strategy Map uses clearer framing, aligned choices, and grouped measures",
   assert.match(source, /class="strategy-risk-posture"/);
   assert.match(source, /class="strategy-choice-grid"/);
   assert.match(source, /class="strategy-choice-card__top"/);
+  assert.match(source, /class="strategy-priority-panel"/);
+  assert.match(source, /Top blockers/);
+  assert.match(source, /Priority logic/);
+  assert.match(source, /buildStrategyPrioritySummary/);
   assert.match(source, /function renderMeasuresGroupedByChoice/);
   assert.match(source, /Posture Measures By Choice/);
   assert.match(source, /class="measure-choice-group"/);
@@ -455,7 +462,7 @@ test("Workshop Home exposes core authoring and single bundle exchange actions", 
 
   assert.match(source, /homeButton\("pspf\.workshop\.createRisk", "Create risk"\)/);
   assert.match(source, /homeButton\("pspf\.workshop\.registerDirection", "Create direction"\)/);
-  assert.match(source, /homeButton\("pspf\.workshop\.importBundle", "Import bundle"\)/);
+  assert.match(source, /homeButton\("pspf\.workshop\.importBundle", "Import Explorer bundle"\)/);
   assert.match(homeCommandBlock, /"pspf\.workshop\.importBundle"/);
   assert.match(manifest, /PSPF: Create Direction/);
   assert.doesNotMatch(manifest, /Import Explorer Local JSON/);

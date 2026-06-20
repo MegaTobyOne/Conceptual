@@ -600,6 +600,14 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 8. **Diagnostics and durability gate**: shared diagnostic codes and `PspfError` exist in contracts; writer-lock rejections use `PSPF_WRITER_LOCK_HELD`; database persistence fsyncs the temp file before rename; workspace open checks stored schema compatibility.
 9. **Regression gate**: `e2e:v1.42`, `check:gate-integrity`, `check:spec-drift`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, `typecheck`, and `release:readiness` pass.
 
+### v1.43 candidate gates (Strategy risk → priority → choice)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.43.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+2. **Priority inference gate**: `buildStrategyPrioritySummary` in `packages/workshop/src/continuous-compliance.ts` derives a priority band (`critical` ≥ 28, `high` ≥ 20, `medium` ≥ 10, `low` ≥ 1, `none` < 1) from linked risk severity (likelihood × impact) adjusted by choice trend (deteriorating +5, steady +2, unknown +1, improving +0) and confidence (low +3, medium +1, high +0), using the peak adjusted risk score. `check:continuous-compliance` asserts the export and band labels.
+3. **Strategy surface gate**: the Strategy Map and Strategy Editor render the priority band, rationale, top blocking risks, and unresolved-risk repair cues; `check:continuous-compliance` asserts the `strategy-priority-panel` wiring.
+4. **Derived-only gate**: the feature adds no entity, collection, link verb, saved-view scope, schema field, or Explorer publication change; it reads existing risk, action, and strategy references only.
+5. **Regression gate**: `e2e:v1.43`, `check:continuous-compliance`, `check:workshop-navigation`, `check:gates`, `validate:debug-workspace`, `lint`, `check:release-candidate`, `typecheck`, and `release:readiness` pass.
+
 ### v1.0 reference-data baseline candidate gates (per ADR 0029)
 
 These gates apply only if v1.0 scope is reopened to ship real PSPF and ISM reference data rather than the existing sample-oriented seed data.

@@ -292,7 +292,18 @@ const coverage = [
     "check:spec-drift",
     "check:release-candidate"
   ]),
-  adr("0077-ai-capability-boundary.md", "automated", ["check:ai-kill-switch", "check:gates", "release:readiness"])
+  adr("0077-ai-capability-boundary.md", "automated", ["check:ai-kill-switch", "check:gates", "release:readiness"]),
+  adr("0078-pspf-assurance-extension-boundary.md", "automated", [
+    "check:assurance-redaction",
+    "package:check",
+    "release:readiness"
+  ]),
+  adr("0079-team-share-git-bundle.md", "indirect", ["package:check", "check:release-candidate"]),
+  adr("0080-v1-43-strategy-risk-priority-choice.md", "automated", [
+    "e2e:v1.43",
+    "check:continuous-compliance",
+    "check:release-candidate"
+  ])
 ];
 
 const adrFiles = (await readdir(adrDirectory)).filter((file) => /^\d{4}-.*\.md$/.test(file)).sort();

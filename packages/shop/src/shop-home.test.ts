@@ -27,8 +27,8 @@ test("Shop puts Forecast before maintenance surfaces", async () => {
 test("Shop Home exposes create and edit panels", async () => {
   const source = await readFile(sourcePath, "utf8");
 
-  assert.match(source, /homeSection\(\{ id: "create", eyebrow: "Author", heading: "Create records"/);
-  assert.match(source, /homeSection\(\{ id: "edit", eyebrow: "Maintain", heading: "Edit records"/);
+  assert.match(source, /homeSection\(\{ id: "create", eyebrow: "Author", heading: "Capture New Records"/);
+  assert.match(source, /homeSection\(\{ id: "edit", eyebrow: "Maintain", heading: "Review And Update"/);
   assert.match(source, /homeActionButton\("pspf\.shop\.newSupplier", "New supplier"/);
   assert.match(source, /homeActionButton\("pspf\.shop\.editSupplier", "Edit supplier"/);
   assert.match(source, /homeActionButton\("pspf\.shop\.editContract", "Edit contract"/);

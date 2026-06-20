@@ -1,0 +1,149 @@
+{
+  "name": "pspf-assurance",
+  "displayName": "PSPF Assurance",
+  "description": "PSPF assessment, penetration testing, assurance finding, verification, and publication-readiness surface.",
+  "keywords": [
+    "PSPF",
+    "assurance",
+    "penetration testing",
+    "findings",
+    "verification",
+    "security"
+  ],
+  "version": "1.43.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MegaTobyOne/Conceptual.git",
+    "directory": "packages/assurance"
+  },
+  "publisher": "tobyharvey",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionDependencies": [
+    "tobyharvey.pspf-core"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:.pspf/config/workspace.json",
+    "workspaceContains:.pspf/core/pspf-core.db"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pspfAssurance",
+          "title": "PSPF Assurance",
+          "icon": "resources/assurance.svg"
+        }
+      ]
+    },
+    "views": {
+      "pspfAssurance": [
+        {
+          "type": "webview",
+          "id": "pspfAssurance.homeView",
+          "name": "Assurance Home"
+        },
+        {
+          "id": "pspfAssurance.assessmentsView",
+          "name": "Assessments",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfAssurance.findingsView",
+          "name": "Findings",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfAssurance.verificationView",
+          "name": "Verification",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "pspfAssurance.publicationsView",
+          "name": "Publications",
+          "visibility": "collapsed"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "pspf.assurance.openHome",
+        "title": "PSPF: Open Assurance"
+      },
+      {
+        "command": "pspf.assurance.openPentestWorkbench",
+        "title": "PSPF: Open Assurance Penetration Testing Workbench"
+      },
+      {
+        "command": "pspf.assurance.openAssessmentWorkbench",
+        "title": "PSPF: Open Assurance Assessment Workbench"
+      },
+      {
+        "command": "pspf.assurance.newAssessment",
+        "title": "PSPF: New Assurance Assessment"
+      },
+      {
+        "command": "pspf.assurance.newFinding",
+        "title": "PSPF: New Assurance Finding"
+      },
+      {
+        "command": "pspf.assurance.openVerificationQueue",
+        "title": "PSPF: Open Assurance Verification Queue"
+      },
+      {
+        "command": "pspf.assurance.prepareAssuranceReport",
+        "title": "PSPF: Prepare Assurance Report"
+      },
+      {
+        "command": "pspf.assurance.runPublicationReadiness",
+        "title": "PSPF: Run Assurance Publication Readiness Checks"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pspf.assurance.openAssessmentWorkbench",
+          "when": "view == pspfAssurance.assessmentsView",
+          "group": "navigation@0"
+        },
+        {
+          "command": "pspf.assurance.newAssessment",
+          "when": "view == pspfAssurance.assessmentsView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.assurance.newFinding",
+          "when": "view == pspfAssurance.findingsView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.assurance.openVerificationQueue",
+          "when": "view == pspfAssurance.verificationView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.assurance.runPublicationReadiness",
+          "when": "view == pspfAssurance.publicationsView",
+          "group": "navigation@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=dist/extension.js",
+    "test": "node --test dist/*.test.js dist/**/*.test.js"
+  },
+  "dependencies": {
+    "@pspf/contracts": "workspace:*",
+    "@pspf/webview-shell": "workspace:*"
+  }
+}
