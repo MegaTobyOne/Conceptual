@@ -127,6 +127,50 @@ test("integrity scan reports links whose declared endpoint type does not match t
   );
 });
 
+test("tag validation permits Assurance finding actions to be tagged", async () => {
+  const workspaceRoot = await freshWorkspace("assurance-action-tag-link");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const assessmentTag = withEnvelope(
+    "tag",
+    {
+      entityType: "tag",
+      title: "PENTEST-2026-Web",
+      label: "PENTEST-2026-Web",
+      colour: "teal"
+    },
+    "workshop"
+  );
+  const finding = withEnvelope(
+    "action",
+    {
+      entityType: "action",
+      title: "[High] Public portal finding",
+      status: "todo"
+    },
+    "workshop"
+  );
+  const taggedFinding = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${finding.title} tagged with ${assessmentTag.label}`,
+      linkType: "tagged-with",
+      fromId: finding.id,
+      fromType: "action",
+      toId: assessmentTag.id,
+      toType: "tag"
+    },
+    "workshop"
+  );
+
+  await service.upsertEntities([assessmentTag, finding, taggedFinding]);
+
+  const links = await service.listEntities("link");
+  assert.equal(links.some((link) => link.id === taggedFinding.id), true);
+});
+
 test("workspace reset returns to a clean cyber reference-data baseline", async () => {
   const workspaceRoot = await freshWorkspace("reset-clean-baseline");
   const service = createCoreService(workspaceRoot);

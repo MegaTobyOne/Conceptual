@@ -1803,13 +1803,17 @@ function validateTagRules(incomingEntities: readonly V01Entity[], existingEntiti
       continue;
     }
     if (entity.linkType === "tagged-with") {
-      if (entity.fromType !== "requirement" || entity.toType !== "tag") {
-        throw new Error(`Invalid tagged-with link ${entity.id}: only requirement -> tag is permitted in v1.7.`);
+      if (!["requirement", "action", "risk"].includes(entity.fromType) || entity.toType !== "tag") {
+        throw new Error(
+          `Invalid tagged-with link ${entity.id}: only requirement, action, or risk -> tag is permitted.`
+        );
       }
       if (!entityIds.has(entity.fromId) || !entityIds.has(entity.toId)) {
         throw new Error(`Invalid tagged-with link ${entity.id}: endpoint is missing.`);
       }
-      tagLinksByRequirement.set(entity.fromId, [...(tagLinksByRequirement.get(entity.fromId) ?? []), entity.toId]);
+      if (entity.fromType === "requirement") {
+        tagLinksByRequirement.set(entity.fromId, [...(tagLinksByRequirement.get(entity.fromId) ?? []), entity.toId]);
+      }
     }
   }
 

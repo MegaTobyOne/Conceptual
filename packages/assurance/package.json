@@ -21,6 +21,11 @@
   "extensionDependencies": [
     "tobyharvey.pspf-core"
   ],
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:.pspf/config/workspace.json",
+    "workspaceContains:.pspf/core/pspf-core.db"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -65,10 +70,6 @@
       {
         "command": "pspf.assurance.openHome",
         "title": "PSPF: Open Assurance"
-      },
-      {
-        "command": "pspf.assurance.openAssessmentWorkbench",
-        "title": "PSPF: Open Assurance Assessment Workbench"
       },
       {
         "command": "pspf.assurance.openPentestWorkbench",

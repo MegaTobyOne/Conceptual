@@ -1,13 +1,18 @@
+import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
 import * as vscode from "vscode";
-import type { V01Entity } from "@pspf/contracts";
-import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
+import type { ActionEntity, LinkEntity, SourceProduct, TagEntity, V01Entity } from "@pspf/contracts";
+import { isValidTagLabel, normaliseTagLabel, PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
 import { homeActionButton, homeMetricCard, homePanelShellHtml, homeSection } from "@pspf/webview-shell";
 import {
   buildPentestWorkbenchModel,
+  pentestSlaDeadline,
+  PENTEST_ASSESSMENT_TAG_PREFIX,
   PENTEST_FINDING_SEVERITIES,
   type PentestAssessmentModel,
   type PentestFindingModel,
   type PentestFindingQueueId,
+  type PentestFindingSeverityId,
   type PentestWorkbenchModel
 } from "./pentest-workbench.js";
 
@@ -41,15 +46,11 @@ export function activate(context: vscode.ExtensionContext): void {
       new StaticTreeProvider("Publication readiness checks are planned", "file-lock")
     ),
     vscode.commands.registerCommand("pspf.assurance.openHome", openHome),
-    vscode.commands.registerCommand("pspf.assurance.openAssessmentWorkbench", openPentestWorkbench),
     vscode.commands.registerCommand("pspf.assurance.openPentestWorkbench", openPentestWorkbench),
-    vscode.commands.registerCommand("pspf.assurance.newAssessment", plannedCommand("New Assessment")),
-    vscode.commands.registerCommand("pspf.assurance.newFinding", plannedCommand("New Finding")),
+    vscode.commands.registerCommand("pspf.assurance.newAssessment", createAssuranceAssessment),
+    vscode.commands.registerCommand("pspf.assurance.newFinding", createAssuranceFinding),
     vscode.commands.registerCommand("pspf.assurance.openVerificationQueue", openPentestWorkbench),
-    vscode.commands.registerCommand(
-      "pspf.assurance.prepareAssuranceReport",
-      plannedCommand("Prepare Assurance Report")
-    ),
+    vscode.commands.registerCommand("pspf.assurance.prepareAssuranceReport", prepareAssuranceReport),
     vscode.commands.registerCommand("pspf.assurance.runPublicationReadiness", runPublicationReadiness)
   );
 }
@@ -81,6 +82,7 @@ class AssuranceHomeProvider implements vscode.WebviewViewProvider {
   resolveWebviewView(webviewView: vscode.WebviewView): void {
     this.view = webviewView;
     webviewView.webview.options = { enableScripts: true };
+    webviewView.webview.html = renderHomeLoading();
     webviewView.webview.onDidReceiveMessage((message: { readonly command?: string }) => {
       void this.handleMessage(message.command).catch(async (error: unknown) => {
         await vscode.window.showErrorMessage(`PSPF Assurance action failed: ${errorMessage(error)}`);
@@ -94,6 +96,10 @@ class AssuranceHomeProvider implements vscode.WebviewViewProvider {
       return;
     }
     try {
+      if (!(await isWorkspaceInitialised())) {
+        this.view.webview.html = renderHomeUnavailable("Initialise the local PSPF workspace before using Assurance actions.");
+        return;
+      }
       const model = buildPentestWorkbenchModel(await listAllEntities());
       this.view.webview.html = renderHome(model);
     } catch (error) {
@@ -163,14 +169,228 @@ async function runPublicationReadiness(): Promise<void> {
   await vscode.window.showWarningMessage(`Assurance publication readiness needs attention: ${issues.join("; ")}.`);
 }
 
-function plannedCommand(title: string): () => Promise<void> {
-  return async () => {
-    await vscode.window.showInformationMessage(`${title} will arrive with the assurance finding model slice.`);
+async function prepareAssuranceReport(): Promise<void> {
+  await ensureCoreReady();
+  const model = buildPentestWorkbenchModel(await listAllEntities());
+  const document = await vscode.workspace.openTextDocument({
+    language: "markdown",
+    content: renderAssuranceReportMarkdown(model)
+  });
+  await vscode.window.showTextDocument(document, vscode.ViewColumn.One, false);
+  await vscode.window.showInformationMessage("Prepared a local Assurance report from the current pentest workbench data.");
+}
+
+async function createAssuranceAssessment(): Promise<void> {
+  await ensureCoreReady();
+  const tag = await promptForAssessmentTag();
+  if (!tag) {
+    return;
+  }
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", tag);
+  await homeProvider?.refresh();
+  await vscode.window.showInformationMessage(`Assurance assessment created: ${tag.label}.`);
+}
+
+async function createAssuranceFinding(): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const assessmentTag = await pickOrCreateAssessmentTag(allEntities);
+  if (!assessmentTag) {
+    return;
+  }
+  const title = await vscode.window.showInputBox({
+    title: "New Assurance Finding",
+    prompt: "Finding title, for example [High] API authorisation bypass",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a finding title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+  const severity = await vscode.window.showQuickPick(
+    PENTEST_FINDING_SEVERITIES.map((item) => ({
+      label: item.label,
+      description: `${item.slaDays} day remediation SLA`,
+      value: item.id
+    })),
+    { title: "Select Finding Severity", ignoreFocusOut: true }
+  );
+  if (!severity) {
+    return;
+  }
+  const dueDate = await vscode.window.showInputBox({
+    title: "New Assurance Finding",
+    prompt: "Due date, for example 30 Jun 2026. Press Enter to use the severity SLA.",
+    ignoreFocusOut: true
+  });
+  if (dueDate === undefined) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const action = withEnvelope<ActionEntity>(
+    "action",
+    {
+      entityType: "action",
+      title: titleHasSeverity(title, severity.label) ? title.trim() : `[${severity.label}] ${title.trim()}`,
+      status: "todo",
+      dueDate: dueDate.trim() || pentestSlaDueDate(now, severity.value),
+      commentary: [
+        {
+          createdAt: now,
+          text: `Assurance finding captured for ${assessmentTag.label}. Severity: ${severity.label}.`
+        }
+      ]
+    },
+    "workshop",
+    now
+  );
+  const link = withEnvelope<LinkEntity>(
+    "link",
+    {
+      entityType: "link",
+      title: `${action.title} tagged with ${assessmentTag.label}`,
+      linkType: "tagged-with",
+      fromId: action.id,
+      fromType: "action",
+      toId: assessmentTag.id,
+      toType: "tag"
+    },
+    "workshop",
+    now
+  );
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", [assessmentTag, action, link]);
+  await homeProvider?.refresh();
+  await vscode.window.showInformationMessage(`Assurance finding created: ${action.title}.`);
+  await openPentestWorkbench();
+}
+
+async function promptForAssessmentTag(): Promise<TagEntity | undefined> {
+  const labelInput = await vscode.window.showInputBox({
+    title: "New Assurance Assessment",
+    prompt: "Assessment label, for example PENTEST-2026-Web",
+    value: `PENTEST-${new Date().getFullYear()}-`,
+    ignoreFocusOut: true,
+    validateInput: validateAssessmentLabel
+  });
+  if (!labelInput) {
+    return undefined;
+  }
+  const titleInput = await vscode.window.showInputBox({
+    title: "New Assurance Assessment",
+    prompt: "Assessment title. Press Enter to use the label.",
+    value: labelInput.trim(),
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length > 60 ? "Use 60 characters or fewer." : undefined)
+  });
+  if (titleInput === undefined) {
+    return undefined;
+  }
+  const descriptionInput = await vscode.window.showInputBox({
+    title: "New Assurance Assessment",
+    prompt: "Optional planning notes, such as target, tester, method or window. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (descriptionInput === undefined) {
+    return undefined;
+  }
+
+  const now = new Date().toISOString();
+  return withEnvelope<TagEntity>(
+    "tag",
+    {
+      entityType: "tag",
+      label: normaliseAssessmentLabel(labelInput),
+      title: titleInput.trim() || normaliseAssessmentLabel(labelInput),
+      colour: "teal",
+      description: descriptionInput.trim() || undefined
+    },
+    "workshop",
+    now
+  );
+}
+
+async function pickOrCreateAssessmentTag(entities: readonly V01Entity[]): Promise<TagEntity | undefined> {
+  const assessmentTags = entities
+    .filter((entity): entity is TagEntity => entity.entityType === "tag" && entity.recordStatus !== "deleted")
+    .filter((tag) => normaliseTagLabel(tag.label).startsWith(PENTEST_ASSESSMENT_TAG_PREFIX))
+    .sort((left, right) => left.label.localeCompare(right.label, "en-AU", { sensitivity: "base" }));
+  type AssessmentTagPick = { readonly label: string; readonly description: string; readonly tag?: TagEntity };
+  const createNew: AssessmentTagPick = {
+    label: "$(add) Create new assessment",
+    description: "Capture a new pentest assessment tag"
   };
+  const picked = await vscode.window.showQuickPick(
+    [
+      createNew,
+      ...assessmentTags.map((tag) => ({ label: tag.label, description: tag.title, tag }))
+    ],
+    { title: "Select Assurance Assessment", ignoreFocusOut: true }
+  );
+  if (!picked) {
+    return undefined;
+  }
+  if (picked.tag) {
+    return picked.tag;
+  }
+  return promptForAssessmentTag();
+}
+
+function validateAssessmentLabel(value: string): string | undefined {
+  const label = normaliseAssessmentLabel(value);
+  if (!label.startsWith("PENTEST-")) {
+    return "Start the label with PENTEST-, for example PENTEST-2026-Web.";
+  }
+  if (!isValidTagLabel(label)) {
+    return "Use letters, numbers, spaces, apostrophes or hyphens, up to 40 characters.";
+  }
+  return undefined;
+}
+
+function normaliseAssessmentLabel(value: string): string {
+  return value.normalize("NFC").trim().replace(/\s+/g, "-");
+}
+
+function titleHasSeverity(title: string, severityLabel: string): boolean {
+  return new RegExp(`\\[${escapeRegExp(severityLabel)}\\]`, "i").test(title);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function pentestSlaDueDate(createdAt: string, severityId: PentestFindingSeverityId): string {
+  return pentestSlaDeadline(createdAt, severityId).slice(0, 10);
+}
+
+function withEnvelope<T extends V01Entity>(
+  entityType: T["entityType"],
+  entity: Omit<T, "id" | "schemaVersion" | "createdAt" | "updatedAt" | "sourceProduct" | "recordStatus">,
+  sourceProduct: SourceProduct,
+  timestamp = new Date().toISOString()
+): T {
+  return {
+    id: `${entityType.toUpperCase()}-${randomUUID()}`,
+    schemaVersion: VERSION_AXES.schemaVersion,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    sourceProduct,
+    recordStatus: "active",
+    ...entity
+  } as T;
 }
 
 async function ensureCoreReady(): Promise<void> {
-  await vscode.commands.executeCommand("pspf.core.validateWorkspace");
+  if (await isWorkspaceInitialised()) {
+    return;
+  }
+  await vscode.commands.executeCommand("pspf.core.initialiseWorkspace");
+}
+
+async function isWorkspaceInitialised(): Promise<boolean> {
+  const paths = await vscode.commands.executeCommand<{ readonly db?: string }>("pspf.core.getWorkspacePaths");
+  return typeof paths?.db === "string" && existsSync(paths.db);
 }
 
 async function listAllEntities(): Promise<readonly V01Entity[]> {
@@ -252,16 +472,16 @@ function renderHome(model: PentestWorkbenchModel): string {
   const nextBody = `<p class="muted">${hasAssuranceRiskSignals ? "Assurance risk signals are active. Start with readiness checks before deeper review." : "No immediate queue pressure detected. Continue with the workbench review flow."}</p>
     <div class="action-list">
       ${homeActionButton(nextAction.command, nextAction.label, nextAction.description)}
-      ${homeActionButton("pspf.assurance.openPentestWorkbench", "Open Assessment Workbench", "Review tagged findings, retests, residual risks, and supplier context")}
+      ${hasAssuranceRiskSignals ? homeActionButton("pspf.assurance.openPentestWorkbench", "Open Pentest Workbench", "Review tagged findings, retests, residual risks, and supplier context") : ""}
     </div>`;
   const reviewBody = `<div class="action-list">
     ${homeActionButton("pspf.assurance.runPublicationReadiness", "Readiness check", "Check overdue, SLA-risk and verification queues")}
     ${homeActionButton("refresh", "Refresh", "Reload Assurance counts from Core")}
   </div>`;
   const planBody = `<div class="action-list compact">
-    ${homeActionButton("pspf.assurance.newAssessment", "New assessment", "Reserved for the assurance finding model slice")}
-    ${homeActionButton("pspf.assurance.newFinding", "New finding", "Reserved for the assurance finding model slice")}
-    ${homeActionButton("pspf.assurance.prepareAssuranceReport", "Prepare report", "Reserved for the assurance publishing slice")}
+    ${homeActionButton("pspf.assurance.newAssessment", "New assessment", "Capture a pentest assessment tag")}
+    ${homeActionButton("pspf.assurance.newFinding", "New finding", "Capture and tag an assurance finding action")}
+    ${homeActionButton("pspf.assurance.prepareAssuranceReport", "Prepare report", "Open a local Markdown report from current Assurance data")}
   </div>`;
   const advancedBody = `<p class="muted">Use these tools for queue maintenance and gated roadmap capabilities, not for day-to-day finding triage.</p>
     <details>
@@ -273,7 +493,7 @@ function renderHome(model: PentestWorkbenchModel): string {
     </details>
     <details>
       <summary><strong>Planned functions</strong></summary>
-      <p class="muted">This first slice preserves the current tag-based pentest read model. New assurance finding entities, approvals, report publishing, and signing arrive in later gated slices.</p>
+      <p class="muted">This first slice preserves the current tag-based pentest read model. New assurance finding entities, approvals, formal publishing, and signing arrive in later gated slices.</p>
       <div class="action-list compact">${planBody}</div>
     </details>`;
   const body = [
@@ -307,6 +527,141 @@ function renderHomeUnavailable(message: string): string {
     })
   ].join("");
   return assuranceHomeShell(body);
+}
+
+function renderHomeLoading(): string {
+  const body = [
+    assuranceHomeStyles(),
+    homeSection({
+      id: "overview",
+      hero: true,
+      eyebrow: "Assurance Home",
+      heading: "PSPF Assurance",
+      body: `<p class="home-posture assurance-home-summary">OFFICIAL: Sensitive assurance workspace for assessments, penetration testing findings, verification queues and publication readiness.</p>
+        <p class="muted">Loading local Assurance workspace state...</p>`
+    })
+  ].join("");
+  return assuranceHomeShell(body);
+}
+
+function renderAssuranceReportMarkdown(model: PentestWorkbenchModel): string {
+  const lines = [
+    "# PSPF Assurance Report",
+    "",
+    "OFFICIAL: Sensitive - local assurance working report.",
+    "",
+    `Generated: ${formatDisplayDate(new Date(model.generatedAt))}`,
+    `PSPF: ${PSPF_SLICE_VERSION}`,
+    `Compatibility: schema ${VERSION_AXES.schemaVersion}, bundle ${VERSION_AXES.bundleVersion}, API ${VERSION_AXES.apiVersion}`,
+    "",
+    "## Summary",
+    "",
+    `- Assessments: ${model.totals.assessments}`,
+    `- Findings: ${model.totals.findings}`,
+    `- Critical/high findings: ${model.totals.criticalHighFindings}`,
+    `- Open remediation actions: ${model.totals.openFindingActions}`,
+    `- Overdue actions: ${model.totals.overdue}`,
+    `- SLA-risk actions: ${model.totals.slaAtRisk}`,
+    `- Pending verification: ${model.totals.pendingVerification}`,
+    `- Closed findings: ${model.totals.closed}`,
+    `- Residual risks: ${model.totals.residualRisks}`,
+    "",
+    "## Readiness Notes",
+    "",
+    ...assuranceReadinessNotes(model),
+    "",
+    "## Assessment Detail",
+    ""
+  ];
+
+  if (model.assessments.length === 0) {
+    lines.push("No pentest assessment records were found. Create an assessment and finding before using this report for review.");
+    return lines.join("\n");
+  }
+
+  for (const assessment of model.assessments) {
+    lines.push(
+      `### ${markdownText(assessment.tagLabel)} - ${markdownText(assessment.title)}`,
+      "",
+      `- Target: ${markdownText(assessment.engagement.target)} (${markdownText(assessment.engagement.targetType)})`,
+      `- Status: ${label(assessment.engagement.status)}`,
+      `- Tester: ${markdownText(assessment.engagement.tester)}`,
+      `- Method: ${markdownText(assessment.engagement.method)}`,
+      `- Planned window: ${markdownText(assessment.engagement.plannedWindow)}`,
+      `- Report due: ${markdownText(assessment.engagement.reportDue)}`,
+      `- Retest: ${markdownText(assessment.engagement.retestWindow)}`,
+      `- Closure: ${assessment.closurePercentage}%`,
+      "",
+      "| Queue | Count |",
+      "| --- | ---: |",
+      `| Overdue | ${assessment.queues.overdue.length} |`,
+      `| SLA at risk | ${assessment.queues["sla-at-risk"].length} |`,
+      `| Pending verification | ${assessment.queues["pending-verification"].length} |`,
+      `| Closed | ${assessment.queues.closed.length} |`,
+      "",
+      "#### Findings",
+      "",
+      ...findingRows(assessment),
+      "",
+      "#### Residual Risks",
+      "",
+      ...residualRiskRows(assessment),
+      ""
+    );
+  }
+
+  return lines.join("\n");
+}
+
+function assuranceReadinessNotes(model: PentestWorkbenchModel): string[] {
+  const notes = [
+    model.totals.overdue > 0 ? `- Action required: ${model.totals.overdue} overdue finding action(s) need review.` : undefined,
+    model.totals.slaAtRisk > 0 ? `- Watch: ${model.totals.slaAtRisk} finding action(s) are outside the severity SLA.` : undefined,
+    model.totals.pendingVerification > 0 ? `- Retest required: ${model.totals.pendingVerification} finding action(s) are pending verification.` : undefined
+  ].filter((note): note is string => Boolean(note));
+  return notes.length > 0 ? notes : ["- No overdue, SLA-risk, or pending verification queues are active in the current workbench data."];
+}
+
+function findingRows(assessment: PentestAssessmentModel): string[] {
+  const findings = [
+    ...assessment.queues.overdue,
+    ...assessment.queues["sla-at-risk"],
+    ...assessment.queues["pending-verification"],
+    ...assessment.queues.closed
+  ];
+  if (findings.length === 0) {
+    return ["No findings recorded for this assessment."];
+  }
+  return [
+    "| Finding | Severity | Status | Due | Evidence | Requirements |",
+    "| --- | --- | --- | --- | ---: | ---: |",
+    ...findings.map(
+      (finding) =>
+        `| ${markdownTableCell(finding.title)} | ${markdownTableCell(finding.severityLabel)} | ${markdownTableCell(label(finding.status))} | ${markdownTableCell(finding.dueDate ?? "Not set")} | ${finding.linkedEvidenceIds.length} | ${finding.linkedRequirementIds.length} |`
+    )
+  ];
+}
+
+function residualRiskRows(assessment: PentestAssessmentModel): string[] {
+  if (assessment.residualRisks.length === 0) {
+    return ["No residual risks linked to this assessment."];
+  }
+  return [
+    "| Risk | Status | Score | Supplier linked |",
+    "| --- | --- | ---: | --- |",
+    ...assessment.residualRisks.map(
+      (risk) =>
+        `| ${markdownTableCell(risk.title)} | ${markdownTableCell(label(risk.status))} | ${risk.score} | ${risk.supplierLinked ? "Yes" : "No"} |`
+    )
+  ];
+}
+
+function markdownText(value: string): string {
+  return value.replace(/[\\`*_{}\[\]()#+.!|>-]/g, "\\$&");
+}
+
+function markdownTableCell(value: string): string {
+  return markdownText(value).replace(/\r?\n/g, " ");
 }
 
 function assuranceHomeShell(body: string): string {
@@ -358,7 +713,7 @@ function renderPentestWorkbench(model: PentestWorkbenchModel): string {
   const assessments =
     model.assessments.length > 0
       ? model.assessments.map(renderPentestAssessment).join("")
-      : `<section class="panel-section"><p class="muted">No penetration testing assessments found. Create a Tag such as PENTEST-2026-Web and apply it to finding Actions to populate this workbench.</p></section>`;
+      : `<section class="panel-section"><p class="muted">No penetration testing assessments found. Create an assessment such as PENTEST-2026-Web, then add findings when they are available.</p></section>`;
   const severityLegend = PENTEST_FINDING_SEVERITIES.map(
     (severity) =>
       `<span class="pentest-severity-pill" data-severity="${escapeHtml(severity.id)}">${escapeHtml(severity.label)} · ${severity.slaDays} d</span>`
@@ -577,7 +932,18 @@ function baseStyles(): string {
     .pentest-finding-card { flex: 1 1 250px; }
     .pentest-finding-card header { display: grid; gap: 8px; }
     .pentest-finding-card button { width: 100%; text-align: left; }
-    .pentest-pipeline table { min-width: 980px; }`;
+    .pentest-pipeline table { min-width: 1180px; }
+    .pentest-pipeline th[data-field="target"], .pentest-pipeline td[data-field="target"] { width: 18rem; }
+    .pentest-pipeline th[data-field="status"], .pentest-pipeline td[data-field="status"] { width: 8.75rem; }
+    .pentest-pipeline th[data-field="tester"], .pentest-pipeline td[data-field="tester"],
+    .pentest-pipeline th[data-field="method"], .pentest-pipeline td[data-field="method"] { width: 11rem; }
+    .pentest-pipeline th[data-field="window"], .pentest-pipeline td[data-field="window"] { width: 13rem; }
+    .pentest-pipeline th[data-field="reportDue"], .pentest-pipeline td[data-field="reportDue"],
+    .pentest-pipeline th[data-field="retest"], .pentest-pipeline td[data-field="retest"] { width: 10rem; }
+    .pentest-pipeline th[data-field="criticalHigh"], .pentest-pipeline td[data-field="criticalHigh"],
+    .pentest-pipeline th[data-field="other"], .pentest-pipeline td[data-field="other"],
+    .pentest-pipeline th[data-field="openActions"], .pentest-pipeline td[data-field="openActions"] { width: 6.75rem; text-align: right; white-space: nowrap; }
+    .pentest-pipeline td[data-field="criticalHigh"], .pentest-pipeline td[data-field="other"], .pentest-pipeline td[data-field="openActions"] { font-variant-numeric: tabular-nums; }`;
 }
 
 function pentestWorkbenchStyles(): string {
