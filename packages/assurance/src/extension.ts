@@ -41,7 +41,6 @@ export function activate(context: vscode.ExtensionContext): void {
       new StaticTreeProvider("Publication readiness checks are planned", "file-lock")
     ),
     vscode.commands.registerCommand("pspf.assurance.openHome", openHome),
-    vscode.commands.registerCommand("pspf.assurance.openAssessmentWorkbench", openPentestWorkbench),
     vscode.commands.registerCommand("pspf.assurance.openPentestWorkbench", openPentestWorkbench),
     vscode.commands.registerCommand("pspf.assurance.newAssessment", plannedCommand("New Assessment")),
     vscode.commands.registerCommand("pspf.assurance.newFinding", plannedCommand("New Finding")),

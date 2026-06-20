@@ -67,10 +67,6 @@
         "title": "PSPF: Open Assurance"
       },
       {
-        "command": "pspf.assurance.openAssessmentWorkbench",
-        "title": "PSPF: Open Assurance Assessment Workbench"
-      },
-      {
         "command": "pspf.assurance.openPentestWorkbench",
         "title": "PSPF: Open Assurance Penetration Testing Workbench"
       },

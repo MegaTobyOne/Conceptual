@@ -24,7 +24,6 @@ const extensionPackages = [
     dependency: "tobyharvey.pspf-core",
     expectedCommands: [
       "pspf.assurance.openHome",
-      "pspf.assurance.openAssessmentWorkbench",
       "pspf.assurance.openPentestWorkbench",
       "pspf.assurance.newAssessment",
       "pspf.assurance.newFinding",
