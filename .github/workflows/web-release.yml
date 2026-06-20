@@ -39,7 +39,7 @@ jobs:
       target: ${{ steps.target.outputs.target }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -57,12 +57,12 @@ jobs:
           fi
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
@@ -72,7 +72,7 @@ jobs:
         run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
 
       - name: Cache pnpm store
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -85,7 +85,7 @@ jobs:
       - name: Cache Playwright browsers
         if: steps.target.outputs.target == 'production'
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -118,7 +118,7 @@ jobs:
         run: echo "release_id=$(date -u +%Y%m%d-%H%M%S)-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
 
       - name: Upload web artefact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pspf-web-release-${{ steps.release.outputs.release_id }}
           path: .tmp/web-release
@@ -135,10 +135,10 @@ jobs:
       url: ${{ vars.SITE_URL }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download web artefact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pspf-web-release-${{ needs.build.outputs.release_id }}
           path: web-release
@@ -165,10 +165,10 @@ jobs:
       url: ${{ vars.SITE_URL }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download web artefact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pspf-web-release-${{ needs.build.outputs.release_id }}
           path: web-release

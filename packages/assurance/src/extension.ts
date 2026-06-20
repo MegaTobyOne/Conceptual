@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import type { V01Entity } from "@pspf/contracts";
 import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
+import { homeActionButton, homePanelShellHtml, homePostureHeader, homeSection } from "@pspf/webview-shell";
 import {
   buildPentestWorkbenchModel,
   PENTEST_FINDING_SEVERITIES,
@@ -114,6 +115,9 @@ class AssuranceHomeProvider implements vscode.WebviewViewProvider {
     const allowedCommands = new Set([
       "pspf.core.initialiseWorkspace",
       "pspf.assurance.openPentestWorkbench",
+      "pspf.assurance.newAssessment",
+      "pspf.assurance.newFinding",
+      "pspf.assurance.prepareAssuranceReport",
       "pspf.assurance.runPublicationReadiness"
     ]);
     if (!allowedCommands.has(command)) {
@@ -223,39 +227,60 @@ async function handlePanelMessage(
 }
 
 function renderHome(model: PentestWorkbenchModel): string {
-  return shellHtml(
-    "PSPF Assurance",
-    `<section>
-      <p class="eyebrow">Assurance lifecycle</p>
-      <h1>PSPF Assurance</h1>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Local-first assessment and verification workbench.</p>
-      ${versionStrip()}
-      <div class="grid">
-        ${metricCard("Assessments", model.totals.assessments)}
-        ${metricCard("Findings", model.totals.findings)}
-        ${metricCard("Critical/high", model.totals.criticalHighFindings)}
-        ${metricCard("Open remediation", model.totals.openFindingActions)}
-        ${metricCard("Overdue", model.totals.overdue)}
-        ${metricCard("Pending verification", model.totals.pendingVerification)}
-      </div>
-      <div class="form-actions">
-        <button type="button" data-command="pspf.assurance.openPentestWorkbench">Open pentest workbench</button>
-        <button type="button" data-command="pspf.assurance.runPublicationReadiness">Run readiness check</button>
-        <button type="button" data-command="refresh">Refresh</button>
-      </div>
-    </section>
-    <section>
-      <h2>Scope</h2>
-      <p class="muted">This first slice preserves the current tag-based pentest read model. New assurance finding entities, approvals, report publishing, and signing arrive in later gated slices.</p>
-    </section>`
-  );
+  const axes = `Schema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
+  const reviewBody = `<div class="action-list">
+    ${homeActionButton("pspf.assurance.openPentestWorkbench", "Pentest workbench", "Review tagged findings, retests, residual risks and supplier context")}
+    ${homeActionButton("pspf.assurance.runPublicationReadiness", "Readiness check", "Check overdue, SLA-risk and verification queues")}
+    ${homeActionButton("refresh", "Refresh", "Reload Assurance counts from Core")}
+  </div>`;
+  const planBody = `<div class="action-list compact">
+    ${homeActionButton("pspf.assurance.newAssessment", "New assessment", "Reserved for the assurance finding model slice")}
+    ${homeActionButton("pspf.assurance.newFinding", "New finding", "Reserved for the assurance finding model slice")}
+    ${homeActionButton("pspf.assurance.prepareAssuranceReport", "Prepare report", "Reserved for the assurance publishing slice")}
+  </div>`;
+  const scopeBody = `<p class="muted">This first slice preserves the current tag-based pentest read model. New assurance finding entities, approvals, report publishing, and signing arrive in later gated slices.</p>`;
+  const body = [
+    homePostureHeader({
+      id: "overview",
+      eyebrow: "Assurance lifecycle",
+      title: "PSPF Assurance",
+      posture: axes,
+      metrics: [
+        { label: "Assessments", value: model.totals.assessments },
+        { label: "Findings", value: model.totals.findings },
+        { label: "Critical/high", value: model.totals.criticalHighFindings },
+        { label: "Open remediation", value: model.totals.openFindingActions },
+        { label: "Overdue", value: model.totals.overdue },
+        { label: "Pending verification", value: model.totals.pendingVerification }
+      ]
+    }),
+    homeSection({ id: "review", eyebrow: "Review", heading: "Assessment workbench", body: reviewBody }),
+    homeSection({ id: "scope", eyebrow: "Boundary", heading: "Current scope", body: scopeBody }),
+    homeSection({ id: "planned", eyebrow: "Next", heading: "Planned functions", body: planBody })
+  ].join("");
+
+  return homePanelShellHtml({
+    extensionLabel: "PSPF Assurance",
+    title: "PSPF Assurance",
+    tagline: "Assessment and verification",
+    version: PSPF_SLICE_VERSION,
+    accent: "teal",
+    sensitivityBanner: "OFFICIAL: Sensitive · assessment and verification data stays local until a gated export.",
+    nav: [
+      { href: "overview", label: "Overview" },
+      { href: "review", label: "Review" },
+      { href: "scope", label: "Scope" },
+      { href: "planned", label: "Planned" }
+    ],
+    body
+  });
 }
 
 function renderPentestWorkbench(model: PentestWorkbenchModel): string {
   const assessments =
     model.assessments.length > 0
       ? model.assessments.map(renderPentestAssessment).join("")
-      : `<section><p class="muted">No penetration testing assessments found. Create a Tag such as PENTEST-2026-Web and apply it to finding Actions to populate this workbench.</p></section>`;
+      : `<section class="panel-section"><p class="muted">No penetration testing assessments found. Create a Tag such as PENTEST-2026-Web and apply it to finding Actions to populate this workbench.</p></section>`;
   const severityLegend = PENTEST_FINDING_SEVERITIES.map(
     (severity) =>
       `<span class="pentest-severity-pill" data-severity="${escapeHtml(severity.id)}">${escapeHtml(severity.label)} · ${severity.slaDays} d</span>`
@@ -263,10 +288,15 @@ function renderPentestWorkbench(model: PentestWorkbenchModel): string {
   return shellHtml(
     "Penetration Testing Workbench",
     `${pentestWorkbenchStyles()}
-    <section>
-      <p class="eyebrow">Assurance · Third-party assessment</p>
-      <h1>Penetration Testing Workbench</h1>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Findings, retests, residual risks and Shop contract context derived from existing Actions, Evidence, Risks, Tags and links.</p>
+    <section class="panel-section panel-section--hero">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Assurance · Third-party assessment</p>
+          <h1>Penetration Testing Workbench</h1>
+          <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Findings, retests, residual risks and Shop contract context derived from existing Actions, Evidence, Risks, Tags and links.</p>
+        </div>
+        <span class="pill">Local-first</span>
+      </div>
       ${versionStrip()}
       <div class="grid">
         ${metricCard("Assessments", model.totals.assessments)}
@@ -281,13 +311,14 @@ function renderPentestWorkbench(model: PentestWorkbenchModel): string {
         ${metricCard("Retest backlog", model.totals.verificationBacklog)}
         ${metricCard("Residual risks", model.totals.residualRisks)}
       </div>
-      <div class="form-actions">
+      <div class="form-actions panel-actions" aria-label="Penetration testing workbench actions">
         <button type="button" data-command="refresh">Refresh</button>
         <button type="button" data-command="pspf.workshop.createAction">Create finding action</button>
         <button type="button" data-command="pspf.workshop.attachEvidence">Add evidence</button>
         <button type="button" data-command="pspf.workshop.manageTags">Manage Tags</button>
       </div>
-      <p class="muted">SLA bands: ${severityLegend}. Severity is inferred from a linked severity Tag or the Action title; unknown severity defaults to Medium so the finding remains visible.</p>
+      <div class="legend-row" aria-label="Finding SLA bands">${severityLegend}</div>
+      <p class="muted">Severity is inferred from a linked severity Tag or the Action title; unknown severity defaults to Medium so the finding remains visible.</p>
     </section>
     ${renderPentestPipeline(model)}
     ${assessments}`
@@ -307,18 +338,12 @@ function renderPentestPipeline(model: PentestWorkbenchModel): string {
     other: assessment.engagement.otherFindings,
     openActions: assessment.engagement.openFindingActions
   }));
-  return recordTable("Pentest Pipeline", rows, [
-    "target",
-    "status",
-    "tester",
-    "method",
-    "window",
-    "reportDue",
-    "retest",
-    "criticalHigh",
-    "other",
-    "openActions"
-  ]);
+  return recordTable(
+    "Pentest Pipeline",
+    rows,
+    ["target", "status", "tester", "method", "window", "reportDue", "retest", "criticalHigh", "other", "openActions"],
+    "pentest-pipeline"
+  );
 }
 
 function renderPentestAssessment(assessment: PentestAssessmentModel): string {
@@ -347,7 +372,7 @@ function renderPentestAssessment(assessment: PentestAssessmentModel): string {
     dueDate: item.dueDate ?? "Not set"
   }));
 
-  return `<section class="pentest-assessment" aria-labelledby="pentest-${escapeHtml(assessment.tagId)}">
+  return `<section class="panel-section pentest-assessment" aria-labelledby="pentest-${escapeHtml(assessment.tagId)}">
       <header class="pentest-assessment__header">
         <div>
           <p class="eyebrow">${escapeHtml(assessment.tagLabel)}</p>
@@ -400,7 +425,10 @@ function renderPentestFindingQueue(
       : `<p class="muted">No findings in this queue.</p>`;
   return `<article class="pentest-queue" data-queue="${escapeHtml(queueId)}">
       <header class="pentest-queue__header">
-        <h3>${escapeHtml(title)}</h3>
+        <div>
+          <p class="eyebrow">Work queue</p>
+          <h3>${escapeHtml(title)}</h3>
+        </div>
         ${pill(String(findings.length))}
       </header>
       <div class="pentest-finding-list">${rows}</div>
@@ -433,27 +461,45 @@ function shellHtml(title: string, body: string): string {
 }
 
 function baseStyles(): string {
-  return `:root { --surface: var(--vscode-editor-background); --surface-strong: var(--vscode-sideBar-background); --border: var(--vscode-panel-border); --muted: var(--vscode-descriptionForeground); --text: var(--vscode-editor-foreground); --accent: #0f766e; --danger: #b42318; --warn: #b7791f; --ok: #047857; --radius: 8px; --radius-sm: 6px; }
+  return `:root { --surface: var(--vscode-editor-background); --surface-raised: var(--vscode-sideBar-background); --surface-subtle: color-mix(in srgb, var(--surface) 94%, #0f766e); --border: var(--vscode-panel-border); --muted: var(--vscode-descriptionForeground); --text: var(--vscode-editor-foreground); --accent: #0f766e; --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent); --danger: #b42318; --warn: #b7791f; --ok: #047857; --radius: 8px; --radius-sm: 6px; --space-1: 6px; --space-2: 10px; --space-3: 14px; --space-4: 18px; }
     body { margin: 0; padding: 16px; color: var(--text); background: var(--surface); font-family: var(--vscode-font-family); }
-    section { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin: 0 0 14px; background: color-mix(in srgb, var(--surface) 94%, var(--accent)); }
+    .panel-section { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-3); margin: 0 0 var(--space-3); background: var(--surface-subtle); }
+    .panel-section--hero { border-top: 3px solid var(--accent); }
     h1, h2, h3, p { margin-top: 0; }
-    h1 { font-size: 24px; } h2 { font-size: 18px; } h3 { font-size: 14px; }
+    h1 { font-size: 24px; line-height: 1.2; } h2 { font-size: 18px; line-height: 1.25; } h3 { font-size: 14px; line-height: 1.3; }
     .muted { color: var(--muted); } .eyebrow { color: var(--accent); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
-    .metric { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--surface-strong); }
+    .panel-header, .pentest-assessment__header, .pentest-queue__header { display: flex; justify-content: space-between; gap: var(--space-2); align-items: flex-start; flex-wrap: wrap; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: var(--space-2); }
+    .metric { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-2); background: var(--surface-raised); min-height: 56px; }
     .metric strong { display: block; font-size: 24px; line-height: 1; } .metric span { color: var(--muted); font-size: 12px; }
-    .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; } button { color: inherit; background: var(--surface-strong); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer; } button:hover { border-color: var(--accent); }
-    .table-wrap { overflow: auto; } table { width: 100%; border-collapse: collapse; } th, td { border-bottom: 1px solid var(--border); padding: 7px; text-align: left; vertical-align: top; } th { color: var(--muted); font-size: 12px; }
-    .pill, .pentest-severity-pill { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; font-size: 11px; color: var(--muted); }
+    .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    button { color: var(--text); background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer; font: inherit; line-height: 1.3; }
+    button:hover, button:focus-visible { border-color: var(--accent); outline: none; box-shadow: 0 0 0 1px var(--accent-soft); }
+    .panel-actions button:first-child, .table-open-button { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+    .legend-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-raised); }
+    table { width: 100%; min-width: 720px; border-collapse: collapse; table-layout: fixed; }
+    th, td { border-bottom: 1px solid var(--border); padding: 7px 8px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+    th { color: var(--muted); font-size: 12px; font-weight: 600; }
+    tr:last-child td { border-bottom: 0; }
+    th[data-field="open"], td[data-field="open"] { width: 5.5rem; }
+    th[data-field="target"], th[data-field="title"], th[data-field="evidence"], th[data-field="finding"], th[data-field="supplier"], th[data-field="contract"] { width: 22%; }
+    th[data-field="status"], th[data-field="severity"], th[data-field="freshness"], th[data-field="score"], th[data-field="supplierLinked"] { width: 8.5rem; }
+    th[data-field="dueDate"], th[data-field="reportDue"], th[data-field="retest"], th[data-field="window"] { width: 10rem; }
+    .pill, .pentest-severity-pill { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; font-size: 11px; color: var(--muted); white-space: nowrap; }
     .pentest-severity-pill[data-severity="critical"] { border-color: var(--danger); color: var(--danger); }
     .pentest-severity-pill[data-severity="high"] { border-color: #c2410c; color: #c2410c; }
     .pentest-severity-pill[data-severity="medium"] { border-color: var(--warn); color: var(--warn); }
     .pentest-severity-pill[data-severity="low"] { border-color: var(--ok); color: var(--ok); }
-    .pentest-assessment__header, .pentest-queue__header { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
     .pentest-severity-counts, .pentest-finding-list { display: flex; gap: 8px; flex-wrap: wrap; }
-    .pentest-engagement-grid, .pentest-queue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 12px; }
-    .pentest-engagement-card, .pentest-queue, .pentest-finding-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--surface-strong); }
-    .pentest-finding-card { flex: 1 1 260px; }`;
+    .pentest-engagement-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-2); margin-top: 12px; }
+    .pentest-queue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-2); margin-top: 12px; }
+    .pentest-engagement-card, .pentest-queue, .pentest-finding-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-2); background: var(--surface-raised); }
+    .pentest-queue { min-height: 132px; }
+    .pentest-finding-card { flex: 1 1 250px; }
+    .pentest-finding-card header { display: grid; gap: 8px; }
+    .pentest-finding-card button { width: 100%; text-align: left; }
+    .pentest-pipeline table { min-width: 980px; }`;
 }
 
 function pentestWorkbenchStyles(): string {
@@ -464,15 +510,37 @@ function webviewScript(): string {
   return `const vscode = acquireVsCodeApi(); document.addEventListener('click', event => { const target = event.target; if (!(target instanceof Element)) return; const button = target.closest('button[data-command]'); if (!button) return; vscode.postMessage({ command: button.getAttribute('data-command'), entityType: button.getAttribute('data-entity-type'), entityId: button.getAttribute('data-entity-id') }); });`;
 }
 
-function recordTable(title: string, rows: readonly Record<string, unknown>[], columns: readonly string[]): string {
+function recordTable(
+  title: string,
+  rows: readonly Record<string, unknown>[],
+  columns: readonly string[],
+  className?: string
+): string {
+  const sectionClass = className ? ` class="panel-section ${escapeHtml(className)}"` : ` class="panel-section"`;
   if (rows.length === 0) {
-    return `<section><h2>${escapeHtml(title)}</h2><p class="muted">No records yet.</p></section>`;
+    return `<section${sectionClass}><h2>${escapeHtml(title)}</h2><p class="muted">No records yet.</p></section>`;
   }
-  const header = columns.map((column) => `<th>${escapeHtml(label(column))}</th>`).join("");
+  const hasOpenEntity = rows.some(
+    (row) => typeof row.openEntityId === "string" && typeof row.openEntityType === "string"
+  );
+  const openHeader = hasOpenEntity ? `<th data-field="open">Open</th>` : "";
+  const header = `${openHeader}${columns.map((column) => `<th data-field="${escapeHtml(column)}">${escapeHtml(label(column))}</th>`).join("")}`;
   const body = rows
-    .map((row) => `<tr>${columns.map((column) => `<td>${cellValue(row[column])}</td>`).join("")}</tr>`)
+    .map(
+      (row) =>
+        `<tr>${hasOpenEntity ? tableOpenCell(row) : ""}${columns.map((column) => `<td data-field="${escapeHtml(column)}">${cellValue(row[column])}</td>`).join("")}</tr>`
+    )
     .join("");
-  return `<section><h2>${escapeHtml(title)}</h2><div class="table-wrap"><table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div></section>`;
+  return `<section${sectionClass}><h2>${escapeHtml(title)}</h2><div class="table-wrap" tabindex="0" aria-label="Scrollable ${escapeHtml(title)} table"><table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div></section>`;
+}
+
+function tableOpenCell(row: Record<string, unknown>): string {
+  const entityId = row.openEntityId;
+  const entityType = row.openEntityType;
+  if (typeof entityId !== "string" || typeof entityType !== "string") {
+    return `<td data-field="open"></td>`;
+  }
+  return `<td data-field="open"><button class="table-open-button" type="button" data-command="openEntity" data-entity-type="${escapeHtml(entityType)}" data-entity-id="${escapeHtml(entityId)}">Open</button></td>`;
 }
 
 function cellValue(value: unknown): string {
