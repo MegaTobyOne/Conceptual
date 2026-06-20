@@ -1413,7 +1413,7 @@ if (isV1Release && minorVersion >= 28) {
     "PSPF Pub",
     "organisation chart",
     "relationship log",
-    minorVersion >= 29 ? "no Explorer publication in v1.29" : "no Explorer publication in v1.28",
+    "no Explorer publication",
     "local-only people context"
   ]) {
     assert.equal(pubExtension.includes(requiredText), true, `Pub extension should mention ${requiredText}`);

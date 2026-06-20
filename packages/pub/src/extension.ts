@@ -1721,7 +1721,7 @@ function renderHomeHtml(store: PubStore): string {
     version: PSPF_SLICE_VERSION,
     accent: "red",
     sensitivityBanner:
-      "OFFICIAL: Sensitive · local-only people context · no Explorer publication in v1.29 — Pub data stays on this workspace and is never exported to Explorer.",
+      "OFFICIAL: Sensitive · local-only people context · no Explorer publication — Pub data stays on this workspace and is never exported to Explorer.",
     nav: [
       { href: "overview", label: "Overview" },
       { href: "next", label: "Next" },

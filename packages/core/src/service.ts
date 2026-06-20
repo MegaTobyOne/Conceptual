@@ -1100,7 +1100,6 @@ async function readAndValidateImportBundle(bundlePath: string): Promise<ImportBu
   }
 
   const manifestCollections = manifest.collections ?? [];
-  const isLocalAuthoringBundle = manifest.generator?.mode === "local-authoring";
   if (manifestCollections.length > IMPORT_LIMITS.maxCollections) {
     throwImportLimitExceeded("Number of collections", IMPORT_LIMITS.maxCollections, manifestCollections.length);
   }
@@ -1122,8 +1121,7 @@ async function readAndValidateImportBundle(bundlePath: string): Promise<ImportBu
       totalLinks = records.length;
     }
 
-    const manifestCollection =
-      collectionPresent && !isLocalAuthoringBundle ? manifestByName.get(collectionName) : undefined;
+    const manifestCollection = collectionPresent ? manifestByName.get(collectionName) : undefined;
     if (manifestCollection) {
       if (manifestCollection.count !== records.length) {
         throwInvalidImportBundle(

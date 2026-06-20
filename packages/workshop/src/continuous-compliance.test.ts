@@ -141,6 +141,105 @@ test("strategy priority weights linked risk severity with choice trend and confi
   assert.match(summary.rationale, /Critical priority/);
 });
 
+test("strategy priority bands follow fixed adjusted-score thresholds", () => {
+  const cases: Array<{
+    readonly name: string;
+    readonly likelihood: number;
+    readonly impact: number;
+    readonly trend: StrategyEntity["choices"][number]["trend"];
+    readonly confidence: StrategyEntity["choices"][number]["confidence"];
+    readonly expectedScore: number;
+    readonly expectedBand: "critical" | "high" | "medium" | "low";
+  }> = [
+    {
+      name: "low lower edge",
+      likelihood: 1,
+      impact: 1,
+      trend: "improving",
+      confidence: "high",
+      expectedScore: 1,
+      expectedBand: "low"
+    },
+    {
+      name: "below medium",
+      likelihood: 4,
+      impact: 2,
+      trend: "improving",
+      confidence: "medium",
+      expectedScore: 9,
+      expectedBand: "low"
+    },
+    {
+      name: "medium lower edge",
+      likelihood: 3,
+      impact: 3,
+      trend: "improving",
+      confidence: "medium",
+      expectedScore: 10,
+      expectedBand: "medium"
+    },
+    {
+      name: "below high",
+      likelihood: 4,
+      impact: 4,
+      trend: "steady",
+      confidence: "medium",
+      expectedScore: 19,
+      expectedBand: "medium"
+    },
+    {
+      name: "high lower edge",
+      likelihood: 5,
+      impact: 4,
+      trend: "improving",
+      confidence: "high",
+      expectedScore: 20,
+      expectedBand: "high"
+    },
+    {
+      name: "below critical",
+      likelihood: 5,
+      impact: 5,
+      trend: "steady",
+      confidence: "high",
+      expectedScore: 27,
+      expectedBand: "high"
+    },
+    {
+      name: "critical lower edge",
+      likelihood: 5,
+      impact: 4,
+      trend: "deteriorating",
+      confidence: "low",
+      expectedScore: 28,
+      expectedBand: "critical"
+    }
+  ];
+
+  for (const entry of cases) {
+    const linkedRisk = risk({
+      id: `RSK-${entry.expectedScore}`,
+      title: entry.name,
+      likelihood: entry.likelihood,
+      impact: entry.impact,
+      status: "open"
+    });
+    const choice = strategy({
+      capabilityArea: "Identity and access",
+      executiveOwner: "Identity Team",
+      outcomeId: "OUT-1",
+      outcomeStatement: "Trusted access to critical services",
+      riskRefId: linkedRisk.id,
+      trend: entry.trend,
+      confidence: entry.confidence
+    }).choices[0]!;
+    const summary = buildStrategyPrioritySummary(choice, new Map([[linkedRisk.id, linkedRisk]]));
+
+    assert.equal(summary.score, entry.expectedScore, entry.name);
+    assert.equal(summary.band, entry.expectedBand, entry.name);
+  }
+});
+
 test("strategy priority deduplicates direct risk and action references", () => {
   const linkedRisk = risk({ id: "RSK-1", title: "Identity exposure", likelihood: 4, impact: 4, status: "open" });
   const choice = strategy({

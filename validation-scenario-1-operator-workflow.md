@@ -112,7 +112,7 @@ If `dig` returns no address or `curl` reports `Could not resolve host`, create o
 33. Reconfigure the 6clicks risk source in explicit `Live 6clicks` mode using an invalid non-HTTPS URL and confirm validation blocks the profile. Cancel before entering real credentials unless this is an approved tenant validation run.
 34. Open Pub from the Activity Bar or run `PSPF: Open Pub`. Confirm `PSPF Pub v1.43.0`, local-only people context, organisation chart, relationship context, assignments and rotations, and local-only Pub publication wording are visible. Load the Pub sample if needed, then open People, Roles, Assignments, and Relationship Log. Confirm the Organisation Chart uses team cards: the front shows team name, responsibility, roles, and assigned people, while the back shows accountable PSPF Requirements, ISM controls/control sets, and team news/dates. Edit a Team, add or confirm a local team-wide dated item such as enterprise bargaining, census, planning day, or reminder, tick the Plan of Action option, save, and reopen Workshop Plan of Action to confirm the item appears as optional local schedule context with nearby action-date conflict cues. For each local record type, open its detail panel and edit panel, confirm the expected fields are visible, save without implying that Pub data is exported, and confirm Relationship Note detail/edit covers person, recorded date, summary, and next contact.
 35. In GitHub Actions, open or run a Marketplace release dry run from `main` with `target=all` and `dry_run=true`. Confirm the run name includes `target=all / dry_run=true`, the dispatch summary says publication is skipped, Core, Workshop, Shop, and Pub publish jobs show dry-run summaries, and `Publish to VS Code Marketplace`, `Verify Marketplace version`, `Tag and GitHub release`, and `Verify receipt tag` are skipped.
-36. Confirm the dry run created no `core/1.41.4`, `workshop/1.41.4`, `shop/1.41.4`, or `pub/1.41.4` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
+36. Confirm the dry run created no `core/1.43.0`, `workshop/1.43.0`, `shop/1.43.0`, `pub/1.43.0`, or `assurance/1.43.0` remote receipt tags. Do not approve or run a non-dry-run Marketplace publish as part of this manual validation unless this is the actual release publication window.
 37. From Workshop Home, click `Digital CISO Magazine` and confirm the issue opens from a button and copies email-ready Markdown. Click `CISO Master Plan` and confirm a separate active planning panel opens with direction, streams, phases, inputs/dependencies, and buttons back to Plan of Action, Master Dashboard, Digital CISO Magazine, and copy plan. Then run `npx pnpm@10.10.0 run check:ciso-magazine` from the repository root and open `.tmp/ciso-magazine/digital-ciso-magazine.html`. Confirm the issue has a cover hook, editor's note, current posture snapshot, feature story, attention-required section, action strip, commercial watch, CISO Master Plan article, reader actions, next issue, source metadata, and `OFFICIAL: Sensitive` label. Open `.tmp/ciso-magazine/ciso-master-plan.md` and `.tmp/ciso-magazine/digital-ciso-magazine-info.md` and confirm they are readable as planning/email-copy extracts.
 38. Finish by running `npx pnpm@10.10.0 run validate:debug-workspace` from the repository root.
 
@@ -143,12 +143,7 @@ The following automated gates now cover the detailed checks that used to be manu
 For a quick spine check, run:
 
 ```sh
-npx pnpm@10.10.0 run e2e:v1.26
-npx pnpm@10.10.0 run e2e:v1.27
-npx pnpm@10.10.0 run e2e:v1.28
-npx pnpm@10.10.0 run e2e:v1.29
-npx pnpm@10.10.0 run e2e:v1.30
-npx pnpm@10.10.0 run e2e:v1.31
+npx pnpm@10.10.0 run e2e:v1.43
 ```
 
 Expected outputs:
@@ -174,7 +169,7 @@ Expected output:
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.
 - PASS for all automated readiness gates.
 - PASS for the Explorer publication smoke, posture brief redaction, cyber reference data, and Digital CISO Magazine gates.
-- Manual operator validation should focus on v1.42 Workshop UX/IA refinement, Pub Organisation Chart card backs, local team news/date authoring, optional Plan of Action team-date context, v1.39 cyber reference dataset diagnostics, clean-start reset recovery, reciprocal ISM mapping open/edit actions, v1.36 ISM Review Workbench queues, v1.35 ISM control saved views, implementation-status navigation, direct control work links, Explorer Obligations review, and public-safe ISM posture brief rows, plus the v1.31 6clicks Risk Source panel, Pub local detail/edit coverage, Marketplace dry-run support, and earlier regression surfaces.
+- Manual operator validation should focus on the current v1.43 Strategy priority inference, Assurance Activity Bar and Assessment Workbench, Workshop UX/IA refinement, Pub Organisation Chart card backs, local team news/date authoring, optional Plan of Action team-date context, cyber reference dataset diagnostics, clean-start reset recovery, reciprocal ISM mapping open/edit actions, ISM Review Workbench queues, ISM control saved views, implementation-status navigation, direct control work links, Explorer Obligations review, public-safe ISM posture brief rows, the 6clicks Risk Source panel, Pub local detail/edit coverage, Marketplace dry-run support, and earlier regression surfaces.
 
 ## Pass Criteria
 

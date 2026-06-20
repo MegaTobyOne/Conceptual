@@ -17,23 +17,25 @@ test("Assurance Home uses shared PSPF home shell primitives", async () => {
   assert.match(source, /Loading local Assurance workspace state/);
   assert.match(source, /isWorkspaceInitialised/);
   assert.match(source, /pspf\.core\.getWorkspacePaths/);
-  assert.doesNotMatch(source, /pspf\.core\.validateWorkspace/);
   assert.match(source, /Initialise the local PSPF workspace before using Assurance actions/);
   assert.match(source, /accent: "teal"/);
   assert.match(source, /assuranceHomeStyles/);
   assert.match(source, /Assurance Home/);
   assert.match(source, /OFFICIAL: Sensitive assurance workspace/);
   assert.match(source, /OFFICIAL: Sensitive · assessment and verification data stays local/);
+  assert.match(source, /pspf\.assurance\.openAssessmentWorkbench/);
   assert.match(source, /pspf\.assurance\.openPentestWorkbench/);
   assert.match(source, /pspf\.assurance\.newAssessment/);
   assert.match(source, /pspf\.assurance\.newFinding/);
   assert.match(source, /pspf\.assurance\.prepareAssuranceReport/);
   assert.match(source, /pspf\.assurance\.runPublicationReadiness/);
+  assert.match(source, /pspf\.core\.validateWorkspace/);
 });
 
 test("Assurance finding model slice wires creation commands to Core writes", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
+  assert.match(source, /registerCommand\("pspf\.assurance\.openAssessmentWorkbench", openAssessmentWorkbench\)/);
   assert.match(source, /registerCommand\("pspf\.assurance\.newAssessment", createAssuranceAssessment\)/);
   assert.match(source, /registerCommand\("pspf\.assurance\.newFinding", createAssuranceFinding\)/);
   assert.match(source, /registerCommand\("pspf\.assurance\.prepareAssuranceReport", prepareAssuranceReport\)/);
@@ -43,6 +45,17 @@ test("Assurance finding model slice wires creation commands to Core writes", asy
   assert.match(source, /PENTEST-/);
   assert.doesNotMatch(source, /plannedCommand\("New Assessment"\)/);
   assert.doesNotMatch(source, /plannedCommand\("New Finding"\)/);
+});
+
+test("Assurance Assessment Workbench is registered and renders assessment queues", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
+
+  assert.match(manifest, /"pspf\.assurance\.openAssessmentWorkbench"/);
+  assert.match(source, /function renderAssessmentWorkbench\(model: PentestWorkbenchModel\): string/);
+  assert.match(source, /PSPF Assurance Assessment Workbench/);
+  assert.match(source, /Assessment Queue/);
+  assert.match(source, /queues\["pending-verification"\]/);
 });
 
 test("Assurance report command opens a local Markdown working report", async () => {
@@ -64,7 +77,7 @@ test("Assurance pentest panel uses Workshop-style panel and table conventions", 
   assert.match(source, /panel-actions/);
   assert.match(source, /table-layout: fixed/);
   assert.match(source, /\.pentest-pipeline table \{ min-width: 1180px; \}/);
-  assert.match(source, /data-field=\"criticalHigh\"\].*text-align: right/s);
+  assert.match(source, /data-field="criticalHigh"\].*text-align: right/s);
   assert.match(source, /font-variant-numeric: tabular-nums/);
   assert.match(source, /data-field="open"/);
   assert.match(source, /tableOpenCell/);

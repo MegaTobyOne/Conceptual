@@ -46,6 +46,7 @@ export function activate(context: vscode.ExtensionContext): void {
       new StaticTreeProvider("Publication readiness checks are planned", "file-lock")
     ),
     vscode.commands.registerCommand("pspf.assurance.openHome", openHome),
+    vscode.commands.registerCommand("pspf.assurance.openAssessmentWorkbench", openAssessmentWorkbench),
     vscode.commands.registerCommand("pspf.assurance.openPentestWorkbench", openPentestWorkbench),
     vscode.commands.registerCommand("pspf.assurance.newAssessment", createAssuranceAssessment),
     vscode.commands.registerCommand("pspf.assurance.newFinding", createAssuranceFinding),
@@ -97,7 +98,9 @@ class AssuranceHomeProvider implements vscode.WebviewViewProvider {
     }
     try {
       if (!(await isWorkspaceInitialised())) {
-        this.view.webview.html = renderHomeUnavailable("Initialise the local PSPF workspace before using Assurance actions.");
+        this.view.webview.html = renderHomeUnavailable(
+          "Initialise the local PSPF workspace before using Assurance actions."
+        );
         return;
       }
       const model = buildPentestWorkbenchModel(await listAllEntities());
@@ -117,6 +120,7 @@ class AssuranceHomeProvider implements vscode.WebviewViewProvider {
     }
     const allowedCommands = new Set([
       "pspf.core.initialiseWorkspace",
+      "pspf.assurance.openAssessmentWorkbench",
       "pspf.assurance.openPentestWorkbench",
       "pspf.assurance.newAssessment",
       "pspf.assurance.newFinding",
@@ -134,6 +138,20 @@ class AssuranceHomeProvider implements vscode.WebviewViewProvider {
 async function openHome(): Promise<void> {
   await vscode.commands.executeCommand("workbench.view.extension.pspfAssurance");
   await homeProvider?.refresh();
+}
+
+async function openAssessmentWorkbench(): Promise<void> {
+  await ensureCoreReady();
+  const panel = vscode.window.createWebviewPanel(
+    "pspfAssuranceAssessmentWorkbench",
+    "PSPF Assurance Assessment Workbench",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+  wirePanelMessages(panel, async () => {
+    panel.webview.html = renderAssessmentWorkbench(buildPentestWorkbenchModel(await listAllEntities()));
+  });
+  panel.webview.html = renderAssessmentWorkbench(buildPentestWorkbenchModel(await listAllEntities()));
 }
 
 async function openPentestWorkbench(): Promise<void> {
@@ -177,7 +195,9 @@ async function prepareAssuranceReport(): Promise<void> {
     content: renderAssuranceReportMarkdown(model)
   });
   await vscode.window.showTextDocument(document, vscode.ViewColumn.One, false);
-  await vscode.window.showInformationMessage("Prepared a local Assurance report from the current pentest workbench data.");
+  await vscode.window.showInformationMessage(
+    "Prepared a local Assurance report from the current pentest workbench data."
+  );
 }
 
 async function createAssuranceAssessment(): Promise<void> {
@@ -322,10 +342,7 @@ async function pickOrCreateAssessmentTag(entities: readonly V01Entity[]): Promis
     description: "Capture a new pentest assessment tag"
   };
   const picked = await vscode.window.showQuickPick(
-    [
-      createNew,
-      ...assessmentTags.map((tag) => ({ label: tag.label, description: tag.title, tag }))
-    ],
+    [createNew, ...assessmentTags.map((tag) => ({ label: tag.label, description: tag.title, tag }))],
     { title: "Select Assurance Assessment", ignoreFocusOut: true }
   );
   if (!picked) {
@@ -382,10 +399,10 @@ function withEnvelope<T extends V01Entity>(
 }
 
 async function ensureCoreReady(): Promise<void> {
-  if (await isWorkspaceInitialised()) {
-    return;
+  if (!(await isWorkspaceInitialised())) {
+    await vscode.commands.executeCommand("pspf.core.initialiseWorkspace");
   }
-  await vscode.commands.executeCommand("pspf.core.initialiseWorkspace");
+  await vscode.commands.executeCommand("pspf.core.validateWorkspace");
 }
 
 async function isWorkspaceInitialised(): Promise<boolean> {
@@ -479,6 +496,7 @@ function renderHome(model: PentestWorkbenchModel): string {
     ${homeActionButton("refresh", "Refresh", "Reload Assurance counts from Core")}
   </div>`;
   const planBody = `<div class="action-list compact">
+    ${homeActionButton("pspf.assurance.openAssessmentWorkbench", "Assessment Workbench", "Review assessment tags and linked finding queues")}
     ${homeActionButton("pspf.assurance.newAssessment", "New assessment", "Capture a pentest assessment tag")}
     ${homeActionButton("pspf.assurance.newFinding", "New finding", "Capture and tag an assurance finding action")}
     ${homeActionButton("pspf.assurance.prepareAssuranceReport", "Prepare report", "Open a local Markdown report from current Assurance data")}
@@ -511,6 +529,46 @@ function renderHome(model: PentestWorkbenchModel): string {
   ].join("");
 
   return assuranceHomeShell(body);
+}
+
+function renderAssessmentWorkbench(model: PentestWorkbenchModel): string {
+  const rows = model.assessments
+    .map((assessment) => {
+      const openCount = assessment.findingCount - assessment.queues.closed.length;
+      return `<tr>
+        <td data-field="assessment"><strong>${escapeHtml(assessment.tagLabel)}</strong><span class="muted block">${escapeHtml(assessment.title)}</span></td>
+        <td data-field="findings">${assessment.findingCount}</td>
+        <td data-field="open">${openCount}</td>
+        <td data-field="overdue">${assessment.queues.overdue.length}</td>
+        <td data-field="verification">${assessment.queues["pending-verification"].length}</td>
+      </tr>`;
+    })
+    .join("");
+  return shellHtml(
+    "PSPF Assurance Assessment Workbench",
+    `${pentestWorkbenchStyles()}
+    <section class="panel-section panel-section--hero">
+      <div>
+        <p class="eyebrow">Assurance assessments</p>
+        <h1>Assessment Workbench</h1>
+        <p class="muted">OFFICIAL: Sensitive local assessment tags with linked finding and verification queues.</p>
+      </div>
+      <div class="panel-actions">
+        <button type="button" data-command="pspf.assurance.newAssessment">New assessment</button>
+        <button type="button" data-command="pspf.assurance.openPentestWorkbench">Open pentest workbench</button>
+        <button type="button" data-command="pspf.assurance.runPublicationReadiness">Readiness check</button>
+      </div>
+    </section>
+    <section class="panel-section">
+      <h2>Assessment Queue</h2>
+      <div class="table-scroll" role="region" aria-label="Scrollable Assessment Workbench table">
+        <table>
+          <thead><tr><th>Assessment</th><th>Findings</th><th>Open</th><th>Overdue</th><th>Pending verification</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="5" class="muted">No assurance assessments yet. Create an assessment to start grouping findings.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </section>`
+  );
 }
 
 function renderHomeUnavailable(message: string): string {
@@ -575,7 +633,9 @@ function renderAssuranceReportMarkdown(model: PentestWorkbenchModel): string {
   ];
 
   if (model.assessments.length === 0) {
-    lines.push("No pentest assessment records were found. Create an assessment and finding before using this report for review.");
+    lines.push(
+      "No pentest assessment records were found. Create an assessment and finding before using this report for review."
+    );
     return lines.join("\n");
   }
 
@@ -615,11 +675,19 @@ function renderAssuranceReportMarkdown(model: PentestWorkbenchModel): string {
 
 function assuranceReadinessNotes(model: PentestWorkbenchModel): string[] {
   const notes = [
-    model.totals.overdue > 0 ? `- Action required: ${model.totals.overdue} overdue finding action(s) need review.` : undefined,
-    model.totals.slaAtRisk > 0 ? `- Watch: ${model.totals.slaAtRisk} finding action(s) are outside the severity SLA.` : undefined,
-    model.totals.pendingVerification > 0 ? `- Retest required: ${model.totals.pendingVerification} finding action(s) are pending verification.` : undefined
+    model.totals.overdue > 0
+      ? `- Action required: ${model.totals.overdue} overdue finding action(s) need review.`
+      : undefined,
+    model.totals.slaAtRisk > 0
+      ? `- Watch: ${model.totals.slaAtRisk} finding action(s) are outside the severity SLA.`
+      : undefined,
+    model.totals.pendingVerification > 0
+      ? `- Retest required: ${model.totals.pendingVerification} finding action(s) are pending verification.`
+      : undefined
   ].filter((note): note is string => Boolean(note));
-  return notes.length > 0 ? notes : ["- No overdue, SLA-risk, or pending verification queues are active in the current workbench data."];
+  return notes.length > 0
+    ? notes
+    : ["- No overdue, SLA-risk, or pending verification queues are active in the current workbench data."];
 }
 
 function findingRows(assessment: PentestAssessmentModel): string[] {
@@ -657,7 +725,7 @@ function residualRiskRows(assessment: PentestAssessmentModel): string[] {
 }
 
 function markdownText(value: string): string {
-  return value.replace(/[\\`*_{}\[\]()#+.!|>-]/g, "\\$&");
+  return value.replace(/[\\`*_{}[\]()#+.!|>-]/g, "\\$&");
 }
 
 function markdownTableCell(value: string): string {

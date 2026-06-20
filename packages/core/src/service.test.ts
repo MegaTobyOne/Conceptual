@@ -48,6 +48,59 @@ test("plan-apply import is read-only until applied and undo restores prior recor
   assert.equal(await requirementStatus(service, requirement.id), "in-progress");
 });
 
+test("local-authoring imports reject manifest checksum mismatches", async () => {
+  const workspaceRoot = await freshWorkspace("local-authoring-checksum");
+  const bundlePath = join(workspaceRoot, "incoming-local-authoring-bundle.json");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const incomingRequirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Tampered local authoring fixture",
+      domainId: PSPF_DOMAINS[0]!.id,
+      assessmentStatus: "met"
+    },
+    "explorer"
+  );
+  await writeBundle(
+    bundlePath,
+    { requirements: [incomingRequirement] },
+    { mode: "local-authoring", hashOverrides: { requirements: "0".repeat(64) } }
+  );
+
+  await assert.rejects(
+    () => service.planImportBundle(bundlePath, "plan-apply"),
+    /checksum does not match the manifest/i
+  );
+});
+
+test("local-authoring imports reject manifest count mismatches", async () => {
+  const workspaceRoot = await freshWorkspace("local-authoring-count");
+  const bundlePath = join(workspaceRoot, "incoming-local-authoring-count-bundle.json");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const incomingRequirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Count mismatch local authoring fixture",
+      domainId: PSPF_DOMAINS[0]!.id,
+      assessmentStatus: "met"
+    },
+    "explorer"
+  );
+  await writeBundle(
+    bundlePath,
+    { requirements: [incomingRequirement] },
+    { mode: "local-authoring", countOverrides: { requirements: 2 } }
+  );
+
+  await assert.rejects(() => service.planImportBundle(bundlePath, "plan-apply"), /count mismatch/i);
+});
+
 test("writer lock blocks every mutating Core service entry point", async () => {
   const workspaceRoot = await freshWorkspace("writer-lock-write-surface");
   const service = createCoreService(workspaceRoot);
@@ -168,7 +221,10 @@ test("tag validation permits Assurance finding actions to be tagged", async () =
   await service.upsertEntities([assessmentTag, finding, taggedFinding]);
 
   const links = await service.listEntities("link");
-  assert.equal(links.some((link) => link.id === taggedFinding.id), true);
+  assert.equal(
+    links.some((link) => link.id === taggedFinding.id),
+    true
+  );
 });
 
 test("workspace reset returns to a clean cyber reference-data baseline", async () => {
@@ -285,14 +341,23 @@ async function freshWorkspace(name: string): Promise<string> {
   return workspaceRoot;
 }
 
-async function writeBundle(path: string, collections: Record<string, readonly unknown[]>): Promise<void> {
+async function writeBundle(
+  path: string,
+  collections: Record<string, readonly unknown[]>,
+  options: {
+    readonly mode?: "publication" | "local-authoring";
+    readonly hashOverrides?: Readonly<Record<string, string>>;
+    readonly countOverrides?: Readonly<Record<string, number>>;
+  } = {}
+): Promise<void> {
   const manifestCollections = Object.entries(collections).map(([name, records]) => {
     const serialised = `${JSON.stringify(records, null, 2)}\n`;
+    const hash = options.hashOverrides?.[name] ?? createHash("sha256").update(serialised).digest("hex");
     return {
       name,
       path: `./collections/${name}.json`,
-      count: records.length,
-      hash: { alg: "SHA-256", value: createHash("sha256").update(serialised).digest("hex") }
+      count: options.countOverrides?.[name] ?? records.length,
+      hash: { alg: "SHA-256", value: hash }
     };
   });
   const manifest = {
@@ -301,7 +366,7 @@ async function writeBundle(path: string, collections: Record<string, readonly un
     schemaVersion: VERSION_AXES.schemaVersion,
     apiVersion: VERSION_AXES.apiVersion,
     generatedAt: "2026-06-10T00:00:00.000Z",
-    generator: { product: "pspf-core-test", mode: "publication", productVersion: PSPF_SLICE_VERSION },
+    generator: { product: "pspf-core-test", mode: options.mode ?? "publication", productVersion: PSPF_SLICE_VERSION },
     collections: manifestCollections
   };
   await writeFile(path, `${JSON.stringify({ manifest, collections }, null, 2)}\n`, "utf8");

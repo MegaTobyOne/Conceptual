@@ -225,24 +225,22 @@ test("Workshop Home is simplified and exposes one status graphic", async () => {
   const homeSource = homeMatch[0];
 
   assert.match(homeSource, /renderWorkshopStatusDonut\(model\)/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openMasterDashboard", "Dashboard"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openAssessmentDashboard", "Assessment"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openMasterDashboard", "Open Workspace Dashboard"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openAssessmentDashboard", "Open Assessment Dashboard"/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.createRequirement", "Create requirement"/);
-  assert.match(homeSource, /<h2>Edit<\/h2>/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRequirementsList", "Edit requirements"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openEvidenceList", "Edit evidence"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openActionsList", "Edit actions"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRisksList", "Edit risks"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.openDirectionsList", "Edit directions"/);
-  assert.match(homeSource, /homeButton\("pspf\.core\.exportBundle", "Export bundle"/);
-  assert.match(homeSource, /homeButton\("pspf\.workshop\.copyPostureBrief", "Copy brief"/);
+  assert.match(homeSource, /<h2>Review And Update<\/h2>/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRequirementsList", "Review requirements"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openEvidenceList", "Review evidence"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openActionsList", "Review actions"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openRisksList", "Review risks"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.openDirectionsList", "Review directions"/);
+  assert.match(homeSource, /homeButton\("pspf\.core\.exportBundle", "Export Explorer bundle"/);
+  assert.match(homeSource, /homeButton\("pspf\.workshop\.copyPostureBrief", "Copy posture brief"/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.home\.refresh", "Refresh"/);
-  assert.match(homeSource, /<h2>Integrations<\/h2>/);
+  assert.match(homeSource, /<summary><strong>Integrations<\/strong><\/summary>/);
   assert.match(homeSource, /homeButton\("pspf\.workshop\.previewRiskSourceImport", "Run integrations"/);
   assert.doesNotMatch(homeSource, /homeButton\("pspf\.workshop\.openRiskSourcePanel", "Risk Source"/);
   assert.doesNotMatch(homeSource, /homeButton\("pspf\.workshop\.configureRiskSource", "Configure source"/);
-  assert.doesNotMatch(homeSource, /Continue next task/);
-  assert.doesNotMatch(homeSource, /Review evidence/);
   assert.doesNotMatch(homeSource, /Digital CISO Magazine/);
 });
 
@@ -464,7 +462,7 @@ test("Workshop Home exposes core authoring and single bundle exchange actions", 
 
   assert.match(source, /homeButton\("pspf\.workshop\.createRisk", "Create risk"\)/);
   assert.match(source, /homeButton\("pspf\.workshop\.registerDirection", "Create direction"\)/);
-  assert.match(source, /homeButton\("pspf\.workshop\.importBundle", "Import bundle"\)/);
+  assert.match(source, /homeButton\("pspf\.workshop\.importBundle", "Import Explorer bundle"\)/);
   assert.match(homeCommandBlock, /"pspf\.workshop\.importBundle"/);
   assert.match(manifest, /PSPF: Create Direction/);
   assert.doesNotMatch(manifest, /Import Explorer Local JSON/);

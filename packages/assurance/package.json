@@ -76,6 +76,10 @@
         "title": "PSPF: Open Assurance Penetration Testing Workbench"
       },
       {
+        "command": "pspf.assurance.openAssessmentWorkbench",
+        "title": "PSPF: Open Assurance Assessment Workbench"
+      },
+      {
         "command": "pspf.assurance.newAssessment",
         "title": "PSPF: New Assurance Assessment"
       },
@@ -98,6 +102,11 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "pspf.assurance.openAssessmentWorkbench",
+          "when": "view == pspfAssurance.assessmentsView",
+          "group": "navigation@0"
+        },
         {
           "command": "pspf.assurance.newAssessment",
           "when": "view == pspfAssurance.assessmentsView",

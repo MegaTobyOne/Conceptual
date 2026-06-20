@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
@@ -107,6 +108,7 @@ try {
 
   const partialBundle = JSON.parse(JSON.stringify(explorerBundle));
   partialBundle.collections["source-controls"] = [];
+  refreshManifestCollection(partialBundle, "source-controls");
   const partialBundlePath = join(reportDirectory, "explorer-local-authoring-additive-without-source-controls.json");
   await writeFile(partialBundlePath, `${JSON.stringify(partialBundle, null, 2)}\n`, "utf8");
   const historicalMappingBundle = JSON.parse(JSON.stringify(partialBundle));
@@ -114,6 +116,7 @@ try {
     "MAP-47cd1747-8119-4c0f-8dbd-27d735e036fd";
   historicalMappingBundle.collections["requirement-control-mappings"][0].sourceControlId =
     "SRC-00000000-0000-7000-8000-000000000102";
+  refreshManifestCollection(historicalMappingBundle, "requirement-control-mappings");
   const historicalMappingBundlePath = join(reportDirectory, "explorer-local-authoring-historical-mapping.json");
   await writeFile(historicalMappingBundlePath, `${JSON.stringify(historicalMappingBundle, null, 2)}\n`, "utf8");
   const additiveImportService = createCoreService(additiveImportWorkspaceRoot);
@@ -433,6 +436,15 @@ function findBundlePath() {
 
 function readFileSyncText(path) {
   return readFileSync(path, "utf8");
+}
+
+function refreshManifestCollection(bundle, collectionName) {
+  const records = bundle.collections?.[collectionName] || [];
+  const serialised = JSON.stringify(records, null, 2) + "\n";
+  const collection = bundle.manifest?.collections?.find((item) => item.name === collectionName);
+  assert.ok(collection, `manifest should contain ${collectionName}`);
+  collection.count = records.length;
+  collection.hash = { alg: "SHA-256", value: createHash("sha256").update(serialised).digest("hex") };
 }
 
 function check(name, ok, detail) {
