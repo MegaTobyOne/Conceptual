@@ -6463,7 +6463,7 @@ async function openStrategyMap(): Promise<void> {
       `
       <section>
         <h1>Cyber Strategy Map</h1>
-        <p class="muted">No Strategy record is available in this workspace yet. Create a draft strategy or load the sample workspace to test the v1.24 strategy view.</p>
+        <p class="muted">No Strategy record is available in this workspace yet. Create a draft strategy or load the sample workspace to preview the strategy view.</p>
         ${versionStrip()}
         <div class="form-actions">
           <button type="button" data-command="createStrategyDraft">Create draft strategy</button>

@@ -2,6 +2,14 @@
   "name": "pspf-assurance",
   "displayName": "PSPF Assurance",
   "description": "PSPF assessment, penetration testing, assurance finding, verification, and publication-readiness surface.",
+  "keywords": [
+    "PSPF",
+    "assurance",
+    "penetration testing",
+    "findings",
+    "verification",
+    "security"
+  ],
   "version": "1.43.0",
   "private": true,
   "type": "module",

@@ -220,6 +220,8 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 - Do not create dozens of micro-commands that clutter the palette.
 - Reserve destructive/admin operations to Core and gate them with confirmation.
 
+> **Command title convention (implemented).** Every shipped extension prefixes its user-facing command titles with the unified `PSPF:` brand prefix (for example `PSPF: New Supplier`, `PSPF: Open Assurance`, `PSPF: Import Explorer Bundle`). This is a deliberate ecosystem choice: typing `PSPF` in the Command Palette surfaces the whole product suite in one place. The per-extension `Workshop:` / `Shop:` / `Pub:` / `Assurance:` / `PSPF Core:` forms in the tables below describe the **action wording and placement** for each command; the shipped title prefix is the unified `PSPF:`. When the palette would otherwise show two identical titles, differentiate the action wording (for example `PSPF: Import Explorer Bundle` versus `PSPF: Import Master Bundle`) rather than reintroducing per-extension prefixes.
+
 ### Core commands
 
 > **v0.1 implementation note.** v0.1 ships a subset of the command set below. The unified `pspf.core.openHealth` view is deferred to v0.2 — its information is surfaced through `pspf.core.validateWorkspace`, `pspf.core.verifyIntegrity`, and `pspf.core.showWriterLock` in v0.1 (see [pspf-development-readiness-review.md](pspf-development-readiness-review.md) § Remaining readiness risks). `pspf.core.exportExplorerBundle` is renamed to `pspf.core.exportBundle` per ADR 0009 (single master bundle); both rows below are retained for spec continuity but the implementation uses the master-bundle name. `pspf.core.runMigration`, `pspf.core.openLogs`, and `pspf.core.rebuildIndexes` are v0.2+.

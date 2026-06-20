@@ -1413,8 +1413,10 @@ function localAuthoringPanel(requirements) {
     '<label class="version-pill" for="include-compliance-history"><input id="include-compliance-history" type="checkbox"' + (includeComplianceHistoryInExport ? ' checked' : '') + '> Include compliance history</label>' +
     '<button type="button" id="export-local-bundle">Export local JSON</button>' +
     '<button type="button" class="secondary" id="reset-local-data">Reset local data</button>' +
+    '<button type="button" class="secondary" id="forget-remembered-bundle">Forget this bundle</button>' +
     '<span id="local-storage-status" class="muted" role="status">IndexedDB checking storage...</span>' +
     '</div>' +
+    '<p class="muted">Reset local data clears your browser-local edits but keeps the bundle loaded. Forget this bundle also removes the remembered bundle copy from this browser \u2014 use it on a shared machine.</p>' +
     '<p class="muted">Compliance history is included in this export by default. Turn it off to send current assessment state without the local status-change event trail.</p>' +
     '<p class="muted">Local status overlays: ' + localCount + '</p>' +
     '<p class="muted">Local status conflicts: ' + conflictCount + '</p>' +
@@ -1602,6 +1604,13 @@ function bindLocalAuthoringControls() {
     if (confirm("Reset local Explorer data for this bundle? Export local JSON first if you need to keep it.")) {
       await resetLocalData(currentBundleKey);
       await render(currentManifest, currentBaselineCollections);
+    }
+  });
+  localAuthoringSection.querySelector("#forget-remembered-bundle")?.addEventListener("click", async () => {
+    if (confirm("Forget the remembered bundle and clear local data in this browser? Export local JSON first if you need to keep it.")) {
+      await resetLocalData(currentBundleKey);
+      await deleteRememberedBundle();
+      location.reload();
     }
   });
   localAuthoringSection.querySelectorAll("button[data-open-section]").forEach((button) => {
@@ -3042,6 +3051,7 @@ globalThis.pspfExplorerAddLocalRisk = addLocalRisk;
 globalThis.pspfExplorerExportLocalBundle = exportLocalAuthoringBundle;
 globalThis.pspfExplorerSetIncludeComplianceHistory = (value) => { includeComplianceHistoryInExport = Boolean(value); };
 globalThis.pspfExplorerResetLocalData = () => resetLocalData(currentBundleKey);
+globalThis.pspfExplorerForgetRememberedBundle = async () => { await resetLocalData(currentBundleKey); await deleteRememberedBundle(); };
 globalThis.pspfExplorerSaveRequirementsView = saveRequirementsView;
 globalThis.pspfExplorerSaveRelationshipsView = saveRelationshipsView;
 globalThis.pspfExplorerSavedViews = savedViews;
