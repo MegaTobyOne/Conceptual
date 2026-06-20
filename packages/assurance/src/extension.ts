@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import type { V01Entity } from "@pspf/contracts";
 import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
-import { homeActionButton, homePanelShellHtml, homePostureHeader, homeSection } from "@pspf/webview-shell";
+import { homeActionButton, homeMetricCard, homePanelShellHtml, homeSection } from "@pspf/webview-shell";
 import {
   buildPentestWorkbenchModel,
   PENTEST_FINDING_SEVERITIES,
@@ -97,10 +97,7 @@ class AssuranceHomeProvider implements vscode.WebviewViewProvider {
       const model = buildPentestWorkbenchModel(await listAllEntities());
       this.view.webview.html = renderHome(model);
     } catch (error) {
-      this.view.webview.html = shellHtml(
-        "PSPF Assurance",
-        `<section><h1>Assurance Home</h1><p class="muted">${escapeHtml(errorMessage(error))}</p><div class="form-actions"><button type="button" data-command="pspf.core.initialiseWorkspace">Initialise workspace</button></div></section>`
-      );
+      this.view.webview.html = renderHomeUnavailable(errorMessage(error));
     }
   }
 
@@ -228,6 +225,17 @@ async function handlePanelMessage(
 
 function renderHome(model: PentestWorkbenchModel): string {
   const axes = `Schema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
+  const metrics = [
+    { label: "Assessments", value: model.totals.assessments },
+    { label: "Findings", value: model.totals.findings },
+    { label: "Critical/high", value: model.totals.criticalHighFindings },
+    { label: "Open remediation", value: model.totals.openFindingActions },
+    { label: "Overdue", value: model.totals.overdue },
+    { label: "Pending verification", value: model.totals.pendingVerification }
+  ];
+  const overviewBody = `<p class="home-posture assurance-home-summary">OFFICIAL: Sensitive assurance workspace for assessments, penetration testing findings, verification queues and publication readiness.</p>
+    <p class="muted assurance-home-axes">${escapeHtml(axes)}</p>
+    <div class="grid" role="list">${metrics.map((metric) => homeMetricCard(metric.label, metric.value)).join("")}</div>`;
   const reviewBody = `<div class="action-list">
     ${homeActionButton("pspf.assurance.openPentestWorkbench", "Pentest workbench", "Review tagged findings, retests, residual risks and supplier context")}
     ${homeActionButton("pspf.assurance.runPublicationReadiness", "Readiness check", "Check overdue, SLA-risk and verification queues")}
@@ -240,25 +248,39 @@ function renderHome(model: PentestWorkbenchModel): string {
   </div>`;
   const scopeBody = `<p class="muted">This first slice preserves the current tag-based pentest read model. New assurance finding entities, approvals, report publishing, and signing arrive in later gated slices.</p>`;
   const body = [
-    homePostureHeader({
+    assuranceHomeStyles(),
+    homeSection({
       id: "overview",
-      eyebrow: "Assurance lifecycle",
-      title: "PSPF Assurance",
-      posture: axes,
-      metrics: [
-        { label: "Assessments", value: model.totals.assessments },
-        { label: "Findings", value: model.totals.findings },
-        { label: "Critical/high", value: model.totals.criticalHighFindings },
-        { label: "Open remediation", value: model.totals.openFindingActions },
-        { label: "Overdue", value: model.totals.overdue },
-        { label: "Pending verification", value: model.totals.pendingVerification }
-      ]
+      hero: true,
+      eyebrow: "Assurance Home",
+      heading: "PSPF Assurance",
+      body: overviewBody
     }),
     homeSection({ id: "review", eyebrow: "Review", heading: "Assessment workbench", body: reviewBody }),
     homeSection({ id: "scope", eyebrow: "Boundary", heading: "Current scope", body: scopeBody }),
     homeSection({ id: "planned", eyebrow: "Next", heading: "Planned functions", body: planBody })
   ].join("");
 
+  return assuranceHomeShell(body);
+}
+
+function renderHomeUnavailable(message: string): string {
+  const body = [
+    assuranceHomeStyles(),
+    homeSection({
+      id: "overview",
+      hero: true,
+      eyebrow: "Assurance Home",
+      heading: "PSPF Assurance",
+      body: `<p class="home-posture assurance-home-summary">OFFICIAL: Sensitive assurance workspace for assessments, penetration testing findings, verification queues and publication readiness.</p>
+        <p class="muted">${escapeHtml(message)}</p>
+        <div class="action-list">${homeActionButton("pspf.core.initialiseWorkspace", "Initialise workspace", "Prepare the local PSPF workspace so Assurance Home can load counts and queues")}</div>`
+    })
+  ].join("");
+  return assuranceHomeShell(body);
+}
+
+function assuranceHomeShell(body: string): string {
   return homePanelShellHtml({
     extensionLabel: "PSPF Assurance",
     title: "PSPF Assurance",
@@ -274,6 +296,33 @@ function renderHome(model: PentestWorkbenchModel): string {
     ],
     body
   });
+}
+
+function assuranceHomeStyles(): string {
+  return `<style>
+    #overview.hero-section {
+      border-color: color-mix(in srgb, var(--pspf-home-accent) 72%, var(--pspf-border));
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--pspf-home-accent) 30%, var(--vscode-editor-background)), transparent 80%),
+        color-mix(in srgb, var(--pspf-home-accent) 12%, var(--vscode-editor-background));
+      box-shadow: inset 0 3px 0 var(--pspf-home-accent);
+    }
+    #overview .eyebrow {
+      color: var(--pspf-home-accent);
+    }
+    #overview h2 {
+      color: var(--vscode-foreground);
+      font-size: 16px;
+      letter-spacing: 0.02em;
+      text-transform: none;
+    }
+    .assurance-home-summary {
+      font-weight: 600;
+    }
+    .assurance-home-axes {
+      margin-bottom: 10px;
+    }
+  </style>`;
 }
 
 function renderPentestWorkbench(model: PentestWorkbenchModel): string {

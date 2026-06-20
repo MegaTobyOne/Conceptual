@@ -156,6 +156,7 @@
         z-index: 20;
         background: rgba(var(--bg-rgb), 0.88);
         border-bottom: 1px solid var(--border-soft);
+        -webkit-backdrop-filter: blur(18px);
         backdrop-filter: blur(18px);
       }
 
@@ -490,14 +491,17 @@
       }
 
       .map-node.is-source {
+        border-color: var(--blue);
         border-color: color-mix(in srgb, var(--blue) 60%, var(--border));
       }
 
       .map-node.is-work {
+        border-color: var(--teal);
         border-color: color-mix(in srgb, var(--teal) 60%, var(--border));
       }
 
       .map-node.is-share {
+        border-color: var(--amber);
         border-color: color-mix(in srgb, var(--amber) 60%, var(--border));
       }
 

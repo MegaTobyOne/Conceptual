@@ -6,10 +6,13 @@ test("Assurance Home uses shared PSPF home shell primitives", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
   assert.match(source, /homePanelShellHtml/);
-  assert.match(source, /homePostureHeader/);
+  assert.match(source, /homeMetricCard/);
   assert.match(source, /homeSection/);
   assert.match(source, /homeActionButton/);
   assert.match(source, /accent: "teal"/);
+  assert.match(source, /assuranceHomeStyles/);
+  assert.match(source, /Assurance Home/);
+  assert.match(source, /OFFICIAL: Sensitive assurance workspace/);
   assert.match(source, /OFFICIAL: Sensitive · assessment and verification data stays local/);
   assert.match(source, /pspf\.assurance\.openPentestWorkbench/);
   assert.match(source, /pspf\.assurance\.newAssessment/);

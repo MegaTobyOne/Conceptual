@@ -157,10 +157,19 @@ for (const extensionPackage of extensionPackages) {
     );
   }
   if (extensionPackage.name === "Assurance") {
+    const activityBarContainer = manifest.contributes?.viewsContainers?.activitybar?.find(
+      (container) => container.id === "pspfAssurance"
+    );
+    assert.equal(Boolean(activityBarContainer), true, "Assurance contributes an Activity Bar container");
     assert.equal(
-      manifest.contributes?.viewsContainers?.activitybar?.some((container) => container.id === "pspfAssurance"),
-      true,
-      "Assurance contributes an Activity Bar container"
+      activityBarContainer?.icon,
+      "resources/assurance.svg",
+      "Assurance Activity Bar container uses the coloured Assurance icon"
+    );
+    assert.match(
+      await readFile(join(root, extensionPackage.directory, "resources", "assurance.svg"), "utf8"),
+      /stroke="#0f766e"/,
+      "Assurance Activity Bar icon uses the Assurance teal stroke"
     );
     assert.equal(
       manifest.contributes?.views?.pspfAssurance?.some(
