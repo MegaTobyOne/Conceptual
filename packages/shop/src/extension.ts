@@ -2093,8 +2093,8 @@ function renderShopHomeHtml(store: ShopStore): string {
       heading: "Spending trend",
       body: renderShopTrendline(monthlyForecast)
     }),
-    homeSection({ id: "create", eyebrow: "Author", heading: "Capture New Records", body: createBody }),
-    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Review And Update", body: editBody }),
+    homeSection({ id: "create", eyebrow: "Author", heading: "Create records", body: createBody }),
+    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Edit records", body: editBody }),
     homeSection({ id: "advanced", eyebrow: "Advanced", heading: "Advanced Tools", body: advancedBody })
   ].join("");
 

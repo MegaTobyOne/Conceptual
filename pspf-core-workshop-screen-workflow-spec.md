@@ -329,10 +329,10 @@ Workshop must let the user create a paste-friendly brief for one requirement, a 
 
 **Primary actions:**
 - Open Requirement Queue
-- Review Evidence
+- Edit evidence
 - Copy Shareable Brief
 - Prepare Report Pack
-- Export Explorer Bundle
+- Export bundle
 
 This is one of the few places where a WebviewView is justified because it benefits from cards, small charts or progress blocks, and richer visual hierarchy than a tree can provide.
 

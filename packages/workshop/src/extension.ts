@@ -1137,9 +1137,6 @@ function renderHomeView(model: WorkshopHomeModel): string {
       model.counts.directions ===
     0;
   const hasOperationalSignals = hasPendingTriage || model.changeRecords > 0;
-  const nextActionDescription = hasPendingTriage
-    ? "Go straight to evidence and urgent actions that need triage"
-    : "No urgent triage right now; open the assessment dashboard";
 
   return homeShellHtml(
     "Workshop Home",
@@ -1201,10 +1198,8 @@ function renderHomeView(model: WorkshopHomeModel): string {
       }
       <p class="muted">Recent requirement: ${escapeHtml(model.recentRequirementTitle)}</p>
       <div class="action-list">
-        ${homeButton("pspf.workshop.home.continue", "Continue next task", nextActionDescription)}
-        ${homeButton("pspf.workshop.openEvidenceReviewQueue", "Open Evidence Triage", "Review missing, stale, and urgent evidence-linked work")}
-        ${homeButton("pspf.workshop.openAssessmentDashboard", "Open Assessment Dashboard", "Open domain posture and requirements needing action")}
-        ${homeButton("pspf.workshop.openMasterDashboard", "Open Workspace Dashboard", "Open essentials, controls, requirements, and planning tools")}
+        ${homeButton("pspf.workshop.openAssessmentDashboard", "Assessment", "Open domain posture and requirements needing action")}
+        ${homeButton("pspf.workshop.openMasterDashboard", "Dashboard", "Open essentials, controls, requirements, and planning tools")}
       </div>
     </section>
     <section>
@@ -1218,48 +1213,44 @@ function renderHomeView(model: WorkshopHomeModel): string {
       </div>
     </section>
     <section>
-      <h2>Review And Update</h2>
+      <h2>Edit</h2>
       <div class="action-list compact">
-        ${homeButton("pspf.workshop.openRequirementsList", "Review requirements")}
-        ${homeButton("pspf.workshop.openEvidenceList", "Review evidence")}
-        ${homeButton("pspf.workshop.openActionsList", "Review actions")}
-        ${homeButton("pspf.workshop.openRisksList", "Review risks")}
-        ${homeButton("pspf.workshop.openDirectionsList", "Review directions")}
+        ${homeButton("pspf.workshop.openRequirementsList", "Edit requirements")}
+        ${homeButton("pspf.workshop.openEvidenceList", "Edit evidence")}
+        ${homeButton("pspf.workshop.openActionsList", "Edit actions")}
+        ${homeButton("pspf.workshop.openRisksList", "Edit risks")}
+        ${homeButton("pspf.workshop.openDirectionsList", "Edit directions")}
       </div>
     </section>
     <section>
       <h2>Validate And Share</h2>
       ${model.shareNudge ? `<p class="momentum">${escapeHtml(model.shareNudge)}</p>` : ""}
       <div class="action-list compact">
-        ${homeButton("pspf.core.exportBundle", "Export Explorer bundle")}
+        ${homeButton("pspf.core.exportBundle", "Export bundle")}
         ${homeButton("pspf.workshop.exportTeamShareBundle", "Share with team", "Write a redacted bundle to .pspf/share/bundle.json for Git-based team sharing")}
-        ${homeButton("pspf.workshop.importBundle", "Import Explorer bundle")}
-        ${homeButton("pspf.workshop.copyPostureBrief", "Copy posture brief")}
+        ${homeButton("pspf.workshop.importBundle", "Import bundle")}
+        ${homeButton("pspf.workshop.copyPostureBrief", "Copy brief")}
+      </div>
+    </section>
+    <section>
+      <h2>Integrations</h2>
+      <p class="muted">Use when importing risk-source changes into Workshop.</p>
+      <div class="action-list compact">
+        ${homeButton("pspf.workshop.previewRiskSourceImport", "Run integrations", "Fetch configured risk-source changes and prepare updates")}
       </div>
     </section>
     <section>
       <h2>Advanced Tools</h2>
       ${
         hasOperationalSignals
-          ? `<p class="muted">Operational signals are active. Use these tools when data quality, integrations, or derived views look out of date.</p>`
+          ? `<p class="muted">Operational signals are active. Use these tools when data quality or derived views look out of date.</p>`
           : `<p class="muted">Use these tools only when needed. Day-to-day assessment work should usually stay in the sections above.</p>`
       }
-      <details>
-        <summary><strong>Integrations</strong></summary>
-        <p class="muted">Use when importing risk-source changes into Workshop.</p>
-        <div class="action-list compact">
-          ${homeButton("pspf.workshop.previewRiskSourceImport", "Run integrations", "Fetch configured risk-source changes and prepare updates")}
-        </div>
-      </details>
-      <details>
-        <summary><strong>Maintenance</strong></summary>
-        <p class="muted">Use when validating workspace health or diagnosing dataset issues.</p>
-        <div class="action-list compact">
-          ${homeButton("pspf.core.validateWorkspace", "Validate workspace")}
-          ${homeButton("pspf.core.runDatasetDiagnostics", "Dataset diagnostics")}
-          ${homeButton("pspf.workshop.home.refresh", "Refresh")}
-        </div>
-      </details>
+      <div class="action-list compact">
+        ${homeButton("pspf.core.validateWorkspace", "Validate workspace")}
+        ${homeButton("pspf.core.runDatasetDiagnostics", "Dataset diagnostics")}
+        ${homeButton("pspf.workshop.home.refresh", "Refresh")}
+      </div>
     </section>
   `
   );
