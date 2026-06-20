@@ -158,4 +158,23 @@ for (const forbidden of ["Person.name", "Person.email", "Assignment.personId", "
   assert.equal(cardView.includes(forbidden), false, `requirement-card-view must not reference ${forbidden}`);
 }
 
+// v1.43 strategy priority: risk -> priority -> choices inference must stay centralised and wired.
+assert.match(
+  taxonomy,
+  /export function buildStrategyPrioritySummary/,
+  "continuous-compliance should export buildStrategyPrioritySummary"
+);
+for (const bandLabel of [
+  "Critical priority",
+  "High priority",
+  "Medium priority",
+  "Low priority",
+  "No risk priority yet"
+]) {
+  assert.equal(taxonomy.includes(bandLabel), true, `strategy priority bands should include ${bandLabel}`);
+}
+for (const prioritySignal of ["buildStrategyPrioritySummary", "strategy-priority-panel"]) {
+  assert.equal(extension.includes(prioritySignal), true, `Strategy Map priority missing ${prioritySignal}`);
+}
+
 console.log("ok Continuous Compliance outputs and Pentest Workbench registered and centralised");

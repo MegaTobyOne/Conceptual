@@ -4,7 +4,7 @@ Status: **active**
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.42.1 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
+The repository currently ships PSPF v1.43.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
 
 ## Products
 
@@ -31,13 +31,17 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.42.1-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.43.0-readiness-report.md`.
 
 ## Current Workshop Slice
 
 Workshop is the main operator surface for evidence-backed assessment work. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
 
-Current v1.42 remediation additions include:
+Current v1.43 additions:
+
+- Strategy priority inference (risk → priority → choice): strategic choices that link risks now derive a priority band (Critical, High, Medium, Low, or none) from the linked risks' severity (likelihood × impact), adjusted by the choice's trend and confidence. The Strategy Map and Strategy Editor show the band, a plain-language rationale, the top blocking risks, and repair cues for unresolved risk links. This is a derived read model only — no new schema, entity, or link verb, and `VERSION_AXES` remain `1.14.0`.
+
+Earlier v1.42 remediation additions include:
 
 - Explorer bundle schema `1.14.0`: adds optional lifecycle decision metadata and sensitive/default-deny evidence link context while preserving earlier schema directories.
 - Workshop evidence operations: Action editors can apply tags to linked Requirements, evidence links can capture sensitive section/note context, and Evidence Review can copy a scoped evidence package by domain.

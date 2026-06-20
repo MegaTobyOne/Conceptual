@@ -297,6 +297,12 @@ const coverage = [
     "check:assurance-redaction",
     "package:check",
     "release:readiness"
+  ]),
+  adr("0079-team-share-git-bundle.md", "indirect", ["package:check", "check:release-candidate"]),
+  adr("0080-v1-43-strategy-risk-priority-choice.md", "automated", [
+    "e2e:v1.43",
+    "check:continuous-compliance",
+    "check:release-candidate"
   ])
 ];
 

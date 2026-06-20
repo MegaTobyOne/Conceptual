@@ -8,7 +8,7 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.42.1 is a schema-neutral UX and local planning patch release on Explorer bundle schemas `1.14.0`. It keeps the v1.39 schema-bearing evidence lifecycle/reporting changes, adds Workshop UX/IA refinements, adds Pub team-card Organisation Chart backs plus local team news/date items, promotes the Assessment Dashboard and Shop Forecast surfaces, and keeps Release 1 optional AI controls default-off. Release readiness is expected to run through `e2e:v1.42:run` and validate `VERSION_AXES = 1.14.0`.
+**Current implementation note:** v1.43.0 adds the Workshop Strategy risk → priority → choice inference: strategic choices derive a priority band from linked risk severity adjusted by trend and confidence, as a derived read model with no schema change (ADR 0080). It builds on v1.42.1, a schema-neutral UX and local planning patch release on Explorer bundle schemas `1.14.0` that keeps the v1.39 schema-bearing evidence lifecycle/reporting changes, adds Workshop UX/IA refinements, adds Pub team-card Organisation Chart backs plus local team news/date items, promotes the Assessment Dashboard and Shop Forecast surfaces, and keeps Release 1 optional AI controls default-off. Release readiness is expected to run through `e2e:v1.43:run` and validate `VERSION_AXES = 1.14.0`.
 
 **Status: v1.9 saved-view expansion build implemented for test. v1.8 saved views build implemented; v1.7 tags and filters foundation build implemented; v1.6 Workshop import review and identity build implemented; v1.5.1 Explorer product-boundary and visual identity patch implemented; v1.5 plan-apply import and undo implemented; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
@@ -51,9 +51,9 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.42.1:
+`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.43.0:
 
-1. Spine workflow (headless `e2e:v1.42`).
+1. Spine workflow (headless `e2e:v1.43`).
 2. Schema-policy.
 3. Personal-data exclusion.
 4. AU-English lint.

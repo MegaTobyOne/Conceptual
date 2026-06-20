@@ -13,6 +13,7 @@ PSPF Workshop is the day-to-day **authoring surface** inside VS Code. It opens s
 - Link-existing flows for Evidence, Actions, Risks, and Directions so new records can be attached without re-creating them.
 - Tags, saved views, Change Records, and the Evidence Review Queue for ongoing maintenance.
 - Master Dashboard portal groups, decision-loop action cards, grouped Strategy Map measures, ISM principle browsing, and browse-panel shortcuts from tree views.
+- Strategy priority inference (risk → priority → choice): strategic choices that link risks show a derived priority band (Critical, High, Medium, Low, or none) from linked risk severity, adjusted by the choice's trend and confidence, with the top blocking risks and repair cues for unresolved links.
 - Plan of Action can optionally show local Pub team-wide dates when a Pub team item is marked for planning, helping operators spot conflicts with action and reminder dates.
 - Copyable posture brief for handing to reviewers.
 
@@ -35,6 +36,8 @@ Workshop requires **PSPF Core**. Core holds the local SQLite system of record an
 - `PSPF: Copy Posture Brief`
 
 ## Current boundaries
+
+Implemented in v1.43: the Strategy Map and Strategy Editor derive a priority band for each strategic choice from its linked risks (severity adjusted by trend and confidence). This is a read-only inference over existing data — it adds no schema, entity, or link verb.
 
 Implemented in v1.41: the Plan of Action reads local Pub team date items marked for planning and renders them as optional schedule context. It does not write Pub data, publish Pub records, resolve date conflicts automatically, or create calendar/notification records.
 

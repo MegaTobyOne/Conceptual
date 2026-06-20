@@ -1023,6 +1023,7 @@
         <nav class="site-nav" aria-label="Section navigation">
           <a href="#products">Products</a>
           <a href="#workflow">Workflow</a>
+          <a href="#strategy-priority">Strategy</a>
           <a href="#how-it-works">How it works</a>
           <a href="#links">Links</a>
         </nav>
@@ -1078,8 +1079,8 @@
               <a class="button" href="#links">Install extensions</a>
             </div>
             <div class="signal-row" aria-label="Current release signals">
-              <div class="signal"><strong>1.28</strong><span>current Pub foundation slice</span></div>
-              <div class="signal"><strong>1.10</strong><span>schema / bundle / API axes</span></div>
+              <div class="signal"><strong>1.43.0</strong><span>strategy risk → priority → choice slice</span></div>
+              <div class="signal"><strong>1.14.0</strong><span>schema / bundle / API axes</span></div>
               <div class="signal"><strong>5</strong><span>active product surfaces</span></div>
               <div class="signal"><strong>0</strong><span>cloud database dependency</span></div>
             </div>
@@ -1284,6 +1285,78 @@
               </p>
             </article>
           </div>
+        </div>
+      </section>
+
+      <section id="strategy-priority">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Strategy: risk → priority → choice</h2>
+            <p>
+              The Workshop Cyber Strategy Map turns linked risk into explicit priority. Each strategic choice derives a
+              priority band from the risks it links — so leadership sees which choices matter most, and why, without any
+              extra data entry or cloud service.
+            </p>
+          </div>
+          <figure class="diagram" aria-labelledby="diagram-priority-title">
+            <figcaption class="diagram-head">
+              <h3 id="diagram-priority-title">Risk drives priority; priority drives choices</h3>
+              <p>
+                Linked risk severity (likelihood × impact) is adjusted by the choice's trend and confidence. The peak
+                adjusted risk sets the choice's priority band. Nothing is persisted — it is a derived read model over
+                existing data.
+              </p>
+            </figcaption>
+            <svg
+              class="diagram-svg"
+              viewBox="0 0 1100 260"
+              role="img"
+              aria-label="Linked risks scored by likelihood times impact, adjusted by choice trend and confidence, produce a priority band of critical, high, medium, or low, which focuses leadership on the most pressing strategic choices."
+            >
+              <defs>
+                <marker id="sp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path class="d-marker" d="M0,0 L10,5 L0,10 z" />
+                </marker>
+              </defs>
+
+              <text class="d-group" x="40" y="30">Linked risks</text>
+              <text class="d-group" x="430" y="30">Priority scoring</text>
+              <text class="d-group" x="880" y="30">Strategic choice</text>
+
+              <rect class="d-source" x="40" y="60" width="220" height="58" rx="8" />
+              <text class="d-title" x="60" y="86">Risk severity</text>
+              <text class="d-sub" x="60" y="104">likelihood × impact</text>
+
+              <rect class="d-source" x="40" y="140" width="220" height="58" rx="8" />
+              <text class="d-title" x="60" y="166">Choice signals</text>
+              <text class="d-sub" x="60" y="184">trend &amp; confidence</text>
+
+              <line class="d-edge" x1="262" y1="118" x2="338" y2="150" marker-end="url(#sp-arrow)" />
+              <line class="d-edge" x1="262" y1="168" x2="338" y2="160" marker-end="url(#sp-arrow)" />
+
+              <rect class="d-core" x="340" y="110" width="240" height="96" rx="10" />
+              <text class="d-title" x="360" y="140">Peak adjusted score</text>
+              <text class="d-sub" x="360" y="160">severity + trend + confidence</text>
+              <text class="d-id" x="360" y="182">most pressing linked risk wins</text>
+
+              <line class="d-edge" x1="582" y1="158" x2="648" y2="158" marker-end="url(#sp-arrow)" />
+
+              <rect x="650" y="60" width="190" height="34" rx="6" fill="#b3261e" />
+              <text class="d-sub" x="666" y="82" fill="#ffffff">Critical ≥ 28</text>
+              <rect x="650" y="100" width="190" height="34" rx="6" fill="#c4641a" />
+              <text class="d-sub" x="666" y="122" fill="#ffffff">High ≥ 20</text>
+              <rect x="650" y="140" width="190" height="34" rx="6" fill="#b8860b" />
+              <text class="d-sub" x="666" y="162" fill="#ffffff">Medium ≥ 10</text>
+              <rect x="650" y="180" width="190" height="34" rx="6" fill="#2f7d4f" />
+              <text class="d-sub" x="666" y="202" fill="#ffffff">Low ≥ 1</text>
+
+              <line class="d-edge" x1="842" y1="137" x2="898" y2="137" marker-end="url(#sp-arrow)" />
+
+              <rect class="d-workshop" x="900" y="108" width="170" height="58" rx="8" />
+              <text class="d-title" x="918" y="134">Choice focus</text>
+              <text class="d-sub" x="918" y="152">top blockers + rationale</text>
+            </svg>
+          </figure>
         </div>
       </section>
 
