@@ -11,12 +11,12 @@
     <title>PSPF Ecosystem</title>
     <meta
       name="description"
-      content="A streamlined guide to the PSPF local-first tool ecosystem: Core, Workshop, Shop, Pub, and Explorer for Australian Government assurance workflows."
+      content="A streamlined guide to the PSPF local-first tool ecosystem: Core, Workshop, Assurance, Shop, Pub, and Explorer for Australian Government assurance workflows."
     />
     <meta property="og:title" content="PSPF Ecosystem" />
     <meta
       property="og:description"
-      content="Core, Workshop, Shop, Pub, and Explorer for local-first PSPF assurance workflows. Independent project."
+      content="Core, Workshop, Assurance, Shop, Pub, and Explorer for local-first PSPF assurance workflows. Independent project."
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -51,6 +51,24 @@
         --amber: #9a5c00;
         --red: #9c315f;
         --green: #456f22;
+        --grid-teal: rgba(15, 118, 110, 0.14);
+        --grid-amber: rgba(154, 92, 0, 0.1);
+        --brand-mark-end: #286b8d;
+        --hero-wash-start: rgba(15, 118, 110, 0.18);
+        --hero-wash-mid: rgba(49, 92, 148, 0.12);
+        --hero-wash-end: rgba(154, 92, 0, 0.1);
+        --surface-glass-74: rgba(255, 255, 255, 0.74);
+        --surface-glass-82: rgba(255, 255, 255, 0.82);
+        --surface-glass-84: rgba(255, 255, 255, 0.84);
+        --surface-glass-88: rgba(255, 255, 255, 0.88);
+        --diagram-source-fill: #e5ebf1;
+        --diagram-core-fill: #e2f1ef;
+        --diagram-workshop-fill: #eef6f5;
+        --diagram-assurance-fill: #e0f0ee;
+        --diagram-shop-fill: #f4eadc;
+        --diagram-pub-fill: #f2e5eb;
+        --diagram-share-fill: #f4e6d0;
+        --diagram-bundle-fill: #e9f0df;
         --shadow: 0 18px 60px rgba(29, 35, 33, 0.12);
         --shadow-sm: 0 8px 24px rgba(29, 35, 33, 0.08);
         --radius: 8px;
@@ -79,6 +97,24 @@
         --amber: #d19b46;
         --red: #d77aa2;
         --green: #9abe6b;
+        --grid-teal: rgba(91, 184, 176, 0.14);
+        --grid-amber: rgba(209, 155, 70, 0.1);
+        --brand-mark-end: #79abc8;
+        --hero-wash-start: rgba(91, 184, 176, 0.18);
+        --hero-wash-mid: rgba(140, 173, 222, 0.12);
+        --hero-wash-end: rgba(209, 155, 70, 0.1);
+        --surface-glass-74: rgba(28, 33, 31, 0.74);
+        --surface-glass-82: rgba(28, 33, 31, 0.82);
+        --surface-glass-84: rgba(28, 33, 31, 0.84);
+        --surface-glass-88: rgba(28, 33, 31, 0.88);
+        --diagram-source-fill: #303d47;
+        --diagram-core-fill: #2a413f;
+        --diagram-workshop-fill: #263b39;
+        --diagram-assurance-fill: #294543;
+        --diagram-shop-fill: #453b2d;
+        --diagram-pub-fill: #472f39;
+        --diagram-share-fill: #493c2c;
+        --diagram-bundle-fill: #33402d;
         --shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
         --shadow-sm: 0 10px 28px rgba(0, 0, 0, 0.26);
       }
@@ -96,16 +132,8 @@
         min-height: 100vh;
         background:
           linear-gradient(90deg, rgba(var(--bg-rgb), 0.94), rgba(var(--bg-rgb), 0.8)),
-          repeating-linear-gradient(
-            90deg,
-            transparent 0 62px,
-            color-mix(in srgb, var(--teal) 14%, transparent) 62px 63px
-          ),
-          repeating-linear-gradient(
-            0deg,
-            transparent 0 62px,
-            color-mix(in srgb, var(--amber) 10%, transparent) 62px 63px
-          ),
+          repeating-linear-gradient(90deg, transparent 0 62px, var(--grid-teal) 62px 63px),
+          repeating-linear-gradient(0deg, transparent 0 62px, var(--grid-amber) 62px 63px),
           var(--bg);
         color: var(--text);
         font-family: var(--font-body);
@@ -182,7 +210,7 @@
         display: grid;
         place-items: center;
         color: var(--inverse);
-        background: linear-gradient(135deg, var(--teal), color-mix(in srgb, var(--blue) 80%, var(--teal)));
+        background: linear-gradient(135deg, var(--teal), var(--brand-mark-end));
         box-shadow: var(--shadow-sm);
       }
 
@@ -310,12 +338,7 @@
         inset: 10% -10% auto auto;
         width: min(58vw, 760px);
         height: min(58vw, 760px);
-        background: linear-gradient(
-          135deg,
-          color-mix(in srgb, var(--teal) 18%, transparent),
-          color-mix(in srgb, var(--blue) 12%, transparent) 46%,
-          color-mix(in srgb, var(--amber) 10%, transparent)
-        );
+        background: linear-gradient(135deg, var(--hero-wash-start), var(--hero-wash-mid) 46%, var(--hero-wash-end));
         clip-path: polygon(15% 0, 100% 14%, 86% 82%, 8% 100%, 0 24%);
         pointer-events: none;
       }
@@ -331,7 +354,7 @@
         width: fit-content;
         border: 1px solid rgba(72, 170, 165, 0.5);
         color: var(--teal-strong);
-        background: color-mix(in srgb, var(--surface) 74%, transparent);
+        background: var(--surface-glass-74);
         border-radius: var(--radius-pill);
         padding: 7px 12px;
         font-size: 12px;
@@ -429,7 +452,7 @@
       .signal {
         border: 1px solid var(--border-soft);
         border-radius: var(--radius);
-        background: color-mix(in srgb, var(--surface) 84%, transparent);
+        background: var(--surface-glass-84);
         padding: 14px;
       }
 
@@ -451,7 +474,7 @@
         min-height: 360px;
         border: 1px solid var(--border-soft);
         border-radius: var(--radius);
-        background: color-mix(in srgb, var(--surface) 82%, transparent);
+        background: var(--surface-glass-82);
         box-shadow: var(--shadow);
         padding: 18px;
         display: grid;
@@ -492,17 +515,14 @@
 
       .map-node.is-source {
         border-color: var(--blue);
-        border-color: color-mix(in srgb, var(--blue) 60%, var(--border));
       }
 
       .map-node.is-work {
         border-color: var(--teal);
-        border-color: color-mix(in srgb, var(--teal) 60%, var(--border));
       }
 
       .map-node.is-share {
         border-color: var(--amber);
-        border-color: color-mix(in srgb, var(--amber) 60%, var(--border));
       }
 
       .map-strip {
@@ -530,7 +550,7 @@
       .diagram {
         border: 1px solid var(--border-soft);
         border-radius: var(--radius);
-        background: color-mix(in srgb, var(--surface) 88%, transparent);
+        background: var(--surface-glass-88);
         box-shadow: var(--shadow-sm);
         padding: clamp(16px, 2.4vw, 24px);
         display: grid;
@@ -579,32 +599,36 @@
         stroke: var(--border);
       }
       .diagram-svg .d-source {
-        fill: color-mix(in srgb, var(--blue) 18%, var(--surface));
-        stroke: color-mix(in srgb, var(--blue) 60%, var(--border));
+        fill: var(--diagram-source-fill);
+        stroke: var(--blue);
       }
       .diagram-svg .d-core {
-        fill: color-mix(in srgb, var(--teal) 18%, var(--surface));
-        stroke: color-mix(in srgb, var(--teal) 65%, var(--border));
+        fill: var(--diagram-core-fill);
+        stroke: var(--teal);
       }
       .diagram-svg .d-workshop {
-        fill: color-mix(in srgb, var(--teal) 12%, var(--surface));
-        stroke: color-mix(in srgb, var(--teal) 50%, var(--border));
+        fill: var(--diagram-workshop-fill);
+        stroke: var(--teal);
+      }
+      .diagram-svg .d-assurance {
+        fill: var(--diagram-assurance-fill);
+        stroke: var(--teal-strong);
       }
       .diagram-svg .d-shop {
-        fill: color-mix(in srgb, var(--amber) 14%, var(--surface));
-        stroke: color-mix(in srgb, var(--amber) 55%, var(--border));
+        fill: var(--diagram-shop-fill);
+        stroke: var(--amber);
       }
       .diagram-svg .d-pub {
-        fill: color-mix(in srgb, var(--red) 14%, var(--surface));
-        stroke: color-mix(in srgb, var(--red) 55%, var(--border));
+        fill: var(--diagram-pub-fill);
+        stroke: var(--red);
       }
       .diagram-svg .d-share {
-        fill: color-mix(in srgb, var(--amber) 18%, var(--surface));
-        stroke: color-mix(in srgb, var(--amber) 60%, var(--border));
+        fill: var(--diagram-share-fill);
+        stroke: var(--amber);
       }
       .diagram-svg .d-bundle {
-        fill: color-mix(in srgb, var(--green) 16%, var(--surface));
-        stroke: color-mix(in srgb, var(--green) 60%, var(--border));
+        fill: var(--diagram-bundle-fill);
+        stroke: var(--green);
       }
       .diagram-svg text {
         fill: var(--text);
@@ -631,12 +655,12 @@
       }
       .diagram-svg .d-edge {
         fill: none;
-        stroke: color-mix(in srgb, var(--teal) 55%, var(--border));
+        stroke: var(--teal);
         stroke-width: 1.4;
       }
       .diagram-svg .d-edge.dashed {
         stroke-dasharray: 4 3;
-        stroke: color-mix(in srgb, var(--muted) 70%, transparent);
+        stroke: var(--muted);
       }
       .diagram-svg .d-edge.strong {
         stroke-width: 2;
@@ -644,7 +668,7 @@
       }
       .diagram-svg .d-boundary {
         fill: none;
-        stroke: color-mix(in srgb, var(--amber) 70%, var(--border));
+        stroke: var(--amber);
         stroke-width: 1.4;
         stroke-dasharray: 6 4;
       }
@@ -679,28 +703,32 @@
       }
 
       .dot.d-source-dot {
-        background: color-mix(in srgb, var(--blue) 35%, var(--surface));
-        border-color: color-mix(in srgb, var(--blue) 60%, var(--border));
+        background: var(--diagram-source-fill);
+        border-color: var(--blue);
       }
       .dot.d-core-dot {
-        background: color-mix(in srgb, var(--teal) 35%, var(--surface));
-        border-color: color-mix(in srgb, var(--teal) 65%, var(--border));
+        background: var(--diagram-core-fill);
+        border-color: var(--teal);
+      }
+      .dot.d-assurance-dot {
+        background: var(--diagram-assurance-fill);
+        border-color: var(--teal-strong);
       }
       .dot.d-shop-dot {
-        background: color-mix(in srgb, var(--amber) 30%, var(--surface));
-        border-color: color-mix(in srgb, var(--amber) 55%, var(--border));
+        background: var(--diagram-shop-fill);
+        border-color: var(--amber);
       }
       .dot.d-pub-dot {
-        background: color-mix(in srgb, var(--red) 28%, var(--surface));
-        border-color: color-mix(in srgb, var(--red) 55%, var(--border));
+        background: var(--diagram-pub-fill);
+        border-color: var(--red);
       }
       .dot.d-bundle-dot {
-        background: color-mix(in srgb, var(--green) 30%, var(--surface));
-        border-color: color-mix(in srgb, var(--green) 60%, var(--border));
+        background: var(--diagram-bundle-fill);
+        border-color: var(--green);
       }
       .dot.d-share-dot {
-        background: color-mix(in srgb, var(--amber) 35%, var(--surface));
-        border-color: color-mix(in srgb, var(--amber) 60%, var(--border));
+        background: var(--diagram-share-fill);
+        border-color: var(--amber);
       }
 
       .boundary-grid {
@@ -781,16 +809,25 @@
         box-shadow: var(--shadow-sm);
       }
 
-      .product:nth-child(3) {
+      .product.product-core {
         border-left-color: var(--blue);
       }
 
-      .product:nth-child(4) {
+      .product.product-workshop,
+      .product.product-assurance {
+        border-left-color: var(--teal);
+      }
+
+      .product.product-shop {
         border-left-color: var(--amber);
       }
 
-      .product:nth-child(5) {
+      .product.product-pub {
         border-left-color: var(--red);
+      }
+
+      .product.product-explorer {
+        border-left-color: var(--blue);
       }
 
       .product:hover {
@@ -821,20 +858,24 @@
         font-weight: 900;
       }
 
-      .product:nth-child(2) .product-icon {
+      .product.product-workshop .product-icon {
         background: var(--teal);
       }
 
-      .product:nth-child(3) .product-icon {
+      .product.product-assurance .product-icon {
+        background: var(--teal-strong);
+      }
+
+      .product.product-shop .product-icon {
         background: var(--amber);
       }
 
-      .product:nth-child(4) .product-icon {
-        background: var(--green);
+      .product.product-pub .product-icon {
+        background: var(--red);
       }
 
-      .product:nth-child(5) .product-icon {
-        background: var(--red);
+      .product.product-explorer .product-icon {
+        background: var(--green);
       }
 
       .tag {
@@ -851,7 +892,7 @@
 
       .tag.live {
         color: var(--teal-strong);
-        border-color: color-mix(in srgb, var(--teal) 55%, var(--border));
+        border-color: var(--teal);
       }
 
       .meta {
@@ -1067,9 +1108,10 @@
               browser-based Explorer view with reviewers.
             </p>
             <p>
-              Core is the trusted workspace record. Workshop is the operator surface. Shop links commercial planning to
-              assurance. Pub keeps people and stakeholder context local. Explorer turns a curated JSON bundle into a
-              portable publication view.
+              Core is the trusted workspace record. Workshop is the operator surface. Assurance tracks assessments,
+              findings, verification queues, and publication readiness. Shop links commercial planning to assurance.
+              Pub keeps people and stakeholder context local. Explorer turns a curated JSON bundle into a portable
+              publication view.
             </p>
             <div class="hero-actions">
               <a
@@ -1085,7 +1127,7 @@
             <div class="signal-row" aria-label="Current release signals">
               <div class="signal"><strong>1.43.0</strong><span>strategy risk → priority → choice slice</span></div>
               <div class="signal"><strong>1.14.0</strong><span>schema / bundle / API axes</span></div>
-              <div class="signal"><strong>5</strong><span>active product surfaces</span></div>
+              <div class="signal"><strong>6</strong><span>active product surfaces</span></div>
               <div class="signal"><strong>0</strong><span>cloud database dependency</span></div>
             </div>
           </div>
@@ -1100,7 +1142,9 @@
               </div>
             </div>
             <div class="map-row">
-              <div class="map-node is-work"><strong>Shop + Pub</strong><span>Commercial and people context</span></div>
+              <div class="map-node is-work">
+                <strong>Assurance + Shop + Pub</strong><span>Assessment, commercial, and people context</span>
+              </div>
               <span class="map-arrow" aria-hidden="true">→</span>
               <div class="map-node is-share"><strong>Explorer</strong><span>Portable review bundle</span></div>
             </div>
@@ -1125,7 +1169,7 @@
             </p>
           </div>
           <div class="product-grid">
-            <article class="product">
+            <article class="product product-core">
               <div class="product-head">
                 <div class="product-name">
                   <span class="product-icon">C</span>
@@ -1150,7 +1194,7 @@
                 >Install Core →</a
               >
             </article>
-            <article class="product">
+            <article class="product product-workshop">
               <div class="product-head">
                 <div class="product-name">
                   <span class="product-icon">W</span>
@@ -1175,7 +1219,32 @@
                 >Install Workshop →</a
               >
             </article>
-            <article class="product">
+            <article class="product product-assurance">
+              <div class="product-head">
+                <div class="product-name">
+                  <span class="product-icon">A</span>
+                  <h3>Assurance</h3>
+                </div>
+                <span class="tag live">Marketplace</span>
+              </div>
+              <div>
+                <p>
+                  Dedicated assurance surface for assessments, penetration testing workbench, finding queues,
+                  verification status, and publication-readiness checks.
+                </p>
+                <div class="meta">
+                  <span>VS Code extension</span><code>tobyharvey.pspf-assurance</code><span>depends on Core</span>
+                </div>
+              </div>
+              <a
+                class="product-link"
+                href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-assurance"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Install Assurance →</a
+              >
+            </article>
+            <article class="product product-explorer">
               <div class="product-head">
                 <div class="product-name">
                   <span class="product-icon">E</span>
@@ -1200,7 +1269,7 @@
                 >Open Explorer →</a
               >
             </article>
-            <article class="product">
+            <article class="product product-shop">
               <div class="product-head">
                 <div class="product-name">
                   <span class="product-icon">S</span>
@@ -1225,7 +1294,7 @@
                 >Install Shop →</a
               >
             </article>
-            <article class="product">
+            <article class="product product-pub">
               <div class="product-head">
                 <div class="product-name">
                   <span class="product-icon">P</span>
@@ -1268,16 +1337,16 @@
               <span class="step-num">Step 1</span>
               <h3>Capture locally</h3>
               <p>
-                Use Core and Workshop to maintain assessment state, evidence, actions, risks, Directions, ISM mappings,
-                and planning context.
+                Use Core, Workshop, and Assurance to maintain assessment state, evidence, actions, risks, Directions,
+                ISM mappings, pentest findings, verification queues, and planning context.
               </p>
             </article>
             <article class="step">
               <span class="step-num">Step 2</span>
               <h3>Validate and export</h3>
               <p>
-                Run validation, create snapshots, and export a master JSON bundle. The same bundle can support backup
-                import through the validated review path.
+                Run validation, publication-readiness checks, snapshots, and master JSON export. The same bundle can
+                support backup import through the validated review path.
               </p>
             </article>
             <article class="step">
@@ -1389,7 +1458,7 @@
                 class="diagram-svg"
                 viewBox="0 0 1100 360"
                 role="img"
-                aria-label="Data flow from official sources, through the local Core SQLite workspace authored by Workshop, Shop, and Pub, validated and snapshotted, then exported as a master JSON bundle that Explorer reads in the browser."
+                aria-label="Data flow from official sources, through the local Core SQLite workspace authored by Workshop, Assurance, Shop, and Pub, validated and snapshotted, then exported as a master JSON bundle that Explorer reads in the browser."
               >
                 <defs>
                   <marker id="d-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -1427,17 +1496,21 @@
                 <text class="d-id" x="360" y="200">Action · Risk · Direction · Link</text>
 
                 <!-- Authoring surfaces -->
-                <rect class="d-workshop" x="600" y="60" width="170" height="58" rx="8" />
-                <text class="d-title" x="618" y="86">Workshop</text>
-                <text class="d-sub" x="618" y="104">authoring &amp; assessment</text>
+                <rect class="d-workshop" x="600" y="48" width="170" height="48" rx="8" />
+                <text class="d-title" x="618" y="73">Workshop</text>
+                <text class="d-sub" x="618" y="90">authoring &amp; assessment</text>
 
-                <rect class="d-shop" x="600" y="138" width="170" height="58" rx="8" />
-                <text class="d-title" x="618" y="164">Shop</text>
-                <text class="d-sub" x="618" y="182">suppliers · contracts · spend</text>
+                <rect class="d-assurance" x="600" y="112" width="170" height="48" rx="8" />
+                <text class="d-title" x="618" y="137">Assurance</text>
+                <text class="d-sub" x="618" y="154">findings · verification</text>
 
-                <rect class="d-pub" x="600" y="216" width="170" height="58" rx="8" />
-                <text class="d-title" x="618" y="242">Pub</text>
-                <text class="d-sub" x="618" y="260">people · roles · assignments</text>
+                <rect class="d-shop" x="600" y="176" width="170" height="48" rx="8" />
+                <text class="d-title" x="618" y="201">Shop</text>
+                <text class="d-sub" x="618" y="218">suppliers · contracts · spend</text>
+
+                <rect class="d-pub" x="600" y="240" width="170" height="48" rx="8" />
+                <text class="d-title" x="618" y="265">Pub</text>
+                <text class="d-sub" x="618" y="282">people · roles · assignments</text>
 
                 <!-- Validate + snapshot stage -->
                 <rect class="d-bg-soft" x="340" y="248" width="220" height="62" rx="8" />
@@ -1466,12 +1539,14 @@
                 <path class="d-edge dashed" d="M240,227 C300,227 310,180 340,180" marker-end="url(#d-arrow)" />
 
                 <!-- Edges: core ↔ surfaces -->
-                <path class="d-edge" d="M560,140 C580,140 580,89 600,89" marker-end="url(#d-arrow)" />
-                <path class="d-edge" d="M600,89 C580,89 580,150 560,150" marker-end="url(#d-arrow)" />
-                <path class="d-edge" d="M560,170 L600,167" marker-end="url(#d-arrow)" />
-                <path class="d-edge" d="M600,167 L560,170" marker-end="url(#d-arrow)" />
-                <path class="d-edge" d="M560,200 C580,200 580,245 600,245" marker-end="url(#d-arrow)" />
-                <path class="d-edge" d="M600,245 C580,245 580,210 560,210" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M560,140 C580,140 580,72 600,72" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M600,72 C580,72 580,150 560,150" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M560,160 L600,136" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M600,136 L560,170" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M560,180 L600,200" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M600,200 L560,190" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M560,205 C580,205 580,264 600,264" marker-end="url(#d-arrow)" />
+                <path class="d-edge" d="M600,264 C580,264 580,210 560,210" marker-end="url(#d-arrow)" />
 
                 <!-- Edges: core → validate -->
                 <path class="d-edge strong" d="M450,220 L450,248" marker-end="url(#d-arrow)" />
@@ -1487,6 +1562,7 @@
               <div class="diagram-legend" aria-hidden="true">
                 <span class="swatch"><span class="dot d-source-dot"></span> Authoritative sources</span>
                 <span class="swatch"><span class="dot d-core-dot"></span> Core workspace</span>
+                <span class="swatch"><span class="dot d-assurance-dot"></span> Assurance</span>
                 <span class="swatch"><span class="dot d-shop-dot"></span> Shop</span>
                 <span class="swatch"><span class="dot d-pub-dot"></span> Pub</span>
                 <span class="swatch"><span class="dot d-bundle-dot"></span> Master JSON bundle</span>
@@ -1505,9 +1581,9 @@
               </figcaption>
               <svg
                 class="diagram-svg"
-                viewBox="0 0 1100 460"
+                viewBox="0 0 1100 500"
                 role="img"
-                aria-label="Entity model showing Domain leading to Requirement, with Evidence, Action, Risk, and Direction linked to Requirement. ISM controls map in from official sources. Shop adds Supplier, Contract, and Spend. Pub adds Person, Role, Team, and Assignment. Tags and Links connect across the model."
+                aria-label="Entity model showing Domain leading to Requirement, with Evidence, Action, Risk, and Direction linked to Requirement. ISM controls map in from official sources. Assurance adds local assessment and verification queues. Shop adds Supplier, Contract, and Spend. Pub adds Person, Role, Team, and Assignment. Tags and Links connect across the model."
               >
                 <!-- Core hub -->
                 <rect class="d-core" x="430" y="195" width="240" height="78" rx="10" />
@@ -1581,10 +1657,20 @@
                 <rect class="d-pub" x="758" y="398" width="288" height="34" rx="6" />
                 <text class="d-sub" x="768" y="420">Assignment (ASM-*) — never crosses to Explorer</text>
 
+                <!-- Assurance surface (centre-bottom) -->
+                <rect class="d-bg-soft" x="386" y="330" width="328" height="86" rx="10" />
+                <text class="d-group" x="406" y="350">Assurance · local work queues</text>
+                <rect class="d-assurance" x="406" y="362" width="132" height="42" rx="6" />
+                <text class="d-title" x="416" y="380">Assessment</text>
+                <text class="d-id" x="416" y="396">local surface</text>
+                <rect class="d-assurance" x="562" y="362" width="132" height="42" rx="6" />
+                <text class="d-title" x="572" y="380">Verification</text>
+                <text class="d-id" x="572" y="396">readiness queue</text>
+
                 <!-- Tag (centre-bottom) -->
-                <rect class="d-bg-soft" x="430" y="370" width="240" height="56" rx="10" />
-                <text class="d-title" x="450" y="396">Tag · Link</text>
-                <text class="d-sub" x="450" y="414">tagged-with · derived-from · supports</text>
+                <rect class="d-bg-soft" x="430" y="430" width="240" height="56" rx="10" />
+                <text class="d-title" x="450" y="456">Tag · Link</text>
+                <text class="d-sub" x="450" y="474">tagged-with · derived-from · supports</text>
 
                 <!-- Edges -->
                 <!-- Domain → Requirement -->
@@ -1618,12 +1704,17 @@
                 <path class="d-edge dashed" d="M900,350 C900,310 880,300 840,260" marker-end="url(#d-arrow)" />
                 <text class="d-edge-label" x="800" y="318">assigned-to (local)</text>
 
+                <!-- Assurance surface → Requirement / Evidence -->
+                <path class="d-edge dashed" d="M470,362 C420,330 380,250 260,250" marker-end="url(#d-arrow)" />
+                <path class="d-edge dashed" d="M628,362 C610,330 585,300 570,273" marker-end="url(#d-arrow)" />
+
                 <!-- Tag → Requirement -->
-                <path class="d-edge dashed" d="M550,370 L550,273" marker-end="url(#d-arrow)" />
+                <path class="d-edge dashed" d="M550,430 L550,273" marker-end="url(#d-arrow)" />
               </svg>
               <div class="diagram-legend" aria-hidden="true">
                 <span class="swatch"><span class="dot d-source-dot"></span> Reference (ISM)</span>
                 <span class="swatch"><span class="dot d-core-dot"></span> Core hub (Domain · Requirement)</span>
+                <span class="swatch"><span class="dot d-assurance-dot"></span> Assurance surface</span>
                 <span class="swatch"><span class="dot d-shop-dot"></span> Shop entities</span>
                 <span class="swatch"><span class="dot d-pub-dot"></span> Pub entities (local-only)</span>
               </div>
@@ -1645,6 +1736,7 @@
                     <li>Domain, Requirement, Evidence summaries, Action status, Risk and Direction records</li>
                     <li>ISM mappings and Essential Eight references</li>
                     <li>Supplier and contract identifiers used as assurance context</li>
+                    <li>Assessment and verification status suitable for publication review</li>
                     <li>Tags, saved views, and link relationships</li>
                     <li>Posture brief content (already redacted)</li>
                   </ul>
@@ -1655,6 +1747,7 @@
                     <li>Person names, emails, and any personal contact data</li>
                     <li>Assignment records (<code>ASM-*</code>) and team membership</li>
                     <li>Restricted-field values and non-public free text</li>
+                    <li>Raw penetration testing notes, exploit detail, and internal verification working material</li>
                     <li>Internal-only notes flagged as sensitive</li>
                     <li>Workspace SQLite file and snapshot history</li>
                   </ul>
@@ -1711,6 +1804,15 @@
               ><span class="tag live">Marketplace</span>
               <h3>Workshop</h3>
               <p>Install the authoring surface.</p>
+            </a>
+            <a
+              class="link-card"
+              href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-assurance"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><span class="tag live">Marketplace</span>
+              <h3>Assurance</h3>
+              <p>Install the assessment and verification surface.</p>
             </a>
             <a
               class="link-card"
