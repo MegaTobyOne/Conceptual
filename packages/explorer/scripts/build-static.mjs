@@ -152,6 +152,9 @@ const html = `<!doctype html>
     .welcome-actions a { border: 1px solid var(--accent-strong); background: var(--pspf-primary); color: #f0fdfa; border-radius: var(--pspf-radius); padding: 8px 12px; text-decoration: none; font-weight: 700; }
     .welcome-actions a.secondary-link { background: var(--pspf-surface-strong); border-color: var(--pspf-border); color: var(--pspf-text); }
     .welcome-actions span { color: var(--muted); font-size: 13px; }
+    .welcome-guidance { margin-top: 12px; border: 1px solid var(--border-soft); border-left: 3px solid var(--accent-strong); border-radius: var(--pspf-radius); background: var(--pspf-surface-strong); padding: 10px 12px; display: grid; gap: 6px; }
+    .welcome-guidance strong { font-size: 13px; color: var(--pspf-text); }
+    .welcome-guidance p { margin: 0; color: var(--muted); font-size: 13px; }
     .snapshot-panel { border-color: rgba(20, 184, 166, 0.45); background: linear-gradient(180deg, rgba(18, 63, 59, 0.24), var(--surface)); }
     .section-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: var(--pspf-pad-sm); align-items: center; background: rgba(20, 19, 17, 0.92); border: 1px solid var(--border-soft); border-radius: var(--pspf-radius); padding: var(--pspf-pad-sm); margin: 0 0 var(--pspf-pad); backdrop-filter: blur(10px); }
     .section-nav a, .section-nav button { color: #e8dfcf; text-decoration: none; border: 1px solid var(--border-soft); background: var(--surface-soft); border-radius: var(--pspf-radius); padding: 6px 10px; font-size: 14px; white-space: nowrap; font-weight: 600; transform-origin: center; transition: background-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), border-color var(--pspf-motion-responsive) var(--pspf-ease-responsive), transform var(--pspf-motion-responsive) var(--pspf-ease-responsive); }
@@ -271,6 +274,7 @@ const html = `<!doctype html>
       <h1>Try Explorer with sample data.</h1>
       <p>Start with the sample bundle, or open a Workshop export when you have one. Explorer keeps any local notes in this browser until you export them back to Workshop.</p>
       <div class="welcome-actions"><button type="button" id="load-sample-bundle" data-sample-variant="enterprise">Load enterprise sample</button><button type="button" id="load-sample-bundle-home" data-sample-variant="home">Load home sample</button><a class="secondary-link" href="./sample-bundle-enterprise.json" download="pspf-sample-bundle-enterprise.json">Download enterprise JSON</a><a class="secondary-link" href="./sample-bundle-home.json" download="pspf-sample-bundle-home.json">Download home JSON</a><a class="secondary-link" href="#bundle-tools">Choose your own JSON</a></div>
+      <div class="welcome-guidance" role="note" aria-label="Explorer start path and local authoring notice"><strong>Recommended path:</strong><p>Export a master bundle from Workshop, review it here, then export local JSON back to Workshop if you made local changes.</p><p>Explorer local authoring is experimental and browser-local in this release.</p></div>
     </section>
     <nav class="section-nav" aria-label="Explorer sections" hidden>
       <a href="#summary">Overview</a>
@@ -324,10 +328,10 @@ const html = `<!doctype html>
     <details id="bundle-tools" class="panel snapshot-panel" open>
       <summary><h2>Open a PSPF bundle</h2></summary>
       <div class="section-body">
-        <p class="muted">Load the sample bundle, or choose an exported bundle to review. Explorer remembers the latest bundle locally for day-to-day review.</p>
+        <p class="muted">Load the sample bundle, or choose an exported bundle to review. Explorer remembers the latest bundle locally for day-to-day review. If you capture local changes here, export local JSON and import it back into Workshop to complete the round-trip.</p>
         <div class="toolbar"><button type="button" id="load-sample-bundle-tools" data-sample-variant="enterprise">Load enterprise sample</button><button type="button" id="load-sample-bundle-tools-home" data-sample-variant="home">Load home sample</button><a href="./sample-bundle-enterprise.json" download="pspf-sample-bundle-enterprise.json">Download enterprise JSON</a><a href="./sample-bundle-home.json" download="pspf-sample-bundle-home.json">Download home JSON</a></div>
         <div class="version-strip" aria-label="PSPF version context"><span class="version-pill">PSPF v${PSPF_SLICE_VERSION}</span><span class="version-pill">Schema ${VERSION_AXES.schemaVersion}</span><span class="version-pill">Bundle ${VERSION_AXES.bundleVersion}</span><span class="version-pill">API ${VERSION_AXES.apiVersion}</span></div>
-        <p id="bundle-help" class="muted">Select the exported <code>bundle.json</code>. Advanced users can also select <code>data/manifest.json</code> with matching collection JSON files.</p>
+        <p id="bundle-help" class="muted">Select the exported <code>bundle.json</code>. Advanced users can also select <code>data/manifest.json</code> with matching collection JSON files. Local authoring remains experimental in this release.</p>
         <label for="bundle-files">Bundle JSON files</label>
         <input id="bundle-files" type="file" multiple accept="application/json,.json" aria-describedby="bundle-help">
       </div>

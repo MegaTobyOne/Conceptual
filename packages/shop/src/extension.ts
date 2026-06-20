@@ -2003,6 +2003,32 @@ function renderShopHomeHtml(store: ShopStore): string {
   const spendCount = store.spendItems.length;
   const monthlyForecast = deriveForecastMonths(store.spendItems);
   const axes = `Schema ${VERSION_AXES.schemaVersion} · Bundle ${VERSION_AXES.bundleVersion} · API ${VERSION_AXES.apiVersion}`;
+  const hasCommercialData = supplierCount + contractCount + spendCount > 0;
+
+  const nextAction =
+    spendCount > 0
+      ? {
+          command: "pspf.shop.openForecast",
+          label: "Open forecast",
+          description: "Review spend profile, savings, and payback signals"
+        }
+      : contractCount > 0
+        ? {
+            command: "pspf.shop.newSpendItem",
+            label: "Add first spend item",
+            description: "Attach planned spend to an existing contract"
+          }
+        : supplierCount > 0
+          ? {
+              command: "pspf.shop.newContract",
+              label: "Add first contract",
+              description: "Link a contract to an existing supplier"
+            }
+          : {
+              command: "pspf.shop.newSupplier",
+              label: "Add first supplier",
+              description: "Start the commercial planning record"
+            };
 
   const createBody = `<div class="action-list">
     ${homeActionButton("pspf.shop.newSupplier", "New supplier", "Capture a supplier")}
@@ -2022,11 +2048,15 @@ function renderShopHomeHtml(store: ShopStore): string {
     ${homeActionButton("pspf.shop.exportForecastXls", "Export XLS", "Save forecast as XLS")}
   </div>`;
 
-  const dataBody = `<div class="action-list compact">
-    ${homeActionButton("pspf.shop.loadSample", "Load sample", "Replace current Shop data with sample records")}
-    ${homeActionButton("pspf.shop.importLocalStore", "Import local JSON", "Import .pspf/shop/shop.json records into Core")}
-    ${homeActionButton("pspf.shop.diagnoseData", "Diagnose data", "Check Shop records for missing supplier names and orphaned contracts")}
-  </div>`;
+  const advancedBody = `<p class="muted">Use these tools only when setting up local sample data, importing legacy local JSON, or repairing data quality issues.</p>
+    <details>
+      <summary><strong>Data setup and repair</strong></summary>
+      <div class="action-list compact">
+        ${homeActionButton("pspf.shop.loadSample", "Load sample", "Replace current Shop data with sample records")}
+        ${homeActionButton("pspf.shop.importLocalStore", "Import local JSON", "Import .pspf/shop/shop.json records into Core")}
+        ${homeActionButton("pspf.shop.diagnoseData", "Diagnose data", "Check Shop records for missing supplier names and orphaned contracts")}
+      </div>
+    </details>`;
 
   const body = [
     `<style>
@@ -2046,6 +2076,16 @@ function renderShopHomeHtml(store: ShopStore): string {
         { label: "Spend items", value: spendCount }
       ]
     }),
+    homeSection({
+      id: "next",
+      eyebrow: "Next",
+      heading: "Where To Focus Next",
+      body:
+        (hasCommercialData
+          ? `<p class="muted">Keep supplier, contract, and spend records aligned so forecast and savings views stay decision-ready.</p>`
+          : `<p class="muted">Start with one supplier, then add a contract and spend item to unlock forecast and savings views.</p>`) +
+        `<div class="action-list">${homeActionButton(nextAction.command, nextAction.label, nextAction.description)}${homeActionButton("pspf.shop.openForecast", "Open Forecast Dashboard", "Open the full forecast panel for review and export")}</div>`
+    }),
     homeSection({ id: "forecast", eyebrow: "Review", heading: "Forecast & savings", body: forecastBody }),
     homeSection({
       id: "trend",
@@ -2053,9 +2093,9 @@ function renderShopHomeHtml(store: ShopStore): string {
       heading: "Spending trend",
       body: renderShopTrendline(monthlyForecast)
     }),
-    homeSection({ id: "create", eyebrow: "Author", heading: "Create records", body: createBody }),
-    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Edit records", body: editBody }),
-    homeSection({ id: "data", eyebrow: "Data", heading: "Sample & import", body: dataBody })
+    homeSection({ id: "create", eyebrow: "Author", heading: "Capture New Records", body: createBody }),
+    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Review And Update", body: editBody }),
+    homeSection({ id: "advanced", eyebrow: "Advanced", heading: "Advanced Tools", body: advancedBody })
   ].join("");
 
   return homePanelShellHtml({
@@ -2067,11 +2107,12 @@ function renderShopHomeHtml(store: ShopStore): string {
     sensitivityBanner: "OFFICIAL: Sensitive · Local workspace writes stay in Shop until you snapshot or export.",
     nav: [
       { href: "overview", label: "Overview" },
+      { href: "next", label: "Next" },
       { href: "forecast", label: "Forecast" },
       { href: "trend", label: "Trend" },
       { href: "create", label: "Create" },
       { href: "edit", label: "Edit" },
-      { href: "data", label: "Data" }
+      { href: "advanced", label: "Advanced" }
     ],
     body
   });

@@ -1607,6 +1607,38 @@ function buildSampleStore(): PubStore {
 function renderHomeHtml(store: PubStore): string {
   const upcomingBadges = deriveUpcomingBadges(store);
   const posture = `${store.people.length} ${store.people.length === 1 ? "person" : "people"} across ${store.teams.length} ${store.teams.length === 1 ? "team" : "teams"} · local-only, never exported to Explorer.`;
+  const hasCorePubData = store.people.length + store.teams.length + store.roles.length + store.assignments.length > 0;
+
+  const nextAction =
+    store.people.length === 0
+      ? {
+          command: "pspf.pub.newPerson",
+          label: "Add first person",
+          description: "Create the first local person profile"
+        }
+      : store.teams.length === 0
+        ? {
+            command: "pspf.pub.newTeam",
+            label: "Add first team",
+            description: "Create team context for local ownership and planning"
+          }
+        : store.roles.length === 0
+          ? {
+              command: "pspf.pub.newRole",
+              label: "Add first role",
+              description: "Define a role connected to an existing team"
+            }
+          : store.assignments.length === 0
+            ? {
+                command: "pspf.pub.newAssignment",
+                label: "Add first assignment",
+                description: "Assign people to roles to surface accountability signals"
+              }
+            : {
+                command: "pspf.pub.openRelationshipLog",
+                label: "Open relationship log",
+                description: "Review and update upcoming follow-up actions"
+              };
 
   const coreActions = `<div class="action-list">
     ${homeActionButton("pspf.pub.openOrgChart", "Organisation chart", "Simple team hierarchy at a glance")}
@@ -1622,7 +1654,6 @@ function renderHomeHtml(store: PubStore): string {
     ${homeActionButton("pspf.pub.newTeam", "New team", "Add local team-owned controls")}
     ${homeActionButton("pspf.pub.newRole", "New role", "Attach a role to a team")}
     ${homeActionButton("pspf.pub.newAssignment", "New assignment", "Assign a person to a role")}
-    ${homeActionButton("pspf.pub.loadSample", "Load sample", "Replace current Pub data with sample records")}
   </div>`;
 
   const editActions = `<div class="action-list compact">
@@ -1632,6 +1663,14 @@ function renderHomeHtml(store: PubStore): string {
     ${homeActionButton("pspf.pub.editAssignment", "Edit assignment", "Choose and update an assignment")}
     ${homeActionButton("pspf.pub.editRelationshipNote", "Edit relationship note", "Choose and update a follow-up note")}
   </div>`;
+
+  const advancedActions = `<p class="muted">Use these tools when you need sample data or a reset-style setup workflow during evaluation.</p>
+    <details>
+      <summary><strong>Data setup</strong></summary>
+      <div class="action-list compact">
+        ${homeActionButton("pspf.pub.loadSample", "Load sample data", "Replace current Pub data with sample records")}
+      </div>
+    </details>`;
 
   const body = [
     `<style>
@@ -1654,14 +1693,25 @@ function renderHomeHtml(store: PubStore): string {
       ]
     }),
     homeSection({
+      id: "next",
+      eyebrow: "Next",
+      heading: "Where To Focus Next",
+      body:
+        (hasCorePubData
+          ? `<p class="muted">Keep people, teams, roles, and assignments current so ownership and follow-up signals remain useful.</p>`
+          : `<p class="muted">Start with one person and one team, then add a role and assignment to make accountability signals useful.</p>`) +
+        `<div class="action-list">${homeActionButton(nextAction.command, nextAction.label, nextAction.description)}${homeActionButton("pspf.pub.loadSample", "Load sample data", "Populate a safe local sample to learn the Pub workflow")}</div>`
+    }),
+    homeSection({
       id: "signals",
       eyebrow: "Now",
       heading: "Upcoming actions",
       body: renderPubUpcomingActionsGraphic(upcomingBadges)
     }),
     homeSection({ id: "actions", eyebrow: "Open", heading: "People & relationship tools", body: coreActions }),
-    homeSection({ id: "create", eyebrow: "Author", heading: "Create local records", body: createActions }),
-    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Edit local records", body: editActions })
+    homeSection({ id: "create", eyebrow: "Author", heading: "Capture New Records", body: createActions }),
+    homeSection({ id: "edit", eyebrow: "Maintain", heading: "Review And Update", body: editActions }),
+    homeSection({ id: "advanced", eyebrow: "Advanced", heading: "Advanced Tools", body: advancedActions })
   ].join("");
 
   return homePanelShellHtml({
@@ -1674,10 +1724,12 @@ function renderHomeHtml(store: PubStore): string {
       "OFFICIAL: Sensitive · local-only people context · no Explorer publication in v1.29 — Pub data stays on this workspace and is never exported to Explorer.",
     nav: [
       { href: "overview", label: "Overview" },
+      { href: "next", label: "Next" },
       { href: "signals", label: "Signals" },
       { href: "actions", label: "Open" },
       { href: "create", label: "Create" },
-      { href: "edit", label: "Edit" }
+      { href: "edit", label: "Edit" },
+      { href: "advanced", label: "Advanced" }
     ],
     body
   });

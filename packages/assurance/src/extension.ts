@@ -213,6 +213,7 @@ async function handlePanelMessage(
   }
   const allowedCommands = new Set([
     "pspf.assurance.openPentestWorkbench",
+    "pspf.assurance.runPublicationReadiness",
     "pspf.workshop.createAction",
     "pspf.workshop.attachEvidence",
     "pspf.workshop.manageTags"
@@ -236,8 +237,24 @@ function renderHome(model: PentestWorkbenchModel): string {
   const overviewBody = `<p class="home-posture assurance-home-summary">OFFICIAL: Sensitive assurance workspace for assessments, penetration testing findings, verification queues and publication readiness.</p>
     <p class="muted assurance-home-axes">${escapeHtml(axes)}</p>
     <div class="grid" role="list">${metrics.map((metric) => homeMetricCard(metric.label, metric.value)).join("")}</div>`;
+  const hasAssuranceRiskSignals = model.totals.overdue > 0 || model.totals.pendingVerification > 0;
+  const nextAction = hasAssuranceRiskSignals
+    ? {
+        command: "pspf.assurance.runPublicationReadiness",
+        label: "Run readiness check",
+        description: "Prioritise overdue, SLA-risk, and verification queues"
+      }
+    : {
+        command: "pspf.assurance.openPentestWorkbench",
+        label: "Open Pentest Workbench",
+        description: "Review findings, retests, residual risks, and supplier context"
+      };
+  const nextBody = `<p class="muted">${hasAssuranceRiskSignals ? "Assurance risk signals are active. Start with readiness checks before deeper review." : "No immediate queue pressure detected. Continue with the workbench review flow."}</p>
+    <div class="action-list">
+      ${homeActionButton(nextAction.command, nextAction.label, nextAction.description)}
+      ${homeActionButton("pspf.assurance.openPentestWorkbench", "Open Assessment Workbench", "Review tagged findings, retests, residual risks, and supplier context")}
+    </div>`;
   const reviewBody = `<div class="action-list">
-    ${homeActionButton("pspf.assurance.openPentestWorkbench", "Pentest workbench", "Review tagged findings, retests, residual risks and supplier context")}
     ${homeActionButton("pspf.assurance.runPublicationReadiness", "Readiness check", "Check overdue, SLA-risk and verification queues")}
     ${homeActionButton("refresh", "Refresh", "Reload Assurance counts from Core")}
   </div>`;
@@ -246,7 +263,19 @@ function renderHome(model: PentestWorkbenchModel): string {
     ${homeActionButton("pspf.assurance.newFinding", "New finding", "Reserved for the assurance finding model slice")}
     ${homeActionButton("pspf.assurance.prepareAssuranceReport", "Prepare report", "Reserved for the assurance publishing slice")}
   </div>`;
-  const scopeBody = `<p class="muted">This first slice preserves the current tag-based pentest read model. New assurance finding entities, approvals, report publishing, and signing arrive in later gated slices.</p>`;
+  const advancedBody = `<p class="muted">Use these tools for queue maintenance and gated roadmap capabilities, not for day-to-day finding triage.</p>
+    <details>
+      <summary><strong>Maintenance</strong></summary>
+      <div class="action-list compact">
+        ${homeActionButton("pspf.assurance.runPublicationReadiness", "Readiness check", "Check overdue, SLA-risk and verification queues")}
+        ${homeActionButton("refresh", "Refresh", "Reload Assurance counts from Core")}
+      </div>
+    </details>
+    <details>
+      <summary><strong>Planned functions</strong></summary>
+      <p class="muted">This first slice preserves the current tag-based pentest read model. New assurance finding entities, approvals, report publishing, and signing arrive in later gated slices.</p>
+      <div class="action-list compact">${planBody}</div>
+    </details>`;
   const body = [
     assuranceHomeStyles(),
     homeSection({
@@ -256,9 +285,9 @@ function renderHome(model: PentestWorkbenchModel): string {
       heading: "PSPF Assurance",
       body: overviewBody
     }),
-    homeSection({ id: "review", eyebrow: "Review", heading: "Assessment workbench", body: reviewBody }),
-    homeSection({ id: "scope", eyebrow: "Boundary", heading: "Current scope", body: scopeBody }),
-    homeSection({ id: "planned", eyebrow: "Next", heading: "Planned functions", body: planBody })
+    homeSection({ id: "next", eyebrow: "Next", heading: "Where To Focus Next", body: nextBody }),
+    homeSection({ id: "review", eyebrow: "Review", heading: "Assessment operations", body: reviewBody }),
+    homeSection({ id: "advanced", eyebrow: "Advanced", heading: "Advanced Tools", body: advancedBody })
   ].join("");
 
   return assuranceHomeShell(body);
@@ -290,9 +319,9 @@ function assuranceHomeShell(body: string): string {
     sensitivityBanner: "OFFICIAL: Sensitive · assessment and verification data stays local until a gated export.",
     nav: [
       { href: "overview", label: "Overview" },
+      { href: "next", label: "Next" },
       { href: "review", label: "Review" },
-      { href: "scope", label: "Scope" },
-      { href: "planned", label: "Planned" }
+      { href: "advanced", label: "Advanced" }
     ],
     body
   });

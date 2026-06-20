@@ -417,6 +417,27 @@
         margin-top: 8px;
       }
 
+      .hero-path {
+        border: 1px solid var(--border-soft);
+        border-left: 3px solid var(--teal);
+        border-radius: var(--radius);
+        background: var(--surface-glass-84);
+        padding: 12px 14px;
+        display: grid;
+        gap: 6px;
+        max-width: 760px;
+      }
+
+      .hero-path strong {
+        font-size: 13px;
+        color: var(--text);
+      }
+
+      .hero-path span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
       .button {
         min-height: 44px;
         display: inline-flex;
@@ -1116,13 +1137,27 @@
             <div class="hero-actions">
               <a
                 class="button primary"
-                href="https://tobyharvey.online/explorer/"
+                href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-core"
                 target="_blank"
                 rel="noopener noreferrer"
+                >Install Core</a
+              >
+              <a
+                class="button"
+                href="https://marketplace.visualstudio.com/items?itemName=tobyharvey.pspf-workshop"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Install Workshop</a
+              >
+              <a class="button" href="#workflow">See workflow</a>
+              <a class="button" href="https://tobyharvey.online/explorer/" target="_blank" rel="noopener noreferrer"
                 >Open Explorer</a
               >
-              <a class="button" href="#products">View products</a>
-              <a class="button" href="#links">Install extensions</a>
+            </div>
+            <div class="hero-path" role="note" aria-label="Recommended getting started path">
+              <strong>Recommended start path:</strong>
+              <span>Install Core and Workshop first. Then export a master bundle and open it in Explorer for reviewer-facing analysis.</span>
+              <span>Pub records (people, teams, assignments) stay local and are not published to Explorer bundles.</span>
             </div>
             <div class="signal-row" aria-label="Current release signals">
               <div class="signal"><strong>1.43.0</strong><span>strategy risk → priority → choice slice</span></div>
@@ -1255,7 +1290,8 @@
               <div>
                 <p>
                   Static publication view for reviewers: posture, records, local changes, saved views, Plan Lens,
-                  Connected View, and copyable brief output.
+                  Connected View, and copyable brief output. Explorer local authoring is available for round-trip
+                  review workflows and remains an experimental capability.
                 </p>
                 <div class="meta">
                   <span>browser view</span><span>reads JSON bundle</span><span>no server store</span>
@@ -1305,7 +1341,8 @@
               <div>
                 <p>
                   People, role, team, assignment, and stakeholder relationship foundation for local-only staff context,
-                  organisation charts, action badges, and responsibility signals.
+                  organisation charts, action badges, and responsibility signals. Pub records stay local and do not
+                  publish to Explorer bundles.
                 </p>
                 <div class="meta">
                   <span>VS Code extension</span><code>tobyharvey.pspf-pub</code><span>depends on Core</span>
