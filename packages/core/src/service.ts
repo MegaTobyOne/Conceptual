@@ -88,6 +88,7 @@ export interface WorkspacePaths {
   readonly locks: string;
   readonly journal: string;
   readonly migrations: string;
+  readonly share: string;
 }
 
 export interface ManifestCollection {
@@ -124,6 +125,7 @@ export interface CoreService {
   readonly runDatasetDiagnostics: () => Promise<DatasetDiagnosticReport>;
   readonly createSnapshot: () => Promise<V01Entity>;
   readonly exportBundle: () => Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }>;
+  readonly exportTeamShareBundle: () => Promise<{ bundlePath: string; collectionCount: number }>;
   readonly planImportBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
   readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
   readonly undoLastImport: () => Promise<ImportUndoResult>;
@@ -150,6 +152,7 @@ export interface CoreWriteApi {
 
 export interface CoreExchangeApi {
   readonly exportBundle: () => Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }>;
+  readonly exportTeamShareBundle: () => Promise<{ bundlePath: string; collectionCount: number }>;
   readonly planImportBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
   readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
   readonly undoLastImport: () => Promise<ImportUndoResult>;
@@ -293,6 +296,7 @@ export function createCoreWriteApi(workspaceRoot: string): CoreWriteApi {
 export function createCoreExchangeApi(workspaceRoot: string): CoreExchangeApi {
   return {
     exportBundle: () => serialiseWorkspaceOperation(workspaceRoot, () => exportBundle(workspaceRoot)),
+    exportTeamShareBundle: () => serialiseWorkspaceOperation(workspaceRoot, () => exportTeamShareBundle(workspaceRoot)),
     planImportBundle: (bundlePath, mode) =>
       serialiseWorkspaceOperation(workspaceRoot, () => planImportBundle(workspaceRoot, bundlePath, mode)),
     importBundle: (bundlePath, mode) =>
@@ -337,7 +341,8 @@ async function initialiseWorkspace(workspaceRoot: string): Promise<WorkspacePath
     mkdir(paths.cache, { recursive: true }),
     mkdir(paths.locks, { recursive: true }),
     mkdir(paths.journal, { recursive: true }),
-    mkdir(paths.migrations, { recursive: true })
+    mkdir(paths.migrations, { recursive: true }),
+    mkdir(paths.share, { recursive: true })
   ]);
   await acquireWriterLock(paths);
 
@@ -906,6 +911,66 @@ async function exportBundle(
   await writeJson(join(exportDirectory, "bundle.json"), { manifest, collections });
   await recordOperation(paths, "export", "success", exportDirectory);
   return { exportDirectory, manifestPath, collectionCount: manifestCollections.length };
+}
+
+async function exportTeamShareBundle(workspaceRoot: string): Promise<{ bundlePath: string; collectionCount: number }> {
+  const paths = await ensureInitialised(workspaceRoot);
+  await assertWritable(paths);
+  // Ensure the share directory exists for workspaces initialised before this feature was added.
+  await mkdir(paths.share, { recursive: true });
+
+  const collections = await getBundleCollections(workspaceRoot, paths);
+
+  // Sort each collection by id for stable, Git-diffable output: same data → same record order.
+  const sortById = <T extends { id: string }>(records: T[]): T[] =>
+    [...records].sort((a, b) => a.id.localeCompare(b.id, "en"));
+
+  const manifestCollections: ManifestCollection[] = [];
+  const shareCollections: Record<string, unknown[]> = {};
+  for (const collectionName of V0_1_COLLECTIONS) {
+    const sorted = sortById(collections[collectionName] as { id: string }[]);
+    const serialised = `${JSON.stringify(sorted, null, 2)}\n`;
+    // path is a conventional placeholder for Explorer split-bundle compatibility;
+    // team-share bundles are always written as a single self-contained bundle.json.
+    manifestCollections.push({
+      name: collectionName,
+      path: `./collections/${collectionName}.json`,
+      count: sorted.length,
+      hash: { alg: "SHA-256", value: sha256(serialised) }
+    });
+    shareCollections[collectionName] = sorted;
+  }
+
+  const manifest = {
+    $schema: "./schemas/manifest.schema.json",
+    bundleType: "pspf-explorer-bundle",
+    bundleVersion: VERSION_AXES.bundleVersion,
+    schemaVersion: VERSION_AXES.schemaVersion,
+    apiVersion: VERSION_AXES.apiVersion,
+    generatedAt: nowIso(),
+    generator: {
+      product: "pspf-core",
+      mode: "team-share",
+      productVersion: PSPF_SLICE_VERSION,
+      workspaceId: `WS-${sha256(paths.root).slice(0, 12)}`
+    },
+    compatibility: {
+      explorerMin: PSPF_SLICE_VERSION,
+      explorerTested: PSPF_SLICE_VERSION
+    },
+    security: {
+      classification: "OFFICIAL: Sensitive",
+      containsSensitiveData: true,
+      redactionProfile: "explorer-default"
+    },
+    collections: manifestCollections,
+    indexes: []
+  };
+
+  const bundlePath = join(paths.share, "bundle.json");
+  await writeJson(bundlePath, { manifest, collections: shareCollections });
+  await recordOperation(paths, "export", "success", bundlePath);
+  return { bundlePath, collectionCount: manifestCollections.length };
 }
 
 async function importBundle(workspaceRoot: string, bundlePath: string, mode: ImportMode): Promise<ImportResult> {
@@ -1951,7 +2016,8 @@ function getWorkspacePaths(root: string): WorkspacePaths {
     cache: join(pspf, "cache"),
     locks: join(pspf, "core", "locks"),
     journal: join(pspf, "core", "journal"),
-    migrations: join(pspf, "core", "migrations")
+    migrations: join(pspf, "core", "migrations"),
+    share: join(pspf, "share")
   };
 }
 

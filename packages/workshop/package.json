@@ -158,6 +158,11 @@
         "icon": "$(cloud-upload)"
       },
       {
+        "command": "pspf.workshop.exportTeamShareBundle",
+        "title": "PSPF: Export Team Share Bundle",
+        "icon": "$(repo-push)"
+      },
+      {
         "command": "pspf.workshop.importBackupJson",
         "title": "PSPF: Import Master JSON Bundle",
         "icon": "$(cloud-download)"
