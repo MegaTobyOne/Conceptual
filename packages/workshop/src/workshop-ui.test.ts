@@ -327,6 +327,10 @@ test("Strategy Map uses clearer framing, aligned choices, and grouped measures",
   assert.match(source, /class="strategy-risk-posture"/);
   assert.match(source, /class="strategy-choice-grid"/);
   assert.match(source, /class="strategy-choice-card__top"/);
+  assert.match(source, /class="strategy-priority-panel"/);
+  assert.match(source, /Top blockers/);
+  assert.match(source, /Priority logic/);
+  assert.match(source, /buildStrategyPrioritySummary/);
   assert.match(source, /function renderMeasuresGroupedByChoice/);
   assert.match(source, /Posture Measures By Choice/);
   assert.match(source, /class="measure-choice-group"/);

@@ -132,6 +132,7 @@ for (const extensionPackage of extensionPackages) {
     `${extensionPackage.name} publisher metadata matches the v1.0 Marketplace publisher`
   );
   assert.equal(manifest.main, "./dist/extension.js", `${extensionPackage.name} main points at built extension output`);
+  await access(join(root, extensionPackage.directory, ".vscodeignore"));
   await access(join(root, extensionPackage.directory, "dist", "extension.js"));
   const commands = new Set((manifest.contributes?.commands ?? []).map((command) => command.command));
   for (const expectedCommand of extensionPackage.expectedCommands) {

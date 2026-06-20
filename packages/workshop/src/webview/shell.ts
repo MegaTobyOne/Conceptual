@@ -134,10 +134,12 @@ export function shellHtml(title: string, body: string): string {
     .strategy-risk-posture { border-left: 3px solid var(--workshop-blue); padding: 8px 10px; background: var(--surface-strong); border-radius: var(--radius-sm); }
     .strategy-risk-posture p { margin-bottom: 0; }
     .strategy-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 12px; align-items: stretch; }
-    .strategy-choice-card { display: grid; grid-template-rows: auto auto minmax(4.5rem, auto) auto auto auto 1fr; gap: 8px; }
+    .strategy-choice-card { display: grid; grid-template-rows: auto auto minmax(4.5rem, auto) auto auto auto auto 1fr; gap: 8px; }
     .strategy-choice-card__top { min-height: 34px; justify-content: space-between; align-items: flex-start; }
     .strategy-choice-card__top > span:first-child { color: var(--workshop-blue); font-size: var(--pspf-type-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
     .strategy-choice-card > strong { font-size: 18px; line-height: 1.25; }
+    .strategy-priority-panel { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: color-mix(in srgb, var(--surface-strong) 76%, transparent); }
+    .strategy-priority-list { margin: 0; padding-left: 18px; }
     .measure-choice-stack { display: grid; gap: 12px; }
     .trend-indicator { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border); border-radius: 999px; padding: 3px 8px; font-size: 12px; font-weight: 700; white-space: nowrap; background: var(--surface-strong); }
     .trend-indicator[data-trend="improving"] { border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); color: var(--pspf-ok); background: var(--pspf-ok-soft); }
