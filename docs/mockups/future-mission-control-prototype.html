@@ -30,8 +30,7 @@
         color: var(--ink);
         background:
           radial-gradient(circle at 12% 8%, rgba(10, 122, 120, 0.11), transparent 48%),
-          radial-gradient(circle at 88% 86%, rgba(176, 96, 31, 0.12), transparent 44%),
-          var(--bg);
+          radial-gradient(circle at 88% 86%, rgba(176, 96, 31, 0.12), transparent 44%), var(--bg);
         min-height: 100vh;
       }
 
@@ -202,11 +201,31 @@
         color: var(--muted);
       }
 
-      .direction { top: 24px; left: 42%; border-left: 6px solid var(--accent); }
-      .requirement { top: 130px; left: 22%; border-left: 6px solid var(--ok); }
-      .action { top: 130px; left: 58%; border-left: 6px solid #3c7fbe; }
-      .risk { top: 270px; left: 35%; border-left: 6px solid var(--risk); }
-      .evidence { top: 270px; left: 64%; border-left: 6px solid var(--warn); }
+      .direction {
+        top: 24px;
+        left: 42%;
+        border-left: 6px solid var(--accent);
+      }
+      .requirement {
+        top: 130px;
+        left: 22%;
+        border-left: 6px solid var(--ok);
+      }
+      .action {
+        top: 130px;
+        left: 58%;
+        border-left: 6px solid #3c7fbe;
+      }
+      .risk {
+        top: 270px;
+        left: 35%;
+        border-left: 6px solid var(--risk);
+      }
+      .evidence {
+        top: 270px;
+        left: 64%;
+        border-left: 6px solid var(--warn);
+      }
 
       svg.links {
         position: absolute;
@@ -350,7 +369,15 @@
             <path d="M500,90 C590,140 640,155 700,210" stroke="#7d8e90" stroke-width="2.5" fill="none" />
             <path d="M300,250 C330,300 370,320 420,350" stroke="#7d8e90" stroke-width="2.5" fill="none" />
             <path d="M700,250 C690,300 650,315 610,350" stroke="#7d8e90" stroke-width="2.5" fill="none" />
-            <path id="ripplePath" d="M420,350 C500,400 560,405 610,350" stroke="#0a7a78" stroke-width="3" fill="none" stroke-dasharray="8 8" opacity="0" />
+            <path
+              id="ripplePath"
+              d="M420,350 C500,400 560,405 610,350"
+              stroke="#0a7a78"
+              stroke-width="3"
+              fill="none"
+              stroke-dasharray="8 8"
+              opacity="0"
+            />
           </svg>
 
           <article class="node direction" tabindex="0" data-node="direction">
@@ -380,15 +407,23 @@
         <h2>Audience Lens</h2>
         <article class="panel">
           <h3 id="lensTitle">Operator Summary</h3>
-          <p id="lensBody">Three immediate tasks keep trajectory healthy: assign owner, close evidence freshness gap, and confirm rollout sequence.</p>
+          <p id="lensBody">
+            Three immediate tasks keep trajectory healthy: assign owner, close evidence freshness gap, and confirm
+            rollout sequence.
+          </p>
         </article>
         <article class="panel preview" id="previewPanel" hidden>
           <h3>Ripple Preview</h3>
-          <p id="previewBody">If Action ACT-233 slips by 14 days, projected confidence falls from 74% to 61%, and Risk RSK-41 shifts to High likelihood.</p>
+          <p id="previewBody">
+            If Action ACT-233 slips by 14 days, projected confidence falls from 74% to 61%, and Risk RSK-41 shifts to
+            High likelihood.
+          </p>
         </article>
         <article class="panel">
           <h3>Decision Queue (Next 7 days)</h3>
-          <p id="decisionText">Approve identity pilot scope, endorse contingency staffing, and set evidence verification cadence.</p>
+          <p id="decisionText">
+            Approve identity pilot scope, endorse contingency staffing, and set evidence verification cadence.
+          </p>
         </article>
       </section>
 
