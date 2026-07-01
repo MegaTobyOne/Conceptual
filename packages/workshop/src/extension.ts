@@ -3727,6 +3727,7 @@ async function openMasterDashboard(): Promise<void> {
     (entity): entity is StrategyEntity => entity.entityType === "strategy" && entity.recordStatus !== "deleted"
   );
   const pentestWorkbench = buildPentestWorkbenchModel(allEntities);
+  const asdEssentials = buildEssentialEightDashboardModel(allEntities);
   const evidenceRequirementIds = new Set(
     links
       .filter(
@@ -3916,6 +3917,7 @@ async function openMasterDashboard(): Promise<void> {
         <button type="button" data-command="pspf.workshop.copyPostureBrief">Copy brief</button>
       </div>
     </section>
+    ${renderAsdEssentialsWidget(asdEssentials)}
     <section>
       <h2>Portal</h2>
       <div class="portal-grid">
@@ -5209,6 +5211,29 @@ function renderEssentialEightDashboard(model: EssentialEightDashboardModel): str
     ${recordTable("E8 Requirements To Review", model.requirementRows, ["title", "status", "evidence", "actions", "risks", "ismMappings"])}
   `
   );
+}
+
+function renderAsdEssentialsWidget(model: EssentialEightDashboardModel): string {
+  return `
+    ${essentialEightVisualStyles()}
+    <section class="asd-essentials-widget" aria-labelledby="asd-essentials-heading">
+      <p class="eyebrow">Essential Eight</p>
+      <h2 id="asd-essentials-heading">ASD Essentials</h2>
+      <p class="muted">OFFICIAL: Sensitive · ASD Essential Eight maturity posture at a glance. ${escapeHtml(model.summary)}</p>
+      <div class="grid">
+        ${metricCard("Strategies met", `${model.metrics.strategiesMet} of ${ESSENTIAL_EIGHT_STRATEGIES.length}`)}
+        ${metricCard("Met, excl N/A", `${model.metrics.metPercentage}%`)}
+        ${metricCard("Evidence, excl N/A", `${model.metrics.evidenceCoverage}%`)}
+        ${metricCard("Open actions", model.metrics.openActions)}
+      </div>
+      <div class="asd-essentials-chart">
+        ${renderEssentialEightStrategyChart(model)}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="pspf.workshop.openEssentialEightDashboard">Open Essential Eight dashboard</button>
+      </div>
+    </section>
+  `;
 }
 
 function essentialEightVisualStyles(): string {

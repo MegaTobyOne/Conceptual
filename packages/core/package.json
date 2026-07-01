@@ -11,7 +11,7 @@
     "GRC",
     "security"
   ],
-  "version": "1.43.0",
+  "version": "1.44.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -41,6 +41,26 @@
           "type": "boolean",
           "default": false,
           "description": "Initialise the PSPF workspace automatically when PSPF Core activates. Intended for trusted debug or dedicated PSPF workspaces."
+        },
+        "pspf.core.git.useSystemConfig": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use local Git config values as the default identity for PSPF Git-aligned workflows."
+        },
+        "pspf.core.git.userName": {
+          "type": "string",
+          "default": "",
+          "description": "Git user name override for PSPF workflows. Leave blank to fall back to local Git config when enabled."
+        },
+        "pspf.core.git.userEmail": {
+          "type": "string",
+          "default": "",
+          "description": "Git user email override for PSPF workflows. Leave blank to fall back to local Git config when enabled."
+        },
+        "pspf.core.git.defaultBranch": {
+          "type": "string",
+          "default": "main",
+          "description": "Default Git branch label used by PSPF prompts and Git-aligned workflow messaging."
         }
       }
     },
@@ -96,6 +116,10 @@
       {
         "command": "pspf.core.showWriterLock",
         "title": "PSPF: Show Writer Lock"
+      },
+      {
+        "command": "pspf.core.openGitSettings",
+        "title": "PSPF: Open Git Settings"
       }
     ]
   },

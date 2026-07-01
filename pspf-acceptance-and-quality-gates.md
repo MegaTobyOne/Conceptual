@@ -602,7 +602,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 
 ### v1.43 candidate gates (Strategy risk → priority → choice)
 
-1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.43.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.44.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
 2. **Priority inference gate**: `buildStrategyPrioritySummary` in `packages/workshop/src/continuous-compliance.ts` derives a priority band (`critical` ≥ 28, `high` ≥ 20, `medium` ≥ 10, `low` ≥ 1, `none` < 1) from linked risk severity (likelihood × impact) adjusted by choice trend (deteriorating +5, steady +2, unknown +1, improving +0) and confidence (low +3, medium +1, high +0), using the peak adjusted risk score. `check:continuous-compliance` asserts the export and band labels.
 3. **Strategy surface gate**: the Strategy Map and Strategy Editor render the priority band, rationale, top blocking risks, and unresolved-risk repair cues; `check:continuous-compliance` asserts the `strategy-priority-panel` wiring.
 4. **Derived-only gate**: the feature adds no entity, collection, link verb, saved-view scope, schema field, or Explorer publication change; it reads existing risk, action, and strategy references only.

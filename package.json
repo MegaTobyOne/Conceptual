@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.43.0",
+  "version": "1.44.0",
   "private": true,
   "description": "Local-first PSPF Core, Assurance, Workshop, Shop, Pub, and Explorer validation slice.",
   "license": "MIT",
@@ -120,7 +120,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.43:run",
+    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.44:run",
     "test": "pnpm build && pnpm -r --if-present test",
     "typecheck": "tsc -b tsconfig.json",
     "e2e:v1.39": "pnpm run e2e:v1.38 && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run check:ux-coverage",
@@ -132,7 +132,9 @@
     "e2e:v1.42": "pnpm run e2e:v1.41 && pnpm run check:gate-integrity && pnpm run check:spec-drift && pnpm run check:assurance-redaction && pnpm run package:check",
     "e2e:v1.42:run": "pnpm run e2e:v1.41:run && node scripts/check-gate-integrity.mjs && node scripts/check-spec-drift.mjs && node scripts/check-assurance-redaction.mjs && node scripts/check-package-shape.mjs",
     "e2e:v1.43": "pnpm run e2e:v1.42 && pnpm run check:continuous-compliance && pnpm run check:workshop-navigation && pnpm run package:check",
-    "e2e:v1.43:run": "pnpm run e2e:v1.42:run && node scripts/check-continuous-compliance.mjs && node scripts/check-workshop-navigation.mjs && node scripts/check-package-shape.mjs"
+    "e2e:v1.43:run": "pnpm run e2e:v1.42:run && node scripts/check-continuous-compliance.mjs && node scripts/check-workshop-navigation.mjs && node scripts/check-package-shape.mjs",
+    "e2e:v1.44": "pnpm run e2e:v1.43",
+    "e2e:v1.44:run": "pnpm run e2e:v1.43:run"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

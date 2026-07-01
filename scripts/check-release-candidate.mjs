@@ -48,13 +48,15 @@ const axesByMinorVersion = new Map([
   [40, "1.14.0"],
   [41, "1.14.0"],
   [42, "1.14.0"],
-  [43, "1.14.0"]
+  [43, "1.14.0"],
+  [44, "1.14.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
 const isV11OrLaterRelease = isV1Release && minorVersion >= 1;
 const packagePaths = [
   "package.json",
+  "packages/assurance/package.json",
   "packages/brief-renderer/package.json",
   "packages/connected-view/package.json",
   "packages/contracts/package.json",
@@ -84,8 +86,10 @@ assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleV
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
 const e2eScript =
-  minorVersion >= 43
-    ? "e2e:v1.43"
+  minorVersion >= 44
+    ? "e2e:v1.44"
+    : minorVersion >= 43
+      ? "e2e:v1.43"
     : minorVersion >= 42
       ? "e2e:v1.42"
       : minorVersion >= 41
@@ -1751,6 +1755,30 @@ if (isV1Release && minorVersion >= 41) {
   ]) {
     const source = `${readme}\n${designSpec}\n${specIndex}\n${acceptanceGates}`;
     assert.equal(source.includes(requiredText), true, `v1.41 deferred encryption notes should mention ${requiredText}`);
+  }
+}
+
+if (isV1Release && minorVersion >= 44) {
+  const v144Adr = await readFile(join(root, "adr/0080-v1-43-strategy-risk-priority-choice.md"), "utf8");
+  for (const requiredText of [
+    "v1.43 Strategy risk → priority → choice",
+    "buildStrategyPrioritySummary",
+    "priority band"
+  ]) {
+    assert.equal(v144Adr.includes(requiredText), true, `v1.44 ADR evidence should mention ${requiredText}`);
+  }
+
+  const workshopExtension = await readFile(join(root, "packages/workshop/src/extension.ts"), "utf8");
+  for (const requiredText of [
+    "buildStrategyPrioritySummary",
+    "Priority logic",
+    "bandLabel"
+  ]) {
+    assert.equal(
+      workshopExtension.includes(requiredText),
+      true,
+      `Workshop v1.44 strategy inference should mention ${requiredText}`
+    );
   }
 }
 
