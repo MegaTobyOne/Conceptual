@@ -61,6 +61,39 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 4. **AI draft-and-confirm gate**: guided Requirement drafting and Requirement-to-ISM mapping suggestions must require explicit operator confirmation before any write.
 5. **AI degraded-mode gate**: unavailable model/provider paths surface stable `PSPF_AI_*` diagnostics and leave normal Workshop workflows usable.
 
+### v1.45 Pub workforce foundation gates (per ADR 0081)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.45.0`; schema, bundle, and API axes remain `1.14.0`.
+2. **Pub migration gate**: behavioural tests migrate `1.1.0` to `1.2.0`, preserve existing records, prove idempotence, and reject an unsupported future version without rewriting the store.
+3. **Pub integrity gate**: behavioural tests reject duplicate IDs, dangling assignment and relationship references, self-links, team hierarchy cycles, and role reporting cycles before save or import.
+4. **Pub rapid-entry gate**: Quick Add confirms one person/team/role/assignment write; TSV import parses quoted values, presents create/reuse/conflict counts, revalidates against the current store, and commits once only when no issues remain.
+5. **Pub organisation gate**: the chart derives filled, vacant, acting, and rotating role states; supports branch collapse; and presents the same hierarchy in a keyboard- and screen-reader-readable table without relying on colour alone.
+6. **Pub export-redaction gate**: plain-text and HTML organisation exports contain role/team structure and state only. Tests with distinctive person names, IDs, assignments, and notes assert those restricted tokens are absent.
+7. **Pub release-chain gate**: `e2e:v1.45` runs the built-artifact gates inherited from v1.44 plus the complete `pspf-pub` test suite; product packages remain version-aligned at `1.45.0` and compatibility axes remain `1.14.0`.
+
+### v1.46 Pub workforce development gates (per ADR 0082)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.46.0`; schema, bundle, and API axes remain `1.14.0`.
+2. **Pub migration gate**: behavioural tests migrate `1.2.0` to `1.3.0` with empty workforce collections, preserve legacy certification text unchanged, prove idempotence, and reject unsupported future versions.
+3. **Workforce integrity gate**: validation rejects dangling learning, skill, development, succession, and rotation references; invalid five-anchor skills and levels; malformed dates; and placements beyond opportunity capacity before save.
+4. **Learning and certification gate**: tests use an injected clock to prove overdue learning and expired, 30-day, 90-day, current, and no-expiry certification windows at date boundaries.
+5. **Skills and development gate**: role requirements compare against the latest person assessment, distinguish `not-assessed` from below-target capability, expose the numeric gap, and keep each skill tied to five observable behavioural anchors.
+6. **Succession and rotation gate**: approved succession plans derive readiness counts and overdue reviews; rotation opportunities retain explicit capacity; placements track learning transfer through pre-brief, Cyber artefact, home-team session, 30-day, and 90-day milestones.
+7. **Restricted-data gate**: the plain-text workforce summary is built from aggregate DTOs only. Adversarial tests prove person names and IDs, assignment IDs, evidence, rationale, notes, and objectives are absent.
+8. **Pub release-chain gate**: `e2e:v1.46` inherits the complete v1.45 built-artifact chain and runs the complete `pspf-pub` suite; product packages remain aligned at `1.46.0` and compatibility axes remain `1.14.0`.
+
+### v1.47 Pub workforce decision cockpit gates (per ADR 0083)
+
+1. **Version and no-model gate**: all package versions and `PSPF_SLICE_VERSION` are `1.47.0`; Pub store remains `1.3.0`; compatibility axes remain `1.14.0`; no migration, Core/Explorer/bundle collection, network path, or AI/model call is introduced.
+2. **Population gate**: active scoped mandatory-learning requirements expand to every eligible distinct person and include missing records; capability excludes planned assignments and archived roles/skills; every active role appears once in continuity.
+3. **Deterministic-insight gate**: obligation, capability, continuity, mobility, pathway, and Attention builders accept an injected clock, do not mutate source records, return stable ordering, and produce identical DTOs for identical input.
+4. **Attention-routing gate**: each supported condition has a stable reason code, deterministic priority, relevant due/review date, and a tested local route; fixing source data removes the signal on refresh.
+5. **Capability and continuity gate**: team-skill cells expose distinct-person denominator plus meeting-target, below-target, and not-assessed counts; role rows expose plan lifecycle and readiness counts. Scores, averages, ranking, missing-as-zero treatment, colour-only meaning, and bench-strength percentages are prohibited.
+6. **Local-person boundary gate**: person drill-ins and pathway detail remain local to Pub and never reach clipboard, files, status bars, notifications, logs, Core, Explorer, snapshots, or master bundles.
+7. **Inference-redaction gate**: plain text remains the primary share action and confirmed HTML the secondary action; both consume one allowlisted organisation-wide aggregate DTO. Person-derived values from 1 to 4 render as `<5`, and no total or complementary cell can reconstruct a suppressed value. Outputs exclude identities, IDs, local labels/free text, unknown fields, and filtered detail; CSV and person-export commands do not exist.
+8. **Cockpit quality gate**: Overview, Obligations, Capability, Continuity, and Mobility & career are keyboard operable, use semantic tables and non-colour labels, remain readable at narrow and desktop widths, return zero serious/critical axe findings, and meet the performance profile with a 500-person fixture.
+9. **Release-chain gate**: `e2e:v1.47` inherits v1.46 and runs Pub domain, workflow, accessibility, performance, export-boundary, typecheck, lint, package-shape, and release-candidate checks.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.
@@ -602,7 +635,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 
 ### v1.43 candidate gates (Strategy risk → priority → choice)
 
-1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.43.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.44.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
 2. **Priority inference gate**: `buildStrategyPrioritySummary` in `packages/workshop/src/continuous-compliance.ts` derives a priority band (`critical` ≥ 28, `high` ≥ 20, `medium` ≥ 10, `low` ≥ 1, `none` < 1) from linked risk severity (likelihood × impact) adjusted by choice trend (deteriorating +5, steady +2, unknown +1, improving +0) and confidence (low +3, medium +1, high +0), using the peak adjusted risk score. `check:continuous-compliance` asserts the export and band labels.
 3. **Strategy surface gate**: the Strategy Map and Strategy Editor render the priority band, rationale, top blocking risks, and unresolved-risk repair cues; `check:continuous-compliance` asserts the `strategy-priority-panel` wiring.
 4. **Derived-only gate**: the feature adds no entity, collection, link verb, saved-view scope, schema field, or Explorer publication change; it reads existing risk, action, and strategy references only.

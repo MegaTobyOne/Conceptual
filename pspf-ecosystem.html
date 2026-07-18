@@ -133,8 +133,7 @@
         background:
           linear-gradient(90deg, rgba(var(--bg-rgb), 0.94), rgba(var(--bg-rgb), 0.8)),
           repeating-linear-gradient(90deg, transparent 0 62px, var(--grid-teal) 62px 63px),
-          repeating-linear-gradient(0deg, transparent 0 62px, var(--grid-amber) 62px 63px),
-          var(--bg);
+          repeating-linear-gradient(0deg, transparent 0 62px, var(--grid-amber) 62px 63px), var(--bg);
         color: var(--text);
         font-family: var(--font-body);
         line-height: 1.55;
@@ -1130,8 +1129,8 @@
             </p>
             <p>
               Core is the trusted workspace record. Workshop is the operator surface. Assurance tracks assessments,
-              findings, verification queues, and publication readiness. Shop links commercial planning to assurance.
-              Pub keeps people and stakeholder context local. Explorer turns a curated JSON bundle into a portable
+              findings, verification queues, and publication readiness. Shop links commercial planning to assurance. Pub
+              keeps people and stakeholder context local. Explorer turns a curated JSON bundle into a portable
               publication view.
             </p>
             <div class="hero-actions">
@@ -1156,11 +1155,16 @@
             </div>
             <div class="hero-path" role="note" aria-label="Recommended getting started path">
               <strong>Recommended start path:</strong>
-              <span>Install Core and Workshop first. Then export a master bundle and open it in Explorer for reviewer-facing analysis.</span>
-              <span>Pub records (people, teams, assignments) stay local and are not published to Explorer bundles.</span>
+              <span
+                >Install Core and Workshop first. Then export a master bundle and open it in Explorer for
+                reviewer-facing analysis.</span
+              >
+              <span
+                >Pub records (people, teams, assignments) stay local and are not published to Explorer bundles.</span
+              >
             </div>
             <div class="signal-row" aria-label="Current release signals">
-              <div class="signal"><strong>1.43.0</strong><span>strategy risk → priority → choice slice</span></div>
+              <div class="signal"><strong>1.44.0</strong><span>strategy risk → priority → choice slice</span></div>
               <div class="signal"><strong>1.14.0</strong><span>schema / bundle / API axes</span></div>
               <div class="signal"><strong>6</strong><span>active product surfaces</span></div>
               <div class="signal"><strong>0</strong><span>cloud database dependency</span></div>
@@ -1290,8 +1294,8 @@
               <div>
                 <p>
                   Static publication view for reviewers: posture, records, local changes, saved views, Plan Lens,
-                  Connected View, and copyable brief output. Explorer local authoring is available for round-trip
-                  review workflows and remains an experimental capability.
+                  Connected View, and copyable brief output. Explorer local authoring is available for round-trip review
+                  workflows and remains an experimental capability.
                 </p>
                 <div class="meta">
                   <span>browser view</span><span>reads JSON bundle</span><span>no server store</span>
@@ -1424,7 +1428,15 @@
               aria-label="Linked risks scored by likelihood times impact, adjusted by choice trend and confidence, produce a priority band of critical, high, medium, or low, which focuses leadership on the most pressing strategic choices."
             >
               <defs>
-                <marker id="sp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <marker
+                  id="sp-arrow"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="7"
+                  markerHeight="7"
+                  orient="auto-start-reverse"
+                >
                   <path class="d-marker" d="M0,0 L10,5 L0,10 z" />
                 </marker>
               </defs>
@@ -1498,7 +1510,15 @@
                 aria-label="Data flow from official sources, through the local Core SQLite workspace authored by Workshop, Assurance, Shop, and Pub, validated and snapshotted, then exported as a master JSON bundle that Explorer reads in the browser."
               >
                 <defs>
-                  <marker id="d-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <marker
+                    id="d-arrow"
+                    viewBox="0 0 10 10"
+                    refX="9"
+                    refY="5"
+                    markerWidth="7"
+                    markerHeight="7"
+                    orient="auto-start-reverse"
+                  >
                     <path class="d-marker" d="M0,0 L10,5 L0,10 z" />
                   </marker>
                 </defs>

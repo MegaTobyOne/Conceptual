@@ -150,6 +150,10 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       await vscode.window.showInformationMessage(message);
       return lock;
     }),
+    vscode.commands.registerCommand("pspf.core.openGitSettings", async () => {
+      await vscode.commands.executeCommand("workbench.action.openSettings", "pspf.core.git");
+      return { opened: true };
+    }),
     vscode.commands.registerCommand("pspf.core.undoLastImport", async () => {
       const result = await getService().undoLastImport();
       await vscode.window.showInformationMessage(result.message);

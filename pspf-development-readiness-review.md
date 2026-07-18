@@ -8,7 +8,7 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.43.0 adds the Workshop Strategy risk → priority → choice inference: strategic choices derive a priority band from linked risk severity adjusted by trend and confidence, as a derived read model with no schema change (ADR 0080). It builds on v1.42.1, a schema-neutral UX and local planning patch release on Explorer bundle schemas `1.14.0` that keeps the v1.39 schema-bearing evidence lifecycle/reporting changes, adds Workshop UX/IA refinements, adds Pub team-card Organisation Chart backs plus local team news/date items, promotes the Assessment Dashboard and Shop Forecast surfaces, and keeps Release 1 optional AI controls default-off. Release readiness is expected to run through `e2e:v1.43:run` and validate `VERSION_AXES = 1.14.0`.
+**Current implementation note:** v1.47.0 adds the Pub workforce decision cockpit: Overview and routed Attention, scoped Obligations, explicit-denominator Capability, all-role Continuity, and evidence-only Mobility & career views, plus small-cohort-suppressed aggregate exports (ADR 0083). Pub remains local-only, store `1.3.0` is unchanged, and no AI/model or publication path is added. Release readiness runs through `e2e:v1.47:run` and keeps `VERSION_AXES = 1.14.0`.
 
 **Status: v1.9 saved-view expansion build implemented for test. v1.8 saved views build implemented; v1.7 tags and filters foundation build implemented; v1.6 Workshop import review and identity build implemented; v1.5.1 Explorer product-boundary and visual identity patch implemented; v1.5 plan-apply import and undo implemented; v1.4 Explorer local Risks, conflict display, and improved local-authoring navigation validated manually; v1.3 Explorer local Actions implemented; v1.2 Explorer local evidence references implemented; v1.1 Explorer local-authoring phase 1 validated manually; v1.0.1 patch release prepared; v1.0 initial assurance user testing release implemented; manual validation has been clean to date; v0.9 release-candidate freeze closed; v0.8 first-run and packaging-readiness slice closed; v0.7 engine-hardening slice closed; v0.6 Workshop parity slice closed; v0.5 Directions and Action Impact slice closed; v0.4 readiness and UI-resilience slice closed; v0.3 ISM mapping slice validated.**
 
@@ -51,9 +51,9 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is expected to be green for v1.43.0:
+`npx pnpm@10.10.0 run release:readiness` is green for v1.47.0:
 
-1. Spine workflow (headless `e2e:v1.43`).
+1. Spine workflow (headless `e2e:v1.47`, including Pub cockpit behavioural and boundary tests).
 2. Schema-policy.
 3. Personal-data exclusion.
 4. AU-English lint.
@@ -79,7 +79,7 @@ These are open before, during, or after the first manual operator validation. No
 
 1. **AU-English lint scope** — ADR 0016 expects the lint to scan all user-facing copy, but until docs move to `docs/` (ADR 0013) only two files are effectively in scope. Either (a) extend `scripts/lint-au-english.mjs` to include `pspf-*.md`, `adr/**/*.md`, and `validation-scenario-*.md` while carving out fenced code blocks, or (b) mechanically move docs under `docs/` and update inbound links. The repository's Copilot instructions already acknowledge the docs have not yet moved.
 2. **Explorer CSP gap** — the static ecosystem page (`pspf-ecosystem.html`) still allows inline script/style for its own simple behaviour. The product Explorer build at `packages/explorer/dist/index.html` MUST keep meeting S4; do not copy this page's relaxed CSP into Explorer. Spot-check on every Explorer change.
-3. **Pub expectation management** — Pub now has a local-only people/team surface, including team-card organisation charts and local team-date planning context. Public copy must keep saying Pub data is not published to Explorer, team dates are local planning context only, and calendar/notification/performance-management workflows are not implemented.
+3. **Pub expectation management** — Pub now has local organisation entry, role-state charts, learning, skills, development, succession, Cyber rotations, and aggregate-safe summaries. Phase 3 is a planned local decision cockpit over the existing store, not AI prediction or a new publication path. Public copy must keep saying Pub data is not published to Explorer and that HRIS/LMS/calendar integration, notifications, workforce forecasting, automated recommendations, and person-level exports remain deferred.
 4. **`chart-renderer` package** — ADR 0014 names a shared `chart-renderer` alongside `brief-renderer`. v0.1 ships only `brief-renderer` because Workshop has no chart surface; the compliance donut is rendered inline by Explorer. The shared package will land in v0.2 when a chart is shared between surfaces. Tracked here so the gap is not forgotten.
 5. **Health view** — the v1 spec set references a Core "Health view" in `pspf-acceptance-and-quality-gates.md` Core criterion #2, `pspf-vscode-extension-surface-spec.md`, `pspf-onboarding-spec.md`, `pspf-core-architecture-spec.md`, and `pspf-core-workshop-screen-workflow-spec.md`. v0.1 surfaces the same information through discrete commands (`PSPF: Validate Workspace`, `PSPF: Verify Integrity`, `PSPF: Show Writer Lock`) and does not ship a single Health view webview. The unified view arrives in v0.2.
 6. **Command rename in extension surface spec** — `pspf-vscode-extension-surface-spec.md` still lists `pspf.core.exportExplorerBundle`; the implementation correctly uses `pspf.core.exportBundle` per ADR 0009 (single master bundle). The spec text is patched alongside this review; this risk closes when the patch lands.
@@ -119,8 +119,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.42.1, including Workshop UX/IA refinement, Assessment Dashboard action navigation, Shop Forecast prominence, Pub Organisation Chart card fronts/backs, local team news/date editing, optional Plan of Action team-date context, and the existing Workshop, Explorer, Shop, Pub, import, and release-dry-run regression surfaces.
+The next sequence is manual validation of v1.47.0, with emphasis on cockpit keyboard navigation, scoped obligation populations, capability denominators, all-role continuity, Attention routing, evidence-only pathway wording, ephemeral filters, small-cohort suppression, and the existing Workshop, Explorer, Shop, import, and release-dry-run regression surfaces.
 
 ## Review conclusion
 
-The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, Explorer tag filters, Explorer Requirements saved views, Explorer local status overlays, Explorer local evidence references, Explorer local Actions, Explorer local Risks, local status conflict display, Workshop import review, plan-apply import, last-import undo, latest-bundle refresh restore, Workshop/Explorer identity boundary, Shop commercial planning, Pub local CRUD, Workshop UX/IA refinement, Assessment Dashboard action navigation, Shop Forecast prominence, optional AI controls, and Pub team-date planning context are implemented for v1.42.1 readiness. Manual validation still needs to confirm the visible v1.42 Pub card view and Plan of Action team-date context in the Extension Host.
+The Core, Workshop, Explorer publication, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Explorer local authoring, Workshop import review, Shop commercial planning, optional AI controls, and Pub workforce decision cockpit are implemented for v1.47.0 readiness. Automated release readiness is green; manual validation now needs to confirm the five cockpit views, routed Attention, filters, pathway caveat, and suppressed safe-summary workflows in the Extension Host.
