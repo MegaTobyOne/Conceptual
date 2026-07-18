@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
 import {
@@ -11,8 +11,22 @@ import {
   homeSection,
   tokensCss
 } from "@pspf/webview-shell";
+import {
+  PUB_STORE_VERSION,
+  emptyWorkforceCollections,
+  migrateAndNormaliseStore,
+  validateStore as validatePubStore,
+  type WorkforceCollections
+} from "./store.js";
+import { PUB_IMPORT_TEMPLATE, parsePubImportTsv, previewPubImport, type PubImportPreview } from "./import.js";
+import {
+  buildOrganisationTree,
+  renderOrganisationOutlineHtml,
+  renderOrganisationOutlineText,
+  type OrgTeamView
+} from "./org-chart.js";
+import { registerWorkforceCommands, WORKFORCE_COMMANDS } from "./workforce-ui.js";
 
-const PUB_STORE_VERSION = "1.1.0";
 const PUB_STORE_PATH = [".pspf", "pub", "pub.json"] as const;
 const STAKEHOLDER_TYPES = ["staff", "service-provider", "customer", "partner", "other"] as const;
 const ASSIGNMENT_STATUSES = ["active", "planned", "rotating", "needs-backup"] as const;
@@ -21,6 +35,8 @@ const PERSON_LIFECYCLE_STEPS = ["acceptable-use", "orientation", "probation", "s
 const PERFORMANCE_CYCLE_STATUSES = ["planned", "in-progress", "completed", "at-risk"] as const;
 const PUB_WEBVIEW_COMMANDS = new Set<string>([
   "pspf.pub.loadSample",
+  "pspf.pub.quickAdd",
+  "pspf.pub.bulkImport",
   "pspf.pub.newPerson",
   "pspf.pub.openPersonDetail",
   "pspf.pub.editPerson",
@@ -41,15 +57,18 @@ const PUB_WEBVIEW_COMMANDS = new Set<string>([
   "pspf.pub.openRelationshipNoteDetail",
   "pspf.pub.editRelationshipNote",
   "pspf.pub.openOrgChart",
+  "pspf.pub.copyOrganisationOutline",
+  "pspf.pub.exportOrganisationHtml",
   "pspf.pub.openPeople",
   "pspf.pub.openTeams",
   "pspf.pub.openRoles",
   "pspf.pub.openAssignments",
   "pspf.pub.openRelationshipLog",
-  "pspf.pub.openPeopleCulture"
+  "pspf.pub.openPeopleCulture",
+  ...WORKFORCE_COMMANDS
 ] as const);
 
-interface PubStore {
+interface PubStore extends WorkforceCollections {
   readonly pubStoreVersion: string;
   readonly updatedAt: string;
   readonly people: readonly PersonRecord[];
@@ -416,6 +435,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerTreeDataProvider("pspfPub.assignmentsView", assignmentsTree),
     vscode.commands.registerCommand("pspf.pub.openHome", openHome),
     vscode.commands.registerCommand("pspf.pub.loadSample", loadSample),
+    vscode.commands.registerCommand("pspf.pub.quickAdd", quickAdd),
+    vscode.commands.registerCommand("pspf.pub.bulkImport", openBulkImport),
     vscode.commands.registerCommand("pspf.pub.newPerson", newPerson),
     vscode.commands.registerCommand("pspf.pub.openPersonDetail", openPersonDetail),
     vscode.commands.registerCommand("pspf.pub.editPerson", editPerson),
@@ -442,6 +463,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.pub.openOrgChart", () =>
       openPubPanel("Organisation chart", renderOrgChartHtml)
     ),
+    vscode.commands.registerCommand("pspf.pub.copyOrganisationOutline", copyOrganisationOutline),
+    vscode.commands.registerCommand("pspf.pub.exportOrganisationHtml", exportOrganisationHtml),
     vscode.commands.registerCommand("pspf.pub.openPeople", () => openPubPanel("People", renderPeopleHtml)),
     vscode.commands.registerCommand("pspf.pub.openPeopleCulture", () =>
       openPubPanel("People and Culture", renderPeopleCultureHtml)
@@ -453,7 +476,13 @@ export function activate(context: vscode.ExtensionContext): void {
     ),
     vscode.commands.registerCommand("pspf.pub.openRelationshipLog", () =>
       openPubPanel("Relationship log", renderRelationshipLogHtml)
-    )
+    ),
+    ...registerWorkforceCommands({
+      loadStore,
+      saveStore,
+      refresh: refreshHome,
+      openPanel: openPubPanel
+    })
   );
 }
 
@@ -471,6 +500,147 @@ export function deactivate(): void {
 async function openHome(): Promise<void> {
   await vscode.commands.executeCommand("pspfPub.homeView.focus");
   await refreshHome();
+}
+
+async function quickAdd(): Promise<void> {
+  const store = await loadStore();
+  const person = await vscode.window.showInputBox({
+    title: "Pub Quick Add · 1 of 4",
+    prompt: "Person display name",
+    ignoreFocusOut: true,
+    validateInput: requiredInput
+  });
+  if (person === undefined) return;
+  const team = await vscode.window.showInputBox({
+    title: "Pub Quick Add · 2 of 4",
+    prompt: "Team name (an exact existing name will be reused)",
+    ignoreFocusOut: true,
+    validateInput: requiredInput
+  });
+  if (team === undefined) return;
+  const role = await vscode.window.showInputBox({
+    title: "Pub Quick Add · 3 of 4",
+    prompt: "Role title (an exact title in the team will be reused)",
+    ignoreFocusOut: true,
+    validateInput: requiredInput
+  });
+  if (role === undefined) return;
+  const managerItems = [
+    { label: "No reporting role", value: "" },
+    ...store.roles
+      .filter((item) => item.status !== "archived")
+      .map((item) => ({
+        label: item.title,
+        description: store.teams.find((candidate) => candidate.id === item.teamId)?.title,
+        value: item.title
+      }))
+  ];
+  const manager = await vscode.window.showQuickPick(managerItems, {
+    title: "Pub Quick Add · 4 of 4",
+    placeHolder: "Select the role this position reports to",
+    ignoreFocusOut: true
+  });
+  if (!manager) return;
+  const preview = previewPubImport(store, [
+    { rowNumber: 1, person: person.trim(), team: team.trim(), role: role.trim(), reportsTo: manager.value }
+  ]);
+  if (preview.issues.length > 0) {
+    void vscode.window.showErrorMessage(
+      `Quick Add cannot continue: ${preview.issues.map((issue) => issue.message).join(" ")}`
+    );
+    return;
+  }
+  const answer = await vscode.window.showInformationMessage(
+    `Create ${person.trim()} as ${role.trim()} in ${team.trim()}?`,
+    { modal: true, detail: "Pub will save the person, team or role when new, plus one assignment, in a single write." },
+    "Create"
+  );
+  if (answer !== "Create") return;
+  await saveStore(preview.prospectiveStore);
+  await refreshHome();
+  void vscode.window.showInformationMessage(`Added ${person.trim()} to ${team.trim()} as ${role.trim()}.`);
+}
+
+async function openBulkImport(): Promise<void> {
+  const panel = vscode.window.createWebviewPanel("pspfPubBulkImport", "PSPF Pub Bulk Import", vscode.ViewColumn.One, {
+    enableScripts: true
+  });
+  let pending: PubImportPreview | undefined;
+  panel.webview.html = renderBulkImportHtml();
+  panel.webview.onDidReceiveMessage(async (message: PubWebviewMessage) => {
+    const tsv = typeof message.fields?.tsv === "string" ? message.fields.tsv : "";
+    if (message.action === "preview") {
+      try {
+        pending = previewPubImport(await loadStore(), parsePubImportTsv(tsv));
+        panel.webview.html = renderBulkImportHtml(tsv, pending);
+      } catch (error) {
+        panel.webview.html = renderBulkImportHtml(tsv, undefined, errorMessage(error));
+      }
+      return;
+    }
+    if (message.action === "commit" && pending && pending.issues.length === 0) {
+      const freshPreview = previewPubImport(await loadStore(), pending.rows);
+      if (freshPreview.issues.length > 0) {
+        pending = freshPreview;
+        panel.webview.html = renderBulkImportHtml(
+          "",
+          pending,
+          "The store changed after preview. Review the new conflicts before importing."
+        );
+        return;
+      }
+      await saveStore(freshPreview.prospectiveStore);
+      await refreshHome();
+      panel.dispose();
+      void vscode.window.showInformationMessage(
+        `Imported ${freshPreview.rows.length} Pub row${freshPreview.rows.length === 1 ? "" : "s"}.`
+      );
+    }
+  });
+}
+
+function renderBulkImportHtml(tsv = PUB_IMPORT_TEMPLATE, preview?: PubImportPreview, error = ""): string {
+  const issueList = preview?.issues.length
+    ? `<ul>${preview.issues.map((issue) => `<li><strong>${escapeHtml(issue.path)}</strong>: ${escapeHtml(issue.message)}</li>`).join("")}</ul>`
+    : "";
+  const summary = preview
+    ? `<div class="grid two"><div class="card"><h2>Create</h2><p>${preview.created.people} people · ${preview.created.teams} teams · ${preview.created.roles} roles · ${preview.created.assignments} assignments</p></div><div class="card"><h2>Reuse</h2><p>${preview.reused.people} people · ${preview.reused.teams} teams · ${preview.reused.roles} roles</p></div></div>`
+    : "";
+  return pageHtml(
+    "PSPF Pub Bulk Import",
+    `<main><section class="hero"><h1>Bulk import people and structure</h1><p>Paste tab-separated rows from a spreadsheet. Preview is mandatory and no data is written until you confirm.</p></section><section class="panel"><form class="editor-form"><label>TSV data<textarea name="tsv" rows="14" spellcheck="false">${escapeHtml(tsv)}</textarea></label><p class="muted">Required headers: Person, Team, Role, Reports to. Reports to may be blank and must otherwise match one role title exactly.</p><div class="form-actions"><button type="button" data-action="preview"><span class="button-title">Preview import</span></button></div></form></section>${error ? `<section class="panel"><h2>Import error</h2><p>${escapeHtml(error)}</p></section>` : ""}${preview ? `<section class="panel"><h2>Preview · ${preview.rows.length} rows</h2>${summary}${issueList || '<p class="badge">Ready to import</p>'}${preview.issues.length === 0 ? '<div class="form-actions"><button type="button" data-action="commit"><span class="button-title">Import all rows</span><span class="button-description">One atomic local write</span></button></div>' : ""}</section>` : ""}</main>`
+  );
+}
+
+async function copyOrganisationOutline(): Promise<void> {
+  await vscode.env.clipboard.writeText(renderOrganisationOutlineText(await loadStore()));
+  void vscode.window.showInformationMessage(
+    "Role-and-team organisation outline copied as plain text. Person details were excluded."
+  );
+}
+
+async function exportOrganisationHtml(): Promise<void> {
+  const store = await loadStore();
+  const answer = await vscode.window.showWarningMessage(
+    "Export a role-and-team HTML organisation outline outside the Pub store? Person details, assignments and notes are excluded.",
+    { modal: true },
+    "Export safe HTML"
+  );
+  if (answer !== "Export safe HTML") return;
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) throw new Error("Open a workspace folder before exporting a Pub organisation outline.");
+  const exportPath = join(workspaceFolder.uri.fsPath, ".pspf", "pub", "exports", "organisation-outline.html");
+  await mkdir(dirname(exportPath), { recursive: true });
+  await writeFile(exportPath, renderOrganisationOutlineHtml(store), "utf8");
+  const document = await vscode.workspace.openTextDocument(exportPath);
+  await vscode.window.showTextDocument(document, { preview: false });
+}
+
+function requiredInput(value: string): string | undefined {
+  return value.trim() ? undefined : "Enter a value.";
+}
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 async function loadSample(): Promise<void> {
@@ -1275,7 +1445,11 @@ async function loadStore(): Promise<PubStore> {
   try {
     const text = await readFile(storePath, "utf8");
     const parsed = JSON.parse(text) as Partial<PubStore>;
-    return normaliseStore(parsed);
+    const store = migrateAndNormaliseStore(parsed);
+    if (parsed.pubStoreVersion !== PUB_STORE_VERSION) {
+      await copyFile(storePath, `${storePath}.pre-${PUB_STORE_VERSION}.bak`);
+    }
+    return store;
   } catch (error) {
     if (isFileNotFound(error)) {
       return emptyStore();
@@ -1286,9 +1460,20 @@ async function loadStore(): Promise<PubStore> {
 
 async function saveStore(store: PubStore): Promise<void> {
   const updatedStore: PubStore = { ...store, pubStoreVersion: PUB_STORE_VERSION, updatedAt: new Date().toISOString() };
+  const issues = validatePubStore(updatedStore);
+  if (issues.length > 0) {
+    throw new Error(`Pub data was not saved:\n${issues.map((issue) => `${issue.path}: ${issue.message}`).join("\n")}`);
+  }
   const storePath = getStorePath();
+  const temporaryPath = `${storePath}.tmp`;
   await mkdir(dirname(storePath), { recursive: true });
-  await writeFile(storePath, `${JSON.stringify(updatedStore, null, 2)}\n`, "utf8");
+  await writeFile(temporaryPath, `${JSON.stringify(updatedStore, null, 2)}\n`, "utf8");
+  try {
+    await rename(temporaryPath, storePath);
+  } catch (error) {
+    await rm(temporaryPath, { force: true });
+    throw error;
+  }
 }
 
 function getStorePath(): string {
@@ -1307,54 +1492,9 @@ function emptyStore(): PubStore {
     teams: [],
     roles: [],
     assignments: [],
-    relationshipNotes: []
+    relationshipNotes: [],
+    ...emptyWorkforceCollections()
   };
-}
-
-function normaliseStore(store: Partial<PubStore>): PubStore {
-  const teams = normaliseTeams(store);
-  return {
-    pubStoreVersion: typeof store.pubStoreVersion === "string" ? store.pubStoreVersion : PUB_STORE_VERSION,
-    updatedAt: typeof store.updatedAt === "string" ? store.updatedAt : new Date().toISOString(),
-    people: normalisePeople(store),
-    teams,
-    roles: normaliseRoles(store, teams),
-    assignments: normaliseAssignments(store),
-    relationshipNotes: Array.isArray(store.relationshipNotes) ? store.relationshipNotes : []
-  };
-}
-
-function normalisePeople(store: Partial<PubStore>): readonly PersonRecord[] {
-  if (!Array.isArray(store.people)) {
-    return [];
-  }
-  return (store.people as readonly Partial<PersonRecord>[]).map((person) => ({
-    id: typeof person.id === "string" ? person.id : localId("PER"),
-    displayName: typeof person.displayName === "string" ? person.displayName : "Unnamed person",
-    stakeholderType: isStakeholderType(person.stakeholderType) ? person.stakeholderType : "staff",
-    organisation: typeof person.organisation === "string" ? person.organisation : "",
-    currentRole: typeof person.currentRole === "string" ? person.currentRole : "",
-    resumeUrl: typeof person.resumeUrl === "string" ? person.resumeUrl : "",
-    resumeText: typeof person.resumeText === "string" ? person.resumeText : "",
-    nextMilestone: typeof person.nextMilestone === "string" ? person.nextMilestone : "",
-    nextAction: typeof person.nextAction === "string" ? person.nextAction : "",
-    lifecycle: normalisePersonLifecycle(person.lifecycle),
-    performanceCycles: normalisePerformanceCycles(person.performanceCycles),
-    notes: typeof person.notes === "string" ? person.notes : ""
-  }));
-}
-
-function normalisePersonLifecycle(value: unknown): readonly PersonLifecycleRecord[] {
-  const incoming = Array.isArray(value) ? (value as readonly Partial<PersonLifecycleRecord>[]) : [];
-  return PERSON_LIFECYCLE_STEPS.map((stepId) => {
-    const existing = incoming.find((item) => item.stepId === stepId);
-    return {
-      stepId,
-      completed: existing?.completed === true,
-      completedAt: typeof existing?.completedAt === "string" ? existing.completedAt : "",
-      notes: typeof existing?.notes === "string" ? existing.notes : ""
-    };
-  });
 }
 
 function normalisePerformanceCycles(value: unknown): readonly PerformanceCycleRecord[] {
@@ -1387,21 +1527,6 @@ function normalisePerformanceCycles(value: unknown): readonly PerformanceCycleRe
         cycle.reviewBy
       ].some(isNonEmptyString)
     );
-}
-
-function normaliseAssignments(store: Partial<PubStore>): readonly AssignmentRecord[] {
-  if (!Array.isArray(store.assignments)) {
-    return [];
-  }
-  return (store.assignments as readonly Partial<AssignmentRecord>[]).map((assignment) => ({
-    id: typeof assignment.id === "string" ? assignment.id : localId("ASM"),
-    personId: typeof assignment.personId === "string" ? assignment.personId : "",
-    roleId: typeof assignment.roleId === "string" ? assignment.roleId : "",
-    status: isAssignmentStatus(assignment.status) ? assignment.status : "active",
-    allocation: typeof assignment.allocation === "string" ? assignment.allocation : "",
-    reviewBy: typeof assignment.reviewBy === "string" ? assignment.reviewBy : "",
-    badge: typeof assignment.badge === "string" ? assignment.badge : ""
-  }));
 }
 
 function buildSampleStore(): PubStore {
@@ -1567,6 +1692,7 @@ function buildSampleStore(): PubStore {
     }
   ];
   return {
+    ...emptyWorkforceCollections(),
     pubStoreVersion: PUB_STORE_VERSION,
     updatedAt: new Date().toISOString(),
     people,
@@ -1599,6 +1725,167 @@ function buildSampleStore(): PubStore {
         createdAt: new Date().toISOString(),
         summary: "Confirm provider roster aligns to incident escalation expectations before the next service review.",
         nextContactAt: "2026-07-01"
+      }
+    ],
+    learningRequirements: [
+      {
+        id: "PUB-LRN-security-awareness",
+        title: "Annual security awareness",
+        scopeType: "all",
+        scopeId: "",
+        recurrence: "annual",
+        criticality: "mandatory",
+        dueDate: "2026-06-30",
+        status: "active"
+      }
+    ],
+    personLearningRecords: [
+      {
+        id: "PUB-PLR-access-awareness",
+        personId: people[0]!.id,
+        learningRequirementId: "PUB-LRN-security-awareness",
+        dueDate: "2026-06-30",
+        state: "in-progress",
+        completedAt: "",
+        evidenceRef: "",
+        exemptionReason: ""
+      }
+    ],
+    certifications: [
+      {
+        id: "PUB-CER-access-reviewer",
+        personId: people[0]!.id,
+        credential: "Internal access reviewer authorisation",
+        issuer: "Information Security",
+        issuedAt: "2025-08-15",
+        expiresAt: "2026-08-15",
+        evidenceRef: ".pspf/evidence/access-reviewer-authorisation.txt",
+        notes: "Renew after the next observed review cycle."
+      }
+    ],
+    skills: [
+      {
+        id: "PUB-SKL-access-judgement",
+        title: "Access assurance judgement",
+        category: "cyber",
+        levelAnchors: [
+          "Explains why access reviews matter.",
+          "Completes reviews with guidance.",
+          "Independently reviews access and records defensible evidence.",
+          "Resolves complex exceptions and coaches reviewers.",
+          "Shapes organisation-wide access assurance practice."
+        ],
+        status: "active"
+      }
+    ],
+    roleSkillRequirements: [
+      {
+        id: "PUB-RSR-access-owner-judgement",
+        roleId: roles[0]!.id,
+        skillId: "PUB-SKL-access-judgement",
+        targetLevel: 4,
+        importance: "required"
+      }
+    ],
+    personSkillAssessments: [
+      {
+        id: "PUB-PSA-access-owner-judgement",
+        personId: people[0]!.id,
+        skillId: "PUB-SKL-access-judgement",
+        level: 3,
+        source: "manager",
+        assessedAt: "2026-06-20",
+        reviewBy: "2026-09-30",
+        evidenceNote: "Independently completed the standard review; complex exception coaching remains the next step."
+      }
+    ],
+    developmentPlans: [
+      {
+        id: "PUB-DVP-access-owner",
+        personId: people[0]!.id,
+        targetRoleId: roles[0]!.id,
+        status: "active",
+        reviewBy: "2026-09-30"
+      }
+    ],
+    developmentActivities: [
+      {
+        id: "PUB-DVA-access-exception-shadow",
+        developmentPlanId: "PUB-DVP-access-owner",
+        skillIds: ["PUB-SKL-access-judgement"],
+        activityType: "mentoring",
+        title: "Lead a complex access exception review with coaching",
+        owner: "Access assurance lead",
+        dueDate: "2026-09-15",
+        status: "planned",
+        outcome: ""
+      }
+    ],
+    successionPlans: [
+      {
+        id: "PUB-SCP-access-owner",
+        roleId: roles[0]!.id,
+        criticality: "critical",
+        status: "approved",
+        reviewBy: "2026-12-15",
+        candidates: [
+          {
+            personId: people[1]!.id,
+            readiness: "development-needed",
+            rationale:
+              "Strong monitoring context; needs direct access review evidence and internal control ownership experience.",
+            developmentPlanId: "",
+            lastReviewedAt: "2026-06-20"
+          }
+        ],
+        reviewHistory: [
+          {
+            id: "PUB-SCR-access-owner-approved",
+            action: "approved",
+            at: "2026-06-20T09:00:00.000Z",
+            reviewerLabel: "Local operator",
+            note: "Initial continuity review approved."
+          }
+        ]
+      }
+    ],
+    rotationOpportunities: [
+      {
+        id: "PUB-ROP-access-assurance",
+        hostTeamId: teams[0]!.id,
+        title: "Access assurance rotation",
+        purpose: "Build practical control ownership and evidence judgement through one access review cycle.",
+        capacity: 1,
+        startDate: "2026-08-01",
+        endDate: "2026-10-31",
+        status: "open",
+        requiredSkillIds: [],
+        desiredSkillIds: ["PUB-SKL-access-judgement"],
+        learningOutcomes: ["Complete an evidence-backed access review", "Explain exception decisions"],
+        transferExpectations: ["Run a home-team learning session", "Complete 30-day and 90-day transfer reviews"],
+        hostMentorRoleId: roles[0]!.id,
+        eligibility: "Staff with manager support and capacity for one review cycle.",
+        timeCommitment: "One day per week for three months."
+      }
+    ],
+    rotationPlacements: [
+      {
+        id: "PUB-RPL-provider-access",
+        opportunityId: "PUB-ROP-access-assurance",
+        personId: people[1]!.id,
+        homeTeamId: teams[1]!.id,
+        state: "accepted",
+        startDate: "2026-08-01",
+        endDate: "2026-10-31",
+        objectives: "Build access review evidence and transfer practical lessons into monitoring escalation practice.",
+        milestones: [
+          { step: "pre-brief", completedAt: "", outcome: "" },
+          { step: "cyber-artefact", completedAt: "", outcome: "" },
+          { step: "home-team-session", completedAt: "", outcome: "" },
+          { step: "30-day-review", completedAt: "", outcome: "" },
+          { step: "90-day-review", completedAt: "", outcome: "" }
+        ],
+        assignmentId: "PUB-ASM-provider-monitoring"
       }
     ]
   };
@@ -1644,12 +1931,15 @@ function renderHomeHtml(store: PubStore): string {
     ${homeActionButton("pspf.pub.openOrgChart", "Organisation chart", "Simple team hierarchy at a glance")}
     ${homeActionButton("pspf.pub.openTeamResponsibilitySummary", "Team responsibility summary", "Requirement counts and references by team")}
     ${homeActionButton("pspf.pub.openTeamResponsibilityDetail", "Team responsibility detail", "Requirements and ISM controls by team")}
+    ${homeActionButton("pspf.pub.openWorkforcePlanning", "Workforce planning", "Review learning, skills, succession, and Cyber rotations")}
     ${homeActionButton("pspf.pub.openPeopleCulture", "People & Culture", "Review lifecycle, probation, acceptable use, and performance cycles")}
     ${homeActionButton("pspf.pub.openRelationshipLog", "Relationship log", "Open the relationship log of stakeholder follow-up notes")}
     ${homeActionButton("pspf.pub.recordRelationshipNote", "Record relationship note", "Record a local follow-up")}
   </div>`;
 
   const createActions = `<div class="action-list compact">
+    ${homeActionButton("pspf.pub.quickAdd", "Quick add", "Create a person, team, role, and assignment in one guided flow")}
+    ${homeActionButton("pspf.pub.bulkImport", "Bulk import", "Preview tab-separated workforce rows before one local write")}
     ${homeActionButton("pspf.pub.newPerson", "New person", "Add local-only person context")}
     ${homeActionButton("pspf.pub.newTeam", "New team", "Add local team-owned controls")}
     ${homeActionButton("pspf.pub.newRole", "New role", "Attach a role to a team")}
@@ -1760,8 +2050,8 @@ function renderOrgChartHtml(store: PubStore): string {
     "PSPF Pub Organisation Chart",
     `<main>${sectionHtml(
       "Organisation chart",
-      "Simple local team hierarchy for quick scanning. Use the team responsibility reports for Requirement and ISM control detail.",
-      graphic
+      "Local team and role hierarchy with vacancy, acting, and rotation states. Expand branches or use the synchronized table for keyboard and screen-reader navigation.",
+      `${graphic}<div class="form-actions">${commandButton("pspf.pub.copyOrganisationOutline", "Copy safe plain text", "Role-and-team outline with no person details")}${commandButton("pspf.pub.exportOrganisationHtml", "Export safe HTML", "Confirmed role-and-team file export")}</div>`
     )}${sectionHtml(
       "Team responsibility reports",
       "Open the short team summary or the detailed Requirements and ISM control report from here.",
@@ -1774,49 +2064,35 @@ function renderOrgChartGraphic(store: PubStore, teamDepth: ReadonlyMap<string, n
   if (store.teams.length === 0) {
     return `<div class="org-chart-empty">No Pub teams yet. Load the sample or add teams, roles, and assignments to build the chart.</div>`;
   }
-  const teamIds = new Set(store.teams.map((team) => team.id));
-  const rootTeams = store.teams
-    .filter((team) => !team.parentTeamId || !teamIds.has(team.parentTeamId))
-    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
-  return `<div class="org-chart-graphic" role="tree" aria-label="Pub organisation chart graphic view">${rootTeams
-    .map((team) => renderOrgChartTeamNode(store, team, teamDepth, new Set<string>()))
-    .join("")}</div>`;
+  const trees = buildOrganisationTree(store);
+  const rows: string[] = [];
+  trees.forEach((team) => appendOrgTableRows(rows, team, 0));
+  return `<div class="org-chart-graphic" aria-label="Pub organisation chart graphic view">${trees.map((team) => renderOrgChartTeamView(team, teamDepth.get(team.id) ?? 0)).join("")}</div><details><summary><strong>Accessible hierarchy table</strong></summary>${tableHtml(["Team", "Role", "State"], rows.join(""), 3)}</details>`;
 }
 
-function renderOrgChartTeamNode(
-  store: PubStore,
-  team: TeamRecord,
-  teamDepth: ReadonlyMap<string, number>,
-  seenTeamIds: ReadonlySet<string>
-): string {
-  const nextSeenTeamIds = new Set([...seenTeamIds, team.id]);
-  const childTeams = store.teams
-    .filter((candidate) => candidate.parentTeamId === team.id && !nextSeenTeamIds.has(candidate.id))
-    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
-  const teamRoles = store.roles
-    .filter((role) => role.teamId === team.id && role.status !== "archived")
-    .sort((left, right) => left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }));
-  const assignmentCount = teamRoles.reduce(
-    (total, role) => total + store.assignments.filter((assignment) => assignment.roleId === role.id).length,
-    0
-  );
-  const childHtml = childTeams.length
-    ? `<div class="org-child-teams" role="group">${childTeams
-        .map((childTeam) => renderOrgChartTeamNode(store, childTeam, teamDepth, nextSeenTeamIds))
-        .join("")}</div>`
-    : "";
+function renderOrgChartTeamView(team: OrgTeamView, depth: number): string {
+  const roles = team.roles.length
+    ? team.roles
+        .map(
+          (role) =>
+            `<div class="org-role-card org-role-card--${role.status}"><div class="org-role-heading"><span>Role</span><strong>${escapeHtml(role.title)}</strong></div><span class="badge">${escapeHtml(label(role.status))}</span></div>`
+        )
+        .join("")
+    : '<div class="org-role-card org-role-card--empty">No active roles</div>';
+  return `<details class="org-team-node" open><summary class="org-team-card"><span class="org-node-kicker">Team · level ${depth + 1}</span><h2>${escapeHtml(team.title)}</h2><span>${team.roles.length} role${team.roles.length === 1 ? "" : "s"} · ${team.children.length} child team${team.children.length === 1 ? "" : "s"}</span></summary><div class="org-role-grid">${roles}</div>${team.children.length ? `<div class="org-child-teams">${team.children.map((child) => renderOrgChartTeamView(child, depth + 1)).join("")}</div>` : ""}</details>`;
+}
 
-  return `<article class="org-team-node" role="treeitem" aria-level="${(teamDepth.get(team.id) ?? 0) + 1}">
-    <div class="org-team-card">
-      <div class="org-team-heading"><span class="org-node-kicker">Team</span><h2>${escapeHtml(team.title)}</h2></div>
-      <div class="org-team-stats" aria-label="${escapeHtml(team.title)} structure counts">
-        <span><strong>${teamRoles.length}</strong> role${teamRoles.length === 1 ? "" : "s"}</span>
-        <span><strong>${assignmentCount}</strong> assignment${assignmentCount === 1 ? "" : "s"}</span>
-        <span><strong>${childTeams.length}</strong> child team${childTeams.length === 1 ? "" : "s"}</span>
-      </div>
-    </div>
-    ${childHtml}
-  </article>`;
+function appendOrgTableRows(rows: string[], team: OrgTeamView, depth: number): void {
+  if (team.roles.length === 0)
+    rows.push(
+      `<tr><td>${escapeHtml(`${"  ".repeat(depth)}${team.title}`)}</td><td>No active roles</td><td>—</td></tr>`
+    );
+  team.roles.forEach((role) =>
+    rows.push(
+      `<tr><td>${escapeHtml(`${"  ".repeat(depth)}${team.title}`)}</td><td>${escapeHtml(role.title)}</td><td>${escapeHtml(label(role.status))}</td></tr>`
+    )
+  );
+  team.children.forEach((child) => appendOrgTableRows(rows, child, depth + 1));
 }
 
 function pubTeamReportActions(): string {
@@ -3702,76 +3978,6 @@ function isRequirementControlMappingRecord(value: unknown): value is Requirement
     typeof candidate.requirementId === "string" &&
     typeof candidate.sourceControlId === "string"
   );
-}
-
-function normaliseTeams(store: Partial<PubStore>): readonly TeamRecord[] {
-  if (Array.isArray(store.teams)) {
-    return (store.teams as readonly Partial<TeamRecord>[]).map((team) => ({
-      id: typeof team.id === "string" ? team.id : localId("TEM"),
-      title: typeof team.title === "string" ? team.title : "Untitled team",
-      parentTeamId: typeof team.parentTeamId === "string" ? team.parentTeamId : "",
-      ownedControlRefs: Array.isArray(team.ownedControlRefs) ? team.ownedControlRefs.filter(isNonEmptyString) : [],
-      ownedRequirementRefs: Array.isArray(team.ownedRequirementRefs)
-        ? team.ownedRequirementRefs.filter(isNonEmptyString)
-        : [],
-      controlSetRefs: Array.isArray(team.controlSetRefs) ? team.controlSetRefs.filter(isNonEmptyString) : [],
-      teamItems: normaliseTeamItems(team.teamItems),
-      responsibility: typeof team.responsibility === "string" ? team.responsibility : "",
-      notes: typeof team.notes === "string" ? team.notes : ""
-    }));
-  }
-  const legacyRoles = Array.isArray(store.roles)
-    ? (store.roles as readonly (Partial<RoleRecord> & { team?: string })[])
-    : [];
-  const legacyTeamNames = [...new Set(legacyRoles.map((role) => role.team).filter(isNonEmptyString))];
-  return legacyTeamNames.map((teamName) => ({
-    id: localId("TEM"),
-    title: teamName,
-    parentTeamId: "",
-    ownedControlRefs: [],
-    ownedRequirementRefs: [],
-    controlSetRefs: [],
-    teamItems: [],
-    responsibility: "",
-    notes: "Migrated from the previous role-level team field."
-  }));
-}
-
-function normaliseTeamItems(value: unknown): readonly TeamItemRecord[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return (value as readonly Partial<TeamItemRecord>[])
-    .map((item) => ({
-      id: typeof item.id === "string" ? item.id : localId("TMI"),
-      title: typeof item.title === "string" ? item.title : "Untitled team item",
-      itemType: typeof item.itemType === "string" ? item.itemType : "date",
-      startDate: typeof item.startDate === "string" ? item.startDate : "",
-      endDate: typeof item.endDate === "string" ? item.endDate : "",
-      includeInPlan: typeof item.includeInPlan === "boolean" ? item.includeInPlan : false,
-      notes: typeof item.notes === "string" ? item.notes : ""
-    }))
-    .filter((item) => item.title.length > 0 || item.startDate.length > 0);
-}
-
-function normaliseRoles(store: Partial<PubStore>, teams: readonly TeamRecord[]): readonly RoleRecord[] {
-  if (!Array.isArray(store.roles)) {
-    return [];
-  }
-  return (store.roles as readonly (Partial<RoleRecord> & { team?: string })[]).map((role) => ({
-    id: typeof role.id === "string" ? role.id : localId("ROL"),
-    title: typeof role.title === "string" ? role.title : "Untitled role",
-    status: isRoleStatus(role.status) ? role.status : "active",
-    teamId:
-      typeof role.teamId === "string"
-        ? role.teamId
-        : (teams.find((team) => team.title === role.team)?.id ?? teams[0]?.id ?? ""),
-    reportsToRoleId: typeof role.reportsToRoleId === "string" ? role.reportsToRoleId : "",
-    functionalOutcome: typeof role.functionalOutcome === "string" ? role.functionalOutcome : "",
-    contribution: typeof role.contribution === "string" ? role.contribution : "",
-    positionDescriptionUrl: typeof role.positionDescriptionUrl === "string" ? role.positionDescriptionUrl : "",
-    positionDescriptionText: typeof role.positionDescriptionText === "string" ? role.positionDescriptionText : ""
-  }));
 }
 
 function teamForRole(store: PubStore, role: RoleRecord): TeamRecord | undefined {

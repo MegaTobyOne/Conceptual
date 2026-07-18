@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-06-19 (repo version 1.44.0)
+Last updated: 2026-07-18 (repo version 1.47.0)
 
 ## Purpose
 
@@ -21,6 +21,77 @@ This plan does not override the authority chain in `pspf-spec-consistency-index.
 3. **Kill switches are policy, not preference.** AI and Graph capability must each be disableable at three levels: per-user setting, workspace policy (`.pspf/config/policies.json`), and build-time exclusion (the extensions function identically when the capability package is absent). Disabled means _no code path can reach the network or a model_ — not a hidden toggle.
 4. **Post-quantum cryptography from day one for any new signing or encryption.** The ecosystem currently uses SHA-256 checksums only (acceptable). The moment assurance publishing introduces signatures, use ML-DSA (FIPS 204) or SLH-DSA (FIPS 205); any key establishment uses ML-KEM (FIPS 203) hybrid. No new Ed25519/ECDSA/RSA surface is introduced.
 5. **AU English in all user-facing copy**; every spec touched gains a `Status: implemented | partial | aspirational` header.
+
+---
+
+## Pub workforce programme — Phase 3 decision cockpit (v1.47)
+
+Status: **implemented — governed by ADR 0083**
+
+### Review outcome
+
+Pub phases 1 and 2 established the migration-safe organisation model and the local workforce-development records. Phase 3 should now turn those records into decisions and routed follow-up, not add another broad set of entities. The effective slice is a local decision cockpit over Pub store `1.3.0` with deterministic insight builders, explicit populations and denominators, and a hard separation between local person detail and shareable aggregates.
+
+The original dashboard-and-reporting proposal is revised as follows:
+
+- Replace four disconnected dashboards with one cockpit containing **Overview, Obligations, Capability, Continuity, and Mobility & career** views.
+- Replace a generic action list with a deterministic **Attention queue**. `Action` remains the canonical PSPF entity name and is not reused for Pub follow-up signals.
+- Replace completion percentages, average skill scores, bench-strength percentages, and candidate rankings with explicit counts and denominators.
+- Treat small-cohort inference as a disclosure risk. Local team, role, skill, and person drill-ins stay inside Pub; v1.47 exports remain organisation-wide and coarsened. Person-derived values from 1 to 4 render as `<5`, and exports omit totals or complementary cells that could reconstruct a suppressed value.
+- Interpret “AI-ready workforce” as observable AI-fluency requirements, assessments, gaps, and development activities. Phase 3 performs no model call, prediction, recommendation, or automated people decision.
+- Interpret “career pathway” as an explainable current assignment → existing target role → skill gaps → planned activities → rotation history view. It does not infer suitable roles, promotion readiness, eligibility, or multi-step pathways.
+
+### Population rules
+
+Every insight builder accepts an injected clock, does not mutate the store, returns stable ordering, and defines its population before counting:
+
+1. **Obligations** expand each active mandatory learning requirement over its `all`, `team`, or `role` scope. Eligible people without a learning record appear as **record missing**; they do not disappear from the denominator. Archived requirements are excluded. Certification reporting describes currency only because v1.46 has no role-to-credential requirement model.
+2. **Capability** counts distinct people in `active` and `rotating` assignments to active roles. `planned` assignments and archived roles or skills are excluded; duplicate assignments cannot inflate counts. Each team-skill cell shows denominator, meeting target, below target, and not assessed.
+3. **Continuity** includes every active role exactly once. Role state and succession state remain separate dimensions: vacancy/backup signals plus no plan, draft, under review, approved current, or approved overdue. Candidate readiness uses the three glossary bands as counts, never a percentage.
+4. **Mobility & career** uses only existing development plans, activities, rotation opportunities, placements, and milestones. No missing relationship is inferred.
+
+### Product scope
+
+| #    | Work item                                                                                                                                                                                                                                                                                                                                             | Done when                                                                                                                                                                                                        |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P3.1 | **Decision contracts first.** ADR 0083 records population semantics, local-person boundary, inference controls, export policy, and no-model decision. Add pure DTO builders for obligation coverage, capability cells, continuity rows, mobility/pathway rows, and attention items.                                                                   | Adversarial fixtures prove denominators, stable ordering, injected-clock behaviour, non-mutation, and reason-code priority before UI work starts.                                                                |
+| P3.2 | **Overview and Attention queue.** Show organisation-wide signals plus deterministic items for missing/overdue mandatory learning, expired/expiring credentials, overdue skill assessments and development activities, vacant/needs-backup roles, absent/stale succession plans, and overdue rotation milestones. Filters are ephemeral webview state. | Every item carries a stable reason code, severity band, due/review date where available, local source reference, and working route to the exact management workflow; resolving the source removes it on refresh. |
+| P3.3 | **Obligations.** Present scoped mandatory-learning coverage, missing records, overdue work, credential expiry windows, and existing lifecycle/performance review dates.                                                                                                                                                                               | Counts reconcile to eligible populations; local drill-in identifies the affected records; no role-certification compliance claim is made.                                                                        |
+| P3.4 | **Capability.** Present a team-by-skill matrix with explicit distinct-person counts and behavioural-anchor drill-in, including a dedicated AI-fluency filter.                                                                                                                                                                                         | Every cell exposes denominator, meeting target, below target, and not assessed; no average, score, rank, or colour-only state appears.                                                                           |
+| P3.5 | **Continuity.** Present all active roles with vacancy/backup state, succession lifecycle, review currency, and readiness distribution.                                                                                                                                                                                                                | Roles with no plan remain visible; no bench-strength percentage or candidate rank is rendered; local candidate drill-in cannot enter an export DTO.                                                              |
+| P3.6 | **Mobility & career.** Present open rotation capacity, placement milestones, learning-transfer status, and a local person pathway view from current role to an existing target role and its evidenced development work.                                                                                                                               | The view is explainable from stored records and uses “pathway view”, not recommendation, prediction, fit, eligibility, or promotion language.                                                                    |
+| P3.7 | **Sharing and quality gates.** Keep plain text primary and confirmed HTML secondary, both built from one allowlisted, organisation-wide aggregate DTO. Add cockpit accessibility, layout, performance, routing, and inference-redaction checks.                                                                                                       | Outputs carry `OFFICIAL: Sensitive`, as-at date, product version, and aggregation caveat; person/team/role/skill labels, small-cohort facts, IDs, free text, and unknown DTO fields cannot leave Pub.            |
+
+### Explicitly deferred
+
+- CSV or person-level export; team, role, skill, credential, requirement, candidate, or filtered-view export.
+- AI/model calls, candidate or role recommendations, ranking, prediction, automated promotion/readiness decisions, and generated development advice.
+- HRIS/LMS/calendar integration, background sync, notifications, saved cockpit state, RBAC, multi-user approval, headcount, compensation, roster optimisation, and workforce-demand forecasting.
+- A certification-requirement model, multi-step role-path graph, role prerequisites, preferences, or eligibility decisions; each would require a later store-model ADR and migration.
+- Core, Explorer, snapshot, master-bundle, Graph, or Office publication of Pub person or workforce-development records.
+
+### Proposed release gates
+
+1. **No-model gate:** v1.47 keeps Pub store `1.3.0` and compatibility axes `1.14.0`; no migration, Core collection, Explorer schema, bundle collection, network path, or AI call is added.
+2. **Population gate:** scoped obligations include missing records; capability uses distinct eligible people; continuity includes every active role exactly once.
+3. **Determinism gate:** all builders use an injected clock, preserve source data, return stable ordering, and produce identical DTOs for identical input.
+4. **Attention-routing gate:** every supported reason code has deterministic priority and a tested local resolution route.
+5. **Capability/continuity gate:** tests prohibit scores, averages, rankings, colour-only meaning, missing-as-zero treatment, and bench-strength percentages.
+6. **Local-person boundary gate:** person drill-ins and career detail never reach clipboard, files, status bars, notifications, logs, Core, Explorer, snapshots, or bundles.
+7. **Inference-redaction gate:** exports are organisation-wide and allowlisted; person-derived values from 1 to 4 render as `<5`, with no total or complementary cell that reconstructs a suppressed value. Tests cover literal restricted tokens, unknown fields, inference, and cancellation; CSV and person export commands do not exist.
+8. **Cockpit quality gate:** all five views are keyboard operable, use semantic tables and visible focus, remain readable at narrow/desktop widths, have zero serious/critical axe findings, and meet the repository performance profile with a 500-person fixture.
+9. **Release-chain gate:** `e2e:v1.47` inherits v1.46 and runs Pub domain, workflow, accessibility, performance, export-boundary, typecheck, lint, package-shape, and release-candidate checks.
+
+### Implementation sequence
+
+1. **Implemented.** ADR 0083 and the v1.47 gate chain govern the slice.
+2. **Implemented.** Population expansion and pure insight DTOs have adversarial behavioural coverage.
+3. **Implemented.** The cockpit shell, ephemeral filters, Overview, and Attention routes are active.
+4. **Implemented.** Obligations, Capability, and Continuity use explicit denominators and states.
+5. **Implemented.** Mobility & career is constrained to existing development and rotation evidence.
+6. **Implemented.** Aggregate exports apply small-cohort suppression; package and release readiness carry the v1.47 gates.
+
+Phase 3 is effective when a manager can answer **what needs attention, where capability is evidenced or missing, which roles lack continuity, and which existing development or rotation work can close the gap** without Pub making an opaque people decision or disclosing person-level information.
 
 ---
 

@@ -4,14 +4,14 @@ Status: **active**
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.44.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
+The repository currently ships PSPF v1.47.0 with Core, Workshop, Shop, Pub, and Explorer. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
 
 ## Products
 
 - Core stores the workspace system of record in `.pspf/core/pspf-core.db`.
 - Workshop is the operator authoring and review surface.
 - Shop is the commercial planning surface for suppliers, contracts, spend items, and explainable forecasts.
-- Pub is the local-first people, role, team, assignment, and stakeholder relationship surface.
+- Pub is the local-first organisation, learning, skills, development, succession, rotation, and stakeholder relationship surface.
 - Explorer opens published master bundles and supports browser-local review/authoring round trips.
 
 ## Setup
@@ -31,7 +31,7 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.44.0-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.47.0-readiness-report.md`.
 
 ## Current Workshop Slice
 

@@ -303,6 +303,21 @@ const coverage = [
     "e2e:v1.43",
     "check:continuous-compliance",
     "check:release-candidate"
+  ]),
+  adr("0081-v1-45-pub-workforce-foundation.md", "automated", [
+    "e2e:v1.45",
+    "check:release-candidate",
+    "release:readiness"
+  ]),
+  adr("0082-v1-46-pub-workforce-development.md", "automated", [
+    "e2e:v1.46",
+    "check:release-candidate",
+    "release:readiness"
+  ]),
+  adr("0083-v1-47-pub-workforce-decision-cockpit.md", "automated", [
+    "e2e:v1.47",
+    "check:release-candidate",
+    "release:readiness"
   ])
 ];
 

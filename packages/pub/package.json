@@ -10,7 +10,7 @@
     "accountability",
     "stakeholders"
   ],
-  "version": "1.44.0",
+  "version": "1.47.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -77,6 +77,14 @@
       {
         "command": "pspf.pub.loadSample",
         "title": "PSPF: Load Pub Sample"
+      },
+      {
+        "command": "pspf.pub.quickAdd",
+        "title": "PSPF: Quick Add Person and Role"
+      },
+      {
+        "command": "pspf.pub.bulkImport",
+        "title": "PSPF: Bulk Import People and Structure"
       },
       {
         "command": "pspf.pub.newPerson",
@@ -155,6 +163,14 @@
         "title": "PSPF: Open Pub Organisation Chart"
       },
       {
+        "command": "pspf.pub.copyOrganisationOutline",
+        "title": "PSPF: Copy Safe Organisation Outline"
+      },
+      {
+        "command": "pspf.pub.exportOrganisationHtml",
+        "title": "PSPF: Export Safe Organisation HTML"
+      },
+      {
         "command": "pspf.pub.openPeople",
         "title": "PSPF: Open Pub People"
       },
@@ -177,6 +193,34 @@
       {
         "command": "pspf.pub.openPeopleCulture",
         "title": "PSPF: Open Pub People and Culture"
+      },
+      {
+        "command": "pspf.pub.openWorkforcePlanning",
+        "title": "PSPF: Open Workforce Planning"
+      },
+      {
+        "command": "pspf.pub.manageLearning",
+        "title": "PSPF: Manage Learning and Certifications"
+      },
+      {
+        "command": "pspf.pub.manageSkills",
+        "title": "PSPF: Manage Skills and Development"
+      },
+      {
+        "command": "pspf.pub.manageSuccession",
+        "title": "PSPF: Review Succession Plans"
+      },
+      {
+        "command": "pspf.pub.manageRotations",
+        "title": "PSPF: Manage Cyber Rotations"
+      },
+      {
+        "command": "pspf.pub.copyWorkforceSummary",
+        "title": "PSPF: Copy Safe Workforce Summary"
+      },
+      {
+        "command": "pspf.pub.exportWorkforceSummaryHtml",
+        "title": "PSPF: Export Safe Workforce Summary HTML"
       }
     ],
     "menus": {
@@ -252,12 +296,27 @@
           "group": "navigation@1"
         },
         {
+          "command": "pspf.pub.quickAdd",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pspf.pub.bulkImport",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@1"
+        },
+        {
           "command": "pspf.pub.openOrgChart",
           "when": "view == pspfPub.homeView",
           "group": "navigation@2"
         },
         {
           "command": "pspf.pub.openPeopleCulture",
+          "when": "view == pspfPub.homeView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "pspf.pub.openWorkforcePlanning",
           "when": "view == pspfPub.homeView",
           "group": "navigation@3"
         }
@@ -317,6 +376,7 @@
   },
   "dependencies": {
     "@pspf/contracts": "workspace:*",
-    "@pspf/webview-shell": "workspace:*"
+    "@pspf/webview-shell": "workspace:*",
+    "csv-parse": "^7.0.1"
   }
 }

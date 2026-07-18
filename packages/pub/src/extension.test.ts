@@ -130,7 +130,8 @@ test("Pub Organisation Chart renders a graphic team and role view", async () => 
   assert.match(source, /function renderOrgChartGraphic\(store: PubStore/);
   assert.match(source, /class="org-chart-graphic"/);
   assert.match(source, /class="org-team-node"/);
-  assert.match(source, /class="org-team-stats"/);
+  assert.match(source, /org-role-card--\$\{role\.status\}/);
+  assert.match(source, /Accessible hierarchy table/);
   assert.match(source, /Team responsibility reports/);
   assert.match(source, /function pubTeamReportActions\(\): string/);
   assert.doesNotMatch(source, /class="org-card-face org-card-face--front"/);
@@ -140,13 +141,14 @@ test("Pub Organisation Chart renders a graphic team and role view", async () => 
 
 test("Pub teams store local team news dates for optional planning", async () => {
   const source = await readFile(sourcePath, "utf8");
+  const storeSource = await readFile(new URL("../src/store.ts", import.meta.url), "utf8");
 
   assert.match(source, /interface TeamItemRecord/);
   assert.match(source, /readonly teamItems: readonly TeamItemRecord\[\]/);
   assert.match(source, /function teamItemEditorFields\(item: TeamItemRecord/);
   assert.match(source, /name="teamItem\.\$\{escapeHtml\(item\.id\)\}\.includeInPlan"/);
   assert.match(source, /function parseTeamItemEditorFields/);
-  assert.match(source, /function normaliseTeamItems/);
+  assert.match(storeSource, /function normaliseTeamItems/);
   assert.match(source, /formatTeamItemDateRange/);
   assert.match(source, /Access review evidence window/);
 });
@@ -249,11 +251,24 @@ test("Pub Organisation Chart keeps the graphic focused on structure", async () =
   assert.ok(orgChartMatch, "organisation chart renderer should be present");
   const orgChartSource = orgChartMatch[0];
 
-  assert.match(orgChartSource, /Simple local team hierarchy for quick scanning/);
+  assert.match(orgChartSource, /vacancy, acting, and rotation states/);
   assert.match(orgChartSource, /pubTeamReportActions\(\)/);
-  assert.match(orgChartSource, /org-team-stats/);
+  assert.match(orgChartSource, /Accessible hierarchy table/);
+  assert.match(orgChartSource, /pspf\.pub\.copyOrganisationOutline/);
+  assert.match(orgChartSource, /pspf\.pub\.exportOrganisationHtml/);
   assert.doesNotMatch(orgChartSource, /teamOrgTags/);
   assert.doesNotMatch(orgChartSource, /No functional outcome recorded/);
   assert.doesNotMatch(orgChartSource, /Team news and dates/);
   assert.doesNotMatch(orgChartSource, /personName\(store, assignment\.personId\)/);
+});
+
+test("Pub exposes guided and previewed rapid-entry workflows", async () => {
+  const source = await readFile(sourcePath, "utf8");
+  const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
+
+  assert.match(source, /registerCommand\("pspf\.pub\.quickAdd", quickAdd\)/);
+  assert.match(source, /registerCommand\("pspf\.pub\.bulkImport", openBulkImport\)/);
+  assert.match(source, /Preview is mandatory and no data is written until you confirm/);
+  assert.match(manifest, /"command": "pspf\.pub\.quickAdd"/);
+  assert.match(manifest, /"command": "pspf\.pub\.bulkImport"/);
 });

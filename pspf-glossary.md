@@ -64,13 +64,25 @@ The Australian Government information classification at which Explorer's default
 
 The Traffic Light Protocol marking that accompanies OFFICIAL: Sensitive in Explorer's banner. Use the literal string.
 
+### Skill (Pub)
+
+A local Pub capability definition with exactly five observable behavioural anchors. A person skill assessment records demonstrated capability against those anchors; a missing assessment is **not assessed**, never zero capability.
+
+### Succession plan (Pub)
+
+A restricted local plan for continuity of one role. Candidate readiness uses **ready now**, **1–2 years**, or **development needed**. Candidate identity, evidence, and rationale never appear in safe workforce summaries.
+
+### Rotation opportunity and rotation placement (Pub)
+
+A **rotation opportunity** is an open, capacity-controlled Cyber development experience owned by a host team. A **rotation placement** connects one person to an opportunity and tracks learning-transfer milestones. Neither term is a synonym for a role Assignment.
+
 ---
 
 ## Overloaded terms — pinned meanings
 
 ### Domain
 
-In this product, **Domain always means *PSPF Domain***: a top-level grouping of PSPF requirements as defined by the active PSPF release (governance, information, personnel, physical, and any sub-domains the release actually defines). Modelled as an entity (prefix `DOM`). Used as the primary navigation grouping in Workshop and Explorer.
+In this product, **Domain always means _PSPF Domain_**: a top-level grouping of PSPF requirements as defined by the active PSPF release (governance, information, personnel, physical, and any sub-domains the release actually defines). Modelled as an entity (prefix `DOM`). Used as the primary navigation grouping in Workshop and Explorer.
 
 When any other notion of "domain" is genuinely needed, the spec or copy MUST disambiguate explicitly:
 
@@ -95,7 +107,7 @@ These three are not synonyms.
 
 ### Bundle
 
-The **master JSON bundle** defined in [pspf-explorer-json-bundle-schema-spec.md](pspf-explorer-json-bundle-schema-spec.md). Always preceded by an adjective in copy: *export bundle*, *import bundle*, *master bundle*. Never bare "bundle" except where the context is unambiguous.
+The **master JSON bundle** defined in [pspf-explorer-json-bundle-schema-spec.md](pspf-explorer-json-bundle-schema-spec.md). Always preceded by an adjective in copy: _export bundle_, _import bundle_, _master bundle_. Never bare "bundle" except where the context is unambiguous.
 
 ### Posture
 
@@ -132,59 +144,59 @@ The same business concept is currently expressed in several state vocabularies a
 
 ### Compliance / assessment status
 
-| Internal field | Owner spec | UI label (Workshop & Explorer) | Definition |
-|---|---|---|---|
-| `Requirement.assessmentStatus = not-started` | [pspf-entity-link-spec.md](pspf-entity-link-spec.md) | **Not started** | No assessor work yet recorded. Equivalent to Explorer prototype `not-set`. |
-| `Requirement.assessmentStatus = in-progress` | entity spec | **In progress** | Assessor has begun but not concluded. |
-| `Requirement.assessmentStatus = met` | entity spec | **Met** | Requirement satisfied; evidence attached. Equivalent to prototype `yes`. |
-| `Requirement.assessmentStatus = partially-met` | entity spec | **Partially met** | Some elements satisfied; gaps remain. (No prototype equivalent; new in v1.) |
-| `Requirement.assessmentStatus = not-met` | entity spec | **Not met** | Requirement not satisfied. Equivalent to prototype `no`. |
-| `Requirement.assessmentStatus = not-applicable` | entity spec | **Not applicable** | Out of scope for this entity. Equivalent to prototype `not-applicable`. Excluded from compliance % numerator and denominator (E1). |
-| `Requirement.assessmentStatus = under-review` | entity spec | **Under review** | Awaiting formal review. Equivalent to prototype `risk-managed` only when the review concerns a risk-acceptance decision; otherwise distinct. |
-| Explorer prototype `risk-managed` | retired | **Risk-accepted** | The state where a known gap has a risk decision recorded. In v1 this is represented as `assessmentStatus = under-review` plus a linked Risk record with `decision = accepted`. |
+| Internal field                                  | Owner spec                                           | UI label (Workshop & Explorer) | Definition                                                                                                                                                                     |
+| ----------------------------------------------- | ---------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Requirement.assessmentStatus = not-started`    | [pspf-entity-link-spec.md](pspf-entity-link-spec.md) | **Not started**                | No assessor work yet recorded. Equivalent to Explorer prototype `not-set`.                                                                                                     |
+| `Requirement.assessmentStatus = in-progress`    | entity spec                                          | **In progress**                | Assessor has begun but not concluded.                                                                                                                                          |
+| `Requirement.assessmentStatus = met`            | entity spec                                          | **Met**                        | Requirement satisfied; evidence attached. Equivalent to prototype `yes`.                                                                                                       |
+| `Requirement.assessmentStatus = partially-met`  | entity spec                                          | **Partially met**              | Some elements satisfied; gaps remain. (No prototype equivalent; new in v1.)                                                                                                    |
+| `Requirement.assessmentStatus = not-met`        | entity spec                                          | **Not met**                    | Requirement not satisfied. Equivalent to prototype `no`.                                                                                                                       |
+| `Requirement.assessmentStatus = not-applicable` | entity spec                                          | **Not applicable**             | Out of scope for this entity. Equivalent to prototype `not-applicable`. Excluded from compliance % numerator and denominator (E1).                                             |
+| `Requirement.assessmentStatus = under-review`   | entity spec                                          | **Under review**               | Awaiting formal review. Equivalent to prototype `risk-managed` only when the review concerns a risk-acceptance decision; otherwise distinct.                                   |
+| Explorer prototype `risk-managed`               | retired                                              | **Risk-accepted**              | The state where a known gap has a risk decision recorded. In v1 this is represented as `assessmentStatus = under-review` plus a linked Risk record with `decision = accepted`. |
 
 ### Effectiveness (separate axis from assessment)
 
-| Internal field | UI label | Notes |
-|---|---|---|
-| `Requirement.effectiveness = effective` | **Effective** | Working as intended. |
-| `Requirement.effectiveness = partial` | **Partially effective** | Working in some scopes only. |
-| `Requirement.effectiveness = ineffective` | **Not effective** | Not working as intended. |
-| `Requirement.effectiveness = unknown` | **Effectiveness not assessed** | Default. |
+| Internal field                            | UI label                       | Notes                        |
+| ----------------------------------------- | ------------------------------ | ---------------------------- |
+| `Requirement.effectiveness = effective`   | **Effective**                  | Working as intended.         |
+| `Requirement.effectiveness = partial`     | **Partially effective**        | Working in some scopes only. |
+| `Requirement.effectiveness = ineffective` | **Not effective**              | Not working as intended.     |
+| `Requirement.effectiveness = unknown`     | **Effectiveness not assessed** | Default.                     |
 
 Effectiveness and assessment are independent. A requirement may be `met` and `partially effective`. The UI surfaces both as separate badges; never collapse them into one.
 
 ### Reporting readiness (ready-to-report)
 
-| Internal field | UI label |
-|---|---|
-| `Requirement.reportingReadiness = draft` | **Draft** |
-| `Requirement.reportingReadiness = needs-review` | **Needs review** |
-| `Requirement.reportingReadiness = ready` | **Ready to report** |
-| `Requirement.reportingReadiness = blocked` | **Blocked** |
+| Internal field                                  | UI label            |
+| ----------------------------------------------- | ------------------- |
+| `Requirement.reportingReadiness = draft`        | **Draft**           |
+| `Requirement.reportingReadiness = needs-review` | **Needs review**    |
+| `Requirement.reportingReadiness = ready`        | **Ready to report** |
+| `Requirement.reportingReadiness = blocked`      | **Blocked**         |
 
 ### Direction response
 
 Per E6 the set is exactly `{not-set, yes, no, risk-managed}`. UI labels:
 
-| Internal | UI label |
-|---|---|
-| `not-set` | **No response yet** |
-| `yes` | **Responding** |
-| `no` | **Not responding** |
-| `risk-managed` | **Risk-accepted** |
+| Internal       | UI label            |
+| -------------- | ------------------- |
+| `not-set`      | **No response yet** |
+| `yes`          | **Responding**      |
+| `no`           | **Not responding**  |
+| `risk-managed` | **Risk-accepted**   |
 
 `not-applicable` MUST NOT appear here.
 
 ### Action status
 
-| Internal | UI label |
-|---|---|
-| `todo` | **To do** |
+| Internal      | UI label        |
+| ------------- | --------------- |
+| `todo`        | **To do**       |
 | `in-progress` | **In progress** |
-| `blocked` | **Blocked** |
-| `done` | **Done** |
-| `cancelled` | **Cancelled** |
+| `blocked`     | **Blocked**     |
+| `done`        | **Done**        |
+| `cancelled`   | **Cancelled**   |
 
 Overdue is a derived flag, not a status (E4).
 
@@ -196,13 +208,13 @@ Band (derived from `likelihood × impact`, E5): **Low** (<5), **Medium** (5–9)
 
 ### Evidence freshness
 
-| Internal | UI label |
-|---|---|
-| `current` | **Current** |
-| `aging` | **Ageing** (note AU spelling) |
-| `stale` | **Stale** |
-| `expired` | **Expired** |
-| `unknown` | **Freshness unknown** |
+| Internal  | UI label                      |
+| --------- | ----------------------------- |
+| `current` | **Current**                   |
+| `aging`   | **Ageing** (note AU spelling) |
+| `stale`   | **Stale**                     |
+| `expired` | **Expired**                   |
+| `unknown` | **Freshness unknown**         |
 
 The "old / incomplete / changed / unverified / missing / unlinked" classification (E26) is the **review queue** taxonomy — different from freshness. Both surfaces use these labels; do not blend them.
 
@@ -210,16 +222,16 @@ The "old / incomplete / changed / unverified / missing / unlinked" classificatio
 
 The design spec lists Draft / In review / Ready / Effective / Partial / Needs update / At risk / Archived. This is the **chip palette**, not a state machine — it visually maps to the labels above:
 
-| Chip | Maps to |
-|---|---|
-| Draft | `reportingReadiness = draft`, `recordStatus = active` and no other state set |
-| In review | `assessmentStatus = under-review` or `reportingReadiness = needs-review` |
-| Ready | `reportingReadiness = ready` |
-| Effective | `effectiveness = effective` |
-| Partial | `effectiveness = partial` or `assessmentStatus = partially-met` |
-| Needs update | `evidenceFreshness in {aging, stale}` |
-| At risk | linked Risk in band ≥ High, or `effectiveness = ineffective` |
-| Archived | `recordStatus = archived` |
+| Chip         | Maps to                                                                      |
+| ------------ | ---------------------------------------------------------------------------- |
+| Draft        | `reportingReadiness = draft`, `recordStatus = active` and no other state set |
+| In review    | `assessmentStatus = under-review` or `reportingReadiness = needs-review`     |
+| Ready        | `reportingReadiness = ready`                                                 |
+| Effective    | `effectiveness = effective`                                                  |
+| Partial      | `effectiveness = partial` or `assessmentStatus = partially-met`              |
+| Needs update | `evidenceFreshness in {aging, stale}`                                        |
+| At risk      | linked Risk in band ≥ High, or `effectiveness = ineffective`                 |
+| Archived     | `recordStatus = archived`                                                    |
 
 A chip is a derived view; it never owns state. Two chips may apply to the same record (e.g. `Ready` + `Effective`).
 
@@ -240,31 +252,31 @@ The following list is a sample; the canonical machine-readable list lives at `do
 
 <!-- au-english-lint:disable -->
 
-| Use | Avoid |
-|---|---|
-| organisation, organisations, organisational | organization, organizations, organizational |
-| optimise, optimised, optimisation | optimize, optimized, optimization |
-| recognise, recognised | recognize, recognized |
-| customise, customised, customisation | customize, customized, customization |
+| Use                                                                | Avoid                                                              |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| organisation, organisations, organisational                        | organization, organizations, organizational                        |
+| optimise, optimised, optimisation                                  | optimize, optimized, optimization                                  |
+| recognise, recognised                                              | recognize, recognized                                              |
+| customise, customised, customisation                               | customize, customized, customization                               |
 | categorise, prioritise, standardise, summarise, emphasise, analyse | categorize, prioritize, standardize, summarize, emphasize, analyze |
-| behaviour, behaviours, behavioural | behavior, behaviors, behavioral |
-| colour, colours, coloured | color, colors, colored |
-| centre, centred | center, centered |
-| labelled, labelling | labeled, labeling |
-| favourite | favorite |
-| grey | gray |
-| defence | defense |
-| licence (noun), license (verb) | license (as noun), licence (as verb) |
-| programme (a body of work) | program (in this sense) |
-| initialise, initialised, initialisation | initialize, initialized, initialization |
-| utilise (rare; prefer "use") | utilize |
-| harmonise | harmonize |
-| ageing | aging |
-| acknowledgement | acknowledgment |
+| behaviour, behaviours, behavioural                                 | behavior, behaviors, behavioral                                    |
+| colour, colours, coloured                                          | color, colors, colored                                             |
+| centre, centred                                                    | center, centered                                                   |
+| labelled, labelling                                                | labeled, labeling                                                  |
+| favourite                                                          | favorite                                                           |
+| grey                                                               | gray                                                               |
+| defence                                                            | defense                                                            |
+| licence (noun), license (verb)                                     | license (as noun), licence (as verb)                               |
+| programme (a body of work)                                         | program (in this sense)                                            |
+| initialise, initialised, initialisation                            | initialize, initialized, initialization                            |
+| utilise (rare; prefer "use")                                       | utilize                                                            |
+| harmonise                                                          | harmonize                                                          |
+| ageing                                                             | aging                                                              |
+| acknowledgement                                                    | acknowledgment                                                     |
 
 <!-- au-english-lint:enable -->
 
-Date format: `DD MMM YYYY` (e.g. `10 May 2026`); financial year `FY 2025–26`; currency `$AUD` or trailing ` AUD` where ambiguous; thousands `,`; decimal `.`.
+Date format: `DD MMM YYYY` (e.g. `10 May 2026`); financial year `FY 2025–26`; currency `$AUD` or an `AUD` suffix where ambiguous; thousands `,`; decimal `.`.
 
 ---
 
