@@ -9,8 +9,8 @@ import {
 import { DOMAIN_KEYS } from '../data/types.ts';
 
 describe('PSPF static data', () => {
-  it('contains exactly 218 requirements (PSPF 2025 release)', () => {
-    expect(allRequirements).toHaveLength(218);
+  it('contains exactly 217 requirements (PSPF 2025 release baseline)', () => {
+    expect(allRequirements).toHaveLength(217);
   });
 
   it('covers all six domains', () => {

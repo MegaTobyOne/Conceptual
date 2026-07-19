@@ -58,6 +58,8 @@ export type ReportingType = 'maturity' | 'binary' | 'narrative' | 'metric' | 'un
 
 export interface Requirement {
   id: RequirementId;
+  /** Canonical PSPF ecosystem requirement ID (ADR 0002 format), e.g. 'REQ-PSPF-2025-001'. */
+  canonicalId: string;
   domain: DomainKey;
   /** Short title (one line). */
   title: string;
