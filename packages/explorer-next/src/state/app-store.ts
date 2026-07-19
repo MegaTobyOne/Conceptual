@@ -484,6 +484,25 @@ export class AppStore {
     this.directions.value = this.directions.value.filter((d) => d.id !== id);
   }
 
+  /**
+   * Upsert a fully-formed Direction (with id) — used by importers that need
+   * to preserve externally-assigned IDs and timestamps. `updatedAt` is refreshed.
+   */
+  async upsertDirectionRecord(direction: Direction): Promise<Direction> {
+    const now = new Date().toISOString();
+    const existing = this.directions.value.find((d) => d.id === direction.id);
+    const next: Direction = normaliseDirection({
+      ...direction,
+      createdAt: existing?.createdAt ?? direction.createdAt ?? now,
+      updatedAt: now,
+    });
+    await putDirection(this.db, next);
+    this.directions.value = existing
+      ? this.directions.value.map((d) => (d.id === next.id ? next : d))
+      : [...this.directions.value, next];
+    return next;
+  }
+
   // ---------- Relationships ----------
 
   #relationshipEndpointExists(kind: Relationship['kind'], endpoint: string): boolean {
@@ -585,6 +604,28 @@ export class AppStore {
   async removeRelationship(id: RelationshipId): Promise<void> {
     await deleteRelationship(this.db, id);
     this.relationships.value = this.relationships.value.filter((r) => r.id !== id);
+  }
+
+  /**
+   * Upsert a fully-formed Relationship (with id) — used by importers.
+   * Duplicate kind+endpoints pairs are ignored (existing record wins).
+   */
+  async upsertRelationshipRecord(relationship: Relationship): Promise<Relationship> {
+    const endpoints = normaliseRelationshipEndpoints([
+      relationship.endpoints[0],
+      relationship.endpoints[1],
+    ]);
+    const duplicate = this.relationships.value.find(
+      (existing) =>
+        existing.kind === relationship.kind &&
+        existing.endpoints[0] === endpoints[0] &&
+        existing.endpoints[1] === endpoints[1],
+    );
+    if (duplicate) return duplicate;
+    const next: Relationship = { ...relationship, endpoints };
+    await putRelationship(this.db, next);
+    this.relationships.value = [...this.relationships.value, next];
+    return next;
   }
 
   // ---------- Meta ----------

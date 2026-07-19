@@ -105,6 +105,11 @@ export const routes: readonly RouteSpec[] = [
     load: () => import('../views/risk-action-import-view.ts'),
   },
   {
+    path: '/core',
+    component: 'pspf-core-exchange-view',
+    load: () => import('../views/core-exchange-view.ts'),
+  },
+  {
     path: '/backup',
     component: 'pspf-backup-view',
     load: () => import('../views/backup-view.ts'),
@@ -141,6 +146,7 @@ export const NAV_ROUTES: readonly NavRoute[] = [
   { path: '/views', label: 'Saved views', group: 'organise' },
   { path: '/posture', label: 'Posture', group: 'organise' },
   { path: '/share', label: 'Share', group: 'share' },
+  { path: '/core', label: 'Core exchange', group: 'share' },
   { path: '/backup', label: 'Backup', group: 'share' },
   { path: '/restore', label: 'Restore', group: 'share' },
   { path: '/grc', label: 'GRC capture', group: 'share' },

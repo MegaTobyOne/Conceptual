@@ -22,7 +22,7 @@ Source snapshot: `https://github.com/MegaTobyOne/pspfexplorer2` (`main`, July 20
 - AU English in all user-facing copy; reconcile pspfexplorer2 strings during Phase D.
 - Compatibility axes remain the only version negotiation mechanism (ADR 0008).
 
-## Phase A — Snapshot import and workspace adoption 🔲
+## Phase A — Snapshot import and workspace adoption ✅
 
 | #   | Work                                                                                                                                                                                                                                           | Done when                                                     |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
@@ -32,7 +32,13 @@ Source snapshot: `https://github.com/MegaTobyOne/pspfexplorer2` (`main`, July 20
 | A.4 | Carry over its Vitest + fake-indexeddb unit tests and Playwright a11y/e2e suite; register the perf-budget script as a package script.                                                                                                          | All imported tests pass in CI.                                |
 | A.5 | Guard rails: assert `explorer-next` is absent from `web-release.yml` inputs and `release:readiness` artefact checks.                                                                                                                           | Gate added to `release-gates.json` scope or readiness script. |
 
-## Phase B — Single source of PSPF reference data 🔲
+## Phase B — Single source of PSPF reference data ✅
+
+> Landed: `scripts/generate-pspf-data.mjs` generates the six `src/pspf/*.ts` domain modules from
+> `@pspf/reference-data` (217 requirements — the embedded 218th was a duplicate of a TECH
+> requirement misfiled as INFO). Each requirement carries `canonicalId` (ADR 0002
+> `REQ-PSPF-2025-NNN`) alongside the app-local code, with a `requirementByCanonicalId` lookup
+> exported from `src/pspf/index.ts`.
 
 | #   | Work                                                                                                                                                                                                                                         | Done when                                                  |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
@@ -40,7 +46,16 @@ Source snapshot: `https://github.com/MegaTobyOne/pspfexplorer2` (`main`, July 20
 | B.2 | Replace embedded dataset with a build-time generation step consuming `@pspf/reference-data`; delete `src/pspf/` data modules; keep type definitions where still needed.                                                                      | App renders identical requirement set from generated data. |
 | B.3 | Normalise IDs at the data boundary to ADR 0002 format; map pspfexplorer2 branded IDs (`RequirementId` etc.) onto canonical IDs.                                                                                                              | ID round-trip tests pass.                                  |
 
-## Phase C — Master-bundle interop (the load-bearing phase) 🔲
+## Phase C — Master-bundle interop (the load-bearing phase) �
+
+> Landed: `src/data/core-bundle.ts` (parse/plan/apply import + export of the manifest-led master
+> bundle, axis validation via `@pspf/contracts`, SHA-256 collection hashes, stable ID mapping
+> persisted in app meta) and the `Core exchange` view at `/core`. Round-trip proven: the shipped
+> Explorer's enterprise sample bundle imports, exports, and re-imports into Core via
+> `importBundle(..., 'full-replace')` with validation ok. Deviation from C.3 as written: export
+> uses the master-bundle format (ADR 0009) rather than the plan/apply exchange format — Core
+> accepts it directly, so the plan/apply path is not required for interop. C.2 is partial
+> (classification labelling shipped; full read-only publication overlay deferred). C.4 deferred.
 
 | #   | Work                                                                                                                                                                                                                                                                        | Done when                                                                              |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
