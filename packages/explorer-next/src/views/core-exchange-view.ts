@@ -15,6 +15,7 @@ import {
   coreBundleIdentity,
   parseCoreBundle,
   planCoreBundleImport,
+  verifyCoreBundleChecksums,
 } from '../data/core-bundle.ts';
 
 interface SourceStatus {
@@ -288,6 +289,13 @@ export class CoreExchangeView extends LitElement {
     if (!file) return;
     try {
       const bundle = parseCoreBundle(JSON.parse(await file.text()));
+      const mismatches = await verifyCoreBundleChecksums(bundle);
+      if (mismatches.length > 0) {
+        const names = mismatches.map((m) => m.collection).join(', ');
+        throw new Error(
+          `Checksum mismatch in ${names}. The bundle content does not match its manifest — re-export it from PSPF Core before loading.`,
+        );
+      }
       const canonicalToApp = new Map<string, RequirementId>(
         [...requirementByCanonicalId].map(([canonicalId, requirement]) => [
           canonicalId,

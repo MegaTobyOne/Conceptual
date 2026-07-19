@@ -23,16 +23,14 @@ export default tseslint.config(
     ],
   },
   js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
+  // Type-checked configs are disabled for now: typescript-eslint 8.64 does not
+  // support TypeScript 6 (type-aware rules crash or report phantom errors).
+  // Restore recommendedTypeChecked/stylisticTypeChecked once typescript-eslint
+  // officially supports TS 6.
+  ...tseslint.configs.recommended,
+  ...tseslint.configs.stylistic,
   {
     languageOptions: {
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: ['*.js', '*.cjs', '*.mjs'],
-        },
-        tsconfigRootDir: import.meta.dirname,
-      },
       globals: { ...globals.browser, ...globals.node },
     },
   },

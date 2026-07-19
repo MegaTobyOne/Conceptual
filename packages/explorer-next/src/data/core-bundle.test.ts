@@ -8,6 +8,7 @@ import {
   coreBundleIdentity,
   parseCoreBundle,
   planCoreBundleImport,
+  verifyCoreBundleChecksums,
   CoreBundleError,
 } from './core-bundle.ts';
 import { allRequirements, requirementByCanonicalId } from '../pspf/index.ts';
@@ -369,5 +370,49 @@ describe('buildCoreBundleExport', () => {
     expect(targets?.toId).toBe(GOV_001_CANONICAL);
     // Workspace identity is carried through.
     expect(exported.manifest.generator?.workspaceId).toBe('ws-test');
+  });
+});
+
+describe('verifyCoreBundleChecksums', () => {
+  it('passes a freshly exported bundle and skips hashless manifests', async () => {
+    const { bundle } = await buildCoreBundleExport({
+      requirements: allRequirements,
+      compliance: new Map(),
+      risks: [],
+      actions: [],
+      directions: [],
+      relationships: [],
+      idMap: {},
+    });
+    await expect(verifyCoreBundleChecksums(bundle)).resolves.toEqual([]);
+    // Hashless manifest entries (older sample bundles) are skipped, not failed.
+    await expect(verifyCoreBundleChecksums(fixtureBundle())).resolves.toEqual([]);
+  });
+
+  it('reports tampered collections', async () => {
+    const { bundle } = await buildCoreBundleExport({
+      requirements: allRequirements,
+      compliance: new Map(),
+      risks: [
+        {
+          id: asRiskId(gen()),
+          title: 'Tamper target',
+          status: 'open',
+          likelihood: 2,
+          impact: 2,
+          requirementIds: [],
+          actionIds: [],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+      actions: [],
+      directions: [],
+      relationships: [],
+      idMap: {},
+    });
+    bundle.collections.risks![0]!.title = 'Tampered after export';
+    const mismatches = await verifyCoreBundleChecksums(bundle);
+    expect(mismatches.map((m) => m.collection)).toEqual(['risks']);
   });
 });

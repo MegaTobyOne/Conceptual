@@ -15,6 +15,9 @@ import {
 import { appStoreContext } from '../state/contexts.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
+import { allRequirements } from '../pspf/index.ts';
+import { CORE_BUNDLE_META_KEYS, type CoreBundle } from '../data/core-bundle.ts';
+import { buildPostureBriefMarkdown } from '../data/posture-brief.ts';
 import '../components/list-workbench.ts';
 
 const DEFAULT_GLOBAL: PostureSetting = {
@@ -151,6 +154,28 @@ export class PostureView extends LitElement {
         --badge-bg: #99182c;
         --badge-fg: #fff;
       }
+      section.brief {
+        border: 1px solid var(--colour-border);
+        border-radius: var(--radius-md);
+        padding: var(--space-3);
+        background: var(--colour-bg);
+        display: grid;
+        gap: var(--space-2);
+        justify-items: start;
+      }
+      section.brief button {
+        font: inherit;
+        cursor: pointer;
+        background: var(--colour-accent);
+        color: var(--colour-accent-fg);
+        border: 1px solid var(--colour-accent);
+        border-radius: var(--radius-sm);
+        padding: var(--space-1) var(--space-2);
+      }
+      .brief-status {
+        font-size: var(--text-sm);
+        color: var(--colour-fg-muted);
+      }
     `,
   ];
 
@@ -161,6 +186,36 @@ export class PostureView extends LitElement {
   #watcher = new SignalWatcher(this, () => (this.store ? [this.store.posture] : []));
 
   @state() private expandedDomainKeys: ReadonlySet<DomainKey> = new Set();
+  @state() private briefStatus = '';
+
+  async #copyPostureBrief(): Promise<void> {
+    if (!this.store) return;
+    this.briefStatus = '';
+    try {
+      const source = (await this.store.getMeta(CORE_BUNDLE_META_KEYS.source)) as
+        | CoreBundle
+        | undefined;
+      const idMap =
+        ((await this.store.getMeta(CORE_BUNDLE_META_KEYS.idMap)) as Record<string, string>) ?? {};
+      const markdown = await buildPostureBriefMarkdown(
+        {
+          requirements: allRequirements,
+          compliance: this.store.compliance.value,
+          risks: this.store.risks.value,
+          actions: this.store.actions.value,
+          directions: this.store.directions.value,
+          relationships: this.store.relationships.value,
+          ...(source !== undefined ? { source } : {}),
+          idMap,
+        },
+        source !== undefined ? 'PSPF Explorer (Core bundle)' : 'PSPF Explorer (browser-local)',
+      );
+      await navigator.clipboard.writeText(markdown);
+      this.briefStatus = 'Posture brief copied to the clipboard.';
+    } catch (err) {
+      this.briefStatus = `Could not copy the brief: ${err instanceof Error ? err.message : String(err)}`;
+    }
+  }
 
   override render(): TemplateResult {
     const record = this.store?.posture.value;
@@ -173,6 +228,23 @@ export class PostureView extends LitElement {
           Set the organisation's overall threat level and security posture, with optional per-domain
           overrides for finer-grained signalling.
         </p>
+        <section class="brief" aria-labelledby="brief-heading">
+          <h3 id="brief-heading">Posture brief</h3>
+          <p class="panel-note">
+            Copy a Markdown posture brief covering requirements, evidence, risks, actions, and
+            directions — the same brief format produced by PSPF Core and Workshop.
+          </p>
+          <button
+            type="button"
+            data-testid="copy-posture-brief"
+            @click=${(): void => void this.#copyPostureBrief()}
+          >
+            Copy posture brief
+          </button>
+          ${this.briefStatus
+            ? html`<span class="brief-status" role="status">${this.briefStatus}</span>`
+            : ''}
+        </section>
         <pspf-list-workbench left-label="Posture controls" right-label="Domain posture list">
           <div slot="left">
             <h3>Global posture</h3>

@@ -157,6 +157,35 @@ export function coreBundleIdentity(manifest: CoreBundleManifest): string {
   );
 }
 
+export interface CoreChecksumMismatch {
+  collection: string;
+  expected: string;
+  actual: string;
+}
+
+/**
+ * Verify the manifest's SHA-256 collection checksums against the embedded
+ * collections, using the same canonical serialisation as PSPF Core
+ * (`JSON.stringify(records, null, 2)` plus a trailing newline). Collections
+ * without a SHA-256 manifest entry are skipped, so older sample bundles
+ * without hashes still load.
+ */
+export async function verifyCoreBundleChecksums(
+  bundle: CoreBundle,
+): Promise<CoreChecksumMismatch[]> {
+  const mismatches: CoreChecksumMismatch[] = [];
+  for (const entry of bundle.manifest.collections ?? []) {
+    if (entry.hash?.alg !== 'SHA-256' || !entry.hash.value) continue;
+    const records = bundle.collections[entry.name];
+    if (!records) continue;
+    const actual = await sha256Hex(`${JSON.stringify(records, null, 2)}\n`);
+    if (actual !== entry.hash.value) {
+      mismatches.push({ collection: entry.name, expected: entry.hash.value, actual });
+    }
+  }
+  return mismatches;
+}
+
 // ---------- Status vocabularies ----------
 
 /** Core AssessmentStatus → local ComplianceState (lossy states carry a note). */

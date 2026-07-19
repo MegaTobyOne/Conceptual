@@ -112,6 +112,9 @@ importers:
       '@preact/signals-core':
         specifier: 1.14.1
         version: 1.14.1
+      '@pspf/brief-renderer':
+        specifier: workspace:*
+        version: link:../brief-renderer
       '@pspf/contracts':
         specifier: workspace:*
         version: link:../contracts

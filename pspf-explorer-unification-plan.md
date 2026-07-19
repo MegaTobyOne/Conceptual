@@ -46,7 +46,7 @@ Source snapshot: `https://github.com/MegaTobyOne/pspfexplorer2` (`main`, July 20
 | B.2 | Replace embedded dataset with a build-time generation step consuming `@pspf/reference-data`; delete `src/pspf/` data modules; keep type definitions where still needed.                                                                      | App renders identical requirement set from generated data. |
 | B.3 | Normalise IDs at the data boundary to ADR 0002 format; map pspfexplorer2 branded IDs (`RequirementId` etc.) onto canonical IDs.                                                                                                              | ID round-trip tests pass.                                  |
 
-## Phase C — Master-bundle interop (the load-bearing phase) �
+## Phase C — Master-bundle interop (the load-bearing phase) ✅
 
 > Landed: `src/data/core-bundle.ts` (parse/plan/apply import + export of the manifest-led master
 > bundle, axis validation via `@pspf/contracts`, SHA-256 collection hashes, stable ID mapping
@@ -55,7 +55,9 @@ Source snapshot: `https://github.com/MegaTobyOne/pspfexplorer2` (`main`, July 20
 > `importBundle(..., 'full-replace')` with validation ok. Deviation from C.3 as written: export
 > uses the master-bundle format (ADR 0009) rather than the plan/apply exchange format — Core
 > accepts it directly, so the plan/apply path is not required for interop. C.2 is partial
-> (classification labelling shipped; full read-only publication overlay deferred). C.4 deferred.
+> (classification labelling shipped; full read-only publication overlay deferred). C.4 landed
+> minimally in Phase D: SHA-256 checksum verification now runs on every bundle load in the
+> Core exchange view (mismatches block the import plan); the full validation panel is retired.
 
 | #   | Work                                                                                                                                                                                                                                                                        | Done when                                                                              |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -64,7 +66,30 @@ Source snapshot: `https://github.com/MegaTobyOne/pspfexplorer2` (`main`, July 20
 | C.3 | Round-trip export: local changes export in the Workshop-compatible plan/apply import format (ADR 0035, ADR 0037), replacing the `pspf-explorer.v3` backup envelope for interop purposes (local full-backup export may remain as a convenience).                             | Workshop import review accepts an export produced by the new app.                      |
 | C.4 | Bundle validation panel parity: schema check against `schemas/explorer-bundle/<schemaVersion>/`, checksum display, and the signature row placeholder from grand-plan Tranche 6.                                                                                             | Validation view reports the same findings as the shipped Explorer for the same bundle. |
 
-## Phase D — Feature parity and AU polish 🔲
+## Phase D — Feature parity and AU polish ✅
+
+> Landed. D.1 parity outcomes against the shipped Explorer:
+>
+> - **Posture brief** — PORTED. `src/data/posture-brief.ts` renders the shared
+>   `@pspf/brief-renderer` markdown from the browser-local store; "Copy posture brief" lives on
+>   the Posture view and preserves the OFFICIAL: Sensitive banner and operator spine.
+> - **Bundle checksum validation** — PORTED into the Core exchange view
+>   (`verifyCoreBundleChecksums`); a manifest/content mismatch blocks the import plan with an
+>   AU-English remediation message. Closes C.4 minimally.
+> - **ISM source-controls table** — RETIRED from the web surface. ISM data still round-trips
+>   through the Core exchange unchanged; ISM authoring and review live in Workshop/Core.
+> - **Strategy, plan-lens, and change-record views** — RETIRED from the web surface. The
+>   collections pass through import/export untouched; authoring lives in Workshop.
+> - **Obligations/summary donuts** — COVERED by the Analytics and Coverage views (KPIs, coverage
+>   matrix) with e2e tests.
+> - **Relationships board (ADR 0010)** — COVERED by the relationship map's board mode
+>   (columns by kind, connection lines, multi-select highlight; 8 e2e tests).
+>
+> D.2 verified: the map builds from store relationships including bundle-imported ones, with
+> deep links (`?focus=`) tested. D.3: root `lint:au` scans the package and passes; dates use
+> local-friendly display. D.4: axe + perf budget run as blocking package gates and are wired
+> into CI/release gates at cutover (Phase E). Note: typescript-eslint type-checked rules are
+> disabled in the package until typescript-eslint supports TypeScript 6.
 
 | #   | Work                                                                                                                                                                                                                                               | Done when                                          |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |

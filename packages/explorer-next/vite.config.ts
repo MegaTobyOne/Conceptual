@@ -13,6 +13,9 @@ export default defineConfig({
     alias: {
       // Must precede the '@pspf' source alias below, which would otherwise
       // shadow the @pspf/* workspace packages.
+      '@pspf/brief-renderer': fileURLToPath(
+        new URL('../brief-renderer/dist/index.js', import.meta.url),
+      ),
       '@pspf/contracts': fileURLToPath(new URL('../contracts/dist/index.js', import.meta.url)),
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@data': fileURLToPath(new URL('./src/data', import.meta.url)),
