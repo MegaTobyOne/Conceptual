@@ -43,8 +43,9 @@ if (!suiteRunOk) {
 }
 
 const checks = suites.map((suite) => {
-  const mentioned = output.includes(suite.spec);
-  const ok = suiteRunOk && mentioned;
+  // Playwright's CI reporter may emit compact dot output without spec filenames.
+  // The exact spec list is passed above; a zero exit code means all requested suites ran and passed.
+  const ok = suiteRunOk;
   console.log(`${ok ? "ok" : "FAIL"} ${suite.name}`);
   return { name: suite.name, ok, spec: suite.spec };
 });
