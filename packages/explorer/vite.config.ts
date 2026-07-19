@@ -1,0 +1,49 @@
+import { defineConfig } from 'vite';
+import { fileURLToPath, URL } from 'node:url';
+import pkg from './package.json' with { type: 'json' };
+
+// Relative base by default so the same build works served at any path
+// (locally at / and deployed at /explorer/). Hash routing keeps the document
+// URL fixed, so relative asset URLs are always safe. PSPF_BASE overrides.
+const base = process.env.PSPF_BASE ?? './';
+
+export default defineConfig({
+  base,
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
+  resolve: {
+    alias: {
+      // Must precede the '@pspf' source alias below, which would otherwise
+      // shadow the @pspf/* workspace packages.
+      '@pspf/brief-renderer': fileURLToPath(
+        new URL('../brief-renderer/dist/index.js', import.meta.url),
+      ),
+      '@pspf/contracts': fileURLToPath(new URL('../contracts/dist/index.js', import.meta.url)),
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@data': fileURLToPath(new URL('./src/data', import.meta.url)),
+      '@domain': fileURLToPath(new URL('./src/domain', import.meta.url)),
+      '@views': fileURLToPath(new URL('./src/views', import.meta.url)),
+      '@components': fileURLToPath(new URL('./src/components', import.meta.url)),
+      '@pspf': fileURLToPath(new URL('./src/pspf', import.meta.url)),
+      '@state': fileURLToPath(new URL('./src/state', import.meta.url)),
+    },
+  },
+  build: {
+    target: 'es2022',
+    cssCodeSplit: true,
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules/cytoscape')) return 'cytoscape';
+          return undefined;
+        },
+      },
+    },
+  },
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
+});

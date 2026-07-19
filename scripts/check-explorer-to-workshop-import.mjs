@@ -1,474 +1,127 @@
+// Explorer-to-Workshop import gate (ADR 0004, 0009, 0084).
+// End-to-end round trip through the real surfaces:
+// 1. Serve the built Explorer and load the published enterprise sample bundle
+//    through the Core exchange view (checksums verified in-app).
+// 2. Apply it to browser-local stores, author a local risk, then download the
+//    Core bundle export from the UI.
+// 3. Import that export into a fresh Core workspace with full-replace and
+//    assert validation passes and Workshop-visible records survive.
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import { join, relative } from "node:path";
-import { pathToFileURL } from "node:url";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { chromium } from "playwright";
 import { createCoreService } from "../packages/core/dist/service.js";
-import { PSPF_BASELINE_REQUIREMENTS } from "../packages/reference-data/dist/index.js";
+import { serveStaticDir } from "./lib/serve-explorer.mjs";
 
 const root = process.cwd();
-const explorerPath = join(root, "packages", "explorer", "dist", "index.html");
-const sourceBundlePath = findBundlePath();
+const distDir = join(root, "packages", "explorer", "dist");
 const reportDirectory = join(root, ".tmp", "explorer-to-workshop-import");
-const exportBundlePath = join(reportDirectory, "explorer-local-authoring-bundle.json");
-const importWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-import-workspace");
-const additiveImportWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-additive-import-workspace");
-const partialFullReplaceWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-full-replace-partial-workspace");
-const historicalMappingWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-historical-mapping-workspace");
-const planApplyWorkspaceRoot = join(root, ".tmp", "explorer-to-workshop-plan-apply-workspace");
-const savedViewName = `Workshop import saved view ${Date.now()}`;
-await rm(importWorkspaceRoot, { recursive: true, force: true });
-await rm(additiveImportWorkspaceRoot, { recursive: true, force: true });
-await rm(partialFullReplaceWorkspaceRoot, { recursive: true, force: true });
-await rm(historicalMappingWorkspaceRoot, { recursive: true, force: true });
-await rm(planApplyWorkspaceRoot, { recursive: true, force: true });
+const reportPath = join(reportDirectory, "explorer-to-workshop-import-report.json");
 await mkdir(reportDirectory, { recursive: true });
 
+const checks = [];
+function check(name, ok, detail) {
+  checks.push({ name, ok: Boolean(ok), ...(detail ? { detail } : {}) });
+  console.log(`${ok ? "ok" : "FAIL"} ${name}${detail ? ` — ${detail}` : ""}`);
+}
+
+assert.ok(existsSync(join(distDir, "index.html")), "packages/explorer/dist/index.html missing; run pnpm build first");
+
+const localRiskTitle = `Explorer import risk ${Date.now()}`;
+const downloadDir = join(reportDirectory, "downloads");
+await rm(downloadDir, { recursive: true, force: true });
+await mkdir(downloadDir, { recursive: true });
+
+const server = await serveStaticDir(distDir);
 const browser = await chromium.launch({ headless: true });
+let exportPath;
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
   const pageErrors = [];
-  const consoleErrors = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
-  page.on("console", (message) => {
-    if (message.type() === "error") {
-      consoleErrors.push(message.text());
-    }
+
+  await page.goto(server.baseUrl);
+  await page.evaluate(async () => {
+    const dbs = (await indexedDB.databases?.()) ?? [];
+    for (const db of dbs) if (db.name) indexedDB.deleteDatabase(db.name);
   });
+  await page.reload();
 
-  await page.goto(pathToFileURL(explorerPath).href);
-  await page.waitForFunction(() => typeof globalThis.pspfExplorerRender === "function");
-  const sourceBundle = normaliseBundleForActiveVersion(JSON.parse(readFileSyncText(sourceBundlePath)));
-  const requirement =
-    sourceBundle.collections.requirements.find((item) => item.assessmentStatus !== "met") ||
-    sourceBundle.collections.requirements[0];
-  assert.ok(requirement, "fixture should include at least one requirement");
+  // Load and apply the sample bundle through the Core exchange view.
+  await page.goto(`${server.baseUrl}#/core`);
+  const exchange = page.locator("pspf-core-exchange-view");
+  await exchange.waitFor({ state: "visible", timeout: 15000 });
+  await exchange.getByTestId("core-bundle-file").setInputFiles(join(distDir, "sample-bundle-enterprise.json"));
+  await exchange.getByTestId("import-plan").waitFor({ state: "visible", timeout: 15000 });
+  await exchange.getByTestId("apply-core-bundle").click();
+  await exchange.locator(".alert.ok").waitFor({ state: "visible", timeout: 15000 });
+  check("sample bundle loads and applies through the Core exchange", true);
 
-  await page.evaluate(async (bundle) => {
-    await globalThis.pspfExplorerRender(bundle.manifest, bundle.collections || {});
-  }, sourceBundle);
-  await page.waitForSelector("#local-authoring:not([hidden])");
+  // Author a local risk so the export carries an Explorer-authored record.
+  await page.goto(`${server.baseUrl}#/risks`);
+  const risksView = page.locator("pspf-risks-view");
+  await risksView.waitFor({ state: "visible", timeout: 15000 });
+  await risksView.getByLabel("Title").fill(localRiskTitle);
+  await risksView.getByLabel("Likelihood").selectOption("4");
+  await risksView.getByLabel("Impact").selectOption("4");
+  await risksView.getByRole("button", { name: "Add risk" }).click();
+  await risksView.locator("li.risk", { hasText: localRiskTitle }).waitFor({ state: "visible", timeout: 15000 });
+  check("local risk authored in the Explorer", true);
 
-  await page.evaluate(
-    async ({ requirementId, savedViewName }) => {
-      await globalThis.pspfExplorerSetLocalRequirementStatus(requirementId, "met");
-      await globalThis.pspfExplorerAddLocalEvidenceReference(
-        requirementId,
-        "Explorer import evidence",
-        "https://example.gov.au/evidence/import-roundtrip"
-      );
-      await globalThis.pspfExplorerAddLocalAction(requirementId, "Explorer import action", "todo", "2026-06-30");
-      await globalThis.pspfExplorerAddLocalRisk(requirementId, "Explorer import risk", "open", 4, 5);
-      await globalThis.pspfExplorerSaveRequirementsView(savedViewName);
-    },
-    { requirementId: requirement.id, savedViewName }
-  );
-  await page.waitForFunction(() => document.querySelector("#local-authoring")?.textContent?.includes("Local risks: 1"));
-  await page.waitForFunction(
-    (name) => globalThis.pspfExplorerSavedViews().some((item) => item.name === name),
-    savedViewName
-  );
+  // Download the Core bundle export from the UI.
+  await page.goto(`${server.baseUrl}#/core`);
+  await exchange.waitFor({ state: "visible", timeout: 15000 });
+  const downloadPromise = page.waitForEvent("download", { timeout: 30000 });
+  await exchange.getByTestId("export-core-bundle").click();
+  const download = await downloadPromise;
+  exportPath = join(downloadDir, download.suggestedFilename() || "explorer-core-bundle.json");
+  await download.saveAs(exportPath);
+  check("Explorer downloads a Core bundle export", existsSync(exportPath));
 
-  const explorerBundle = await page.evaluate(async () => globalThis.pspfExplorerExportLocalBundle());
-  await writeFile(exportBundlePath, `${JSON.stringify(explorerBundle, null, 2)}\n`, "utf8");
-
-  const importService = createCoreService(importWorkspaceRoot);
-  await importService.initialiseWorkspace();
-  const imported = await importService.importBundle(exportBundlePath, "full-replace");
-  const validation = await importService.validateWorkspace();
-  const importedRequirements = await importService.listEntities("requirement");
-  const importedEvidence = await importService.listEntities("evidence");
-  const importedActions = await importService.listEntities("action");
-  const importedRisks = await importService.listEntities("risk");
-  const importedSavedViews = await importService.listEntities("saved-view");
-  const importedLinks = await importService.listEntities("link");
-
-  const importedRequirement = importedRequirements.find((item) => item.id === requirement.id);
-  const importedEvidenceRecord = importedEvidence.find((item) => item.title === "Explorer import evidence");
-  const importedActionRecord = importedActions.find((item) => item.title === "Explorer import action");
-  const importedRiskRecord = importedRisks.find((item) => item.title === "Explorer import risk");
-  const importedSavedView = importedSavedViews.find((item) => item.name === savedViewName);
-  const importedEvidenceLink = importedLinks.find(
-    (item) =>
-      item.fromId === requirement.id && item.toId === importedEvidenceRecord?.id && item.linkType === "supported-by"
-  );
-  const importedActionLink = importedLinks.find(
-    (item) =>
-      item.fromId === requirement.id && item.toId === importedActionRecord?.id && item.linkType === "addressed-by"
-  );
-  const importedRiskLink = importedLinks.find(
-    (item) => item.fromId === requirement.id && item.toId === importedRiskRecord?.id && item.linkType === "exposed-by"
-  );
-  const expectedImported = Object.entries(explorerBundle.collections)
-    .filter(([collection]) => collection !== "posture")
-    .reduce((total, [, records]) => total + records.length, 0);
-
-  const partialBundle = JSON.parse(JSON.stringify(explorerBundle));
-  partialBundle.collections["source-controls"] = [];
-  refreshManifestCollection(partialBundle, "source-controls");
-  const partialBundlePath = join(reportDirectory, "explorer-local-authoring-additive-without-source-controls.json");
-  await writeFile(partialBundlePath, `${JSON.stringify(partialBundle, null, 2)}\n`, "utf8");
-  const historicalMappingBundle = JSON.parse(JSON.stringify(partialBundle));
-  historicalMappingBundle.collections["requirement-control-mappings"][0].id =
-    "MAP-47cd1747-8119-4c0f-8dbd-27d735e036fd";
-  historicalMappingBundle.collections["requirement-control-mappings"][0].sourceControlId =
-    "SRC-00000000-0000-7000-8000-000000000102";
-  refreshManifestCollection(historicalMappingBundle, "requirement-control-mappings");
-  const historicalMappingBundlePath = join(reportDirectory, "explorer-local-authoring-historical-mapping.json");
-  await writeFile(historicalMappingBundlePath, `${JSON.stringify(historicalMappingBundle, null, 2)}\n`, "utf8");
-  const additiveImportService = createCoreService(additiveImportWorkspaceRoot);
-  await additiveImportService.initialiseWorkspace();
-  const baselineRequirementsBeforeAdditive = await additiveImportService.listEntities("requirement");
-  const changedRequirementBeforeAdditive = baselineRequirementsBeforeAdditive.find(
-    (item) => item.id === requirement.id
-  );
-  const unchangedRequirementBeforeAdditive = baselineRequirementsBeforeAdditive.find(
-    (item) => item.id !== requirement.id
-  );
-  assert.ok(unchangedRequirementBeforeAdditive, "fixture should include an unchanged baseline requirement");
-  const additiveImported = await additiveImportService.importBundle(partialBundlePath, "additive-merge");
-  const additiveValidation = await additiveImportService.validateWorkspace();
-  const additiveImportedAgain = await additiveImportService.importBundle(partialBundlePath, "additive-merge");
-  const additiveRequirements = await additiveImportService.listEntities("requirement");
-  const additiveRequirement = additiveRequirements.find((item) => item.id === requirement.id);
-  const unchangedRequirementAfterAdditive = additiveRequirements.find(
-    (item) => item.id === unchangedRequirementBeforeAdditive.id
-  );
-  const additiveEvidenceRecord = (await additiveImportService.listEntities("evidence")).find(
-    (item) => item.title === "Explorer import evidence"
-  );
-  const additiveActionRecord = (await additiveImportService.listEntities("action")).find(
-    (item) => item.title === "Explorer import action"
-  );
-  const additiveRiskRecord = (await additiveImportService.listEntities("risk")).find(
-    (item) => item.title === "Explorer import risk"
-  );
-  const additiveSavedViewRecord = (await additiveImportService.listEntities("saved-view")).find(
-    (item) => item.name === savedViewName
-  );
-  const planApplyService = createCoreService(planApplyWorkspaceRoot);
-  await planApplyService.initialiseWorkspace();
-  const planBeforeRequirement = (await planApplyService.listEntities("requirement")).find(
-    (item) => item.id === requirement.id
-  );
-  const plan = await planApplyService.planImportBundle(partialBundlePath, "plan-apply");
-  const planAfterPlanningRequirement = (await planApplyService.listEntities("requirement")).find(
-    (item) => item.id === requirement.id
-  );
-  const planApplied = await planApplyService.importBundle(partialBundlePath, "plan-apply");
-  const planAfterApplyRequirement = (await planApplyService.listEntities("requirement")).find(
-    (item) => item.id === requirement.id
-  );
-  const planUndo = await planApplyService.undoLastImport();
-  const planAfterUndoRequirement = (await planApplyService.listEntities("requirement")).find(
-    (item) => item.id === requirement.id
-  );
-  const partialFullReplaceImportService = createCoreService(partialFullReplaceWorkspaceRoot);
-  await partialFullReplaceImportService.initialiseWorkspace();
-  const partialFullReplaceImported = await partialFullReplaceImportService.importBundle(
-    partialBundlePath,
-    "full-replace"
-  );
-  const partialFullReplaceValidation = await partialFullReplaceImportService.validateWorkspace();
-  const partialFullReplaceSourceControls = await partialFullReplaceImportService.listEntities("source-control");
-  const partialFullReplaceRequirement = (await partialFullReplaceImportService.listEntities("requirement")).find(
-    (item) => item.id === requirement.id
-  );
-  const historicalMappingImportService = createCoreService(historicalMappingWorkspaceRoot);
-  await historicalMappingImportService.initialiseWorkspace();
-  const historicalMappingImported = await historicalMappingImportService.importBundle(
-    historicalMappingBundlePath,
-    "full-replace"
-  );
-  const historicalMappings = await historicalMappingImportService.listEntities("requirement-control-mapping");
-  const historicalMapping = historicalMappings.find((item) => item.id === "MAP-47cd1747-8119-4c0f-8dbd-27d735e036fd");
-  const importSummaryShowsStatusChange = imported.summary.examples.some(
-    (item) => item.includes("status") && item.includes("Met")
-  );
-  const importSummaryShowsCreatedChangedRequirement =
-    imported.summary.examples.some((item) => item.includes(`Created Requirement ${requirement.id}`)) &&
-    importedRequirement?.assessmentStatus === "met";
-  const repeatedAdditiveOnlyRefreshesReferenceDomains =
-    additiveImportedAgain.imported > 0 &&
-    additiveImportedAgain.imported === additiveImportedAgain.summary.written &&
-    additiveImportedAgain.summary.byType.domain?.updated === additiveImportedAgain.imported &&
-    additiveImportedAgain.summary.unchanged > 0;
-
-  const checks = [
-    check("No page errors", pageErrors.length === 0, pageErrors.join("; ")),
-    check("No console errors", consoleErrors.length === 0, consoleErrors.join("; ")),
-    check(
-      "Explorer export uses local-authoring mode",
-      explorerBundle.manifest.generator.mode === "local-authoring",
-      explorerBundle.manifest.generator.mode
-    ),
-    check("Explorer export bundle written", existsSync(exportBundlePath), relative(root, exportBundlePath)),
-    check(
-      "Core imports exported Explorer bundle",
-      imported.imported === expectedImported,
-      `${imported.imported}/${expectedImported}`
-    ),
-    check(
-      "Import summary reports created local records",
-      imported.summary.created >= 3,
-      `${imported.summary.created} created`
-    ),
-    check(
-      "Import summary includes status change or created changed Requirement",
-      importSummaryShowsStatusChange || importSummaryShowsCreatedChangedRequirement,
-      imported.summary.examples.join("; ")
-    ),
-    check("Imported workspace validates", validation.ok, validation.message),
-    check(
-      "Workshop-visible Requirement carries local status",
-      importedRequirement?.assessmentStatus === "met",
-      importedRequirement?.assessmentStatus || "missing"
-    ),
-    check(
-      "Workshop-visible Requirement source is Explorer",
-      importedRequirement?.sourceProduct === "explorer",
-      importedRequirement?.sourceProduct || "missing"
-    ),
-    check(
-      "Workshop-visible evidence imported",
-      importedEvidenceRecord?.sourceProduct === "explorer",
-      importedEvidenceRecord?.sourceProduct || "missing"
-    ),
-    check(
-      "Workshop-visible evidence link imported",
-      importedEvidenceLink?.sourceProduct === "explorer",
-      importedEvidenceLink?.sourceProduct || "missing"
-    ),
-    check(
-      "Workshop-visible action imported",
-      importedActionRecord?.status === "todo",
-      importedActionRecord?.status || "missing"
-    ),
-    check(
-      "Workshop-visible action due date imported",
-      importedActionRecord?.dueDate === "2026-06-30",
-      importedActionRecord?.dueDate || "missing"
-    ),
-    check(
-      "Workshop-visible action source is Explorer",
-      importedActionRecord?.sourceProduct === "explorer",
-      importedActionRecord?.sourceProduct || "missing"
-    ),
-    check(
-      "Workshop-visible action link imported",
-      importedActionLink?.sourceProduct === "explorer",
-      importedActionLink?.sourceProduct || "missing"
-    ),
-    check(
-      "Workshop-visible risk imported",
-      importedRiskRecord?.status === "open",
-      importedRiskRecord?.status || "missing"
-    ),
-    check(
-      "Workshop-visible risk score imported",
-      importedRiskRecord?.likelihood === 4 && importedRiskRecord?.impact === 5,
-      `${importedRiskRecord?.likelihood || "missing"}/${importedRiskRecord?.impact || "missing"}`
-    ),
-    check(
-      "Workshop-visible risk source is Explorer",
-      importedRiskRecord?.sourceProduct === "explorer",
-      importedRiskRecord?.sourceProduct || "missing"
-    ),
-    check(
-      "Workshop-visible risk link imported",
-      importedRiskLink?.sourceProduct === "explorer",
-      importedRiskLink?.sourceProduct || "missing"
-    ),
-    check(
-      "Workshop-visible saved view imported",
-      importedSavedView?.scope === "explorer-requirements",
-      importedSavedView?.scope || "missing"
-    ),
-    check(
-      "Workshop-visible saved view source is Explorer",
-      importedSavedView?.sourceProduct === "explorer",
-      importedSavedView?.sourceProduct || "missing"
-    ),
-    check(
-      "Baseline Requirements retained",
-      importedRequirements.length === PSPF_BASELINE_REQUIREMENTS.length + 1,
-      `${importedRequirements.length} requirement(s)`
-    ),
-    check(
-      "Additive import accepts existing source controls",
-      additiveImported.imported > 0 && additiveValidation.ok,
-      `${additiveImported.imported} record(s)`
-    ),
-    check(
-      "Additive import summary reports changes",
-      additiveImported.summary.updated > 0 || additiveImported.summary.created > 0,
-      `${additiveImported.summary.updated} updated, ${additiveImported.summary.created} created`
-    ),
-    check(
-      "Repeated additive import reports no local changes",
-      (additiveImportedAgain.imported === 0 &&
-        additiveImportedAgain.summary.written === 0 &&
-        additiveImportedAgain.summary.unchanged > 0) ||
-        repeatedAdditiveOnlyRefreshesReferenceDomains,
-      `${additiveImportedAgain.imported} imported, ${additiveImportedAgain.summary.unchanged} unchanged`
-    ),
-    check(
-      "Additive import carries local status",
-      additiveRequirement?.assessmentStatus === "met",
-      additiveRequirement?.assessmentStatus || "missing"
-    ),
-    check(
-      "Additive import preserves changed Requirement createdAt when baseline exists",
-      !changedRequirementBeforeAdditive ||
-        additiveRequirement?.createdAt === changedRequirementBeforeAdditive.createdAt,
-      additiveRequirement?.createdAt || "created row"
-    ),
-    check(
-      "Additive import leaves unchanged Requirement createdAt",
-      unchangedRequirementAfterAdditive?.createdAt === unchangedRequirementBeforeAdditive.createdAt,
-      unchangedRequirementAfterAdditive?.createdAt || "missing"
-    ),
-    check(
-      "Additive import carries local evidence",
-      additiveEvidenceRecord?.sourceProduct === "explorer",
-      additiveEvidenceRecord?.sourceProduct || "missing"
-    ),
-    check(
-      "Additive import carries local action",
-      additiveActionRecord?.sourceProduct === "explorer",
-      additiveActionRecord?.sourceProduct || "missing"
-    ),
-    check(
-      "Additive import carries local risk",
-      additiveRiskRecord?.sourceProduct === "explorer",
-      additiveRiskRecord?.sourceProduct || "missing"
-    ),
-    check(
-      "Additive import carries saved view",
-      additiveSavedViewRecord?.sourceProduct === "explorer",
-      additiveSavedViewRecord?.sourceProduct || "missing"
-    ),
-    check(
-      "Plan-apply reports a reviewable plan",
-      plan.imported > 0 && (plan.summary.updated > 0 || plan.summary.created > 0),
-      `${plan.imported} planned, ${plan.summary.updated} updated, ${plan.summary.created} created`
-    ),
-    check(
-      "Plan-apply planning makes no writes",
-      !planBeforeRequirement ||
-        planAfterPlanningRequirement?.assessmentStatus === planBeforeRequirement.assessmentStatus,
-      planAfterPlanningRequirement?.assessmentStatus || "missing"
-    ),
-    check(
-      "Plan-apply applies after confirmation",
-      planApplied.imported > 0 && planAfterApplyRequirement?.assessmentStatus === "met",
-      `${planApplied.imported} imported, ${planAfterApplyRequirement?.assessmentStatus || "missing"}`
-    ),
-    check(
-      "Plan-apply undo restores previous records",
-      planUndo.undone &&
-        (!planBeforeRequirement ||
-          planAfterUndoRequirement?.assessmentStatus === planBeforeRequirement.assessmentStatus),
-      planUndo.message
-    ),
-    check(
-      "Full-replace import preserves referenced source controls",
-      partialFullReplaceImported.imported > 0 &&
-        partialFullReplaceValidation.ok &&
-        partialFullReplaceSourceControls.length > 0,
-      `${partialFullReplaceImported.imported} record(s), ${partialFullReplaceSourceControls.length} source control(s)`
-    ),
-    check(
-      "Full-replace partial import carries local status",
-      partialFullReplaceRequirement?.assessmentStatus === "met",
-      partialFullReplaceRequirement?.assessmentStatus || "missing"
-    ),
-    check(
-      "Historical mapping source-control reference imports",
-      historicalMappingImported.imported > 0 &&
-        historicalMapping?.sourceControlId === "SRC-00000000-0000-7000-8000-000000000102",
-      historicalMapping?.sourceControlId || "missing"
-    )
-  ];
-  const failed = checks.filter((item) => !item.ok);
-  const report = {
-    generatedAt: new Date().toISOString(),
-    explorerPath: relative(root, explorerPath),
-    sourceBundlePath: relative(root, sourceBundlePath),
-    exportBundlePath: relative(root, exportBundlePath),
-    partialBundlePath: relative(root, partialBundlePath),
-    historicalMappingBundlePath: relative(root, historicalMappingBundlePath),
-    importWorkspaceRoot: relative(root, importWorkspaceRoot),
-    additiveImportWorkspaceRoot: relative(root, additiveImportWorkspaceRoot),
-    planApplyWorkspaceRoot: relative(root, planApplyWorkspaceRoot),
-    partialFullReplaceWorkspaceRoot: relative(root, partialFullReplaceWorkspaceRoot),
-    historicalMappingWorkspaceRoot: relative(root, historicalMappingWorkspaceRoot),
-    requirementId: requirement.id,
-    checks
-  };
-  await writeFile(
-    join(reportDirectory, "explorer-to-workshop-import-report.json"),
-    `${JSON.stringify(report, null, 2)}\n`,
-    "utf8"
-  );
-  assert.equal(failed.length, 0, failed.map((item) => `${item.name}: ${item.detail}`).join("\n"));
-  console.log("ok Explorer local-authoring export imports into Core/Workshop workspace");
-  console.log(`report: ${relative(root, join(reportDirectory, "explorer-to-workshop-import-report.json"))}`);
+  check("no page errors during export flow", pageErrors.length === 0, pageErrors.join("; ") || undefined);
 } finally {
   await browser.close();
+  await server.close();
 }
 
-function findBundlePath() {
-  const e2eReportPath = join(root, ".tmp", "e2e-v0.1-workspace", ".pspf", "reports", "e2e-v0.1-report.json");
-  if (existsSync(e2eReportPath)) {
-    const report = JSON.parse(readFileSyncText(e2eReportPath));
-    const candidate = join(root, report.bundlePath);
-    if (existsSync(candidate)) {
-      return candidate;
-    }
-  }
-
-  return join(root, "packages", "contracts", "test-fixtures", "standard", "bundle.json");
+// Import the Explorer export into a fresh Core workspace.
+const exported = JSON.parse(readFileSync(exportPath, "utf8"));
+check("export is a manifest-led master bundle", exported.manifest?.bundleType === "pspf-explorer-bundle");
+const workspaceDir = join(tmpdir(), `pspf-explorer-import-${Date.now()}`);
+await mkdir(workspaceDir, { recursive: true });
+try {
+  const service = createCoreService(workspaceDir);
+  await service.initialiseWorkspace();
+  const importResult = await service.importBundle(exportPath, "full-replace");
+  check(
+    "Core imports the Explorer export with full-replace",
+    importResult.imported > 0,
+    `${importResult.imported} records`
+  );
+  const validation = await service.validateWorkspace();
+  check(
+    "imported workspace passes Core validation",
+    validation.ok,
+    validation.ok ? undefined : JSON.stringify(validation.issues ?? []).slice(0, 400)
+  );
+  const risks = await service.listEntities("risk");
+  const importedRisk = risks.find((risk) => risk.title === localRiskTitle);
+  check("Explorer-authored risk is Workshop-visible after import", Boolean(importedRisk));
+  const requirements = await service.listEntities("requirement");
+  check("requirements survive the round trip", requirements.length > 0, `${requirements.length} requirements`);
+} finally {
+  await rm(workspaceDir, { recursive: true, force: true });
 }
 
-function readFileSyncText(path) {
-  return readFileSync(path, "utf8");
-}
-
-function refreshManifestCollection(bundle, collectionName) {
-  const records = bundle.collections?.[collectionName] || [];
-  const serialised = JSON.stringify(records, null, 2) + "\n";
-  const collection = bundle.manifest?.collections?.find((item) => item.name === collectionName);
-  assert.ok(collection, `manifest should contain ${collectionName}`);
-  collection.count = records.length;
-  collection.hash = { alg: "SHA-256", value: createHash("sha256").update(serialised).digest("hex") };
-}
-
-function check(name, ok, detail) {
-  return { name, ok: Boolean(ok), detail };
-}
-
-function normaliseBundleForActiveVersion(bundle) {
-  bundle.manifest = {
-    ...(bundle.manifest || {}),
-    bundleVersion: "1.5.0",
-    schemaVersion: "1.5.0",
-    apiVersion: "1.5.0",
-    generator: {
-      ...(bundle.manifest?.generator || {}),
-      productVersion: "1.8.0"
-    }
-  };
-  for (const records of Object.values(bundle.collections || {})) {
-    if (Array.isArray(records)) {
-      for (const record of records) {
-        record.schemaVersion = "1.5.0";
-      }
-    }
-  }
-  bundle.collections["saved-views"] = bundle.collections["saved-views"] || [];
-  return bundle;
-}
+const ok = checks.every((item) => item.ok);
+await writeFile(
+  reportPath,
+  JSON.stringify({ generatedAt: new Date().toISOString(), ok, checks }, null, 2) + "\n",
+  "utf8"
+);
+console.log(`report: ${reportPath}`);
+assert.ok(ok, "explorer-to-workshop import checks failed");
+console.log(`ok explorer-to-workshop import passed (${checks.length} checks)`);

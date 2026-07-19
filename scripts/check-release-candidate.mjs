@@ -52,11 +52,22 @@ const axesByMinorVersion = new Map([
   [44, "1.14.0"],
   [45, "1.14.0"],
   [46, "1.14.0"],
-  [47, "1.14.0"]
+  [47, "1.14.0"],
+  [48, "1.14.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
 const isV11OrLaterRelease = isV1Release && minorVersion >= 1;
+
+// The legacy static Explorer (packages/explorer/scripts/build-static.mjs) was retired at the
+// ADR 0084 cutover to the unified Explorer app in v1.48.0. Historic release checks that
+// asserted on its source are skipped once the file no longer exists.
+const legacyExplorerBuildStaticPath = join(root, "packages/explorer/scripts/build-static.mjs");
+async function readLegacyExplorerBuildStatic() {
+  if (!existsSync(legacyExplorerBuildStaticPath)) return null;
+  return readFile(legacyExplorerBuildStaticPath, "utf8");
+}
+
 const packagePaths = [
   "package.json",
   "packages/assurance/package.json",
@@ -89,109 +100,113 @@ assert.match(contracts, new RegExp(`bundleVersion: "${expectedAxes}"`), `bundleV
 assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion should be ${expectedAxes}`);
 
 const e2eScript =
-  minorVersion >= 47
-    ? "e2e:v1.47"
-    : minorVersion >= 46
-      ? "e2e:v1.46"
-      : minorVersion >= 45
-        ? "e2e:v1.45"
-        : minorVersion >= 44
-          ? "e2e:v1.44"
-          : minorVersion >= 43
-            ? "e2e:v1.43"
-            : minorVersion >= 42
-              ? "e2e:v1.42"
-              : minorVersion >= 41
-                ? "e2e:v1.41"
-                : minorVersion >= 40
-                  ? "e2e:v1.40"
-                  : minorVersion >= 39
-                    ? "e2e:v1.39"
-                    : minorVersion >= 38
-                      ? "e2e:v1.38"
-                      : minorVersion >= 37
-                        ? "e2e:v1.37"
-                        : minorVersion >= 36
-                          ? "e2e:v1.36"
-                          : minorVersion >= 35
-                            ? "e2e:v1.35"
-                            : minorVersion >= 34
-                              ? "e2e:v1.34"
-                              : minorVersion >= 33
-                                ? "e2e:v1.33"
-                                : minorVersion >= 32
-                                  ? "e2e:v1.32"
-                                  : minorVersion >= 31
-                                    ? "e2e:v1.31"
-                                    : minorVersion >= 30
-                                      ? "e2e:v1.30"
-                                      : minorVersion >= 29
-                                        ? "e2e:v1.29"
-                                        : minorVersion >= 28
-                                          ? "e2e:v1.28"
-                                          : minorVersion >= 27
-                                            ? "e2e:v1.27"
-                                            : minorVersion >= 26
-                                              ? "e2e:v1.26"
-                                              : minorVersion >= 25
-                                                ? "e2e:v1.25"
-                                                : minorVersion >= 24
-                                                  ? "e2e:v1.24"
-                                                  : minorVersion >= 23
-                                                    ? "e2e:v1.23"
-                                                    : minorVersion >= 22
-                                                      ? "e2e:v1.22"
-                                                      : minorVersion >= 21
-                                                        ? "e2e:v1.21"
-                                                        : minorVersion >= 20
-                                                          ? "e2e:v1.20"
-                                                          : minorVersion >= 19
-                                                            ? "e2e:v1.19"
-                                                            : minorVersion >= 18
-                                                              ? "e2e:v1.18"
-                                                              : minorVersion >= 17
-                                                                ? "e2e:v1.17"
-                                                                : minorVersion >= 16
-                                                                  ? "e2e:v1.16"
-                                                                  : minorVersion >= 14
-                                                                    ? "e2e:v1.14"
-                                                                    : minorVersion >= 13
-                                                                      ? "e2e:v1.13"
-                                                                      : minorVersion >= 12
-                                                                        ? "e2e:v1.12"
-                                                                        : minorVersion >= 11
-                                                                          ? "e2e:v1.11"
-                                                                          : minorVersion >= 10
-                                                                            ? "e2e:v1.10"
-                                                                            : /^1\.9\.\d+$/.test(expectedVersion)
-                                                                              ? "e2e:v1.9"
-                                                                              : /^1\.8\.\d+$/.test(expectedVersion)
-                                                                                ? "e2e:v1.8"
-                                                                                : /^1\.7\.\d+$/.test(expectedVersion)
-                                                                                  ? "e2e:v1.7"
-                                                                                  : /^1\.6\.\d+$/.test(expectedVersion)
-                                                                                    ? "e2e:v1.6"
-                                                                                    : /^1\.5\.\d+$/.test(
+  minorVersion >= 48
+    ? "e2e:v1.48"
+    : minorVersion >= 47
+      ? "e2e:v1.47"
+      : minorVersion >= 46
+        ? "e2e:v1.46"
+        : minorVersion >= 45
+          ? "e2e:v1.45"
+          : minorVersion >= 44
+            ? "e2e:v1.44"
+            : minorVersion >= 43
+              ? "e2e:v1.43"
+              : minorVersion >= 42
+                ? "e2e:v1.42"
+                : minorVersion >= 41
+                  ? "e2e:v1.41"
+                  : minorVersion >= 40
+                    ? "e2e:v1.40"
+                    : minorVersion >= 39
+                      ? "e2e:v1.39"
+                      : minorVersion >= 38
+                        ? "e2e:v1.38"
+                        : minorVersion >= 37
+                          ? "e2e:v1.37"
+                          : minorVersion >= 36
+                            ? "e2e:v1.36"
+                            : minorVersion >= 35
+                              ? "e2e:v1.35"
+                              : minorVersion >= 34
+                                ? "e2e:v1.34"
+                                : minorVersion >= 33
+                                  ? "e2e:v1.33"
+                                  : minorVersion >= 32
+                                    ? "e2e:v1.32"
+                                    : minorVersion >= 31
+                                      ? "e2e:v1.31"
+                                      : minorVersion >= 30
+                                        ? "e2e:v1.30"
+                                        : minorVersion >= 29
+                                          ? "e2e:v1.29"
+                                          : minorVersion >= 28
+                                            ? "e2e:v1.28"
+                                            : minorVersion >= 27
+                                              ? "e2e:v1.27"
+                                              : minorVersion >= 26
+                                                ? "e2e:v1.26"
+                                                : minorVersion >= 25
+                                                  ? "e2e:v1.25"
+                                                  : minorVersion >= 24
+                                                    ? "e2e:v1.24"
+                                                    : minorVersion >= 23
+                                                      ? "e2e:v1.23"
+                                                      : minorVersion >= 22
+                                                        ? "e2e:v1.22"
+                                                        : minorVersion >= 21
+                                                          ? "e2e:v1.21"
+                                                          : minorVersion >= 20
+                                                            ? "e2e:v1.20"
+                                                            : minorVersion >= 19
+                                                              ? "e2e:v1.19"
+                                                              : minorVersion >= 18
+                                                                ? "e2e:v1.18"
+                                                                : minorVersion >= 17
+                                                                  ? "e2e:v1.17"
+                                                                  : minorVersion >= 16
+                                                                    ? "e2e:v1.16"
+                                                                    : minorVersion >= 14
+                                                                      ? "e2e:v1.14"
+                                                                      : minorVersion >= 13
+                                                                        ? "e2e:v1.13"
+                                                                        : minorVersion >= 12
+                                                                          ? "e2e:v1.12"
+                                                                          : minorVersion >= 11
+                                                                            ? "e2e:v1.11"
+                                                                            : minorVersion >= 10
+                                                                              ? "e2e:v1.10"
+                                                                              : /^1\.9\.\d+$/.test(expectedVersion)
+                                                                                ? "e2e:v1.9"
+                                                                                : /^1\.8\.\d+$/.test(expectedVersion)
+                                                                                  ? "e2e:v1.8"
+                                                                                  : /^1\.7\.\d+$/.test(expectedVersion)
+                                                                                    ? "e2e:v1.7"
+                                                                                    : /^1\.6\.\d+$/.test(
                                                                                           expectedVersion
                                                                                         )
-                                                                                      ? "e2e:v1.5"
-                                                                                      : /^1\.4\.\d+$/.test(
+                                                                                      ? "e2e:v1.6"
+                                                                                      : /^1\.5\.\d+$/.test(
                                                                                             expectedVersion
                                                                                           )
-                                                                                        ? "e2e:v1.4"
-                                                                                        : /^1\.3\.\d+$/.test(
+                                                                                        ? "e2e:v1.5"
+                                                                                        : /^1\.4\.\d+$/.test(
                                                                                               expectedVersion
                                                                                             )
-                                                                                          ? "e2e:v1.3"
-                                                                                          : /^1\.2\.\d+$/.test(
+                                                                                          ? "e2e:v1.4"
+                                                                                          : /^1\.3\.\d+$/.test(
                                                                                                 expectedVersion
                                                                                               )
-                                                                                            ? "e2e:v1.2"
-                                                                                            : isV11OrLaterRelease
-                                                                                              ? "e2e:v1.1"
-                                                                                              : isV1Release
-                                                                                                ? "e2e:v1.0"
-                                                                                                : "e2e:v0.9";
+                                                                                            ? "e2e:v1.3"
+                                                                                            : /^1\.2\.\d+$/.test(
+                                                                                                  expectedVersion
+                                                                                                )
+                                                                                              ? "e2e:v1.2"
+                                                                                              : isV11OrLaterRelease
+                                                                                                ? "e2e:v1.1"
+                                                                                                : isV1Release
+                                                                                                  ? "e2e:v1.0"
+                                                                                                  : "e2e:v0.9";
 for (const scriptName of [
   e2eScript,
   "check:adr-coverage",
@@ -508,7 +523,7 @@ if (/^1\.8\.\d+$/.test(expectedVersion)) {
       `Contracts saved-view foundation should mention ${requiredText}`
     );
   }
-  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  const explorer = await readLegacyExplorerBuildStatic();
   for (const requiredText of [
     "Saved views",
     "saveCurrentRequirementsView",
@@ -516,7 +531,11 @@ if (/^1\.8\.\d+$/.test(expectedVersion)) {
     "requirement-saved-views",
     "saved-views"
   ]) {
-    assert.equal(explorer.includes(requiredText), true, `Explorer saved-view surface should mention ${requiredText}`);
+    assert.equal(
+      explorer === null || explorer.includes(requiredText),
+      true,
+      `Explorer saved-view surface should mention ${requiredText}`
+    );
   }
   assert.equal(
     existsSync(join(root, "schemas/explorer-bundle/1.5.0/collections/saved-views.schema.json")),
@@ -557,7 +576,7 @@ if (/^1\.9\.\d+$/.test(expectedVersion)) {
       `Contracts v1.9 saved-view expansion should mention ${requiredText}`
     );
   }
-  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  const explorer = await readLegacyExplorerBuildStatic();
   for (const requiredText of [
     "Relationship views",
     "saveCurrentRelationshipsView",
@@ -565,7 +584,7 @@ if (/^1\.9\.\d+$/.test(expectedVersion)) {
     "explorer-relationships"
   ]) {
     assert.equal(
-      explorer.includes(requiredText),
+      explorer === null || explorer.includes(requiredText),
       true,
       `Explorer v1.9 saved-view surface should mention ${requiredText}`
     );
@@ -618,7 +637,7 @@ if (/^1\.10\.\d+$/.test(expectedVersion)) {
       `Contracts v1.10 change-record foundation should mention ${requiredText}`
     );
   }
-  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  const explorer = await readLegacyExplorerBuildStatic();
   for (const requiredText of [
     "Why This Changed",
     "change-records",
@@ -626,7 +645,7 @@ if (/^1\.10\.\d+$/.test(expectedVersion)) {
     "Change decision owner excluded"
   ]) {
     assert.equal(
-      explorer.includes(requiredText),
+      explorer === null || explorer.includes(requiredText),
       true,
       `Explorer v1.10 change-record surface should mention ${requiredText}`
     );
@@ -683,9 +702,13 @@ if (/^1\.12\.\d+$/.test(expectedVersion)) {
       `Workshop v1.12 planning saved-view surface should mention ${requiredText}`
     );
   }
-  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  const explorer = await readLegacyExplorerBuildStatic();
   for (const requiredText of ["Plan Lens", "planLensPanel", "planItemCount", "Planning lens over existing Actions"]) {
-    assert.equal(explorer.includes(requiredText), true, `Explorer v1.12 plan lens should mention ${requiredText}`);
+    assert.equal(
+      explorer === null || explorer.includes(requiredText),
+      true,
+      `Explorer v1.12 plan lens should mention ${requiredText}`
+    );
   }
   assert.equal(typeof packageJson.scripts["e2e:v1.12"], "string", "root package should define e2e:v1.12");
   assert.equal(packageJson.scripts["e2e:v1.12"].includes("e2e:v1.11"), true, "e2e:v1.12 should include v1.11 gates");
@@ -759,7 +782,7 @@ if (/^1\.14\.\d+$/.test(expectedVersion)) {
   ]) {
     assert.equal(v114Adr.includes(requiredText), true, `v1.14 ADR should mention ${requiredText}`);
   }
-  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  const explorer = await readLegacyExplorerBuildStatic();
   for (const requiredText of [
     "include-compliance-history",
     "Include compliance history",
@@ -768,7 +791,7 @@ if (/^1\.14\.\d+$/.test(expectedVersion)) {
     "pspfExplorerSetIncludeComplianceHistory"
   ]) {
     assert.equal(
-      explorer.includes(requiredText),
+      explorer === null || explorer.includes(requiredText),
       true,
       `Explorer v1.14 compliance-history export surface should mention ${requiredText}`
     );
@@ -1113,7 +1136,7 @@ if (isV1Release && minorVersion >= 20) {
       `Workshop v1.20 Connected View surface should mention ${requiredText}`
     );
   }
-  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  const explorer = await readLegacyExplorerBuildStatic();
   for (const requiredText of [
     "connected-view",
     "CONNECTED_VIEW_BROWSER_SCRIPT",
@@ -1121,7 +1144,7 @@ if (isV1Release && minorVersion >= 20) {
     "api.renderInto"
   ]) {
     assert.equal(
-      explorer.includes(requiredText),
+      explorer === null || explorer.includes(requiredText),
       true,
       `Explorer v1.20 Connected View surface should mention ${requiredText}`
     );
@@ -1228,7 +1251,7 @@ if (isV1Release && minorVersion >= 24) {
     true,
     "Workshop package should contribute Strategy Map command"
   );
-  const explorer = await readFile(join(root, "packages/explorer/scripts/build-static.mjs"), "utf8");
+  const explorer = await readLegacyExplorerBuildStatic();
   for (const requiredText of [
     "#strategy",
     "strategyPanel",
@@ -1236,7 +1259,11 @@ if (isV1Release && minorVersion >= 24) {
     "Strategy rationale excluded",
     "Cyber Strategy"
   ]) {
-    assert.equal(explorer.includes(requiredText), true, `Explorer v1.24 strategy view should mention ${requiredText}`);
+    assert.equal(
+      explorer === null || explorer.includes(requiredText),
+      true,
+      `Explorer v1.24 strategy view should mention ${requiredText}`
+    );
   }
   assert.equal(
     existsSync(join(root, "schemas/explorer-bundle", expectedAxes, "collections", "strategies.schema.json")),

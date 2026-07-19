@@ -74,6 +74,12 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Explorer e2e
+        run: pnpm --filter pspf-explorer run test:e2e
+
+      - name: Explorer performance budget
+        run: pnpm --filter pspf-explorer run perf:budget
+
       - name: Package shape
         run: pnpm run package:check
 

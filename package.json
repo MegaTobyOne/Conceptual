@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.47.0",
+  "version": "1.48.0",
   "private": true,
   "description": "Local-first PSPF Core, Assurance, Workshop, Shop, Pub, and Explorer validation slice.",
   "license": "MIT",
@@ -120,9 +120,9 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.47:run",
+    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.48:run",
     "test": "pnpm build && pnpm -r --if-present test",
-    "typecheck": "tsc -b tsconfig.json",
+    "typecheck": "tsc -b tsconfig.json && pnpm --filter pspf-explorer run typecheck",
     "e2e:v1.39": "pnpm run e2e:v1.38 && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run check:ux-coverage",
     "e2e:v1.39:run": "pnpm run e2e:v1.38:run && node scripts/check-schema-coverage.mjs && node scripts/check-schema-policy.mjs && node scripts/check-ux-coverage.mjs && node --test scripts/check-ux-coverage.test.mjs",
     "e2e:v1.40": "pnpm run e2e:v1.39 && pnpm run check:ux-coverage",
@@ -141,6 +141,8 @@
     "e2e:v1.46:run": "pnpm run e2e:v1.45:run && pnpm --filter pspf-pub test",
     "e2e:v1.47": "pnpm run e2e:v1.46 && pnpm --filter pspf-pub test && pnpm run check:pub-cockpit",
     "e2e:v1.47:run": "pnpm run e2e:v1.46:run && pnpm --filter pspf-pub test && pnpm run check:pub-cockpit",
+    "e2e:v1.48": "pnpm run e2e:v1.47 && pnpm --filter pspf-explorer test && pnpm --filter pspf-explorer run test:e2e && pnpm --filter pspf-explorer run perf:budget",
+    "e2e:v1.48:run": "pnpm run e2e:v1.47:run && pnpm --filter pspf-explorer test && pnpm --filter pspf-explorer run test:e2e && pnpm --filter pspf-explorer run perf:budget",
     "check:pub-cockpit": "node scripts/check-pub-cockpit.mjs"
   },
   "devDependencies": {
@@ -152,7 +154,7 @@
     "esbuild": "0.25.5",
     "eslint": "^9.18.0",
     "playwright": "^1.59.1",
-    "prettier": "^3.4.2",
+    "prettier": "^3.8.3",
     "sql.js": "^1.14.1",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.20.0"

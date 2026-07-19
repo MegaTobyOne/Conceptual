@@ -20,6 +20,16 @@ await writeFile(join(outputRoot, "pspf-ecosystem.html"), ecosystemHtml, "utf8");
 await cp(explorerDist, join(outputRoot, "explorer"), { recursive: true });
 await cp(schemaRoot, join(outputRoot, "schemas", "explorer-bundle"), { recursive: true });
 
+// Guard rail (ADR 0084, Phase E cutover complete): the staged /explorer must be
+// the unified Vite/Lit Explorer with its published sample bundles.
+const stagedIndex = await readFile(join(outputRoot, "explorer", "index.html"), "utf8");
+assert.equal(stagedIndex.includes("<pspf-app>"), true, "staged Explorer must be the unified Lit app (ADR 0084)");
+assert.equal(stagedIndex.includes('lang="en-AU"'), true, "staged Explorer must declare AU-English locale");
+await assertDirectory(join(outputRoot, "explorer", "assets"));
+await assertReadable(join(outputRoot, "explorer", "sample-bundle-enterprise.json"));
+await assertReadable(join(outputRoot, "explorer", "sample-bundle-home.json"));
+await assertReadable(join(outputRoot, "explorer", "sample-bundle.json"));
+
 await writeFile(
   join(outputRoot, ".htaccess"),
   [

@@ -1,6 +1,6 @@
 # PSPF Repository Instructions
 
-This repository implements the PSPF product ecosystem at v1.47.0: five VS Code extensions, a static Explorer web app, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
+This repository implements the PSPF product ecosystem at v1.48.0: five VS Code extensions, a unified Explorer web app, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
 
 ## First Checks
 
@@ -15,14 +15,14 @@ This repository implements the PSPF product ecosystem at v1.47.0: five VS Code e
 ## Current Workspace
 
 - Package manager: pnpm workspaces, pinned by `packageManager` in `package.json`.
-- Current repo version: `1.47.0`; all workspace packages are expected to remain version-aligned.
+- Current repo version: `1.48.0`; all workspace packages are expected to remain version-aligned.
 - Shipped VS Code extensions:
   - `packages/core` (`pspf-core`) — local system of record, workspace bootstrap, validation, snapshots, import/export, and Core command API.
   - `packages/workshop` (`pspf-workshop`) — authoring surface for requirements, evidence, actions, risks, strategy, posture, and reporting workflows.
   - `packages/shop` (`pspf-shop`) — commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.
   - `packages/pub` (`pspf-pub`) — people, role, team, assignment, and stakeholder relationship surface.
 - Web surface:
-  - `packages/explorer` (`pspf-explorer`) — static Explorer web app for publication-mode review and browser-local authoring/round-trip workflows.
+  - `packages/explorer` (`pspf-explorer`) — unified Explorer web app (Vite + Lit, hash routing) for publication-mode review, browser-local authoring, and Core exchange round-trip per ADR 0084.
 - Shared packages: `packages/contracts`, `packages/reference-data`, `packages/ism-source-library`, `packages/brief-renderer`, `packages/connected-view`, and `packages/webview-shell`.
 - Per-version Explorer schemas live under `schemas/explorer-bundle/<schemaVersion>/`.
 

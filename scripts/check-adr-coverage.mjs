@@ -318,7 +318,8 @@ const coverage = [
     "e2e:v1.47",
     "check:release-candidate",
     "release:readiness"
-  ])
+  ]),
+  adr("0084-explorer-unification-pspfexplorer2.md", "indirect", ["package:check", "release:readiness"])
 ];
 
 const adrFiles = (await readdir(adrDirectory)).filter((file) => /^\d{4}-.*\.md$/.test(file)).sort();
