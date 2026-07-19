@@ -245,7 +245,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_core == 'true'
     runs-on: ubuntu-latest
-    environment: marketplace
+    environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -319,7 +319,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_workshop == 'true'
     runs-on: ubuntu-latest
-    environment: marketplace
+    environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -393,7 +393,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_shop == 'true'
     runs-on: ubuntu-latest
-    environment: marketplace
+    environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -467,7 +467,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_pub == 'true'
     runs-on: ubuntu-latest
-    environment: marketplace
+    environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -541,7 +541,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_assurance == 'true'
     runs-on: ubuntu-latest
-    environment: marketplace
+    environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
