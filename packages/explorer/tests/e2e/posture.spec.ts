@@ -16,7 +16,7 @@ test('user can set global posture and per-domain overrides, persisting across re
     .click();
 
   const view = page.locator('pspf-posture-view');
-  await expect(view.getByRole('heading', { name: /Posture/ })).toBeVisible();
+  await expect(view.getByRole('heading', { name: /Posture/, level: 2 })).toBeVisible();
 
   // Set global posture (first two select elements in the view)
   const allSelects = view.locator('select');

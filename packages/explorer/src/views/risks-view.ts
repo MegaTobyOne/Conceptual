@@ -201,8 +201,8 @@ export class RisksView extends LitElement {
         --band-fg: #fff;
       }
       li.risk[data-band='medium'] {
-        --band-accent: #b8860b;
-        --band-bg: #b8860b;
+        --band-accent: #85620a;
+        --band-bg: #85620a;
         --band-fg: #fff;
       }
       li.risk[data-band='high'] {

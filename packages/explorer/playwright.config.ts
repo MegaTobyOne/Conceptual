@@ -2,9 +2,14 @@ import { defineConfig, devices } from '@playwright/test';
 
 const port = process.env.PSPF_E2E_PORT ?? '4173';
 const host = `http://127.0.0.1:${port}`;
-const rawBasePath = process.env.PSPF_BASE ?? '/';
+const envBase = process.env.PSPF_BASE;
+const rawBasePath = envBase ?? '/';
 const basePath = rawBasePath.endsWith('/') ? rawBasePath : `${rawBasePath}/`;
 const baseURL = new URL(basePath, host).toString();
+// Only forward PSPF_BASE when explicitly set; the default build uses a
+// relative base ('./') that works at any mount path, and release gates rely
+// on dist keeping that portable base.
+const envPrefix = envBase ? `PSPF_BASE=${basePath} ` : '';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -19,7 +24,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `PSPF_BASE=${basePath} pnpm run build && PSPF_BASE=${basePath} pnpm run preview`,
+    command: `${envPrefix}pnpm run build && ${envPrefix}pnpm run preview`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

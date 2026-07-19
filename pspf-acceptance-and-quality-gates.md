@@ -94,6 +94,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 8. **Cockpit quality gate**: Overview, Obligations, Capability, Continuity, and Mobility & career are keyboard operable, use semantic tables and non-colour labels, remain readable at narrow and desktop widths, return zero serious/critical axe findings, and meet the performance profile with a 500-person fixture.
 9. **Release-chain gate**: `e2e:v1.47` inherits v1.46 and runs Pub domain, workflow, accessibility, performance, export-boundary, typecheck, lint, package-shape, and release-candidate checks.
 
+### v1.48 Explorer unification gates (per ADR 0084)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.48.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+2. **Single-Explorer gate**: `packages/explorer` is the unified Lit/Vite app (`pspf-explorer`); the legacy static generator (`build-static.mjs`) and plain-DOM app are deleted; `packages/explorer-next` no longer exists.
+3. **Publication gate**: the built Explorer serves the published sample bundles with no disallowed publication fields, shows the `OFFICIAL: Sensitive` classification and version marker, and copies a redacted posture brief.
+4. **Local-authoring gate**: browser-local compliance, risks, actions, work log, tags, saved views, share packages, and backup/restore persist across refresh and pass the package Playwright suite.
+5. **Round-trip gate**: an Explorer-exported Core bundle imports into a scratch Core workspace with full-replace, validation passes, and Explorer-authored records are visible.
+6. **Accessibility gate**: axe-core scans across the Explorer routes report zero serious or critical findings.
+7. **Deployment gate**: `build:web-release` stages the Vite-built Explorer (relative base, hash routing) and `check:deployment-safety` passes; `web-release.yml` needs no Explorer-specific steps.
+8. **Release-chain gate**: `e2e:v1.48` inherits v1.47 and runs the Explorer unit, end-to-end, and performance-budget suites plus the rewritten publication, local-authoring, import round-trip, and accessibility gates.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.

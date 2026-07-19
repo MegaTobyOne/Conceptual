@@ -8,7 +8,6 @@ const checks = [
     name: "legacy version-pill CSS",
     pattern: /\.version-pill\s*\{/g,
     allowed: {
-      "packages/explorer/scripts/build-static.mjs": 1,
       "packages/workshop/src/webview/shell.ts": 2
     }
   },
@@ -24,16 +23,14 @@ const checks = [
     name: "legacy mode-step CSS",
     pattern: /\.mode-step(?:\s|[.{:#])/g,
     allowed: {
-      "packages/core/src/extension.ts": 3,
-      "packages/explorer/scripts/build-static.mjs": 4
+      "packages/core/src/extension.ts": 3
     }
   },
   {
     name: "standalone --bg root palette",
     pattern: /:root\s*\{[^}]*--bg:/g,
     allowed: {
-      "packages/core/src/extension.ts": 1,
-      "packages/explorer/scripts/build-static.mjs": 1
+      "packages/core/src/extension.ts": 1
     }
   },
   {
@@ -41,7 +38,6 @@ const checks = [
     pattern: /\.banner\s*\{/g,
     allowed: {
       "packages/core/src/extension.ts": 1,
-      "packages/explorer/scripts/build-static.mjs": 1,
       "packages/workshop/src/webview/shell.ts": 3
     }
   },
@@ -65,7 +61,6 @@ const checks = [
 const scannedFiles = [
   "packages/connected-view/src/index.ts",
   "packages/core/src/extension.ts",
-  "packages/explorer/scripts/build-static.mjs",
   "packages/shop/src/extension.ts",
   "packages/workshop/src/extension.ts",
   "packages/workshop/src/webview/shell.ts"
@@ -84,11 +79,6 @@ const requiredSnippets = [
       ".pspf-skeleton",
       "@media (prefers-reduced-motion: reduce)"
     ]
-  },
-  {
-    file: "packages/explorer/scripts/build-static.mjs",
-    name: "Explorer Local Changes save feedback",
-    snippets: ["localSaveFeedback", "withLocalSaveFeedback", "bindRequiredFieldValidation", "data-local-save-target"]
   },
   {
     file: "packages/webview-shell/src/interactions.ts",

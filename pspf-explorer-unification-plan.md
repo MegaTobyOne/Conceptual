@@ -15,8 +15,9 @@ Source snapshot: `https://github.com/MegaTobyOne/pspfexplorer2` (`main`, July 20
 ## Hard constraints (apply to every phase)
 
 - The shipped `packages/explorer` stays green and deployable until Phase E cutover completes.
+  _(Satisfied: cutover completed in v1.48.0 — `packages/explorer` is now the unified app.)_
 - `packages/explorer-next` is excluded from VSIX packaging, `web-release.yml`, and release
-  artefacts until cutover.
+  artefacts until cutover. _(Satisfied: `explorer-next` no longer exists post-rename.)_
 - No restricted field (`Person.name`, `Person.email`, `Assignment.personId`, non-public free
   text) is rendered, persisted, or exported by the new surface — default-deny per ADR 0005.
 - AU English in all user-facing copy; reconcile pspfexplorer2 strings during Phase D.
@@ -98,7 +99,17 @@ Source snapshot: `https://github.com/MegaTobyOne/pspfexplorer2` (`main`, July 20
 | D.3 | AU English and label audit across all views; date/time display in local-friendly format; compact pills/chips reviewed for wrapping and overflow.                                                                                                   | Copy audit checklist complete.                     |
 | D.4 | Accessibility and performance: keep the axe-core Playwright checks and perf budget as blocking package gates.                                                                                                                                      | Both run in CI and pass.                           |
 
-## Phase E — Cutover and retirement 🔲
+## Phase E — Cutover and retirement ✅
+
+> Landed in v1.48.0: `packages/explorer-next` renamed to `packages/explorer` (`pspf-explorer`);
+> legacy static generator and plain-DOM app deleted; sample-bundle generation ported to
+> `packages/explorer/scripts/generate-sample-bundles.mjs`. All four Explorer gates
+> (publication, local-authoring, Explorer-to-Core import round trip, accessibility) rewritten
+> against the unified app and passing. `build:web-release` stages the Vite build (relative
+> `base: './'`, hash routing — works at `/` and `/explorer/`; no `web-release.yml` changes
+> needed). Version bumped to 1.48.0; axes remain 1.14.0 (no published contract change).
+> Docs updated and ADR 0084 marked implemented. E.5 (archive `MegaTobyOne/pspfexplorer2`,
+> production deploy) remains a user action.
 
 | #   | Work                                                                                                                                                                                                                                         | Done when                                                      |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |

@@ -143,7 +143,7 @@ export class PostureView extends LitElement {
         --badge-fg: #fff;
       }
       .badge[data-threat='elevated'] {
-        --badge-bg: #b8860b;
+        --badge-bg: #85620a;
         --badge-fg: #fff;
       }
       .badge[data-threat='high'] {

@@ -1,6 +1,6 @@
 # Explorer Screen and Workflow Specification
 
-Status: **implemented**
+Status: **implemented** (superseded in part by ADR 0084 — since v1.48.0 the Explorer is the unified Lit/Vite app in `packages/explorer` with routed views, relationship map, analytics, and Core exchange; the plain-DOM screen inventory below describes the retired static app and is retained for behavioural rules E1–E29 and historical context)
 
 ## Purpose
 
@@ -24,6 +24,7 @@ The design follows an inverted-pyramid dashboard structure: high-level signal fi
 Explorer is the **portable lens and lightweight authoring surface** of the PSPF ecosystem.
 
 It must:
+
 - open quickly from a static host such as GitHub Pages,
 - load a curated JSON bundle, not a live Core API,
 - support scanning, filtering, and drill-down from summary to detail,
@@ -33,6 +34,7 @@ It must:
 - and feel trustworthy and presentation-ready for internal sharing.
 
 It must not:
+
 - mutate the loaded bundle baseline,
 - require authentication in v1,
 - depend on any backend service or third-party tracker,
@@ -75,6 +77,7 @@ Explorer does not collect Person `name`, Person `email`, or Assignment `personId
 ### 1. Summary first
 
 The landing experience should answer:
+
 - What is the overall posture?
 - Where are the main gaps?
 - What needs attention first?
@@ -85,6 +88,7 @@ A user should get those answers in one screenful wherever possible, with deeper 
 ### 2. Drill-down, not labyrinth
 
 Explorer should move from broad to narrow:
+
 1. Global posture
 2. Domain / category
 3. Requirement or issue list
@@ -96,6 +100,7 @@ The user should never have to guess where to go next. Every detail page must sho
 ### 3. Static but alive
 
 Even though Explorer is static, it should feel responsive and interactive:
+
 - filters update immediately
 - URL state reflects current view
 - tables and charts stay in sync
@@ -105,6 +110,7 @@ Even though Explorer is static, it should feel responsive and interactive:
 ### 4. Accessible by default
 
 Explorer must support:
+
 - full keyboard navigation across filters, tabs, tables, and chart alternatives,
 - zoom to at least 200% without layout breakage, with preference toward 400% tolerance where practical,
 - chart alternatives through summary text and underlying data tables,
@@ -116,6 +122,7 @@ Accessibility is enforced by automated `axe-core` checks in CI on every Explorer
 ### 5. Few concepts, repeated well
 
 Explorer should avoid bespoke patterns per page. It should reuse a small set of screen primitives:
+
 - page header
 - filter bar
 - KPI strip
@@ -151,6 +158,7 @@ Tags are a filter affordance on Requirements (and on the Relationships Board) pe
 Secondary navigation is contextual within pages, not global.
 
 Examples:
+
 - Overview tabs: Posture, Coverage, Attention, Trend
 - Requirement detail tabs: Summary, Evidence, Actions, Risks, History
 - Reporting tabs: Readiness, Gaps, Domain Packs, Exports
@@ -158,6 +166,7 @@ Examples:
 ### Global header
 
 The top header should include:
+
 - Explorer name / suite branding
 - workspace title
 - bundle version / export timestamp
@@ -173,6 +182,7 @@ The top header should include:
 **Purpose:** Give the top-level posture view.
 
 **Primary content:**
+
 - workspace title and reporting period
 - KPI strip with 5–7 primary indicators to avoid overload.
 - compliance status donut showing requirement count by compliance state and distance from 100% met
@@ -182,6 +192,7 @@ The top header should include:
 - latest snapshot / bundle metadata
 
 **Recommended KPIs:**
+
 - total requirements
 - effectively implemented / compliant count
 - partial / at-risk count
@@ -191,12 +202,14 @@ The top header should include:
 - reporting readiness percentage
 
 **Visual structure:**
+
 - top: KPI strip
 - middle left: posture by domain
 - middle right: issues needing attention
 - bottom: quick links into requirements, evidence, actions, reporting
 
 **Interactions:**
+
 - compliance donut segments filter Requirements by status; centre label shows met percentage and remaining count to 100% met
 - clicking a domain heat cell filters Requirements screen
 - clicking a KPI opens a pre-filtered list page
@@ -207,11 +220,13 @@ The top header should include:
 **Purpose:** Browse and filter PSPF requirements.
 
 **Primary content:**
+
 - filter bar
 - requirements table/list
 - optional summary chips above table
 
 **Default columns:**
+
 - requirement ID
 - short title
 - domain
@@ -223,6 +238,7 @@ The top header should include:
 - last updated
 
 **Filters:**
+
 - domain
 - status
 - assurance/confidence
@@ -234,6 +250,7 @@ The top header should include:
 - saved view (v1.8; named Requirements filter snapshot; see ADR 0042)
 
 **Interactions:**
+
 - row click opens Requirement Detail
 - sort by status, title, last updated, evidence count
 - bulk export of visible filtered data (CSV / JSON)
@@ -243,11 +260,13 @@ The top header should include:
 **Purpose:** Explain one requirement and its connected operational story.
 
 **Layout:**
+
 - title block with requirement ID, name, domain, status, confidence, updated time
 - short narrative summary
 - tab set
 
 **Tabs:**
+
 - Summary
 - Evidence
 - Actions
@@ -256,6 +275,7 @@ The top header should include:
 - History (if exported in bundle)
 
 **Required content:**
+
 - concise statement of current posture
 - rationale / notes if included in bundle
 - all linked evidence with freshness cues
@@ -268,12 +288,14 @@ The top header should include:
 **Purpose:** Review evidence assets, gaps, and freshness.
 
 **Primary content:**
+
 - evidence coverage summary
 - stale / missing evidence indicators
 - incomplete / changed / unverified evidence indicators
 - searchable evidence list
 
 **Default columns:**
+
 - evidence ID
 - title
 - type
@@ -284,6 +306,7 @@ The top header should include:
 - last reviewed
 
 **Filters:**
+
 - domain
 - affected requirement
 - freshness (current / ageing / stale / expired / unknown)
@@ -304,6 +327,7 @@ Evidence review should support domain-level work first, with optional narrowing 
 **Purpose:** Show remediation and follow-through.
 
 **Primary content:**
+
 - action summary strip
 - grouped checklist by domain, status, owner, or linked requirement
 - simple timeline showing due dates, overdue items, and milestones
@@ -311,6 +335,7 @@ Evidence review should support domain-level work first, with optional narrowing 
 - action list
 
 **Default columns:**
+
 - action ID
 - title
 - status
@@ -321,6 +346,7 @@ Evidence review should support domain-level work first, with optional narrowing 
 - linked risk count
 
 **Filters:**
+
 - status
 - priority
 - due window
@@ -329,6 +355,7 @@ Evidence review should support domain-level work first, with optional narrowing 
 - overdue only
 
 **Interactions:**
+
 - clicking an overdue count opens filtered overdue list
 - clicking a checklist group or timeline band filters the action list
 - action detail shows source gap, linked requirement(s), evidence need, and linked risks
@@ -338,6 +365,7 @@ Evidence review should support domain-level work first, with optional narrowing 
 **Purpose:** Surface risk concentrations and traceability.
 
 **Primary content:**
+
 - risk summary strip
 - severity distribution
 - impact/likelihood matrix with risk count by cell
@@ -345,6 +373,7 @@ Evidence review should support domain-level work first, with optional narrowing 
 - links to affected requirements and actions
 
 **Default columns:**
+
 - risk ID
 - title
 - severity
@@ -355,6 +384,7 @@ Evidence review should support domain-level work first, with optional narrowing 
 - updated time
 
 **Filters:**
+
 - severity
 - status
 - treatment state
@@ -371,6 +401,7 @@ The impact/likelihood matrix is acceptable because it is a familiar risk view. E
 **Purpose:** Support annual reporting preparation and executive review.
 
 **Primary content:**
+
 - reporting readiness KPI
 - requirements blocked from reporting
 - missing evidence summary
@@ -379,6 +410,7 @@ The impact/likelihood matrix is acceptable because it is a familiar risk view. E
 - export/download area
 
 **Tabs:**
+
 - Readiness
 - Domain status
 - Gaps
@@ -386,6 +418,7 @@ The impact/likelihood matrix is acceptable because it is a familiar risk view. E
 - Bundle info
 
 **Key outputs:**
+
 - list of requirements not report-ready
 - grouped reasons: missing evidence, unresolved action, low confidence, unresolved risk, missing rationale
 - domain summary cards suitable for executive discussion
@@ -396,11 +429,13 @@ The impact/likelihood matrix is acceptable because it is a familiar risk view. E
 **Purpose:** Provide cross-object discovery from the global search box.
 
 **Content:**
+
 - search term summary
 - grouped result tabs: Requirements, Evidence, Actions, Risks
 - ranking based on direct title/code matches first, then secondary fields
 
 **Behaviour:**
+
 - preserve query in URL
 - allow filter refinement after search
 - clearly distinguish “no results” from “data still loading”
@@ -410,6 +445,7 @@ The impact/likelihood matrix is acceptable because it is a familiar risk view. E
 **Purpose:** Build trust in the bundle and app.
 
 **Content:**
+
 - bundle manifest details
 - export timestamp
 - schema version
@@ -542,6 +578,7 @@ When the user imports a master bundle whose `intent` is `plan-apply`, Explorer M
 A reusable filter bar should appear on Requirements, Evidence, Actions, Risks, and Reporting.
 
 Rules:
+
 - primary filters visible by default
 - advanced filters behind an “More filters” disclosure
 - active filters shown as removable chips
@@ -551,6 +588,7 @@ Rules:
 ### KPI strip
 
 Rules:
+
 - maximum 5–7 KPIs per screen.
 - each KPI includes label, value, and short explainer
 - clickable only if meaningful
@@ -559,6 +597,7 @@ Rules:
 ### Table/list view
 
 Rules:
+
 - desktop: table with sortable headers
 - mobile / narrow view: stacked cards
 - pagination or virtualisation for larger collections; do not force huge page scrolls.
@@ -568,6 +607,7 @@ Rules:
 ### Detail page block set
 
 Every detail page should use the same block order:
+
 1. identity block
 2. summary block
 3. key linked objects
@@ -581,6 +621,7 @@ Explorer should use URL-based routing suitable for static hosting.
 ### URL patterns
 
 Examples:
+
 - `/overview`
 - `/requirements`
 - `/requirements/REQ-000123`
@@ -592,6 +633,7 @@ Examples:
 ### Context preservation
 
 When a user drills from a filtered list into detail and then back, Explorer should preserve:
+
 - filters
 - sort order
 - current page
@@ -606,12 +648,14 @@ This reduces cognitive loss and makes large lists manageable.
 **Goal:** Establish confidence and orient the user.
 
 Flow:
+
 1. Explorer loads manifest.
 2. Overview screen opens.
 3. User sees workspace title, export date, and key posture KPIs.
 4. A small “About this data” affordance links to Data / About.
 
 Success criterion:
+
 - the user understands what workspace and time period the data represents within a few seconds.
 
 ### Workflow 2: Find the biggest gaps
@@ -619,6 +663,7 @@ Success criterion:
 **Goal:** Identify major concerns quickly.
 
 Flow:
+
 1. Open Overview.
 2. Inspect “Needs attention” list and domain posture summary.
 3. Click a gap count or domain status.
@@ -626,6 +671,7 @@ Flow:
 5. Review list and open item detail.
 
 Success criterion:
+
 - the user can move from high-level concern to specific requirement in 2–3 interactions.
 
 ### Workflow 3: Verify a requirement’s support story
@@ -633,6 +679,7 @@ Success criterion:
 **Goal:** Judge whether a status claim is believable.
 
 Flow:
+
 1. Search or browse to Requirement Detail.
 2. Read summary and current status.
 3. Open Evidence tab.
@@ -640,6 +687,7 @@ Flow:
 5. Check Actions and Risks tabs for unresolved issues.
 
 Success criterion:
+
 - the user can answer “why is this marked this way?” without leaving the page.
 
 ### Workflow 4: Review evidence currency and completeness
@@ -647,6 +695,7 @@ Success criterion:
 **Goal:** Identify evidence that weakens assurance because it is old, incomplete, changed, unverified, missing, or unlinked.
 
 Flow:
+
 1. Open Evidence screen.
 2. Select a domain or requirement filter.
 3. Apply review filters such as `stale`, `incomplete`, `changed`, `unverified`, `missing`, or `unlinked`.
@@ -655,6 +704,7 @@ Flow:
 6. Follow links to affected requirements, actions, risks, or Directions.
 
 Success criterion:
+
 - old, incomplete, changed, or missing evidence with highest downstream impact is easy to spot at domain and requirement level.
 
 ### Workflow 5: Add and assess Direction
@@ -662,6 +712,7 @@ Success criterion:
 **Goal:** Register a new authoritative Direction and manage the response like a requirement overlay.
 
 Flow:
+
 1. Open Directions.
 2. Create Direction with reference, title, issued date, authoritative source, and description.
 3. Link affected requirements/domains using pickers.
@@ -670,6 +721,7 @@ Flow:
 6. Review the effect on posture, Direction summary, and action-impact ranking.
 
 Success criterion:
+
 - a Direction can be assessed, evidenced, linked, and included in posture/action planning without becoming a separate workflow silo.
 
 ### Workflow 6: Prepare for reporting discussion
@@ -677,6 +729,7 @@ Success criterion:
 **Goal:** Understand reporting readiness and blockers.
 
 Flow:
+
 1. Open Reporting.
 2. Review readiness KPI and blocked counts.
 3. Filter to blocked domains or requirements.
@@ -684,6 +737,7 @@ Flow:
 5. Download filtered lists for discussion or offline review.
 
 Success criterion:
+
 - the user can explain why reporting readiness is high or low and what is blocking progress.
 
 ### Workflow 7: Produce posture brief and action plan
@@ -691,6 +745,7 @@ Success criterion:
 **Goal:** Create the common output: a simple graphic and text description of PSPF posture plus a data/evidence-backed action plan.
 
 Flow:
+
 1. Open Overview, Reporting, or Posture brief.
 2. Review overall, domain, and Essential Eight posture.
 3. Check evidence confidence and Direction response signals.
@@ -698,6 +753,7 @@ Flow:
 5. Export or copy the posture brief and action plan.
 
 Success criterion:
+
 - the user can present the current posture and next actions with visible supporting facts, not unsupported narrative.
 
 ### Workflow 8: Share work required for requirement delivery
@@ -705,6 +761,7 @@ Success criterion:
 **Goal:** Send or paste a concise answer to “what work is required to deliver this requirement, group, or domain?”
 
 Flow:
+
 1. Open a requirement, filtered requirement list, domain view, Essential Eight view, Direction, Reporting, or Relationships Board scope.
 2. Invoke copy/share brief.
 3. Review the generated brief and its redaction/freshness notice.
@@ -712,6 +769,7 @@ Flow:
 5. Paste into email or Teams.
 
 Success criterion:
+
 - the pasted content remains readable, includes traceable IDs/links and evidence/action basis, and excludes restricted or unapproved sensitive fields.
 
 ### Workflow 9: Follow a risk chain
@@ -719,6 +777,7 @@ Success criterion:
 **Goal:** Move from a risk to its operational context.
 
 Flow:
+
 1. Open Risks screen.
 2. Filter to unresolved high-severity risks.
 3. Open risk detail.
@@ -726,6 +785,7 @@ Flow:
 5. Navigate to associated requirement or action detail.
 
 Success criterion:
+
 - risk is traceable to the PSPF artefacts it affects.
 
 ### Workflow 10: Search-first discovery
@@ -733,12 +793,14 @@ Success criterion:
 **Goal:** Find a topic without knowing the object type.
 
 Flow:
+
 1. Enter term in global search.
 2. Review grouped results.
 3. Narrow to Requirements or Evidence.
 4. Open a detail page.
 
 Success criterion:
+
 - one search box is sufficient for most cross-object discovery.
 
 ## Page-level behaviour rules
@@ -752,12 +814,14 @@ Success criterion:
 ### Empty states
 
 Examples:
+
 - no data loaded
 - bundle missing required collections
 - no results for current filters
 - chart hidden because data insufficient
 
 Each empty state should explain:
+
 - what the user is seeing
 - why it may have happened
 - what to do next
@@ -765,12 +829,14 @@ Each empty state should explain:
 ### Error states
 
 Explorer should distinguish:
+
 - bundle parse error
 - schema mismatch
 - missing file / collection
 - unsupported bundle version
 
 Error screens should include:
+
 - short plain-language summary
 - technical details panel (collapsible)
 - link to Data / About or bundle troubleshooting notes
@@ -780,6 +846,7 @@ Error screens should include:
 Explorer should use charts sparingly and always with text/table support.
 
 Rules:
+
 - each chart must answer one clear question
 - each chart must have a nearby summary sentence
 - provide an underlying data table or downloadable data.
@@ -789,6 +856,7 @@ Rules:
 - prefer bars, stacked bars, dot plots, and compact heatmaps over decorative chart types
 
 Recommended chart set:
+
 - compliance status donut, with count by compliance state and a centre label for met percentage / remaining not-met count
 - domain status bar / stacked bar
 - readiness by domain bar chart
@@ -816,15 +884,15 @@ Explorer owns consumer-friendly, shareable graphics. These should answer one que
 
 Dedicated modules own specialist, detailed, and highly interactive views:
 
-| Area | Explorer graphic | Specialist module view |
-|---|---|---|
-| Requirements/posture | compliance donut, domain stacked bar, readiness bar | Workshop assessment detail, validation findings, report-prep drill-down |
-| Actions | grouped checklist, Gantt-lite timeline, due-state distribution | Workshop action planning board, dependency/detail editing, owner workload views |
-| Risks | impact/likelihood count matrix, severity distribution | Risk module treatment planning, residual-risk history, detailed risk register analysis |
-| Evidence | freshness distribution, evidence confidence counts | Workshop evidence review queue, source-change analysis, verification workflow |
-| Directions | response-state summary, affected-domain bar | Direction detail/assessment workflow and linked action/evidence management |
-| Shop | supplier/contract coverage counts, forecast spend, expected savings, net benefit, payback summary | Shop supplier, contract, spend, savings-opportunity, and obligation analysis |
-| Pub | role/team coverage counts without personal identifiers | Pub workforce assignment, role, team, and responsibility management |
+| Area                 | Explorer graphic                                                                                  | Specialist module view                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Requirements/posture | compliance donut, domain stacked bar, readiness bar                                               | Workshop assessment detail, validation findings, report-prep drill-down                |
+| Actions              | grouped checklist, Gantt-lite timeline, due-state distribution                                    | Workshop action planning board, dependency/detail editing, owner workload views        |
+| Risks                | impact/likelihood count matrix, severity distribution                                             | Risk module treatment planning, residual-risk history, detailed risk register analysis |
+| Evidence             | freshness distribution, evidence confidence counts                                                | Workshop evidence review queue, source-change analysis, verification workflow          |
+| Directions           | response-state summary, affected-domain bar                                                       | Direction detail/assessment workflow and linked action/evidence management             |
+| Shop                 | supplier/contract coverage counts, forecast spend, expected savings, net benefit, payback summary | Shop supplier, contract, spend, savings-opportunity, and obligation analysis           |
+| Pub                  | role/team coverage counts without personal identifiers                                            | Pub workforce assignment, role, team, and responsibility management                    |
 
 Explorer may show Shop-derived forecast graphics when the bundle includes the required data and publication policy allows it. These graphics should stay consumer-friendly: forecast spend by financial year, expected savings by financial year, net benefit, and top invest-now-save-later opportunities. Detailed commercial assumptions, contract negotiation notes, and supplier analysis remain in Shop.
 
@@ -867,6 +935,7 @@ The copy affordance must offer plain text and Markdown. It may also write an HTM
 Explorer should work on desktop first but remain usable on smaller screens.
 
 Rules:
+
 - top navigation collapses cleanly
 - KPI strip becomes stacked cards
 - tables become card lists or horizontally scroll only in secondary cases
@@ -878,6 +947,7 @@ Primary reporting tasks should remain achievable without horizontal scrolling on
 ## Accessibility requirements
 
 Explorer must satisfy these baseline requirements:
+
 - keyboard reachable navigation, filters, tabs, tables, and downloads.
 - visible focus state on every interactive element.
 - support zoom and reflow without functional loss.
@@ -911,6 +981,7 @@ The first Explorer release should include only the screens needed to prove the m
 ### MVP exclusions
 
 Do not include initially:
+
 - annotations/comments
 - user accounts
 - side-by-side compare mode
@@ -937,7 +1008,7 @@ The compliance event trail is **append-only and never pruned in the local store*
 
 The trail can be shaped at **export time only**. The export flow exposes a single, plainly-labelled toggle:
 
-- **Include compliance history** *(default: on)* — emits the `compliance-events` collection in full.
+- **Include compliance history** _(default: on)_ — emits the `compliance-events` collection in full.
 - When **off**, the bundle omits the `compliance-events` collection entirely. The bundle remains valid; consumers tolerate the absence of the collection per the master-bundle rules.
 
 This is intentionally minimal for the first build. A future revision may add a "history older than N days" option or a local prune affordance; for v1 the user's only choice is "include the full local history in this export, or none of it."
@@ -970,7 +1041,7 @@ Explorer treats cross-entity links (a risk's `requirementIds`, an action's `risk
 - **For first-class relationship records:** writes that reference an unknown endpoint are rejected outright. A relationship record with no resolvable endpoint has no semantic value.
 - **On import:** dangling references are tolerated by default but are configurable per import. The master bundle exposes a top-level `linkValidation` option:
   - `strict` — any link whose target is not present (in the bundle or in local state, depending on `intent`) rejects the bundle.
-  - `lenient` *(default)* — accept the bundle, keep the dangling references, and report each one in the import summary so the user can decide whether to chase them up. The Integrity scan will continue to surface them later.
+  - `lenient` _(default)_ — accept the bundle, keep the dangling references, and report each one in the import summary so the user can decide whether to chase them up. The Integrity scan will continue to surface them later.
   - `drop` — accept the bundle and silently drop dangling references; the import summary still reports the count and IDs dropped.
 
 ### Pickers and autocomplete by default
@@ -1099,6 +1170,7 @@ Explorer is built to a WCAG 2.2 AA-**aligned** accessibility floor (an audited c
 ## Success criteria
 
 Explorer succeeds when a user can:
+
 - understand the overall PSPF posture within one minute
 - move from summary to supporting detail in a few interactions.
 - judge whether a requirement’s reported status is well-supported
@@ -1109,6 +1181,7 @@ Explorer succeeds when a user can:
 ## Product boundary reminder
 
 Explorer is strongest when it stays disciplined:
+
 - **read, filter, compare, explain, export**
 - not **edit, orchestrate, or administer**
 

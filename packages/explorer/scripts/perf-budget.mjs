@@ -40,7 +40,10 @@ const EXCLUDE_FROM_TOTAL = /^(cytoscape|relationship-map-view)-.*\.js$/;
 
 // Covers all non-map JS route chunks. Raised for the v3.2 long-list, import
 // review, Essential Eight, and Directions reporting release scope.
-const TOTAL_GZIP_KB_BUDGET = 117;
+// Rebaselined at the v1.48.0 ADR 0084 cutover: Phase D ported the posture brief and
+// bundle checksum verification into the app shell (~124 KB gz total). Keep small headroom
+// only — raise deliberately, never casually.
+const TOTAL_GZIP_KB_BUDGET = 130;
 
 const files = readdirSync(ROOT).filter((f) => f.endsWith('.js'));
 let totalGzip = 0;

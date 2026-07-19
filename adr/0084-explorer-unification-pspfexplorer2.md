@@ -1,6 +1,6 @@
 # 0084 — Explorer unification: adopt pspfexplorer2 as the PSPF Explorer web surface
 
-Status: **accepted**
+Status: **implemented** (v1.48.0 — cutover complete; `packages/explorer` is the unified Lit/Vite app)
 
 **Date**: 2026-07-19
 **Deciders**: Product owner, engineering

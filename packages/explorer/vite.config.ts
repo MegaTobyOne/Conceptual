@@ -2,7 +2,10 @@ import { defineConfig } from 'vite';
 import { fileURLToPath, URL } from 'node:url';
 import pkg from './package.json' with { type: 'json' };
 
-const base = process.env.PSPF_BASE ?? '/';
+// Relative base by default so the same build works served at any path
+// (locally at / and deployed at /explorer/). Hash routing keeps the document
+// URL fixed, so relative asset URLs are always safe. PSPF_BASE overrides.
+const base = process.env.PSPF_BASE ?? './';
 
 export default defineConfig({
   base,
