@@ -160,6 +160,14 @@ This UX concept does not change existing policy boundaries:
 4. simplified connected node board and ripple preview panel.
 5. minimum viable path mock action list.
 
+#### Increment A detailed implementation (started)
+
+1. **A.1 Frame prototype:** ship one self-contained HTML mockup that demonstrates map, audience lens, and horizon lanes with no runtime dependency.
+2. **A.2 Decision-support seed from Increment B:** add a Strategy-to-Action decision-support panel in the prototype that compares at least three sequencing options (`risk-first`, `pace-first`, `balanced`) and shows plain-language confidence/risk impact cues.
+3. **A.3 Explainability check:** each decision-support option must present a visible trade-off statement linking strategy confidence to action sequencing.
+4. **A.4 Accessibility-first interaction:** all switches (audience, horizon, decision support) must be keyboard reachable with non-colour-only meaning.
+5. **A.5 Test script and scoring:** maintain a concrete checklist with pass criteria, fail signals, and observation fields for concept validation sessions.
+
 ### Increment B: Explorer pilot
 
 1. implement read-only Future Mission Control panel in Explorer.
@@ -189,6 +197,13 @@ This UX concept does not change existing policy boundaries:
 4. repeat usage over seven days,
 5. perceived clarity and confidence scores.
 
+### Phase A pass thresholds
+
+1. 80% of participants can identify a top next decision in under 45 seconds.
+2. 80% can accurately explain at least one decision-support trade-off without facilitator hints.
+3. 90% can distinguish audience framing changes from data mutation.
+4. 100% of primary interactions are keyboard-operable during facilitation checks.
+
 ### Failure signals
 
 1. users cannot explain confidence shifts,
@@ -202,6 +217,8 @@ The first artefact set for this spec is:
 
 1. interactive mockup: `docs/mockups/future-mission-control-prototype.html`
 2. prototype test checklist: `docs/mockups/future-mission-control-test-checklist.md`
+
+Readiness tracking for this concept prototype is recorded in `pspf-development-readiness-review.md` as aspirational-only work, separate from release gates for shipped products.
 
 ## Out of scope for this spec
 
