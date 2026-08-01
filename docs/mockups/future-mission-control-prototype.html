@@ -97,6 +97,12 @@
         color: #f8fffe;
       }
 
+      button:focus-visible,
+      .node:focus-visible {
+        outline: 3px solid #1b4f8a;
+        outline-offset: 2px;
+      }
+
       .left,
       .canvas,
       .right,
@@ -190,6 +196,11 @@
         cursor: pointer;
       }
 
+      .node.selected {
+        border-color: #1b4f8a;
+        box-shadow: 0 0 0 2px rgba(27, 79, 138, 0.2);
+      }
+
       .node h3 {
         margin: 0 0 6px 0;
         font-size: 0.92rem;
@@ -257,6 +268,31 @@
         margin: 0;
         color: var(--muted);
         font-size: 0.92rem;
+      }
+
+      .decision-support {
+        display: grid;
+        gap: 8px;
+      }
+
+      .decision-support button {
+        text-align: left;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+        padding: 8px 10px;
+        font-size: 0.85rem;
+      }
+
+      .decision-support button.active {
+        border-color: var(--accent);
+        background: #e6f2f1;
+      }
+
+      .support-plain {
+        margin-top: 8px;
+        font-size: 0.88rem;
+        color: var(--muted);
       }
 
       .horizon {
@@ -336,10 +372,12 @@
           <small>Prototype: one workspace, many audiences, future-first planning</small>
         </div>
         <div class="toolbar" role="toolbar" aria-label="Audience and simulation controls">
-          <button class="mode active" data-mode="operator">Operator</button>
-          <button class="mode" data-mode="executive">Executive</button>
-          <button class="mode" data-mode="assurance">Assurance</button>
-          <button class="mode" data-mode="delivery">Delivery</button>
+          <button class="mode active" data-mode="operator" aria-pressed="true">Operator</button>
+          <button class="mode" data-mode="executive" aria-pressed="false">Executive</button>
+          <button class="mode" data-mode="assurance" aria-pressed="false">Assurance</button>
+          <button class="mode" data-mode="delivery" aria-pressed="false">Delivery</button>
+          <button id="plainLanguage" aria-pressed="false">Plain language: Off</button>
+          <button id="reduceMotion" aria-pressed="false">Reduced motion: Off</button>
           <button id="ripple">Run Ripple Preview</button>
         </div>
       </header>
@@ -358,6 +396,13 @@
         <div class="panel">
           <h3>Minimum Viable Path</h3>
           <p id="mvpText">Approve MFA rollout schedule, assign control owner, and verify evidence refresh by 12 Jul.</p>
+        </div>
+        <div class="panel">
+          <h3>Strategy to Action Decision Support</h3>
+          <p id="supportSummary">
+            Strategy Choice SC-2 is under pressure. Resolve Action sequencing first to reduce confidence drift in the
+            Next horizon.
+          </p>
         </div>
       </aside>
 
@@ -380,7 +425,7 @@
             />
           </svg>
 
-          <article class="node direction" tabindex="0" data-node="direction">
+          <article class="node direction selected" tabindex="0" data-node="direction">
             <h3>Direction D-14</h3>
             <p>Harden privileged identity controls this quarter.</p>
           </article>
@@ -411,6 +456,9 @@
             Three immediate tasks keep trajectory healthy: assign owner, close evidence freshness gap, and confirm
             rollout sequence.
           </p>
+          <p id="lensPlain" class="support-plain" hidden>
+            In plain language: we should decide what to do first and keep evidence current so confidence does not drop.
+          </p>
         </article>
         <article class="panel preview" id="previewPanel" hidden>
           <h3>Ripple Preview</h3>
@@ -425,14 +473,38 @@
             Approve identity pilot scope, endorse contingency staffing, and set evidence verification cadence.
           </p>
         </article>
+        <article class="panel">
+          <h3>Decision Support (Phase A prototype)</h3>
+          <div class="decision-support" role="group" aria-label="Decision support choices">
+            <button class="decision-option active" data-decision="risk-first" aria-pressed="true">
+              Risk-first sequencing: close evidence and owner gaps before expansion.
+            </button>
+            <button class="decision-option" data-decision="pace-first" aria-pressed="false">
+              Pace-first sequencing: proceed rollout now and accept short-term confidence dip.
+            </button>
+            <button class="decision-option" data-decision="balance" aria-pressed="false">
+              Balanced sequencing: partial rollout with protected evidence refresh lane.
+            </button>
+          </div>
+          <p id="decisionImpact" style="margin-top: 8px">
+            Predicted effect: confidence +4, risk trend stabilises, and two dependent actions remain on track.
+          </p>
+        </article>
+        <article class="panel">
+          <h3>Selected Item</h3>
+          <p id="selectedItem">
+            Direction D-14 selected: this strategic direction sets sequencing pressure on linked requirement, action,
+            and risk.
+          </p>
+        </article>
       </section>
 
       <footer class="horizon" aria-label="Planning horizons">
         <h2>Forward Horizon</h2>
         <div class="lane-tabs" role="tablist" aria-label="Horizon tabs">
-          <button class="pill active horizon-tab" data-horizon="next">Default: Next</button>
-          <button class="pill horizon-tab" data-horizon="now">Now</button>
-          <button class="pill horizon-tab" data-horizon="later">Later</button>
+          <button class="pill active horizon-tab" data-horizon="next" aria-pressed="true">Default: Next</button>
+          <button class="pill horizon-tab" data-horizon="now" aria-pressed="false">Now</button>
+          <button class="pill horizon-tab" data-horizon="later" aria-pressed="false">Later</button>
         </div>
         <div class="lanes">
           <section class="lane" id="laneNow">
@@ -477,6 +549,19 @@
       const rippleButton = document.getElementById("ripple");
       const ripplePath = document.getElementById("ripplePath");
       const previewPanel = document.getElementById("previewPanel");
+      const supportSummary = document.getElementById("supportSummary");
+      const decisionImpact = document.getElementById("decisionImpact");
+      const decisionOptions = document.querySelectorAll(".decision-option");
+      const plainLanguageButton = document.getElementById("plainLanguage");
+      const reduceMotionButton = document.getElementById("reduceMotion");
+      const lensPlain = document.getElementById("lensPlain");
+      const selectedItem = document.getElementById("selectedItem");
+      const nodes = document.querySelectorAll(".node");
+      const laneNow = document.getElementById("laneNow");
+      const laneNext = document.getElementById("laneNext");
+      const laneLater = document.getElementById("laneLater");
+      let plainLanguageEnabled = false;
+      let reducedMotionEnabled = false;
 
       const modeContent = {
         operator: {
@@ -487,7 +572,9 @@
           decisions: "3",
           dependencies: "2 tight",
           queue: "Approve identity pilot scope, endorse contingency staffing, and set evidence verification cadence.",
-          mvp: "Approve MFA rollout schedule, assign control owner, and verify evidence refresh by 12 Jul."
+          mvp: "Approve MFA rollout schedule, assign control owner, and verify evidence refresh by 12 Jul.",
+          support:
+            "Strategy Choice SC-2 is under pressure. Resolve Action sequencing first to reduce confidence drift in the Next horizon."
         },
         executive: {
           title: "Executive Summary",
@@ -497,7 +584,9 @@
           decisions: "2",
           dependencies: "1 strategic",
           queue: "Confirm strategic priority order and approve interim mitigation communications.",
-          mvp: "Authorise decision package and protect funding lane for wave two execution."
+          mvp: "Authorise decision package and protect funding lane for wave two execution.",
+          support:
+            "Strategy Choice SC-2 has acceptable confidence only if Action sequencing protects control assurance this month."
         },
         assurance: {
           title: "Assurance Summary",
@@ -507,7 +596,9 @@
           decisions: "4",
           dependencies: "3 evidence",
           queue: "Approve evidence refresh criteria, close traceability gap, and endorse review checkpoint.",
-          mvp: "Refresh control test artefacts and resolve missing requirement-to-evidence mapping."
+          mvp: "Refresh control test artefacts and resolve missing requirement-to-evidence mapping.",
+          support:
+            "Strategy Choice SC-2 remains supportable if Action ACT-233 completes with fresh evidence and owner accountability."
         },
         delivery: {
           title: "Delivery Summary",
@@ -517,14 +608,49 @@
           decisions: "3",
           dependencies: "2 sequencing",
           queue: "Lock sprint staffing, confirm integration window, and approve dependency fallback.",
-          mvp: "Resolve staffing and lock dependency order to keep the critical path inside target."
+          mvp: "Resolve staffing and lock dependency order to keep the critical path inside target.",
+          support: "Strategy Choice SC-2 is delivery-feasible when Actions ACT-233 and ACT-240 run in staged sequence."
         }
       };
 
+      const decisionContent = {
+        "risk-first":
+          "Predicted effect: confidence +4, risk trend stabilises, and two dependent actions remain on track.",
+        "pace-first":
+          "Predicted effect: confidence -6 for two weeks, risk rises to High watch, and one dependency likely slips.",
+        balance:
+          "Predicted effect: confidence +1, risk remains Moderate, and rollout pace remains acceptable with one guardrail."
+      };
+
+      const nodeContent = {
+        direction:
+          "Direction D-14 selected: this strategic direction sets sequencing pressure on linked requirement, action, and risk.",
+        requirement:
+          "Requirement GOV-88 selected: this is the key control obligation connecting strategy intent to delivery evidence.",
+        action:
+          "Action ACT-233 selected: this is the main delivery lever; timing decisions here drive confidence movement.",
+        risk:
+          "Risk RSK-41 selected: this is the top blocking risk and should influence sequencing choices in Next horizon.",
+        evidence:
+          "Evidence EVD-27 selected: freshness risk is high; assurance confidence depends on timely evidence renewal."
+      };
+
+      function setActiveHorizon(horizon) {
+        laneNow.hidden = horizon !== "now";
+        laneNext.hidden = horizon !== "next";
+        laneLater.hidden = horizon !== "later";
+      }
+
+      setActiveHorizon("next");
+
       modeButtons.forEach((button) => {
         button.addEventListener("click", () => {
-          modeButtons.forEach((item) => item.classList.remove("active"));
+          modeButtons.forEach((item) => {
+            item.classList.remove("active");
+            item.setAttribute("aria-pressed", "false");
+          });
           button.classList.add("active");
+          button.setAttribute("aria-pressed", "true");
           const mode = button.dataset.mode;
           const content = modeContent[mode];
           lensTitle.textContent = content.title;
@@ -535,13 +661,20 @@
           dependencyValue.textContent = content.dependencies;
           decisionText.textContent = content.queue;
           mvpText.textContent = content.mvp;
+          supportSummary.textContent = content.support;
+          lensPlain.hidden = !plainLanguageEnabled;
         });
       });
 
       horizonButtons.forEach((button) => {
         button.addEventListener("click", () => {
-          horizonButtons.forEach((item) => item.classList.remove("active"));
+          horizonButtons.forEach((item) => {
+            item.classList.remove("active");
+            item.setAttribute("aria-pressed", "false");
+          });
           button.classList.add("active");
+          button.setAttribute("aria-pressed", "true");
+          setActiveHorizon(button.dataset.horizon);
         });
       });
 
@@ -549,6 +682,52 @@
         const visible = !previewPanel.hidden;
         previewPanel.hidden = visible;
         ripplePath.setAttribute("opacity", visible ? "0" : "1");
+        ripplePath.style.transition = reducedMotionEnabled ? "none" : "opacity 200ms ease";
+      });
+
+      decisionOptions.forEach((button) => {
+        button.addEventListener("click", () => {
+          decisionOptions.forEach((item) => {
+            item.classList.remove("active");
+            item.setAttribute("aria-pressed", "false");
+          });
+          button.classList.add("active");
+          button.setAttribute("aria-pressed", "true");
+          decisionImpact.textContent = decisionContent[button.dataset.decision];
+        });
+      });
+
+      plainLanguageButton.addEventListener("click", () => {
+        plainLanguageEnabled = !plainLanguageEnabled;
+        plainLanguageButton.setAttribute("aria-pressed", String(plainLanguageEnabled));
+        plainLanguageButton.textContent = plainLanguageEnabled
+          ? "Plain language: On"
+          : "Plain language: Off";
+        lensPlain.hidden = !plainLanguageEnabled;
+      });
+
+      reduceMotionButton.addEventListener("click", () => {
+        reducedMotionEnabled = !reducedMotionEnabled;
+        reduceMotionButton.setAttribute("aria-pressed", String(reducedMotionEnabled));
+        reduceMotionButton.textContent = reducedMotionEnabled
+          ? "Reduced motion: On"
+          : "Reduced motion: Off";
+      });
+
+      nodes.forEach((node) => {
+        const setSelectedNode = () => {
+          nodes.forEach((item) => item.classList.remove("selected"));
+          node.classList.add("selected");
+          selectedItem.textContent = nodeContent[node.dataset.node];
+        };
+
+        node.addEventListener("click", setSelectedNode);
+        node.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setSelectedNode();
+          }
+        });
       });
     </script>
   </body>

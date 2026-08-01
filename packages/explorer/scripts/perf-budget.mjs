@@ -32,11 +32,16 @@ const BUDGETS = [
     label: 'relationship map (lazy)',
     maxGzipKb: 176,
   },
+  {
+    pattern: /^connected-view-3d-lab-.*\.js$/,
+    label: '3D concepts (lazy)',
+    maxGzipKb: 160,
+  },
 ];
 
 // Lazy chunks excluded from the total-JS budget because they only load on a
 // specific route. Each must still have its own per-file budget above.
-const EXCLUDE_FROM_TOTAL = /^(cytoscape|relationship-map-view)-.*\.js$/;
+const EXCLUDE_FROM_TOTAL = /^(cytoscape|relationship-map-view|connected-view-3d-lab)-.*\.js$/;
 
 // Covers all non-map JS route chunks. Raised for the v3.2 long-list, import
 // review, Essential Eight, and Directions reporting release scope.

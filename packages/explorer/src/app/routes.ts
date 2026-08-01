@@ -90,6 +90,11 @@ export const routes: readonly RouteSpec[] = [
     load: () => import('../views/relationship-map-view.ts'),
   },
   {
+    path: '/map-3d-concepts',
+    component: 'pspf-connected-view-3d-lab',
+    load: () => import('../views/connected-view-3d-lab.ts'),
+  },
+  {
     path: '/share',
     component: 'pspf-share-view',
     load: () => import('../views/share-view.ts'),
@@ -141,6 +146,7 @@ export const NAV_ROUTES: readonly NavRoute[] = [
   { path: '/analytics', label: 'Analytics', group: 'analyse' },
   { path: '/coverage', label: 'Coverage', group: 'analyse' },
   { path: '/map', label: 'Map', group: 'analyse' },
+  { path: '/map-3d-concepts', label: 'Assurance City', group: 'analyse' },
   { path: '/integrity', label: 'Integrity', group: 'analyse' },
   { path: '/tags', label: 'Tags', group: 'organise' },
   { path: '/views', label: 'Saved views', group: 'organise' },

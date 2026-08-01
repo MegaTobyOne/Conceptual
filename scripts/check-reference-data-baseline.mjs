@@ -14,7 +14,7 @@ const referencePackage = await readFile(join(root, "packages/reference-data/pack
 const generated = await readFile(join(root, "packages/reference-data/src/generated/reference-data.ts"), "utf8");
 const cyberCatalogue = JSON.parse(
   await readFile(
-    join(root, "packages/reference-data/data/sources/acsc-guidance/v2026-06-02/cyber-reference-catalogue.json"),
+    join(root, "packages/reference-data/data/sources/acsc-guidance/v2026-08-01/cyber-reference-catalogue.json"),
     "utf8"
   )
 );
@@ -124,6 +124,54 @@ const expectedEssentialEightMl2Mappings = {
   "multi-factor-authentication": 19,
   "regular-backups": 8
 };
+const expectedEssentialEightRequirementIds = {
+  "patch-applications": "REQ-PSPF-2025-099",
+  "patch-operating-systems": "REQ-PSPF-2025-100",
+  "multi-factor-authentication": "REQ-PSPF-2025-101",
+  "restrict-administrative-privileges": "REQ-PSPF-2025-102",
+  "application-control": "REQ-PSPF-2025-103",
+  "configure-microsoft-office-macros": "REQ-PSPF-2025-104",
+  "user-application-hardening": "REQ-PSPF-2025-105",
+  "regular-backups": "REQ-PSPF-2025-106"
+};
+for (const [strategyCode, requirementId] of Object.entries(expectedEssentialEightRequirementIds)) {
+  const strategy = cyberCatalogue.mitigationStrategies.find((item) => item.code === strategyCode);
+  assert.ok(strategy, `cyber reference catalogue should include ${strategyCode}`);
+  assert.deepEqual(
+    strategy.relatedRequirementIds,
+    [requirementId],
+    `${strategyCode} should map to its PSPF Release 2025 requirement row ${requirementId}`
+  );
+}
+const requirementControlAnchors = cyberCatalogue.requirementControlAnchors ?? [];
+assert.equal(
+  requirementControlAnchors.length >= 7,
+  true,
+  "cyber reference catalogue should carry curated PSPF requirement-to-ISM control anchors"
+);
+for (const anchor of requirementControlAnchors) {
+  assert.match(
+    anchor.requirementId,
+    /^REQ-PSPF-2025-\d{3}$/,
+    "requirement-control anchors should target PSPF Release 2025 requirement IDs"
+  );
+  assert.equal(anchor.controlIds.length > 0, true, `${anchor.requirementId} anchor should list ISM control IDs`);
+  assert.equal(
+    ["low", "medium", "high"].includes(anchor.confidence),
+    true,
+    `${anchor.requirementId} anchor should carry a mapping confidence`
+  );
+  assert.equal(
+    typeof anchor.rationale === "string" && anchor.rationale.length > 0,
+    true,
+    `${anchor.requirementId} anchor should carry a reviewable rationale`
+  );
+  assert.equal(
+    typeof anchor.sourceUrl === "string" && anchor.sourceUrl.startsWith("https://www.cyber.gov.au/"),
+    true,
+    `${anchor.requirementId} anchor should cite an ASD/ACSC source URL`
+  );
+}
 for (const [strategyCode, controlCount] of Object.entries(expectedEssentialEightMl2Mappings)) {
   const strategy = cyberCatalogue.mitigationStrategies.find((item) => item.code === strategyCode);
   assert.ok(strategy, `cyber reference catalogue should include ${strategyCode}`);

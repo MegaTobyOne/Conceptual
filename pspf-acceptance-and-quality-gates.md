@@ -105,6 +105,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Deployment gate**: `build:web-release` stages the Vite-built Explorer (relative base, hash routing) and `check:deployment-safety` passes; `web-release.yml` needs no Explorer-specific steps.
 8. **Release-chain gate**: `e2e:v1.48` inherits v1.47 and runs the Explorer unit, end-to-end, and performance-budget suites plus the rewritten publication, local-authoring, import round-trip, and accessibility gates.
 
+### v1.49 Assurance City gates (per ADR 0085)
+
+1. **Version gate**: all package versions and `PSPF_SLICE_VERSION` are `1.49.0`; `VERSION_AXES` remain `1.14.0`; no new Explorer schema directory is introduced.
+2. **Local-first data gate**: Assurance City consumes the existing redaction-safe `RelationshipMapGraph` only; it introduces no network path, persistence contract, published field, entity, collection, or link verb.
+3. **Deterministic semantics gate**: focused tests prove stable city placement, conventional building profiles, value-driven height, explicit critical reasons, road hierarchy, congestion, reachability, and focus neighbourhoods independently of WebGL.
+4. **Road and terrain gate**: all connections render as ground-level local roads, arterials, or freeways distinguished by width, markings, colour, and text; no bridge, tunnel, pier, portal, tree, or elevated connection remains; grass extends beyond the fog horizon while the detailed grid stays local to the city.
+5. **Interaction and accessibility gate**: Day/Night preference persists locally; the HTML focus selector and inspector provide keyboard-operable, non-colour equivalents for criticality, congestion, road class, and route availability; narrow-screen controls, inspector, entity key, and road legend do not overlap.
+6. **Failure-safety gate**: WebGL initialisation failure and context loss leave data unchanged and present a labelled route to the current 2D Map.
+7. **Performance gate**: Assurance City remains lazy-loaded at no more than 160 KB gzip; the initial Explorer JavaScript total remains no more than 130 KB gzip.
+8. **Release-chain gate**: `e2e:v1.49` inherits the complete v1.48 chain, including Explorer unit, Playwright and performance suites; the dedicated Assurance City browser spec covers rendering, persisted lighting, critical text, fallback, and mobile overlay bounds.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.

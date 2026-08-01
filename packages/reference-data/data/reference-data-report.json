@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-06T04:13:07.719Z",
+  "generatedAt": "2026-08-01T13:16:19.913Z",
   "sources": [
     {
       "sourceId": "pspf-release-2025-list-requirements",
@@ -24,15 +24,15 @@
       "sha256": "54629fa7f6d1be9bee887250091a2c47ee4816d7f758e16bd605091a98e28695"
     },
     {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "title": "Curated ASD/ACSC cyber reference catalogue for PSPF",
       "sourceUrl": "https://www.cyber.gov.au/",
-      "localPath": "packages/reference-data/data/sources/acsc-guidance/v2026-06-02/cyber-reference-catalogue.json",
-      "publicationDate": "2026-06-02",
-      "lastUpdated": "2026-06-02",
+      "localPath": "packages/reference-data/data/sources/acsc-guidance/v2026-08-01/cyber-reference-catalogue.json",
+      "publicationDate": "2026-08-01",
+      "lastUpdated": "2026-08-01",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-      "sha256": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f"
+      "sha256": "491a52aee59cf665cdea945b717b91493351580fe9ece62428d4c6c1a8fe181a"
     }
   ],
   "pspf": {
@@ -64,7 +64,7 @@
     "mitigationStrategyCount": 9,
     "guidanceFrameworkCount": 6,
     "controlThemeCount": 2,
-    "cyberReferenceMappingCount": 127,
-    "cyberReferenceLinkCount": 127
+    "cyberReferenceMappingCount": 140,
+    "cyberReferenceLinkCount": 140
   }
 }

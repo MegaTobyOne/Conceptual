@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.48.0",
+  "version": "1.49.0",
   "private": true,
   "description": "Local-first PSPF Core, Assurance, Workshop, Shop, Pub, and Explorer validation slice.",
   "license": "MIT",
@@ -120,7 +120,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.48:run",
+    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.49:run",
     "test": "pnpm build && pnpm -r --if-present test",
     "typecheck": "tsc -b tsconfig.json && pnpm --filter pspf-explorer run typecheck",
     "e2e:v1.39": "pnpm run e2e:v1.38 && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run check:ux-coverage",
@@ -143,6 +143,8 @@
     "e2e:v1.47:run": "pnpm run e2e:v1.46:run && pnpm --filter pspf-pub test && pnpm run check:pub-cockpit",
     "e2e:v1.48": "pnpm run e2e:v1.47 && pnpm --filter pspf-explorer test && pnpm --filter pspf-explorer run test:e2e && pnpm --filter pspf-explorer run perf:budget",
     "e2e:v1.48:run": "pnpm run e2e:v1.47:run && pnpm --filter pspf-explorer test && pnpm --filter pspf-explorer run test:e2e && pnpm --filter pspf-explorer run perf:budget",
+    "e2e:v1.49": "pnpm run e2e:v1.48",
+    "e2e:v1.49:run": "pnpm run e2e:v1.48:run",
     "check:pub-cockpit": "node scripts/check-pub-cockpit.mjs"
   },
   "devDependencies": {
