@@ -1,5 +1,7 @@
 import { test, expect } from './fixtures';
 
+test.describe.configure({ mode: 'serial' });
+
 test('Assurance City renders and persists its accessible focus state', async ({ page }) => {
   await page.goto('./#/map-3d-concepts');
 
@@ -15,13 +17,14 @@ test('Assurance City renders and persists its accessible focus state', async ({ 
 
   await city.getByRole('button', { name: 'Day' }).click();
   await expect(city).toHaveAttribute('data-environment', 'day');
-  await page.reload();
-  await expect(city.getByRole('button', { name: 'Day' })).toHaveAttribute('aria-pressed', 'true');
 
   await city.getByLabel('Focus record').selectOption({ label: 'Credential exposure · risk' });
   await expect(city).toContainText('Critical: Extreme risk');
   await expect(city).toContainText('through route available');
   await expect(city).toContainText('local road and arterial');
+
+  await page.reload();
+  await expect(city.getByRole('button', { name: 'Day' })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('Assurance City falls back safely when the WebGL context is lost', async ({ page }) => {
