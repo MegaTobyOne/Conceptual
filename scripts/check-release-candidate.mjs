@@ -53,7 +53,8 @@ const axesByMinorVersion = new Map([
   [45, "1.14.0"],
   [46, "1.14.0"],
   [47, "1.14.0"],
-  [48, "1.14.0"]
+  [48, "1.14.0"],
+  [49, "1.14.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -101,7 +102,7 @@ assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion
 
 const e2eScript =
   minorVersion >= 48
-    ? "e2e:v1.48"
+    ? `e2e:v1.${Math.min(minorVersion, 49)}`
     : minorVersion >= 47
       ? "e2e:v1.47"
       : minorVersion >= 46
