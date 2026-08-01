@@ -21,7 +21,7 @@ const acscGuidanceCataloguePath = join(
   "data",
   "sources",
   "acsc-guidance",
-  "v2026-06-02",
+  "v2026-08-01",
   "cyber-reference-catalogue.json"
 );
 
@@ -50,12 +50,12 @@ const ISM_SOURCE = {
 };
 
 const ACSC_GUIDANCE_SOURCE = {
-  sourceId: "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+  sourceId: "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
   title: "Curated ASD/ACSC cyber reference catalogue for PSPF",
   sourceUrl: "https://www.cyber.gov.au/",
-  localPath: "packages/reference-data/data/sources/acsc-guidance/v2026-06-02/cyber-reference-catalogue.json",
-  publicationDate: "2026-06-02",
-  lastUpdated: "2026-06-02",
+  localPath: "packages/reference-data/data/sources/acsc-guidance/v2026-08-01/cyber-reference-catalogue.json",
+  publicationDate: "2026-08-01",
+  lastUpdated: "2026-08-01",
   licence: "Creative Commons Attribution 4.0 International",
   attribution: "Australian Signals Directorate / Australian Cyber Security Centre"
 };
@@ -214,7 +214,12 @@ const ismSourceControlCategories = ismSourceControlRecords.map(({ sourceControl,
   category
 }));
 const previousIsmSourceControls = buildPreviousIsmSourceControls(ismSourceControls);
-const cyberReferenceData = buildCyberReferenceData(cyberReferenceCatalogue, acscGuidanceHash, ismSourceControls);
+const cyberReferenceData = buildCyberReferenceData(
+  cyberReferenceCatalogue,
+  acscGuidanceHash,
+  ismSourceControls,
+  pspfReferences
+);
 const report = buildReport(
   pspfReferences,
   ismSourceControls,
@@ -496,8 +501,9 @@ function applyThemeTags(sourceControl, tagsByControlId) {
   };
 }
 
-function buildCyberReferenceData(catalogue, sourceHash, sourceControls) {
+function buildCyberReferenceData(catalogue, sourceHash, sourceControls, pspfReferences) {
   const sourceControlIds = new Set(sourceControls.map((control) => control.controlId));
+  const requirementIds = new Set(pspfReferences.map((reference) => reference.requirementId));
   const source = sourceDescriptor(catalogue);
   const cyberFunctions = (catalogue.functions ?? []).map((item) => ({
     id: `FNC-${stableUuid(`cyber-function:${item.code}`)}`,
@@ -563,7 +569,7 @@ function buildCyberReferenceData(catalogue, sourceHash, sourceControls) {
     externalRefs: [{ scheme: "cyber.gov.au", value: item.sourceUrl }],
     provenance: { ...source, sourceUrl: item.sourceUrl }
   }));
-  const cyberReferenceMappings = buildCyberReferenceMappings(catalogue, sourceControlIds, source);
+  const cyberReferenceMappings = buildCyberReferenceMappings(catalogue, sourceControlIds, requirementIds, source);
   const cyberReferenceLinks = buildCyberReferenceLinks(cyberReferenceMappings);
   return {
     cyberFunctions,
@@ -575,8 +581,35 @@ function buildCyberReferenceData(catalogue, sourceHash, sourceControls) {
   };
 }
 
-function buildCyberReferenceMappings(catalogue, sourceControlIds, source) {
+function buildCyberReferenceMappings(catalogue, sourceControlIds, requirementIds, source) {
   const mappings = [];
+  for (const anchor of catalogue.requirementControlAnchors ?? []) {
+    if (!requirementIds.has(anchor.requirementId)) {
+      throw new Error(`Requirement-control anchor references unknown PSPF requirement ${anchor.requirementId}.`);
+    }
+    for (const controlId of anchor.controlIds ?? []) {
+      if (!sourceControlIds.has(controlId)) {
+        throw new Error(
+          `Requirement-control anchor for ${anchor.requirementId} references unknown ISM control ${controlId}.`
+        );
+      }
+      mappings.push(
+        cyberReferenceMapping(
+          {
+            fromType: "requirement",
+            fromId: anchor.requirementId,
+            toType: "source-control",
+            toId: sourceControlEntityId(controlId),
+            purpose: "implements",
+            confidence: anchor.confidence,
+            sourceUrl: anchor.sourceUrl,
+            rationale: anchor.rationale
+          },
+          source
+        )
+      );
+    }
+  }
   for (const strategy of catalogue.mitigationStrategies ?? []) {
     for (const requirementId of strategy.relatedRequirementIds ?? []) {
       mappings.push(

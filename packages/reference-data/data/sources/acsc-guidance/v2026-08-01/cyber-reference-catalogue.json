@@ -1,0 +1,111 @@
+{
+  "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+  "title": "Curated ASD/ACSC cyber reference catalogue for PSPF",
+  "retrievedAt": "2026-08-01T00:00:00.000Z",
+  "licence": "Creative Commons Attribution 4.0 International",
+  "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+  "functions": [
+    {
+      "code": "govern",
+      "title": "Govern",
+      "summary": "Cyber security governance, risk ownership, policy, accountability and assurance expectations drawn from the ISM Cyber Security Principles.",
+      "relatedControlIds": ["ism-principle-gov-01"],
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles"
+    },
+    {
+      "code": "protect",
+      "title": "Protect",
+      "summary": "Protective cyber controls that reduce exposure, enforce secure configuration, strengthen identities, manage vulnerabilities and ensure trustworthy software.",
+      "relatedControlIds": ["ism-principle-pro-01", "ism-principle-pro-04", "ism-principle-pro-06", "ism-principle-pro-07"],
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles"
+    },
+    {
+      "code": "detect",
+      "title": "Detect",
+      "summary": "Detection, logging, monitoring and visibility principles that support timely discovery and investigation of cyber security events.",
+      "relatedControlIds": ["ism-principle-det-01"],
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles"
+    },
+    {
+      "code": "respond",
+      "title": "Respond",
+      "summary": "Incident response, recovery and resilience principles that support coordinated action during and after cyber security incidents.",
+      "relatedControlIds": ["ism-principle-res-01"],
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles"
+    }
+  ],
+  "mitigationStrategies": [
+    { "code": "application-control", "title": "Application control", "category": "essential-eight", "summary": "Permit only approved applications to execute, reducing unauthorised code execution risk.", "maturityProfiles": ["e8-ml1", "e8-ml2", "e8-ml3"], "relatedRequirementIds": ["REQ-PSPF-2025-103"], "relatedControlIds": ["ism-0123", "ism-0140", "ism-0843", "ism-1228", "ism-1490", "ism-1544", "ism-1582", "ism-1657", "ism-1660", "ism-1815", "ism-1819", "ism-1870", "ism-1871", "ism-1906"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping" },
+    { "code": "patch-applications", "title": "Patch applications", "category": "essential-eight", "summary": "Apply application patches quickly to reduce exploitation of known vulnerabilities.", "maturityProfiles": ["e8-ml1", "e8-ml2", "e8-ml3"], "relatedRequirementIds": ["REQ-PSPF-2025-099"], "relatedControlIds": ["ism-1690", "ism-1691", "ism-1693", "ism-1698", "ism-1699", "ism-1700", "ism-1704", "ism-1807", "ism-1808", "ism-1876", "ism-1905"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping" },
+    { "code": "configure-microsoft-office-macros", "title": "Configure Microsoft Office macros", "category": "essential-eight", "summary": "Constrain Microsoft Office macro execution to reduce malicious macro compromise paths.", "maturityProfiles": ["e8-ml1", "e8-ml2", "e8-ml3"], "relatedRequirementIds": ["REQ-PSPF-2025-104"], "relatedControlIds": ["ism-1488", "ism-1489", "ism-1671", "ism-1672", "ism-1673"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping" },
+    { "code": "user-application-hardening", "title": "User application hardening", "category": "essential-eight", "summary": "Harden user applications by disabling risky functionality and reducing exposed attack surface.", "maturityProfiles": ["e8-ml1", "e8-ml2", "e8-ml3"], "relatedRequirementIds": ["REQ-PSPF-2025-105"], "relatedControlIds": ["ism-0123", "ism-0140", "ism-1228", "ism-1412", "ism-1485", "ism-1486", "ism-1542", "ism-1585", "ism-1623", "ism-1654", "ism-1667", "ism-1668", "ism-1669", "ism-1670", "ism-1815", "ism-1819", "ism-1823", "ism-1824", "ism-1859", "ism-1860", "ism-1889", "ism-1906"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping" },
+    { "code": "restrict-administrative-privileges", "title": "Restrict administrative privileges", "category": "essential-eight", "summary": "Limit, control and monitor privileged access to reduce the impact of compromised accounts.", "maturityProfiles": ["e8-ml1", "e8-ml2", "e8-ml3"], "relatedRequirementIds": ["REQ-PSPF-2025-102"], "relatedControlIds": ["ism-0123", "ism-0140", "ism-0445", "ism-1175", "ism-1228", "ism-1380", "ism-1387", "ism-1507", "ism-1509", "ism-1647", "ism-1648", "ism-1650", "ism-1685", "ism-1687", "ism-1688", "ism-1689", "ism-1815", "ism-1819", "ism-1883", "ism-1906"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping" },
+    { "code": "patch-operating-systems", "title": "Patch operating systems", "category": "essential-eight", "summary": "Apply operating system patches quickly to reduce exploitation of known vulnerabilities.", "maturityProfiles": ["e8-ml1", "e8-ml2", "e8-ml3"], "relatedRequirementIds": ["REQ-PSPF-2025-100"], "relatedControlIds": ["ism-1501", "ism-1694", "ism-1695", "ism-1701", "ism-1702", "ism-1807", "ism-1808", "ism-1877"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping" },
+    { "code": "multi-factor-authentication", "title": "Multi-factor authentication", "category": "essential-eight", "summary": "Use multi-factor authentication to make unauthorised access materially harder.", "maturityProfiles": ["e8-ml1", "e8-ml2", "e8-ml3"], "relatedRequirementIds": ["REQ-PSPF-2025-101"], "relatedControlIds": ["ism-0123", "ism-0140", "ism-0974", "ism-1173", "ism-1228", "ism-1401", "ism-1504", "ism-1679", "ism-1680", "ism-1681", "ism-1682", "ism-1683", "ism-1815", "ism-1819", "ism-1872", "ism-1873", "ism-1892", "ism-1893", "ism-1906"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping" },
+    { "code": "regular-backups", "title": "Regular backups", "category": "essential-eight", "summary": "Maintain and test backups so critical data and systems can be restored after disruption or compromise.", "maturityProfiles": ["e8-ml1", "e8-ml2", "e8-ml3"], "relatedRequirementIds": ["REQ-PSPF-2025-106"], "relatedControlIds": ["ism-1511", "ism-1515", "ism-1705", "ism-1707", "ism-1810", "ism-1811", "ism-1812", "ism-1814"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping" },
+    { "code": "remaining-mitigation-strategies", "title": "Remaining mitigation strategies", "category": "mitigation-strategy", "summary": "Consider and implement remaining mitigation strategies where required to achieve an acceptable residual risk position.", "maturityProfiles": [], "relatedRequirementIds": ["REQ-PSPF-2025-107"], "relatedControlIds": ["ism-principle-pro-06", "ism-principle-det-01", "ism-principle-res-01"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents" }
+  ],
+  "requirementControlAnchors": [
+    {
+      "requirementId": "REQ-PSPF-2025-084",
+      "controlIds": ["ism-principle-gov-01", "ism-principle-pro-01", "ism-principle-det-01", "ism-principle-res-01"],
+      "confidence": "high",
+      "rationale": "PSPF Requirement 84 states that the ISM cyber security principles are applied during all stages of the lifecycle of each system; these ISM principle records anchor the govern, protect, detect and respond principle groups.",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles"
+    },
+    {
+      "requirementId": "REQ-PSPF-2025-086",
+      "controlIds": ["ism-0027"],
+      "confidence": "high",
+      "rationale": "PSPF Requirement 86 requires the Authorising Officer to authorise each technology system to operate based on acceptance of residual security risks; ISM control ism-0027 requires system owners to obtain an authorisation to operate from the authorising officer.",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism"
+    },
+    {
+      "requirementId": "REQ-PSPF-2025-087",
+      "controlIds": ["ism-0027"],
+      "confidence": "high",
+      "rationale": "PSPF Requirement 87 requires authorisation and reauthorisation decisions to follow the Information Security Manual's risk-based approach to cyber security; ISM control ism-0027 is the ISM authorisation-to-operate control that implements that approach.",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism"
+    },
+    {
+      "requirementId": "REQ-PSPF-2025-097",
+      "controlIds": ["ism-1550", "ism-0374"],
+      "confidence": "high",
+      "rationale": "PSPF Requirement 97 requires technology assets to be disposed of securely in accordance with the Information Security Manual; ISM controls ism-1550 and ism-0374 require IT equipment and media disposal processes and supporting procedures.",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism"
+    },
+    {
+      "requirementId": "REQ-PSPF-2025-098",
+      "controlIds": ["ism-0039"],
+      "confidence": "high",
+      "rationale": "PSPF Requirement 98 requires a cyber security strategy and uplift plan in accordance with the Information Security Manual; ISM control ism-0039 requires a cyber security strategy to be developed, implemented and maintained.",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism"
+    },
+    {
+      "requirementId": "REQ-PSPF-2025-108",
+      "controlIds": ["ism-1782"],
+      "confidence": "high",
+      "rationale": "PSPF Requirement 108 requires a Protective Domain Name System service or other security mechanisms to prevent connections to and from known malicious endpoints; ISM control ism-1782 requires a protective DNS service to block access to known malicious domain names.",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism"
+    },
+    {
+      "requirementId": "REQ-PSPF-2025-115",
+      "controlIds": ["ism-1616", "ism-1755", "ism-1756"],
+      "confidence": "high",
+      "rationale": "PSPF Requirement 115 requires a vulnerability disclosure program with supporting processes and procedures; ISM controls ism-1616, ism-1755 and ism-1756 require a vulnerability disclosure program, policy, and supporting processes and procedures.",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism"
+    }
+  ],
+  "guidanceFrameworks": [
+    { "code": "ism-cyber-security-principles", "title": "ISM Cyber Security Principles", "summary": "ASD/ACSC principles that organise cyber security outcomes across governance, protection, detection and response expectations.", "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles" },
+    { "code": "essential-eight-ism-mapping", "title": "Essential Eight maturity model and ISM mapping", "summary": "ASD/ACSC mapping between the Essential Eight maturity model and supporting ISM controls.", "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping" },
+    { "code": "secure-cloud-blueprint", "title": "Blueprint for Secure Cloud", "summary": "ASD/ACSC secure cloud guidance for designing, configuring and operating cloud services with stronger baseline assurance.", "sourceUrl": "https://www.cyber.gov.au/business-government/protecting-devices-systems/cloud-computing/blueprint-for-secure-cloud" },
+    { "code": "gateway-security-guidance", "title": "Gateway Security Guidance Package", "summary": "ASD/ACSC guidance for gateway security and Security Service Edge-aligned controls relevant to Australian Government connectivity.", "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/gateway-security-guidance-package" },
+    { "code": "modern-defensible-architecture", "title": "Modern Defensible Architecture", "summary": "ASD/ACSC secure-by-design guidance for resilient, defensible enterprise architecture.", "sourceUrl": "https://www.cyber.gov.au/business-government/secure-design/secure-by-design/modern-defensible-architecture" },
+    { "code": "mitigating-cyber-security-incidents", "title": "Strategies to Mitigate Cyber Security Incidents", "summary": "ASD/ACSC mitigation strategies that reduce the likelihood and impact of common cyber security incidents.", "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents" }
+  ],
+  "controlThemes": [
+    { "code": "trustworthy-software", "title": "Trustworthy Software", "summary": "Controls that contribute to supported, verified and authorised software execution and secure software supply, design and maintenance.", "sourcePrincipleControlIds": ["ism-principle-pro-07"], "relatedStrategyCodes": ["application-control", "patch-applications"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles" },
+    { "code": "secure-configuration-management", "title": "Secure Configuration Management", "summary": "Controls that contribute to approved baselines, hardened configurations, controlled change and continuous configuration enforcement.", "sourcePrincipleControlIds": ["ism-principle-pro-04", "ism-0912"], "relatedStrategyCodes": ["user-application-hardening", "configure-microsoft-office-macros", "patch-operating-systems"], "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles" }
+  ]
+}

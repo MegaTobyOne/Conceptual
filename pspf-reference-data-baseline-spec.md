@@ -95,7 +95,7 @@ Required mapping concepts:
 - Source report: `packages/reference-data/data/reference-data-report.json`.
 - PSPF baseline: six PSPF Release 2025 domain families and 217 displayed mandatory requirement rows from the April 2026 PDF, with missing requirement `113` recorded as a source anomaly across the 1..218 numbering range.
 - ISM baseline: 1130 generated source-control records from the vendored `v2026.03.24` `ISM_catalog.json` master catalogue.
-- Cyber reference baseline: 4 cyber functions, 9 mitigation strategies, 6 guidance frameworks, 2 control themes, and generated cyber-reference mappings/links from `packages/reference-data/data/sources/acsc-guidance/v2026-06-02/cyber-reference-catalogue.json`.
+- Cyber reference baseline: 4 cyber functions, 9 mitigation strategies, 6 guidance frameworks, 2 control themes, curated PSPF requirement-to-ISM control anchors, and generated cyber-reference mappings/links from `packages/reference-data/data/sources/acsc-guidance/v2026-08-01/cyber-reference-catalogue.json`.
 - Compatibility: `@pspf/ism-source-library` re-exports the generated ISM baseline for existing imports.
 - Runtime posture: Core seeds from vendored/generated package data and does not fetch PSPF or ISM data at runtime.
 - Diagnostic posture: `runDatasetDiagnostics()` and `check:cyber-reference-data` prove the seeded cyber reference dataset matches the generated report, survives clean reset, and remains public-redaction safe.
