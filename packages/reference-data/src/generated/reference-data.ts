@@ -25,15 +25,15 @@ export const REFERENCE_DATA_SOURCES = [
     "sha256": "54629fa7f6d1be9bee887250091a2c47ee4816d7f758e16bd605091a98e28695"
   },
   {
-    "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+    "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
     "title": "Curated ASD/ACSC cyber reference catalogue for PSPF",
     "sourceUrl": "https://www.cyber.gov.au/",
-    "localPath": "packages/reference-data/data/sources/acsc-guidance/v2026-06-02/cyber-reference-catalogue.json",
-    "publicationDate": "2026-06-02",
-    "lastUpdated": "2026-06-02",
+    "localPath": "packages/reference-data/data/sources/acsc-guidance/v2026-08-01/cyber-reference-catalogue.json",
+    "publicationDate": "2026-08-01",
+    "lastUpdated": "2026-08-01",
     "licence": "Creative Commons Attribution 4.0 International",
     "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-    "sha256": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f"
+    "sha256": "491a52aee59cf665cdea945b717b91493351580fe9ece62428d4c6c1a8fe181a"
   }
 ] as const;
 
@@ -6881,9 +6881,9 @@ export const CYBER_FUNCTIONS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -6911,9 +6911,9 @@ export const CYBER_FUNCTIONS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -6938,9 +6938,9 @@ export const CYBER_FUNCTIONS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -6965,9 +6965,9 @@ export const CYBER_FUNCTIONS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7016,9 +7016,9 @@ export const MITIGATION_STRATEGIES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7061,9 +7061,9 @@ export const MITIGATION_STRATEGIES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7084,7 +7084,7 @@ export const MITIGATION_STRATEGIES = [
       "e8-ml3"
     ],
     "relatedRequirementIds": [
-      "REQ-PSPF-2025-101"
+      "REQ-PSPF-2025-104"
     ],
     "relatedSourceControlIds": [
       "SRC-45eda41b-e6bf-7000-bced-f4368aa2d2ba",
@@ -7100,9 +7100,9 @@ export const MITIGATION_STRATEGIES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7156,9 +7156,9 @@ export const MITIGATION_STRATEGIES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7210,9 +7210,9 @@ export const MITIGATION_STRATEGIES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7252,9 +7252,9 @@ export const MITIGATION_STRATEGIES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7275,7 +7275,7 @@ export const MITIGATION_STRATEGIES = [
       "e8-ml3"
     ],
     "relatedRequirementIds": [
-      "REQ-PSPF-2025-104"
+      "REQ-PSPF-2025-101"
     ],
     "relatedSourceControlIds": [
       "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189",
@@ -7305,9 +7305,9 @@ export const MITIGATION_STRATEGIES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7347,9 +7347,9 @@ export const MITIGATION_STRATEGIES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7380,9 +7380,9 @@ export const MITIGATION_STRATEGIES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7401,10 +7401,10 @@ export const GUIDANCE_FRAMEWORKS = [
     "summary": "ASD/ACSC principles that organise cyber security outcomes across governance, protection, detection and response expectations.",
     "publisher": "ASD/ACSC",
     "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-    "retrievedAt": "2026-06-02T00:00:00.000Z",
+    "retrievedAt": "2026-08-01T00:00:00.000Z",
     "licence": "Creative Commons Attribution 4.0 International",
     "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-    "sourceHash": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f",
+    "sourceHash": "491a52aee59cf665cdea945b717b91493351580fe9ece62428d4c6c1a8fe181a",
     "externalRefs": [
       {
         "scheme": "cyber.gov.au",
@@ -7412,9 +7412,9 @@ export const GUIDANCE_FRAMEWORKS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7430,10 +7430,10 @@ export const GUIDANCE_FRAMEWORKS = [
     "summary": "ASD/ACSC mapping between the Essential Eight maturity model and supporting ISM controls.",
     "publisher": "ASD/ACSC",
     "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-    "retrievedAt": "2026-06-02T00:00:00.000Z",
+    "retrievedAt": "2026-08-01T00:00:00.000Z",
     "licence": "Creative Commons Attribution 4.0 International",
     "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-    "sourceHash": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f",
+    "sourceHash": "491a52aee59cf665cdea945b717b91493351580fe9ece62428d4c6c1a8fe181a",
     "externalRefs": [
       {
         "scheme": "cyber.gov.au",
@@ -7441,9 +7441,9 @@ export const GUIDANCE_FRAMEWORKS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7459,10 +7459,10 @@ export const GUIDANCE_FRAMEWORKS = [
     "summary": "ASD/ACSC secure cloud guidance for designing, configuring and operating cloud services with stronger baseline assurance.",
     "publisher": "ASD/ACSC",
     "sourceUrl": "https://www.cyber.gov.au/business-government/protecting-devices-systems/cloud-computing/blueprint-for-secure-cloud",
-    "retrievedAt": "2026-06-02T00:00:00.000Z",
+    "retrievedAt": "2026-08-01T00:00:00.000Z",
     "licence": "Creative Commons Attribution 4.0 International",
     "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-    "sourceHash": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f",
+    "sourceHash": "491a52aee59cf665cdea945b717b91493351580fe9ece62428d4c6c1a8fe181a",
     "externalRefs": [
       {
         "scheme": "cyber.gov.au",
@@ -7470,9 +7470,9 @@ export const GUIDANCE_FRAMEWORKS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/protecting-devices-systems/cloud-computing/blueprint-for-secure-cloud",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7488,10 +7488,10 @@ export const GUIDANCE_FRAMEWORKS = [
     "summary": "ASD/ACSC guidance for gateway security and Security Service Edge-aligned controls relevant to Australian Government connectivity.",
     "publisher": "ASD/ACSC",
     "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/gateway-security-guidance-package",
-    "retrievedAt": "2026-06-02T00:00:00.000Z",
+    "retrievedAt": "2026-08-01T00:00:00.000Z",
     "licence": "Creative Commons Attribution 4.0 International",
     "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-    "sourceHash": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f",
+    "sourceHash": "491a52aee59cf665cdea945b717b91493351580fe9ece62428d4c6c1a8fe181a",
     "externalRefs": [
       {
         "scheme": "cyber.gov.au",
@@ -7499,9 +7499,9 @@ export const GUIDANCE_FRAMEWORKS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/gateway-security-guidance-package",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7517,10 +7517,10 @@ export const GUIDANCE_FRAMEWORKS = [
     "summary": "ASD/ACSC secure-by-design guidance for resilient, defensible enterprise architecture.",
     "publisher": "ASD/ACSC",
     "sourceUrl": "https://www.cyber.gov.au/business-government/secure-design/secure-by-design/modern-defensible-architecture",
-    "retrievedAt": "2026-06-02T00:00:00.000Z",
+    "retrievedAt": "2026-08-01T00:00:00.000Z",
     "licence": "Creative Commons Attribution 4.0 International",
     "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-    "sourceHash": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f",
+    "sourceHash": "491a52aee59cf665cdea945b717b91493351580fe9ece62428d4c6c1a8fe181a",
     "externalRefs": [
       {
         "scheme": "cyber.gov.au",
@@ -7528,9 +7528,9 @@ export const GUIDANCE_FRAMEWORKS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/secure-design/secure-by-design/modern-defensible-architecture",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7546,10 +7546,10 @@ export const GUIDANCE_FRAMEWORKS = [
     "summary": "ASD/ACSC mitigation strategies that reduce the likelihood and impact of common cyber security incidents.",
     "publisher": "ASD/ACSC",
     "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents",
-    "retrievedAt": "2026-06-02T00:00:00.000Z",
+    "retrievedAt": "2026-08-01T00:00:00.000Z",
     "licence": "Creative Commons Attribution 4.0 International",
     "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-    "sourceHash": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f",
+    "sourceHash": "491a52aee59cf665cdea945b717b91493351580fe9ece62428d4c6c1a8fe181a",
     "externalRefs": [
       {
         "scheme": "cyber.gov.au",
@@ -7557,9 +7557,9 @@ export const GUIDANCE_FRAMEWORKS = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7590,9 +7590,9 @@ export const CONTROL_THEMES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7622,9 +7622,9 @@ export const CONTROL_THEMES = [
       }
     ],
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre"
     }
@@ -7632,6 +7632,396 @@ export const CONTROL_THEMES = [
 ] as const satisfies readonly Omit<ControlThemeEntity, "createdAt" | "updatedAt">[];
 
 export const CYBER_REFERENCE_MAPPINGS = [
+  {
+    "id": "CRM-558c76b9-4a1a-7000-d271-e291ddd8ef06",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-084 implements SRC-6a038d68-893f-7000-a81b-91ce99c885ff",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-084"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-6a038d68-893f-7000-a81b-91ce99c885ff"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 84 states that the ISM cyber security principles are applied during all stages of the lifecycle of each system; these ISM principle records anchor the govern, protect, detect and respond principle groups.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-b23113eb-f45f-7000-8b31-65a7e7a0d569",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-084 implements SRC-884ff8dd-b3e4-7000-2749-8454f011baae",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-084"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-884ff8dd-b3e4-7000-2749-8454f011baae"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 84 states that the ISM cyber security principles are applied during all stages of the lifecycle of each system; these ISM principle records anchor the govern, protect, detect and respond principle groups.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-4b7686db-871c-7000-3e8c-2835f5946b73",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-084 implements SRC-73b91cb5-31ea-7000-acba-753f721ee5be",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-084"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-73b91cb5-31ea-7000-acba-753f721ee5be"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 84 states that the ISM cyber security principles are applied during all stages of the lifecycle of each system; these ISM principle records anchor the govern, protect, detect and respond principle groups.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-86b33206-42b3-7000-c262-116822364c76",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-084 implements SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-084"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 84 states that the ISM cyber security principles are applied during all stages of the lifecycle of each system; these ISM principle records anchor the govern, protect, detect and respond principle groups.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-ef3f4cd0-f600-7000-5ebd-2497bafad01b",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-086 implements SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-086"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-facb1566-a415-7000-3cf3-1718dba79ed7"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 86 requires the Authorising Officer to authorise each technology system to operate based on acceptance of residual security risks; ISM control ism-0027 requires system owners to obtain an authorisation to operate from the authorising officer.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-c353f3ca-c454-7000-8684-742acefce70d",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-087 implements SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-087"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-facb1566-a415-7000-3cf3-1718dba79ed7"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 87 requires authorisation and reauthorisation decisions to follow the Information Security Manual's risk-based approach to cyber security; ISM control ism-0027 is the ISM authorisation-to-operate control that implements that approach.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-36326db5-5355-7000-da97-14a94706e6e2",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-097 implements SRC-b4729fa3-3dbf-7000-3f40-047ad298982c",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-097"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-b4729fa3-3dbf-7000-3f40-047ad298982c"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 97 requires technology assets to be disposed of securely in accordance with the Information Security Manual; ISM controls ism-1550 and ism-0374 require IT equipment and media disposal processes and supporting procedures.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-2ed4b382-8bd9-7000-f872-8fc03990736a",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-097 implements SRC-b1ff547a-ded2-7000-f1fb-5ae46fd2f4d1",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-097"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-b1ff547a-ded2-7000-f1fb-5ae46fd2f4d1"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 97 requires technology assets to be disposed of securely in accordance with the Information Security Manual; ISM controls ism-1550 and ism-0374 require IT equipment and media disposal processes and supporting procedures.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-c2245872-6d5e-7000-aefd-8785840b6fb0",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-098 implements SRC-62a5c39f-24f5-7000-5795-805c80de034b",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-098"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-62a5c39f-24f5-7000-5795-805c80de034b"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 98 requires a cyber security strategy and uplift plan in accordance with the Information Security Manual; ISM control ism-0039 requires a cyber security strategy to be developed, implemented and maintained.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-a7a5db5f-301c-7000-ff61-cb5871213394",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-108 implements SRC-ff66b99e-9356-7000-d2b3-b0bbb2a2d457",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-108"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-ff66b99e-9356-7000-d2b3-b0bbb2a2d457"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 108 requires a Protective Domain Name System service or other security mechanisms to prevent connections to and from known malicious endpoints; ISM control ism-1782 requires a protective DNS service to block access to known malicious domain names.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-550cc688-302a-7000-c17b-2b3663da292c",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-115 implements SRC-f9539ad9-e58d-7000-958a-a646a965c9ea",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-115"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-f9539ad9-e58d-7000-958a-a646a965c9ea"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 115 requires a vulnerability disclosure program with supporting processes and procedures; ISM controls ism-1616, ism-1755 and ism-1756 require a vulnerability disclosure program, policy, and supporting processes and procedures.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-9a6b81ef-3587-7000-1ff2-f2812f40f728",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-115 implements SRC-47ae556a-38ce-7000-f026-560be72e7595",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-115"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-47ae556a-38ce-7000-f026-560be72e7595"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 115 requires a vulnerability disclosure program with supporting processes and procedures; ISM controls ism-1616, ism-1755 and ism-1756 require a vulnerability disclosure program, policy, and supporting processes and procedures.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "CRM-98bc3840-b4e7-7000-3510-4890812205af",
+    "entityType": "cyber-reference-mapping",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-115 implements SRC-42b283ec-2dc4-7000-2c1e-c65f5c800d6b",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "from": {
+      "entityType": "requirement",
+      "entityId": "REQ-PSPF-2025-115"
+    },
+    "to": {
+      "entityType": "source-control",
+      "entityId": "SRC-42b283ec-2dc4-7000-2c1e-c65f5c800d6b"
+    },
+    "purpose": "implements",
+    "confidence": "high",
+    "rationale": "PSPF Requirement 115 requires a vulnerability disclosure program with supporting processes and procedures; ISM controls ism-1616, ism-1755 and ism-1756 require a vulnerability disclosure program, policy, and supporting processes and procedures.",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
+    "reviewBy": "PSPF Reference Data Curator",
+    "provenance": {
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
+      "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
+      "licence": "Creative Commons Attribution 4.0 International",
+      "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
+      "author": "PSPF Reference Data Curator",
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    }
+  },
   {
     "id": "CRM-a7275951-8d6b-7000-faf2-c9a338df20f2",
     "entityType": "cyber-reference-mapping",
@@ -7650,16 +8040,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "high",
     "rationale": "PSPF requirement is explicitly associated with Application control.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7680,16 +8070,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7710,16 +8100,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7740,16 +8130,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7770,16 +8160,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7800,16 +8190,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7830,16 +8220,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7860,16 +8250,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7890,16 +8280,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7920,16 +8310,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7950,16 +8340,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -7980,16 +8370,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8010,16 +8400,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8040,16 +8430,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8070,16 +8460,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Application control mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8100,16 +8490,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "high",
     "rationale": "PSPF requirement is explicitly associated with Patch applications.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8130,16 +8520,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8160,16 +8550,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8190,16 +8580,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8220,16 +8610,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8250,16 +8640,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8280,16 +8670,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8310,16 +8700,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8340,16 +8730,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8370,16 +8760,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8400,16 +8790,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8430,28 +8820,28 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch applications mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
-    "id": "CRM-953de9ca-a877-7000-57d0-8be66940bb13",
+    "id": "CRM-a7b19624-0a20-7000-8bbd-c5d3936863dd",
     "entityType": "cyber-reference-mapping",
     "schemaVersion": "1.14.0",
-    "title": "REQ-PSPF-2025-101 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
+    "title": "REQ-PSPF-2025-104 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
     "from": {
       "entityType": "requirement",
-      "entityId": "REQ-PSPF-2025-101"
+      "entityId": "REQ-PSPF-2025-104"
     },
     "to": {
       "entityType": "mitigation-strategy",
@@ -8460,16 +8850,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "high",
     "rationale": "PSPF requirement is explicitly associated with Configure Microsoft Office macros.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8490,16 +8880,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Configure Microsoft Office macros mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8520,16 +8910,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Configure Microsoft Office macros mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8550,16 +8940,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Configure Microsoft Office macros mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8580,16 +8970,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Configure Microsoft Office macros mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8610,16 +9000,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Configure Microsoft Office macros mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8640,16 +9030,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "high",
     "rationale": "PSPF requirement is explicitly associated with User application hardening.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8670,16 +9060,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8700,16 +9090,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8730,16 +9120,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8760,16 +9150,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8790,16 +9180,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8820,16 +9210,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8850,16 +9240,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8880,16 +9270,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8910,16 +9300,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8940,16 +9330,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -8970,16 +9360,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9000,16 +9390,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9030,16 +9420,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9060,16 +9450,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9090,16 +9480,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9120,16 +9510,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9150,16 +9540,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9180,16 +9570,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9210,16 +9600,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9240,16 +9630,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9270,16 +9660,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9300,16 +9690,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the User application hardening mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9330,16 +9720,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "high",
     "rationale": "PSPF requirement is explicitly associated with Restrict administrative privileges.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9360,16 +9750,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9390,16 +9780,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9420,16 +9810,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9450,16 +9840,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9480,16 +9870,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9510,16 +9900,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9540,16 +9930,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9570,16 +9960,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9600,16 +9990,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9630,16 +10020,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9660,16 +10050,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9690,16 +10080,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9720,16 +10110,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9750,16 +10140,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9780,16 +10170,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9810,16 +10200,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9840,16 +10230,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9870,16 +10260,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9900,16 +10290,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9930,16 +10320,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Restrict administrative privileges mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9960,16 +10350,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "high",
     "rationale": "PSPF requirement is explicitly associated with Patch operating systems.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -9990,16 +10380,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch operating systems mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10020,16 +10410,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch operating systems mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10050,16 +10440,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch operating systems mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10080,16 +10470,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch operating systems mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10110,16 +10500,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch operating systems mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10140,16 +10530,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch operating systems mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10170,16 +10560,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch operating systems mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10200,28 +10590,28 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Patch operating systems mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
-    "id": "CRM-941d5402-2c93-7000-3f75-0be34fa2e4d1",
+    "id": "CRM-63610c6d-248a-7000-38b0-0ec82f87c4a1",
     "entityType": "cyber-reference-mapping",
     "schemaVersion": "1.14.0",
-    "title": "REQ-PSPF-2025-104 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
+    "title": "REQ-PSPF-2025-101 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
     "from": {
       "entityType": "requirement",
-      "entityId": "REQ-PSPF-2025-104"
+      "entityId": "REQ-PSPF-2025-101"
     },
     "to": {
       "entityType": "mitigation-strategy",
@@ -10230,16 +10620,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "high",
     "rationale": "PSPF requirement is explicitly associated with Multi-factor authentication.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10260,16 +10650,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10290,16 +10680,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10320,16 +10710,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10350,16 +10740,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10380,16 +10770,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10410,16 +10800,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10440,16 +10830,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10470,16 +10860,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10500,16 +10890,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10530,16 +10920,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10560,16 +10950,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10590,16 +10980,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10620,16 +11010,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10650,16 +11040,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10680,16 +11070,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10710,16 +11100,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10740,16 +11130,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10770,16 +11160,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10800,16 +11190,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Multi-factor authentication mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10830,16 +11220,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "high",
     "rationale": "PSPF requirement is explicitly associated with Regular backups.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10860,16 +11250,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Regular backups mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10890,16 +11280,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Regular backups mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10920,16 +11310,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Regular backups mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10950,16 +11340,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Regular backups mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -10980,16 +11370,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Regular backups mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11010,16 +11400,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Regular backups mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11040,16 +11430,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Regular backups mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11070,16 +11460,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Regular backups mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model-and-ism-mapping",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11100,16 +11490,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "high",
     "rationale": "PSPF requirement is explicitly associated with Remaining mitigation strategies.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11130,16 +11520,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Remaining mitigation strategies mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11160,16 +11550,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Remaining mitigation strategies mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11190,16 +11580,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "supports",
     "confidence": "medium",
     "rationale": "ISM control contributes to the Remaining mitigation strategies mitigation strategy.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/mitigating-cyber-security-incidents",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11220,16 +11610,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "themes",
     "confidence": "high",
     "rationale": "ISM control is a curated anchor for Trustworthy Software.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11250,16 +11640,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "themes",
     "confidence": "medium",
     "rationale": "Mitigation strategy contributes to the Trustworthy Software theme.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11280,16 +11670,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "themes",
     "confidence": "medium",
     "rationale": "Mitigation strategy contributes to the Trustworthy Software theme.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11310,16 +11700,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "themes",
     "confidence": "high",
     "rationale": "ISM control is a curated anchor for Secure Configuration Management.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11340,16 +11730,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "themes",
     "confidence": "high",
     "rationale": "ISM control is a curated anchor for Secure Configuration Management.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11370,16 +11760,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "themes",
     "confidence": "medium",
     "rationale": "Mitigation strategy contributes to the Secure Configuration Management theme.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11400,16 +11790,16 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "themes",
     "confidence": "medium",
     "rationale": "Mitigation strategy contributes to the Secure Configuration Management theme.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   },
   {
@@ -11430,21 +11820,190 @@ export const CYBER_REFERENCE_MAPPINGS = [
     "purpose": "themes",
     "confidence": "medium",
     "rationale": "Mitigation strategy contributes to the Secure Configuration Management theme.",
-    "lastReviewedAt": "2026-06-02T00:00:00.000Z",
+    "lastReviewedAt": "2026-08-01T00:00:00.000Z",
     "reviewBy": "PSPF Reference Data Curator",
     "provenance": {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "sourceUrl": "https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/ism/cyber-security-principles",
-      "retrievedAt": "2026-06-02T00:00:00.000Z",
+      "retrievedAt": "2026-08-01T00:00:00.000Z",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
       "author": "PSPF Reference Data Curator",
-      "createdAt": "2026-06-02T00:00:00.000Z"
+      "createdAt": "2026-08-01T00:00:00.000Z"
     }
   }
 ] as const satisfies readonly Omit<CyberReferenceMappingEntity, "createdAt" | "updatedAt">[];
 
 export const CYBER_REFERENCE_LINKS = [
+  {
+    "id": "LNK-CYBER-f8dc2488-26be-7000-090e-3253bc180a13",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-084 implements SRC-6a038d68-893f-7000-a81b-91ce99c885ff",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-084",
+    "fromType": "requirement",
+    "toId": "SRC-6a038d68-893f-7000-a81b-91ce99c885ff",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-7454a594-728e-7000-3aa4-2f0f9402ccc0",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-084 implements SRC-884ff8dd-b3e4-7000-2749-8454f011baae",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-084",
+    "fromType": "requirement",
+    "toId": "SRC-884ff8dd-b3e4-7000-2749-8454f011baae",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-59d6f256-a348-7000-306e-7d8f9cf4f93f",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-084 implements SRC-73b91cb5-31ea-7000-acba-753f721ee5be",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-084",
+    "fromType": "requirement",
+    "toId": "SRC-73b91cb5-31ea-7000-acba-753f721ee5be",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-6281a95a-e4b1-7000-0f1f-71eac79e666a",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-084 implements SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-084",
+    "fromType": "requirement",
+    "toId": "SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-843398be-1245-7000-2201-4f54a435ab05",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-086 implements SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-086",
+    "fromType": "requirement",
+    "toId": "SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-e21fdb21-88d6-7000-1fab-f1173314118d",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-087 implements SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-087",
+    "fromType": "requirement",
+    "toId": "SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-86797b87-0592-7000-f86f-87f2ef458c8a",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-097 implements SRC-b4729fa3-3dbf-7000-3f40-047ad298982c",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-097",
+    "fromType": "requirement",
+    "toId": "SRC-b4729fa3-3dbf-7000-3f40-047ad298982c",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-590a6d6a-7b84-7000-f379-ccd786e6b696",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-097 implements SRC-b1ff547a-ded2-7000-f1fb-5ae46fd2f4d1",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-097",
+    "fromType": "requirement",
+    "toId": "SRC-b1ff547a-ded2-7000-f1fb-5ae46fd2f4d1",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-02d55fe4-c509-7000-a07f-12247d0d45f5",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-098 implements SRC-62a5c39f-24f5-7000-5795-805c80de034b",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-098",
+    "fromType": "requirement",
+    "toId": "SRC-62a5c39f-24f5-7000-5795-805c80de034b",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-e6cec41c-728b-7000-1381-95cffab51149",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-108 implements SRC-ff66b99e-9356-7000-d2b3-b0bbb2a2d457",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-108",
+    "fromType": "requirement",
+    "toId": "SRC-ff66b99e-9356-7000-d2b3-b0bbb2a2d457",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-0a99d7bb-6450-7000-0132-21ad0244e143",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-115 implements SRC-f9539ad9-e58d-7000-958a-a646a965c9ea",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-115",
+    "fromType": "requirement",
+    "toId": "SRC-f9539ad9-e58d-7000-958a-a646a965c9ea",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-7b19e4f1-7691-7000-d355-96b1d892944e",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-115 implements SRC-47ae556a-38ce-7000-f026-560be72e7595",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-115",
+    "fromType": "requirement",
+    "toId": "SRC-47ae556a-38ce-7000-f026-560be72e7595",
+    "toType": "source-control"
+  },
+  {
+    "id": "LNK-CYBER-5ca1d258-85ef-7000-40d1-567a394ae5ed",
+    "entityType": "link",
+    "schemaVersion": "1.14.0",
+    "title": "REQ-PSPF-2025-115 implements SRC-42b283ec-2dc4-7000-2c1e-c65f5c800d6b",
+    "sourceProduct": "core",
+    "recordStatus": "active",
+    "linkType": "supports",
+    "fromId": "REQ-PSPF-2025-115",
+    "fromType": "requirement",
+    "toId": "SRC-42b283ec-2dc4-7000-2c1e-c65f5c800d6b",
+    "toType": "source-control"
+  },
   {
     "id": "LNK-CYBER-c740bfb7-8634-7000-1c28-310ec5cdcda7",
     "entityType": "link",
@@ -11797,14 +12356,14 @@ export const CYBER_REFERENCE_LINKS = [
     "toType": "mitigation-strategy"
   },
   {
-    "id": "LNK-CYBER-eaf81c03-3e7a-7000-d4fa-6abcb846a120",
+    "id": "LNK-CYBER-b03f4658-d27f-7000-0abb-1b03b26fedb1",
     "entityType": "link",
     "schemaVersion": "1.14.0",
-    "title": "REQ-PSPF-2025-101 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
+    "title": "REQ-PSPF-2025-104 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
     "linkType": "supports",
-    "fromId": "REQ-PSPF-2025-101",
+    "fromId": "REQ-PSPF-2025-104",
     "fromType": "requirement",
     "toId": "MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "toType": "mitigation-strategy"
@@ -12564,14 +13123,14 @@ export const CYBER_REFERENCE_LINKS = [
     "toType": "mitigation-strategy"
   },
   {
-    "id": "LNK-CYBER-e4ec1d44-b381-7000-7d8d-e9f73be8a97c",
+    "id": "LNK-CYBER-b0c26b6c-1523-7000-b74b-860c2185c116",
     "entityType": "link",
     "schemaVersion": "1.14.0",
-    "title": "REQ-PSPF-2025-104 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
+    "title": "REQ-PSPF-2025-101 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
     "linkType": "supports",
-    "fromId": "REQ-PSPF-2025-104",
+    "fromId": "REQ-PSPF-2025-101",
     "fromType": "requirement",
     "toId": "MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "toType": "mitigation-strategy"
@@ -58854,7 +59413,7 @@ export const PREVIOUS_ISM_SOURCE_CONTROLS = [
 ] as const satisfies readonly Pick<SourceControlEntity, "controlId" | "statement" | "provenance">[];
 
 export const PSPF_REFERENCE_DATA_REPORT = {
-  "generatedAt": "2026-06-06T04:13:07.719Z",
+  "generatedAt": "2026-08-01T13:16:19.913Z",
   "sources": [
     {
       "sourceId": "pspf-release-2025-list-requirements",
@@ -58879,15 +59438,15 @@ export const PSPF_REFERENCE_DATA_REPORT = {
       "sha256": "54629fa7f6d1be9bee887250091a2c47ee4816d7f758e16bd605091a98e28695"
     },
     {
-      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-06-02",
+      "sourceId": "acsc-guidance-cyber-reference-catalogue-v2026-08-01",
       "title": "Curated ASD/ACSC cyber reference catalogue for PSPF",
       "sourceUrl": "https://www.cyber.gov.au/",
-      "localPath": "packages/reference-data/data/sources/acsc-guidance/v2026-06-02/cyber-reference-catalogue.json",
-      "publicationDate": "2026-06-02",
-      "lastUpdated": "2026-06-02",
+      "localPath": "packages/reference-data/data/sources/acsc-guidance/v2026-08-01/cyber-reference-catalogue.json",
+      "publicationDate": "2026-08-01",
+      "lastUpdated": "2026-08-01",
       "licence": "Creative Commons Attribution 4.0 International",
       "attribution": "Australian Signals Directorate / Australian Cyber Security Centre",
-      "sha256": "38679dc5b634abda3cb05783273d1f3ba78eef36cd77548ca3bdad276c98cf9f"
+      "sha256": "491a52aee59cf665cdea945b717b91493351580fe9ece62428d4c6c1a8fe181a"
     }
   ],
   "pspf": {
@@ -58919,7 +59478,7 @@ export const PSPF_REFERENCE_DATA_REPORT = {
     "mitigationStrategyCount": 9,
     "guidanceFrameworkCount": 6,
     "controlThemeCount": 2,
-    "cyberReferenceMappingCount": 127,
-    "cyberReferenceLinkCount": 127
+    "cyberReferenceMappingCount": 140,
+    "cyberReferenceLinkCount": 140
   }
 } as const;
