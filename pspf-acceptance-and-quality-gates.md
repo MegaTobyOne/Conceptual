@@ -116,6 +116,17 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Performance gate**: Assurance City remains lazy-loaded at no more than 160 KB gzip; the initial Explorer JavaScript total remains no more than 130 KB gzip.
 8. **Release-chain gate**: `e2e:v1.49` inherits the complete v1.48 chain, including Explorer unit, Playwright and performance suites; the dedicated Assurance City browser spec covers rendering, persisted lighting, critical text, fallback, and mobile overlay bounds.
 
+### v1.50 dark-first ecosystem redesign gates (per ADR 0086)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.50.0`; `VERSION_AXES` remain `1.14.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Shared identity gate**: Core, Assurance, Workshop, Shop, Pub, and Explorer use their typed `@pspf/webview-shell` identity; structural accents remain separate from semantic status and sensitivity colours.
+3. **Extension theme gate**: generated fixtures for all six product identities pass axe-core, focusability, overflow, and nonblank rendering checks under VS Code Dark, Light, and High Contrast variable sets.
+4. **Explorer theme gate**: first use and retired Colorful preferences resolve to Dark; explicit Dark, Light, and System preferences persist locally; operating-system changes affect the app only in System mode.
+5. **Presentation-lens invariance gate**: CISO, Auditor, and Solo IT preferences persist locally and may change copy, order, density, and initial disclosure only; automated checks prove Requirement records, controls, links, commands, and outputs are invariant.
+6. **Responsive and accessibility gate**: Explorer Home passes axe-core and horizontal-bound checks in Dark and Light at desktop, tablet, mobile, and 320 px; reduced-motion tokens resolve to zero duration.
+7. **Progressive-disclosure gate**: advanced fields and linked records remain keyboard discoverable; Auditor may open assurance detail by default, but no lens removes editor access or data.
+8. **Release-chain gate**: `e2e:v1.50` inherits v1.49, runs the v1.50 Explorer browser matrix and extension fixture gate, and `release:readiness` targets `e2e:v1.50:run`.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.

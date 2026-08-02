@@ -1,6 +1,33 @@
 {
   "version": 1,
   "releases": {
+    "1.50": [
+      {
+        "name": "e2e built-artifact checks",
+        "parallel": false,
+        "commands": ["pnpm run e2e:v1.50:run"]
+      },
+      {
+        "name": "quality gates",
+        "parallel": false,
+        "commands": ["pnpm run check:gates:run", "pnpm run check:ai-kill-switch"]
+      },
+      {
+        "name": "debug workspace validation",
+        "parallel": false,
+        "commands": ["pnpm run validate:debug-workspace:run"]
+      },
+      {
+        "name": "typecheck",
+        "parallel": false,
+        "commands": ["pnpm run typecheck"]
+      },
+      {
+        "name": "lint and release candidate",
+        "parallel": false,
+        "commands": ["pnpm lint", "node scripts/check-release-candidate.mjs", "node scripts/release-readiness.mjs"]
+      }
+    ],
     "1.49": [
       {
         "name": "e2e built-artifact checks",

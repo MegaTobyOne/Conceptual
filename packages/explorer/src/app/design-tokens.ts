@@ -8,14 +8,14 @@ import { css } from 'lit';
 export const designTokens = css`
   :host {
     /* Colours — dark theme baseline; overridden by selected theme variables. */
-    --colour-bg: var(--theme-colour-bg, #0b0f14);
-    --colour-bg-elevated: var(--theme-colour-bg-elevated, #131922);
-    --colour-fg: var(--theme-colour-fg, #e6edf3);
-    --colour-fg-muted: var(--theme-colour-fg-muted, #8b96a3);
-    --colour-border: var(--theme-colour-border, #1f2733);
-    --colour-accent: var(--theme-colour-accent, #2563eb);
-    --colour-link: var(--theme-colour-link, #93c5fd);
-    --colour-accent-fg: var(--theme-colour-accent-fg, #ffffff);
+    --colour-bg: var(--theme-colour-bg, #0f1415);
+    --colour-bg-elevated: var(--theme-colour-bg-elevated, #171d1d);
+    --colour-fg: var(--theme-colour-fg, #edf1ef);
+    --colour-fg-muted: var(--theme-colour-fg-muted, #9ca8a4);
+    --colour-border: var(--theme-colour-border, #2c3633);
+    --colour-accent: var(--theme-colour-accent, #82acc8);
+    --colour-link: var(--theme-colour-link, #9dc3dc);
+    --colour-accent-fg: var(--theme-colour-accent-fg, #111514);
 
     --colour-status-yes: var(--theme-colour-status-yes, #2dd4bf);
     --colour-status-no: var(--theme-colour-status-no, #ef4444);
@@ -84,33 +84,19 @@ export const designTokens = css`
   }
 
   :host([data-theme='light']) {
-    --theme-colour-bg: #f8fafc;
-    --theme-colour-bg-elevated: #ffffff;
-    --theme-colour-fg: #0f172a;
-    --theme-colour-fg-muted: #475569;
-    --theme-colour-border: #d8e0eb;
-    --theme-colour-accent: #1d4ed8;
+    --theme-colour-bg: #eef1ef;
+    --theme-colour-bg-elevated: #fbfcfb;
+    --theme-colour-fg: #192220;
+    --theme-colour-fg-muted: #596562;
+    --theme-colour-border: #dce2df;
+    --theme-colour-accent: #3e6582;
+    --theme-colour-link: #315d7b;
     --theme-colour-accent-fg: #ffffff;
     --theme-colour-status-yes: #0f766e;
     --theme-colour-status-no: #dc2626;
     --theme-colour-status-risk-managed: #ca8a04;
     --theme-colour-status-not-applicable: #64748b;
     --theme-colour-status-not-set: #94a3b8;
-  }
-
-  :host([data-theme='colorful']) {
-    --theme-colour-bg: #09131d;
-    --theme-colour-bg-elevated: #132436;
-    --theme-colour-fg: #eef7ff;
-    --theme-colour-fg-muted: #9fc4de;
-    --theme-colour-border: #255275;
-    --theme-colour-accent: #ff7a18;
-    --theme-colour-accent-fg: #1f1303;
-    --theme-colour-status-yes: #00d27a;
-    --theme-colour-status-no: #ff4e88;
-    --theme-colour-status-risk-managed: #ffd23f;
-    --theme-colour-status-not-applicable: #7ad8ff;
-    --theme-colour-status-not-set: #5f7ea3;
   }
 
   @media (prefers-reduced-motion: reduce) {

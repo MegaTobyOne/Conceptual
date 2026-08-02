@@ -61,6 +61,18 @@ test("requirement browser exposes domain tabs, Directions lens, and clearable fi
   assert.match(source, /data-requirement-tab'\) === 'all'/);
 });
 
+test("Workshop presentation lenses remain local UI preferences", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /pspf\.workshop\.presentationLens/);
+  assert.match(source, /decodePresentationLens/);
+  assert.match(source, /workspaceState\.update/);
+  assert.match(source, /pspf\.workshop\.home\.selectLens/);
+  assert.match(source, /data-lens=/);
+  assert.match(source, /disclosureHtml/);
+  assert.doesNotMatch(source, /globalState\.update\([\s\S]*presentationLens/);
+});
+
 test("Assessment Dashboard exposes action-first Requirement queue from Domain Stats", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
@@ -219,7 +231,7 @@ test("Plan of Action exposes master schedule and slice controls", async () => {
 test("Workshop Home is simplified and exposes one status graphic", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
   const homeMatch = source.match(
-    /function renderHomeView\(model: WorkshopHomeModel\): string \{[\s\S]*?async function openWelcome/
+    /function renderHomeView\(model: WorkshopHomeModel, lens: PresentationLens\): string \{[\s\S]*?async function openWelcome/
   );
   assert.ok(homeMatch, "home renderer should be present");
   const homeSource = homeMatch[0];

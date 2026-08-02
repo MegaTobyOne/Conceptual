@@ -1,6 +1,7 @@
 import { LitElement, css, html, type TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { consume } from '@lit/context';
+import type { PresentationLens } from '@pspf/webview-shell';
 import { designTokens } from '../app/design-tokens.ts';
 import {
   DOMAIN_KEYS,
@@ -13,6 +14,7 @@ import {
   type ThreatLevel,
 } from '../data/types.ts';
 import { appStoreContext } from '../state/contexts.ts';
+import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
 import { allRequirements } from '../pspf/index.ts';
@@ -35,8 +37,26 @@ export class PostureView extends LitElement {
         display: block;
       }
       article {
-        display: grid;
+        display: flex;
+        flex-direction: column;
         gap: var(--space-3);
+      }
+      .posture-heading {
+        order: 1;
+      }
+      article[data-lens='ciso'] .brief,
+      article[data-lens='auditor'] .brief {
+        order: 2;
+      }
+      article[data-lens='ciso'] pspf-list-workbench,
+      article[data-lens='auditor'] pspf-list-workbench {
+        order: 3;
+      }
+      article[data-lens='solo'] pspf-list-workbench {
+        order: 2;
+      }
+      article[data-lens='solo'] .brief {
+        order: 3;
       }
       h2 {
         margin: 0 0 var(--space-3) 0;
@@ -182,6 +202,9 @@ export class PostureView extends LitElement {
   @consume({ context: appStoreContext, subscribe: true })
   private store: AppStore | undefined;
 
+  @consume({ context: presentationLensContext, subscribe: true })
+  private lens: PresentationLens = 'ciso';
+
   // eslint-disable-next-line no-unused-private-class-members
   #watcher = new SignalWatcher(this, () => (this.store ? [this.store.posture] : []));
 
@@ -222,12 +245,17 @@ export class PostureView extends LitElement {
     const global = record?.global ?? DEFAULT_GLOBAL;
     const overrideCount = Object.keys(record?.perDomain ?? {}).length;
     return html`
-      <article>
-        <h2>Posture &amp; threat level</h2>
-        <p>
-          Set the organisation's overall threat level and security posture, with optional per-domain
-          overrides for finer-grained signalling.
-        </p>
+      <article data-lens=${this.lens}>
+        <div class="posture-heading">
+          <h2>Posture &amp; threat level</h2>
+          <p>
+            ${this.lens === 'auditor'
+              ? 'Review the recorded threat assumptions, posture settings, and domain overrides before copying the evidence-backed brief.'
+              : this.lens === 'solo'
+                ? 'Set the overall threat level first. Add a domain override only when one area genuinely differs.'
+                : 'Review the organisation posture, material domain differences, and the brief for the next decision.'}
+          </p>
+        </div>
         <section class="brief" aria-labelledby="brief-heading">
           <h3 id="brief-heading">Posture brief</h3>
           <p class="panel-note">

@@ -1,10 +1,12 @@
 import { LitElement, css, html, type TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { consume } from '@lit/context';
+import type { PresentationLens } from '@pspf/webview-shell';
 import { designTokens } from '../app/design-tokens.ts';
 import { allDomains, allRequirements, requirementsByDomain } from '../pspf/index.ts';
 import type { ComplianceEntry, ComplianceState, DomainKey, RequirementId } from '../data/types.ts';
 import { appStoreContext } from '../state/contexts.ts';
+import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
 import '../components/compliance-badge.ts';
@@ -171,6 +173,9 @@ export class RequirementsView extends LitElement {
   @consume({ context: appStoreContext, subscribe: true })
   private store: AppStore | undefined;
 
+  @consume({ context: presentationLensContext, subscribe: true })
+  private lens: PresentationLens = 'ciso';
+
   // eslint-disable-next-line no-unused-private-class-members
   #watcher = new SignalWatcher(this, () => (this.store ? [this.store.compliance] : []));
 
@@ -263,12 +268,18 @@ export class RequirementsView extends LitElement {
           { label: filteredDomain.name },
         ]
       : [{ label: 'Home', href: '#/' }, { label: 'Requirements' }];
+    const lensDescription = {
+      ciso: 'Review readiness and open the requirements driving material decisions.',
+      auditor:
+        'Review implementation state and open a requirement to inspect evidence and traceability.',
+      solo: 'Choose one requirement to assess, then record the evidence or action you already have.',
+    }[this.lens];
 
     return html`
-      <article>
+      <article data-lens=${this.lens}>
         <pspf-breadcrumbs .items=${breadcrumbs}></pspf-breadcrumbs>
         <h2>${filteredDomain ? filteredDomain.name : 'All Requirements'}</h2>
-        ${filteredDomain ? html`<p class="description">${filteredDomain.description}</p>` : ''}
+        <p class="description">${filteredDomain?.description ?? lensDescription}</p>
         <pspf-list-workbench
           class="layout"
           left-label="Filters and summary"

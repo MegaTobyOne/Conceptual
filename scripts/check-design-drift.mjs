@@ -91,8 +91,8 @@ const requiredSnippets = [
   },
   {
     file: "packages/core/src/extension.ts",
-    name: "Core command acknowledgement",
-    snippets: ["commandButtonAcknowledgementScript", "pspfAcknowledgeCommandButton(button)"]
+    name: "Core shared command acknowledgement",
+    snippets: ["homePanelShellHtml", 'data-command="applyImport"']
   },
   {
     file: "packages/workshop/src/webview/shell.ts",

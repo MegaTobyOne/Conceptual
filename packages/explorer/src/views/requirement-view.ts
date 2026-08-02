@@ -1,6 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { consume } from '@lit/context';
+import type { PresentationLens } from '@pspf/webview-shell';
 import { designTokens } from '../app/design-tokens.ts';
 import {
   allDomains,
@@ -10,6 +11,7 @@ import {
 } from '../pspf/index.ts';
 import { asRequirementId, type ComplianceState, type Relationship } from '../data/types.ts';
 import { appStoreContext } from '../state/contexts.ts';
+import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
 import '../components/compliance-badge.ts';
@@ -24,6 +26,47 @@ export class RequirementView extends LitElement {
     css`
       :host {
         display: block;
+      }
+      article {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+      }
+      pspf-breadcrumbs {
+        order: 0;
+      }
+      header.req {
+        order: 1;
+      }
+      .req-nav {
+        order: 2;
+      }
+      article[data-lens='ciso'] .assessment,
+      article[data-lens='solo'] .assessment {
+        order: 3;
+      }
+      article[data-lens='ciso'] .requirement-text,
+      article[data-lens='solo'] .requirement-text {
+        order: 4;
+      }
+      article[data-lens='ciso'] .requirement-context,
+      article[data-lens='solo'] .requirement-context {
+        order: 5;
+      }
+      article[data-lens='auditor'] .requirement-text {
+        order: 3;
+      }
+      article[data-lens='auditor'] .requirement-context {
+        order: 4;
+      }
+      article[data-lens='auditor'] .assessment {
+        order: 5;
+      }
+      .linker {
+        order: 6;
+      }
+      .work-log {
+        order: 7;
       }
       header.req {
         display: flex;
@@ -154,6 +197,9 @@ export class RequirementView extends LitElement {
   @consume({ context: appStoreContext, subscribe: true })
   private store: AppStore | undefined;
 
+  @consume({ context: presentationLensContext, subscribe: true })
+  private lens: PresentationLens = 'ciso';
+
   // eslint-disable-next-line no-unused-private-class-members
   #watcher = new SignalWatcher(this, () =>
     this.store
@@ -195,7 +241,7 @@ export class RequirementView extends LitElement {
       relationship.endpoints.includes(req.id),
     );
     return html`
-      <article>
+      <article data-lens=${this.lens}>
         <pspf-breadcrumbs
           .items=${[
             { label: 'Home', href: '#/' },
@@ -219,8 +265,8 @@ export class RequirementView extends LitElement {
               >`
             : html`<span data-testid="next-requirement-disabled">Next →</span>`}
         </nav>
-        <p class="text">${req.text}</p>
-        <dl>
+        <p class="text requirement-text">${req.text}</p>
+        <dl class="requirement-context">
           <dt>Domain</dt>
           <dd>${domain?.name ?? req.domain}</dd>
           <dt>Reporting</dt>
@@ -242,7 +288,10 @@ export class RequirementView extends LitElement {
               `
             : ''}
         </dl>
-        <pspf-compliance-editor .requirementId=${req.id}></pspf-compliance-editor>
+        <pspf-compliance-editor
+          class="assessment"
+          .requirementId=${req.id}
+        ></pspf-compliance-editor>
         <section class="linker">
           <h3>Link this requirement</h3>
           <form
@@ -301,7 +350,7 @@ export class RequirementView extends LitElement {
                 </ul>
               `}
         </section>
-        <pspf-work-log .requirementId=${req.id}></pspf-work-log>
+        <pspf-work-log class="work-log" .requirementId=${req.id}></pspf-work-log>
       </article>
     `;
   }

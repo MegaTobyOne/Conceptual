@@ -15,7 +15,7 @@
 import { tokensCss } from "./tokens.js";
 import { commandButtonAcknowledgementScript } from "./interactions.js";
 
-export type HomePanelAccent = "teal" | "blue" | "amber" | "red";
+export type ProductIdentity = "core" | "assurance" | "workshop" | "shop" | "pub" | "explorer";
 
 export interface HomePanelNavItem {
   /** Section ID inside the body, without leading `#`. */
@@ -33,8 +33,8 @@ export interface HomePanelOptions {
   readonly tagline: string;
   /** Slice/extension version string, displayed as `v…`. */
   readonly version: string;
-  /** Accent colour, see {@link HomePanelAccent}. */
-  readonly accent: HomePanelAccent;
+  /** Product identity used to select the structural accent. */
+  readonly product: ProductIdentity;
   /** Sensitivity banner text shown under the header. */
   readonly sensitivityBanner: string;
   /** Optional anchor nav links rendered as small pills under the banner. */
@@ -49,37 +49,17 @@ export interface HomePanelOptions {
 }
 
 interface AccentPalette {
-  readonly accent: string;
-  readonly accentSoft: string;
-  readonly accentStrong: string;
-  readonly accentInk: string;
+  readonly light: string;
+  readonly dark: string;
 }
 
-const ACCENTS: Record<HomePanelAccent, AccentPalette> = {
-  teal: {
-    accent: "#0f766e",
-    accentSoft: "rgba(15, 118, 110, 0.12)",
-    accentStrong: "rgba(15, 118, 110, 0.28)",
-    accentInk: "#5bb8b0"
-  },
-  blue: {
-    accent: "#2563eb",
-    accentSoft: "rgba(37, 99, 235, 0.13)",
-    accentStrong: "rgba(37, 99, 235, 0.28)",
-    accentInk: "#8cadde"
-  },
-  amber: {
-    accent: "#9a5c00",
-    accentSoft: "rgba(154, 92, 0, 0.16)",
-    accentStrong: "rgba(154, 92, 0, 0.32)",
-    accentInk: "#d19b46"
-  },
-  red: {
-    accent: "#9c315f",
-    accentSoft: "rgba(156, 49, 95, 0.14)",
-    accentStrong: "rgba(156, 49, 95, 0.30)",
-    accentInk: "#d77aa2"
-  }
+const PRODUCT_IDENTITIES: Record<ProductIdentity, AccentPalette> = {
+  core: { light: "#536b70", dark: "#91a7aa" },
+  assurance: { light: "#625b8f", dark: "#aaa4d4" },
+  workshop: { light: "#176f68", dark: "#62b8ae" },
+  shop: { light: "#986329", dark: "#d5a466" },
+  pub: { light: "#825467", dark: "#c58da5" },
+  explorer: { light: "#3e6582", dark: "#82acc8" }
 };
 
 function escapeText(value: string): string {
@@ -95,10 +75,12 @@ const DEFAULT_FOOTER =
 
 function paletteCss(palette: AccentPalette): string {
   return `
-    --pspf-home-accent: ${palette.accent};
-    --pspf-home-accent-soft: ${palette.accentSoft};
-    --pspf-home-accent-strong: ${palette.accentStrong};
-    --pspf-home-accent-ink: ${palette.accentInk};
+    --pspf-home-accent-light: ${palette.light};
+    --pspf-home-accent-dark: ${palette.dark};
+    --pspf-home-accent: var(--pspf-home-accent-dark);
+    --pspf-home-accent-soft: color-mix(in srgb, var(--pspf-home-accent) 14%, transparent);
+    --pspf-home-accent-strong: color-mix(in srgb, var(--pspf-home-accent) 30%, transparent);
+    --pspf-home-accent-ink: var(--pspf-home-accent);
   `;
 }
 
@@ -119,7 +101,7 @@ function navHtml(nav: readonly HomePanelNavItem[] | undefined): string {
  * across extensions so the surfaces feel like one product family.
  */
 export function homePanelShellHtml(options: HomePanelOptions): string {
-  const palette = ACCENTS[options.accent];
+  const palette = PRODUCT_IDENTITIES[options.product];
   const footer = options.footer ?? DEFAULT_FOOTER;
   const tokens = tokensCss("extension");
 
@@ -132,6 +114,10 @@ export function homePanelShellHtml(options: HomePanelOptions): string {
   <style>
     ${tokens}
     :root { color-scheme: light dark; ${paletteCss(palette)} }
+    body.vscode-light,
+    body.vscode-high-contrast-light {
+      --pspf-home-accent: var(--pspf-home-accent-light);
+    }
     body {
       margin: 0;
       color: var(--vscode-foreground);
@@ -315,6 +301,11 @@ export function homePanelShellHtml(options: HomePanelOptions): string {
       button.addEventListener("click", () => {
         pspfAcknowledgeCommandButton(button);
         vscode.postMessage({ command: button.dataset.command });
+      });
+    });
+    document.querySelectorAll("select[data-command]").forEach((select) => {
+      select.addEventListener("change", () => {
+        vscode.postMessage({ command: select.dataset.command, value: select.value });
       });
     });
   </script>

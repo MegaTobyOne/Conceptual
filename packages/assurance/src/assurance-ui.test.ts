@@ -18,7 +18,7 @@ test("Assurance Home uses shared PSPF home shell primitives", async () => {
   assert.match(source, /isWorkspaceInitialised/);
   assert.match(source, /pspf\.core\.getWorkspacePaths/);
   assert.match(source, /Initialise the local PSPF workspace before using Assurance actions/);
-  assert.match(source, /accent: "teal"/);
+  assert.match(source, /product: "assurance"/);
   assert.match(source, /assuranceHomeStyles/);
   assert.match(source, /Assurance Home/);
   assert.match(source, /OFFICIAL: Sensitive assurance workspace/);

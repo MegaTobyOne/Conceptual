@@ -1,8 +1,10 @@
 import { LitElement, css, html, type TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { consume } from '@lit/context';
+import type { PresentationLens } from '@pspf/webview-shell';
 import { designTokens } from '../app/design-tokens.ts';
 import { appStoreContext } from '../state/contexts.ts';
+import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { summariseAllDomains, type DomainSummary } from '../domain/summary.ts';
@@ -26,6 +28,36 @@ export class HomeView extends LitElement {
       article {
         display: grid;
         gap: var(--space-4);
+      }
+      article[data-lens='ciso'] .overview {
+        order: 1;
+      }
+      article[data-lens='ciso'] .hero {
+        order: 2;
+      }
+      article[data-lens='ciso'] .domains {
+        order: 3;
+      }
+      article[data-lens='auditor'] .overview {
+        order: 1;
+      }
+      article[data-lens='auditor'] .domains {
+        order: 2;
+      }
+      article[data-lens='auditor'] .hero {
+        order: 3;
+      }
+      article[data-lens='solo'] .hero {
+        order: 1;
+      }
+      article[data-lens='solo'] .overview {
+        order: 2;
+      }
+      article[data-lens='solo'] .domains {
+        order: 3;
+      }
+      pspf-breadcrumbs {
+        order: 0;
       }
       h1 {
         font-size: clamp(1.75rem, 2vw + 1rem, 2.4rem);
@@ -252,6 +284,9 @@ export class HomeView extends LitElement {
   @consume({ context: appStoreContext, subscribe: true })
   private store: AppStore | undefined;
 
+  @consume({ context: presentationLensContext, subscribe: true })
+  private lens: PresentationLens = 'ciso';
+
   // Re-render whenever the compliance signal changes.
   // The watcher is held only for its controller lifecycle.
   // eslint-disable-next-line no-unused-private-class-members
@@ -283,17 +318,27 @@ export class HomeView extends LitElement {
         text: 'Record remediation work and see what is overdue or still in flight.',
       },
     ] as const;
+    const lensCopy = {
+      ciso: {
+        title: 'Protection posture and decisions in one working view',
+        lede: 'Start with material posture signals, then trace every decision back to requirements, risks, actions, and evidence.',
+      },
+      auditor: {
+        title: 'Evidence, requirements, and traceability in one review view',
+        lede: 'Review implementation state and follow each claim into the records that support or qualify it. Your work stays on this device.',
+      },
+      solo: {
+        title: 'Your next PSPF steps in one guided view',
+        lede: 'Start with a requirement, record what you already have, and turn gaps into practical actions. Your work stays on this device.',
+      },
+    }[this.lens];
     return html`
-      <article>
+      <article data-lens=${this.lens}>
         <pspf-breadcrumbs .items=${[{ label: 'Home' }]}></pspf-breadcrumbs>
         <section class="hero" aria-label="Home overview and quick start">
           <div class="hero-copy">
-            <h1>PSPF domains, risks, and actions in one working view</h1>
-            <p class="lede">
-              Welcome to PSPF Explorer v3. Use the quick start links to move into the part of the
-              programme you need, then drill into domains, risks, and actions from there. Your work
-              stays on this device.
-            </p>
+            <h1>${lensCopy.title}</h1>
+            <p class="lede">${lensCopy.lede}</p>
             <div class="hero-meta" aria-label="Product highlights">
               <span>Offline first</span>
               <span>Fast local search</span>
@@ -347,7 +392,7 @@ export class HomeView extends LitElement {
           </div>
         </section>
 
-        <section aria-label="Domain cards">
+        <section class="domains" aria-label="Domain cards">
           <h2 class="section-title">PSPF domains</h2>
           <p class="section-note">
             Pick a domain to continue working through its requirements. The card progress bars show

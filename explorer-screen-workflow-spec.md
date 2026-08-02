@@ -172,8 +172,11 @@ The top header should include:
 - bundle version / export timestamp
 - primary navigation
 - global search
-- theme toggle
+- Dark / Light / System theme preference
+- CISO / Auditor / Solo IT presentation-lens selector
 - data freshness indicator
+
+Theme and presentation preferences are browser-local UI state. First use is Dark; the retired `colorful` value resolves to Dark; System follows operating-system changes only while selected. Presentation lenses may change wording, order, density, and initial disclosure, but never records, calculations, controls, commands, exports, redaction, or publication.
 
 ## Screen catalogue
 
@@ -954,7 +957,10 @@ Explorer must satisfy these baseline requirements:
 - chart alternatives through data tables and prose.
 - plain-language labels and instructions.
 - adequate contrast in light and dark themes
+- high-contrast-compatible semantic tokens and reduced-motion support
 - screen-reader sensible heading structure
+
+The representative v1.50 browser matrix covers Dark and Light at 1440 px, 768 px, 390 px, and 320 px, plus System preference changes and reduced motion. Primary tasks must not introduce page-level horizontal overflow at those widths.
 
 ## MVP screen set
 

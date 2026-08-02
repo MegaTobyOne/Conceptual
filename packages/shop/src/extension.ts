@@ -2103,7 +2103,7 @@ function renderShopHomeHtml(store: ShopStore): string {
     title: "PSPF Shop",
     tagline: "Commercial planning",
     version: PSPF_SLICE_VERSION,
-    accent: "amber",
+    product: "shop",
     sensitivityBanner: "OFFICIAL: Sensitive · Local workspace writes stay in Shop until you snapshot or export.",
     nav: [
       { href: "overview", label: "Overview" },

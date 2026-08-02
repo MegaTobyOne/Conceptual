@@ -20,6 +20,9 @@ export default defineConfig({
         new URL('../brief-renderer/dist/index.js', import.meta.url),
       ),
       '@pspf/contracts': fileURLToPath(new URL('../contracts/dist/index.js', import.meta.url)),
+      '@pspf/webview-shell': fileURLToPath(
+        new URL('../webview-shell/dist/index.js', import.meta.url),
+      ),
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@data': fileURLToPath(new URL('./src/data', import.meta.url)),
       '@domain': fileURLToPath(new URL('./src/domain', import.meta.url)),

@@ -738,7 +738,7 @@ function assuranceHomeShell(body: string): string {
     title: "PSPF Assurance",
     tagline: "Assessment and verification",
     version: PSPF_SLICE_VERSION,
-    accent: "teal",
+    product: "assurance",
     sensitivityBanner: "OFFICIAL: Sensitive · assessment and verification data stays local until a gated export.",
     nav: [
       { href: "overview", label: "Overview" },

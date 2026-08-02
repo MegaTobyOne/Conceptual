@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-07-18 (repo version 1.47.0)
+Last updated: 2026-08-02 (repo version 1.50.0)
 
 ## Purpose
 
@@ -21,6 +21,44 @@ This plan does not override the authority chain in `pspf-spec-consistency-index.
 3. **Kill switches are policy, not preference.** AI and Graph capability must each be disableable at three levels: per-user setting, workspace policy (`.pspf/config/policies.json`), and build-time exclusion (the extensions function identically when the capability package is absent). Disabled means _no code path can reach the network or a model_ — not a hidden toggle.
 4. **Post-quantum cryptography from day one for any new signing or encryption.** The ecosystem currently uses SHA-256 checksums only (acceptable). The moment assurance publishing introduces signatures, use ML-DSA (FIPS 204) or SLH-DSA (FIPS 205); any key establishment uses ML-KEM (FIPS 203) hybrid. No new Ed25519/ECDSA/RSA surface is introduced.
 5. **AU English in all user-facing copy**; every spec touched gains a `Status: implemented | partial | aspirational` header.
+
+---
+
+## v1.50 dark-first ecosystem redesign
+
+Status: **implemented — governed by ADR 0086**
+
+### Outcome
+
+Make Core, Assurance, Workshop, Shop, Pub, and Explorer feel like one calm product family while preserving native VS Code navigation, local-first behaviour, publication controls, and each product's distinct purpose. The release reduces visible complexity through hierarchy and progressive disclosure; it does not remove records or weaken operator access.
+
+### Decisions
+
+1. Explorer defaults to **Dark** and supports explicit **Light** and **System** choices. The retired Colorful preference migrates to Dark.
+2. Extension webviews inherit the active VS Code light, dark, or high-contrast theme. Dark is the design baseline, not a forced theme inside a light editor.
+3. Product identity uses one restrained structural accent: Core slate, Assurance muted indigo, Workshop teal, Shop bronze, Pub plum, and Explorer steel blue. Status, classification, severity, risk, and compliance colours remain semantic and independent.
+4. CISO, Auditor, and Solo IT are local presentation lenses only. They may alter wording, order, density, and initial disclosure, but never permissions, records, calculations, commands, exports, redaction, bundles, or publication.
+5. Native VS Code Activity Bar navigation remains authoritative. The concept product rail is not shipped inside extension webviews.
+6. This slice does not change entities, links, schemas, bundles, or the Core API. Compatibility axes remain `1.14.0`.
+
+### Implementation slices
+
+| #   | Work item                                                                                                                                                                  | Done when                                                                                                                                                     |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | **Governance and shared identity.** Accept ADR 0086, update the design authority, and add six typed product identities to `@pspf/webview-shell`.                           | ADR coverage passes; all identities emit theme-aware accents; existing callers remain compatible during migration.                                            |
+| D2  | **Shared anatomy.** Add semantic surface tokens and reusable page header, trust chip, attention list, metric strip, trace chain, disclosure, and lens selector primitives. | Generated fixtures are keyboard-operable and readable under VS Code dark, light, and high-contrast variable sets.                                             |
+| D3  | **Workshop proof point.** Apply the pattern to Workshop Home and Requirement detail before widening the rollout.                                                           | One unchanged model supports all three lenses; commands, IDs, values, and editor access are invariant.                                                        |
+| D4  | **Extension rollout.** Migrate Core, Assurance, Shop, Pub, then remaining Workshop surfaces.                                                                               | Each product uses its identity and shared structure; advanced fields remain discoverable; focused package tests pass after each migration.                    |
+| D5  | **Explorer dark-first shell.** Replace Colorful with System, add deterministic preference migration, and adopt the quieter responsive hierarchy.                           | First use is Dark; Light and System persist correctly; system changes are observed only in System mode.                                                       |
+| D6  | **Explorer lenses and route rollout.** Apply local presentation lenses to Home/Posture/Requirements first, then other route groups.                                        | Lenses change presentation only; automated invariance tests prove records, calculations, commands, and outputs are unchanged.                                 |
+| D7  | **Visual release gates.** Add representative visual, responsive, accessibility, contrast, reduced-motion, and preference tests.                                            | Dark and Light pass at desktop, tablet, mobile, and 320 px; extension fixtures pass dark, light, and high contrast; release readiness includes the new gates. |
+
+### Explicitly deferred
+
+- Role-based access control, identity integration, and lens-driven publication or redaction.
+- A unified product host, embedded cross-extension product rail, or extension pack.
+- Cross-workspace roll-up, semantic snapshot comparison, and Future Mission Control.
+- New entity types, link types, bundle collections, Graph behaviour, AI behaviour, or network dependencies.
 
 ---
 
