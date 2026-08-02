@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PSPF v1.50 ecosystem redesign concept</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --canvas: #111514;
+        --surface: #171b1a;
+        --surface-raised: #202624;
+        --surface-muted: #252c2a;
+        --ink: #e4e9e7;
+        --muted: #aab4b1;
+        --line: #35403d;
+        --line-strong: #4a5753;
+        --accent: #62b8ae;
+        --accent-soft: #1d3a36;
+        --success: #76b792;
+        --warning: #d5a466;
+        --danger: #d48b82;
+        --core: #91a7aa;
+        --assurance: #aaa4d4;
+        --workshop: #62b8ae;
+        --shop: #d5a466;
+        --pub: #c58da5;
+        --explorer: #82acc8;
+        --core-soft: #243033;
+        --assurance-soft: #2b2940;
+        --shop-soft: #3d3022;
+        --pub-soft: #3a2931;
+        --explorer-soft: #21323d;
+        --shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+        --radius: 8px;
+      }
+
+      body[data-theme="light"] {
+        color-scheme: light;
+        --canvas: #eef1ef;
+        --surface: #fbfcfb;
+        --surface-raised: #ffffff;
+        --surface-muted: #f3f5f3;
+        --ink: #192220;
+        --muted: #596562;
+        --line: #dce2df;
+        --line-strong: #c9d1cd;
+        --accent: #176f68;
+        --accent-soft: #e1efec;
+        --success: #397258;
+        --warning: #9b681c;
+        --danger: #9c4a42;
+        --core: #536b70;
+        --assurance: #625b8f;
+        --workshop: #176f68;
+        --shop: #986329;
+        --pub: #825467;
+        --explorer: #3e6582;
+        --core-soft: #e6ecec;
+        --assurance-soft: #ebe9f3;
+        --shop-soft: #f4e9dc;
+        --pub-soft: #f2e7ec;
+        --explorer-soft: #e3ebf0;
+        --shadow: 0 18px 48px rgba(34, 48, 44, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        color: var(--ink);
+        background:
+          linear-gradient(rgba(31, 68, 59, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(31, 68, 59, 0.025) 1px, transparent 1px), var(--canvas);
+        background-size: 24px 24px;
+        font-family: "Avenir Next", "Segoe UI", sans-serif;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      button,
+      select {
+        font: inherit;
+      }
+      button {
+        color: inherit;
+      }
+      button:focus-visible,
+      select:focus-visible,
+      a:focus-visible {
+        outline: 3px solid rgba(23, 111, 104, 0.35);
+        outline-offset: 2px;
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: 76px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .product-rail {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        height: 100vh;
+        padding: 14px 10px;
+        border-right: 1px solid var(--line);
+        background: rgba(251, 252, 251, 0.94);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+      }
+
+      .brand {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        margin: 0 auto 24px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: var(--ink);
+        color: white;
+        font-family: Charter, Georgia, serif;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .product-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .product-button {
+        display: grid;
+        justify-items: center;
+        gap: 5px;
+        width: 100%;
+        padding: 8px 2px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .product-button:hover,
+      .product-button[aria-pressed="true"] {
+        background: var(--surface-muted);
+        color: var(--ink);
+      }
+
+      .product-button[data-product="core"] {
+        --product-colour: var(--core);
+      }
+      .product-button[data-product="assurance"] {
+        --product-colour: var(--assurance);
+      }
+      .product-button[data-product="workshop"] {
+        --product-colour: var(--workshop);
+      }
+      .product-button[data-product="shop"] {
+        --product-colour: var(--shop);
+      }
+      .product-button[data-product="pub"] {
+        --product-colour: var(--pub);
+      }
+      .product-button[data-product="explorer"] {
+        --product-colour: var(--explorer);
+      }
+
+      .product-mark {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 2px solid var(--product-colour);
+        border-radius: 7px;
+        color: var(--product-colour);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .product-button[aria-pressed="true"] .product-mark {
+        background: var(--product-colour);
+        color: white;
+      }
+
+      .product-name {
+        font-size: 9px;
+      }
+
+      .workspace {
+        min-width: 0;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 10px 28px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(238, 241, 239, 0.91);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+      }
+
+      .crumb {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .crumb strong {
+        color: var(--ink);
+      }
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .select-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 8px 5px 11px;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: var(--surface);
+      }
+
+      .select-wrap label {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      select {
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        font-weight: 650;
+      }
+
+      .icon-button {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: var(--surface);
+        cursor: pointer;
+      }
+
+      main {
+        max-width: 1340px;
+        margin: 0 auto;
+        padding: 34px 34px 64px;
+      }
+
+      .page-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        margin: 0 0 5px;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+      h1 {
+        margin-bottom: 7px;
+        font-family: Charter, Georgia, serif;
+        font-size: 32px;
+        font-weight: 600;
+        line-height: 1.12;
+      }
+
+      .lede {
+        max-width: 660px;
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .primary-button {
+        min-height: 38px;
+        padding: 8px 14px;
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        background: var(--accent);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .trust-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin: 0 0 20px;
+      }
+
+      .chip {
+        padding: 4px 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .chip.strong {
+        border-color: #a9c9c3;
+        background: var(--accent-soft);
+        color: #15564f;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.65fr) minmax(290px, 0.75fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        min-height: 58px;
+        padding: 14px 17px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .panel-header h2 {
+        margin: 0;
+        font-size: 15px;
+      }
+      .panel-header span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .attention-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .attention-item {
+        display: grid;
+        grid-template-columns: 4px minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        padding: 16px 17px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .attention-item:last-child {
+        border-bottom: 0;
+      }
+      .severity {
+        align-self: stretch;
+        border-radius: 4px;
+        background: var(--warning);
+      }
+      .severity.high {
+        background: var(--danger);
+      }
+      .severity.low {
+        background: var(--success);
+      }
+      .item-title {
+        margin-bottom: 3px;
+        font-size: 13px;
+        font-weight: 750;
+      }
+      .item-meta {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .text-button {
+        padding: 6px 9px;
+        border: 1px solid var(--line-strong);
+        border-radius: 5px;
+        background: var(--surface-raised);
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 750;
+        cursor: pointer;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        border-top: 1px solid var(--line);
+        background: var(--line);
+      }
+
+      .summary {
+        min-height: 112px;
+        padding: 17px;
+        background: var(--surface);
+      }
+
+      .summary label {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .summary strong {
+        display: block;
+        margin: 5px 0 4px;
+        font-family: Charter, Georgia, serif;
+        font-size: 28px;
+        font-weight: 600;
+      }
+      .summary small {
+        color: var(--muted);
+      }
+
+      .side-stack {
+        display: grid;
+        gap: 18px;
+      }
+      .decision-list {
+        margin: 0;
+        padding: 6px 17px 12px 37px;
+      }
+      .decision-list li {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .decision-list li:last-child {
+        border-bottom: 0;
+      }
+      .decision-list strong {
+        display: block;
+        font-size: 12px;
+      }
+      .decision-list span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .chain {
+        padding: 16px 17px 18px;
+      }
+      .chain-step {
+        position: relative;
+        display: grid;
+        grid-template-columns: 26px 1fr;
+        gap: 9px;
+        min-height: 47px;
+      }
+
+      .chain-step:not(:last-child)::after {
+        position: absolute;
+        top: 24px;
+        bottom: 0;
+        left: 12px;
+        width: 1px;
+        background: var(--line-strong);
+        content: "";
+      }
+
+      .chain-mark {
+        z-index: 1;
+        display: grid;
+        place-items: center;
+        width: 25px;
+        height: 25px;
+        border: 1px solid var(--line-strong);
+        border-radius: 50%;
+        background: var(--surface-raised);
+        color: var(--accent);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .chain-copy strong {
+        display: block;
+        font-size: 11px;
+      }
+      .chain-copy span {
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .solo-only {
+        display: none;
+      }
+      body[data-profile="solo"] .enterprise-only {
+        display: none;
+      }
+      body[data-profile="solo"] .solo-only {
+        display: list-item;
+      }
+      body[data-profile="solo"] .layout {
+        grid-template-columns: minmax(0, 1fr) 320px;
+      }
+      body[data-product="shop"] {
+        --accent: var(--shop);
+        --accent-soft: var(--shop-soft);
+      }
+      body[data-product="pub"] {
+        --accent: var(--pub);
+        --accent-soft: var(--pub-soft);
+      }
+      body[data-product="core"] {
+        --accent: var(--core);
+        --accent-soft: var(--core-soft);
+      }
+      body[data-product="assurance"] {
+        --accent: var(--assurance);
+        --accent-soft: var(--assurance-soft);
+      }
+      body[data-product="explorer"] {
+        --accent: var(--explorer);
+        --accent-soft: var(--explorer-soft);
+      }
+
+      .concept-note {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      @media (max-width: 900px) {
+        .layout,
+        body[data-profile="solo"] .layout {
+          grid-template-columns: 1fr;
+        }
+        .side-stack {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .page-head {
+          align-items: start;
+          flex-direction: column;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .app {
+          grid-template-columns: 1fr;
+          padding-bottom: 68px;
+        }
+        .product-rail {
+          position: fixed;
+          top: auto;
+          bottom: 0;
+          z-index: 5;
+          width: 100%;
+          height: 68px;
+          padding: 6px 10px;
+          border-top: 1px solid var(--line);
+          border-right: 0;
+        }
+        .brand {
+          display: none;
+        }
+        .product-list {
+          grid-template-columns: repeat(5, 1fr);
+          gap: 2px;
+        }
+        .product-button {
+          gap: 1px;
+          padding: 3px 1px;
+        }
+        .product-mark {
+          width: 27px;
+          height: 27px;
+        }
+        .topbar {
+          padding: 10px 14px;
+        }
+        .select-wrap label,
+        .crumb span,
+        .icon-button {
+          display: none;
+        }
+        main {
+          padding: 24px 14px 48px;
+        }
+        h1 {
+          font-size: 27px;
+        }
+        .top-actions {
+          max-width: 58%;
+        }
+        .select-wrap {
+          width: 100%;
+        }
+        select {
+          width: 100%;
+        }
+        .side-stack {
+          grid-template-columns: 1fr;
+        }
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+        .attention-item {
+          grid-template-columns: 4px minmax(0, 1fr);
+        }
+        .attention-item .text-button {
+          grid-column: 2;
+          justify-self: start;
+        }
+      }
+    </style>
+  </head>
+  <body data-profile="ciso" data-product="workshop" data-theme="dark">
+    <div class="app">
+      <aside class="product-rail" aria-label="PSPF products">
+        <div class="brand" aria-label="PSPF">PS</div>
+        <div class="product-list">
+          <button class="product-button" data-product="core" aria-pressed="false" title="Core: system integrity">
+            <span class="product-mark">CO</span><span class="product-name">Core</span>
+          </button>
+          <button
+            class="product-button"
+            data-product="assurance"
+            aria-pressed="false"
+            title="Assurance: assessment and verification"
+          >
+            <span class="product-mark">AS</span><span class="product-name">Assurance</span>
+          </button>
+          <button class="product-button" data-product="workshop" aria-pressed="true" title="Workshop: assurance work">
+            <span class="product-mark">WK</span><span class="product-name">Workshop</span>
+          </button>
+          <button class="product-button" data-product="shop" aria-pressed="false" title="Shop: commercial planning">
+            <span class="product-mark">SH</span><span class="product-name">Shop</span>
+          </button>
+          <button class="product-button" data-product="pub" aria-pressed="false" title="Pub: workforce and roles">
+            <span class="product-mark">PB</span><span class="product-name">Pub</span>
+          </button>
+          <button
+            class="product-button"
+            data-product="explorer"
+            aria-pressed="false"
+            title="Explorer: review and sharing"
+          >
+            <span class="product-mark">EX</span><span class="product-name">Explorer</span>
+          </button>
+        </div>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <div class="crumb"><strong id="product-title">Workshop</strong><span> / Northstar Programme</span></div>
+          <div class="top-actions">
+            <div class="select-wrap">
+              <label for="profile">View for</label>
+              <select id="profile">
+                <option value="ciso">CISO</option>
+                <option value="auditor">Auditor</option>
+                <option value="solo">Solo IT</option>
+              </select>
+            </div>
+            <div class="select-wrap">
+              <label for="theme">Theme</label>
+              <select id="theme">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="system">System</option>
+              </select>
+            </div>
+            <button class="icon-button" type="button" title="Search" aria-label="Search">⌕</button>
+          </div>
+        </header>
+
+        <main>
+          <div class="page-head">
+            <div>
+              <p class="eyebrow" id="view-label">Executive view</p>
+              <h1 id="page-title">Protection posture</h1>
+              <p class="lede" id="page-lede">
+                Three decisions need attention. Every signal below traces back to a source record.
+              </p>
+            </div>
+            <button class="primary-button" type="button" id="primary-action">Prepare posture brief</button>
+          </div>
+
+          <div class="trust-row" aria-label="Record context">
+            <span class="chip strong">OFFICIAL: Sensitive</span>
+            <span class="chip">As at 01 Aug 2026</span>
+            <span class="chip">Snapshot SNP-2048</span>
+            <span class="chip">All checks passed</span>
+          </div>
+
+          <div class="layout">
+            <section class="panel" aria-labelledby="attention-title">
+              <div class="panel-header">
+                <h2 id="attention-title">Needs attention</h2>
+                <span>Ordered by impact</span>
+              </div>
+              <ul class="attention-list">
+                <li class="attention-item enterprise-only">
+                  <span class="severity high" aria-label="High priority"></span>
+                  <div>
+                    <p class="item-title">Personnel security evidence is 43 days out of date</p>
+                    <span class="item-meta">3 requirements · 1 affected domain · Evidence EVD-0184</span>
+                  </div>
+                  <button class="text-button" type="button">Review evidence</button>
+                </li>
+                <li class="attention-item enterprise-only">
+                  <span class="severity" aria-label="Medium priority"></span>
+                  <div>
+                    <p class="item-title">Board decision required on supplier remediation</p>
+                    <span class="item-meta">$245,000 AUD · Contract CTR-0082 · Decision due 08 Aug</span>
+                  </div>
+                  <button class="text-button" type="button">Open decision</button>
+                </li>
+                <li class="attention-item enterprise-only">
+                  <span class="severity" aria-label="Medium priority"></span>
+                  <div>
+                    <p class="item-title">Two information requirements remain unsupported</p>
+                    <span class="item-meta">No current evidence · Blocks reporting readiness</span>
+                  </div>
+                  <button class="text-button" type="button">Add evidence</button>
+                </li>
+                <li class="attention-item solo-only">
+                  <span class="severity high" aria-label="High priority"></span>
+                  <div>
+                    <p class="item-title">Finish your first evidence check</p>
+                    <span class="item-meta">Upload or link the policy you already use for access control</span>
+                  </div>
+                  <button class="text-button" type="button">Start check</button>
+                </li>
+                <li class="attention-item solo-only">
+                  <span class="severity" aria-label="Medium priority"></span>
+                  <div>
+                    <p class="item-title">Confirm who approves security decisions</p>
+                    <span class="item-meta">One plain-language question · About 2 minutes</span>
+                  </div>
+                  <button class="text-button" type="button">Answer</button>
+                </li>
+                <li class="attention-item">
+                  <span class="severity low" aria-label="On track"></span>
+                  <div>
+                    <p class="item-title">Governance review is on track</p>
+                    <span class="item-meta">Next review 16 Sep 2026 · 12 linked records</span>
+                  </div>
+                  <button class="text-button" type="button">View detail</button>
+                </li>
+              </ul>
+              <div class="summary-grid">
+                <div class="summary">
+                  <label>Ready to report</label><strong>31</strong><small>of 40 requirements</small>
+                </div>
+                <div class="summary">
+                  <label>Current evidence</label><strong>86%</strong><small>4 items need review</small>
+                </div>
+                <div class="summary">
+                  <label>Funded actions</label><strong>7 / 9</strong><small>$1.2m committed</small>
+                </div>
+              </div>
+            </section>
+
+            <div class="side-stack">
+              <section class="panel" aria-labelledby="decision-title">
+                <div class="panel-header">
+                  <h2 id="decision-title">Decisions next</h2>
+                  <span>Next 30 days</span>
+                </div>
+                <ol class="decision-list">
+                  <li><strong>Approve supplier remediation</strong><span>Due 08 Aug · High exposure</span></li>
+                  <li><strong>Accept residual access risk</strong><span>Due 15 Aug · Owner confirmed</span></li>
+                  <li><strong>Fund physical security uplift</strong><span>Due 26 Aug · $82,000 AUD</span></li>
+                </ol>
+              </section>
+
+              <section class="panel" aria-labelledby="trace-title">
+                <div class="panel-header">
+                  <h2 id="trace-title">Trace this claim</h2>
+                  <span>Complete chain</span>
+                </div>
+                <div class="chain">
+                  <div class="chain-step">
+                    <span class="chain-mark">RQ</span>
+                    <div class="chain-copy">
+                      <strong>Requirement GOV-04</strong><span>Protective security governance</span>
+                    </div>
+                  </div>
+                  <div class="chain-step">
+                    <span class="chain-mark">EV</span>
+                    <div class="chain-copy">
+                      <strong>Board-approved policy</strong><span>Verified 18 Jul 2026</span>
+                    </div>
+                  </div>
+                  <div class="chain-step">
+                    <span class="chain-mark">AC</span>
+                    <div class="chain-copy">
+                      <strong>Supplier remediation</strong><span>In progress · due 30 Sep</span>
+                    </div>
+                  </div>
+                  <div class="chain-step">
+                    <span class="chain-mark">CT</span>
+                    <div class="chain-copy"><strong>Contract CTR-0082</strong><span>Funds $245,000 AUD</span></div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <p class="concept-note">
+            Interactive v1.50 design concept · Select products and audience views to compare density and flavour.
+          </p>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const profileContent = {
+        ciso: {
+          label: "Executive view",
+          title: "Protection posture",
+          lede: "Three decisions need attention. Every signal below traces back to a source record.",
+          action: "Prepare posture brief"
+        },
+        auditor: {
+          label: "Assurance view",
+          title: "Evidence and funding trace",
+          lede: "Review provenance, currency and the complete requirement-to-spend chain without entering edit mode.",
+          action: "Prepare evidence pack"
+        },
+        solo: {
+          label: "Guided view",
+          title: "Your next three steps",
+          lede: "Start with the records you already have. Advanced fields stay out of the way until you need them.",
+          action: "Continue guided review"
+        }
+      };
+
+      const productNames = {
+        core: "Core",
+        assurance: "Assurance",
+        workshop: "Workshop",
+        shop: "Shop",
+        pub: "Pub",
+        explorer: "Explorer"
+      };
+
+      const profileSelect = document.querySelector("#profile");
+      const themeSelect = document.querySelector("#theme");
+      const productButtons = document.querySelectorAll("[data-product]");
+      const systemTheme = window.matchMedia("(prefers-color-scheme: light)");
+
+      function setProfile(profile) {
+        const content = profileContent[profile];
+        document.body.dataset.profile = profile;
+        document.querySelector("#view-label").textContent = content.label;
+        document.querySelector("#page-title").textContent = content.title;
+        document.querySelector("#page-lede").textContent = content.lede;
+        document.querySelector("#primary-action").textContent = content.action;
+      }
+
+      profileSelect.addEventListener("change", (event) => setProfile(event.target.value));
+
+      function applyTheme(preference) {
+        document.body.dataset.theme = preference === "system" ? (systemTheme.matches ? "light" : "dark") : preference;
+      }
+
+      themeSelect.addEventListener("change", (event) => applyTheme(event.target.value));
+      systemTheme.addEventListener("change", () => {
+        if (themeSelect.value === "system") applyTheme("system");
+      });
+
+      productButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const product = button.dataset.product;
+          document.body.dataset.product = product;
+          document.querySelector("#product-title").textContent = productNames[product];
+          productButtons.forEach((candidate) => candidate.setAttribute("aria-pressed", String(candidate === button)));
+        });
+      });
+    </script>
+  </body>
+</html>

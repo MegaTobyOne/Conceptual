@@ -320,7 +320,12 @@ const coverage = [
     "release:readiness"
   ]),
   adr("0084-explorer-unification-pspfexplorer2.md", "indirect", ["package:check", "release:readiness"]),
-  adr("0085-v1-49-assurance-city.md", "automated", ["e2e:v1.49", "check:release-candidate", "release:readiness"])
+  adr("0085-v1-49-assurance-city.md", "automated", ["e2e:v1.49", "check:release-candidate", "release:readiness"]),
+  adr("0086-v1-50-dark-first-ecosystem-redesign.md", "automated", [
+    "e2e:v1.50",
+    "check:v150-visual",
+    "release:readiness"
+  ])
 ];
 
 const adrFiles = (await readdir(adrDirectory)).filter((file) => /^\d{4}-.*\.md$/.test(file)).sort();

@@ -2,12 +2,22 @@ import { strict as assert } from "node:assert";
 import { test } from "node:test";
 
 import {
+  attentionListHtml,
   bannerHtml,
   commandButtonAcknowledgementScript,
   cspNonce,
+  decodePresentationLens,
+  disclosureHtml,
+  encodePresentationLens,
+  homePanelShellHtml,
+  lensSelectorHtml,
+  metricStripHtml,
+  pageHeaderHtml,
   pill,
   relationshipManagerHtml,
   shellHtml,
+  traceChainHtml,
+  trustChipsHtml,
   tokensCss,
   versionPill
 } from "./index.js";
@@ -100,6 +110,68 @@ test("tokensCss marketing surface declares an explicit dark-scheme palette", () 
 test("tokensCss extension surface does NOT hardcode marketing colours", () => {
   const css = tokensCss("extension");
   assert.equal(css.includes("prefers-color-scheme"), false);
+});
+
+test("home panels expose all v1.50 product identities with theme-aware accents", () => {
+  const expectedColours = {
+    core: ["#536b70", "#91a7aa"],
+    assurance: ["#625b8f", "#aaa4d4"],
+    workshop: ["#176f68", "#62b8ae"],
+    shop: ["#986329", "#d5a466"],
+    pub: ["#825467", "#c58da5"],
+    explorer: ["#3e6582", "#82acc8"]
+  } as const;
+
+  for (const [product, colours] of Object.entries(expectedColours)) {
+    const html = homePanelShellHtml({
+      product: product as keyof typeof expectedColours,
+      extensionLabel: `PSPF ${product}`,
+      title: product,
+      tagline: "Local-first",
+      version: "1.50.0",
+      sensitivityBanner: "OFFICIAL: Sensitive",
+      body: ""
+    });
+    assert.match(html, new RegExp(`--pspf-home-accent-light: ${colours[0]}`));
+    assert.match(html, new RegExp(`--pspf-home-accent-dark: ${colours[1]}`));
+    assert.match(html, /--pspf-home-accent-soft: color-mix/);
+    assert.match(html, /body\.vscode-light,[\s\S]*body\.vscode-high-contrast-light/);
+  }
+});
+
+test("presentation lenses decode malformed values to the neutral CISO view", () => {
+  assert.equal(decodePresentationLens(undefined), "ciso");
+  assert.equal(decodePresentationLens("bad"), "ciso");
+  assert.equal(decodePresentationLens("auditor"), "auditor");
+  assert.equal(encodePresentationLens("solo"), "solo");
+});
+
+test("v1.50 page primitives escape text and preserve supplied safe action markup", () => {
+  assert.match(pageHeaderHtml({ eyebrow: "A < B", title: "Posture & work", description: "Review > act" }), /A &lt; B/);
+  assert.match(trustChipsHtml([{ label: "OFFICIAL: Sensitive", strong: true }]), /pspf-trust-chip--strong/);
+  assert.match(metricStripHtml([{ label: "Ready", value: 31, detail: "of 40" }]), /<strong>31<\/strong>/);
+  assert.match(
+    attentionListHtml([
+      { title: "Evidence <old>", detail: "43 days", tone: "warning", actionHtml: "<button>Open</button>" }
+    ]),
+    /Evidence &lt;old&gt;[\s\S]*<button>Open<\/button>/
+  );
+  assert.match(
+    traceChainHtml([{ marker: "RQ", title: "Requirement", detail: "supported by evidence" }]),
+    /pspf-trace-chain__marker/
+  );
+  assert.match(
+    disclosureHtml({ summary: "Advanced <tools>", bodyHtml: "<p>Body</p>", open: true }),
+    /<details[^>]* open>/
+  );
+});
+
+test("lens selector renders every presentation lens and selected state", () => {
+  const html = lensSelectorHtml({ lens: "auditor", command: 'choose"lens' });
+  assert.match(html, /value="ciso"/);
+  assert.match(html, /value="auditor" selected/);
+  assert.match(html, /value="solo"/);
+  assert.match(html, /data-command="choose&quot;lens"/);
 });
 
 test("button acknowledgement waits before showing busy state", () => {

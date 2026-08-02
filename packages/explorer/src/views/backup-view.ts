@@ -37,7 +37,7 @@ export class BackupView extends LitElement {
       }
       button.primary {
         background: var(--colour-accent);
-        color: var(--colour-on-accent, white);
+        color: var(--colour-accent-fg);
         border-color: var(--colour-accent);
       }
       button.danger {

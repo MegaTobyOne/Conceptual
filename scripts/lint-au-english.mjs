@@ -146,6 +146,9 @@ function extractHumanStrings(text) {
       .replace(/\\[nrt]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
+    if (/\b(?:color-mix|color-scheme|prefers-color-scheme)\b|--[a-z]/i.test(normalised)) {
+      continue;
+    }
     if (!looksLikeHumanString(normalised)) {
       continue;
     }

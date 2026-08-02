@@ -306,6 +306,63 @@ input[aria-invalid="false"], select[aria-invalid="false"], textarea[aria-invalid
   font-variant-numeric: tabular-nums;
 }
 .pspf-metric span { color: var(--pspf-muted); font-size: var(--pspf-type-label); }
+.pspf-page-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--pspf-gap-lg);
+  margin-bottom: var(--pspf-gap-md);
+}
+.pspf-page-header h1 { margin: 0; font-size: var(--pspf-type-page-title); }
+.pspf-page-header__eyebrow {
+  margin: 0 0 var(--pspf-gap-xs);
+  color: var(--pspf-accent);
+  font-size: var(--pspf-type-label);
+  font-weight: 700;
+  letter-spacing: var(--pspf-letter-label);
+  text-transform: uppercase;
+}
+.pspf-page-header__description { max-width: 68ch; margin: var(--pspf-gap-xs) 0 0; color: var(--pspf-muted); }
+.pspf-page-header__actions { display: flex; flex-wrap: wrap; gap: var(--pspf-gap-sm); }
+.pspf-trust-row { display: flex; flex-wrap: wrap; gap: var(--pspf-gap-sm); margin-bottom: var(--pspf-gap-md); }
+.pspf-trust-chip {
+  border: 1px solid var(--pspf-border);
+  border-radius: var(--pspf-radius-pill);
+  padding: var(--pspf-pill-pad-y) var(--pspf-pill-pad-x);
+  color: var(--pspf-muted);
+  background: var(--pspf-surface-strong);
+  font-size: var(--pspf-type-label);
+}
+.pspf-trust-chip--strong { border-color: var(--pspf-accent); color: var(--pspf-text); background: var(--pspf-accent-soft); }
+.pspf-metric-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 1px; border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); overflow: hidden; background: var(--pspf-border); }
+.pspf-metric-strip__item { min-width: 0; padding: var(--pspf-gap); background: var(--pspf-surface); }
+.pspf-metric-strip__item span, .pspf-metric-strip__item small { display: block; color: var(--pspf-muted); font-size: var(--pspf-type-label); }
+.pspf-metric-strip__item strong { display: block; margin: var(--pspf-gap-xs) 0; font-size: var(--pspf-type-page-title); font-variant-numeric: tabular-nums; }
+.pspf-attention-list { margin: 0; padding: 0; list-style: none; }
+.pspf-attention-item { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: var(--pspf-gap); align-items: center; padding: var(--pspf-gap); border-bottom: 1px solid var(--pspf-border); }
+.pspf-attention-item:last-child { border-bottom: 0; }
+.pspf-attention-item__tone { align-self: stretch; border-radius: 2px; background: var(--pspf-muted); }
+.pspf-attention-item__tone--danger { background: var(--pspf-danger); }
+.pspf-attention-item__tone--warning { background: var(--pspf-warn); }
+.pspf-attention-item__tone--ok { background: var(--pspf-ok); }
+.pspf-attention-item strong, .pspf-attention-item span { display: block; }
+.pspf-attention-item span { color: var(--pspf-muted); font-size: var(--pspf-type-label); }
+.pspf-trace-chain { margin: 0; padding: 0; list-style: none; }
+.pspf-trace-chain__item { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--pspf-gap-sm); min-height: 46px; }
+.pspf-trace-chain__item:not(:last-child)::after { position: absolute; top: 24px; bottom: 0; left: 13px; width: 1px; background: var(--pspf-border-strong); content: ""; }
+.pspf-trace-chain__marker { z-index: 1; display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid var(--pspf-border-strong); border-radius: 50%; background: var(--pspf-surface); color: var(--pspf-accent); font-size: 10px; font-weight: 700; }
+.pspf-trace-chain__item strong, .pspf-trace-chain__item div > span { display: block; }
+.pspf-trace-chain__item div > span { color: var(--pspf-muted); font-size: var(--pspf-type-label); }
+.pspf-disclosure { border-top: 1px solid var(--pspf-border); padding: var(--pspf-gap-sm) 0; }
+.pspf-disclosure summary { cursor: pointer; font-weight: 600; }
+.pspf-disclosure__body { padding-top: var(--pspf-gap); }
+.pspf-lens-selector { display: inline-flex; align-items: center; gap: var(--pspf-gap-sm); color: var(--pspf-muted); font-size: var(--pspf-type-label); font-weight: 700; }
+.pspf-lens-selector select { min-width: 96px; padding: var(--pspf-pill-pad-y) var(--pspf-pill-pad-x); }
+@media (max-width: 520px) {
+  .pspf-page-header { align-items: start; flex-direction: column; }
+  .pspf-attention-item { grid-template-columns: 4px minmax(0, 1fr); }
+  .pspf-attention-item > :last-child:not(div) { grid-column: 2; justify-self: start; }
+}
 .pspf-pill {
   display: inline-flex;
   align-items: center;

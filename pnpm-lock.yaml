@@ -100,6 +100,9 @@ importers:
       '@pspf/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@pspf/webview-shell':
+        specifier: workspace:*
+        version: link:../webview-shell
       cytoscape:
         specifier: 3.33.3
         version: 3.33.3
@@ -2458,10 +2461,10 @@ snapshots:
 
   '@types/webxr@0.5.24': {}
 
-  '@typescript-eslint/eslint-plugin@8.64.0(@typescript-eslint/parser@8.64.0(eslint@10.7.0)(typescript@6.0.3))(eslint@10.7.0)(typescript@6.0.3)':
+  '@typescript-eslint/eslint-plugin@8.64.0(@typescript-eslint/parser@8.64.0(eslint@9.39.5)(typescript@5.9.3))(eslint@10.7.0)(typescript@6.0.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
-      '@typescript-eslint/parser': 8.64.0(eslint@10.7.0)(typescript@6.0.3)
+      '@typescript-eslint/parser': 8.64.0(eslint@9.39.5)(typescript@5.9.3)
       '@typescript-eslint/scope-manager': 8.64.0
       '@typescript-eslint/type-utils': 8.64.0(eslint@10.7.0)(typescript@6.0.3)
       '@typescript-eslint/utils': 8.64.0(eslint@10.7.0)(typescript@6.0.3)
@@ -3515,7 +3518,7 @@ snapshots:
 
   typescript-eslint@8.64.0(eslint@10.7.0)(typescript@6.0.3):
     dependencies:
-      '@typescript-eslint/eslint-plugin': 8.64.0(@typescript-eslint/parser@8.64.0(eslint@10.7.0)(typescript@6.0.3))(eslint@10.7.0)(typescript@6.0.3)
+      '@typescript-eslint/eslint-plugin': 8.64.0(@typescript-eslint/parser@8.64.0(eslint@9.39.5)(typescript@5.9.3))(eslint@10.7.0)(typescript@6.0.3)
       '@typescript-eslint/parser': 8.64.0(eslint@10.7.0)(typescript@6.0.3)
       '@typescript-eslint/typescript-estree': 8.64.0(typescript@6.0.3)
       '@typescript-eslint/utils': 8.64.0(eslint@10.7.0)(typescript@6.0.3)

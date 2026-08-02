@@ -17,7 +17,16 @@ import {
   CONNECTED_VIEW_STYLES,
   CONNECTED_VIEW_BROWSER_SCRIPT
 } from "@pspf/connected-view";
-import { pill as shellPill } from "@pspf/webview-shell";
+import {
+  decodePresentationLens,
+  disclosureHtml,
+  encodePresentationLens,
+  lensSelectorHtml,
+  pageHeaderHtml,
+  pill as shellPill,
+  trustChipsHtml,
+  type PresentationLens
+} from "@pspf/webview-shell";
 import { escapeHtml, homeButton, homeShellHtml, shellHtml } from "./webview/shell.js";
 import {
   buildPlanOfActionBoardModel,
@@ -153,6 +162,8 @@ const ismSourceControlCategoryByControlId = new Map<string, string>(
 const ismSourceControlCategoryOrder = uniqueStrings(ISM_SOURCE_CONTROL_CATEGORIES.map((item) => item.category));
 let workshopContext: vscode.ExtensionContext | undefined;
 let homeViewProvider: WorkshopHomeViewProvider | undefined;
+const workshopLensStateKey = "pspf.workshop.presentationLens";
+let workshopPresentationLens: PresentationLens = "ciso";
 type ConfigInspection<T> = {
   readonly globalValue?: T;
   readonly workspaceValue?: T;
@@ -358,6 +369,7 @@ async function openTreeEntity(entity: V01Entity | undefined): Promise<void> {
 export function activate(context: vscode.ExtensionContext): void {
   workshopContext = context;
   momentumBaseline = context.workspaceState.get<WorkshopMomentumSnapshot>(momentumSnapshotKey);
+  workshopPresentationLens = decodePresentationLens(context.workspaceState.get<string>(workshopLensStateKey));
   homeViewProvider = new WorkshopHomeViewProvider();
   const statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 90);
   statusItem.text = `$(shield) PSPF v${PSPF_SLICE_VERSION}`;
@@ -787,8 +799,8 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "Loading",
       `<section><p class="muted">Loading PSPF Workshop Home...</p></section>`
     );
-    webviewView.webview.onDidReceiveMessage((message: { readonly command?: string }) => {
-      void this.handleMessage(message.command).catch(async (error: unknown) => {
+    webviewView.webview.onDidReceiveMessage((message: { readonly command?: string; readonly value?: unknown }) => {
+      void this.handleMessage(message.command, message.value).catch(async (error: unknown) => {
         const detail = error instanceof Error ? error.message : String(error);
         await vscode.window.showErrorMessage(`PSPF Workshop action failed: ${detail}`);
         await this.refresh();
@@ -807,7 +819,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
 
     try {
       const model = await buildHomeModel();
-      this.view.webview.html = renderHomeView(model);
+      this.view.webview.html = renderHomeView(model, workshopPresentationLens);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.view.webview.html = homeShellHtml(
@@ -823,12 +835,22 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async handleMessage(command: string | undefined): Promise<void> {
+  private async handleMessage(command: string | undefined, value?: unknown): Promise<void> {
     if (!command) {
       return;
     }
 
     if (command === "pspf.workshop.home.refresh") {
+      await this.refresh();
+      return;
+    }
+
+    if (command === "pspf.workshop.home.selectLens") {
+      workshopPresentationLens = decodePresentationLens(value);
+      await workshopContext?.workspaceState.update(
+        workshopLensStateKey,
+        encodePresentationLens(workshopPresentationLens)
+      );
       await this.refresh();
       return;
     }
@@ -1126,7 +1148,7 @@ async function continueNextTask(): Promise<void> {
   await openAssessmentDashboard();
 }
 
-function renderHomeView(model: WorkshopHomeModel): string {
+function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens): string {
   const hasPendingTriage =
     model.missingEvidence + model.evidenceReview + model.urgentActions + model.directionsNeedingResponse > 0;
   const hasNoCoreRecords =
@@ -1145,6 +1167,18 @@ function renderHomeView(model: WorkshopHomeModel): string {
     "Workshop Home",
     `
     <style>
+      .workshop-home { display: flex; flex-direction: column; gap: 0; }
+      .workshop-home[data-lens="ciso"] .lens-focus { order: 2; }
+      .workshop-home[data-lens="ciso"] .lens-status { order: 3; }
+      .workshop-home[data-lens="auditor"] .lens-status { order: 2; }
+      .workshop-home[data-lens="auditor"] .lens-focus { order: 3; }
+      .workshop-home[data-lens="solo"] .lens-focus { order: 2; }
+      .workshop-home[data-lens="solo"] .lens-status { order: 3; }
+      .workshop-home .lens-hero { order: 1; }
+      .workshop-home .lens-capture { order: 4; }
+      .workshop-home .lens-review { order: 5; }
+      .workshop-home .lens-share { order: 6; }
+      .workshop-home .lens-advanced { order: 7; }
       .workshop-status-donut { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; }
       .workshop-status-donut__chart { width: 116px; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; align-content: center; background: conic-gradient(#047857 0 var(--met-end), #1d4ed8 var(--met-end) var(--progress-end), #b42318 var(--progress-end) var(--not-met-end), #64748b var(--not-met-end) 100%); box-shadow: inset 0 0 0 18px var(--vscode-sideBar-background), 0 0 0 1px var(--pspf-border); }
       .workshop-status-donut__chart strong { font-size: 24px; line-height: 1; }
@@ -1157,10 +1191,12 @@ function renderHomeView(model: WorkshopHomeModel): string {
       .workshop-status-donut__legend i[data-status="not-met"] { background: #b42318; }
       .workshop-status-donut__legend i[data-status="not-applicable"] { background: #64748b; }
     </style>
-    <section class="hero-section">
+    <div class="workshop-home" data-lens="${lens}">
+    <section class="hero-section lens-hero">
       <p class="eyebrow">System of record</p>
       <h2>PSPF Workshop</h2>
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · ${model.metPercentage}% met</p>
+      ${lensSelectorHtml({ lens, command: "pspf.workshop.home.selectLens" })}
       ${model.momentum ? `<p class="momentum">${escapeHtml(model.momentum)}</p>` : ""}
       ${renderPostureSparkline(model.trend)}
       ${versionStrip()}
@@ -1173,12 +1209,12 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${metricCard("Change records", model.changeRecords)}
       </div>
     </section>
-    <section>
+    <section class="lens-status">
       <h2>Status Distribution</h2>
       ${renderWorkshopStatusDonut(model)}
     </section>
-    <section>
-      <h2>Where To Focus Next</h2>
+    <section class="lens-focus">
+      <h2>${lens === "auditor" ? "Evidence Requiring Review" : lens === "solo" ? "Your Next Steps" : "Where To Focus Next"}</h2>
       ${
         model.missingEvidence + model.evidenceReview + model.urgentActions + model.directionsNeedingResponse === 0
           ? `<p class="muted">All clear right now — nothing waiting on you. A good moment to review posture or capture new evidence.</p>`
@@ -1207,7 +1243,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openMasterDashboard", "Open Workspace Dashboard", "Open essentials, controls, requirements, and planning tools")}
       </div>
     </section>
-    <section>
+    <section class="lens-capture">
       <h2>Capture New Records</h2>
       <div class="action-list compact">
         ${homeButton("pspf.workshop.createRequirement", "Create requirement")}
@@ -1217,7 +1253,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.registerDirection", "Create direction")}
       </div>
     </section>
-    <section>
+    <section class="lens-review">
       <h2>Review And Update</h2>
       <div class="action-list compact">
         ${homeButton("pspf.workshop.openRequirementsList", "Review requirements")}
@@ -1227,7 +1263,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.openDirectionsList", "Review directions")}
       </div>
     </section>
-    <section>
+    <section class="lens-share">
       <h2>Validate And Share</h2>
       ${model.shareNudge ? `<p class="momentum">${escapeHtml(model.shareNudge)}</p>` : ""}
       <div class="action-list compact">
@@ -1237,7 +1273,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         ${homeButton("pspf.workshop.copyPostureBrief", "Copy posture brief")}
       </div>
     </section>
-    <section>
+    <section class="lens-advanced">
       <h2>Advanced Tools</h2>
       ${
         hasOperationalSignals
@@ -1261,6 +1297,7 @@ function renderHomeView(model: WorkshopHomeModel): string {
         </div>
       </details>
     </section>
+    </div>
   `
   );
 }
@@ -11130,7 +11167,30 @@ function renderRequirementEditor(
         reviewed: mapping.lastReviewedAt ? formatDisplayDate(new Date(mapping.lastReviewedAt)) : "Not recorded"
       };
     });
-  const editorContent = `${editorShell(
+  const linkedRecordsOpen = workshopPresentationLens === "auditor";
+  const advancedOpen = workshopPresentationLens === "auditor";
+  const editorContent = `${pageHeaderHtml({
+    eyebrow:
+      workshopPresentationLens === "ciso"
+        ? "Decision view"
+        : workshopPresentationLens === "auditor"
+          ? "Assurance view"
+          : "Guided view",
+    title: requirement.title,
+    description:
+      workshopPresentationLens === "ciso"
+        ? "Review readiness, material exposure, and the next decision."
+        : workshopPresentationLens === "auditor"
+          ? "Review evidence currency, provenance, mappings, and traceability."
+          : "Complete the essential assessment fields, then add supporting records when ready."
+  })}
+  ${trustChipsHtml([
+    { label: "OFFICIAL: Sensitive", strong: true },
+    { label: requirement.id },
+    { label: label(requirement.assessmentStatus) },
+    { label: domainName(requirement.domainId) }
+  ])}
+  ${editorShell(
     requirement,
     "Edit Requirement",
     `
@@ -11161,13 +11221,21 @@ function renderRequirementEditor(
       </div>
     </section>
     ${renderRequirementRelationshipManager(requirement, allEntities)}
-    ${recordTable("Tags", tagRows, ["title", "colour", "status", "action"])}
-    ${recordTable("Directions Targeting This Requirement", directionRows, ["reference", "title", "responseState", "sourceAuthority"])}
-    ${recordTable("Evidence", evidenceRows, ["title", "evidenceType", "freshness", "reference"])}
-    ${recordTable("Actions", actionRows, ["title", "status", "urgency", "dueDate"])}
-    ${recordTable("Risks", riskRows, ["title", "status", "likelihood", "impact"])}
-    ${commercialContextSection(requirement, allEntities)}
-    ${recordTable("ISM Mappings", mappingRows, ["controlId", "title", "coverage", "profile", "confidence", "reviewed"])}
+    ${disclosureHtml({
+      summary: "Linked evidence, actions, risks, and directions",
+      open: linkedRecordsOpen,
+      bodyHtml: `${recordTable("Directions Targeting This Requirement", directionRows, ["reference", "title", "responseState", "sourceAuthority"])}
+        ${recordTable("Evidence", evidenceRows, ["title", "evidenceType", "freshness", "reference"])}
+        ${recordTable("Actions", actionRows, ["title", "status", "urgency", "dueDate"])}
+        ${recordTable("Risks", riskRows, ["title", "status", "likelihood", "impact"])}`
+    })}
+    ${disclosureHtml({
+      summary: "Tags, commercial context, and ISM mappings",
+      open: advancedOpen,
+      bodyHtml: `${recordTable("Tags", tagRows, ["title", "colour", "status", "action"])}
+        ${commercialContextSection(requirement, allEntities)}
+        ${recordTable("ISM Mappings", mappingRows, ["controlId", "title", "coverage", "profile", "confidence", "reviewed"])}`
+    })}
   `;
   return `${requirementWorkbenchStyles()}
   <div class="requirement-page">

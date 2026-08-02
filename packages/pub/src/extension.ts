@@ -2009,7 +2009,7 @@ function renderHomeHtml(store: PubStore): string {
     title: "PSPF Pub",
     tagline: "Local-only people context",
     version: PSPF_SLICE_VERSION,
-    accent: "red",
+    product: "pub",
     sensitivityBanner:
       "OFFICIAL: Sensitive · local-only people context · no Explorer publication — Pub data stays on this workspace and is never exported to Explorer.",
     nav: [

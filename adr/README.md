@@ -98,6 +98,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0083 | v1.47 Pub workforce decision cockpit                                                 | accepted                                                              |
 | 0084 | Explorer unification: adopt pspfexplorer2 as the PSPF Explorer web surface           | accepted                                                              |
 | 0085 | v1.49 Assurance City                                                                 | accepted                                                              |
+| 0086 | v1.50 dark-first ecosystem redesign                                                  | accepted                                                              |
 
 ## Template
 

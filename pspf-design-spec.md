@@ -1,6 +1,7 @@
 # PSPF Design Specification
 
-Status: **implemented**
+Status: **partial — v1.50 dark-first redesign in implementation under ADR 0086**
+Last updated: 2026-08-02
 
 ## Overview
 
@@ -54,11 +55,36 @@ Core, Workshop, Shop and Pub should feel like the same product family because th
 Across all products, the family should share:
 
 - warm neutral surfaces,
-- restrained teal as the primary accent,
+- restrained structural accents drawn from one governed product palette,
 - clear typography hierarchy,
 - minimal icon usage,
 - compact but calm spacing,
 - and visible trust markers such as timestamps, provenance, and status chips.
+
+### v1.50 product identity
+
+Product identity is carried by the masthead or page-header rule, active navigation marker, focus emphasis, eyebrow, and selected structural controls. It must not recolour whole pages or replace semantic status colours.
+
+| Product   | Structural accent | Character                                 |
+| --------- | ----------------- | ----------------------------------------- |
+| Core      | slate             | integrity, administration, system state   |
+| Assurance | muted indigo      | independent review and finding management |
+| Workshop  | deep teal         | evidence-backed authoring and analysis    |
+| Shop      | restrained bronze | commercial planning, cost, and cashflow   |
+| Pub       | muted plum        | people, role, team, and workforce context |
+| Explorer  | steel blue        | review, interpretation, and sharing       |
+
+Every product accent requires a light-surface and dark-surface value. Accent is structural only. Success, warning, danger, classification, finding severity, risk, action status, and compliance posture retain their independent semantic tokens and must include text or icon meaning.
+
+### Presentation lenses
+
+CISO, Auditor, and Solo IT are presentation lenses, not personas stored as records and not security roles.
+
+- **CISO** places decisions, trajectory, readiness, and material exposure first.
+- **Auditor** places provenance, evidence currency, traceability, cost, and cashflow first.
+- **Solo IT** places one next action, plain language, essential fields, and guided progress first.
+
+A lens may change ordering, wording, density, and the initial open or closed state of disclosure sections. It must never change permissions, record availability, calculations, commands, exports, bundles, redaction, or publication behaviour. All capabilities remain discoverable through labelled disclosure and native commands.
 
 ## Visual direction
 
@@ -112,7 +138,9 @@ Text under normal reading size must meet at least 4.5:1 contrast, and large text
 
 ### Dark mode approach
 
-Dark mode should avoid pure black backgrounds and pure white text because extremely high contrast can increase visual fatigue and reduce legibility. Use softened dark neutrals with calm contrast rather than dramatic black-on-white inversion.
+Explorer uses Dark as the first-run default and offers Dark, Light, and System. System follows the operating-system preference; explicit Dark and Light selections remain stable. The retired Colorful theme migrates to Dark.
+
+Extension webviews inherit the active VS Code theme, including high-contrast themes. They do not force Dark or expose an independent theme picker. Dark remains the design baseline and must avoid pure black backgrounds and pure white text because extremely high contrast can increase visual fatigue and reduce legibility. Light mode is a deliberately designed equivalent, not a mechanical inversion: surface hierarchy, focus, borders, muted text, product accents, and semantic states must all retain accessible contrast.
 
 ### Status colours
 

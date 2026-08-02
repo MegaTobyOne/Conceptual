@@ -6,11 +6,30 @@ import { HashRouter, type RouteMatch } from './router.ts';
 import { routes, NAV_GROUPS, NAV_ROUTES, type NavGroupKey } from './routes.ts';
 import { AppStore } from '../state/app-store.ts';
 import { appStoreContext } from '../state/contexts.ts';
+import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import '../components/command-palette.ts';
-
-type AppTheme = 'dark' | 'light' | 'colorful';
+import {
+  decodePresentationLens,
+  encodePresentationLens,
+  PRESENTATION_LENS_LABELS,
+  type PresentationLens,
+} from '@pspf/webview-shell';
+import {
+  normaliseThemePreference,
+  resolveEffectiveTheme,
+  type AppThemePreference,
+} from './app-theme.ts';
 
 const THEME_STORAGE_KEY = 'pspf-theme';
+const LENS_STORAGE_KEY = 'pspf-presentation-lens';
+
+function readPresentationLensPreference(): PresentationLens {
+  try {
+    return decodePresentationLens(localStorage.getItem(LENS_STORAGE_KEY));
+  } catch {
+    return 'ciso';
+  }
+}
 
 @customElement('pspf-app')
 export class PspfApp extends LitElement {
@@ -79,6 +98,12 @@ export class PspfApp extends LitElement {
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
+      }
+
+      .preference-controls {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
       }
 
       .theme-picker select {
@@ -153,6 +178,11 @@ export class PspfApp extends LitElement {
         color: var(--colour-fg);
         background: var(--colour-bg-elevated);
         border-color: var(--colour-border);
+      }
+
+      nav a[aria-current='page'] {
+        border-color: var(--colour-accent);
+        box-shadow: inset 0 -2px 0 var(--colour-accent);
       }
 
       .mobile-nav {
@@ -231,7 +261,11 @@ export class PspfApp extends LitElement {
   @state() private store: AppStore | undefined;
   @state() private bootError: string | undefined;
   @state() private activePath = '/';
-  @state() private theme: AppTheme = 'dark';
+  @state() private theme: AppThemePreference = 'dark';
+  @provide({ context: presentationLensContext })
+  @state()
+  private lens: PresentationLens = readPresentationLensPreference();
+  private systemThemeQuery: MediaQueryList | undefined;
 
   @provide({ context: appStoreContext })
   private storeContext!: AppStore;
@@ -239,14 +273,21 @@ export class PspfApp extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback();
     this.theme = this.loadTheme();
-    this.setAttribute('data-theme', this.theme);
+    this.systemThemeQuery = window.matchMedia('(prefers-color-scheme: light)');
+    this.systemThemeQuery.addEventListener('change', this.onSystemThemeChange);
+    this.applyEffectiveTheme();
     void import('../components/global-search.ts');
     void this.boot();
   }
 
+  override disconnectedCallback(): void {
+    this.systemThemeQuery?.removeEventListener('change', this.onSystemThemeChange);
+    super.disconnectedCallback();
+  }
+
   override updated(changed: PropertyValues): void {
     if (changed.has('theme')) {
-      this.setAttribute('data-theme', this.theme);
+      this.applyEffectiveTheme();
       this.persistTheme(this.theme);
     }
   }
@@ -277,17 +318,26 @@ export class PspfApp extends LitElement {
     return NAV_ROUTES.filter((route) => route.group === group);
   }
 
-  private loadTheme(): AppTheme {
+  private navigationGroups() {
+    const order: Record<PresentationLens, readonly NavGroupKey[]> = {
+      ciso: ['analyse', 'work', 'organise', 'share'],
+      auditor: ['work', 'analyse', 'share', 'organise'],
+      solo: ['work', 'organise', 'analyse', 'share'],
+    };
+    return order[this.lens].map((key) => NAV_GROUPS.find((group) => group.key === key)!);
+  }
+
+  private loadTheme(): AppThemePreference {
     try {
       const raw = localStorage.getItem(THEME_STORAGE_KEY);
-      if (raw === 'dark' || raw === 'light' || raw === 'colorful') return raw;
+      return normaliseThemePreference(raw);
     } catch {
       // Ignore storage access failures and keep the default.
     }
     return 'dark';
   }
 
-  private persistTheme(theme: AppTheme): void {
+  private persistTheme(theme: AppThemePreference): void {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
@@ -295,12 +345,37 @@ export class PspfApp extends LitElement {
     }
   }
 
+  private persistLens(lens: PresentationLens): void {
+    try {
+      localStorage.setItem(LENS_STORAGE_KEY, encodePresentationLens(lens));
+    } catch {
+      // Ignore storage access failures.
+    }
+  }
+
   private onThemeChange = (event: Event): void => {
     const value = (event.target as HTMLSelectElement).value;
-    if (value === 'dark' || value === 'light' || value === 'colorful') {
+    if (value === 'dark' || value === 'light' || value === 'system') {
       this.theme = value;
     }
   };
+
+  private onLensChange = (event: Event): void => {
+    this.lens = decodePresentationLens((event.target as HTMLSelectElement).value);
+    this.persistLens(this.lens);
+  };
+
+  private onSystemThemeChange = (): void => {
+    if (this.theme === 'system') this.applyEffectiveTheme();
+  };
+
+  private applyEffectiveTheme(): void {
+    const effectiveTheme = resolveEffectiveTheme(
+      this.theme,
+      this.systemThemeQuery?.matches ?? false,
+    );
+    this.setAttribute('data-theme', effectiveTheme);
+  }
 
   private isActive(path: string): boolean {
     if (path === '/') return this.activePath === '/';
@@ -329,19 +404,37 @@ export class PspfApp extends LitElement {
         </div>
         <pspf-global-search></pspf-global-search>
         <div class="header-labels">
-          <label class="theme-picker" for="theme-select">
-            Theme
-            <select
-              id="theme-select"
-              .value=${this.theme}
-              @change=${this.onThemeChange}
-              aria-label="Choose colour theme"
-            >
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-              <option value="colorful">Colorful</option>
-            </select>
-          </label>
+          <div class="preference-controls">
+            <label class="theme-picker" for="lens-select">
+              View for
+              <select
+                id="lens-select"
+                .value=${this.lens}
+                @change=${this.onLensChange}
+                aria-label="Choose presentation view"
+              >
+                ${(Object.keys(PRESENTATION_LENS_LABELS) as PresentationLens[]).map(
+                  (lens) =>
+                    html`<option value=${lens} ?selected=${lens === this.lens}>
+                      ${PRESENTATION_LENS_LABELS[lens]}
+                    </option>`,
+                )}
+              </select>
+            </label>
+            <label class="theme-picker" for="theme-select">
+              Theme
+              <select
+                id="theme-select"
+                .value=${this.theme}
+                @change=${this.onThemeChange}
+                aria-label="Choose colour theme"
+              >
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="system">System</option>
+              </select>
+            </label>
+          </div>
           <span class="classification" aria-label="Information classification"
             >OFFICIAL: Sensitive</span
           >
@@ -349,7 +442,7 @@ export class PspfApp extends LitElement {
         </div>
       </header>
       <nav class="primary" aria-label="Primary">
-        ${NAV_GROUPS.map(
+        ${this.navigationGroups().map(
           (group) => html`
             <section class="nav-group" aria-label=${group.label}>
               <p class="nav-group-title">${group.label}</p>
@@ -361,7 +454,7 @@ export class PspfApp extends LitElement {
       <details class="mobile-nav">
         <summary>Navigation</summary>
         <nav aria-label="Primary mobile">
-          ${NAV_GROUPS.map(
+          ${this.navigationGroups().map(
             (group) => html`
               <section class="nav-group" aria-label=${group.label}>
                 <p class="nav-group-title">${group.label}</p>

@@ -36,7 +36,7 @@ export function homeShellHtml(title: string, body: string): string {
     title,
     tagline: "System of record",
     version: PSPF_SLICE_VERSION,
-    accent: "blue",
+    product: "workshop",
     sensitivityBanner: "OFFICIAL: Sensitive · Local workspace writes stay in Workshop",
     body
   });

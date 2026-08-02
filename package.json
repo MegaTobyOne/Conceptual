@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.49.0",
+  "version": "1.50.0",
   "private": true,
   "description": "Local-first PSPF Core, Assurance, Workshop, Shop, Pub, and Explorer validation slice.",
   "license": "MIT",
@@ -19,6 +19,8 @@
     "bench:storage": "node scripts/bench-sqlite-engines.mjs",
     "bundle:extensions": "pnpm build && pnpm exec esbuild packages/core/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --banner:js='import { createRequire as __pspfCreateRequire } from \"node:module\"; import { fileURLToPath as __pspfFileURLToPath } from \"node:url\"; import { dirname as __pspfDirname } from \"node:path\"; const require = __pspfCreateRequire(import.meta.url); const __filename = __pspfFileURLToPath(import.meta.url); const __dirname = __pspfDirname(__filename);' --outfile=packages/core/dist/extension.js && cp node_modules/sql.js/dist/sql-wasm.wasm packages/core/dist/sql-wasm.wasm && pnpm exec esbuild packages/assurance/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/assurance/dist/extension.js && pnpm exec esbuild packages/workshop/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/workshop/dist/extension.js && pnpm exec esbuild packages/shop/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/shop/dist/extension.js && pnpm exec esbuild packages/pub/src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --outfile=packages/pub/dist/extension.js",
     "check:accessibility": "pnpm build && node scripts/check-accessibility.mjs",
+    "check:v150-visual": "pnpm --filter @pspf/webview-shell build && node scripts/check-v150-visual.mjs && pnpm --filter pspf-explorer exec playwright test tests/e2e/v150-design.spec.ts",
+    "check:v150-visual:run": "node scripts/check-v150-visual.mjs",
     "check:ai-kill-switch": "pnpm build && node scripts/check-ai-kill-switch.mjs && node scripts/check-ai-prompt-redaction.mjs",
     "check:backup-restore": "pnpm build && node scripts/backup-restore-dry-run.mjs",
     "check:core-storage-runtime": "pnpm build && node scripts/check-core-sqljs-runtime.mjs",
@@ -120,7 +122,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.49:run",
+    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.50:run",
     "test": "pnpm build && pnpm -r --if-present test",
     "typecheck": "tsc -b tsconfig.json && pnpm --filter pspf-explorer run typecheck",
     "e2e:v1.39": "pnpm run e2e:v1.38 && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run check:ux-coverage",
@@ -145,6 +147,8 @@
     "e2e:v1.48:run": "pnpm run e2e:v1.47:run && pnpm --filter pspf-explorer test && pnpm --filter pspf-explorer run test:e2e && pnpm --filter pspf-explorer run perf:budget",
     "e2e:v1.49": "pnpm run e2e:v1.48",
     "e2e:v1.49:run": "pnpm run e2e:v1.48:run",
+    "e2e:v1.50": "pnpm run e2e:v1.49 && pnpm run check:v150-visual",
+    "e2e:v1.50:run": "pnpm run e2e:v1.49:run && pnpm run check:v150-visual:run",
     "check:pub-cockpit": "node scripts/check-pub-cockpit.mjs"
   },
   "devDependencies": {

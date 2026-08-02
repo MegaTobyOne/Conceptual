@@ -1,6 +1,7 @@
 import { copyFile } from "node:fs/promises";
 import { basename, join, relative } from "node:path";
-import { commandButtonAcknowledgementScript, pill as shellPill, tokensCss } from "@pspf/webview-shell";
+import { PSPF_SLICE_VERSION } from "@pspf/contracts";
+import { homePanelShellHtml, metricStripHtml, pageHeaderHtml, trustChipsHtml } from "@pspf/webview-shell";
 import * as vscode from "vscode";
 import { createCoreService, type ImportMode, type ImportResult } from "./service.js";
 
@@ -375,26 +376,11 @@ function importReviewHtml(
 ): string {
   const fileCount = plans.length;
   const written = plans.reduce((total, plan) => total + plan.summary.written, 0);
-  return `<!doctype html>
-<html lang="en-AU">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PSPF Workshop Import Review</title>
-  <style>
-    ${tokensCss("extension")}
-    :root { color-scheme: light dark; --core-accent-strong: rgba(37, 99, 235, 0.28); }
-    body { margin: 0; padding: 0; color: var(--pspf-text); background: radial-gradient(circle at top left, var(--pspf-accent-soft), transparent 28rem), var(--pspf-surface); }
-    header { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 18px var(--pspf-pad-lg); background: linear-gradient(135deg, var(--core-accent-strong) 0%, var(--pspf-surface) 70%); border-bottom: 1px solid var(--pspf-border); }
-    header strong { display: block; font-size: 22px; }
-    header span { color: var(--pspf-muted); font-size: var(--pspf-type-body); }
+  const body = `<style>
     main { width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0; }
-    section { background: var(--pspf-surface); border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-pad); margin-bottom: var(--pspf-pad); }
     h1, h2, h3 { margin-top: 0; }
-    .core-sensitivity { margin: 0; padding: 8px var(--pspf-pad-lg); }
-    .version-strip, .toolbar { display: flex; flex-wrap: wrap; gap: var(--pspf-pad-sm); align-items: center; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-    .pspf-metric strong { font-size: 28px; margin-top: 4px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: var(--pspf-pad-sm); align-items: center; margin-top: 14px; }
+    .toolbar button { width: auto; min-width: 10rem; }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; min-width: min(760px, 100%); border-collapse: collapse; }
     th, td { border-bottom: 1px solid var(--pspf-border); padding: var(--pspf-table-cell-pad-y) var(--pspf-table-cell-pad-x); text-align: left; vertical-align: top; }
@@ -403,51 +389,55 @@ function importReviewHtml(
     ul { margin: 8px 0 0; padding-left: 20px; }
     .pspf-button--danger { border-color: var(--pspf-warn); background: var(--pspf-warn-soft); color: var(--pspf-text); }
     .muted { color: var(--pspf-muted); }
+    @media (max-width: 640px) {
+      main { width: auto; padding: 12px; }
+      .toolbar button { width: 100%; }
+    }
   </style>
-</head>
-<body>
-  <header><div><strong>PSPF Workshop</strong><span>System of record import review</span></div><div class="version-strip">${shellPill("Plan, review, apply", "accent")}${shellPill("Explorer local bundle")}</div></header>
-  <div class="pspf-sensitivity-banner core-sensitivity">OFFICIAL: Sensitive · Review every Explorer local change before writing to Workshop</div>
-  <main>
-    <section>
-      <h1>Import Review</h1>
-      <p class="muted">This is a read-only plan. Nothing is written until you choose Apply Import.</p>
+  <section class="hero-section" id="overview">
+      ${pageHeaderHtml({
+        eyebrow: "Plan, review, apply",
+        title: "Import Review",
+        description: "This is a read-only plan. Nothing is written until you choose Apply Import."
+      })}
+      ${trustChipsHtml([
+        { label: "OFFICIAL: Sensitive", strong: true },
+        { label: "Explorer local bundle" },
+        { label: "Undo available after apply" }
+      ])}
       <div class="pspf-mode-strip"><span class="pspf-mode-step is-active">Review plan</span><span class="pspf-mode-step">Apply to Workshop</span><span class="pspf-mode-step">Undo available after apply</span></div>
-      <div class="grid">
-        ${metric("Files", fileCount)}
-        ${metric("Created", planSummary.created)}
-        ${metric("Updated", planSummary.updated)}
-        ${metric("Unchanged", planSummary.unchanged)}
-        ${metric("Will write", written)}
-      </div>
-      <div class="toolbar" style="margin-top: 14px;">
+      ${metricStripHtml([
+        { label: "Files", value: fileCount },
+        { label: "Created", value: planSummary.created },
+        { label: "Updated", value: planSummary.updated },
+        { label: "Unchanged", value: planSummary.unchanged },
+        { label: "Will write", value: written }
+      ])}
+      <div class="toolbar">
         <button type="button" class="pspf-button" data-command="applyImport">Apply Import</button>
         <button type="button" class="pspf-button pspf-button--secondary" data-command="showDetails">Show Details</button>
         <button type="button" class="pspf-button pspf-button--danger" data-command="cancelImport">Cancel</button>
       </div>
     </section>
     ${plans.map(importPlanCard).join("")}
-  </main>
-  <script>
-    const vscode = acquireVsCodeApi();
-    ${commandButtonAcknowledgementScript}
-    document.addEventListener("click", (event) => {
-      const button = event.target instanceof HTMLElement ? event.target.closest("button[data-command]") : null;
-      if (button) {
-        pspfAcknowledgeCommandButton(button);
-        vscode.postMessage({ command: button.dataset.command });
-      }
-    });
-  </script>
-</body>
-</html>`;
+  `;
+  return homePanelShellHtml({
+    extensionLabel: "PSPF Core",
+    title: "PSPF Core Import Review",
+    tagline: "Local system of record",
+    version: PSPF_SLICE_VERSION,
+    product: "core",
+    sensitivityBanner: "OFFICIAL: Sensitive · Review every Explorer local change before writing to Workshop.",
+    nav: [
+      { href: "overview", label: "Overview" },
+      ...plans.map((_, index) => ({ href: `import-plan-${index + 1}`, label: `File ${index + 1}` }))
+    ],
+    body,
+    footer: "Local-first import review. Nothing is written until Apply Import is confirmed."
+  });
 }
 
-function metric(label: string, value: number): string {
-  return `<div class="pspf-metric"><span>${escapeHtml(label)}</span><strong>${value}</strong></div>`;
-}
-
-function importPlanCard(plan: ImportResult): string {
+function importPlanCard(plan: ImportResult, index: number): string {
   const byTypeRows = Object.entries(plan.summary.byType)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(
@@ -463,16 +453,16 @@ function importPlanCard(plan: ImportResult): string {
     plan.summary.examples.length > 0
       ? plan.summary.examples.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
       : '<li><span class="muted">No example changes.</span></li>';
-  return `<section>
+  return `<section id="import-plan-${index + 1}">
     <h2>${escapeHtml(basename(plan.bundlePath))}</h2>
     <p class="muted">${escapeHtml(plan.bundlePath)}</p>
-    <div class="grid">
-      ${metric("Incoming", plan.summary.total)}
-      ${metric("Created", plan.summary.created)}
-      ${metric("Updated", plan.summary.updated)}
-      ${metric("Unchanged", plan.summary.unchanged)}
-      ${metric("Will write", plan.summary.written)}
-    </div>
+    ${metricStripHtml([
+      { label: "Incoming", value: plan.summary.total },
+      { label: "Created", value: plan.summary.created },
+      { label: "Updated", value: plan.summary.updated },
+      { label: "Unchanged", value: plan.summary.unchanged },
+      { label: "Will write", value: plan.summary.written }
+    ])}
     <h3>Record Types</h3>
     <div class="table-wrap"><table><thead><tr><th>Type</th><th>Created</th><th>Updated</th><th>Unchanged</th><th>Will write</th></tr></thead><tbody>${byTypeRows}</tbody></table></div>
     <h3>Updates To Review</h3>

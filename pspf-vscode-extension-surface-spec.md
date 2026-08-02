@@ -30,6 +30,7 @@ VS Code guidance explicitly prefers Tree Views for displaying data and advises l
 Core is primarily a platform extension, not the user’s main day-to-day workspace experience. Its surface should stay compact and administrative.
 
 Primary responsibilities:
+
 - workspace/platform health,
 - storage/bootstrap visibility,
 - validation and integrity operations,
@@ -42,6 +43,7 @@ Primary responsibilities:
 Workshop is the main operational authoring and evidence workspace. It should provide the richest human-facing surface in VS Code.
 
 Primary responsibilities:
+
 - requirement authoring,
 - evidence linkage,
 - action/remediation management,
@@ -89,12 +91,12 @@ Use a consistent command and setting namespace:
 
 Suggested IDs:
 
-| Product | Extension ID |
-|---|---|
-| Core | `your-org.pspf-core` |
-| Workshop | `your-org.pspf-workshop` |
-| Shop | `your-org.pspf-shop` |
-| Pub | `your-org.pspf-pub` |
+| Product   | Extension ID              |
+| --------- | ------------------------- |
+| Core      | `your-org.pspf-core`      |
+| Workshop  | `your-org.pspf-workshop`  |
+| Shop      | `your-org.pspf-shop`      |
+| Pub       | `your-org.pspf-pub`       |
 | Assurance | `your-org.pspf-assurance` |
 
 ## Surface architecture
@@ -105,14 +107,14 @@ Use **Tree Views for navigation and state inspection**, and use **Webviews only 
 
 ### Recommended surface split
 
-| Surface type | Use for | Avoid for |
-|---|---|---|
-| Tree View | navigable hierarchies, queues, lists, grouped entities, health/status panels | rich forms, dashboards requiring custom layout |
-| WebviewView | rich side-panel summary, evidence detail, relationship inspector | generic navigation trees |
-| WebviewPanel | focused report preview, export review, complex compare/diff | routine CRUD lists |
-| Commands | actions, creation flows, repair/maintenance, navigation shortcuts | deep multistep editing on their own |
-| Settings | durable extension behaviour/configuration | transient workflow state |
-| Status bar | compact workspace/platform signal | detailed health dashboards |
+| Surface type | Use for                                                                      | Avoid for                                      |
+| ------------ | ---------------------------------------------------------------------------- | ---------------------------------------------- |
+| Tree View    | navigable hierarchies, queues, lists, grouped entities, health/status panels | rich forms, dashboards requiring custom layout |
+| WebviewView  | rich side-panel summary, evidence detail, relationship inspector             | generic navigation trees                       |
+| WebviewPanel | focused report preview, export review, complex compare/diff                  | routine CRUD lists                             |
+| Commands     | actions, creation flows, repair/maintenance, navigation shortcuts            | deep multistep editing on their own            |
+| Settings     | durable extension behaviour/configuration                                    | transient workflow state                       |
+| Status bar   | compact workspace/platform signal                                            | detailed health dashboards                     |
 
 ## View containers and views
 
@@ -128,7 +130,9 @@ All PSPF extension sidebars MUST share one shape so the suite reads as a single 
 - **Record trees default collapsed:** every record Tree View declares `"visibility": "collapsed"` so Home stays the focal point.
 - **Click-to-open:** selecting a tree item opens that record’s detail via the surface’s open-detail command.
 - **Consistent menus:** `view/title` carries the create action for that tree; `view/item/context` carries open, edit, delete, and link actions.
-- **Per-surface accent:** Workshop teal, Shop amber, Pub red, Core blue.
+- **Per-surface identity:** use the typed `@pspf/webview-shell` identities: Core slate, Assurance muted indigo, Workshop teal, Shop bronze, Pub plum, and Explorer steel blue. Structural accents must not replace semantic status, risk, severity, or sensitivity colours.
+- **Theme inheritance:** extension webviews inherit VS Code light, dark, high-contrast, or high-contrast-light classes and variables. Dark is the design baseline, never a forced editor theme.
+- **Presentation lenses:** CISO, Auditor, and Solo IT are workspace-local presentation preferences only. They may alter wording, order, density, and initial disclosure while preserving commands, records, calculations, editor access, exports, and redaction.
 - **Noun labels only:** retired `Hearth`, `Trail`, `Lookout`, `Skylight` names MUST NOT appear in any container, view, label, or command.
 
 ### Core view container
@@ -136,39 +140,41 @@ All PSPF extension sidebars MUST share one shape so the suite reads as a single 
 Core should contribute a single compact view container in the secondary sidebar or activity bar only if necessary.
 
 Suggested container:
+
 - `pspfCore`
 - title: `PSPF Core`
 - icon: subtle platform glyph
 
 Suggested views under Core:
 
-| View ID | Type | Purpose |
-|---|---|---|
-| `pspfCore.healthView` | Tree View | platform health, trust, storage, schema, compatibility |
-| `pspfCore.operationsView` | Tree View | snapshots, exports, imports, migrations |
-| `pspfCore.welcomeView` | Welcome view | bootstrap/install guidance when empty |
+| View ID                   | Type         | Purpose                                                |
+| ------------------------- | ------------ | ------------------------------------------------------ |
+| `pspfCore.healthView`     | Tree View    | platform health, trust, storage, schema, compatibility |
+| `pspfCore.operationsView` | Tree View    | snapshots, exports, imports, migrations                |
+| `pspfCore.welcomeView`    | Welcome view | bootstrap/install guidance when empty                  |
 
 ### Workshop view container
 
 Workshop should be the main operational container.
 
 Suggested container:
+
 - `pspfWorkshop`
 - title: `PSPF Workshop`
 - icon: workshop/tool glyph
 
 Suggested views under Workshop:
 
-| View ID | Type | Purpose |
-|---|---|---|
-| `pspfWorkshop.requirementsView` | Tree View | requirements grouped by domain/status |
-| `pspfWorkshop.evidenceView` | Tree View | evidence items grouped by freshness/coverage |
-| `pspfWorkshop.actionsView` | Tree View | actions grouped by owner/due state |
-| `pspfWorkshop.risksView` | Tree View | risk items grouped by severity/domain |
-| `pspfWorkshop.directionsView` | Tree View | Directions grouped by response state/domain |
-| `pspfWorkshop.homeView` | WebviewView | compact Workshop Home for readiness counts, next actions, and command launch buttons |
-| `pspfWorkshop.summaryView` | WebviewView | compact posture summary and readiness |
-| `pspfWorkshop.welcomeView` | Welcome view | empty-state guidance |
+| View ID                         | Type         | Purpose                                                                              |
+| ------------------------------- | ------------ | ------------------------------------------------------------------------------------ |
+| `pspfWorkshop.requirementsView` | Tree View    | requirements grouped by domain/status                                                |
+| `pspfWorkshop.evidenceView`     | Tree View    | evidence items grouped by freshness/coverage                                         |
+| `pspfWorkshop.actionsView`      | Tree View    | actions grouped by owner/due state                                                   |
+| `pspfWorkshop.risksView`        | Tree View    | risk items grouped by severity/domain                                                |
+| `pspfWorkshop.directionsView`   | Tree View    | Directions grouped by response state/domain                                          |
+| `pspfWorkshop.homeView`         | WebviewView  | compact Workshop Home for readiness counts, next actions, and command launch buttons |
+| `pspfWorkshop.summaryView`      | WebviewView  | compact posture summary and readiness                                                |
+| `pspfWorkshop.welcomeView`      | Welcome view | empty-state guidance                                                                 |
 
 ### Why this split
 
@@ -177,36 +183,38 @@ Tree Views are better for entity navigation, count scanning, filtering, and reve
 ### Shop view container
 
 Suggested container:
+
 - `pspfShop`
 - title: `PSPF Shop`
 - icon: commercial/procurement glyph
 
 Suggested views under Shop:
 
-| View ID | Type | Purpose |
-|---|---|---|
-| `pspfShop.homeView` | WebviewView | Shop Home landing panel with overview metrics and quick-create / forecast / sample actions |
-| `pspfShop.suppliersView` | Tree View | suppliers grouped by criticality/status |
-| `pspfShop.contractsView` | Tree View | contracts grouped by supplier/renewal/status |
-| `pspfShop.spendView` | Tree View | spend items grouped by financial year/status |
-| `pspfShop.forecastView` | WebviewView | spend forecast, savings opportunities, payback, and investment timeline |
+| View ID                  | Type        | Purpose                                                                                    |
+| ------------------------ | ----------- | ------------------------------------------------------------------------------------------ |
+| `pspfShop.homeView`      | WebviewView | Shop Home landing panel with overview metrics and quick-create / forecast / sample actions |
+| `pspfShop.suppliersView` | Tree View   | suppliers grouped by criticality/status                                                    |
+| `pspfShop.contractsView` | Tree View   | contracts grouped by supplier/renewal/status                                               |
+| `pspfShop.spendView`     | Tree View   | spend items grouped by financial year/status                                               |
+| `pspfShop.forecastView`  | WebviewView | spend forecast, savings opportunities, payback, and investment timeline                    |
 
 ### Assurance view container
 
 Suggested container:
+
 - `pspfAssurance`
 - title: `PSPF Assurance`
 - icon: assurance/review glyph
 
 Suggested views under Assurance:
 
-| View ID | Type | Purpose |
-|---|---|---|
-| `pspfAssurance.homeView` | WebviewView | Assurance Home with assessment counts, urgent findings, pending verification, and publication-readiness status |
-| `pspfAssurance.assessmentsView` | Tree View | third-party assessments grouped by status, method, supplier, and reporting window |
-| `pspfAssurance.findingsView` | Tree View | assurance findings and pentest findings grouped by severity, status, due state, and review state |
-| `pspfAssurance.verificationView` | Tree View | retest and verification backlog drawn from linked Evidence and finding status |
-| `pspfAssurance.publicationsView` | Tree View | assurance report packages, redaction checks, approval state, and signed-publication readiness |
+| View ID                          | Type        | Purpose                                                                                                        |
+| -------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------- |
+| `pspfAssurance.homeView`         | WebviewView | Assurance Home with assessment counts, urgent findings, pending verification, and publication-readiness status |
+| `pspfAssurance.assessmentsView`  | Tree View   | third-party assessments grouped by status, method, supplier, and reporting window                              |
+| `pspfAssurance.findingsView`     | Tree View   | assurance findings and pentest findings grouped by severity, status, due state, and review state               |
+| `pspfAssurance.verificationView` | Tree View   | retest and verification backlog drawn from linked Evidence and finding status                                  |
+| `pspfAssurance.publicationsView` | Tree View   | assurance report packages, redaction checks, approval state, and signed-publication readiness                  |
 
 ## Commands
 
@@ -226,76 +234,77 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 
 > **v0.1 implementation note.** v0.1 ships a subset of the command set below. The unified `pspf.core.openHealth` view is deferred to v0.2 — its information is surfaced through `pspf.core.validateWorkspace`, `pspf.core.verifyIntegrity`, and `pspf.core.showWriterLock` in v0.1 (see [pspf-development-readiness-review.md](pspf-development-readiness-review.md) § Remaining readiness risks). `pspf.core.exportExplorerBundle` is renamed to `pspf.core.exportBundle` per ADR 0009 (single master bundle); both rows below are retained for spec continuity but the implementation uses the master-bundle name. `pspf.core.runMigration`, `pspf.core.openLogs`, and `pspf.core.rebuildIndexes` are v0.2+.
 
-| Command ID | Title | Placement |
-|---|---|---|
-| `pspf.core.openHealth` (v0.2+) | PSPF Core: Open Health | command palette, view title |
-| `pspf.core.validateWorkspace` | PSPF Core: Validate Workspace | palette, view title |
-| `pspf.core.verifyIntegrity` | PSPF Core: Verify Integrity | palette, view title |
-| `pspf.core.showWriterLock` | PSPF Core: Show Writer Lock | palette |
-| `pspf.core.createSnapshot` | PSPF Core: Create Snapshot | palette, view title |
-| `pspf.core.exportBundle` (was `pspf.core.exportExplorerBundle` per ADR 0009) | PSPF Core: Export Master Bundle | palette, view title |
-| `pspf.core.importBundle` | PSPF Core: Import Master Bundle | palette |
-| `pspf.core.runMigration` (v0.2+) | PSPF Core: Run Migration | palette only |
-| `pspf.core.openLogs` (v0.2+) | PSPF Core: Open Platform Logs | palette |
-| `pspf.core.rebuildIndexes` (v0.2+) | PSPF Core: Rebuild Indexes | palette |
+| Command ID                                                                   | Title                           | Placement                   |
+| ---------------------------------------------------------------------------- | ------------------------------- | --------------------------- |
+| `pspf.core.openHealth` (v0.2+)                                               | PSPF Core: Open Health          | command palette, view title |
+| `pspf.core.validateWorkspace`                                                | PSPF Core: Validate Workspace   | palette, view title         |
+| `pspf.core.verifyIntegrity`                                                  | PSPF Core: Verify Integrity     | palette, view title         |
+| `pspf.core.showWriterLock`                                                   | PSPF Core: Show Writer Lock     | palette                     |
+| `pspf.core.createSnapshot`                                                   | PSPF Core: Create Snapshot      | palette, view title         |
+| `pspf.core.exportBundle` (was `pspf.core.exportExplorerBundle` per ADR 0009) | PSPF Core: Export Master Bundle | palette, view title         |
+| `pspf.core.importBundle`                                                     | PSPF Core: Import Master Bundle | palette                     |
+| `pspf.core.runMigration` (v0.2+)                                             | PSPF Core: Run Migration        | palette only                |
+| `pspf.core.openLogs` (v0.2+)                                                 | PSPF Core: Open Platform Logs   | palette                     |
+| `pspf.core.rebuildIndexes` (v0.2+)                                           | PSPF Core: Rebuild Indexes      | palette                     |
 
 ### Workshop commands
 
-| Command ID | Title | Placement |
-|---|---|---|
-| `pspf.workshop.openRequirement` | Workshop: Open Requirement | tree item, context |
-| `pspf.workshop.openHome` | Workshop: Open Home | activity bar, status bar, command palette |
-| `pspf.workshop.newRequirement` | Workshop: New Requirement | palette, view title |
-| `pspf.workshop.attachEvidence` | Workshop: Add Evidence | palette, Workshop Home, Requirement Detail |
-| `pspf.workshop.newAction` | Workshop: New Action | palette, view title |
-| `pspf.workshop.newDirection` | Workshop: New Direction | palette, view title |
-| `pspf.workshop.reviewEvidence` | Workshop: Review Evidence | palette, view title |
-| `pspf.workshop.openActionImpact` | Workshop: Open Action Impact | palette, summary view |
-| `pspf.workshop.copyShareableBrief` | Workshop: Copy Shareable Brief | palette, summary/detail/report views |
-| `pspf.workshop.openSummary` | Workshop: Open Summary | palette, view title |
-| `pspf.workshop.validateCurrent` | Workshop: Validate Current Item | palette, editor title |
-| `pspf.workshop.revealInTree` | Workshop: Reveal in Navigator | editor/title/context |
-| `pspf.workshop.prepareReportPack` | Workshop: Prepare Report Pack | palette, view title |
-| `pspf.workshop.exportBundle` | Workshop: Export Explorer Bundle | palette |
-| `pspf.workshop.manageTags` | Workshop: Manage Tags | palette, Requirements view title |
-| `pspf.workshop.manageSavedViews` | Workshop: Manage Saved Views | palette, Workshop Home view title |
-| `pspf.workshop.openIsmReviewWorkbench` | Workshop: Open ISM Review Workbench | palette, Workshop Home, ISM Source Controls browser |
-| `pspf.workshop.applyTag` | Workshop: Apply Tag to Requirement | item context (Requirement), Requirement Detail tag rail |
-| `pspf.workshop.removeTag` | Workshop: Remove Tag from Requirement | item context (Requirement tag chip) |
-| `pspf.workshop.filterRequirementsByTag` | Workshop: Filter Requirements by Tag | palette, Requirements view title |
+| Command ID                              | Title                                 | Placement                                               |
+| --------------------------------------- | ------------------------------------- | ------------------------------------------------------- |
+| `pspf.workshop.openRequirement`         | Workshop: Open Requirement            | tree item, context                                      |
+| `pspf.workshop.openHome`                | Workshop: Open Home                   | activity bar, status bar, command palette               |
+| `pspf.workshop.newRequirement`          | Workshop: New Requirement             | palette, view title                                     |
+| `pspf.workshop.attachEvidence`          | Workshop: Add Evidence                | palette, Workshop Home, Requirement Detail              |
+| `pspf.workshop.newAction`               | Workshop: New Action                  | palette, view title                                     |
+| `pspf.workshop.newDirection`            | Workshop: New Direction               | palette, view title                                     |
+| `pspf.workshop.reviewEvidence`          | Workshop: Review Evidence             | palette, view title                                     |
+| `pspf.workshop.openActionImpact`        | Workshop: Open Action Impact          | palette, summary view                                   |
+| `pspf.workshop.copyShareableBrief`      | Workshop: Copy Shareable Brief        | palette, summary/detail/report views                    |
+| `pspf.workshop.openSummary`             | Workshop: Open Summary                | palette, view title                                     |
+| `pspf.workshop.validateCurrent`         | Workshop: Validate Current Item       | palette, editor title                                   |
+| `pspf.workshop.revealInTree`            | Workshop: Reveal in Navigator         | editor/title/context                                    |
+| `pspf.workshop.prepareReportPack`       | Workshop: Prepare Report Pack         | palette, view title                                     |
+| `pspf.workshop.exportBundle`            | Workshop: Export Explorer Bundle      | palette                                                 |
+| `pspf.workshop.manageTags`              | Workshop: Manage Tags                 | palette, Requirements view title                        |
+| `pspf.workshop.manageSavedViews`        | Workshop: Manage Saved Views          | palette, Workshop Home view title                       |
+| `pspf.workshop.openIsmReviewWorkbench`  | Workshop: Open ISM Review Workbench   | palette, Workshop Home, ISM Source Controls browser     |
+| `pspf.workshop.applyTag`                | Workshop: Apply Tag to Requirement    | item context (Requirement), Requirement Detail tag rail |
+| `pspf.workshop.removeTag`               | Workshop: Remove Tag from Requirement | item context (Requirement tag chip)                     |
+| `pspf.workshop.filterRequirementsByTag` | Workshop: Filter Requirements by Tag  | palette, Requirements view title                        |
 
 ### Shop commands
 
-| Command ID | Title | Placement |
-|---|---|---|
-| `pspf.shop.newSupplier` | Shop: New Supplier | palette, view title |
-| `pspf.shop.newContract` | Shop: New Contract | palette, view title |
-| `pspf.shop.newSpendItem` | Shop: New Spend Item | palette, view title |
-| `pspf.shop.openForecast` | Shop: Open Spend Forecast | palette, view title |
-| `pspf.shop.openSavingsOpportunities` | Shop: Open Savings Opportunities | palette, forecast view |
-| `pspf.shop.linkSpendToAction` | Shop: Link Spend to Action | item context |
-| `pspf.shop.linkSupplierToRequirement` | Shop: Link Supplier to Requirement | supplier item context |
-| `pspf.shop.linkSupplierToRisk` | Shop: Link Supplier to Risk | supplier item context |
-| `pspf.shop.linkContractToRequirement` | Shop: Link Contract to Requirement | contract item context |
-| `pspf.shop.linkContractToSpendItem` | Shop: Link Contract to Spend Item | contract item context |
-| `pspf.shop.linkSpendToRequirement` | Shop: Link Spend to Requirement | spend item context |
+| Command ID                            | Title                              | Placement              |
+| ------------------------------------- | ---------------------------------- | ---------------------- |
+| `pspf.shop.newSupplier`               | Shop: New Supplier                 | palette, view title    |
+| `pspf.shop.newContract`               | Shop: New Contract                 | palette, view title    |
+| `pspf.shop.newSpendItem`              | Shop: New Spend Item               | palette, view title    |
+| `pspf.shop.openForecast`              | Shop: Open Spend Forecast          | palette, view title    |
+| `pspf.shop.openSavingsOpportunities`  | Shop: Open Savings Opportunities   | palette, forecast view |
+| `pspf.shop.linkSpendToAction`         | Shop: Link Spend to Action         | item context           |
+| `pspf.shop.linkSupplierToRequirement` | Shop: Link Supplier to Requirement | supplier item context  |
+| `pspf.shop.linkSupplierToRisk`        | Shop: Link Supplier to Risk        | supplier item context  |
+| `pspf.shop.linkContractToRequirement` | Shop: Link Contract to Requirement | contract item context  |
+| `pspf.shop.linkContractToSpendItem`   | Shop: Link Contract to Spend Item  | contract item context  |
+| `pspf.shop.linkSpendToRequirement`    | Shop: Link Spend to Requirement    | spend item context     |
 
 ### Assurance commands
 
-| Command ID | Title | Placement |
-|---|---|---|
-| `pspf.assurance.openHome` | Assurance: Open Home | activity bar, status bar, command palette |
-| `pspf.assurance.openAssessmentWorkbench` | Assurance: Open Assessment Workbench | palette, Assurance Home, Assessments view title |
-| `pspf.assurance.openPentestWorkbench` | Assurance: Open Penetration Testing Workbench | palette, Assurance Home, Findings view title |
-| `pspf.assurance.newAssessment` | Assurance: New Assessment | palette, Assessments view title |
-| `pspf.assurance.newFinding` | Assurance: New Finding | palette, Findings view title, Assessment Workbench |
-| `pspf.assurance.openVerificationQueue` | Assurance: Open Verification Queue | palette, Verification view title |
-| `pspf.assurance.prepareAssuranceReport` | Assurance: Prepare Assurance Report | palette, Publications view title |
-| `pspf.assurance.runPublicationReadiness` | Assurance: Run Publication Readiness Checks | palette, Publications view title |
+| Command ID                               | Title                                         | Placement                                          |
+| ---------------------------------------- | --------------------------------------------- | -------------------------------------------------- |
+| `pspf.assurance.openHome`                | Assurance: Open Home                          | activity bar, status bar, command palette          |
+| `pspf.assurance.openAssessmentWorkbench` | Assurance: Open Assessment Workbench          | palette, Assurance Home, Assessments view title    |
+| `pspf.assurance.openPentestWorkbench`    | Assurance: Open Penetration Testing Workbench | palette, Assurance Home, Findings view title       |
+| `pspf.assurance.newAssessment`           | Assurance: New Assessment                     | palette, Assessments view title                    |
+| `pspf.assurance.newFinding`              | Assurance: New Finding                        | palette, Findings view title, Assessment Workbench |
+| `pspf.assurance.openVerificationQueue`   | Assurance: Open Verification Queue            | palette, Verification view title                   |
+| `pspf.assurance.prepareAssuranceReport`  | Assurance: Prepare Assurance Report           | palette, Publications view title                   |
+| `pspf.assurance.runPublicationReadiness` | Assurance: Run Publication Readiness Checks   | palette, Publications view title                   |
 
 ### Shared hidden/internal commands
 
 You will likely need internal commands for:
+
 - reveal/select synchronisation,
 - refresh signals,
 - open detail webview,
@@ -316,12 +325,14 @@ Only user-meaningful commands should appear in the palette. Internal helper comm
 Use view title actions sparingly for high-frequency actions.
 
 Suggested Workshop title actions:
+
 - New Requirement
 - New Evidence
 - Refresh
 - Open Summary
 
 Suggested Core title actions:
+
 - Validate Workspace
 - Create Snapshot
 - Export Explorer Bundle
@@ -331,6 +342,7 @@ Suggested Core title actions:
 Tree item context menus are essential for local actions.
 
 Examples:
+
 - Requirement item: Open, Validate, Link Evidence, New Action, Copy Shareable Brief, Copy ID
 - Evidence item: Open, Link to Requirement, Mark Freshness Review, Review Impact, Copy ID
 - Action item: Open, Update Status, Reveal Linked Requirement, Show Impact
@@ -454,6 +466,7 @@ VS Code supports Welcome views for empty or first-run contexts, and the UX guida
 Show only when `.pspf/` is missing or platform bootstrap is incomplete.
 
 Suggested actions:
+
 - Initialise PSPF Workspace
 - Open Platform Health
 - Review Storage Location
@@ -463,6 +476,7 @@ Suggested actions:
 Show when the workspace is PSPF-capable but has no operational content.
 
 Suggested actions:
+
 - Create first requirement
 - Import bundle
 - Open summary
@@ -480,23 +494,23 @@ Extensions can contribute settings that appear in VS Code’s Settings UI under 
 
 ### Core settings
 
-| Setting | Type | Scope | Purpose |
-|---|---|---|---|
-| `pspf.core.logLevel` | string | user/workspace | logging verbosity |
-| `pspf.core.strictIntegrity` | boolean | workspace | fail closed on integrity issues |
-| `pspf.core.autoValidateOnOpen` | boolean | workspace | lightweight validation on open |
-| `pspf.core.export.redactionProfile` | string | workspace | default Explorer export profile |
-| `pspf.core.experimentalFeatures` | array | user | gated non-stable features |
+| Setting                             | Type    | Scope          | Purpose                         |
+| ----------------------------------- | ------- | -------------- | ------------------------------- |
+| `pspf.core.logLevel`                | string  | user/workspace | logging verbosity               |
+| `pspf.core.strictIntegrity`         | boolean | workspace      | fail closed on integrity issues |
+| `pspf.core.autoValidateOnOpen`      | boolean | workspace      | lightweight validation on open  |
+| `pspf.core.export.redactionProfile` | string  | workspace      | default Explorer export profile |
+| `pspf.core.experimentalFeatures`    | array   | user           | gated non-stable features       |
 
 ### Workshop settings
 
-| Setting | Type | Scope | Purpose |
-|---|---|---|---|
-| `pspf.workshop.groupRequirementsBy` | string | user/workspace | tree grouping mode |
-| `pspf.workshop.showDerivedFields` | boolean | user | toggle derived metadata in UI |
-| `pspf.workshop.defaultRequirementStatus` | string | workspace | default creation value |
-| `pspf.workshop.summary.refreshMode` | string | user | auto/manual summary refresh |
-| `pspf.workshop.showIDs` | boolean | user | show canonical IDs in trees and detail panels |
+| Setting                                  | Type    | Scope          | Purpose                                       |
+| ---------------------------------------- | ------- | -------------- | --------------------------------------------- |
+| `pspf.workshop.groupRequirementsBy`      | string  | user/workspace | tree grouping mode                            |
+| `pspf.workshop.showDerivedFields`        | boolean | user           | toggle derived metadata in UI                 |
+| `pspf.workshop.defaultRequirementStatus` | string  | workspace      | default creation value                        |
+| `pspf.workshop.summary.refreshMode`      | string  | user           | auto/manual summary refresh                   |
+| `pspf.workshop.showIDs`                  | boolean | user           | show canonical IDs in trees and detail panels |
 
 ## Status bar items
 
@@ -509,6 +523,7 @@ Use at most one status bar item per extension, and ideally only one across the w
 ### Preferred status item
 
 A single compact item from Core:
+
 - label example: `PSPF: Healthy` / `PSPF: Needs Validation`
 - click action: open Core health view
 - visibility: only in PSPF workspaces
@@ -522,12 +537,14 @@ A lightweight walkthrough can help bootstrap the first-run experience, but it sh
 ### Suggested walkthroughs
 
 #### Core walkthrough
+
 - Initialise workspace
 - Validate workspace
 - Create snapshot
 - Export Explorer bundle
 
 #### Workshop walkthrough
+
 - Create first requirement
 - Add evidence
 - Create remediation action
@@ -671,6 +688,7 @@ These keys should drive `when` clauses across menus, welcome content, and title 
 ### Core MVP surface
 
 Implement first:
+
 - one Core container,
 - Health tree,
 - Operations tree,
@@ -682,6 +700,7 @@ Implement first:
 ### Workshop MVP surface
 
 Implement first:
+
 - one Workshop container,
 - Requirements tree,
 - Evidence tree,
@@ -693,6 +712,7 @@ Implement first:
 ## Surface anti-patterns
 
 Avoid:
+
 - too many Activity Bar icons,
 - Webviews for basic hierarchical data,
 - command explosion in the palette,
