@@ -1,6 +1,6 @@
 # 0010 — Explorer Relationships surface: Board primary, graph deferred
 
-- Status: accepted
+- Status: superseded by ADR 0084 (v1.48.0)
 - Date: 2026-05-09
 - Related: ADR 0004 (Explorer dual-mode), `explorer-screen-workflow-spec.md` § Relationships (Board) screen
 
@@ -22,7 +22,7 @@ The lane set in v1 is exactly six (gaps without work; gaps with action in flight
 - No graph-engine runtime dependency; no Cytoscape (or equivalent) in the bundle. CSP stays tight; bundle stays small.
 - Keyboard-equivalence and reduced-motion open questions for the relationship view collapse — the board is keyboard-native and motion-free.
 - The existing relationship data model (the `relationships` collection plus implicit entity-side link arrays) is unchanged. A future graph view, if added in a later phase, can reuse the same data.
-- The "list-equivalent fallback for the graph view" requirement in earlier drafts is removed; the board *is* the listed surface.
+- The "list-equivalent fallback for the graph view" requirement in earlier drafts is removed; the board _is_ the listed surface.
 
 ## Alternatives considered
 
