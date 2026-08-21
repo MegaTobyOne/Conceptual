@@ -14,6 +14,70 @@ The ordering principle is deliberate: **make the documentation truthful first (F
 
 This plan does not override the authority chain in `pspf-spec-consistency-index.md`. Every tranche below that changes architecture, schema, or invariants **starts with an ADR**; this document records the sequence and the design constraints, not the decisions themselves.
 
+## Operational plan: compliance uplift workflow (next few days)
+
+Status: **active — next-slice direction**
+
+The immediate product focus is the requirement-to-action journey in Explorer/Workshop. The user feedback is clear: the tool is already effective as a review surface, but the real value is the uplift loop — turning PSPF outcomes into justifiable decisions, standard mitigation language, and a practical work plan for the next cycle.
+
+### Decisions now in force
+
+1. **Product framing:** Explorer is a compliance uplift tool. We can describe it as: compliance uplift, assurance uplift, remediation workflow, or control improvement work-planning surface. The core message is consistent: the tool helps move from assessment to action.
+2. **Standard mitigation guidance:** yes, we build this. The product should offer standardised mitigation patterns derived from ISM-aligned controls and allow operators to tailor those patterns without losing the control rationale.
+3. **Action generation:** yes, we add assisted action generation. The system should draft suggested actions for unmet or risk-managed requirements, but keep the operator in control of acceptance, editing, and prioritisation.
+4. **Simplify after proving the pattern:** we will not over-automate the workflow upfront. We will validate the assisted model, then reduce effort and simplify the experience once the pattern is stable.
+5. **Primary value:** the product is not just a reporting tool; it is a bridge between compliance status, evidence, mitigation, and forward work planning.
+
+### Product outcome to target
+
+The product should help a user answer five questions in sequence:
+
+1. What is the current control or requirement state?
+2. Why is it in that state, and what evidence supports it?
+3. What mitigation is standard and appropriate?
+4. What action is needed next, and what is the impact if it is not tackled?
+5. What goes onto the forward work plan for the next review cycle?
+
+### Implementation sequence for the next few days
+
+| Phase | Focus                                 | Objective                                                                                                                    |
+| ----- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1     | Decision clarity and evidence capture | Make the requirement detail flow explicit and defensible with clear status choices and required rationale/evidence logs.     |
+| 2     | Standard mitigation library           | Add suggested mitigations that are structured, tailorable, and aligned to the underlying control family or requirement type. |
+| 3     | Assisted actions                      | Convert unresolved or risk-managed items into draft actions for review and acceptance.                                       |
+| 4     | Priority and work-plan views          | Show which items matter most, what the impact is, and how they feed the next-year uplift plan.                               |
+
+### Scope boundaries for this slice
+
+- In scope: requirement decision capture, evidence and rationale, mitigation suggestions, assisted action generation, impact statements, prioritisation, forward work-plan linkage.
+- Out of scope for now: full project-management automation, predictive analytics, AI-generated action plans without human review, and creating a separate PM platform.
+
+### Working principle
+
+The product must support the operating cycle of:
+
+- assess
+- justify
+- mitigate
+- prioritise
+- plan
+
+not merely the reporting cycle of:
+
+- record status
+- show charts
+- export a summary
+
+### Immediate operating tasks
+
+- Validate the current requirement journey and where the user loses momentum between status and next action.
+- Agree the required decision states and the minimum evidence/rationale for each.
+- Prototype a standard mitigation suggestion flow.
+- Test the assisted action-generation pattern on a real requirement set.
+- Confirm the minimum outputs needed for a forward work plan and leadership review.
+
+This short operating plan sits alongside the longer architecture and remediation tranches above and should be revisited after the next working cycle.
+
 ## Hard constraints (apply to every tranche)
 
 1. **Offline-first is preserved.** The five local extensions (Core, Workshop, Shop, Pub, Assurance) remain fully functional with zero network access. All connected capability ships as separately installable, default-off surfaces. No existing workflow may acquire a network dependency.

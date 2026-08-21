@@ -33,9 +33,22 @@ npx pnpm@10.10.0 release:readiness
 
 `release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.47.0-readiness-report.md`.
 
+## Current Product Direction
+
+The next few days are focused on the Explorer and Workshop requirement-to-action journey. The product direction is to treat Explorer as a compliance uplift tool that helps teams turn assessment outcomes into clear decisions, consistent mitigation language, and an actionable work plan rather than just a passive record of status.
+
+Key decisions recorded for the next slice:
+
+- Explorer is positioned as a compliance uplift tool, with the language split across a few variants such as assurance uplift, remediation workflow, and control improvement work-planning surface.
+- Standardised mitigation guidance is in scope and should be built as a reusable library keyed to control families and requirement types.
+- Assisted action generation is the preferred model: unresolved or risk-managed items propose draft actions, which users can accept, edit, or reject before they become tracked work.
+- The ambition is to simplify after proving the pattern, not to over-automate the workflow up front.
+
+See [docs/decision-register.md](docs/decision-register.md) and [pspf-grand-plan.md](pspf-grand-plan.md) for the operating plan and decision log.
+
 ## Current Workshop Slice
 
-Workshop is the main operator surface for evidence-backed assessment work. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
+Workshop is the main operator surface for evidence-backed assessment work and the critical decision point in the compliance uplift workflow. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
 
 Current v1.43 additions:
 
