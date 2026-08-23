@@ -137,6 +137,16 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **Extension alignment gate**: Core, Assurance, Workshop, Shop, Pub, and Explorer retain VS Code theme inheritance and OFFICIAL: Sensitive handling while using canonical product identity tokens.
 7. **Release-chain gate**: `e2e:v1.52` inherits the complete v1.50 chain, runs the Studio System browser matrix, and `release:readiness` targets `e2e:v1.52:run`.
 
+### v1.53 UX evidence and judgement baseline gates (per ADR 0087)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.53.0`; `VERSION_AXES` remain `1.14.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Evidence pack gate**: `scripts/ux-evidence-pack.mjs` runs the Explorer evidence-pack Playwright suite, asserts a screenshot for every {empty, typical, volume} × {dark, light} combination across the key-screen set, asserts both flagship journeys recorded at least one interaction step, and writes `.tmp/ux-evidence/v1.53.0/summary.json`.
+3. **Release-chain continuity gate**: `scripts/check-gate-integrity.mjs` asserts every `e2e:v1.<minor>` and `:run` script from the first to the latest release exists and invokes its immediate predecessor; the historical `e2e:v1.15` and `e2e:v1.51` gaps are closed with pass-through links.
+4. **Command identity gate**: no two extensions expose an identical palette command title; Workshop's delegating import/export commands are titled `PSPF Workshop: …`.
+5. **Marketplace presentation gate**: Core, Assurance, Workshop, Shop, and Pub each declare a package.json `icon` pointing at a real PNG under `resources/`.
+6. **Explorer lint gate**: CI runs the Explorer package's own lint (lit, lit-a11y, unicorn rule sets) as a required step in addition to the root lint.
+7. **Release-chain gate**: `e2e:v1.53` inherits the complete v1.52 chain and adds the evidence-pack run; `release:readiness` targets `e2e:v1.53:run`.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.

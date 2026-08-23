@@ -1,5 +1,6 @@
 {
   "name": "pspf-assurance",
+  "icon": "resources/icon.png",
   "displayName": "PSPF Assurance",
   "description": "PSPF assessment, penetration testing, assurance finding, verification, and publication-readiness surface.",
   "keywords": [
@@ -10,7 +11,7 @@
     "verification",
     "security"
   ],
-  "version": "1.52.0",
+  "version": "1.53.0",
   "private": true,
   "type": "module",
   "license": "MIT",

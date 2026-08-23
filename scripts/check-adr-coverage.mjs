@@ -325,6 +325,11 @@ const coverage = [
     "e2e:v1.50",
     "check:v150-visual",
     "release:readiness"
+  ]),
+  adr("0087-v1-53-ux-evidence-and-judgement-baseline.md", "automated", [
+    "e2e:v1.53",
+    "check:gate-integrity",
+    "release:readiness"
   ])
 ];
 
