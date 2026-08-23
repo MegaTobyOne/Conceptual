@@ -55,7 +55,8 @@ const axesByMinorVersion = new Map([
   [47, "1.14.0"],
   [48, "1.14.0"],
   [49, "1.14.0"],
-  [50, "1.14.0"]
+  [50, "1.14.0"],
+  [51, "1.14.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;

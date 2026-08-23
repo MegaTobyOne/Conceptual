@@ -8,9 +8,9 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.50.0 is the active release baseline. ADR 0084's unified Lit/Vite Explorer remains the single web surface, ADR 0085's Assurance City remains lazy-loaded, and ADR 0086's dark-first shared identity and presentation-lens work is implemented with `VERSION_AXES = 1.14.0`. Pub workforce decision cockpit (ADR 0083) remains unchanged: local-only store `1.3.0`, no AI/model call, and no new publication path.
+**Current implementation note:** v1.51.0 is the active release baseline. ADR 0084's unified Lit/Vite Explorer remains the single web surface, ADR 0085's Assurance City remains lazy-loaded, and ADR 0086's dark-first shared identity and presentation-lens work is implemented with `VERSION_AXES = 1.14.0`. Pub workforce decision cockpit (ADR 0083) remains unchanged: local-only store `1.3.0`, no AI/model call, and no new publication path.
 
-**Status: through v1.50.0, the shipped readiness chain is implemented and release-readiness green. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is ready for facilitated concept testing only and is not part of shipped product scope.**
+**Status: through v1.51.0, the shipped readiness chain is implemented and release-readiness green. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is ready for facilitated concept testing only and is not part of shipped product scope.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
 
@@ -51,7 +51,7 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is green for v1.50.0:
+`npx pnpm@10.10.0 run release:readiness` is green for v1.51.0:
 
 1. Spine workflow (headless `e2e:v1.48`, including Pub cockpit behavioural and boundary tests).
 2. Schema-policy.
@@ -119,8 +119,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.50.0, with emphasis on dark/light/high-contrast presentation, relationship map and Board behaviour, reduced motion, unified Explorer publication/local-authoring/Core-round-trip behaviour, cockpit keyboard navigation, scoped obligation populations, capability denominators, all-role continuity, Attention routing, evidence-only pathway wording, ephemeral filters, small-cohort suppression, and the existing Workshop, Shop, import, and release-dry-run regression surfaces.
+The next sequence is manual validation of v1.51.0, with emphasis on Strategy delivery coverage, closed Action schedule defaults, exposure and temporal signals, dark/light/high-contrast presentation, relationship map and Board behaviour, reduced motion, unified Explorer publication/local-authoring/Core-round-trip behaviour, cockpit keyboard navigation, scoped obligation populations, capability denominators, all-role continuity, Attention routing, evidence-only pathway wording, ephemeral filters, small-cohort suppression, and the existing Workshop, Shop, import, and release-dry-run regression surfaces.
 
 ## Review conclusion
 
-The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, Assurance City, dark-first shared identity, and Pub workforce decision cockpit are implemented for v1.50.0 readiness. Automated release readiness is green; manual validation now needs to confirm the v1.50 visual matrix and relationship map/Board contract alongside the five Pub cockpit views, routed Attention, filters, pathway caveat, and suppressed safe-summary workflows in the Extension Host.
+The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, Assurance City, dark-first shared identity, and Pub workforce decision cockpit are implemented for v1.51.0 readiness. Automated release readiness is green; manual validation now needs to confirm Strategy delivery signals, closed-work schedule behaviour, exposure and temporal views, the v1.51 visual matrix and relationship map/Board contract alongside the five Pub cockpit views, routed Attention, filters, pathway caveat, and suppressed safe-summary workflows in the Extension Host.

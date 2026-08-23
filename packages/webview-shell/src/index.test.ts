@@ -128,7 +128,7 @@ test("home panels expose all v1.50 product identities with theme-aware accents",
       extensionLabel: `PSPF ${product}`,
       title: product,
       tagline: "Local-first",
-      version: "1.50.0",
+      version: "1.51.0",
       sensitivityBanner: "OFFICIAL: Sensitive",
       body: ""
     });

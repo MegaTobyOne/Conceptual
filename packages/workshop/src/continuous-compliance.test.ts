@@ -306,7 +306,7 @@ test("exposure summary selects the worst explainable component", () => {
 
   assert.equal(summary.band, "extreme");
   assert.equal(summary.primaryDriver.id, "material-risks");
-  assert.match(summary.bandLabel, /High/);
+  assert.match(summary.bandLabel, /Extreme/);
 });
 
 test("strategy priority excludes unresolved risks but keeps repair cue", () => {

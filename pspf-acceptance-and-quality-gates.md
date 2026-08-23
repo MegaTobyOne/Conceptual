@@ -118,7 +118,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 
 ### v1.50 dark-first ecosystem redesign gates (per ADR 0086)
 
-1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.50.0`; `VERSION_AXES` remain `1.14.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.51.0`; `VERSION_AXES` remain `1.14.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
 2. **Shared identity gate**: Core, Assurance, Workshop, Shop, Pub, and Explorer use their typed `@pspf/webview-shell` identity; structural accents remain separate from semantic status and sensitivity colours.
 3. **Extension theme gate**: generated fixtures for all six product identities pass axe-core, focusability, overflow, and nonblank rendering checks under VS Code Dark, Light, and High Contrast variable sets.
 4. **Explorer theme gate**: first use and retired Colorful preferences resolve to Dark; explicit Dark, Light, and System preferences persist locally; operating-system changes affect the app only in System mode.
