@@ -344,6 +344,24 @@ test("Strategy Map uses clearer framing, aligned choices, and grouped measures",
   assert.match(source, /function renderMeasuresGroupedByChoice/);
   assert.match(source, /Posture Measures By Choice/);
   assert.match(source, /class="measure-choice-group"/);
+  assert.match(source, /data-command="linkStrategyAction"/);
+  assert.match(source, /buildStrategyDeliverySummary/);
+  assert.match(source, /Delivery: \$\{escapeHtml\(label\(delivery\.state\)\)\}/);
+});
+
+test("Plan of Action hides closed work by default and exposes a deliberate reveal", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const boardSource = await readFile(new URL("../src/plan-of-action-board.ts", import.meta.url), "utf8");
+  const shellSource = await readFile(new URL("../src/webview/shell.ts", import.meta.url), "utf8");
+
+  assert.match(source, /data-poa-show-closed/);
+  assert.match(source, /Show closed \(\$\{model\.metrics\.done \+ model\.metrics\.cancelled\}\)/);
+  assert.match(source, /\["done", "cancelled"\]\.includes\(item\.value\) \? "false"/);
+  assert.match(source, /value="open">Open work/);
+  assert.match(boardSource, /readonly done: number;/);
+  assert.match(boardSource, /readonly cancelled: number;/);
+  assert.match(shellSource, /\.poa-bar--done/);
+  assert.match(shellSource, /\.poa-bar--cancelled/);
 });
 
 test("Human-Centred Risk View renders an impact likelihood matrix", async () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   actionStatusCounts,
+  complianceEventsSince,
   complianceBreakdown,
   directionsSummary,
   ESSENTIAL_EIGHT_CATCHALL_ID,
@@ -11,7 +12,15 @@ import {
   riskBandOf,
 } from './analytics.ts';
 import { allRequirements } from '../pspf/index.ts';
-import type { Action, ComplianceEntry, Direction, RequirementId, Risk } from '../data/types.ts';
+import type {
+  Action,
+  ComplianceEntry,
+  ComplianceEvent,
+  Direction,
+  RequirementId,
+  Risk,
+} from '../data/types.ts';
+import { asRequirementId } from '../data/types.ts';
 
 const now = new Date('2026-05-05T00:00:00Z').toISOString();
 
@@ -84,6 +93,36 @@ describe('actionStatusCounts / overdueActionCount', () => {
     const future = '2099-01-01';
     const list = [a('in-progress', past), a('done', past), a('todo', future), a('blocked', past)];
     expect(overdueActionCount(list, Date.parse('2026-05-05'))).toBe(2);
+  });
+});
+
+describe('complianceEventsSince', () => {
+  it('filters, sorts and scopes durable compliance events', () => {
+    const events = [
+      {
+        id: '2',
+        requirementId: asRequirementId('GOV-001'),
+        fromState: 'no',
+        toState: 'yes',
+        createdAt: '2026-08-20T00:00:00.000Z',
+      },
+      {
+        id: '1',
+        requirementId: asRequirementId('GOV-002'),
+        fromState: 'not-set',
+        toState: 'no',
+        createdAt: '2026-08-21T00:00:00.000Z',
+      },
+    ] as ComplianceEvent[];
+
+    expect(complianceEventsSince(events, new Date('2026-08-20T12:00:00.000Z'))).toHaveLength(1);
+    expect(
+      complianceEventsSince(
+        events,
+        new Date('2026-08-01T00:00:00.000Z'),
+        asRequirementId('GOV-001'),
+      )[0]?.toState,
+    ).toBe('yes');
   });
 });
 

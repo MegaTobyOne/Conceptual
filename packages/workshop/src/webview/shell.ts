@@ -226,6 +226,8 @@ export function shellHtml(title: string, body: string): string {
     .poa-bar--overdue { background: #b54708; }
     .poa-bar--due-soon { background: #1d4ed8; }
     .poa-bar--normal { background: #047857; }
+    .poa-bar--done { background: #475569; opacity: 0.72; border: 2px solid #94a3b8; text-decoration: line-through; }
+    .poa-bar--cancelled { background: transparent; color: var(--muted); border: 2px dashed #94a3b8; opacity: 0.78; }
     .poa-team-date-schedule { background: linear-gradient(180deg, color-mix(in srgb, #4f7f9f 12%, var(--surface)), var(--surface)); }
     .poa-team-date-track { min-width: max(760px, var(--poa-width)); height: 44px; }
     .poa-team-date-bar { position: absolute; top: 6px; height: 32px; display: grid; align-content: center; gap: 1px; min-width: 18px; max-width: calc(100% - 2px); border: 1px solid color-mix(in srgb, #4f7f9f 62%, var(--border)); border-radius: 999px; padding: 0 8px; color: var(--text); background: color-mix(in srgb, #4f7f9f 20%, var(--surface-strong)); box-sizing: border-box; overflow: hidden; white-space: nowrap; }

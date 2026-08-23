@@ -1,6 +1,7 @@
 import type {
   ActionEntity,
   DomainEntity,
+  EvidenceEntity,
   LinkEntity,
   RequirementEntity,
   RiskEntity,
@@ -478,6 +479,188 @@ export interface StrategyPrioritySummary {
   readonly linkedActionCount: number;
   readonly unresolvedRiskReferenceCount: number;
   readonly rationale: string;
+}
+
+export type StrategyDeliveryState =
+  | "no-delivery-path"
+  | "candidate-work"
+  | "in-delivery"
+  | "delivery-at-risk"
+  | "delivered-verify-benefit"
+  | "outcome-progressing";
+
+export interface StrategyDeliverySummary {
+  readonly state: StrategyDeliveryState;
+  readonly linkedActionCount: number;
+  readonly candidateActionCount: number;
+  readonly committedActionCount: number;
+  readonly activeActionCount: number;
+  readonly blockedActionCount: number;
+  readonly overdueActionCount: number;
+  readonly completedActionCount: number;
+  readonly unresolvedActionReferenceCount: number;
+  readonly decision: string;
+}
+
+export function buildStrategyDeliverySummary(
+  choice: StrategicChoice,
+  actionsById: ReadonlyMap<string, ActionEntity>
+): StrategyDeliverySummary {
+  const actionIds = new Set([
+    ...choice.references
+      .filter((reference) => reference.entityType === "action")
+      .map((reference) => reference.entityId),
+    ...choice.outcomes.flatMap((outcome) =>
+      outcome.references.filter((reference) => reference.entityType === "action").map((reference) => reference.entityId)
+    )
+  ]);
+  const linkedActions = [...actionIds].map((actionId) => actionsById.get(actionId));
+  const unresolvedActionReferenceCount = linkedActions.filter(
+    (action) => !action || action.recordStatus === "deleted"
+  ).length;
+  const resolvedActions = linkedActions.filter(
+    (action): action is ActionEntity => action !== undefined && action.recordStatus !== "deleted"
+  );
+  const candidateActionCount = resolvedActions.filter((action) => action.status === "todo").length;
+  const committedActionCount = resolvedActions.filter((action) => action.status !== "todo").length;
+  const activeActionCount = resolvedActions.filter((action) => !["done", "cancelled"].includes(action.status)).length;
+  const blockedActionCount = resolvedActions.filter(
+    (action) => action.status === "blocked" || action.impact?.urgency === "blocked"
+  ).length;
+  const overdueActionCount = resolvedActions.filter((action) => action.impact?.urgency === "overdue").length;
+  const completedActionCount = resolvedActions.filter((action) => action.status === "done").length;
+  const state: StrategyDeliveryState =
+    resolvedActions.length === 0
+      ? "no-delivery-path"
+      : blockedActionCount > 0 || overdueActionCount > 0
+        ? "delivery-at-risk"
+        : completedActionCount === resolvedActions.length
+          ? choice.outcomes.some((outcome) => outcome.measures.some((measure) => measure.trend === "improving"))
+            ? "outcome-progressing"
+            : "delivered-verify-benefit"
+          : committedActionCount === 0
+            ? "candidate-work"
+            : "in-delivery";
+
+  return {
+    state,
+    linkedActionCount: actionIds.size,
+    candidateActionCount,
+    committedActionCount,
+    activeActionCount,
+    blockedActionCount,
+    overdueActionCount,
+    completedActionCount,
+    unresolvedActionReferenceCount,
+    decision: strategyDeliveryDecision(state)
+  };
+}
+
+function strategyDeliveryDecision(state: StrategyDeliveryState): string {
+  switch (state) {
+    case "no-delivery-path":
+      return "Choose a delivery response for this strategic choice.";
+    case "candidate-work":
+      return "Commit, defer or exclude the candidate work.";
+    case "in-delivery":
+      return "Review progress and the next delivery milestone.";
+    case "delivery-at-risk":
+      return "Resolve the delivery risk or re-sequence the work.";
+    case "delivered-verify-benefit":
+      return "Verify the benefit or revise the strategic choice.";
+    case "outcome-progressing":
+      return "Continue delivery and review the outcome measure.";
+  }
+}
+
+export type ExposureBand = "low" | "moderate" | "high" | "extreme";
+
+export interface ExposureComponent {
+  readonly id: "requirement-gaps" | "material-risks" | "evidence-weakness" | "delivery-risk";
+  readonly label: string;
+  readonly band: ExposureBand;
+  readonly count: number;
+}
+
+export interface ExposureSummary {
+  readonly band: ExposureBand;
+  readonly bandLabel: string;
+  readonly primaryDriver: ExposureComponent;
+  readonly components: readonly ExposureComponent[];
+}
+
+export function buildExposureSummary(entities: readonly V01Entity[]): ExposureSummary {
+  const requirements = entities.filter(
+    (entity): entity is RequirementEntity => entity.entityType === "requirement" && entity.recordStatus !== "deleted"
+  );
+  const risks = entities.filter(
+    (entity): entity is RiskEntity =>
+      entity.entityType === "risk" && entity.recordStatus !== "deleted" && entity.status !== "closed"
+  );
+  const evidence = entities.filter(
+    (entity): entity is EvidenceEntity => entity.entityType === "evidence" && entity.recordStatus !== "deleted"
+  );
+  const actions = entities.filter(
+    (entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted"
+  );
+  const components: ExposureComponent[] = [
+    exposureComponent(
+      "requirement-gaps",
+      "Requirement gaps",
+      requirements.filter((item) => ["not-started", "not-met", "partially-met"].includes(item.assessmentStatus)).length,
+      requirements.length
+    ),
+    exposureComponent(
+      "material-risks",
+      "Material Risks",
+      risks.filter((item) => item.likelihood * item.impact >= 10).length,
+      risks.length
+    ),
+    exposureComponent(
+      "evidence-weakness",
+      "Evidence weakness",
+      evidence.filter((item) => ["stale", "expired", "unknown"].includes(item.freshness)).length,
+      evidence.length
+    ),
+    exposureComponent(
+      "delivery-risk",
+      "Blocked or overdue Actions",
+      actions.filter((item) => ["blocked", "overdue"].includes(item.impact?.urgency ?? "")).length,
+      actions.length
+    )
+  ];
+  const primaryDriver = components.reduce((current, component) =>
+    exposureRank(component.band) > exposureRank(current.band) ||
+    (exposureRank(component.band) === exposureRank(current.band) && component.count > current.count)
+      ? component
+      : current
+  );
+  return {
+    band: primaryDriver.band,
+    bandLabel: labelExposureBand(primaryDriver.band),
+    primaryDriver,
+    components
+  };
+}
+
+function exposureComponent(
+  id: ExposureComponent["id"],
+  labelText: string,
+  count: number,
+  total: number
+): ExposureComponent {
+  const ratio = total === 0 ? 0 : count / total;
+  const band: ExposureBand =
+    ratio >= 0.5 || count >= 5 ? "extreme" : ratio >= 0.25 || count >= 2 ? "high" : count > 0 ? "moderate" : "low";
+  return { id, label: labelText, band, count };
+}
+
+function exposureRank(band: ExposureBand): number {
+  return { low: 0, moderate: 1, high: 2, extreme: 3 }[band];
+}
+
+function labelExposureBand(band: ExposureBand): string {
+  return band[0]!.toUpperCase() + band.slice(1);
 }
 
 const STRATEGY_PRIORITY_BANDS = [

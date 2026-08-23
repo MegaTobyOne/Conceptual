@@ -75,6 +75,8 @@ export interface PlanOfActionBoardModel {
   readonly phases: readonly PlanOfActionPhaseModel[];
   readonly metrics: {
     readonly actions: number;
+    readonly done: number;
+    readonly cancelled: number;
     readonly blocked: number;
     readonly overdue: number;
     readonly dueSoon: number;
@@ -170,6 +172,8 @@ export function buildPlanOfActionBoardModel(
     phases,
     metrics: {
       actions: activeTasks.length,
+      done: tasks.filter((task) => task.status === "done").length,
+      cancelled: tasks.filter((task) => task.status === "cancelled").length,
       blocked: activeTasks.filter((task) => task.urgency === "blocked").length,
       overdue: activeTasks.filter((task) => task.urgency === "overdue").length,
       dueSoon: activeTasks.filter((task) => task.urgency === "due-soon").length,

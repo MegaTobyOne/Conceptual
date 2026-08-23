@@ -463,6 +463,8 @@ export interface RequirementEntity extends EntityEnvelope {
   readonly domainId: string;
   readonly assessmentStatus: AssessmentStatus;
   readonly summary?: string;
+  readonly assessmentRationale?: string;
+  readonly assessmentReviewedAt?: string;
 }
 
 export type EvidenceFreshness = "current" | "ageing" | "stale" | "expired" | "unknown";
@@ -500,6 +502,12 @@ export interface ActionEntity extends EntityEnvelope {
   readonly startDate?: string;
   readonly endDate?: string;
   readonly dueDate?: string;
+  readonly completedAt?: string;
+  readonly planningState?: "candidate" | "committed" | "deferred" | "excluded";
+  readonly priority?: number;
+  readonly effortEstimate?: string;
+  readonly effortConfidence?: "low" | "medium" | "high";
+  readonly effortBasis?: string;
   readonly commentary?: readonly ActionCommentaryEntry[];
   readonly impact?: ActionImpact;
 }
@@ -1143,7 +1151,9 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "domainId",
         "assessmentStatus"
       ),
-      { field: "summary", publication: "sensitive" }
+      { field: "summary", publication: "sensitive" },
+      { field: "assessmentRationale", publication: "sensitive" },
+      { field: "assessmentReviewedAt", publication: "sensitive" }
     ]
   },
   {
@@ -1178,9 +1188,15 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "startDate",
         "endDate",
         "dueDate",
-        "impact"
+        "impact",
+        "completedAt",
+        "planningState",
+        "priority",
+        "effortEstimate",
+        "effortConfidence"
       ),
-      { field: "commentary", publication: "sensitive" }
+      { field: "commentary", publication: "sensitive" },
+      { field: "effortBasis", publication: "sensitive" }
     ]
   },
   {

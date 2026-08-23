@@ -832,7 +832,12 @@ async function createSnapshot(workspaceRoot: string): Promise<V01Entity> {
   );
 
   await upsertEntity(workspaceRoot, snapshot);
-  await writeJson(join(paths.snapshots, `${snapshot.id}.json`), { snapshot, counts, generatedAt: nowIso() });
+  await writeJson(join(paths.snapshots, `${snapshot.id}.json`), {
+    snapshot,
+    counts,
+    statusSummary: buildStatusSummary(collections),
+    generatedAt: nowIso()
+  });
   await recordOperation(paths, "snapshot", "success", snapshot.id);
   return snapshot;
 }
