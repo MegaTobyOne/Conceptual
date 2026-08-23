@@ -19,9 +19,9 @@ export class HelpView extends LitElement {
       }
       section.panel {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         margin-bottom: var(--space-3);
       }
       ul {
@@ -32,14 +32,14 @@ export class HelpView extends LitElement {
         margin-top: var(--space-1);
       }
       kbd {
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: 0 0.25rem;
         font-size: 0.85em;
       }
       a {
-        color: var(--colour-link);
+        color: var(--pspf-link);
       }
     `,
   ];

@@ -498,7 +498,7 @@ The exact requirement-ID assignment of the eight controls is data-driven from th
 
 **Purpose:** Triage "what should I work on next?" by laying out requirements, risks, actions, and Directions in a small set of curated columns.
 
-The primary (and only v1) relationship surface is a **column board**, not a network graph. The board is keyboard-native, motion-free, screen-reader friendly, and answers the operational question more directly than a force-directed view. The prototype's network-graph surface is **deferred** to a later phase; see ADR 0010.
+The unified v1.48+ relationship surface is a redaction-safe relationship map with a **column Board mode**. The map is useful for spatial exploration; the Board remains the keyboard-oriented, motion-free, screen-reader-friendly mode for operational work. ADR 0084 supersedes the earlier ADR 0010 decision for the shipped web surface.
 
 **Lanes (v1 default set):**
 

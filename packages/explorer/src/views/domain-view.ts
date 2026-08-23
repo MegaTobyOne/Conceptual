@@ -29,12 +29,12 @@ export class DomainView extends LitElement {
       }
       .description {
         margin: 0 0 var(--space-3) 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         max-width: 70ch;
       }
       .summary {
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         margin: 0 0 var(--space-3) 0;
       }
       ul.requirements {
@@ -51,9 +51,9 @@ export class DomainView extends LitElement {
         align-items: baseline;
         gap: var(--space-2);
         padding: var(--space-2) var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         transition:
           transform var(--motion-medium) ease,
           border-color var(--motion-medium) ease,
@@ -63,7 +63,7 @@ export class DomainView extends LitElement {
       li.requirement:hover,
       li.requirement:focus-within {
         transform: translateY(-1px);
-        border-color: var(--colour-accent);
+        border-color: var(--pspf-accent);
         box-shadow: var(--shadow-2);
       }
       li.requirement a {
@@ -78,19 +78,19 @@ export class DomainView extends LitElement {
       }
       .placeholder {
         padding: var(--space-3);
-        border: 1px dashed var(--colour-border);
+        border: 1px dashed var(--pspf-border);
         border-radius: var(--radius-md);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       button.print {
         margin-bottom: var(--space-3);
         padding: var(--space-1) var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
-        background: var(--colour-bg-elevated);
-        color: var(--colour-fg);
+        background: var(--pspf-surface-strong);
+        color: var(--pspf-text);
         cursor: pointer;
         font: inherit;
         transition:
@@ -101,7 +101,7 @@ export class DomainView extends LitElement {
       button.print:hover,
       button.print:focus-visible {
         outline: none;
-        border-color: var(--colour-accent);
+        border-color: var(--pspf-accent);
         box-shadow: var(--shadow-1);
         transform: translateY(-1px);
       }

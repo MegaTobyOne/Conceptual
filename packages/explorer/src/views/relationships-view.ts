@@ -66,7 +66,7 @@ export class RelationshipsView extends LitElement {
       }
       .panel-note {
         margin: 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
         line-height: 1.5;
       }
@@ -76,7 +76,7 @@ export class RelationshipsView extends LitElement {
         gap: var(--space-2);
         align-items: stretch;
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
         margin-bottom: var(--space-3);
         min-width: 0;
@@ -91,14 +91,14 @@ export class RelationshipsView extends LitElement {
         flex-direction: column;
         gap: 2px;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       input,
       select {
         font: inherit;
         color: inherit;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         width: 100%;
@@ -107,16 +107,16 @@ export class RelationshipsView extends LitElement {
       button {
         font: inherit;
         cursor: pointer;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         color: inherit;
       }
       button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       button:disabled {
         opacity: 0.5;
@@ -130,9 +130,9 @@ export class RelationshipsView extends LitElement {
         gap: var(--space-2);
       }
       li.relationship {
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         padding: var(--space-3);
       }
       .item-head {
@@ -147,7 +147,7 @@ export class RelationshipsView extends LitElement {
       }
       .kind-label {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .endpoint {
         font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
@@ -166,7 +166,7 @@ export class RelationshipsView extends LitElement {
       }
       .endpoint-row strong {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         min-width: 6rem;
       }
       .item-toggle {
@@ -176,18 +176,18 @@ export class RelationshipsView extends LitElement {
         margin-top: var(--space-2);
       }
       .empty {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       fieldset.filter {
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         margin-bottom: var(--space-2);
       }
       fieldset.filter legend {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
     `,
   ];

@@ -83,16 +83,16 @@ export class RiskActionImportView extends LitElement {
       }
       .panel {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         margin-bottom: var(--space-3);
       }
       pre {
         margin: 0;
         padding: var(--space-2);
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         font-size: var(--text-xs);
         overflow-x: auto;
@@ -129,7 +129,7 @@ export class RiskActionImportView extends LitElement {
         align-items: center;
         padding: var(--space-1) 0;
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         flex-wrap: wrap;
       }
       .bulk button {
@@ -137,7 +137,7 @@ export class RiskActionImportView extends LitElement {
         cursor: pointer;
         padding: 2px 8px;
         background: transparent;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         color: inherit;
       }
@@ -149,13 +149,13 @@ export class RiskActionImportView extends LitElement {
       th,
       td {
         padding: var(--space-1) var(--space-2);
-        border-bottom: 1px solid var(--colour-border);
+        border-bottom: 1px solid var(--pspf-border);
         text-align: left;
         vertical-align: top;
       }
       th {
         font-weight: 600;
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         position: sticky;
         top: 0;
       }
@@ -176,7 +176,7 @@ export class RiskActionImportView extends LitElement {
       }
       .changes {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-family: var(--font-mono, monospace);
       }
       details.inline-editor {
@@ -185,7 +185,7 @@ export class RiskActionImportView extends LitElement {
       details.inline-editor > summary {
         cursor: pointer;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .inline-editor-grid {
         margin-top: var(--space-1);
@@ -205,13 +205,13 @@ export class RiskActionImportView extends LitElement {
       }
       .empty {
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-style: italic;
       }
       .primary {
-        background: var(--colour-accent, #2563eb);
-        color: var(--colour-bg, #fff);
-        border: 1px solid var(--colour-accent, #2563eb);
+        background: var(--pspf-accent, #2563eb);
+        color: var(--pspf-surface, #fff);
+        border: 1px solid var(--pspf-accent, #2563eb);
         padding: var(--space-1) var(--space-3);
         border-radius: var(--radius-sm);
         cursor: pointer;
@@ -223,7 +223,7 @@ export class RiskActionImportView extends LitElement {
       }
       .secondary {
         background: transparent;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         padding: var(--space-1) var(--space-3);
         border-radius: var(--radius-sm);
         cursor: pointer;

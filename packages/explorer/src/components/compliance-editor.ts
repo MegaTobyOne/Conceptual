@@ -25,9 +25,9 @@ export class ComplianceEditor extends LitElement {
         display: block;
         margin-top: var(--space-4);
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       h3 {
         margin: 0 0 var(--space-2) 0;
@@ -40,7 +40,7 @@ export class ComplianceEditor extends LitElement {
       }
       legend {
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         margin-bottom: var(--space-1);
         padding: 0;
       }
@@ -54,15 +54,15 @@ export class ComplianceEditor extends LitElement {
         align-items: center;
         gap: var(--space-1);
         padding: var(--space-1) var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         font-size: var(--text-sm);
         cursor: pointer;
       }
       .states label:has(input:checked) {
-        border-color: var(--colour-accent);
-        background: var(--colour-bg-elevated);
+        border-color: var(--pspf-accent);
+        background: var(--pspf-surface-strong);
       }
       textarea,
       input[type='text'],
@@ -70,8 +70,8 @@ export class ComplianceEditor extends LitElement {
       select {
         font: inherit;
         color: inherit;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         width: 100%;
@@ -103,28 +103,28 @@ export class ComplianceEditor extends LitElement {
         gap: var(--space-2);
         font-size: var(--text-sm);
         padding: var(--space-1) var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
       }
       .empty {
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         margin: var(--space-2) 0 0 0;
       }
       button {
         font: inherit;
         cursor: pointer;
-        border: 1px solid var(--colour-border);
-        background: var(--colour-bg);
+        border: 1px solid var(--pspf-border);
+        background: var(--pspf-surface);
         color: inherit;
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
       }
       button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       button:disabled {
         opacity: 0.5;
@@ -152,12 +152,12 @@ export class ComplianceEditor extends LitElement {
       ul.history li {
         font-size: var(--text-sm);
         padding: var(--space-1) var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
       }
       .history-meta {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
       }
     `,

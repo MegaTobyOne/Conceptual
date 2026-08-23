@@ -26,6 +26,7 @@ import { appStoreContext } from '../state/contexts.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
 import type { ActionStatus, ComplianceState, DirectionResponseState } from '../data/types.ts';
+import '../components/status-chip.ts';
 
 function mapComplianceLabel(state: ComplianceState): string {
   switch (state) {
@@ -124,7 +125,7 @@ export class RelationshipMapView extends LitElement {
       }
       .intro {
         margin: 0 0 var(--space-3) 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .summary {
         display: grid;
@@ -134,16 +135,16 @@ export class RelationshipMapView extends LitElement {
       }
       .metric {
         padding: var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       .metric strong {
         display: block;
         font-size: var(--text-lg);
       }
       .metric span {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
       }
       .toolbar {
@@ -154,7 +155,7 @@ export class RelationshipMapView extends LitElement {
         margin-bottom: var(--space-2);
       }
       .copy-status {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       .legend {
@@ -164,9 +165,9 @@ export class RelationshipMapView extends LitElement {
         flex-wrap: wrap;
         margin-bottom: var(--space-2);
         padding: var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         font-size: var(--text-sm);
       }
       .legend-section {
@@ -179,7 +180,7 @@ export class RelationshipMapView extends LitElement {
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .legend-item {
         display: inline-flex;
@@ -209,9 +210,9 @@ export class RelationshipMapView extends LitElement {
         flex-wrap: wrap;
         padding: var(--space-2);
         margin-bottom: var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       .filter-group {
         border: none;
@@ -226,7 +227,7 @@ export class RelationshipMapView extends LitElement {
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-weight: 600;
         padding: 0;
       }
@@ -246,9 +247,9 @@ export class RelationshipMapView extends LitElement {
         flex-wrap: wrap;
         padding: var(--space-2);
         margin-bottom: var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         position: relative;
       }
       .view-controls .row {
@@ -260,17 +261,17 @@ export class RelationshipMapView extends LitElement {
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-weight: 600;
       }
       .view-controls input[type='search'],
       .view-controls select {
         font: inherit;
         padding: 4px 6px;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
-        background: var(--colour-bg);
-        color: var(--colour-fg);
+        background: var(--pspf-surface);
+        color: var(--pspf-text);
         min-width: 14rem;
       }
       .search-results {
@@ -282,8 +283,8 @@ export class RelationshipMapView extends LitElement {
         left: var(--space-2);
         right: var(--space-2);
         z-index: 5;
-        background: var(--colour-bg-elevated);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface-strong);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
         box-shadow: var(--shadow-md, 0 4px 12px rgba(15, 23, 42, 0.1));
         max-height: 16rem;
@@ -294,7 +295,7 @@ export class RelationshipMapView extends LitElement {
       }
       .search-results li.empty {
         padding: 6px 8px;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       .search-results button {
@@ -305,20 +306,20 @@ export class RelationshipMapView extends LitElement {
         border: none;
         padding: 6px 8px;
         cursor: pointer;
-        color: var(--colour-fg);
+        color: var(--pspf-text);
         font: inherit;
         border-radius: var(--radius-sm);
       }
       .search-results button:hover,
       .search-results button:focus-visible {
-        background: var(--colour-bg-subtle, rgba(15, 23, 42, 0.06));
+        background: var(--pspf-surface-subtle, rgba(15, 23, 42, 0.06));
       }
       .search-results .kind {
         display: inline-block;
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         margin-right: 6px;
       }
       .reset-selection {
@@ -339,9 +340,9 @@ export class RelationshipMapView extends LitElement {
       .stage {
         position: relative;
         height: 520px;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         overflow: hidden;
       }
       .canvas {
@@ -361,18 +362,18 @@ export class RelationshipMapView extends LitElement {
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         text-align: center;
         padding: 2px 6px;
-        background: color-mix(in srgb, var(--colour-bg-elevated) 80%, transparent);
+        background: color-mix(in srgb, var(--pspf-surface-strong) 80%, transparent);
         border-radius: var(--radius-sm);
       }
       .map-tooltip {
         position: absolute;
         transform: translate(12px, -50%);
-        background: var(--colour-bg-elevated);
-        color: var(--colour-fg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface-strong);
+        color: var(--pspf-text);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
         box-shadow: var(--shadow-2);
         padding: var(--space-2) var(--space-3);
@@ -392,23 +393,23 @@ export class RelationshipMapView extends LitElement {
         text-transform: uppercase;
         letter-spacing: 0.04em;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .empty {
         display: flex;
         align-items: center;
         justify-content: center;
         height: 100%;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
         text-align: center;
         padding: var(--space-3);
       }
       .inspector {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         min-height: 520px;
       }
       .inspector h3 {
@@ -428,14 +429,8 @@ export class RelationshipMapView extends LitElement {
         gap: var(--space-1);
         margin: var(--space-2) 0;
       }
-      .pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 2px var(--space-1);
-        border: 1px solid var(--colour-border);
-        border-radius: var(--radius-sm);
-        background: var(--colour-bg);
-        font-size: var(--text-xs);
+      pspf-status-chip {
+        max-width: 12rem;
       }
       dl {
         display: grid;
@@ -445,7 +440,7 @@ export class RelationshipMapView extends LitElement {
         font-size: var(--text-sm);
       }
       dt {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       dd {
         margin: 0;
@@ -459,7 +454,7 @@ export class RelationshipMapView extends LitElement {
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-weight: 600;
       }
       .connections ul {
@@ -489,6 +484,7 @@ export class RelationshipMapView extends LitElement {
       }
       table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
         margin-top: var(--space-2);
       }
@@ -496,11 +492,12 @@ export class RelationshipMapView extends LitElement {
       td {
         padding: var(--space-1) var(--space-2);
         text-align: left;
-        border-bottom: 1px solid var(--colour-border);
+        border-bottom: 1px solid var(--pspf-border);
         font-size: var(--text-sm);
+        overflow-wrap: anywhere;
       }
       th {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.04em;
@@ -516,24 +513,24 @@ export class RelationshipMapView extends LitElement {
       }
       .mode-toggle {
         display: inline-flex;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
         overflow: hidden;
       }
       .mode-toggle button {
         font: inherit;
         padding: 4px 10px;
-        background: var(--colour-bg-elevated);
-        color: var(--colour-fg);
+        background: var(--pspf-surface-strong);
+        color: var(--pspf-text);
         border: none;
         cursor: pointer;
       }
       .mode-toggle button + button {
-        border-left: 1px solid var(--colour-border);
+        border-left: 1px solid var(--pspf-border);
       }
       .mode-toggle button.active {
-        background: var(--colour-accent, #2563eb);
-        color: var(--colour-accent-fg, #fff);
+        background: var(--pspf-accent, #2563eb);
+        color: var(--pspf-accent-ink, #fff);
       }
       .board {
         display: grid;
@@ -553,7 +550,7 @@ export class RelationshipMapView extends LitElement {
       }
       .board-edges path {
         fill: none;
-        stroke: var(--colour-border-strong, var(--colour-border));
+        stroke: var(--pspf-border-strong, var(--pspf-border));
         stroke-width: 1.25;
         stroke-opacity: 0.55;
         transition: stroke-opacity 120ms ease;
@@ -562,7 +559,7 @@ export class RelationshipMapView extends LitElement {
         stroke-opacity: 0.08;
       }
       .board-edges path.edge-highlighted {
-        stroke: var(--colour-accent, #2563eb);
+        stroke: var(--pspf-accent, #2563eb);
         stroke-width: 2;
         stroke-opacity: 0.9;
       }
@@ -571,7 +568,7 @@ export class RelationshipMapView extends LitElement {
         flex-direction: column;
         gap: var(--space-1);
         padding: var(--space-2);
-        border: 1px dashed color-mix(in srgb, var(--colour-border) 60%, transparent);
+        border: 1px dashed color-mix(in srgb, var(--pspf-border) 60%, transparent);
         border-radius: var(--radius-md);
         /* Transparent column so SVG connection lines remain visible between
            cards. Individual cards keep solid backgrounds for readability. */
@@ -586,28 +583,28 @@ export class RelationshipMapView extends LitElement {
         font-size: var(--text-sm);
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         position: sticky;
         top: 0;
         /* Translucent so the column header doesn't fully hide edges that
            start from cards just below it while users scroll. */
-        background: color-mix(in srgb, var(--colour-bg-elevated) 75%, transparent);
+        background: color-mix(in srgb, var(--pspf-surface-strong) 75%, transparent);
         backdrop-filter: blur(2px);
         padding-bottom: 4px;
       }
       .board-column .count {
         font-weight: 400;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .board-card {
         display: flex;
         flex-direction: column;
         gap: 2px;
         padding: var(--space-1) var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-left: 4px solid var(--card-accent, var(--colour-status-not-set));
         border-radius: var(--radius-sm);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         cursor: pointer;
         text-align: left;
         font: inherit;
@@ -615,19 +612,19 @@ export class RelationshipMapView extends LitElement {
       }
       .board-card:hover,
       .board-card:focus-visible {
-        background: var(--colour-bg-subtle, rgba(15, 23, 42, 0.04));
+        background: var(--pspf-surface-subtle, rgba(15, 23, 42, 0.04));
       }
       .board-card.selected {
-        outline: 2px solid var(--colour-accent, #2563eb);
+        outline: 2px solid var(--pspf-accent, #2563eb);
         outline-offset: 1px;
       }
       .board-card.focused {
-        outline: 2px solid var(--colour-accent, #2563eb);
+        outline: 2px solid var(--pspf-accent, #2563eb);
         outline-offset: 1px;
         box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
       }
       .board-card.linked {
-        border-color: var(--colour-accent, #2563eb);
+        border-color: var(--pspf-accent, #2563eb);
       }
       .board-card.dimmed {
         opacity: 0.3;
@@ -643,11 +640,11 @@ export class RelationshipMapView extends LitElement {
       }
       .board-card .card-meta {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .board-empty {
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         padding: var(--space-2);
       }
       @media (max-width: 980px) {
@@ -866,7 +863,7 @@ export class RelationshipMapView extends LitElement {
             : ''}
           <span
             data-testid="counts"
-            style="margin-left:auto; color: var(--colour-fg-muted); font-size: var(--text-sm);"
+            style="margin-left:auto; color: var(--pspf-muted); font-size: var(--text-sm);"
           >
             ${nodes.length} nodes · ${edges.length} edges
           </span>
@@ -1269,8 +1266,8 @@ export class RelationshipMapView extends LitElement {
       return value.length > 0 ? value : fallback;
     };
     return {
-      fg: read('--colour-fg', '#0f172a'),
-      bg: read('--colour-bg', '#f8fafc'),
+      fg: read('--pspf-text', '#0f172a'),
+      bg: read('--pspf-surface', '#f8fafc'),
       nodeStroke: read('--colour-map-node-stroke', '#0f172a'),
       statusYes: read('--colour-status-yes', '#2dd4bf'),
       statusNo: read('--colour-status-no', '#ef4444'),
@@ -2141,21 +2138,21 @@ export class RelationshipMapView extends LitElement {
 
   #nodePills(node: MapNode): TemplateResult {
     if (node.kind === 'requirement') {
-      return html`<span class="pill"
-        >${mapComplianceLabel(node.complianceState ?? 'not-set')}</span
+      return html`<pspf-status-chip
+        >${mapComplianceLabel(node.complianceState ?? 'not-set')}</pspf-status-chip
       >`;
     }
     if (node.kind === 'risk') {
-      return html`<span class="pill">${node.riskStatus}</span
-        ><span class="pill">${node.riskBand}</span>`;
+      return html`<pspf-status-chip>${node.riskStatus}</pspf-status-chip
+        ><pspf-status-chip tone="warning">${node.riskBand}</pspf-status-chip>`;
     }
     if (node.kind === 'action') {
-      return html`<span class="pill">${node.actionStatus}</span>${node.actionOverdue
-          ? html`<span class="pill">Overdue</span>`
+      return html`<pspf-status-chip>${node.actionStatus}</pspf-status-chip>${node.actionOverdue
+          ? html`<pspf-status-chip tone="warning">Overdue</pspf-status-chip>`
           : ''}`;
     }
-    return html`<span class="pill"
-      >${mapDirectionResponseLabel(node.directionResponseState ?? 'not-set')}</span
+    return html`<pspf-status-chip
+      >${mapDirectionResponseLabel(node.directionResponseState ?? 'not-set')}</pspf-status-chip
     >`;
   }
 
@@ -2250,7 +2247,7 @@ export class RelationshipMapView extends LitElement {
           const stateLabel = mapComplianceLabel(reqNode?.complianceState ?? 'not-set');
           return html`<li>
             <a href=${`#/requirement/${id}`}>${label}</a>
-            <span class="pill">${stateLabel}</span>
+            <pspf-status-chip>${stateLabel}</pspf-status-chip>
           </li>`;
         })}
       </ul>
@@ -2271,8 +2268,8 @@ export class RelationshipMapView extends LitElement {
           if (!riskNode) return html`<li>${id}</li>`;
           return html`<li>
             <a href=${riskNode.href}>${riskNode.label}</a>
-            <span class="pill">${riskNode.riskBand ?? 'unknown'}</span>
-            <span class="pill">${riskNode.riskStatus ?? 'unknown'}</span>
+            <pspf-status-chip tone="warning">${riskNode.riskBand ?? 'unknown'}</pspf-status-chip>
+            <pspf-status-chip>${riskNode.riskStatus ?? 'unknown'}</pspf-status-chip>
           </li>`;
         })}
       </ul>
@@ -2293,8 +2290,10 @@ export class RelationshipMapView extends LitElement {
           if (!actionNode) return html`<li>${id}</li>`;
           return html`<li>
             <a href=${actionNode.href}>${actionNode.label}</a>
-            <span class="pill">${actionNode.actionStatus ?? 'unknown'}</span>
-            ${actionNode.actionOverdue ? html`<span class="pill">Overdue</span>` : ''}
+            <pspf-status-chip>${actionNode.actionStatus ?? 'unknown'}</pspf-status-chip>
+            ${actionNode.actionOverdue
+              ? html`<pspf-status-chip tone="warning">Overdue</pspf-status-chip>`
+              : ''}
           </li>`;
         })}
       </ul>

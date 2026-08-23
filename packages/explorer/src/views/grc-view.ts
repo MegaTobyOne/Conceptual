@@ -35,16 +35,16 @@ export class GrcView extends LitElement {
       }
       .panel {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         margin-bottom: var(--space-3);
       }
       pre {
         margin: 0;
         padding: var(--space-2);
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         font-size: var(--text-xs);
         overflow-x: auto;

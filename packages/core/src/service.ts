@@ -29,6 +29,7 @@ import {
   type ActionStatus,
   type AssessmentStatus,
   type RiskStatus,
+  type SnapshotEntity,
   type V01Collection,
   type V01Entity,
   PSPF_DOMAINS,
@@ -821,20 +822,50 @@ async function createSnapshot(workspaceRoot: string): Promise<V01Entity> {
   await assertWritable(paths);
   const collections = await getBundleCollections(workspaceRoot, paths);
   const counts = getCollectionCounts(collections);
+  const metrics = buildSnapshotMetrics(collections);
   const snapshot = withEnvelope(
     "snapshot",
     {
       entityType: "snapshot",
       title: `Checkpoint ${formatDisplayDate(new Date())}`,
-      snapshotType: "checkpoint"
+      snapshotType: "checkpoint",
+      metrics
     },
     "core"
   );
 
   await upsertEntity(workspaceRoot, snapshot);
-  await writeJson(join(paths.snapshots, `${snapshot.id}.json`), { snapshot, counts, generatedAt: nowIso() });
+  await writeJson(join(paths.snapshots, `${snapshot.id}.json`), {
+    snapshot,
+    counts,
+    statusSummary: buildStatusSummary(collections),
+    generatedAt: nowIso()
+  });
   await recordOperation(paths, "snapshot", "success", snapshot.id);
   return snapshot;
+}
+
+function buildSnapshotMetrics(collections: BundleCollections): NonNullable<SnapshotEntity["metrics"]> {
+  const applicableRequirements = collections.requirements.filter(
+    (requirement) => requirement.assessmentStatus !== "not-applicable"
+  );
+  const requirementMet = applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const openRisks = collections.risks.filter((risk) => risk.status !== "closed");
+  const openActions = collections.actions.filter((action) => !["done", "cancelled"].includes(action.status));
+  const now = Date.now();
+  return {
+    requirementTotal: collections.requirements.length,
+    requirementMet,
+    requirementApplicable: applicableRequirements.length,
+    compliancePercentage:
+      applicableRequirements.length === 0 ? 0 : Math.round((requirementMet / applicableRequirements.length) * 100),
+    openRiskTotal: openRisks.length,
+    highOrExtremeRiskTotal: openRisks.filter((risk) => risk.likelihood * risk.impact >= 10).length,
+    actionTotal: collections.actions.length,
+    openActionTotal: openActions.length,
+    completedActionTotal: collections.actions.filter((action) => action.status === "done").length,
+    overdueActionTotal: openActions.filter((action) => action.dueDate && Date.parse(action.dueDate) < now).length
+  };
 }
 
 async function exportBundle(

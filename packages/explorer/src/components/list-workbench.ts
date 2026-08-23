@@ -26,9 +26,9 @@ export class ListWorkbench extends LitElement {
         display: grid;
         gap: var(--space-3);
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         min-width: 0;
       }
 

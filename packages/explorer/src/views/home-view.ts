@@ -70,7 +70,7 @@ export class HomeView extends LitElement {
         gap: var(--space-4);
         align-items: stretch;
         padding: var(--space-4);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-lg);
         background: linear-gradient(135deg, rgba(79, 140, 255, 0.12), rgba(19, 25, 34, 0.6));
       }
@@ -84,7 +84,7 @@ export class HomeView extends LitElement {
       }
       .lede {
         max-width: 60ch;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-base);
         line-height: 1.6;
       }
@@ -92,13 +92,13 @@ export class HomeView extends LitElement {
         display: flex;
         gap: var(--space-2);
         flex-wrap: wrap;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       .hero-meta span {
         padding: 0.35rem 0.65rem;
         border-radius: 999px;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         background: rgba(255, 255, 255, 0.02);
       }
       .hero-panel {
@@ -106,8 +106,8 @@ export class HomeView extends LitElement {
         gap: var(--space-3);
         padding: var(--space-3);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface-strong);
+        border: 1px solid var(--pspf-border);
         box-shadow: var(--shadow-1);
       }
       .hero-panel h2 {
@@ -116,7 +116,7 @@ export class HomeView extends LitElement {
       }
       .hero-panel p {
         margin: 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
         line-height: 1.5;
       }
@@ -131,9 +131,9 @@ export class HomeView extends LitElement {
         display: grid;
         gap: 0.25rem;
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         color: inherit;
         text-decoration: none;
         transition:
@@ -144,7 +144,7 @@ export class HomeView extends LitElement {
       }
       .start-card:hover,
       .start-card:focus-visible {
-        border-color: var(--colour-accent);
+        border-color: var(--pspf-accent);
         box-shadow: var(--shadow-2);
         transform: translateY(-1px);
         outline: none;
@@ -153,7 +153,7 @@ export class HomeView extends LitElement {
         font-weight: 700;
       }
       .start-card .text {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
         line-height: 1.45;
       }
@@ -163,7 +163,7 @@ export class HomeView extends LitElement {
       }
       .section-note {
         margin: 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         max-width: 60ch;
         line-height: 1.5;
       }
@@ -188,14 +188,14 @@ export class HomeView extends LitElement {
         display: grid;
         gap: var(--space-3);
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-lg);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       .widget {
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         padding: var(--space-3);
         transition:
           transform var(--motion-medium) ease,
@@ -209,7 +209,7 @@ export class HomeView extends LitElement {
       }
       a.widget:hover,
       a.widget:focus-visible {
-        border-color: var(--colour-accent);
+        border-color: var(--pspf-accent);
         box-shadow: var(--shadow-2);
         transform: translateY(-1px);
         outline: none;
@@ -221,16 +221,16 @@ export class HomeView extends LitElement {
       }
       .widget .label {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .card {
         display: flex;
         flex-direction: column;
         gap: var(--space-2);
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         text-decoration: none;
         color: inherit;
         transition:
@@ -241,7 +241,7 @@ export class HomeView extends LitElement {
       }
       .card:hover,
       .card:focus-visible {
-        border-color: var(--colour-accent);
+        border-color: var(--pspf-accent);
         box-shadow: var(--shadow-2);
         transform: translateY(-1px);
         outline: none;
@@ -252,7 +252,7 @@ export class HomeView extends LitElement {
       }
       .card p {
         margin: 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       .meter {
@@ -260,18 +260,18 @@ export class HomeView extends LitElement {
         flex-direction: column;
         gap: var(--space-1);
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .bar {
         height: 6px;
-        background: var(--colour-border);
+        background: var(--pspf-border);
         border-radius: 3px;
         overflow: hidden;
       }
       .bar > span {
         display: block;
         height: 100%;
-        background: linear-gradient(90deg, var(--colour-accent), var(--colour-fg));
+        background: linear-gradient(90deg, var(--pspf-accent), var(--pspf-text));
       }
       @media (max-width: 900px) {
         .hero {

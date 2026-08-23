@@ -9,6 +9,7 @@ import { SignalWatcher } from '../state/signal-watcher.ts';
 import {
   actionStatusCounts,
   complianceBreakdown,
+  complianceEventsSince,
   directionsSummary,
   essentialEightCoverage,
   overdueActionCount,
@@ -17,6 +18,7 @@ import {
 import { directionResponseLabel } from '../domain/reporting.ts';
 import { summariseAllDomains } from '../domain/summary.ts';
 import { complianceColourVar, complianceLabel } from '../domain/compliance-display.ts';
+import { formatDateTime } from '../domain/date-display.ts';
 
 @customElement('pspf-analytics-view')
 export class AnalyticsView extends LitElement {
@@ -36,9 +38,9 @@ export class AnalyticsView extends LitElement {
       }
       section.panel {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         margin-bottom: var(--space-3);
       }
       .kpi-grid {
@@ -49,9 +51,9 @@ export class AnalyticsView extends LitElement {
       .kpi {
         display: block;
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         transition:
           transform var(--motion-medium) ease,
           border-color var(--motion-medium) ease,
@@ -64,7 +66,7 @@ export class AnalyticsView extends LitElement {
       }
       a.kpi:hover,
       a.kpi:focus-visible {
-        border-color: var(--colour-accent);
+        border-color: var(--pspf-accent);
         box-shadow: var(--shadow-2);
         transform: translateY(-1px);
         outline: none;
@@ -76,10 +78,11 @@ export class AnalyticsView extends LitElement {
       }
       .kpi .label {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
         font-size: var(--text-sm);
       }
@@ -87,22 +90,27 @@ export class AnalyticsView extends LitElement {
       td {
         text-align: left;
         padding: var(--space-1) var(--space-2);
-        border-bottom: 1px solid var(--colour-border);
+        border-bottom: 1px solid var(--pspf-border);
+        overflow-wrap: anywhere;
+      }
+      th:first-child,
+      td:first-child {
+        width: 40%;
       }
       th {
         font-weight: 600;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       tbody tr:nth-child(even) td {
-        background: color-mix(in srgb, var(--colour-bg-elevated) 88%, var(--colour-fg) 12%);
+        background: color-mix(in srgb, var(--pspf-surface-strong) 88%, var(--pspf-text) 12%);
       }
       tbody tr:hover td {
-        background: color-mix(in srgb, var(--colour-accent) 8%, var(--colour-bg-elevated));
+        background: color-mix(in srgb, var(--pspf-accent) 8%, var(--pspf-surface-strong));
       }
       .bar {
         display: inline-block;
         height: 0.6rem;
-        background: var(--bar-colour, var(--colour-accent));
+        background: var(--bar-colour, var(--pspf-accent));
         border-radius: var(--radius-sm);
         vertical-align: middle;
       }
@@ -126,9 +134,9 @@ export class AnalyticsView extends LitElement {
         grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
       }
       .viz-card {
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         padding: var(--space-3);
         display: grid;
         gap: var(--space-2);
@@ -140,7 +148,7 @@ export class AnalyticsView extends LitElement {
       }
       .viz-note {
         margin: 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
       }
       .ring-wrap {
@@ -160,8 +168,8 @@ export class AnalyticsView extends LitElement {
         width: 5.9rem;
         aspect-ratio: 1;
         border-radius: 999px;
-        background: var(--colour-bg-elevated);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface-strong);
+        border: 1px solid var(--pspf-border);
         display: grid;
         place-items: center;
         text-align: center;
@@ -173,15 +181,15 @@ export class AnalyticsView extends LitElement {
       }
       .ring-label {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .stack {
         height: 0.9rem;
         border-radius: 999px;
         overflow: hidden;
         display: flex;
-        background: var(--colour-bg-elevated);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface-strong);
+        border: 1px solid var(--pspf-border);
       }
       .stack > span {
         height: 100%;
@@ -202,15 +210,36 @@ export class AnalyticsView extends LitElement {
         width: 100%;
         height: 0.5rem;
         border-radius: var(--radius-sm);
-        background: var(--colour-bg-elevated);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface-strong);
+        border: 1px solid var(--pspf-border);
         overflow: hidden;
       }
       .spark > span {
         display: block;
         height: 100%;
         width: var(--pct, 0%);
-        background: var(--spark-colour, var(--colour-accent));
+        background: var(--spark-colour, var(--pspf-accent));
+      }
+      .temporal-controls {
+        display: flex;
+        gap: var(--space-1);
+        flex-wrap: wrap;
+        margin-bottom: var(--space-2);
+      }
+      .temporal-controls button {
+        color: var(--pspf-text);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
+        border-radius: var(--radius-sm);
+        padding: var(--space-1) var(--space-2);
+      }
+      .temporal-controls button[aria-pressed='true'] {
+        border-color: var(--pspf-accent);
+        background: color-mix(in srgb, var(--pspf-accent) 14%, var(--pspf-surface));
+      }
+      .temporal-note {
+        color: var(--pspf-muted);
+        font-size: var(--text-xs);
       }
       @media (max-width: 720px) {
         th,
@@ -228,15 +257,26 @@ export class AnalyticsView extends LitElement {
   // eslint-disable-next-line no-unused-private-class-members
   #watcher = new SignalWatcher(this, () =>
     this.store
-      ? [this.store.compliance, this.store.risks, this.store.actions, this.store.directions]
+      ? [
+          this.store.compliance,
+          this.store.complianceEvents,
+          this.store.snapshotMetrics,
+          this.store.risks,
+          this.store.actions,
+          this.store.directions,
+        ]
       : [],
   );
+
+  #temporalDays: 30 | 90 | 'all' = 30;
 
   override render(): TemplateResult {
     const compliance = this.store?.compliance.value ?? new Map();
     const risks = this.store?.risks.value ?? [];
     const actions = this.store?.actions.value ?? [];
     const directions = this.store?.directions.value ?? [];
+    const complianceEvents = this.store?.complianceEvents.value ?? [];
+    const snapshotMetrics = this.store?.snapshotMetrics.value ?? [];
 
     const breakdown = complianceBreakdown(compliance);
     const e8 = essentialEightCoverage(compliance);
@@ -247,6 +287,11 @@ export class AnalyticsView extends LitElement {
     const summaries = summariseAllDomains(compliance);
     const riskTotal = bands.low + bands.medium + bands.high + bands.extreme;
     const actionTotal = Object.values(statusCounts).reduce((sum, value) => sum + value, 0);
+    const temporalFrom =
+      this.#temporalDays === 'all'
+        ? new Date(0)
+        : new Date(Date.now() - this.#temporalDays * 24 * 60 * 60 * 1000);
+    const recentChanges = complianceEventsSince(complianceEvents, temporalFrom);
 
     let runningCompliancePct = 0;
     const complianceRing = COMPLIANCE_STATES.map((state) => {
@@ -445,6 +490,106 @@ export class AnalyticsView extends LitElement {
               )}
             </tbody>
           </table>
+        </section>
+
+        <section class="panel" aria-label="Recorded changes over time">
+          <h3>Recorded changes over time</h3>
+          <p class="temporal-note">
+            ${recentChanges.length} compliance change${recentChanges.length === 1 ? '' : 's'}
+            recorded in the selected period. This is durable event history; it does not reconstruct
+            an historical posture snapshot.
+          </p>
+          <div class="temporal-controls" role="group" aria-label="Change history period">
+            ${([30, 90, 'all'] as const).map(
+              (days) => html`
+                <button
+                  type="button"
+                  aria-pressed=${String(this.#temporalDays === days)}
+                  @click=${() => {
+                    this.#temporalDays = days;
+                  }}
+                >
+                  ${days === 'all' ? 'All recorded' : `${days} days`}
+                </button>
+              `,
+            )}
+          </div>
+          ${recentChanges.length > 0
+            ? html`
+                <div class="table-wrap">
+                  <table>
+                    <caption class="sr-only">
+                      Compliance state changes in the selected period
+                    </caption>
+                    <thead>
+                      <tr>
+                        <th>Requirement</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Changed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${recentChanges.map(
+                        (change) => html`
+                          <tr>
+                            <td>${change.requirementId}</td>
+                            <td>${complianceLabel(change.fromState)}</td>
+                            <td>${complianceLabel(change.toState)}</td>
+                            <td>${formatDateTime(change.changedAt)}</td>
+                          </tr>
+                        `,
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              `
+            : html`<p class="temporal-note">
+                No compliance changes were recorded in this period.
+              </p>`}
+        </section>
+
+        <section class="panel" aria-label="Snapshot posture trend">
+          <h3>Snapshot posture trend</h3>
+          <p class="temporal-note">
+            Metric-bearing Core checkpoints only. Older snapshots without metrics are omitted; no
+            historical values are inferred.
+          </p>
+          ${snapshotMetrics.length > 0
+            ? html`
+                <div class="table-wrap">
+                  <table>
+                    <caption class="sr-only">
+                      Posture metrics from Core checkpoints
+                    </caption>
+                    <thead>
+                      <tr>
+                        <th>Checkpoint</th>
+                        <th>Compliance</th>
+                        <th>Open Risks</th>
+                        <th>Open Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${snapshotMetrics.map(
+                        (point) => html`
+                          <tr>
+                            <td>
+                              ${point.title}<br /><span class="temporal-note"
+                                >${formatDateTime(point.createdAt)}</span
+                              >
+                            </td>
+                            <td>${point.compliancePercentage}%</td>
+                            <td>${point.openRiskTotal}</td>
+                            <td>${point.openActionTotal}</td>
+                          </tr>
+                        `,
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              `
+            : html`<p class="temporal-note">No metric-bearing Core checkpoints are loaded.</p>`}
         </section>
 
         <section class="panel" aria-label="Compliance state distribution">

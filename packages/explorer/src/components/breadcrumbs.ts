@@ -18,7 +18,9 @@ export class Breadcrumbs extends LitElement {
       }
       nav {
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
+        max-width: 100%;
+        overflow: hidden;
       }
       ol {
         list-style: none;
@@ -33,17 +35,23 @@ export class Breadcrumbs extends LitElement {
         display: inline-flex;
         align-items: center;
         gap: var(--space-1);
+        min-width: 0;
       }
       li + li::before {
         content: '›';
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       a {
         color: inherit;
       }
       [aria-current='page'] {
-        color: var(--colour-fg);
+        color: var(--pspf-text);
         font-weight: 600;
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     `,
   ];

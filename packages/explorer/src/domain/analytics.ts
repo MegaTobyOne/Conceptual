@@ -5,6 +5,7 @@
 import type {
   Action,
   ComplianceEntry,
+  ComplianceEvent,
   ComplianceState,
   Direction,
   DirectionResponseState,
@@ -121,6 +122,31 @@ export function overdueActionCount(actions: readonly Action[], now = Date.now())
     if (new Date(a.dueAt).getTime() < now) n += 1;
   }
   return n;
+}
+
+export interface ComplianceChangePoint {
+  requirementId: RequirementId;
+  changedAt: string;
+  fromState: ComplianceState;
+  toState: ComplianceState;
+}
+
+export function complianceEventsSince(
+  events: readonly ComplianceEvent[],
+  from: Date,
+  requirementId?: RequirementId,
+): readonly ComplianceChangePoint[] {
+  const fromTime = from.getTime();
+  return events
+    .filter((event) => new Date(event.createdAt).getTime() >= fromTime)
+    .filter((event) => requirementId === undefined || event.requirementId === requirementId)
+    .sort((left, right) => left.createdAt.localeCompare(right.createdAt))
+    .map((event) => ({
+      requirementId: event.requirementId,
+      changedAt: event.createdAt,
+      fromState: event.fromState,
+      toState: event.toState,
+    }));
 }
 
 export function essentialEightCoverage(

@@ -40,8 +40,8 @@ export class PspfApp extends LitElement {
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-        background: var(--colour-bg);
-        color: var(--colour-fg);
+        background: var(--pspf-surface);
+        color: var(--pspf-text);
         font-family: var(--font-family-sans);
       }
 
@@ -51,8 +51,8 @@ export class PspfApp extends LitElement {
         gap: var(--space-3);
         align-items: center;
         padding: var(--space-3) var(--space-4) var(--space-2);
-        border-bottom: 1px solid var(--colour-border);
-        background: var(--colour-bg-elevated);
+        border-bottom: 1px solid var(--pspf-border);
+        background: var(--pspf-surface-strong);
       }
 
       h1 {
@@ -93,7 +93,7 @@ export class PspfApp extends LitElement {
         display: inline-flex;
         align-items: center;
         gap: var(--space-1);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
         font-weight: 700;
         letter-spacing: 0.04em;
@@ -106,20 +106,47 @@ export class PspfApp extends LitElement {
         gap: var(--space-2);
       }
 
+      .command-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: 30px;
+        padding: var(--space-1) var(--space-2);
+        border: 1px solid var(--pspf-border);
+        border-radius: var(--radius-sm);
+        background: var(--pspf-surface);
+        color: var(--pspf-muted);
+        font: inherit;
+        font-size: var(--text-xs);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .command-trigger:hover,
+      .command-trigger:focus-visible {
+        color: var(--pspf-text);
+        border-color: var(--pspf-accent);
+      }
+
+      kbd {
+        font-family: var(--font-family-mono);
+        font-size: var(--text-xs);
+      }
+
       .theme-picker select {
         font: inherit;
         letter-spacing: 0;
         text-transform: none;
         font-weight: 600;
-        color: var(--colour-fg);
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        color: var(--pspf-text);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: 0.15rem 0.35rem;
       }
 
       .theme-picker select:focus-visible {
-        outline: 2px solid var(--colour-accent);
+        outline: 2px solid var(--pspf-accent);
         outline-offset: 1px;
       }
 
@@ -139,8 +166,8 @@ export class PspfApp extends LitElement {
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: var(--space-3);
         padding: var(--space-2) var(--space-4);
-        border-bottom: 1px solid var(--colour-border);
-        background: var(--colour-bg);
+        border-bottom: 1px solid var(--pspf-border);
+        background: var(--pspf-surface);
         font-size: var(--text-sm);
       }
 
@@ -150,7 +177,7 @@ export class PspfApp extends LitElement {
 
       .nav-group-title {
         margin: 0 0 var(--space-1) 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
         font-weight: 700;
         letter-spacing: 0.04em;
@@ -164,7 +191,7 @@ export class PspfApp extends LitElement {
       }
 
       nav a {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         text-decoration: none;
         padding: var(--space-1) var(--space-2);
         border-radius: var(--radius-sm);
@@ -175,21 +202,21 @@ export class PspfApp extends LitElement {
       nav a:hover,
       nav a:focus-visible,
       nav a[aria-current='page'] {
-        color: var(--colour-fg);
-        background: var(--colour-bg-elevated);
-        border-color: var(--colour-border);
+        color: var(--pspf-text);
+        background: var(--pspf-surface-strong);
+        border-color: var(--pspf-border);
       }
 
       nav a[aria-current='page'] {
-        border-color: var(--colour-accent);
-        box-shadow: inset 0 -2px 0 var(--colour-accent);
+        border-color: var(--pspf-accent);
+        box-shadow: inset 0 -2px 0 var(--pspf-accent);
       }
 
       .mobile-nav {
         display: none;
         padding: var(--space-2) var(--space-4);
-        border-bottom: 1px solid var(--colour-border);
-        background: var(--colour-bg);
+        border-bottom: 1px solid var(--pspf-border);
+        background: var(--pspf-surface);
       }
 
       .mobile-nav summary {
@@ -211,15 +238,15 @@ export class PspfApp extends LitElement {
       footer {
         padding: var(--space-2) var(--space-4);
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
-        border-top: 1px solid var(--colour-border);
+        color: var(--pspf-muted);
+        border-top: 1px solid var(--pspf-border);
         display: flex;
         justify-content: space-between;
       }
 
       .loading {
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
 
       @media print {
@@ -239,6 +266,20 @@ export class PspfApp extends LitElement {
         }
       }
 
+      @media (max-width: 1180px) and (min-width: 981px) {
+        header {
+          grid-template-columns: auto minmax(14rem, 1fr);
+        }
+        .header-labels {
+          grid-column: 1 / -1;
+          justify-content: space-between;
+        }
+        nav.primary {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: var(--space-2) var(--space-4);
+        }
+      }
+
       @media (max-width: 980px) {
         header {
           grid-template-columns: 1fr;
@@ -246,6 +287,9 @@ export class PspfApp extends LitElement {
         }
         .header-labels {
           justify-content: flex-start;
+          flex-wrap: wrap;
+        }
+        .preference-controls {
           flex-wrap: wrap;
         }
         nav.primary {
@@ -396,6 +440,10 @@ export class PspfApp extends LitElement {
     `;
   }
 
+  private openCommandPalette(): void {
+    this.renderRoot.querySelector('pspf-command-palette')?.openPalette();
+  }
+
   override render() {
     return html`
       <header>
@@ -405,6 +453,14 @@ export class PspfApp extends LitElement {
         <pspf-global-search></pspf-global-search>
         <div class="header-labels">
           <div class="preference-controls">
+            <button
+              class="command-trigger"
+              type="button"
+              aria-label="Open command palette"
+              @click=${this.openCommandPalette}
+            >
+              Search commands <kbd>⌘K</kbd>
+            </button>
             <label class="theme-picker" for="lens-select">
               View for
               <select

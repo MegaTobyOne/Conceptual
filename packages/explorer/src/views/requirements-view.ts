@@ -31,7 +31,7 @@ export class RequirementsView extends LitElement {
       }
       .description {
         margin: 0 0 var(--space-3) 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         max-width: 70ch;
       }
       .layout {
@@ -44,16 +44,16 @@ export class RequirementsView extends LitElement {
       .panel-note {
         margin: 0;
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         line-height: 1.45;
       }
       .summary {
         display: grid;
         gap: var(--space-2);
         padding: var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         font-size: var(--text-sm);
       }
       .summary-row {
@@ -62,7 +62,7 @@ export class RequirementsView extends LitElement {
         align-items: center;
       }
       .summary-label {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .summary-value {
         font-weight: 600;
@@ -102,7 +102,7 @@ export class RequirementsView extends LitElement {
         margin: 0;
         font-size: var(--text-lg);
         padding-bottom: var(--space-1);
-        border-bottom: 2px solid var(--colour-border);
+        border-bottom: 2px solid var(--pspf-border);
       }
       ul.requirements {
         list-style: none;
@@ -118,9 +118,9 @@ export class RequirementsView extends LitElement {
         align-items: baseline;
         gap: var(--space-2);
         padding: var(--space-2) var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         transition:
           transform var(--motion-medium) ease,
           border-color var(--motion-medium) ease,
@@ -130,7 +130,7 @@ export class RequirementsView extends LitElement {
       li.requirement:hover,
       li.requirement:focus-within {
         transform: translateY(-1px);
-        border-color: var(--colour-accent);
+        border-color: var(--pspf-accent);
         box-shadow: var(--shadow-2);
       }
       li.requirement a {
@@ -145,11 +145,11 @@ export class RequirementsView extends LitElement {
       }
       .placeholder {
         padding: var(--space-3);
-        border: 1px dashed var(--colour-border);
+        border: 1px dashed var(--pspf-border);
         border-radius: var(--radius-md);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       @media (max-width: 900px) {
         .layout {

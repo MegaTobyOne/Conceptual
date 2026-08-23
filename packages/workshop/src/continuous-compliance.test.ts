@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   PSPF_DOMAINS,
   VERSION_AXES,
+  type ActionEntity,
   type LinkEntity,
   type RequirementEntity,
   type RiskEntity,
@@ -15,6 +16,8 @@ import {
   buildCyberAwarenessChangeStrategyModel,
   buildHumanCentredRiskModel,
   buildPspfGridModel,
+  buildExposureSummary,
+  buildStrategyDeliverySummary,
   buildStrategyPrioritySummary,
   buildUnifiedSecurityOperatingModel,
   riskSeverityForScore
@@ -264,6 +267,48 @@ test("strategy priority deduplicates direct risk and action references", () => {
   assert.equal(summary.linkedActionCount, 1);
 });
 
+test("strategy delivery classifies blocked, candidate and completed work", () => {
+  const choice = strategy({
+    capabilityArea: "Identity and access",
+    executiveOwner: "Identity Team",
+    outcomeId: "OUT-1",
+    outcomeStatement: "Trusted access to critical services",
+    actionRefId: "ACT-1"
+  }).choices[0]!;
+  const candidate = strategy({
+    capabilityArea: "Identity and access",
+    executiveOwner: "Identity Team",
+    outcomeId: "OUT-2",
+    outcomeStatement: "Trusted access to critical services",
+    actionRefId: "ACT-2"
+  }).choices[0]!;
+  const action = actionEntity("ACT-1", "blocked");
+  const candidateAction = actionEntity("ACT-2", "todo");
+
+  assert.equal(buildStrategyDeliverySummary(choice, new Map([[action.id, action]])).state, "delivery-at-risk");
+  assert.equal(
+    buildStrategyDeliverySummary(candidate, new Map([[candidateAction.id, candidateAction]])).state,
+    "candidate-work"
+  );
+  assert.equal(buildStrategyDeliverySummary(choice, new Map()).state, "no-delivery-path");
+});
+
+test("exposure summary selects the worst explainable component", () => {
+  const requirements = [
+    requirement({ id: "REQ-1", assessmentStatus: "met" }),
+    requirement({ id: "REQ-2", assessmentStatus: "not-met" }),
+    requirement({ id: "REQ-3", assessmentStatus: "met" })
+  ];
+  const summary = buildExposureSummary([
+    ...requirements,
+    risk({ id: "RSK-1", title: "Material risk", likelihood: 4, impact: 4, status: "open" })
+  ]);
+
+  assert.equal(summary.band, "extreme");
+  assert.equal(summary.primaryDriver.id, "material-risks");
+  assert.match(summary.bandLabel, /Extreme/);
+});
+
 test("strategy priority excludes unresolved risks but keeps repair cue", () => {
   const choice = strategy({
     capabilityArea: "Identity and access",
@@ -377,6 +422,16 @@ function risk(input: {
     status: input.status,
     likelihood: input.likelihood,
     impact: input.impact
+  };
+}
+
+function actionEntity(id: string, status: "todo" | "blocked" | "done"): ActionEntity {
+  return {
+    ...envelope(id, "action"),
+    entityType: "action",
+    title: `Action ${id}`,
+    status,
+    dueDate: "2026-06-30T00:00:00.000Z"
   };
 }
 

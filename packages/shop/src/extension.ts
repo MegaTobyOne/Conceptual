@@ -2948,7 +2948,7 @@ function renderShopEditorHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     ${tokensCss("extension")}
-    :root { --shop-amber: var(--pspf-warn); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+    :root { --shop-amber: var(--pspf-product-shop, var(--pspf-warn)); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
     body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
     main { max-width: 920px; margin: 0 auto; }
     h1 { font-size: 1.35rem; margin: 0 0 8px; }
@@ -3177,7 +3177,7 @@ function renderShopDetailHtml(store: ShopStore, entity: SupplierRecord | Contrac
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     ${tokensCss("extension")}
-    :root { --shop-amber: var(--pspf-warn); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+    :root { --shop-amber: var(--pspf-product-shop, var(--pspf-warn)); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
     body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
     main { max-width: 920px; margin: 0 auto; }
     h1 { font-size: 1.35rem; margin: 0 0 8px; }
@@ -3344,7 +3344,7 @@ function renderCompactForecastHtml(
     <style>
         /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
         ${tokensCss("extension")}
-        :root { --shop-amber: var(--pspf-warn); --shop-amber-soft: var(--pspf-warn-soft); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+        :root { --shop-amber: var(--pspf-product-shop, var(--pspf-warn)); --shop-amber-soft: color-mix(in srgb, var(--shop-amber) 18%, transparent); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
         body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: var(--pspf-gap-md); }
         h1 { font-size: 1rem; margin: 0 0 6px; }
         p { color: var(--pspf-muted); margin: 0 0 10px; }
@@ -3658,7 +3658,7 @@ function renderForecastHtml(
   <style>
         /* Shared PSPF webview tokens + base rules (see @pspf/webview-shell). */
         ${tokensCss("extension")}
-        :root { --shop-amber: var(--pspf-warn); --shop-amber-soft: var(--pspf-warn-soft); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
+        :root { --shop-amber: var(--pspf-product-shop, var(--pspf-warn)); --shop-amber-soft: color-mix(in srgb, var(--shop-amber) 18%, transparent); --shop-panel: color-mix(in srgb, var(--pspf-surface) 88%, var(--pspf-primary)); }
       body { color: var(--pspf-text); background: var(--pspf-surface); font-family: var(--vscode-font-family); margin: 0; padding: 20px; }
         main { max-width: ${maxWidth}; margin: 0 auto; }
         h1 { font-size: 1.25rem; margin: 0 0 8px; }

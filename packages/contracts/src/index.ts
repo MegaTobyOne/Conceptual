@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.14.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.50.0" as const;
+export const PSPF_SLICE_VERSION = "1.52.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -463,6 +463,8 @@ export interface RequirementEntity extends EntityEnvelope {
   readonly domainId: string;
   readonly assessmentStatus: AssessmentStatus;
   readonly summary?: string;
+  readonly assessmentRationale?: string;
+  readonly assessmentReviewedAt?: string;
 }
 
 export type EvidenceFreshness = "current" | "ageing" | "stale" | "expired" | "unknown";
@@ -500,6 +502,12 @@ export interface ActionEntity extends EntityEnvelope {
   readonly startDate?: string;
   readonly endDate?: string;
   readonly dueDate?: string;
+  readonly completedAt?: string;
+  readonly planningState?: "candidate" | "committed" | "deferred" | "excluded";
+  readonly priority?: number;
+  readonly effortEstimate?: string;
+  readonly effortConfidence?: "low" | "medium" | "high";
+  readonly effortBasis?: string;
   readonly commentary?: readonly ActionCommentaryEntry[];
   readonly impact?: ActionImpact;
 }
@@ -540,6 +548,20 @@ export interface SnapshotEntity extends EntityEnvelope {
   readonly entityType: "snapshot";
   readonly title: string;
   readonly snapshotType: "checkpoint" | "reporting" | "backup" | "pre-migration";
+  readonly metrics?: SnapshotMetrics;
+}
+
+export interface SnapshotMetrics {
+  readonly requirementTotal: number;
+  readonly requirementMet: number;
+  readonly requirementApplicable: number;
+  readonly compliancePercentage: number;
+  readonly openRiskTotal: number;
+  readonly highOrExtremeRiskTotal: number;
+  readonly actionTotal: number;
+  readonly openActionTotal: number;
+  readonly completedActionTotal: number;
+  readonly overdueActionTotal: number;
 }
 
 export const TAG_COLOURS = ["red", "orange", "yellow", "green", "teal", "blue", "purple", "grey"] as const;
@@ -1143,7 +1165,9 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "domainId",
         "assessmentStatus"
       ),
-      { field: "summary", publication: "sensitive" }
+      { field: "summary", publication: "sensitive" },
+      { field: "assessmentRationale", publication: "sensitive" },
+      { field: "assessmentReviewedAt", publication: "sensitive" }
     ]
   },
   {
@@ -1178,9 +1202,15 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "startDate",
         "endDate",
         "dueDate",
-        "impact"
+        "impact",
+        "completedAt",
+        "planningState",
+        "priority",
+        "effortEstimate",
+        "effortConfidence"
       ),
-      { field: "commentary", publication: "sensitive" }
+      { field: "commentary", publication: "sensitive" },
+      { field: "effortBasis", publication: "sensitive" }
     ]
   },
   {
@@ -1213,7 +1243,8 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
       "updatedAt",
       "sourceProduct",
       "recordStatus",
-      "snapshotType"
+      "snapshotType",
+      "metrics"
     )
   },
   {

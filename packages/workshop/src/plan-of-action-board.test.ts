@@ -87,6 +87,8 @@ test("plan of action includes all Action statuses for graphical filtering", () =
 
   assert.deepEqual(tasks.map((task) => task.status).sort(), ["cancelled", "done", "todo"]);
   assert.equal(model.metrics.actions, 1);
+  assert.equal(model.metrics.done, 1);
+  assert.equal(model.metrics.cancelled, 1);
 });
 
 test("plan of action preserves completed Actions for master schedule slicing", () => {

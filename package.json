@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.50.0",
+  "version": "1.52.0",
   "private": true,
   "description": "Local-first PSPF Core, Assurance, Workshop, Shop, Pub, and Explorer validation slice.",
   "license": "MIT",
@@ -122,7 +122,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.50:run",
+    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.52:run",
     "test": "pnpm build && pnpm -r --if-present test",
     "typecheck": "tsc -b tsconfig.json && pnpm --filter pspf-explorer run typecheck",
     "e2e:v1.39": "pnpm run e2e:v1.38 && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run check:ux-coverage",
@@ -149,6 +149,8 @@
     "e2e:v1.49:run": "pnpm run e2e:v1.48:run",
     "e2e:v1.50": "pnpm run e2e:v1.49 && pnpm run check:v150-visual",
     "e2e:v1.50:run": "pnpm run e2e:v1.49:run && pnpm run check:v150-visual:run",
+    "e2e:v1.52": "pnpm run e2e:v1.50 && pnpm --filter pspf-explorer exec playwright test tests/e2e/studio-system.spec.ts",
+    "e2e:v1.52:run": "pnpm run e2e:v1.50:run && pnpm --filter pspf-explorer exec playwright test tests/e2e/studio-system.spec.ts",
     "check:pub-cockpit": "node scripts/check-pub-cockpit.mjs"
   },
   "devDependencies": {

@@ -49,6 +49,7 @@ import {
   type CyberAwarenessChangeStrategyModel,
   buildStrategyPrioritySummary,
   type StrategyPrioritySummary,
+  buildStrategyDeliverySummary,
   CONTINUOUS_COMPLIANCE_ASSURANCE_BANDS,
   CONTINUOUS_COMPLIANCE_RISK_SEVERITIES
 } from "./continuous-compliance.js";
@@ -5481,6 +5482,8 @@ function renderPlanOfActionBoard(model: PlanOfActionBoardModel, teamDates: reado
         ${metricCard("Blocked", model.metrics.blocked)}
         ${metricCard("Overdue", model.metrics.overdue)}
         ${metricCard("Due soon", model.metrics.dueSoon)}
+        ${metricCard("Done", model.metrics.done)}
+        ${metricCard("Cancelled", model.metrics.cancelled)}
         ${metricCard("Linked requirements", model.metrics.linkedRequirements)}
         ${metricCard("Linked risks", model.metrics.linkedRisks)}
       </div>
@@ -5694,8 +5697,9 @@ function renderPlanOfActionScheduleControls(model: PlanOfActionBoardModel): stri
     <div>
       <h3>Status</h3>
       <div class="form-actions poa-filter-group" data-poa-status-filters>
-    ${actionStatusItems.map((item) => `<button type="button" class="poa-status-filter" data-poa-status-filter="${escapeHtml(item.value)}" aria-pressed="true">${escapeHtml(item.label)}</button>`).join("")}
-    <button type="button" class="poa-status-filter" data-poa-status-filter="all">All</button>
+    ${actionStatusItems.map((item) => `<button type="button" class="poa-status-filter" data-poa-status-filter="${escapeHtml(item.value)}" aria-pressed="${["done", "cancelled"].includes(item.value) ? "false" : "true"}">${escapeHtml(item.label)}</button>`).join("")}
+    <button type="button" class="poa-status-filter" data-poa-status-filter="all">All open</button>
+    <button type="button" class="poa-status-filter" data-poa-show-closed>Show closed (${model.metrics.done + model.metrics.cancelled})</button>
       </div>
     </div>
     <div>
@@ -5857,7 +5861,7 @@ function renderPlanOfActionTask(
   workstreamTitle: string,
   showTodayMarker = true
 ): string {
-  const barClass = `poa-bar poa-bar--${task.urgency}`;
+  const barClass = planOfActionBarClass(task);
   const barLabel = task.timelineLabel ? `<span>${escapeHtml(task.timelineLabel)}</span>` : "";
   const sourceLabel = task.phaseSource === "override" ? " · manual stream" : "";
   const todayMarker = showTodayMarker ? renderPlanOfActionTodayMarker(todayX, today) : "";
@@ -5878,8 +5882,14 @@ function renderPlanOfActionMasterTask(
   workstreamId: string,
   workstreamTitle: string
 ): string {
-  const barClass = `poa-bar poa-bar--${task.urgency}`;
+  const barClass = planOfActionBarClass(task);
   return `<button type="button" class="${escapeHtml(barClass)} poa-bar--integrated" data-poa-task data-poa-status="${escapeHtml(task.status)}" data-poa-workstream="${escapeHtml(workstreamId)}" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}" style="left: ${task.x}px; width: ${task.width}px;" title="${escapeHtml(`${task.title}: ${task.startDate} to ${task.endDate}`)}"><span>${escapeHtml(task.timelineLabel || task.title)}</span><small>${escapeHtml(workstreamTitle)} · ${escapeHtml(label(task.status))}</small></button>`;
+}
+
+function planOfActionBarClass(task: PlanOfActionTaskModel): string {
+  return task.status === "done" || task.status === "cancelled"
+    ? `poa-bar poa-bar--${task.status}`
+    : `poa-bar poa-bar--${task.urgency}`;
 }
 
 function renderPlanOfActionWorklist(model: PlanOfActionBoardModel): string {
@@ -5916,7 +5926,7 @@ function renderPlanOfActionWorklist(model: PlanOfActionBoardModel): string {
     <h2>Action Worklist</h2>
     <div class="poa-worklist-filters" aria-label="Action worklist filters">
       <label>Search <input type="search" data-poa-worklist-search placeholder="Title, stream, status or urgency"></label>
-      <label>Status <select data-poa-worklist-status><option value="all">All statuses</option>${actionStatusItems.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")}</select></label>
+      <label>Status <select data-poa-worklist-status><option value="open">Open work</option><option value="all">All statuses</option>${actionStatusItems.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")}</select></label>
       <label>Urgency <select data-poa-worklist-urgency><option value="all">All urgency</option><option value="blocked">Blocked</option><option value="overdue">Overdue</option><option value="due-soon">Due soon</option><option value="normal">Normal</option></select></label>
       <label>Sort <select data-poa-worklist-sort><option value="urgency">Urgency</option><option value="due">Due date</option><option value="impact">Impact</option><option value="title">Title</option></select></label>
     </div>
@@ -5986,6 +5996,12 @@ function planOfActionFilterScript(): string {
         buttons.forEach((item) => {
           if (item.dataset[key] !== 'all') item.setAttribute('aria-pressed', 'true');
         });
+        if (key === 'poaStatusFilter') {
+          buttons.forEach((item) => {
+            if (['done', 'cancelled'].includes(item.dataset.poaStatusFilter)) item.setAttribute('aria-pressed', 'false');
+          });
+          showClosed?.setAttribute('aria-pressed', 'false');
+        }
       } else {
         button.setAttribute('aria-pressed', button.getAttribute('aria-pressed') === 'false' ? 'true' : 'false');
       }
@@ -6013,11 +6029,11 @@ function planOfActionFilterScript(): string {
     }
     function applyWorklistFilters() {
       const query = (search?.value || '').trim().toLowerCase();
-      const statusValue = status?.value || 'all';
+      const statusValue = status?.value || 'open';
       const urgencyValue = urgency?.value || 'all';
       const rows = Array.from(worklist.querySelectorAll('[data-poa-worklist-row]'));
       rows.forEach((row) => {
-        row.hidden = (query && !row.dataset.poaSearch.includes(query)) || (statusValue !== 'all' && row.dataset.poaStatus !== statusValue) || (urgencyValue !== 'all' && row.dataset.poaUrgency !== urgencyValue);
+        row.hidden = (query && !row.dataset.poaSearch.includes(query)) || (statusValue === 'open' && ['done', 'cancelled'].includes(row.dataset.poaStatus)) || (statusValue !== 'all' && statusValue !== 'open' && row.dataset.poaStatus !== statusValue) || (urgencyValue !== 'all' && row.dataset.poaUrgency !== urgencyValue);
       });
       const sorted = rows.sort((left, right) => {
         if (sort?.value === 'due') return left.dataset.poaDue.localeCompare(right.dataset.poaDue);
@@ -6030,6 +6046,20 @@ function planOfActionFilterScript(): string {
     [search, status, urgency, sort].forEach((control) => control?.addEventListener('input', applyWorklistFilters));
     applyWorklistFilters();
   }
+  const showClosed = root.querySelector('[data-poa-show-closed]');
+  showClosed?.addEventListener('click', () => {
+    statusButtons.forEach((button) => {
+      if (['done', 'cancelled'].includes(button.dataset.poaStatusFilter)) button.setAttribute('aria-pressed', 'true');
+    });
+    showClosed.setAttribute('aria-pressed', 'true');
+    showClosed.textContent = 'Closed shown';
+    const worklistStatus = document.querySelector('[data-poa-worklist-status]');
+    if (worklistStatus) {
+      worklistStatus.value = 'all';
+      worklistStatus.dispatchEvent(new Event('input'));
+    }
+    applyFilters();
+  });
   applyFilters();
 })();
 </script>`;
@@ -7140,6 +7170,7 @@ function renderStrategyChoiceEditor(choice: StrategyEntity["choices"][number], c
     <div class="form-actions">
       <button type="button" data-command="addStrategyOutcome" data-strategy-area="${escapeHtml(strategyChoiceArea(choiceIndex))}" data-choice-index="${choiceIndex}">Add outcome</button>
       <button type="button" data-command="linkStrategyRequirement" data-strategy-area="${escapeHtml(strategyChoiceArea(choiceIndex))}" data-choice-index="${choiceIndex}">Link Requirement</button>
+      <button type="button" data-command="linkStrategyAction" data-strategy-area="${escapeHtml(strategyChoiceArea(choiceIndex))}" data-choice-index="${choiceIndex}">Link Action</button>
       <button type="button" data-command="mapStrategyRequirementToIsm" data-strategy-area="${escapeHtml(strategyChoiceArea(choiceIndex))}" data-choice-index="${choiceIndex}">Map linked Requirement to ISM control</button>
     </div>
     ${strategyReferenceSummary(choice.references)}
@@ -7172,6 +7203,7 @@ function renderStrategyOutcomeEditor(
     <div class="form-actions">
       <button type="button" data-command="addStrategyMeasure" data-strategy-area="${escapeHtml(strategyOutcomeArea(choiceIndex, outcomeIndex))}" data-choice-index="${choiceIndex}" data-outcome-index="${outcomeIndex}">Add measure</button>
       <button type="button" data-command="linkStrategyRequirement" data-strategy-area="${escapeHtml(strategyOutcomeArea(choiceIndex, outcomeIndex))}" data-choice-index="${choiceIndex}" data-outcome-index="${outcomeIndex}">Link Requirement</button>
+      <button type="button" data-command="linkStrategyAction" data-strategy-area="${escapeHtml(strategyOutcomeArea(choiceIndex, outcomeIndex))}" data-choice-index="${choiceIndex}" data-outcome-index="${outcomeIndex}">Link Action</button>
       <button type="button" data-command="mapStrategyRequirementToIsm" data-strategy-area="${escapeHtml(strategyOutcomeArea(choiceIndex, outcomeIndex))}" data-choice-index="${choiceIndex}" data-outcome-index="${outcomeIndex}">Map linked Requirement to ISM control</button>
     </div>
     ${strategyReferenceSummary(outcome.references)}
@@ -7224,7 +7256,7 @@ function strategyReferenceSummary(
   references: readonly StrategyEntity["choices"][number]["references"][number][]
 ): string {
   if (references.length === 0) {
-    return `<p class="muted">No linked Requirements yet.</p>`;
+    return `<p class="muted">No linked records yet.</p>`;
   }
   const rows = references
     .map(
@@ -7247,6 +7279,7 @@ function isStrategyManagementCommand(command: string): boolean {
     "addStrategyOutcome",
     "addStrategyMeasure",
     "linkStrategyRequirement",
+    "linkStrategyAction",
     "mapStrategyRequirementToIsm"
   ].includes(command);
 }
@@ -7266,6 +7299,8 @@ async function handleStrategyManagementCommand(
       return addStrategyMeasure(strategy, strategyOutcomeLocationFromMessage(message, currentArea));
     case "linkStrategyRequirement":
       return linkStrategyRequirement(strategy, strategyReferenceLocationFromMessage(message, currentArea));
+    case "linkStrategyAction":
+      return linkStrategyAction(strategy, strategyReferenceLocationFromMessage(message, currentArea));
     case "mapStrategyRequirementToIsm":
       return mapStrategyRequirementToIsm(strategy, strategyReferenceLocationFromMessage(message, currentArea));
   }
@@ -7410,6 +7445,56 @@ async function linkStrategyRequirement(
     strategy: updated,
     area: strategyAreaForReferenceLocation(location),
     message: `Linked Requirement to Strategy ${location.kind}.`
+  };
+}
+
+async function linkStrategyAction(
+  strategy: StrategyEntity,
+  location: StrategyReferenceLocation | undefined
+): Promise<StrategyManagementResult | undefined> {
+  if (!location) {
+    vscode.window.showWarningMessage("Open a Strategy choice or outcome before linking an Action.");
+    return undefined;
+  }
+  const actions = (await listAllEntities()).filter(
+    (entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted"
+  );
+  if (actions.length === 0) {
+    vscode.window.showWarningMessage("No active Actions are available to link.");
+    return undefined;
+  }
+  const selected = await vscode.window.showQuickPick(
+    actions.map((action) => ({
+      label: action.title,
+      description: `${label(action.status)}${action.dueDate ? ` · due ${formatShortAuDateTime(action.dueDate) ?? action.dueDate}` : ""}`,
+      action
+    })),
+    { title: "Link Action to Strategy", placeHolder: "Action", ignoreFocusOut: true }
+  );
+  if (!selected) {
+    return undefined;
+  }
+  const role = await vscode.window.showQuickPick(
+    STRATEGY_REFERENCE_ROLES.map((value) => ({ label: label(value), value })),
+    { title: "Action role in this Strategy area", placeHolder: "Reference role", ignoreFocusOut: true }
+  );
+  if (!role) {
+    return undefined;
+  }
+  const reference: StrategyEntity["choices"][number]["references"][number] = {
+    entityType: "action",
+    entityId: selected.action.id,
+    role: role.value
+  };
+  const updated = upsertStrategyReference(strategy, location, reference);
+  if (!updated) {
+    vscode.window.showInformationMessage("That Action is already linked to this Strategy area.");
+    return undefined;
+  }
+  return {
+    strategy: updated,
+    area: strategyAreaForReferenceLocation(location),
+    message: `Linked Action to Strategy ${location.kind}.`
   };
 }
 
@@ -7658,6 +7743,7 @@ function strategyChoiceCard(
   }
 ): string {
   const priority = buildStrategyPrioritySummary(choice, lookup.risks);
+  const delivery = buildStrategyDeliverySummary(choice, lookup.actions);
   const topRisks = priority.topRisks.length
     ? `<ul class="strategy-priority-list">${priority.topRisks
         .map(
@@ -7687,6 +7773,8 @@ function strategyChoiceCard(
         ${shellPill(priority.bandLabel)}
         ${shellPill(`${priority.linkedActionCount} linked action${priority.linkedActionCount === 1 ? "" : "s"}`)}
       </div>
+      <p><strong>Delivery: ${escapeHtml(label(delivery.state))}</strong> · ${escapeHtml(delivery.decision)}</p>
+      <p class="muted">${delivery.activeActionCount} active · ${delivery.completedActionCount} done · ${delivery.blockedActionCount + delivery.overdueActionCount} at risk</p>
       <p class="muted">${escapeHtml(priority.rationale)}</p>
       <h3>Top blockers</h3>
       ${topRisks}
@@ -10870,7 +10958,19 @@ async function buildUpdatedEntity(
         await vscode.window.showWarningMessage("Select a valid Requirement domain before saving.");
         return undefined;
       }
-      return { ...entity, title, domainId, assessmentStatus: status, summary: trimOptional(fields.summary), updatedAt };
+      return {
+        ...entity,
+        title,
+        domainId,
+        assessmentStatus: status,
+        summary: trimOptional(fields.summary),
+        assessmentRationale: trimOptional(fields.assessmentRationale),
+        assessmentReviewedAt:
+          status !== entity.assessmentStatus || fields.assessmentRationale !== entity.assessmentRationale
+            ? updatedAt
+            : entity.assessmentReviewedAt,
+        updatedAt
+      };
     }
     case "evidence": {
       const title = fields.title?.trim();
@@ -10908,6 +11008,9 @@ async function buildUpdatedEntity(
         return undefined;
       }
       const current = entity as WorkshopActionWithPlanOverride;
+      const planningState = ["candidate", "committed", "deferred", "excluded"].includes(fields.planningState ?? "")
+        ? fields.planningState
+        : undefined;
       const next = {
         ...current,
         title,
@@ -10915,6 +11018,14 @@ async function buildUpdatedEntity(
         startDate: normaliseShortAuDateTime(fields.startDate),
         endDate: normaliseShortAuDateTime(fields.endDate),
         dueDate: normaliseShortAuDateTime(fields.dueDate),
+        completedAt: status === "done" ? (current.completedAt ?? updatedAt) : undefined,
+        planningState,
+        priority: fields.priority ? Math.max(0, Number(fields.priority)) : undefined,
+        effortEstimate: trimOptional(fields.effortEstimate),
+        effortConfidence: ["low", "medium", "high"].includes(fields.effortConfidence ?? "")
+          ? fields.effortConfidence
+          : undefined,
+        effortBasis: trimOptional(fields.effortBasis),
         commentary: actionCommentaryEntries(entity.commentary, fields.newCommentary, updatedAt),
         updatedAt
       };
@@ -11197,6 +11308,7 @@ function renderRequirementEditor(
     ${isBaseline ? readonlyField("Title", requirement.title) : inputField("title", "Title", requirement.title, true)}
     ${isBaseline ? readonlyField("Domain", domainName(requirement.domainId)) : selectField("domainId", "Domain", domainOptions, requirement.domainId)}
     ${selectField("assessmentStatus", "Assessment status", assessmentStatusItems, requirement.assessmentStatus)}
+    ${textareaField("assessmentRationale", "Assessment rationale", requirement.assessmentRationale ?? "")}
     ${textareaField("summary", "Summary", requirement.summary ?? "")}
   `,
     isBaseline ? "Official PSPF baseline title and domain are locked." : undefined,
@@ -11738,6 +11850,21 @@ function renderActionEditor(
     ${inputField("endDate", "End date", formatShortAuDateTime(action.endDate) ?? "", false, "30 Sep 2026")}
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
     ${selectField("planWorkstreamId", "Plan of Action stream", planWorkstreamOptions, actionPlanWorkstreamId)}
+    ${selectField(
+      "planningState",
+      "Planning state",
+      ["candidate", "committed", "deferred", "excluded"].map((value) => ({ label: label(value), value })),
+      action.planningState ?? "candidate"
+    )}
+    ${inputField("priority", "Planning priority", action.priority === undefined ? "" : String(action.priority), false, "0 or higher")}
+    ${inputField("effortEstimate", "Effort estimate", action.effortEstimate ?? "", false, "for example 3 days")}
+    ${selectField(
+      "effortConfidence",
+      "Effort confidence",
+      ["low", "medium", "high"].map((value) => ({ label: label(value), value })),
+      action.effortConfidence ?? "medium"
+    )}
+    ${textareaField("effortBasis", "Effort basis", action.effortBasis ?? "")}
     ${textareaField("newCommentary", "New commentary update", "")}
   `,
     undefined,

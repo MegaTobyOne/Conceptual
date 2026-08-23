@@ -42,24 +42,24 @@ export class CoreExchangeView extends LitElement {
       }
       .panel {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         margin-bottom: var(--space-3);
       }
       button {
         font: inherit;
         cursor: pointer;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         color: inherit;
       }
       button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       .alert {
         padding: var(--space-2);
@@ -94,7 +94,7 @@ export class CoreExchangeView extends LitElement {
       td {
         text-align: left;
         padding: var(--space-1) var(--space-2);
-        border-bottom: 1px solid var(--colour-border);
+        border-bottom: 1px solid var(--pspf-border);
       }
       td.numeric,
       th.numeric {
@@ -106,7 +106,7 @@ export class CoreExchangeView extends LitElement {
         font-size: var(--text-sm);
       }
       .muted {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
     `,
@@ -322,6 +322,7 @@ export class CoreExchangeView extends LitElement {
       await this.store.setMeta(CORE_BUNDLE_META_KEYS.source, this.pendingBundle);
       await this.store.setMeta(CORE_BUNDLE_META_KEYS.idMap, { ...existingIdMap, ...idMap });
       await this.store.setMeta(CORE_BUNDLE_META_KEYS.importedAt, importedAt);
+      await this.store.refreshSnapshotMetrics();
       this.okMessage = `Bundle applied: ${summary.compliance} compliance statuses, ${summary.risks} risks, ${summary.actions} actions, ${summary.directions} directions, ${summary.evidence} evidence references, ${summary.relationships} relationships.`;
       this.pendingBundle = null;
       this.pendingPlan = null;

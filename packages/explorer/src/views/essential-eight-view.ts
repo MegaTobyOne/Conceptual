@@ -30,12 +30,12 @@ export class EssentialEightView extends LitElement {
       }
       .lede {
         margin: 0 0 var(--space-3) 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         max-width: 70ch;
       }
       .summary {
         margin: 0 0 var(--space-3) 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       ul.requirements {
@@ -52,9 +52,9 @@ export class EssentialEightView extends LitElement {
         align-items: baseline;
         gap: var(--space-2);
         padding: var(--space-2) var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       li.requirement a {
         color: inherit;
@@ -69,7 +69,7 @@ export class EssentialEightView extends LitElement {
         align-items: center;
         gap: var(--space-1);
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
     `,
   ];

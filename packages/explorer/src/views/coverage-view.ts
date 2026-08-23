@@ -25,14 +25,15 @@ export class CoverageView extends LitElement {
       }
       .panel {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         margin-bottom: var(--space-3);
         overflow-x: auto;
       }
       table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
         font-size: var(--text-sm);
       }
@@ -40,11 +41,12 @@ export class CoverageView extends LitElement {
       td {
         padding: var(--space-2);
         text-align: left;
-        border-bottom: 1px solid var(--colour-border);
+        border-bottom: 1px solid var(--pspf-border);
+        overflow-wrap: anywhere;
       }
       th {
         font-weight: 600;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.04em;
@@ -56,7 +58,7 @@ export class CoverageView extends LitElement {
       }
       tr.totals {
         font-weight: 600;
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
       }
       .legend {
         display: inline-block;
@@ -68,7 +70,7 @@ export class CoverageView extends LitElement {
       }
       a.domain-link,
       a.summary-link {
-        color: var(--colour-link);
+        color: var(--pspf-link);
         text-decoration: none;
       }
       a.domain-link:hover,
@@ -76,11 +78,33 @@ export class CoverageView extends LitElement {
         text-decoration: underline;
       }
       .muted {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-weight: 400;
         text-transform: none;
         letter-spacing: 0;
         font-size: var(--text-xs);
+      }
+      @media (max-width: 900px) {
+        th:nth-child(5),
+        td:nth-child(5),
+        th:nth-child(6),
+        td:nth-child(6) {
+          display: none;
+        }
+      }
+      @media (max-width: 600px) {
+        .panel {
+          padding: var(--space-2);
+        }
+        th,
+        td {
+          padding: var(--space-1);
+          font-size: var(--text-xs);
+        }
+        th:nth-child(7),
+        td:nth-child(7) {
+          display: none;
+        }
       }
     `,
   ];

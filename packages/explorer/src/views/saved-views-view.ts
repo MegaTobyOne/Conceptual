@@ -38,7 +38,7 @@ export class SavedViewsView extends LitElement {
       }
       .panel-note {
         margin: 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
         line-height: 1.5;
       }
@@ -47,7 +47,7 @@ export class SavedViewsView extends LitElement {
         flex-direction: column;
         gap: 2px;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         margin-bottom: var(--space-2);
       }
       input[type='text'],
@@ -55,8 +55,8 @@ export class SavedViewsView extends LitElement {
       select {
         font: inherit;
         color: inherit;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         width: 100%;
@@ -77,16 +77,16 @@ export class SavedViewsView extends LitElement {
       button {
         font: inherit;
         cursor: pointer;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         color: inherit;
       }
       button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       button:disabled {
         opacity: 0.5;
@@ -104,7 +104,7 @@ export class SavedViewsView extends LitElement {
         display: grid;
         gap: var(--space-2);
         padding: var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
       }
       .saved-head {
@@ -128,7 +128,7 @@ export class SavedViewsView extends LitElement {
       }
       ul.saved .meta {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       ul.results {
         list-style: none;
@@ -144,7 +144,7 @@ export class SavedViewsView extends LitElement {
         gap: var(--space-2);
         align-items: baseline;
         padding: var(--space-1) var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         font-size: var(--text-sm);
       }
@@ -154,14 +154,14 @@ export class SavedViewsView extends LitElement {
       }
       .empty {
         padding: var(--space-3);
-        border: 1px dashed var(--colour-border);
+        border: 1px dashed var(--pspf-border);
         border-radius: var(--radius-md);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       .summary {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         margin: 0 0 var(--space-2) 0;
       }
     `,
@@ -233,7 +233,7 @@ export class SavedViewsView extends LitElement {
           </select>
         </label>
         <fieldset style="border:0;padding:0;margin:0 0 var(--space-2) 0;">
-          <legend style="font-size:var(--text-xs);color:var(--colour-fg-muted);padding:0;">
+          <legend style="font-size:var(--text-xs);color:var(--pspf-muted);padding:0;">
             Compliance status
           </legend>
           <div class="checkboxes">

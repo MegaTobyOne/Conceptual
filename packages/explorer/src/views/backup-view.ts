@@ -19,9 +19,9 @@ export class BackupView extends LitElement {
       }
       section.panel {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         margin-bottom: var(--space-3);
       }
       section.danger {
@@ -31,14 +31,14 @@ export class BackupView extends LitElement {
         font: inherit;
         padding: var(--space-2) var(--space-3);
         border-radius: var(--radius-sm);
-        border: 1px solid var(--colour-border);
-        background: var(--colour-bg-elevated);
+        border: 1px solid var(--pspf-border);
+        background: var(--pspf-surface-strong);
         cursor: pointer;
       }
       button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       button.danger {
         background: var(--colour-danger, #c0392b);
@@ -48,7 +48,7 @@ export class BackupView extends LitElement {
       .status {
         margin-top: var(--space-2);
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
     `,
   ];

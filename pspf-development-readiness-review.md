@@ -8,9 +8,9 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.48.0 adds Explorer unification (ADR 0084): one Lit/Vite Explorer web app in `packages/explorer`, publication and local-authoring parity gates rewritten for the unified surface, and Core round-trip exchange preserved with `VERSION_AXES = 1.14.0`. Pub workforce decision cockpit (ADR 0083) remains in place unchanged: local-only store `1.3.0`, no AI/model call, and no new publication path.
+**Current implementation note:** v1.52.0 is the active release baseline. Studio System unifies compact `--pspf-*` tokens, responsive navigation and tables, labelled status chips, and product/domain wayfinding across Explorer and extension webviews. ADR 0084's unified Lit/Vite Explorer remains the single web surface, ADR 0085's Assurance City remains lazy-loaded, and `VERSION_AXES` remain `1.14.0`. Pub workforce decision cockpit (ADR 0083) remains local-only at store `1.3.0`, with no AI/model call and no new publication path.
 
-**Status: through v1.48.0, the shipped readiness chain is implemented and release-readiness green. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is now ready for facilitated concept testing only and is not part of shipped product scope.**
+**Status: v1.52.0 implementation is ready for automated and manual Studio System validation. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is ready for facilitated concept testing only and is not part of shipped product scope.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
 
@@ -51,7 +51,7 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is green for v1.48.0:
+`npx pnpm@10.10.0 run release:readiness` is the final automated gate for v1.52.0:
 
 1. Spine workflow (headless `e2e:v1.48`, including Pub cockpit behavioural and boundary tests).
 2. Schema-policy.
@@ -75,7 +75,7 @@ The core product decisions remain stable:
 
 ## Remaining readiness risks
 
-These are open before, during, or after the first manual operator validation. None block the v1.0 initial assurance user testing release, but each is tracked.
+These are open before, during, or after the v1.50 release validation. The automated chain is the release baseline; each item remains tracked for the next operator and product-validation cycle.
 
 1. **AU-English lint scope** — ADR 0016 expects the lint to scan all user-facing copy, but until docs move to `docs/` (ADR 0013) only two files are effectively in scope. Either (a) extend `scripts/lint-au-english.mjs` to include `pspf-*.md`, `adr/**/*.md`, and `validation-scenario-*.md` while carving out fenced code blocks, or (b) mechanically move docs under `docs/` and update inbound links. The repository's Copilot instructions already acknowledge the docs have not yet moved.
 2. **Explorer CSP gap** — the static ecosystem page (`pspf-ecosystem.html`) still allows inline script/style for its own simple behaviour. The product Explorer build at `packages/explorer/dist/index.html` MUST keep meeting S4; do not copy this page's relaxed CSP into Explorer. Spot-check on every Explorer change.
@@ -84,7 +84,7 @@ These are open before, during, or after the first manual operator validation. No
 5. **Health view** — the v1 spec set references a Core "Health view" in `pspf-acceptance-and-quality-gates.md` Core criterion #2, `pspf-vscode-extension-surface-spec.md`, `pspf-onboarding-spec.md`, `pspf-core-architecture-spec.md`, and `pspf-core-workshop-screen-workflow-spec.md`. v0.1 surfaces the same information through discrete commands (`PSPF: Validate Workspace`, `PSPF: Verify Integrity`, `PSPF: Show Writer Lock`) and does not ship a single Health view webview. The unified view arrives in v0.2.
 6. **Command rename in extension surface spec** — `pspf-vscode-extension-surface-spec.md` still lists `pspf.core.exportExplorerBundle`; the implementation correctly uses `pspf.core.exportBundle` per ADR 0009 (single master bundle). The spec text is patched alongside this review; this risk closes when the patch lands.
 7. **Core API contract shape** — `pspf-core-api-contract-spec.md` describes a layered `PspfCoreApi` object (`platform`, `queries`, `commands`, `events`). v0.1 exposes a flat object plus VS Code commands; the layered shape is targeted for v0.2 once a second consuming product exists. Documented here rather than treated as drift, because v0.1 has only one consumer.
-8. **First operator validation** — manual validation using `validation-scenario-1-operator-workflow.md` has been clean to date. Keep recording any future operator findings against the scenario before expanding post-v1.0 scope.
+8. **Current operator validation** — manual validation using `validation-scenario-1-operator-workflow.md` has been clean to date. The next pass should cover the v1.50 dark/light/high-contrast fixtures, relationship map and Board modes, reduced motion, and the Explorer round-trip path before expanding the compliance-uplift scope.
 9. **Post-next-slice diagnostics hardening** — after the current manual-validation sequence, add the next diagnostics/repair tranche without pulling it into the immediate slice:
    - Pub local JSON diagnostics and conservative repair for malformed people, teams, roles, assignments, and relationship notes, including orphaned `assignment.personId`, `assignment.roleId`, `role.teamId`, `role.reportsToRoleId`, `team.parentTeamId`, and `relationshipNote.personId` references. Pub repair must copy `.pspf/pub/pub.json` before writing, create placeholders only where non-destructive, and leave duplicate IDs or cycles diagnostic-only.
    - Core integrity scan expansion for known reference fields beyond `link` rows and Shop `contract.supplierId`, especially requirement-control mappings and any future Core-backed Pub references. Core should stay report-first; broad automatic repair is deferred unless a fix is mechanical, reversible, and product-owned.
@@ -119,8 +119,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.48.0, with emphasis on unified Explorer publication/local-authoring/Core-round-trip behaviour plus cockpit keyboard navigation, scoped obligation populations, capability denominators, all-role continuity, Attention routing, evidence-only pathway wording, ephemeral filters, small-cohort suppression, and the existing Workshop, Shop, import, and release-dry-run regression surfaces.
+The next sequence is manual validation of v1.52.0, with emphasis on compact responsive navigation, command access, bounded tables and status chips, canonical product/domain wayfinding, dark/light/high-contrast presentation, relationship map and Board behaviour, reduced motion, unified Explorer publication/local-authoring/Core-round-trip behaviour, cockpit keyboard navigation, and the existing Workshop, Shop, import, and release-dry-run regression surfaces.
 
 ## Review conclusion
 
-The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, and Pub workforce decision cockpit are implemented for v1.48.0 readiness. Automated release readiness is green; manual validation now needs to confirm unified Explorer round-trip and accessibility behaviour plus the five cockpit views, routed Attention, filters, pathway caveat, and suppressed safe-summary workflows in the Extension Host.
+The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, Assurance City, Studio System identity, and Pub workforce decision cockpit are implemented for v1.52.0 readiness. Manual validation now needs to confirm the compact visual matrix, responsive navigation/tables/chips, relationship map/Board contract, five Pub cockpit views, routed Attention, filters, pathway caveat, and suppressed safe-summary workflows in the Extension Host.
