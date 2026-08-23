@@ -136,7 +136,7 @@ try {
         extensionLabel: `PSPF ${product}`,
         title: `PSPF ${product} fixture`,
         tagline: "v1.50 fixture",
-        version: "1.51.0",
+        version: "1.52.0",
         product,
         sensitivityBanner: "OFFICIAL: Sensitive · Local-first fixture.",
         nav: [

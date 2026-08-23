@@ -39,9 +39,9 @@ export class ShareView extends LitElement {
       }
       .panel {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         margin-bottom: var(--space-3);
       }
       label.row {
@@ -53,16 +53,16 @@ export class ShareView extends LitElement {
       button {
         font: inherit;
         cursor: pointer;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         color: inherit;
       }
       button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       .alert {
         padding: var(--space-2);
@@ -88,7 +88,7 @@ export class ShareView extends LitElement {
       td {
         text-align: left;
         padding: var(--space-1) var(--space-2);
-        border-bottom: 1px solid var(--colour-border);
+        border-bottom: 1px solid var(--pspf-border);
       }
       th.numeric,
       td.numeric {

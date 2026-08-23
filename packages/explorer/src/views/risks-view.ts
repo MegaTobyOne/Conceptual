@@ -57,7 +57,7 @@ export class RisksView extends LitElement {
       }
       .panel-note {
         margin: 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
         line-height: 1.5;
       }
@@ -67,7 +67,7 @@ export class RisksView extends LitElement {
         gap: var(--space-2);
         align-items: stretch;
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
         margin-bottom: var(--space-3);
         min-width: 0;
@@ -82,15 +82,15 @@ export class RisksView extends LitElement {
         flex-direction: column;
         gap: 2px;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       input[type='text'],
       textarea,
       select {
         font: inherit;
         color: inherit;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         width: 100%;
@@ -105,8 +105,8 @@ export class RisksView extends LitElement {
       select:focus-visible,
       button:focus-visible {
         outline: none;
-        border-color: var(--colour-accent);
-        box-shadow: 0 0 0 2px color-mix(in srgb, var(--colour-accent) 24%, transparent);
+        border-color: var(--pspf-accent);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--pspf-accent) 24%, transparent);
       }
       textarea {
         min-height: 4rem;
@@ -115,8 +115,8 @@ export class RisksView extends LitElement {
       button {
         font: inherit;
         cursor: pointer;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         color: inherit;
@@ -128,14 +128,14 @@ export class RisksView extends LitElement {
       }
       button:hover:not(:disabled),
       button:focus-visible:not(:disabled) {
-        border-color: var(--colour-accent);
+        border-color: var(--pspf-accent);
         box-shadow: var(--shadow-1);
         transform: translateY(-1px);
       }
       button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       button:disabled {
         opacity: 0.5;
@@ -152,10 +152,10 @@ export class RisksView extends LitElement {
       li.risk {
         position: relative;
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-left-width: 4px;
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         transition:
           transform var(--motion-medium) ease,
           border-color var(--motion-medium) ease,
@@ -165,7 +165,7 @@ export class RisksView extends LitElement {
       li.risk:hover,
       li.risk:focus-within {
         transform: translateY(-1px);
-        border-color: var(--band-accent, var(--colour-border));
+        border-color: var(--band-accent, var(--pspf-border));
         box-shadow: var(--shadow-2);
       }
       li.risk header {
@@ -192,8 +192,8 @@ export class RisksView extends LitElement {
         border-radius: var(--radius-sm);
         font-size: var(--text-xs);
         font-weight: 600;
-        background: var(--band-bg, var(--colour-bg));
-        color: var(--band-fg, var(--colour-fg));
+        background: var(--band-bg, var(--pspf-surface));
+        color: var(--band-fg, var(--pspf-text));
       }
       li.risk[data-band='low'] {
         --band-accent: #2f6f3a;
@@ -217,7 +217,7 @@ export class RisksView extends LitElement {
       }
       li.risk .meta {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       li.risk p.desc {
         margin: var(--space-2) 0;
@@ -230,11 +230,11 @@ export class RisksView extends LitElement {
       }
       .empty {
         padding: var(--space-3);
-        border: 1px dashed var(--colour-border);
+        border: 1px dashed var(--pspf-border);
         border-radius: var(--radius-md);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       .edit-grid {
         display: grid;
@@ -260,13 +260,13 @@ export class RisksView extends LitElement {
         flex-wrap: wrap;
       }
       .status-filters button[aria-pressed='true'] {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       .count {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .pagination {
         display: flex;

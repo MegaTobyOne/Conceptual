@@ -67,13 +67,13 @@ export class DirectionsView extends LitElement {
       }
       .panel-note {
         margin: 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
         line-height: 1.5;
       }
       .intro {
         margin: 0 0 var(--space-3) 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .summary {
         display: grid;
@@ -83,16 +83,16 @@ export class DirectionsView extends LitElement {
       }
       .metric {
         padding: var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       .metric strong {
         display: block;
         font-size: var(--text-lg);
       }
       .metric span {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
       }
       form.create,
@@ -102,10 +102,10 @@ export class DirectionsView extends LitElement {
         gap: var(--space-2);
         align-items: stretch;
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
         margin-bottom: var(--space-3);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         min-width: 0;
       }
       form.create .full,
@@ -138,15 +138,15 @@ export class DirectionsView extends LitElement {
         flex-direction: column;
         gap: 2px;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       input,
       textarea,
       select {
         font: inherit;
         color: inherit;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         width: 100%;
@@ -159,16 +159,16 @@ export class DirectionsView extends LitElement {
       button {
         font: inherit;
         cursor: pointer;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
         color: inherit;
       }
       button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       button:disabled {
         opacity: 0.5;
@@ -184,9 +184,9 @@ export class DirectionsView extends LitElement {
       }
       li.direction {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       .item-head {
         display: flex;
@@ -205,9 +205,9 @@ export class DirectionsView extends LitElement {
         display: inline-flex;
         align-items: center;
         padding: 2px var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         font-size: var(--text-xs);
         font-weight: 700;
         white-space: nowrap;
@@ -215,21 +215,21 @@ export class DirectionsView extends LitElement {
       .ref {
         font-family: var(--font-family-mono);
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .meta,
       .evidence-list {
         display: flex;
         gap: var(--space-3);
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         margin-top: var(--space-1);
         flex-wrap: wrap;
       }
       .response-notes {
         padding: var(--space-2);
-        border-left: 3px solid var(--colour-accent);
-        background: var(--colour-bg);
+        border-left: 3px solid var(--pspf-accent);
+        background: var(--pspf-surface);
         margin: var(--space-2) 0 0;
       }
       .req-list {
@@ -241,11 +241,11 @@ export class DirectionsView extends LitElement {
       .req-list a {
         font-family: var(--font-family-mono);
         font-size: var(--text-xs);
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: 2px 6px;
-        color: var(--colour-accent);
+        color: var(--pspf-accent);
         text-decoration: none;
       }
       .actions {
@@ -256,7 +256,7 @@ export class DirectionsView extends LitElement {
       }
       .empty,
       .copy-status {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
     `,

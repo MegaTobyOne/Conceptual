@@ -30,24 +30,24 @@ export class TagsView extends LitElement {
         align-items: end;
         padding: var(--space-3);
         margin: 0 0 var(--space-3) 0;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       label.field {
         display: flex;
         flex-direction: column;
         gap: 2px;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       input,
       select,
       button {
         font: inherit;
         color: inherit;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
       }
@@ -55,9 +55,9 @@ export class TagsView extends LitElement {
         cursor: pointer;
       }
       button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       button:disabled {
         opacity: 0.5;
@@ -77,21 +77,21 @@ export class TagsView extends LitElement {
         gap: var(--space-2);
         align-items: center;
         padding: var(--space-2) var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       .swatch {
         width: 1.25rem;
         height: 1.25rem;
         border-radius: 50%;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
       }
       .empty {
         padding: var(--space-3);
-        border: 1px dashed var(--colour-border);
+        border: 1px dashed var(--pspf-border);
         border-radius: var(--radius-md);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       .error {

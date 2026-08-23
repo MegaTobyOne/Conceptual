@@ -551,12 +551,12 @@ export const CONNECTED_VIEW_STYLES = String.raw`
   --cv-text: var(--pspf-text, var(--vscode-foreground, #e6e9ef));
   --cv-muted: var(--pspf-muted, var(--vscode-descriptionForeground, #8a93a3));
   --cv-accent: var(--pspf-link, var(--vscode-textLink-foreground, #4f8cff));
-  --cv-dom-governance: #6ea8ff;
-  --cv-dom-security-risk: #f0a36d;
-  --cv-dom-information: #7ad3a3;
-  --cv-dom-technology: #b39bff;
-  --cv-dom-personnel: #f0c36d;
-  --cv-dom-physical: #d59bff;
+  --cv-dom-governance: var(--pspf-domain-governance, #6ea8ff);
+  --cv-dom-security-risk: var(--pspf-domain-security-risk, #f0a36d);
+  --cv-dom-information: var(--pspf-domain-information, #7ad3a3);
+  --cv-dom-technology: var(--pspf-domain-technology, #b39bff);
+  --cv-dom-personnel: var(--pspf-domain-personnel, #f0c36d);
+  --cv-dom-physical: var(--pspf-domain-physical, #d59bff);
   --cv-risk: var(--pspf-danger, #ff8c8c);
   --cv-action: var(--pspf-ok, #5dd4c2);
   --cv-direction: #87a8ff;

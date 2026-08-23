@@ -34,16 +34,16 @@ export class GlobalSearch extends LitElement {
       input {
         width: 100%;
         box-sizing: border-box;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg);
-        color: var(--colour-fg);
+        background: var(--pspf-surface);
+        color: var(--pspf-text);
         font: inherit;
         padding: var(--space-2) var(--space-3);
         min-height: 2.5rem;
       }
       input:focus {
-        outline: 2px solid var(--colour-accent);
+        outline: 2px solid var(--pspf-accent);
         outline-offset: 2px;
       }
       .results {
@@ -54,16 +54,16 @@ export class GlobalSearch extends LitElement {
         z-index: 30;
         max-height: min(32rem, 70vh);
         overflow: auto;
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         box-shadow: var(--shadow-2);
       }
       .empty,
       .hint {
         margin: 0;
         padding: var(--space-3);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       ul {
@@ -81,7 +81,7 @@ export class GlobalSearch extends LitElement {
       }
       a:hover,
       a:focus-visible {
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         outline: none;
       }
       .title {
@@ -90,7 +90,7 @@ export class GlobalSearch extends LitElement {
       }
       .subtitle,
       .snippet {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
       }
     `,

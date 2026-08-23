@@ -127,6 +127,16 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 7. **Progressive-disclosure gate**: advanced fields and linked records remain keyboard discoverable; Auditor may open assurance detail by default, but no lens removes editor access or data.
 8. **Release-chain gate**: `e2e:v1.50` inherits v1.49, runs the v1.50 Explorer browser matrix and extension fixture gate, and `release:readiness` targets `e2e:v1.50:run`.
 
+### v1.52 Studio System usability gates
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.52.0`; `VERSION_AXES` remain `1.14.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Canonical token gate**: Explorer and extension webviews consume the shared `--pspf-*` vocabulary; product and PSPF domain accents come from canonical tokens, while status and sensitivity colours remain semantic.
+3. **Compact usability gate**: body copy uses the compact 13 px baseline; controls, labelled status chips, breadcrumbs, and dense tables remain bounded without hiding primary identifiers or status meaning.
+4. **Responsive shell gate**: Explorer provides full, condensed, and mobile navigation states; primary navigation, command access, search, and theme/lens controls remain keyboard operable from 320 px through desktop widths.
+5. **Accessibility gate**: Dark, Light, System, High Contrast, and reduced-motion behaviour preserve WCAG 2.1 A/AA, visible focus, non-colour status labels, and zero serious or critical axe-core findings on touched routes.
+6. **Extension alignment gate**: Core, Assurance, Workshop, Shop, Pub, and Explorer retain VS Code theme inheritance and OFFICIAL: Sensitive handling while using canonical product identity tokens.
+7. **Release-chain gate**: `e2e:v1.52` inherits the complete v1.50 chain, runs the Studio System browser matrix, and `release:readiness` targets `e2e:v1.52:run`.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.

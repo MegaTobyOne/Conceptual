@@ -59,9 +59,9 @@ export function shellHtml(title: string, body: string): string {
     :root {
       color-scheme: light dark;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --workshop-blue: var(--pspf-accent);
-      --workshop-blue-soft: var(--pspf-accent-soft);
-      --workshop-blue-strong: rgba(37, 99, 235, 0.28);
+      --workshop-blue: var(--pspf-product-workshop, var(--pspf-accent));
+      --workshop-blue-soft: color-mix(in srgb, var(--workshop-blue) 13%, transparent);
+      --workshop-blue-strong: color-mix(in srgb, var(--workshop-blue) 28%, transparent);
       --amber: var(--pspf-warn);
       --amber-soft: var(--pspf-warn-soft);
       --radius: var(--pspf-radius-lg);

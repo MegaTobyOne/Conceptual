@@ -68,7 +68,7 @@ export class PostureView extends LitElement {
       }
       .panel-note {
         margin: 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
         line-height: 1.5;
       }
@@ -83,20 +83,20 @@ export class PostureView extends LitElement {
         flex-direction: column;
         gap: 2px;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         min-width: 12rem;
       }
       select {
         font: inherit;
         color: inherit;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
       }
       .meta {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       ul.domains {
         list-style: none;
@@ -106,10 +106,10 @@ export class PostureView extends LitElement {
         gap: var(--space-2);
       }
       li.domain {
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
         padding: var(--space-3);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
       }
       .domain-head {
         display: flex;
@@ -147,16 +147,16 @@ export class PostureView extends LitElement {
       }
       .count {
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .badge {
         display: inline-flex;
         padding: 2px var(--space-1);
         border-radius: var(--radius-sm);
         font-size: var(--text-xs);
-        background: var(--badge-bg, var(--colour-bg));
-        color: var(--badge-fg, var(--colour-fg));
-        border: 1px solid var(--colour-border);
+        background: var(--badge-bg, var(--pspf-surface));
+        color: var(--badge-fg, var(--pspf-text));
+        border: 1px solid var(--pspf-border);
       }
       .badge[data-threat='low'] {
         --badge-bg: #2f6f3a;
@@ -175,10 +175,10 @@ export class PostureView extends LitElement {
         --badge-fg: #fff;
       }
       section.brief {
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
         padding: var(--space-3);
-        background: var(--colour-bg);
+        background: var(--pspf-surface);
         display: grid;
         gap: var(--space-2);
         justify-items: start;
@@ -186,15 +186,15 @@ export class PostureView extends LitElement {
       section.brief button {
         font: inherit;
         cursor: pointer;
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border: 1px solid var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border: 1px solid var(--pspf-accent);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
       }
       .brief-status {
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
     `,
   ];

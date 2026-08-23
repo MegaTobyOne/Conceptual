@@ -3351,7 +3351,7 @@ function pageHtml(title: string, body: string): string {
     main, .grid { display: grid; gap: 14px; }
     .grid.two { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
     .hero, .card, section.panel { border: 1px solid var(--vscode-panel-border); border-radius: 8px; padding: 14px; background: var(--vscode-sideBar-background); }
-    .hero { border-left: 4px solid #c45a64; background: color-mix(in srgb, var(--vscode-editor-background) 88%, #c45a64 12%); }
+    .hero { border-left: 4px solid var(--pspf-product-pub); background: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--pspf-product-pub) 12%); }
     h1, h2, p { margin: 0; }
     h1 { font-size: 1.3rem; line-height: 1.25; }
     h2 { font-size: 0.98rem; margin-bottom: 8px; }
@@ -3359,11 +3359,11 @@ function pageHtml(title: string, body: string): string {
     .meta, .tag, .muted { color: var(--vscode-descriptionForeground); font-size: 0.82rem; }
     .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
     .tag, .badge { display: inline-flex; align-items: center; border: 1px solid var(--vscode-panel-border); border-radius: 999px; padding: 4px 8px; white-space: nowrap; }
-    .badge { margin: 2px 4px 2px 0; color: var(--vscode-editor-foreground); background: color-mix(in srgb, var(--vscode-editor-background) 78%, #c45a64 22%); }
+    .badge { margin: 2px 4px 2px 0; color: var(--vscode-editor-foreground); background: color-mix(in srgb, var(--vscode-editor-background) 78%, var(--pspf-product-pub) 22%); }
     .org-chart-graphic { display: grid; gap: 18px; margin-top: 14px; overflow-x: auto; padding: 2px 2px 8px; }
     .org-chart-empty { margin-top: 12px; border: 1px dashed var(--vscode-panel-border); border-radius: 8px; padding: 18px; color: var(--vscode-descriptionForeground); }
     .org-team-node { display: grid; gap: 14px; min-width: min(980px, 100%); }
-    .org-team-card { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 72%, #c45a64 28%); border-radius: 10px; padding: 14px; background: color-mix(in srgb, var(--vscode-editor-background) 82%, #c45a64 18%); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+    .org-team-card { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 72%, var(--pspf-product-pub) 28%); border-radius: 10px; padding: 14px; background: color-mix(in srgb, var(--vscode-editor-background) 82%, var(--pspf-product-pub) 18%); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
     .org-card-face { display: grid; align-content: start; gap: 10px; min-height: 220px; border: 1px solid var(--vscode-panel-border); border-radius: 8px; padding: 12px; background: var(--vscode-sideBar-background); }
     .org-card-face--back { background: color-mix(in srgb, var(--vscode-editor-background) 86%, #4f7f9f 14%); }
     .org-back-group { display: grid; gap: 6px; }
@@ -3378,11 +3378,11 @@ function pageHtml(title: string, body: string): string {
     .org-role-card { display: grid; gap: 8px; min-height: 118px; border: 1px solid var(--vscode-panel-border); border-radius: 8px; padding: 10px; background: var(--vscode-sideBar-background); }
     .org-role-card--empty { border-style: dashed; color: var(--vscode-descriptionForeground); }
     .org-assignment-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
-    .org-assignment-chip { display: inline-grid; gap: 1px; max-width: 100%; border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 62%, #c45a64 38%); border-radius: 999px; padding: 5px 9px; background: color-mix(in srgb, var(--vscode-editor-background) 72%, #c45a64 28%); }
+    .org-assignment-chip { display: inline-grid; gap: 1px; max-width: 100%; border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 62%, var(--pspf-product-pub) 38%); border-radius: 999px; padding: 5px 9px; background: color-mix(in srgb, var(--vscode-editor-background) 72%, var(--pspf-product-pub) 28%); }
     .org-assignment-chip strong, .org-assignment-chip small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .org-assignment-chip--gap { color: var(--vscode-descriptionForeground); background: transparent; border-style: dashed; }
-    .org-child-teams { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-left: 22px; padding-left: 22px; border-left: 2px solid color-mix(in srgb, var(--vscode-panel-border) 70%, #c45a64 30%); }
-    .org-child-teams > .org-team-node::before { content: ""; position: absolute; width: 22px; border-top: 2px solid color-mix(in srgb, var(--vscode-panel-border) 70%, #c45a64 30%); transform: translate(-23px, 28px); }
+    .org-child-teams { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-left: 22px; padding-left: 22px; border-left: 2px solid color-mix(in srgb, var(--vscode-panel-border) 70%, var(--pspf-product-pub) 30%); }
+    .org-child-teams > .org-team-node::before { content: ""; position: absolute; width: 22px; border-top: 2px solid color-mix(in srgb, var(--vscode-panel-border) 70%, var(--pspf-product-pub) 30%); transform: translate(-23px, 28px); }
     .action-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
     .action-list.compact { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
     button { width: 100%; min-width: 0; border: 1px solid var(--vscode-button-border, transparent); border-radius: 6px; padding: 8px 10px; color: var(--vscode-button-foreground); background: var(--vscode-button-background); font: inherit; text-align: left; cursor: pointer; }

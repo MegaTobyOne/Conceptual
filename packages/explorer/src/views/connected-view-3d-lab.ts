@@ -271,20 +271,20 @@ export class ConnectedView3dLab extends LitElement {
       .intro p,
       .concept-copy p {
         margin: var(--space-1) 0 0;
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         line-height: 1.5;
       }
       .source {
         flex: 0 0 auto;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .scene {
         position: relative;
         min-height: 660px;
         overflow: hidden;
-        border-top: 1px solid var(--colour-border);
-        border-bottom: 1px solid var(--colour-border);
+        border-top: 1px solid var(--pspf-border);
+        border-bottom: 1px solid var(--pspf-border);
         background: #071015;
       }
       .viewport {
@@ -336,8 +336,8 @@ export class ConnectedView3dLab extends LitElement {
         background: transparent;
       }
       .environment-toggle button[aria-pressed='true'] {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
       }
       .focus-control {
         display: grid;
@@ -456,7 +456,7 @@ export class ConnectedView3dLab extends LitElement {
         font-size: var(--text-sm);
       }
       .concept-copy .eyebrow {
-        color: var(--colour-accent);
+        color: var(--pspf-accent);
         font-size: var(--text-xs);
         font-weight: 700;
         text-transform: uppercase;

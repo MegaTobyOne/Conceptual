@@ -18,6 +18,7 @@ import {
   type IntegrityReport,
 } from '../domain/integrity.ts';
 import { allRequirements } from '../pspf/index.ts';
+import '../components/status-chip.ts';
 
 const ISSUE_LABELS: Record<IntegrityIssueKind, string> = {
   'orphan-ref': 'Orphan reference',
@@ -47,65 +48,55 @@ export class IntegrityView extends LitElement {
       }
       button {
         padding: var(--space-1) var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
-        background: var(--colour-bg-elevated);
-        color: var(--colour-fg);
+        background: var(--pspf-surface-strong);
+        color: var(--pspf-text);
         cursor: pointer;
         font: inherit;
       }
       button:hover {
-        background: var(--colour-border);
+        background: var(--pspf-border);
       }
       .status {
         font-size: var(--text-sm);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .ok {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         font-size: var(--text-sm);
       }
       table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
       }
       th,
       td {
         padding: var(--space-1) var(--space-2);
         text-align: left;
-        border-bottom: 1px solid var(--colour-border);
+        border-bottom: 1px solid var(--pspf-border);
         font-size: var(--text-sm);
         vertical-align: top;
+        overflow-wrap: anywhere;
       }
       th {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
         text-transform: uppercase;
         letter-spacing: 0.04em;
       }
-      .pill {
-        display: inline-block;
-        padding: 1px 6px;
-        border-radius: 999px;
-        font-size: var(--text-xs);
-        background: var(--colour-bg-elevated);
-        border: 1px solid var(--colour-border);
+      pspf-status-chip {
+        max-width: 12rem;
       }
-      .pill.orphan-ref,
-      .pill.orphan-link {
-        border-color: #b91c1c;
-        color: #b91c1c;
-      }
-      .pill.duplicate {
-        border-color: #92400e;
-        color: #92400e;
-      }
-      .pill.self-loop {
-        border-color: #6d28d9;
-        color: #6d28d9;
+      @media (max-width: 600px) {
+        th:nth-child(2),
+        td:nth-child(2) {
+          display: none;
+        }
       }
     `,
   ];
@@ -181,7 +172,11 @@ export class IntegrityView extends LitElement {
                   ${issues.map(
                     (i: IntegrityIssue) => html`
                       <tr data-kind=${i.kind} data-entity=${i.entity}>
-                        <td><span class="pill ${i.kind}">${ISSUE_LABELS[i.kind]}</span></td>
+                        <td>
+                          <pspf-status-chip tone=${i.kind === 'duplicate' ? 'warning' : 'danger'}>
+                            ${ISSUE_LABELS[i.kind]}
+                          </pspf-status-chip>
+                        </td>
                         <td>${i.entity}</td>
                         <td><code>${i.id}</code></td>
                         <td>${i.message}</td>

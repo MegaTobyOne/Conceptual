@@ -17,10 +17,10 @@ export class ComplianceBadge extends LitElement {
         border-radius: 999px;
         font-size: var(--text-xs);
         font-weight: 600;
-        background: color-mix(in srgb, var(--colour-bg-elevated) 82%, var(--colour-fg) 18%);
+        background: color-mix(in srgb, var(--pspf-surface-strong) 82%, var(--pspf-text) 18%);
         border: 1px solid
-          color-mix(in srgb, var(--colour-border) 72%, var(--swatch, var(--colour-fg-muted)) 28%);
-        color: var(--colour-fg);
+          color-mix(in srgb, var(--pspf-border) 72%, var(--swatch, var(--pspf-muted)) 28%);
+        color: var(--pspf-text);
         line-height: 1.2;
         box-shadow: var(--shadow-1);
         transition:
@@ -38,7 +38,7 @@ export class ComplianceBadge extends LitElement {
         width: 0.7rem;
         height: 0.7rem;
         border-radius: 50%;
-        background: var(--swatch, var(--colour-fg-muted));
+        background: var(--swatch, var(--pspf-muted));
         box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
       }
       span:last-child {

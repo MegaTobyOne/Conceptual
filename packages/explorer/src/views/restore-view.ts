@@ -19,9 +19,9 @@ export class RestoreView extends LitElement {
       }
       section.panel {
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         margin-bottom: var(--space-3);
       }
       input[type='file'] {
@@ -32,8 +32,8 @@ export class RestoreView extends LitElement {
         font: inherit;
         padding: var(--space-2) var(--space-3);
         border-radius: var(--radius-sm);
-        border: 1px solid var(--colour-accent);
-        background: var(--colour-accent);
+        border: 1px solid var(--pspf-accent);
+        background: var(--pspf-accent);
         color: var(--colour-on-accent, white);
         cursor: pointer;
       }

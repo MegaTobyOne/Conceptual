@@ -92,9 +92,9 @@ export class RequirementView extends LitElement {
         min-width: 7.5rem;
         font-size: var(--text-sm);
         padding: var(--space-1) var(--space-2);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
         color: inherit;
         text-decoration: none;
       }
@@ -109,7 +109,7 @@ export class RequirementView extends LitElement {
         font-size: var(--text-sm);
       }
       dt {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       dd {
         margin: 0;
@@ -120,9 +120,9 @@ export class RequirementView extends LitElement {
       }
       .placeholder {
         padding: var(--space-3);
-        border: 1px dashed var(--colour-border);
+        border: 1px dashed var(--pspf-border);
         border-radius: var(--radius-md);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
       }
       ul.refs {
@@ -133,9 +133,9 @@ export class RequirementView extends LitElement {
       .linker {
         margin-top: var(--space-3);
         padding: var(--space-3);
-        border: 1px solid var(--colour-border);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       .linker h3 {
         margin: 0 0 var(--space-2) 0;
@@ -152,15 +152,15 @@ export class RequirementView extends LitElement {
         flex-direction: column;
         gap: 2px;
         font-size: var(--text-xs);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
       }
       .linker input,
       .linker select,
       .linker button {
         font: inherit;
         color: inherit;
-        background: var(--colour-bg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-sm);
         padding: var(--space-1) var(--space-2);
       }
@@ -168,9 +168,9 @@ export class RequirementView extends LitElement {
         cursor: pointer;
       }
       .linker button.primary {
-        background: var(--colour-accent);
-        color: var(--colour-accent-fg);
-        border-color: var(--colour-accent);
+        background: var(--pspf-accent);
+        color: var(--pspf-accent-ink);
+        border-color: var(--pspf-accent);
       }
       ul.linked {
         list-style: none;

@@ -39,9 +39,9 @@ export class CommandPalette extends LitElement {
       }
       .panel {
         width: min(560px, 90vw);
-        background: var(--colour-bg);
-        color: var(--colour-fg);
-        border: 1px solid var(--colour-border);
+        background: var(--pspf-surface);
+        color: var(--pspf-text);
+        border: 1px solid var(--pspf-border);
         border-radius: var(--radius-md);
         box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
         overflow: hidden;
@@ -51,7 +51,7 @@ export class CommandPalette extends LitElement {
         box-sizing: border-box;
         padding: var(--space-2) var(--space-3);
         border: none;
-        border-bottom: 1px solid var(--colour-border);
+        border-bottom: 1px solid var(--pspf-border);
         background: transparent;
         color: inherit;
         font: inherit;
@@ -73,21 +73,21 @@ export class CommandPalette extends LitElement {
         justify-content: space-between;
         gap: var(--space-2);
         font-size: var(--text-sm);
-        border-top: 1px solid var(--colour-border);
+        border-top: 1px solid var(--pspf-border);
       }
       li:first-child {
         border-top: none;
       }
       li[aria-selected='true'] {
-        background: var(--colour-bg-elevated);
+        background: var(--pspf-surface-strong);
       }
       .hint {
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-xs);
       }
       .empty {
         padding: var(--space-3);
-        color: var(--colour-fg-muted);
+        color: var(--pspf-muted);
         font-size: var(--text-sm);
         text-align: center;
       }
@@ -137,6 +137,10 @@ export class CommandPalette extends LitElement {
       this.query_ = '';
       this.activeIndex = 0;
     }
+  }
+
+  openPalette(): void {
+    if (!this.open) this.#toggle();
   }
 
   #close(): void {

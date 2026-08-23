@@ -48,20 +48,6 @@ export interface HomePanelOptions {
   readonly footer?: string;
 }
 
-interface AccentPalette {
-  readonly light: string;
-  readonly dark: string;
-}
-
-const PRODUCT_IDENTITIES: Record<ProductIdentity, AccentPalette> = {
-  core: { light: "#536b70", dark: "#91a7aa" },
-  assurance: { light: "#625b8f", dark: "#aaa4d4" },
-  workshop: { light: "#176f68", dark: "#62b8ae" },
-  shop: { light: "#986329", dark: "#d5a466" },
-  pub: { light: "#825467", dark: "#c58da5" },
-  explorer: { light: "#3e6582", dark: "#82acc8" }
-};
-
 function escapeText(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -73,10 +59,10 @@ function escapeAttr(value: string): string {
 const DEFAULT_FOOTER =
   "Local-first PSPF tooling. Workspace data stays on this machine until you export the master bundle.";
 
-function paletteCss(palette: AccentPalette): string {
+function paletteCss(product: ProductIdentity): string {
   return `
-    --pspf-home-accent-light: ${palette.light};
-    --pspf-home-accent-dark: ${palette.dark};
+    --pspf-home-accent-light: var(--pspf-product-${product});
+    --pspf-home-accent-dark: var(--pspf-product-${product}-dark);
     --pspf-home-accent: var(--pspf-home-accent-dark);
     --pspf-home-accent-soft: color-mix(in srgb, var(--pspf-home-accent) 14%, transparent);
     --pspf-home-accent-strong: color-mix(in srgb, var(--pspf-home-accent) 30%, transparent);
@@ -101,7 +87,6 @@ function navHtml(nav: readonly HomePanelNavItem[] | undefined): string {
  * across extensions so the surfaces feel like one product family.
  */
 export function homePanelShellHtml(options: HomePanelOptions): string {
-  const palette = PRODUCT_IDENTITIES[options.product];
   const footer = options.footer ?? DEFAULT_FOOTER;
   const tokens = tokensCss("extension");
 
@@ -113,7 +98,7 @@ export function homePanelShellHtml(options: HomePanelOptions): string {
   <title>${escapeText(options.title)}</title>
   <style>
     ${tokens}
-    :root { color-scheme: light dark; ${paletteCss(palette)} }
+    :root { color-scheme: light dark; ${paletteCss(options.product)} }
     body.vscode-light,
     body.vscode-high-contrast-light {
       --pspf-home-accent: var(--pspf-home-accent-light);

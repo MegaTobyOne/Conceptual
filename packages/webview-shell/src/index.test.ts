@@ -28,6 +28,8 @@ test("tokensCss includes shared root tokens for every surface", () => {
     assert.match(css, /--pspf-radius:/);
     assert.match(css, /--pspf-text:/);
     assert.match(css, /--pspf-primary:/);
+    assert.match(css, /--pspf-product-explorer:/);
+    assert.match(css, /--pspf-domain-governance:/);
     assert.match(css, /\.pspf-pill\b/);
     assert.match(css, /\.pspf-button\b/);
     assert.match(css, /\.pspf-banner\b/);
@@ -107,33 +109,41 @@ test("tokensCss marketing surface declares an explicit dark-scheme palette", () 
   assert.match(css, /prefers-color-scheme:\s*dark/);
 });
 
+test("tokensCss explorer surface supplies explicit accessible themes", () => {
+  const css = tokensCss("explorer");
+  assert.match(css, /--pspf-muted: #aeb9b5;/);
+  assert.match(css, /:root\[data-theme="light"\]/);
+  assert.match(css, /--pspf-accent: var\(--pspf-product-explorer-dark\);/);
+});
+
+test("shared pills and tables remain compact without forced overflow", () => {
+  const css = tokensCss("extension");
+  assert.match(css, /\.pspf-pill[\s\S]*text-overflow: ellipsis;/);
+  assert.match(css, /\.pspf-table \{[\s\S]*table-layout: fixed;/);
+  assert.doesNotMatch(css, /\.pspf-table \{[\s\S]*min-width: 680px;[\s\S]*border-collapse/);
+  assert.match(css, /\.pspf-table--wide \{ min-width: 680px;/);
+});
+
 test("tokensCss extension surface does NOT hardcode marketing colours", () => {
   const css = tokensCss("extension");
   assert.equal(css.includes("prefers-color-scheme"), false);
 });
 
-test("home panels expose all v1.50 product identities with theme-aware accents", () => {
-  const expectedColours = {
-    core: ["#536b70", "#91a7aa"],
-    assurance: ["#625b8f", "#aaa4d4"],
-    workshop: ["#176f68", "#62b8ae"],
-    shop: ["#986329", "#d5a466"],
-    pub: ["#825467", "#c58da5"],
-    explorer: ["#3e6582", "#82acc8"]
-  } as const;
+test("home panels consume every canonical product identity", () => {
+  const products = ["core", "assurance", "workshop", "shop", "pub", "explorer"] as const;
 
-  for (const [product, colours] of Object.entries(expectedColours)) {
+  for (const product of products) {
     const html = homePanelShellHtml({
-      product: product as keyof typeof expectedColours,
+      product,
       extensionLabel: `PSPF ${product}`,
       title: product,
       tagline: "Local-first",
-      version: "1.51.0",
+      version: "1.52.0",
       sensitivityBanner: "OFFICIAL: Sensitive",
       body: ""
     });
-    assert.match(html, new RegExp(`--pspf-home-accent-light: ${colours[0]}`));
-    assert.match(html, new RegExp(`--pspf-home-accent-dark: ${colours[1]}`));
+    assert.match(html, new RegExp(`--pspf-home-accent-light: var\\(--pspf-product-${product}\\)`));
+    assert.match(html, new RegExp(`--pspf-home-accent-dark: var\\(--pspf-product-${product}-dark\\)`));
     assert.match(html, /--pspf-home-accent-soft: color-mix/);
     assert.match(html, /body\.vscode-light,[\s\S]*body\.vscode-high-contrast-light/);
   }

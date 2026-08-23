@@ -7,15 +7,17 @@ import { css } from 'lit';
  */
 export const designTokens = css`
   :host {
-    /* Colours — dark theme baseline; overridden by selected theme variables. */
-    --colour-bg: var(--theme-colour-bg, #0f1415);
-    --colour-bg-elevated: var(--theme-colour-bg-elevated, #171d1d);
-    --colour-fg: var(--theme-colour-fg, #edf1ef);
-    --colour-fg-muted: var(--theme-colour-fg-muted, #9ca8a4);
-    --colour-border: var(--theme-colour-border, #2c3633);
-    --colour-accent: var(--theme-colour-accent, #82acc8);
-    --colour-link: var(--theme-colour-link, #9dc3dc);
-    --colour-accent-fg: var(--theme-colour-accent-fg, #111514);
+    /* Canonical Studio System tokens. --colour-* remains a migration alias. */
+    --pspf-text: var(--theme-colour-fg, #edf1ef);
+    --pspf-muted: var(--theme-colour-fg-muted, #aeb9b5);
+    --pspf-surface: var(--theme-colour-bg, #0f1415);
+    --pspf-surface-strong: var(--theme-colour-bg-elevated, #171d1d);
+    --pspf-surface-subtle: color-mix(in srgb, var(--pspf-surface-strong) 82%, transparent);
+    --pspf-border: var(--theme-colour-border, #2c3633);
+    --pspf-border-strong: color-mix(in srgb, var(--pspf-border) 72%, var(--pspf-text) 28%);
+    --pspf-accent: var(--theme-colour-accent, #82acc8);
+    --pspf-link: var(--theme-colour-link, #9dc3dc);
+    --pspf-accent-ink: var(--theme-colour-accent-fg, #111514);
 
     --colour-status-yes: var(--theme-colour-status-yes, #2dd4bf);
     --colour-status-no: var(--theme-colour-status-no, #ef4444);
@@ -53,6 +55,19 @@ export const designTokens = css`
     --colour-classification-bg: #f59e0b;
     --colour-classification-fg: #1a1300;
 
+    --pspf-product-core: #91a7aa;
+    --pspf-product-assurance: #aaa4d4;
+    --pspf-product-workshop: #62b8ae;
+    --pspf-product-shop: #d5a466;
+    --pspf-product-pub: #c58da5;
+    --pspf-product-explorer: #82acc8;
+    --pspf-domain-governance: #6ea8ff;
+    --pspf-domain-security-risk: #f0a36d;
+    --pspf-domain-information: #7ad3a3;
+    --pspf-domain-technology: #b39bff;
+    --pspf-domain-personnel: #f0c36d;
+    --pspf-domain-physical: #d59bff;
+
     /* Spacing — 4px scale. */
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -68,7 +83,7 @@ export const designTokens = css`
     --font-family-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
     --text-xs: 0.75rem;
     --text-sm: 0.875rem;
-    --text-base: 1rem;
+    --text-base: 0.8125rem;
     --text-lg: 1.125rem;
     --text-xl: 1.25rem;
     --text-2xl: 1.5rem;
@@ -79,8 +94,8 @@ export const designTokens = css`
     --radius-lg: 12px;
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.35);
-    --motion-fast: 120ms;
-    --motion-medium: 220ms;
+    --motion-fast: 80ms;
+    --motion-medium: 180ms;
   }
 
   :host([data-theme='light']) {
@@ -97,6 +112,18 @@ export const designTokens = css`
     --theme-colour-status-risk-managed: #ca8a04;
     --theme-colour-status-not-applicable: #64748b;
     --theme-colour-status-not-set: #94a3b8;
+    --pspf-product-core: #536b70;
+    --pspf-product-assurance: #625b8f;
+    --pspf-product-workshop: #176f68;
+    --pspf-product-shop: #986329;
+    --pspf-product-pub: #825467;
+    --pspf-product-explorer: #3e6582;
+    --pspf-domain-governance: #4d7db8;
+    --pspf-domain-security-risk: #b86432;
+    --pspf-domain-information: #2d8661;
+    --pspf-domain-technology: #7262aa;
+    --pspf-domain-personnel: #9a7625;
+    --pspf-domain-physical: #925b9d;
   }
 
   @media (prefers-reduced-motion: reduce) {
