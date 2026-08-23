@@ -322,6 +322,7 @@ export class CoreExchangeView extends LitElement {
       await this.store.setMeta(CORE_BUNDLE_META_KEYS.source, this.pendingBundle);
       await this.store.setMeta(CORE_BUNDLE_META_KEYS.idMap, { ...existingIdMap, ...idMap });
       await this.store.setMeta(CORE_BUNDLE_META_KEYS.importedAt, importedAt);
+      await this.store.refreshSnapshotMetrics();
       this.okMessage = `Bundle applied: ${summary.compliance} compliance statuses, ${summary.risks} risks, ${summary.actions} actions, ${summary.directions} directions, ${summary.evidence} evidence references, ${summary.relationships} relationships.`;
       this.pendingBundle = null;
       this.pendingPlan = null;

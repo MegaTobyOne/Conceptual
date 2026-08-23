@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import { PSPF_DOMAINS, PSPF_SLICE_VERSION, type RequirementEntity, VERSION_AXES, withEnvelope } from "@pspf/contracts";
@@ -128,6 +128,22 @@ test("writer lock blocks every mutating Core service entry point", async () => {
   await assert.rejects(() => service.upsertEntities([requirement]), /read-only|writer lock/i);
   await assert.rejects(() => service.createSnapshot(), /read-only|writer lock/i);
   await assert.rejects(() => service.exportBundle(), /read-only|writer lock/i);
+});
+
+test("checkpoint snapshots persist allowlisted posture metrics", async () => {
+  const workspaceRoot = await freshWorkspace("snapshot-metrics");
+  const service = createCoreService(workspaceRoot);
+  const paths = await service.initialiseWorkspace();
+
+  const snapshot = await service.createSnapshot();
+  const payload = JSON.parse(await readFile(join(paths.snapshots, `${snapshot.id}.json`), "utf8")) as {
+    snapshot?: { metrics?: { requirementTotal?: number; compliancePercentage?: number } };
+    statusSummary?: unknown;
+  };
+
+  assert.equal(typeof payload.snapshot?.metrics?.requirementTotal, "number");
+  assert.equal(typeof payload.snapshot?.metrics?.compliancePercentage, "number");
+  assert.equal(typeof payload.statusSummary, "object");
 });
 
 test("integrity scan reports links whose declared endpoint type does not match the target record", async () => {

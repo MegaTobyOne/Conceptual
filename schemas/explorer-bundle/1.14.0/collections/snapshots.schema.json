@@ -73,6 +73,34 @@
             "decisionDate": {
                 "type": "string",
                 "format": "date-time"
+            },
+            "metrics": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "requirementTotal",
+                    "requirementMet",
+                    "requirementApplicable",
+                    "compliancePercentage",
+                    "openRiskTotal",
+                    "highOrExtremeRiskTotal",
+                    "actionTotal",
+                    "openActionTotal",
+                    "completedActionTotal",
+                    "overdueActionTotal"
+                ],
+                "properties": {
+                    "requirementTotal": { "type": "integer", "minimum": 0 },
+                    "requirementMet": { "type": "integer", "minimum": 0 },
+                    "requirementApplicable": { "type": "integer", "minimum": 0 },
+                    "compliancePercentage": { "type": "integer", "minimum": 0, "maximum": 100 },
+                    "openRiskTotal": { "type": "integer", "minimum": 0 },
+                    "highOrExtremeRiskTotal": { "type": "integer", "minimum": 0 },
+                    "actionTotal": { "type": "integer", "minimum": 0 },
+                    "openActionTotal": { "type": "integer", "minimum": 0 },
+                    "completedActionTotal": { "type": "integer", "minimum": 0 },
+                    "overdueActionTotal": { "type": "integer", "minimum": 0 }
+                }
             }
         }
     }

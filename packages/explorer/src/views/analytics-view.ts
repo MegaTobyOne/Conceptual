@@ -9,6 +9,7 @@ import { SignalWatcher } from '../state/signal-watcher.ts';
 import {
   actionStatusCounts,
   complianceBreakdown,
+  complianceEventsSince,
   directionsSummary,
   essentialEightCoverage,
   overdueActionCount,
@@ -17,6 +18,7 @@ import {
 import { directionResponseLabel } from '../domain/reporting.ts';
 import { summariseAllDomains } from '../domain/summary.ts';
 import { complianceColourVar, complianceLabel } from '../domain/compliance-display.ts';
+import { formatDateTime } from '../domain/date-display.ts';
 
 @customElement('pspf-analytics-view')
 export class AnalyticsView extends LitElement {
@@ -212,6 +214,27 @@ export class AnalyticsView extends LitElement {
         width: var(--pct, 0%);
         background: var(--spark-colour, var(--colour-accent));
       }
+      .temporal-controls {
+        display: flex;
+        gap: var(--space-1);
+        flex-wrap: wrap;
+        margin-bottom: var(--space-2);
+      }
+      .temporal-controls button {
+        color: var(--colour-fg);
+        background: var(--colour-bg);
+        border: 1px solid var(--colour-border);
+        border-radius: var(--radius-sm);
+        padding: var(--space-1) var(--space-2);
+      }
+      .temporal-controls button[aria-pressed='true'] {
+        border-color: var(--colour-accent);
+        background: color-mix(in srgb, var(--colour-accent) 14%, var(--colour-bg));
+      }
+      .temporal-note {
+        color: var(--colour-fg-muted);
+        font-size: var(--text-xs);
+      }
       @media (max-width: 720px) {
         th,
         td {
@@ -228,15 +251,26 @@ export class AnalyticsView extends LitElement {
   // eslint-disable-next-line no-unused-private-class-members
   #watcher = new SignalWatcher(this, () =>
     this.store
-      ? [this.store.compliance, this.store.risks, this.store.actions, this.store.directions]
+      ? [
+          this.store.compliance,
+          this.store.complianceEvents,
+          this.store.snapshotMetrics,
+          this.store.risks,
+          this.store.actions,
+          this.store.directions,
+        ]
       : [],
   );
+
+  #temporalDays: 30 | 90 | 'all' = 30;
 
   override render(): TemplateResult {
     const compliance = this.store?.compliance.value ?? new Map();
     const risks = this.store?.risks.value ?? [];
     const actions = this.store?.actions.value ?? [];
     const directions = this.store?.directions.value ?? [];
+    const complianceEvents = this.store?.complianceEvents.value ?? [];
+    const snapshotMetrics = this.store?.snapshotMetrics.value ?? [];
 
     const breakdown = complianceBreakdown(compliance);
     const e8 = essentialEightCoverage(compliance);
@@ -247,6 +281,11 @@ export class AnalyticsView extends LitElement {
     const summaries = summariseAllDomains(compliance);
     const riskTotal = bands.low + bands.medium + bands.high + bands.extreme;
     const actionTotal = Object.values(statusCounts).reduce((sum, value) => sum + value, 0);
+    const temporalFrom =
+      this.#temporalDays === 'all'
+        ? new Date(0)
+        : new Date(Date.now() - this.#temporalDays * 24 * 60 * 60 * 1000);
+    const recentChanges = complianceEventsSince(complianceEvents, temporalFrom);
 
     let runningCompliancePct = 0;
     const complianceRing = COMPLIANCE_STATES.map((state) => {
@@ -445,6 +484,106 @@ export class AnalyticsView extends LitElement {
               )}
             </tbody>
           </table>
+        </section>
+
+        <section class="panel" aria-label="Recorded changes over time">
+          <h3>Recorded changes over time</h3>
+          <p class="temporal-note">
+            ${recentChanges.length} compliance change${recentChanges.length === 1 ? '' : 's'}
+            recorded in the selected period. This is durable event history; it does not reconstruct
+            an historical posture snapshot.
+          </p>
+          <div class="temporal-controls" role="group" aria-label="Change history period">
+            ${([30, 90, 'all'] as const).map(
+              (days) => html`
+                <button
+                  type="button"
+                  aria-pressed=${String(this.#temporalDays === days)}
+                  @click=${() => {
+                    this.#temporalDays = days;
+                  }}
+                >
+                  ${days === 'all' ? 'All recorded' : `${days} days`}
+                </button>
+              `,
+            )}
+          </div>
+          ${recentChanges.length > 0
+            ? html`
+                <div class="table-wrap">
+                  <table>
+                    <caption class="sr-only">
+                      Compliance state changes in the selected period
+                    </caption>
+                    <thead>
+                      <tr>
+                        <th>Requirement</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Changed</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${recentChanges.map(
+                        (change) => html`
+                          <tr>
+                            <td>${change.requirementId}</td>
+                            <td>${complianceLabel(change.fromState)}</td>
+                            <td>${complianceLabel(change.toState)}</td>
+                            <td>${formatDateTime(change.changedAt)}</td>
+                          </tr>
+                        `,
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              `
+            : html`<p class="temporal-note">
+                No compliance changes were recorded in this period.
+              </p>`}
+        </section>
+
+        <section class="panel" aria-label="Snapshot posture trend">
+          <h3>Snapshot posture trend</h3>
+          <p class="temporal-note">
+            Metric-bearing Core checkpoints only. Older snapshots without metrics are omitted; no
+            historical values are inferred.
+          </p>
+          ${snapshotMetrics.length > 0
+            ? html`
+                <div class="table-wrap">
+                  <table>
+                    <caption class="sr-only">
+                      Posture metrics from Core checkpoints
+                    </caption>
+                    <thead>
+                      <tr>
+                        <th>Checkpoint</th>
+                        <th>Compliance</th>
+                        <th>Open Risks</th>
+                        <th>Open Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${snapshotMetrics.map(
+                        (point) => html`
+                          <tr>
+                            <td>
+                              ${point.title}<br /><span class="temporal-note"
+                                >${formatDateTime(point.createdAt)}</span
+                              >
+                            </td>
+                            <td>${point.compliancePercentage}%</td>
+                            <td>${point.openRiskTotal}</td>
+                            <td>${point.openActionTotal}</td>
+                          </tr>
+                        `,
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              `
+            : html`<p class="temporal-note">No metric-bearing Core checkpoints are loaded.</p>`}
         </section>
 
         <section class="panel" aria-label="Compliance state distribution">

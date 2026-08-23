@@ -548,6 +548,20 @@ export interface SnapshotEntity extends EntityEnvelope {
   readonly entityType: "snapshot";
   readonly title: string;
   readonly snapshotType: "checkpoint" | "reporting" | "backup" | "pre-migration";
+  readonly metrics?: SnapshotMetrics;
+}
+
+export interface SnapshotMetrics {
+  readonly requirementTotal: number;
+  readonly requirementMet: number;
+  readonly requirementApplicable: number;
+  readonly compliancePercentage: number;
+  readonly openRiskTotal: number;
+  readonly highOrExtremeRiskTotal: number;
+  readonly actionTotal: number;
+  readonly openActionTotal: number;
+  readonly completedActionTotal: number;
+  readonly overdueActionTotal: number;
 }
 
 export const TAG_COLOURS = ["red", "orange", "yellow", "green", "teal", "blue", "purple", "grey"] as const;
@@ -1229,7 +1243,8 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
       "updatedAt",
       "sourceProduct",
       "recordStatus",
-      "snapshotType"
+      "snapshotType",
+      "metrics"
     )
   },
   {

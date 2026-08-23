@@ -8,6 +8,17 @@ test('analytics view renders KPIs from the live store', async ({ page }) => {
   });
   await page.reload();
 
+  const home = page.locator('pspf-home-view');
+  await home
+    .getByRole('link', { name: /Governance/ })
+    .first()
+    .click();
+  const requirements = page.locator('pspf-requirements-view');
+  await requirements.getByRole('link').first().click();
+  const complianceEditor = page.locator('pspf-compliance-editor');
+  await complianceEditor.getByRole('radio', { name: 'Fully implemented', exact: true }).check();
+  await expect(complianceEditor).toContainText('Status history');
+
   // Seed a risk and an overdue action via the UI
   await page
     .locator('pspf-app')
@@ -40,4 +51,15 @@ test('analytics view renders KPIs from the live store', async ({ page }) => {
   await expect(view.locator('[data-kpi="open-risks"]')).toHaveText('1');
   await expect(view.locator('[data-kpi="overdue-actions"]')).toHaveText('1');
   await expect(view.locator('[data-kpi="risks-extreme"]')).toHaveText('1');
+  await expect(view.getByRole('heading', { name: 'Recorded changes over time' })).toBeVisible();
+  await expect(view.getByRole('group', { name: 'Change history period' })).toBeVisible();
+  await expect(
+    view.getByText('1 compliance change recorded in the selected period.'),
+  ).toBeVisible();
+  await expect(view.getByRole('heading', { name: 'Snapshot posture trend' })).toBeVisible();
+  await expect(view.getByText('No metric-bearing Core checkpoints are loaded.')).toBeVisible();
+  await view.getByRole('button', { name: 'All recorded' }).click();
+  await expect(
+    view.getByText('1 compliance change recorded in the selected period.'),
+  ).toBeVisible();
 });

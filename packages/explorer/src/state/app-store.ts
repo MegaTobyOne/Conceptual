@@ -75,6 +75,16 @@ import {
   type WorkTrackingId,
 } from '../data/types.ts';
 import { requirementById } from '../pspf/index.ts';
+import { CORE_BUNDLE_META_KEYS, type CoreBundle } from '../data/core-bundle.ts';
+
+export interface SnapshotMetricPoint {
+  readonly id: string;
+  readonly title: string;
+  readonly createdAt: string;
+  readonly compliancePercentage: number;
+  readonly openRiskTotal: number;
+  readonly openActionTotal: number;
+}
 
 type DirectionInput = Omit<
   Direction,
@@ -107,6 +117,7 @@ export class AppStore {
 
   readonly compliance: Signal<ReadonlyMap<RequirementId, ComplianceEntry>>;
   readonly complianceEvents: Signal<readonly ComplianceEvent[]>;
+  readonly snapshotMetrics: Signal<readonly SnapshotMetricPoint[]>;
   readonly risks: Signal<readonly Risk[]>;
   readonly actions: Signal<readonly Action[]>;
   readonly tags: Signal<readonly Tag[]>;
@@ -121,6 +132,7 @@ export class AppStore {
     this.db = db;
     this.compliance = signal(new Map());
     this.complianceEvents = signal([]);
+    this.snapshotMetrics = signal([]);
     this.risks = signal([]);
     this.actions = signal([]);
     this.tags = signal([]);
@@ -165,6 +177,7 @@ export class AppStore {
     ]);
     this.compliance.value = new Map(compliance.map((e) => [e.requirementId, e]));
     this.complianceEvents.value = complianceEvents;
+    await this.refreshSnapshotMetrics();
     this.risks.value = risks;
     this.actions.value = actions;
     this.tags.value = tags;
@@ -174,6 +187,32 @@ export class AppStore {
     this.relationships.value = relationships;
     this.posture.value = posture;
     this.ready.value = true;
+  }
+
+  async refreshSnapshotMetrics(): Promise<void> {
+    const source = (await this.getMeta(CORE_BUNDLE_META_KEYS.source)) as CoreBundle | undefined;
+    this.snapshotMetrics.value = (source?.collections.snapshots ?? [])
+      .filter(
+        (snapshot) => snapshot.entityType === 'snapshot' && typeof snapshot.metrics === 'object',
+      )
+      .flatMap((snapshot) => {
+        const metrics = snapshot.metrics as Record<string, unknown>;
+        return typeof metrics.compliancePercentage === 'number' &&
+          typeof metrics.openRiskTotal === 'number' &&
+          typeof metrics.openActionTotal === 'number'
+          ? [
+              {
+                id: snapshot.id ?? '',
+                title: snapshot.title ?? 'Checkpoint',
+                createdAt: typeof snapshot.createdAt === 'string' ? snapshot.createdAt : '',
+                compliancePercentage: metrics.compliancePercentage,
+                openRiskTotal: metrics.openRiskTotal,
+                openActionTotal: metrics.openActionTotal,
+              },
+            ]
+          : [];
+      })
+      .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
   }
 
   // ---------- Compliance ----------
