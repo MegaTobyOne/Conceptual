@@ -251,7 +251,7 @@ The brief commits to publishing a JSON Schema for the export envelope. **Review*
 ### 7.1 Trust boundaries and threat model (observed)
 
 - **Trust boundary 1**: between the static origin and the user's device. The app loads from a static origin; once loaded, no network traffic occurs at runtime.
-- **Trust boundary 2**: between the running app and any imported file. JSON files (backup, share, GRC, work import) are *fully untrusted* and must be validated against a locked schema before any write; unknown fields cause rejection.
+- **Trust boundary 2**: between the running app and any imported file. JSON files (backup, share, GRC, work import) are _fully untrusted_ and must be validated against a locked schema before any write; unknown fields cause rejection.
 - **Trust boundary 3**: between the app and the browser-supplied evidence URL. URLs are user-supplied content; rendered as text with an explicit-open affordance and `rel="noopener noreferrer"` when followed.
 
 Threats considered in repo:

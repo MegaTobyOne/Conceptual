@@ -486,6 +486,7 @@ async function openShopDetail(entity: SupplierRecord | ContractRecord | SpendIte
   const store = await loadStore();
   const current = findShopRecord(store, entity.entityType, entity.id) ?? entity;
   const title = `Shop ${formatToken(current.entityType)}: ${commercialTitle(current)}`;
+  const verdict = current.entityType === "supplier" ? await buildSupplierVerdictFor(current, store) : undefined;
   if (detailPanel) {
     detailPanel.title = title;
     detailPanel.reveal(vscode.ViewColumn.One);
@@ -498,7 +499,7 @@ async function openShopDetail(entity: SupplierRecord | ContractRecord | SpendIte
       detailPanel = undefined;
     });
   }
-  detailPanel.webview.html = renderShopDetailHtml(store, current);
+  detailPanel.webview.html = renderShopDetailHtml(store, current, verdict);
 }
 
 async function openShopEditor(
@@ -2604,6 +2605,68 @@ function lowerConfidence(first: string, second: string): string {
   return (rank.get(first) ?? 1) <= (rank.get(second) ?? 1) ? first : second;
 }
 
+/**
+ * J6 (v1.60.0 UX review): supplier verdict — composes criticality, open
+ * linked risk, contract-expiry proximity, and assurance linkage into one
+ * stated judgement, rather than leaving the operator to assemble it from
+ * separately-derived signals.
+ */
+interface SupplierVerdict {
+  readonly openRiskCount: number;
+  readonly highestRiskScore: number;
+  readonly nearestContractExpiryDays: number | undefined;
+  readonly hasAssuranceCoverage: boolean;
+  readonly statement: string;
+}
+
+async function buildSupplierVerdictFor(supplier: SupplierRecord, store: ShopStore): Promise<SupplierVerdict> {
+  const entities = await listCoreEntities();
+  const links = entities.filter((entity): entity is LinkEntity => entity.entityType === "link");
+  const risks = entities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+  return buildSupplierVerdict(supplier, links, risks, store.contracts, startOfUtcDay(new Date()));
+}
+
+function buildSupplierVerdict(
+  supplier: SupplierRecord,
+  links: readonly LinkEntity[],
+  risks: readonly RiskEntity[],
+  contracts: readonly ContractRecord[],
+  today: Date
+): SupplierVerdict {
+  const riskById = new Map(risks.map((risk) => [risk.id, risk]));
+  const openRisks = links
+    .filter((link) => isSupplierRiskLink(link) && link.fromId === supplier.id)
+    .map((link) => riskById.get(link.toId))
+    .filter((risk): risk is RiskEntity => risk !== undefined && risk.status !== "closed");
+  const openRiskCount = openRisks.length;
+  const highestRiskScore = openRisks.reduce((max, risk) => Math.max(max, risk.likelihood * risk.impact), 0);
+  const nearestContractExpiryDays = contracts
+    .filter((contract) => contract.supplierId === supplier.id && contract.status === "active")
+    .map((contract) => daysUntil(contract.endsAt, today))
+    .filter((days): days is number => days !== undefined && days >= 0)
+    .sort((first, second) => first - second)[0];
+  const hasAssuranceCoverage = links.some((link) => isSupplierAssuranceLink(link) && link.fromId === supplier.id);
+
+  const parts: string[] = [`${formatToken(supplier.criticality)} criticality supplier`];
+  parts.push(
+    openRiskCount > 0
+      ? `${openRiskCount} open risk${openRiskCount === 1 ? "" : "s"} (highest severity ${highestRiskScore})`
+      : "no open linked risks"
+  );
+  if (nearestContractExpiryDays !== undefined) {
+    parts.push(`contract lapses in ${nearestContractExpiryDays} day${nearestContractExpiryDays === 1 ? "" : "s"}`);
+  }
+  parts.push(hasAssuranceCoverage ? "linked to assurance coverage" : "not yet linked to assurance coverage");
+
+  return {
+    openRiskCount,
+    highestRiskScore,
+    nearestContractExpiryDays,
+    hasAssuranceCoverage,
+    statement: `${parts.join("; ")}.`
+  };
+}
+
 function deriveSupplierManagement(store: ShopStore): SupplierManagementSignal[] {
   return store.suppliers
     .slice()
@@ -3167,7 +3230,11 @@ function shopRecordLabel(entity: SupplierRecord | ContractRecord | SpendItemReco
     : `${formatToken(entity.entityType)} ${entity.title}`;
 }
 
-function renderShopDetailHtml(store: ShopStore, entity: SupplierRecord | ContractRecord | SpendItemRecord): string {
+function renderShopDetailHtml(
+  store: ShopStore,
+  entity: SupplierRecord | ContractRecord | SpendItemRecord,
+  verdict?: SupplierVerdict
+): string {
   const heading = commercialTitle(entity);
   const editCommand = shopDetailEditCommand(entity);
   return `<!doctype html>
@@ -3190,6 +3257,7 @@ function renderShopDetailHtml(store: ShopStore, entity: SupplierRecord | Contrac
     .detail-field { border: 1px solid var(--pspf-border); border-radius: var(--pspf-radius); padding: var(--pspf-pad-sm); background: var(--pspf-surface-strong); min-width: 0; }
     .detail-field span { display: block; color: var(--pspf-muted); font-size: var(--pspf-type-label); font-weight: 700; letter-spacing: var(--pspf-letter-label); text-transform: uppercase; }
     .detail-field strong { display: block; margin-top: 4px; overflow-wrap: anywhere; font-weight: 600; }
+    .supplier-verdict { border-left: 4px solid var(--shop-amber); background: var(--shop-panel); padding: var(--pspf-pad-sm) var(--pspf-pad); margin: 0 0 var(--pspf-pad); font-weight: 600; color: var(--pspf-text); }
   </style>
 </head>
 <body>
@@ -3204,6 +3272,7 @@ function renderShopDetailHtml(store: ShopStore, entity: SupplierRecord | Contrac
         <a class="pspf-button pspf-button--secondary" href="${escapeHtml(commandUri("pspf.shop.openForecast", []))}">Open forecast</a>
       </div>
     </section>
+    ${verdict ? `<p class="supplier-verdict" data-testid="supplier-verdict">${escapeHtml(verdict.statement)}</p>` : ""}
     <section class="pspf-section">
       <h2>${escapeHtml(formatToken(entity.entityType))}</h2>
       <div class="detail-grid">${shopDetailRows(entity, store).map(renderShopDetailField).join("")}</div>

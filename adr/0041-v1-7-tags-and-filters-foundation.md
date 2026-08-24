@@ -40,19 +40,19 @@ Adopt a **Tags and filters foundation** as the v1.7 slice. The slice has two par
 
 ### Tag entity shape
 
-| Field | Type | Required | Publication | Notes |
-|---|---|---|---|---|
-| `id` | string | yes | public | `TAG-<UUIDv7>`, time-stripped on publication per ADR 0002 |
-| `entityType` | string | yes | public | literal `tag` |
-| `schemaVersion` | string | yes | public | active `schemaVersion` |
-| `createdAt`, `updatedAt` | string | yes | public | ISO-8601 |
-| `sourceProduct` | enum | yes | public | `core` / `workshop` / `explorer` |
-| `recordStatus` | enum | yes | public | `active` / `archived` / `inactive` / `deleted` |
-| `label` | string | yes | public | Canonical unique key. Trimmed, normalised, case- and whitespace-insensitive uniqueness per E20. Allowed: letters, digits, spaces, hyphens, apostrophes. 1..40 chars |
-| `title` | string | yes | public | Display label shown in chips and pickers. Defaults to `label` if the operator does not edit it. 1..60 chars |
-| `description` | string | no | **sensitive** | Optional free-text note explaining why the tag exists. Default-deny applies: the field is excluded from bundles unless an export profile opts it in by name |
-| `colour` | enum | yes | public | One of the closed set: `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `grey`. Theme-aware token, resolved by Workshop and Explorer at render time |
-| `emoji` | string | no | public | Optional single grapheme cluster; rendered before the title in chips. Must be a single user-perceived character |
+| Field                    | Type   | Required | Publication   | Notes                                                                                                                                                               |
+| ------------------------ | ------ | -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                     | string | yes      | public        | `TAG-<UUIDv7>`, time-stripped on publication per ADR 0002                                                                                                           |
+| `entityType`             | string | yes      | public        | literal `tag`                                                                                                                                                       |
+| `schemaVersion`          | string | yes      | public        | active `schemaVersion`                                                                                                                                              |
+| `createdAt`, `updatedAt` | string | yes      | public        | ISO-8601                                                                                                                                                            |
+| `sourceProduct`          | enum   | yes      | public        | `core` / `workshop` / `explorer`                                                                                                                                    |
+| `recordStatus`           | enum   | yes      | public        | `active` / `archived` / `inactive` / `deleted`                                                                                                                      |
+| `label`                  | string | yes      | public        | Canonical unique key. Trimmed, normalised, case- and whitespace-insensitive uniqueness per E20. Allowed: letters, digits, spaces, hyphens, apostrophes. 1..40 chars |
+| `title`                  | string | yes      | public        | Display label shown in chips and pickers. Defaults to `label` if the operator does not edit it. 1..60 chars                                                         |
+| `description`            | string | no       | **sensitive** | Optional free-text note explaining why the tag exists. Default-deny applies: the field is excluded from bundles unless an export profile opts it in by name         |
+| `colour`                 | enum   | yes      | public        | One of the closed set: `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `grey`. Theme-aware token, resolved by Workshop and Explorer at render time    |
+| `emoji`                  | string | no       | public        | Optional single grapheme cluster; rendered before the title in chips. Must be a single user-perceived character                                                     |
 
 Tags MUST NOT carry person, assignment, or assessment data. Tags are classifications only.
 
@@ -86,18 +86,18 @@ Master bundles MAY include `indexes/by-tag.json` to support fast Explorer tag-ch
 
 ```json
 {
-	"schemaVersion": "1.4.0",
-	"generatedAt": "2026-05-16T00:00:00.000Z",
-	"tags": [
-		{
-			"tagId": "TAG-00000000-0000-7000-8000-000000000001",
-			"label": "security uplift",
-			"title": "Security uplift",
-			"colour": "grey",
-			"emoji": "",
-			"requirementIds": ["REQ-00000000-0000-7000-8000-000000000001"]
-		}
-	]
+  "schemaVersion": "1.4.0",
+  "generatedAt": "2026-05-16T00:00:00.000Z",
+  "tags": [
+    {
+      "tagId": "TAG-00000000-0000-7000-8000-000000000001",
+      "label": "security uplift",
+      "title": "Security uplift",
+      "colour": "grey",
+      "emoji": "",
+      "requirementIds": ["REQ-00000000-0000-7000-8000-000000000001"]
+    }
+  ]
 }
 ```
 
@@ -105,14 +105,14 @@ Master bundles MAY include `indexes/by-tag.json` to support fast Explorer tag-ch
 
 ### Limits
 
-| Limit | Value | Enforcement |
-|---|---|---|
-| Tags per workspace | 64 hard cap, 32 soft warning | Core write-time validation; soft warning surfaced in Workshop and Explorer pickers |
-| Tags applied per requirement | 16 hard cap | Core write-time validation |
-| `label` length | 1..40 chars | Core write-time validation |
-| `title` length | 1..60 chars | Core write-time validation |
-| `description` length | 0..1000 chars | Core write-time validation |
-| Tag label uniqueness | case- and whitespace-insensitive | E20 hard-reject |
+| Limit                        | Value                            | Enforcement                                                                        |
+| ---------------------------- | -------------------------------- | ---------------------------------------------------------------------------------- |
+| Tags per workspace           | 64 hard cap, 32 soft warning     | Core write-time validation; soft warning surfaced in Workshop and Explorer pickers |
+| Tags applied per requirement | 16 hard cap                      | Core write-time validation                                                         |
+| `label` length               | 1..40 chars                      | Core write-time validation                                                         |
+| `title` length               | 1..60 chars                      | Core write-time validation                                                         |
+| `description` length         | 0..1000 chars                    | Core write-time validation                                                         |
+| Tag label uniqueness         | case- and whitespace-insensitive | E20 hard-reject                                                                    |
 
 ### Filter contract
 
@@ -127,16 +127,16 @@ Tag filters MUST behave like the existing filter chips:
 
 ### Surfaces affected
 
-| Surface | Change |
-|---|---|
-| `packages/contracts` | `TagEntity` expanded; `LINK_TYPES` adds `tagged-with`; `PUBLICATION_FIELD_POLICIES` adds tag fields with the publication policies above |
-| `pspf-invariants.md` | V1 link list adds `tagged-with`; new tag invariant block (T1–T4) records limits, colour token set, taggable-entity restriction, and the URL filter contract |
-| `pspf-entity-link-spec.md` | Tag section replaced with the full shape; link table adds `tagged-with` row |
-| `pspf-explorer-json-bundle-schema-spec.md` | `collections/tags.json` listed as an optional but defined collection; `indexes/by-tag.json` listed as an optional derived index |
-| `explorer-screen-workflow-spec.md` | Tag filter promoted from "(v1.7+)" to active on Requirements and the Relationships Board; "My views" management surface remains deferred |
+| Surface                                      | Change                                                                                                                                                                 |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/contracts`                         | `TagEntity` expanded; `LINK_TYPES` adds `tagged-with`; `PUBLICATION_FIELD_POLICIES` adds tag fields with the publication policies above                                |
+| `pspf-invariants.md`                         | V1 link list adds `tagged-with`; new tag invariant block (T1–T4) records limits, colour token set, taggable-entity restriction, and the URL filter contract            |
+| `pspf-entity-link-spec.md`                   | Tag section replaced with the full shape; link table adds `tagged-with` row                                                                                            |
+| `pspf-explorer-json-bundle-schema-spec.md`   | `collections/tags.json` listed as an optional but defined collection; `indexes/by-tag.json` listed as an optional derived index                                        |
+| `explorer-screen-workflow-spec.md`           | Tag filter promoted from "(v1.7+)" to active on Requirements and the Relationships Board; "My views" management surface remains deferred                               |
 | `pspf-core-workshop-screen-workflow-spec.md` | Requirement Detail gets a tag rail (chips + picker); Workshop Requirements navigator gets a tag filter; Tag management is a webview reached by `Workshop: Manage Tags` |
-| `pspf-vscode-extension-surface-spec.md` | Adds Workshop commands `pspf.workshop.manageTags`, `pspf.workshop.applyTag`, `pspf.workshop.removeTag`, `pspf.workshop.filterRequirementsByTag` |
-| `pspf-spec-consistency-index.md` | New entry for v1.7; "tags" removed from the deferred-candidates list |
+| `pspf-vscode-extension-surface-spec.md`      | Adds Workshop commands `pspf.workshop.manageTags`, `pspf.workshop.applyTag`, `pspf.workshop.removeTag`, `pspf.workshop.filterRequirementsByTag`                        |
+| `pspf-spec-consistency-index.md`             | New entry for v1.7; "tags" removed from the deferred-candidates list                                                                                                   |
 
 ### Implementation gate (v1.7.0 release)
 

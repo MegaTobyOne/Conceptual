@@ -87,11 +87,11 @@ Suggested published structure:
 
 Bundles carry the three canonical version axes from ADR 0008:
 
-| Field | Meaning |
-|---|---|
-| `schemaVersion` | semver string for entity/schema layer |
-| `bundleVersion` | semver string for the bundle structure |
-| `apiVersion` | semver string for the Core API the producer used |
+| Field           | Meaning                                          |
+| --------------- | ------------------------------------------------ |
+| `schemaVersion` | semver string for entity/schema layer            |
+| `bundleVersion` | semver string for the bundle structure           |
+| `apiVersion`    | semver string for the Core API the producer used |
 
 A producer may also include `producerVersion` (the producing tool's release version) for human debugging only. Consumers MUST NOT make compatibility decisions on it.
 
@@ -178,34 +178,34 @@ The first file loaded by Explorer is `manifest.json`. It describes the bundle, a
 
 ### Required files
 
-| File | Purpose |
-|---|---|
-| `manifest.json` | bundle metadata and compatibility entry point |
-| `collections/links.json` | first-class link graph |
-| `collections/requirements.json` | requirement entities |
-| at least one summary index | fast initial Explorer render |
+| File                            | Purpose                                       |
+| ------------------------------- | --------------------------------------------- |
+| `manifest.json`                 | bundle metadata and compatibility entry point |
+| `collections/links.json`        | first-class link graph                        |
+| `collections/requirements.json` | requirement entities                          |
+| at least one summary index      | fast initial Explorer render                  |
 
 ### Optional files
 
-| File | Purpose |
-|---|---|
-| `collections/evidence.json` | evidence entities |
-| `collections/actions.json` | action/remediation entities |
-| `collections/risks.json` | risk entities |
-| `collections/suppliers.json` | supplier entities |
-| `collections/report-packs.json` | report pack entities |
-| `collections/snapshots.json` | immutable snapshot entities |
-| `collections/tags.json` | operator-applied classification labels (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) |
-| `collections/saved-views.json` | named user convenience filter snapshots for supported Explorer and Workshop scopes, including `workshop-source-controls` with `implementationStatuses` filters from schema `1.12.0` (see [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md), [adr/0043-v1-9-saved-view-expansion.md](adr/0043-v1-9-saved-view-expansion.md), and [adr/0071-v1-35-ism-control-as-workable-entity.md](adr/0071-v1-35-ism-control-as-workable-entity.md)) |
-| `collections/change-records.json` | published public change-record summaries for the Explorer "Why This Changed" view; sensitive reason, impact, and decision-owner fields are excluded (see [adr/0044-v1-10-change-records.md](adr/0044-v1-10-change-records.md)) |
-| `collections/cyber-functions.json` | curated ASD/ACSC cyber security functions used to group governance, protection, detection, and response context. |
-| `collections/mitigation-strategies.json` | curated Essential Eight and mitigation strategy records, including related PSPF Requirements and ISM source controls. |
-| `collections/guidance-frameworks.json` | ASD/ACSC guidance framework records with publisher, source URL, attribution, licence, and source hash. |
-| `collections/control-themes.json` | curated Trustworthy Software and Secure Configuration Management themes. |
-| `collections/cyber-reference-mappings.json` | queryable reference mappings between Requirements, ISM source controls, mitigation strategies, and control themes; mapping `rationale` is sensitive and excluded from public bundles. |
-| `indexes/by-tag.json` | derived requirement-id lists per tag for fast filter rendering |
-| `indexes/*.json` | denormalised read models |
-| `schemas/*.json` | published validation schemas |
+| File                                        | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `collections/evidence.json`                 | evidence entities                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `collections/actions.json`                  | action/remediation entities                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `collections/risks.json`                    | risk entities                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `collections/suppliers.json`                | supplier entities                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `collections/report-packs.json`             | report pack entities                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `collections/snapshots.json`                | immutable snapshot entities                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `collections/tags.json`                     | operator-applied classification labels (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md))                                                                                                                                                                                                                                                                                                        |
+| `collections/saved-views.json`              | named user convenience filter snapshots for supported Explorer and Workshop scopes, including `workshop-source-controls` with `implementationStatuses` filters from schema `1.12.0` (see [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md), [adr/0043-v1-9-saved-view-expansion.md](adr/0043-v1-9-saved-view-expansion.md), and [adr/0071-v1-35-ism-control-as-workable-entity.md](adr/0071-v1-35-ism-control-as-workable-entity.md)) |
+| `collections/change-records.json`           | published public change-record summaries for the Explorer "Why This Changed" view; sensitive reason, impact, and decision-owner fields are excluded (see [adr/0044-v1-10-change-records.md](adr/0044-v1-10-change-records.md))                                                                                                                                                                                                                   |
+| `collections/cyber-functions.json`          | curated ASD/ACSC cyber security functions used to group governance, protection, detection, and response context.                                                                                                                                                                                                                                                                                                                                 |
+| `collections/mitigation-strategies.json`    | curated Essential Eight and mitigation strategy records, including related PSPF Requirements and ISM source controls.                                                                                                                                                                                                                                                                                                                            |
+| `collections/guidance-frameworks.json`      | ASD/ACSC guidance framework records with publisher, source URL, attribution, licence, and source hash.                                                                                                                                                                                                                                                                                                                                           |
+| `collections/control-themes.json`           | curated Trustworthy Software and Secure Configuration Management themes.                                                                                                                                                                                                                                                                                                                                                                         |
+| `collections/cyber-reference-mappings.json` | queryable reference mappings between Requirements, ISM source controls, mitigation strategies, and control themes; mapping `rationale` is sensitive and excluded from public bundles.                                                                                                                                                                                                                                                            |
+| `indexes/by-tag.json`                       | derived requirement-id lists per tag for fast filter rendering                                                                                                                                                                                                                                                                                                                                                                                   |
+| `indexes/*.json`                            | denormalised read models                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `schemas/*.json`                            | published validation schemas                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 Workforce data is **never** included in bundles. There is no `personnel.json` collection. See `pspf-threat-model.md` T11 and the Personal data exclusion rule above.
 
@@ -359,20 +359,20 @@ Indexes are **derived**, **replaceable**, and **non-authoritative**. If an index
 
 ### Recommended v1 indexes
 
-| Index | Purpose |
-|---|---|
-| `status-summary.json` | requirement counts by status, domain, reporting scope |
-| `freshness-summary.json` | evidence freshness buckets |
-| `evidence-review-summary.json` | old, incomplete, changed, unverified, missing, or unlinked evidence by domain/requirement |
-| `risk-summary.json` | risk counts by level and domain |
-| `link-summary.json` | counts of key relationship types |
-| `reporting-readiness.json` | reporting readiness overview |
-| `action-impact-summary.json` | explainable ranking inputs for high-impact actions by scope |
-| `direction-response-summary.json` | Direction response state, evidence state, and open action counts |
-| `posture-brief.json` | constrained posture graphic/text/action-plan output data |
-| `shop-spend-forecast.json` | planned spend, expected savings, net benefit, payback, and confidence by period/scope |
+| Index                             | Purpose                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------ |
+| `status-summary.json`             | requirement counts by status, domain, reporting scope                                      |
+| `freshness-summary.json`          | evidence freshness buckets                                                                 |
+| `evidence-review-summary.json`    | old, incomplete, changed, unverified, missing, or unlinked evidence by domain/requirement  |
+| `risk-summary.json`               | risk counts by level and domain                                                            |
+| `link-summary.json`               | counts of key relationship types                                                           |
+| `reporting-readiness.json`        | reporting readiness overview                                                               |
+| `action-impact-summary.json`      | explainable ranking inputs for high-impact actions by scope                                |
+| `direction-response-summary.json` | Direction response state, evidence state, and open action counts                           |
+| `posture-brief.json`              | constrained posture graphic/text/action-plan output data                                   |
+| `shop-spend-forecast.json`        | planned spend, expected savings, net benefit, payback, and confidence by period/scope      |
 | `shop-savings-opportunities.json` | invest-now-save-later opportunities with linked requirements/actions/risks and assumptions |
-| `by-domain.json` | quick domain navigation metadata |
+| `by-domain.json`                  | quick domain navigation metadata                                                           |
 
 Action Impact and posture brief indexes are derived convenience files. They must include enough explanatory facts for Explorer to render "why this action" and "why this posture" without treating the index as an opaque authority. If they are absent, Explorer may recompute them from collections and links.
 
@@ -425,15 +425,15 @@ Every bundle must declare classification metadata. If the data is above the inte
 
 Every bundle import (in Core, Workshop, or Explorer) MUST enforce these minimum limits and reject any bundle that exceeds them with a structured `PSPF_IMPORT_LIMIT_EXCEEDED` diagnostic:
 
-| Limit | Minimum |
-|---|---|
-| Total bundle size | 50 MB |
-| Items per collection | 200,000 |
+| Limit                                 | Minimum   |
+| ------------------------------------- | --------- |
+| Total bundle size                     | 50 MB     |
+| Items per collection                  | 200,000   |
 | Total entities across all collections | 1,000,000 |
-| String field length | 64 KB |
-| Object/array nesting depth | 16 |
-| Number of collections | 64 |
-| Number of links | 2,000,000 |
+| String field length                   | 64 KB     |
+| Object/array nesting depth            | 16        |
+| Number of collections                 | 64        |
+| Number of links                       | 2,000,000 |
 
 Products MAY apply tighter limits. Browser-based Explorer SHOULD apply tighter limits to protect tab memory; recommended browser limits are bundle size 25 MB and items per collection 100,000.
 
@@ -503,11 +503,11 @@ The `mode` is informational. The valid set in v1 is `{ publication, local-author
 
 Per ADR 0009, every bundle declares an `intent` at the top level that tells the consumer how to apply it. The valid set in v1 is:
 
-| `intent` | Consumer behaviour |
-|---|---|
-| `full-replace` | Validate the entire bundle against the master schema. On accept, **clear every affected store and load the bundle's contents in a single transaction**. A schema-version mismatch or any validation failure rejects the bundle before any write. |
+| `intent`         | Consumer behaviour                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `full-replace`   | Validate the entire bundle against the master schema. On accept, **clear every affected store and load the bundle's contents in a single transaction**. A schema-version mismatch or any validation failure rejects the bundle before any write.                                                                                                                                                                                                                                                                                                                                                                                         |
 | `additive-merge` | Validate. For each item, match by `id` against the existing store, classifying it as `add` (absent locally), `collision` (present locally), or `skip` (validation failed). If **every** classified row is `add`, apply the additions in one transaction and show a post-import summary; no review prompt. If **any** row is a `collision`, open the plan-and-review pane: `add` rows are pre-checked, `collision` rows require an explicit `keep existing` (default) or `overwrite with incoming` choice per record. Nothing is written until the user confirms. The legacy "existing wins, silent skip" prototype behaviour is retired. |
-| `plan-apply` | Validate. Materialise a plan classifying each row as **add**, **update**, or **skip** (with reasons). Surface the plan to the user. Apply only the rows the user confirms. Validation alone makes no writes. |
+| `plan-apply`     | Validate. Materialise a plan classifying each row as **add**, **update**, or **skip** (with reasons). Surface the plan to the user. Apply only the rows the user confirms. Validation alone makes no writes.                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 Explorer-authored bundles default to `intent: additive-merge` for share scenarios, `intent: full-replace` for full-backup restore, and `intent: plan-apply` for risk/action work import. The publication flow uses `intent: full-replace` against the read-baseline store.
 
@@ -577,7 +577,7 @@ When `generator.mode == "grc-capture"`, the consumer MUST treat any evidence URL
 Top-level option declared on the bundle envelope (not on a single collection) because dangling references can sit on any entity and on first-class `relationships` records. Valid values:
 
 - `strict` — any link whose target is not resolvable (present in the bundle or in local state, depending on `intent`) rejects the bundle. Use for trusted, complete imports.
-- `lenient` *(default)* — accept the bundle, keep the dangling references, and report each one in the import summary. The receiving Explorer's Integrity scan will surface them later.
+- `lenient` _(default)_ — accept the bundle, keep the dangling references, and report each one in the import summary. The receiving Explorer's Integrity scan will surface them later.
 - `drop` — accept the bundle and silently drop dangling references; the import summary still reports the count and IDs dropped.
 
 Regardless of `linkValidation`, an incoming **first-class relationship record** with an unresolvable endpoint MUST be rejected. A relationship record with no resolvable endpoint has no semantic value. This rule is non-configurable.
@@ -783,13 +783,13 @@ These collections follow the same invariants as the canonical collections: lower
 
 ### Required collections per flow
 
-| Flow | Required collections |
-|---|---|
-| Publication (`intent: full-replace`) | `requirements`, `links`, plus at least one summary index |
+| Flow                                                 | Required collections                                                                                                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Publication (`intent: full-replace`)                 | `requirements`, `links`, plus at least one summary index                                                                                               |
 | Local-authoring full backup (`intent: full-replace`) | All non-empty local-authoring collections. The user MAY exclude the `compliance-events` collection at export time; the resulting bundle remains valid. |
-| Additive share (`intent: additive-merge`) | At least one of the local-authoring collections |
-| GRC capture (`generator.mode: grc-capture`) | `compliance-entries`, optionally `evidence` |
-| Work import (`intent: plan-apply`) | `risks` and/or `actions`, optionally `links` |
+| Additive share (`intent: additive-merge`)            | At least one of the local-authoring collections                                                                                                        |
+| GRC capture (`generator.mode: grc-capture`)          | `compliance-entries`, optionally `evidence`                                                                                                            |
+| Work import (`intent: plan-apply`)                   | `risks` and/or `actions`, optionally `links`                                                                                                           |
 
 ### Optional later collections
 

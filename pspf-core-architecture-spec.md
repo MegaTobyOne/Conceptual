@@ -90,11 +90,11 @@ A workspace-scoped store:
 
 ### Other options considered
 
-| Option | Strengths | Weaknesses |
-|---|---|---|
-| Workspace-scoped canonical DB | Clean boundary, portable, defensible, trust-aligned | Requires explicit aggregation if cross-workspace analysis is ever needed |
-| User-global canonical DB | Centralized data, easier reuse | Higher spill risk, harder separation, weaker project boundary |
-| Hybrid | Strong flexibility; workspace data plus global cache/defaults | More complexity and stronger governance needed |
+| Option                        | Strengths                                                     | Weaknesses                                                               |
+| ----------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Workspace-scoped canonical DB | Clean boundary, portable, defensible, trust-aligned           | Requires explicit aggregation if cross-workspace analysis is ever needed |
+| User-global canonical DB      | Centralized data, easier reuse                                | Higher spill risk, harder separation, weaker project boundary            |
+| Hybrid                        | Strong flexibility; workspace data plus global cache/defaults | More complexity and stronger governance needed                           |
 
 ### Selected model
 
@@ -135,18 +135,18 @@ workspace-root/
 
 ### Folder purposes
 
-| Path | Purpose |
-|---|---|
-| `.pspf/core/pspf-core.db` | Canonical runtime datastore |
-| `.pspf/core/migrations/` | Migration metadata and scripts |
-| `.pspf/core/journal/` | Append-only event or change journal artefacts |
-| `.pspf/core/locks/` | Lock files or coordination metadata |
-| `.pspf/exchange/imports/` | Imported JSON bundles pending or recorded |
-| `.pspf/exchange/exports/` | Generated export bundles |
-| `.pspf/exchange/snapshots/` | Immutable reporting snapshots |
-| `.pspf/config/` | Shared workspace and platform configuration |
-| `.pspf/cache/` | Rebuildable local caches |
-| `.pspf/logs/` | Redacted local logs |
+| Path                        | Purpose                                       |
+| --------------------------- | --------------------------------------------- |
+| `.pspf/core/pspf-core.db`   | Canonical runtime datastore                   |
+| `.pspf/core/migrations/`    | Migration metadata and scripts                |
+| `.pspf/core/journal/`       | Append-only event or change journal artefacts |
+| `.pspf/core/locks/`         | Lock files or coordination metadata           |
+| `.pspf/exchange/imports/`   | Imported JSON bundles pending or recorded     |
+| `.pspf/exchange/exports/`   | Generated export bundles                      |
+| `.pspf/exchange/snapshots/` | Immutable reporting snapshots                 |
+| `.pspf/config/`             | Shared workspace and platform configuration   |
+| `.pspf/cache/`              | Rebuildable local caches                      |
+| `.pspf/logs/`               | Redacted local logs                           |
 
 ### Bootstrap behaviour
 
@@ -240,21 +240,21 @@ Canonical IDs use a **prefix + UUIDv7** pattern, with the 48-bit Unix-millisecon
 
 A controlled registry of type prefixes should be maintained by Core. Initial examples:
 
-| Prefix | Entity |
-|---|---|
-| `REQ` | Requirement |
-| `EVD` | Evidence |
-| `SNP` | Snapshot |
-| `ACT` | Action |
-| `RSK` | Risk |
-| `SUP` | Supplier |
-| `CTR` | Contract |
-| `SPD` | Spend item |
-| `PER` | Person |
-| `ROL` | Role |
-| `ASM` | Assignment |
-| `NTF` | Notification rule |
-| `RPT` | Report pack |
+| Prefix | Entity            |
+| ------ | ----------------- |
+| `REQ`  | Requirement       |
+| `EVD`  | Evidence          |
+| `SNP`  | Snapshot          |
+| `ACT`  | Action            |
+| `RSK`  | Risk              |
+| `SUP`  | Supplier          |
+| `CTR`  | Contract          |
+| `SPD`  | Spend item        |
+| `PER`  | Person            |
+| `ROL`  | Role              |
+| `ASM`  | Assignment        |
+| `NTF`  | Notification rule |
+| `RPT`  | Report pack       |
 
 ### Friendly display IDs
 
@@ -325,12 +325,12 @@ Core owns persistence. Products own primary workflows for their domains, but the
 
 Recommended primary ownership model:
 
-| Product | Primary authored entities |
-|---|---|
-| Core | Configuration, snapshots, links, migration metadata, platform metadata |
-| Workshop | Validation actions, structured edits, diagnostics outcomes, analytical artefacts |
-| Shop | Supplier, contract, spend, related actions in commercial workflows |
-| Pub | Person, role, assignment, capacity/workforce records |
+| Product  | Primary authored entities                                                                 |
+| -------- | ----------------------------------------------------------------------------------------- |
+| Core     | Configuration, snapshots, links, migration metadata, platform metadata                    |
+| Workshop | Validation actions, structured edits, diagnostics outcomes, analytical artefacts          |
+| Shop     | Supplier, contract, spend, related actions in commercial workflows                        |
+| Pub      | Person, role, assignment, capacity/workforce records                                      |
 | Explorer | No authoritative runtime writes in Core mode; JSON-boundary edits only in standalone mode |
 
 ### Cross-product updates
@@ -380,12 +380,12 @@ When communication occurs through exported extension APIs, commands, local stora
 
 Core API v1 should expose four groups only:
 
-| Group | Purpose |
-|---|---|
-| Queries | Read records, links, summaries, platform state |
-| Commands | Create, update, link, snapshot, import, export, validate |
-| Events | Subscribe to changed records, migrations, snapshots, health changes |
-| Platform | Health, version, capabilities, trust status |
+| Group    | Purpose                                                             |
+| -------- | ------------------------------------------------------------------- |
+| Queries  | Read records, links, summaries, platform state                      |
+| Commands | Create, update, link, snapshot, import, export, validate            |
+| Events   | Subscribe to changed records, migrations, snapshots, health changes |
+| Platform | Health, version, capabilities, trust status                         |
 
 ### API design constraints
 
@@ -477,14 +477,14 @@ All Core-managed data should be treated as sensitive by default. This has visibl
 
 This decision will visibly affect the platform in several ways:
 
-| Area | Likely impact |
-|---|---|
-| Startup | Integrity checks, migration checks, or trust checks may add startup time |
-| Writes | Validation, journaling, and history logging may slow heavy batch writes |
-| Notifications | Messages will be less specific to reduce information leakage |
-| Logging | Debugging may be harder because logs must be redacted |
-| UI convenience | Rich details may be hidden from lightweight surfaces such as status bar |
-| Export | Export and snapshot creation will require clearer user intent and confirmation |
+| Area           | Likely impact                                                                  |
+| -------------- | ------------------------------------------------------------------------------ |
+| Startup        | Integrity checks, migration checks, or trust checks may add startup time       |
+| Writes         | Validation, journaling, and history logging may slow heavy batch writes        |
+| Notifications  | Messages will be less specific to reduce information leakage                   |
+| Logging        | Debugging may be harder because logs must be redacted                          |
+| UI convenience | Rich details may be hidden from lightweight surfaces such as status bar        |
+| Export         | Export and snapshot creation will require clearer user intent and confirmation |
 
 ### Workspace trust
 
@@ -551,17 +551,17 @@ No single "platform VSIX" exists. The earlier `pspf-platform` bundling proposal 
 
 Per ADR 0013, the entire ecosystem lives in a **single private GitHub repository** named `pspf` on the maintainer's GitHub Pro account. Each product is a workspace package; the four VSIX-producing extensions still release independently via per-package release tags. The earlier polyrepo proposal (`pspf-core` + `pspf-workshop` + `pspf-shop` + `pspf-pub` + `pspf-explorer` + `pspf-contracts`) is retired.
 
-| Path | Contents |
-|---|---|
-| `packages/contracts/` | Schema, SDK, API contract types, ID utilities, importer/exporter, brief renderer, chart renderer, fixtures |
-| `packages/core/` | Core extension: storage, API, migrations, exporter/importer integration |
-| `packages/workshop/` | Workshop extension: authoring surface, depends on Core |
-| `packages/shop/` | Shop extension: supplier/contract surface (v0.2+), depends on Core |
-| `packages/pub/` | Pub extension: people/role/assignment surface (v0.2+), depends on Core |
-| `packages/assurance/` | Assurance extension: third-party assessments, pentest lifecycle, assurance findings, review, approval, and publication-readiness surface, depends on Core |
-| `packages/explorer/` | Explorer SPA and schema-boundary tooling |
-| `docs/` | Specs, ADRs, runbooks, glossary, onboarding |
-| `schemas/explorer-bundle/<schemaVersion>/` | Per-version bundle JSON Schemas (E23) |
+| Path                                       | Contents                                                                                                                                                  |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/contracts/`                      | Schema, SDK, API contract types, ID utilities, importer/exporter, brief renderer, chart renderer, fixtures                                                |
+| `packages/core/`                           | Core extension: storage, API, migrations, exporter/importer integration                                                                                   |
+| `packages/workshop/`                       | Workshop extension: authoring surface, depends on Core                                                                                                    |
+| `packages/shop/`                           | Shop extension: supplier/contract surface (v0.2+), depends on Core                                                                                        |
+| `packages/pub/`                            | Pub extension: people/role/assignment surface (v0.2+), depends on Core                                                                                    |
+| `packages/assurance/`                      | Assurance extension: third-party assessments, pentest lifecycle, assurance findings, review, approval, and publication-readiness surface, depends on Core |
+| `packages/explorer/`                       | Explorer SPA and schema-boundary tooling                                                                                                                  |
+| `docs/`                                    | Specs, ADRs, runbooks, glossary, onboarding                                                                                                               |
+| `schemas/explorer-bundle/<schemaVersion>/` | Per-version bundle JSON Schemas (E23)                                                                                                                     |
 
 This keeps the tightest coupling together while still allowing each VSIX to release on its own cadence.
 
@@ -580,22 +580,22 @@ Within the monorepo, packages stay coherent through:
 
 The following decisions are locked for Core v1:
 
-| Topic | Decision |
-|---|---|
-| Platform role | Core has its own small administrative user surface |
-| System of record | Core is authoritative for all extension-based products |
-| Runtime storage | SQLite |
-| Interchange | JSON bundles and snapshots |
-| Scope | Workspace-scoped canonical store |
-| IDs | Prefix + immutable globally unique token |
-| Write model | Core-controlled persistence with product-owned workflows |
-| History | Current state + append-only history + immutable snapshots |
-| Secrets | `SecretStorage` only |
-| Network exposure | None in v1 |
-| Explorer relationship | Standalone-capable, JSON-boundary only |
-| Explorer connected mode | Deferred to post-v1 |
-| Migration execution | Operator-invoked only; degraded read-only on schema bump until run |
-| Packaging | Four separate extensions; install Core+Workshop together by recommendation |
+| Topic                   | Decision                                                                   |
+| ----------------------- | -------------------------------------------------------------------------- |
+| Platform role           | Core has its own small administrative user surface                         |
+| System of record        | Core is authoritative for all extension-based products                     |
+| Runtime storage         | SQLite                                                                     |
+| Interchange             | JSON bundles and snapshots                                                 |
+| Scope                   | Workspace-scoped canonical store                                           |
+| IDs                     | Prefix + immutable globally unique token                                   |
+| Write model             | Core-controlled persistence with product-owned workflows                   |
+| History                 | Current state + append-only history + immutable snapshots                  |
+| Secrets                 | `SecretStorage` only                                                       |
+| Network exposure        | None in v1                                                                 |
+| Explorer relationship   | Standalone-capable, JSON-boundary only                                     |
+| Explorer connected mode | Deferred to post-v1                                                        |
+| Migration execution     | Operator-invoked only; degraded read-only on schema bump until run         |
+| Packaging               | Four separate extensions; install Core+Workshop together by recommendation |
 
 ## Implementation priorities
 

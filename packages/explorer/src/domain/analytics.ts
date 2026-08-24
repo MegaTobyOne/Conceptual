@@ -15,6 +15,19 @@ import type {
 } from '../data/types.ts';
 import { asRequirementId } from '../data/types.ts';
 import { allRequirements } from '../pspf/index.ts';
+import {
+  buildConsequenceStatement,
+  buildUncoveredRiskStatement,
+  classifyBlocker,
+  describeChangeRollup,
+  isExpiringWithinDays,
+  isWithinFreshnessWindow,
+  rankBlockersByFanIn,
+  summariseAssessmentBasis,
+  summariseUncoveredRisk,
+  type AssessmentBasisSummary,
+  type BlockerClass,
+} from '@pspf/contracts';
 
 export interface ComplianceBreakdown {
   total: number;
@@ -82,7 +95,136 @@ export function complianceBreakdown(
   return { total, byState, compliantPct };
 }
 
+/**
+ * J1 (v1.53.0 UX review): basis of the 'yes' (fully implemented) compliance
+ * entries — how many are backed by evidence, and how much of that evidence
+ * falls within the freshness window. A compliance entry with no evidence
+ * entries is asserted; with evidence but none recent is evidenced; with at
+ * least one recent evidence entry is evidenced-fresh.
+ */
+export function metComplianceBasis(
+  compliance: ReadonlyMap<RequirementId, ComplianceEntry>,
+  referenceDate: Date = new Date(),
+): AssessmentBasisSummary {
+  const metEntries = [...compliance.values()].filter((entry) => entry.state === 'yes');
+  return summariseAssessmentBasis(
+    metEntries.map((entry) => ({
+      evidenceCount: entry.evidence.length,
+      freshEvidenceCount: entry.evidence.filter((item) =>
+        isWithinFreshnessWindow(item.addedAt, referenceDate),
+      ).length,
+    })),
+  );
+}
+
 export type RiskBand = 'low' | 'medium' | 'high' | 'extreme';
+
+/**
+ * J2 (v1.55.0 UX review): "why care" statement for a single requirement,
+ * derived from its linked open risks and current compliance state.
+ */
+export function requirementConsequence(
+  requirementId: RequirementId,
+  state: ComplianceState,
+  risks: readonly Risk[],
+): string {
+  const linkedOpenRisks = risks.filter(
+    (risk) => risk.requirementIds.includes(requirementId) && risk.status !== 'closed',
+  );
+  return buildConsequenceStatement({
+    met: state === 'yes',
+    openLinkedRiskCount: linkedOpenRisks.length,
+    maxLinkedRiskSeverity: linkedOpenRisks.reduce(
+      (max, risk) => Math.max(max, risk.likelihood * risk.impact),
+      0,
+    ),
+  });
+}
+
+/**
+ * Ecosystem-wide "why care" lead statement: of all open risks, how many have
+ * no requirement covering them that is currently fully implemented ('yes').
+ */
+export function uncoveredRiskStatement(
+  compliance: ReadonlyMap<RequirementId, ComplianceEntry>,
+  risks: readonly Risk[],
+): string {
+  const metRequirementIds = new Set(
+    [...compliance.entries()].filter(([, entry]) => entry.state === 'yes').map(([id]) => id),
+  );
+  const openRisks = risks.filter((risk) => risk.status !== 'closed');
+  const coverage = new Map<string, boolean>(
+    openRisks.map((risk) => [risk.id, risk.requirementIds.some((id) => metRequirementIds.has(id))]),
+  );
+  return buildUncoveredRiskStatement(summariseUncoveredRisk(openRisks, coverage));
+}
+
+/**
+ * J3 (v1.56.0 UX review): ranks open actions by how many not-met linked
+ * requirements they gate, so the highest-leverage blocker surfaces first.
+ */
+export interface RankedActionBlocker {
+  readonly actionId: string;
+  readonly title: string;
+  readonly gatedRequirementCount: number;
+  readonly blockerClass: BlockerClass;
+}
+
+export function topActionBlockers(
+  actions: readonly Action[],
+  compliance: ReadonlyMap<RequirementId, ComplianceEntry>,
+  limit = 5,
+): readonly RankedActionBlocker[] {
+  const openActions = actions.filter(
+    (action) => action.status !== 'done' && action.status !== 'cancelled',
+  );
+  const candidates = openActions.map((action) => ({
+    id: action.id,
+    gatedRequirementIds: action.requirementIds.filter((id) => {
+      const entry = compliance.get(id);
+      const state: ComplianceState = entry ? entry.state : 'not-set';
+      return state !== 'yes' && state !== 'not-applicable';
+    }),
+  }));
+  const ranked = rankBlockersByFanIn(candidates, limit);
+  const actionsById = new Map(openActions.map((action) => [action.id, action]));
+  return ranked.flatMap((entry) => {
+    const action = actionsById.get(entry.id as Action['id']);
+    if (!action) return [];
+    return [
+      {
+        actionId: entry.id,
+        title: action.title,
+        gatedRequirementCount: entry.gatedRequirementCount,
+        blockerClass: classifyBlocker({
+          isReviewType: action.type === 'review',
+          hasCommercialLink: false,
+        }),
+      },
+    ];
+  });
+}
+
+/**
+ * Staleness preview: count of requirements whose 'yes' compliance entry has
+ * evidence that will fall outside the freshness window within 90 days —
+ * i.e. requirements that will become less compliant soon unless refreshed.
+ */
+export function evidenceExpiringSoonCount(
+  compliance: ReadonlyMap<RequirementId, ComplianceEntry>,
+  referenceDate: Date = new Date(),
+): number {
+  let count = 0;
+  for (const entry of compliance.values()) {
+    if (
+      entry.state === 'yes' &&
+      entry.evidence.some((item) => isExpiringWithinDays(item.addedAt, referenceDate))
+    ) {
+      count += 1;
+    }
+  }
+  return count;
+}
 
 export function riskBandOf(score: number): RiskBand {
   if (score >= 16) return 'extreme';
@@ -147,6 +289,23 @@ export function complianceEventsSince(
       fromState: event.fromState,
       toState: event.toState,
     }));
+}
+
+/**
+ * J5 (v1.59.0 UX review): roll-up narrative for a reader-anchored change
+ * period. "Improved" and "regressed" are derived from recorded compliance
+ * transitions; "went stale" reuses the S3 staleness-preview count so no new
+ * event storage is required.
+ */
+export function changeRollupStatement(
+  changes: readonly ComplianceChangePoint[],
+  expiringSoonCount: number,
+): string {
+  const improved = changes.filter((change) => change.toState === 'yes').length;
+  const regressed = changes.filter(
+    (change) => change.fromState === 'yes' && change.toState !== 'yes',
+  ).length;
+  return describeChangeRollup({ improved, regressed, wentStale: expiringSoonCount });
 }
 
 export function essentialEightCoverage(

@@ -5,7 +5,7 @@
 
 ## Context
 
-By v1.19 operators can author Directions, Requirements, Risks, and Actions, link them with the existing closed link taxonomy, and review them in Workshop tables, Explorer panels, and Shop coverage views. None of those surfaces show, at a glance, *how* the chain hangs together. Operators currently re-trace the linkage by jumping between sections, the Relationships Board, and detail panels.
+By v1.19 operators can author Directions, Requirements, Risks, and Actions, link them with the existing closed link taxonomy, and review them in Workshop tables, Explorer panels, and Shop coverage views. None of those surfaces show, at a glance, _how_ the chain hangs together. Operators currently re-trace the linkage by jumping between sections, the Relationships Board, and detail panels.
 
 For v1.20 the next useful slice is a single read-only "Connected View" that shows the Directions → Requirements → Risks → Actions chain on one board and lets the operator click a card to highlight the connected chain. This is purely a visualisation slice on top of existing data; it must not change schemas, link verbs, entity fields, or compatibility axes.
 

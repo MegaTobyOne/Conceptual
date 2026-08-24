@@ -6,32 +6,34 @@ This design is intended for small static sites and single-page apps hosted on a 
 
 ## Pinned values for v1.0
 
-| Setting | Value |
-|---|---|
-| Production host | `tobyharvey.online` |
-| Test host | `test.tobyharvey.online` |
-| Fallback SSH/SFTP hostname | `s04le.syd7.hostingplatform.net.au` |
-| SSH port | `2683` |
-| Production deploy key secret | `VENTRAIP_DEPLOY_KEY_PROD` (held in `production-web` environment) |
-| Test deploy key secret | `VENTRAIP_DEPLOY_KEY_TEST` (held in `test-web` environment) |
-| Production approval | Manual reviewer approval required on `production-web` |
-| Test approval | Automatic from `develop` after CI gates pass |
-| Marketplace publisher | `tobyharvey` |
-| Marketplace token secret | `VSCE_TOKEN` (held in `marketplace` environment, manual approval) |
-| Open VSX | Not used in v1.0 |
-| Deploy runner | Self-hosted macOS runner named `pspf-runner`, labelled `mechastopheles` |
+| Setting                      | Value                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| Production host              | `tobyharvey.online`                                                     |
+| Test host                    | `test.tobyharvey.online`                                                |
+| Fallback SSH/SFTP hostname   | `s04le.syd7.hostingplatform.net.au`                                     |
+| SSH port                     | `2683`                                                                  |
+| Production deploy key secret | `VENTRAIP_DEPLOY_KEY_PROD` (held in `production-web` environment)       |
+| Test deploy key secret       | `VENTRAIP_DEPLOY_KEY_TEST` (held in `test-web` environment)             |
+| Production approval          | Manual reviewer approval required on `production-web`                   |
+| Test approval                | Automatic from `develop` after CI gates pass                            |
+| Marketplace publisher        | `tobyharvey`                                                            |
+| Marketplace token secret     | `VSCE_TOKEN` (held in `marketplace` environment, manual approval)       |
+| Open VSX                     | Not used in v1.0                                                        |
+| Deploy runner                | Self-hosted macOS runner named `pspf-runner`, labelled `mechastopheles` |
 
 ## PSPF fit assessment
 
 VentraIP is a workable production host for the Explorer app shell because Explorer publication mode is static: it serves HTML, JavaScript, CSS, JSON schemas, and optionally a manifest-led JSON bundle. It is not the PSPF system of record, not a Core API host, and not a place to run Workshop, SQLite, package builds, long-running workers, or private collaboration services.
 
 Recommended PSPF use:
+
 - Host the primary public site and production Explorer shell on the primary domain.
 - Host a separate test Explorer shell on a test subdomain, such as `test.<domain>` or `preview.<domain>`, before promoting to production.
 - Publish PSPF and ISM source/reference text when it is already publicly available online and licence/attribution requirements are met.
 - Publish organisation-specific bundles only after the deployment safety gate and the personal-data/redaction gates pass.
 
 Do not publish:
+
 - `.pspf/` workspaces, SQLite databases, snapshots, raw debug workspaces, source repositories, or package-manager caches.
 - Any bundle containing fields marked `sensitive` or `restricted` by the schema publication policy.
 - Personal data, including `Person.name`, `Person.email`, or `Assignment.personId`.
@@ -43,22 +45,22 @@ The preferred pattern is to keep source control and CI/CD outside the hosting ac
 
 Because VentraIP requires SSH/SFTP source IP allowlisting and GitHub-hosted Actions use a large changing set of outbound ranges, PSPF uses a dedicated self-hosted macOS GitHub Actions runner for the final deploy hop. The runner is named `pspf-runner`, labelled `mechastopheles`, and used only after the web artefact has been built and safety-checked. See `pspf-self-hosted-runner-hardening-runbook.md`.
 
-| Layer | Recommended role |
-|---|---|
-| Source control | Private GitHub repository or equivalent.[cite:14] |
-| Build | GitHub Actions or another CI runner that produces a static `dist/` or `build/` folder.[cite:14] |
+| Layer            | Recommended role                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| Source control   | Private GitHub repository or equivalent.[cite:14]                                                             |
+| Build            | GitHub Actions or another CI runner that produces a static `dist/` or `build/` folder.[cite:14]               |
 | Deploy transport | SSH key authentication over VentraIP SSH/SFTP from the allowlisted self-hosted deploy runner.[cite:2][cite:5] |
-| Runtime | cPanel document root for a subdomain, serving only compiled assets.[cite:14] |
-| Scheduling | cPanel cron jobs only for small maintenance tasks, if required.[cite:3] |
+| Runtime          | cPanel document root for a subdomain, serving only compiled assets.[cite:14]                                  |
+| Scheduling       | cPanel cron jobs only for small maintenance tasks, if required.[cite:3]                                       |
 
 ## Environment model
 
 Two web environments are used:
 
-| Environment | Hostname | Purpose | Promotion rule |
-|---|---|---|---|
-| Test | `test.tobyharvey.online` | Validate new Explorer builds, schemas, headers, and sample bundles before release. | Automatic deploy from `develop` after CI gates pass. |
-| Production | `tobyharvey.online` | Public landing page at root and Explorer SPA under `/explorer`. | Manual reviewer approval on the `production-web` GitHub Actions environment; only from a signed-off release tag. |
+| Environment | Hostname                 | Purpose                                                                            | Promotion rule                                                                                                   |
+| ----------- | ------------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Test        | `test.tobyharvey.online` | Validate new Explorer builds, schemas, headers, and sample bundles before release. | Automatic deploy from `develop` after CI gates pass.                                                             |
+| Production  | `tobyharvey.online`      | Public landing page at root and Explorer SPA under `/explorer`.                    | Manual reviewer approval on the `production-web` GitHub Actions environment; only from a signed-off release tag. |
 
 Test must use a separate document root and a separate deploy key (`VENTRAIP_DEPLOY_KEY_TEST`) so a failed preview deployment cannot overwrite production. Release directories are kept separate, for example `~/apps/pspf-web-test` and `~/apps/pspf-web-prod`.
 
@@ -76,6 +78,7 @@ If `dig` returns no address, GitHub Actions will deploy successfully to the file
 Create one subdomain per app or site so each deployment has a separate document root and clearer operational boundaries.[cite:14] Enable SSL on every hostname and keep the account focused on hosting rather than mixing in unrelated workloads where possible.[cite:7][cite:10]
 
 Recommended controls:
+
 - Enable SSH/SFTP only for required source IPs via VIPcontrol.[cite:5]
 - Use SSH keys rather than password-based shell access.[cite:2]
 - Keep a separate deploy key per application.[cite:2]
@@ -107,6 +110,7 @@ Where the hosting plan allows it, point the subdomain document root at the `curr
 The safest default is to build in CI and publish only generated assets to the host.[cite:5][cite:14] That avoids placing package managers, repository tokens, or full source trees on the cPanel account.[cite:14]
 
 Suggested workflow:
+
 1. Commit to the private repository.[cite:14]
 2. CI installs dependencies and builds the app into `dist/`.[cite:14]
 3. CI runs `pnpm run check:deployment-safety`, `pnpm run check:personal-data`, `pnpm run check:explorer-publication`, and the release gates relevant to the change.
@@ -127,7 +131,7 @@ name: Deploy static site to VentraIP
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
 
 jobs:
   deploy:
@@ -140,8 +144,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -193,6 +197,7 @@ jobs:
 Store the private deploy key in the CI platform secret store and authorize only the matching public key in cPanel SSH Access.[cite:2] Restrict SSH/SFTP access to known source IPs in VIPcontrol wherever practical, because VentraIP exposes SSH/SFTP after allowlisting is configured.[cite:5]
 
 Recommended secret handling:
+
 - One SSH keypair per app and environment.[cite:2]
 - If VentraIP requires passphrased SSH keys, store the passphrase as a separate environment secret and let the workflow unlock the key through `ssh-agent`; do not rely on interactive password prompts.
 - No repository write access from the hosting account.[cite:14]
@@ -202,22 +207,22 @@ Recommended secret handling:
 
 GitHub environment variables required by `.github/workflows/web-release.yml`:
 
-| Environment | Variable | Value |
-|---|---|---|
-| `test-web` | `SITE_URL` | `https://test.tobyharvey.online` |
-| `test-web` | `VENTRAIP_SSH_USER` | VentraIP SSH username |
-| `test-web` | `VENTRAIP_SSH_HOST` | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
-| `test-web` | `VENTRAIP_APP_DIR` | Suggested: `/home/<ssh-user>/apps/pspf-web-test` |
-| `test-web` | `VENTRAIP_DOCROOT` | cPanel document root for `test.tobyharvey.online` |
-| `test-web` | Secret `VENTRAIP_DEPLOY_KEY_TEST` | Passphrase-protected private deploy key |
-| `test-web` | Secret `VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST` | Passphrase for the test deploy key |
-| `production-web` | `SITE_URL` | `https://tobyharvey.online` |
-| `production-web` | `VENTRAIP_SSH_USER` | VentraIP SSH username |
-| `production-web` | `VENTRAIP_SSH_HOST` | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
-| `production-web` | `VENTRAIP_APP_DIR` | Suggested: `/home/<ssh-user>/apps/pspf-web-prod` |
-| `production-web` | `VENTRAIP_DOCROOT` | cPanel document root for `tobyharvey.online` |
-| `production-web` | Secret `VENTRAIP_DEPLOY_KEY_PROD` | Passphrase-protected private deploy key |
-| `production-web` | Secret `VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD` | Passphrase for the production deploy key |
+| Environment      | Variable                                     | Value                                                                 |
+| ---------------- | -------------------------------------------- | --------------------------------------------------------------------- |
+| `test-web`       | `SITE_URL`                                   | `https://test.tobyharvey.online`                                      |
+| `test-web`       | `VENTRAIP_SSH_USER`                          | VentraIP SSH username                                                 |
+| `test-web`       | `VENTRAIP_SSH_HOST`                          | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
+| `test-web`       | `VENTRAIP_APP_DIR`                           | Suggested: `/home/<ssh-user>/apps/pspf-web-test`                      |
+| `test-web`       | `VENTRAIP_DOCROOT`                           | cPanel document root for `test.tobyharvey.online`                     |
+| `test-web`       | Secret `VENTRAIP_DEPLOY_KEY_TEST`            | Passphrase-protected private deploy key                               |
+| `test-web`       | Secret `VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST` | Passphrase for the test deploy key                                    |
+| `production-web` | `SITE_URL`                                   | `https://tobyharvey.online`                                           |
+| `production-web` | `VENTRAIP_SSH_USER`                          | VentraIP SSH username                                                 |
+| `production-web` | `VENTRAIP_SSH_HOST`                          | `s04le.syd7.hostingplatform.net.au` unless cPanel shows a better host |
+| `production-web` | `VENTRAIP_APP_DIR`                           | Suggested: `/home/<ssh-user>/apps/pspf-web-prod`                      |
+| `production-web` | `VENTRAIP_DOCROOT`                           | cPanel document root for `tobyharvey.online`                          |
+| `production-web` | Secret `VENTRAIP_DEPLOY_KEY_PROD`            | Passphrase-protected private deploy key                               |
+| `production-web` | Secret `VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD` | Passphrase for the production deploy key                              |
 
 ## VS Code Marketplace deployment path
 
@@ -247,6 +252,7 @@ The publication gate distinguishes public reference material from sensitive oper
 VentraIP documents Git Version Control in cPanel, which can be useful for simple repository-backed workflows or for keeping a deployment repository server-side.[cite:14] VentraIP also documents cPanel Terminal access and cron jobs, which can support lightweight administration and scheduled maintenance tasks.[cite:4][cite:3]
 
 Practical use of those features:
+
 - Git Version Control for a lightweight server-side deployment repo, if artifact-only deployment is not preferred.[cite:14]
 - Terminal for inspection and small operational tasks, not for primary builds.[cite:4]
 - Cron jobs for certificate checks, cache refreshes, or cleanup tasks where needed.[cite:3]

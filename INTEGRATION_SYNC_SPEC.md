@@ -192,7 +192,7 @@ interface ExternalRiskReference {
   lastSyncedAt: string;
   mappingVersion: string;
   rawHash: string;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
 }
 ```
 

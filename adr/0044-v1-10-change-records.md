@@ -5,7 +5,7 @@
 
 ## Context
 
-User validation of v1.9 and review of the external 12-month cyber plan concept (`pspf-plan-spec.md`) confirmed the most valuable missing capability is structured, lightweight tracking of *significant* plan and posture changes — not field-level history. Operators need to record why a priority, direction, requirement, action, or risk moved, what it affected, and whether the impact is temporary or persistent, in a form that survives Workshop → Explorer publication and round-trips through plan-apply.
+User validation of v1.9 and review of the external 12-month cyber plan concept (`pspf-plan-spec.md`) confirmed the most valuable missing capability is structured, lightweight tracking of _significant_ plan and posture changes — not field-level history. Operators need to record why a priority, direction, requirement, action, or risk moved, what it affected, and whether the impact is temporary or persistent, in a form that survives Workshop → Explorer publication and round-trips through plan-apply.
 
 `pspf-plan-spec.md` also led to a deliberate ecosystem split: most planning capability lands inside existing Workshop and Explorer surfaces first, with a possible future "PSPF Plan" product (own ADR, own package) sharing the same master JSON bundle. v1.10 proves the change-rationale model inside Workshop and Explorer before any new product surface is opened.
 
@@ -87,4 +87,4 @@ v1.10 does not add: Explorer-authored change records, before/after diff views, c
 
 ## Consequences
 
-Workshop becomes the system of record for change rationale and impact in the same way it is for assessment data. Explorer surfaces the *why* of a moving posture without taking authoring responsibility. The master JSON bundle continues to carry every product surface through a single additive schema bump, leaving room for v1.11 to close the Explorer story and v1.12 to test planning-lens workflows before any PSPF Plan ADR is opened.
+Workshop becomes the system of record for change rationale and impact in the same way it is for assessment data. Explorer surfaces the _why_ of a moving posture without taking authoring responsibility. The master JSON bundle continues to carry every product surface through a single additive schema bump, leaving room for v1.11 to close the Explorer story and v1.12 to test planning-lens workflows before any PSPF Plan ADR is opened.

@@ -4,7 +4,7 @@ Status: **active**
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.52.0 with Core, Workshop, Assurance, Shop, Pub, and Explorer. Studio System provides compact, responsive navigation, tables, status chips, and product/domain wayfinding across the ecosystem. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.14.0`.
+The repository currently ships PSPF v1.60.0 with Core, Workshop, Assurance, Shop, Pub, and Explorer. Studio System provides compact, responsive navigation, tables, status chips, and product/domain wayfinding across the ecosystem. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.15.0`.
 
 ## Products
 
@@ -31,7 +31,7 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.52.0-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.60.0-readiness-report.md`.
 
 ## Current Product Direction
 
@@ -75,6 +75,19 @@ Recent Workshop additions include:
 - Saved views: Workshop saved views can be opened, renamed, archived, and edited so the saved filter definition can change over time.
 - ISM controls: direct control-to-evidence/action/risk links, internal implementation posture, control-side Requirement mapping, dedicated ISM control saved views, public-safe ISM posture brief rollups, and Explorer read-only obligation navigation.
 - ISM Review Workbench: operators can triage unmapped, not-assessed, drift-review, needs-direct-work, and risk-without-action source controls without adding schema-bearing state.
+
+## Current UX Judgement-Support Slice
+
+v1.53.0–v1.60.0 (ADRs 0087–0094) deliver a judgement-support review pass across Workshop and Explorer, following a UX review that found the ecosystem's data mostly existed but was never composed into a stated answer. Each release added one shared, tested primitive to `@pspf/contracts` and wired it into the highest-traffic surfaces:
+
+- **Basis** (J1): every headline compliance percentage states whether it is asserted, evidenced, or evidenced-and-fresh.
+- **Consequence** (J2): requirement detail and the posture brief lead with the risk consequence of not meeting a requirement, not just a percentage.
+- **Blockers** (J3): a fan-in-ranked "who is blocking us, and who moves next" view, with an operator-settable override (including a `supplier` class) added via the v1.57.0 schema bump.
+- **Trajectory** (J4): closure velocity and a range-with-stated-assumption projection — never an unqualified date — coupled to the current blocker count, plus a sustain-line note.
+- **Reader-anchored change** (J5): Explorer anchors "what changed" to the reader's last visit rather than a fixed calendar window, with a roll-up narrative and in-situ changed-row badges; Workshop's existing reader-anchored momentum sentence now names the anchor date.
+- **Supplier verdict** (J6): Shop composes a stated supplier risk verdict from criticality, open linked risk, contract-expiry proximity, and assurance coverage. Explorer publication of supplier data is deliberately deferred pending a dedicated commercial-data publication-policy ADR.
+
+The full judgement set, scoring, and backlog live in [docs/ux-improvement-ideas.md](docs/ux-improvement-ideas.md).
 
 ## Manual Validation
 

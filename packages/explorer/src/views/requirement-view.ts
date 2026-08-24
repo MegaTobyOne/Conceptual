@@ -14,6 +14,7 @@ import { appStoreContext } from '../state/contexts.ts';
 import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
+import { requirementConsequence } from '../domain/analytics.ts';
 import '../components/compliance-badge.ts';
 import '../components/compliance-editor.ts';
 import '../components/work-log.ts';
@@ -240,6 +241,7 @@ export class RequirementView extends LitElement {
     const related = (this.store?.relationships.value ?? []).filter((relationship) =>
       relationship.endpoints.includes(req.id),
     );
+    const consequence = requirementConsequence(req.id, state, this.store?.risks.value ?? []);
     return html`
       <article data-lens=${this.lens}>
         <pspf-breadcrumbs
@@ -292,6 +294,10 @@ export class RequirementView extends LitElement {
           class="assessment"
           .requirementId=${req.id}
         ></pspf-compliance-editor>
+        <section class="consequence" data-testid="consequence">
+          <h3>Consequence</h3>
+          <p>${consequence}</p>
+        </section>
         <section class="linker">
           <h3>Link this requirement</h3>
           <form

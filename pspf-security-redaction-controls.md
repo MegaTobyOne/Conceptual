@@ -12,12 +12,12 @@ The normative rule lives in ADR 0005 and `pspf-invariants.md` § S3, S7. This do
 
 Every entity field declares an explicit `publication` policy in the schema. The policy values are:
 
-| Policy | Where it may appear | Logs and diagnostics |
-|---|---|---|
-| `public` | UI, status bar (counts only), bundles, Explorer | structured logs only, never values |
-| `internal` | UI, workspace within operator's organisation | structured logs only, never values |
-| `sensitive` | UI detail panels only, never status bar or notifications, never bundles unless an export profile explicitly opts in | redacted in logs as `[REDACTED:sensitive]` |
-| `restricted` | UI detail panels only, never any export, never any bundle, never any snapshot artefact | redacted in logs as `[REDACTED:restricted]` |
+| Policy       | Where it may appear                                                                                                 | Logs and diagnostics                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `public`     | UI, status bar (counts only), bundles, Explorer                                                                     | structured logs only, never values          |
+| `internal`   | UI, workspace within operator's organisation                                                                        | structured logs only, never values          |
+| `sensitive`  | UI detail panels only, never status bar or notifications, never bundles unless an export profile explicitly opts in | redacted in logs as `[REDACTED:sensitive]`  |
+| `restricted` | UI detail panels only, never any export, never any bundle, never any snapshot artefact                              | redacted in logs as `[REDACTED:restricted]` |
 
 **Default for any new field is `sensitive`.** A field with no declared policy is a CI failure.
 
@@ -33,6 +33,8 @@ The following fields are `restricted` by definition:
 These never appear in any bundle, snapshot, Explorer artefact, or external log, regardless of profile or override.
 
 For Change Records, `title`, `summary`, classification enums, and dates may be published. `reason` and `impactSummary` are `sensitive` and redacted from Explorer publication by default; `decisionOwnerRef` is `restricted` and never exported.
+
+`requirement.acceptanceDefinition`, `requirement.acceptanceDefinitionUpdatedAt`, and `action.blockerClass` (added v1.57.0, schema `1.15.0`) are `sensitive`: internal operator narrative and triage classification, redacted from Explorer publication by default like `summary` and `assessmentRationale`.
 
 ## Surface redaction rules (derived from the policy)
 

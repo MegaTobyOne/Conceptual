@@ -54,27 +54,27 @@ Workshop should feel **practical, task-oriented, and progressively revealing**. 
 
 ### Core IA
 
-| Area | Purpose | Screen type |
-|---|---|---|
-| Health | platform status, trust, compatibility, integrity | Tree View + detail panel |
-| Operations | snapshots, export/import, maintenance | Tree View |
-| Diagnostics | validation findings and warnings | Tree View / Problems-style list |
-| Run detail | rich detail for a snapshot/export/validation | WebviewPanel |
+| Area        | Purpose                                          | Screen type                     |
+| ----------- | ------------------------------------------------ | ------------------------------- |
+| Health      | platform status, trust, compatibility, integrity | Tree View + detail panel        |
+| Operations  | snapshots, export/import, maintenance            | Tree View                       |
+| Diagnostics | validation findings and warnings                 | Tree View / Problems-style list |
+| Run detail  | rich detail for a snapshot/export/validation     | WebviewPanel                    |
 
 ### Workshop IA
 
-| Area | Purpose | Screen type |
-|---|---|---|
-| Requirements | primary requirement navigator | Tree View |
-| Evidence | evidence inventory and freshness | Tree View |
-| Actions | remediation work and due items | Tree View |
-| Risks | linked risk posture | Tree View |
-| Directions | authoritative Directions and response state | Tree View / filtered Requirements mode |
-| Tags | operator-applied classifications applied to Requirements (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) | Tag manager WebviewPanel; chips and picker on Requirement Detail; filter on Requirements navigator |
-| Summary | current workspace posture and readiness | WebviewView |
-| Penetration Testing | third-party assessment finding queue, SLA tracking, verification backlog, and commercial context | WebviewPanel |
-| Item detail | rich editable/readable detail for selected record | editor/webview panel |
-| Report prep | reporting pack preview and export prep | WebviewPanel |
+| Area                | Purpose                                                                                                                                                     | Screen type                                                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Requirements        | primary requirement navigator                                                                                                                               | Tree View                                                                                          |
+| Evidence            | evidence inventory and freshness                                                                                                                            | Tree View                                                                                          |
+| Actions             | remediation work and due items                                                                                                                              | Tree View                                                                                          |
+| Risks               | linked risk posture                                                                                                                                         | Tree View                                                                                          |
+| Directions          | authoritative Directions and response state                                                                                                                 | Tree View / filtered Requirements mode                                                             |
+| Tags                | operator-applied classifications applied to Requirements (see [adr/0041-v1-7-tags-and-filters-foundation.md](adr/0041-v1-7-tags-and-filters-foundation.md)) | Tag manager WebviewPanel; chips and picker on Requirement Detail; filter on Requirements navigator |
+| Summary             | current workspace posture and readiness                                                                                                                     | WebviewView                                                                                        |
+| Penetration Testing | third-party assessment finding queue, SLA tracking, verification backlog, and commercial context                                                            | WebviewPanel                                                                                       |
+| Item detail         | rich editable/readable detail for selected record                                                                                                           | editor/webview panel                                                                               |
+| Report prep         | reporting pack preview and export prep                                                                                                                      | WebviewPanel                                                                                       |
 
 ## Core screens
 
@@ -87,6 +87,7 @@ Workshop should feel **practical, task-oriented, and progressively revealing**. 
 **Type:** Tree View.
 
 **Sections:**
+
 - Workspace
 - Trust
 - Schema and compatibility
@@ -117,12 +118,14 @@ Operations
 ```
 
 **Toolbar actions:**
+
 - Refresh
 - Validate Workspace
 - Verify Integrity
 - Create Snapshot
 
 **Interaction notes:**
+
 - Expanding a node reveals concise facts, not paragraphs.
 - Selecting an item can open a small detail panel or notification.
 - Tree items should not act like disguised buttons; toolbar and context actions should carry the actions. VS Code guidance specifically warns against using tree items as single action items.
@@ -134,6 +137,7 @@ Operations
 **Type:** Tree View.
 
 **Groups:**
+
 - Snapshots
 - Exports
 - Imports
@@ -141,12 +145,14 @@ Operations
 - Repairs
 
 Each item should show:
+
 - timestamp,
 - status,
 - target version or bundle type,
 - short result summary.
 
 **Context actions:**
+
 - Open details
 - Copy ID
 - Open file location
@@ -159,6 +165,7 @@ Each item should show:
 **Type:** either a Tree View subsection or an editor/webview panel opened from Health.
 
 **Content model:**
+
 - severity,
 - code,
 - object affected,
@@ -174,6 +181,7 @@ This should feel closer to VS Code’s Problems panel than a custom dashboard.
 **Type:** WebviewPanel.
 
 **Sections:**
+
 - Summary
 - Inputs
 - Result
@@ -194,6 +202,7 @@ Use a WebviewPanel here because a structured narrative result screen with expand
 **Default grouping:** by domain, then status.
 
 **Alternative grouping modes:**
+
 - by status,
 - by reporting period,
 - by owner,
@@ -214,11 +223,13 @@ Personnel Security
 ```
 
 **Item labels should include:**
+
 - short readable title,
 - optional status badge,
 - optional stale/attention marker.
 
 **Context actions:**
+
 - Open requirement
 - Validate
 - Link evidence
@@ -237,6 +248,7 @@ VS Code recommends descriptive labels, shallow nesting where possible, and limit
 **Default grouping:** by freshness bucket.
 
 **Suggested groups:**
+
 - Fresh
 - Review soon
 - Stale
@@ -248,6 +260,7 @@ VS Code recommends descriptive labels, shallow nesting where possible, and limit
 Evidence review is most often performed at domain level. The view must support grouping or filtering by domain and then by affected requirement. A user should be able to select one domain, see all stale/incomplete/changed evidence that affects that domain, and jump directly to the requirement, evidence item, action, or risk that needs work.
 
 **Context actions:**
+
 - Open evidence
 - Link to requirement
 - Mark review date
@@ -265,6 +278,7 @@ This view is critical because evidence quality is a trust driver. The view shoul
 **Default grouping:** by due state.
 
 **Suggested groups:**
+
 - Overdue
 - Due soon
 - In progress
@@ -272,6 +286,7 @@ This view is critical because evidence quality is a trust driver. The view shoul
 - Done recently
 
 **Context actions:**
+
 - Open action
 - Update status
 - Reveal parent requirement
@@ -287,12 +302,14 @@ This view is critical because evidence quality is a trust driver. The view shoul
 **Default grouping:** by severity.
 
 **Suggested groups:**
+
 - High
 - Medium
 - Low
 - Accepted/monitored
 
 **Context actions:**
+
 - Open risk
 - Reveal linked requirements
 - Reveal linked actions
@@ -305,6 +322,7 @@ This view is critical because evidence quality is a trust driver. The view shoul
 **Type:** WebviewView in the sidebar.
 
 **Sections:**
+
 - Overall readiness block
 - Requirement status rollup
 - Evidence freshness rollup
@@ -328,6 +346,7 @@ Workshop must provide an ISM Review Workbench that derives operational queues fr
 Workshop must let the user create a paste-friendly brief for one requirement, a selected requirement group, a domain, Essential Eight scope, or a Direction. The brief is designed for email or Teams and should be available as copied Markdown/plain text, with an optional HTML clipboard representation where the platform supports it. It must include the selected scope, current assessment/posture, work required, highest-impact actions, evidence basis, known blockers/risks, owners as role/team labels where export policy allows, and a generated-at timestamp. It must omit or redact fields that are not allowed by the active publication/export policy.
 
 **Primary actions:**
+
 - Open Requirement Queue
 - Review Evidence
 - Copy Shareable Brief
@@ -357,6 +376,7 @@ This is one of the few places where a WebviewView is justified because it benefi
 - **Residual risk summary** — Risks tagged with the assessment Tag, including those with `supplier associated-with risk` links to the pen-test supplier, shown as accepted residual exposure per assessment.
 
 **Context actions per finding:**
+
 - Open action (reveals full Action detail, evidence links, and linked Requirements)
 - Add evidence (jump to evidence creation pre-linked to the finding)
 - Reveal linked requirement
@@ -375,6 +395,7 @@ See [adr/0073-v1-37-workshop-continuous-compliance-outputs.md](adr/0073-v1-37-wo
 **Type:** WebviewPanel (one panel per entity type, opened by `pspf.workshop.openItemDetail`). See [adr/0015-item-detail-webview-panel.md](adr/0015-item-detail-webview-panel.md) for the rationale and the v1 contract; a custom editor is explicitly not introduced.
 
 **Shared screen structure:**
+
 - Header: title, ID, status, quick actions
 - Main content: fields and narrative details
 - Relationship rail: linked evidence/actions/risks/Directions
@@ -398,11 +419,13 @@ Longer or denser tasks should open a richer detail panel instead of trying to fo
 **Goal:** determine whether a PSPF workspace exists and whether Core is ready.
 
 **Entry points:**
+
 - workspace activation,
 - Core Health view,
 - command palette.
 
 **Flow:**
+
 1. Detect `.pspf/` markers.
 2. If missing, show welcome state with `Initialise PSPF Workspace`.
 3. If present, run lightweight bootstrap check.
@@ -418,11 +441,13 @@ Longer or denser tasks should open a richer detail panel instead of trying to fo
 **Goal:** run integrity and validation checks on demand.
 
 **Entry points:**
+
 - Health toolbar,
 - command palette,
 - post-restore follow-up.
 
 **Flow:**
+
 1. User invokes `Validate Workspace`.
 2. Small progress notification appears.
 3. Health and Diagnostics update.
@@ -436,6 +461,7 @@ Longer or denser tasks should open a richer detail panel instead of trying to fo
 **Input model:** Quick Pick multi-step flow.
 
 **Suggested steps:**
+
 1. Choose snapshot type (`checkpoint`, `reporting`, `backup`, `pre-migration`).
 2. Enter title.
 3. Optional note.
@@ -448,11 +474,13 @@ This fits a compact multi-step Quick Pick flow because it is a short set of stru
 **Goal:** create a static Explorer bundle suitable for GitHub Pages publication.
 
 **Entry points:**
+
 - Core Operations view,
 - Workshop Summary action,
 - command palette.
 
 **Flow:**
+
 1. Open export flow.
 2. Choose export profile.
 3. Choose snapshot or current state.
@@ -466,12 +494,14 @@ This fits a compact multi-step Quick Pick flow because it is a short set of stru
 **Goal:** quickly create a new requirement record without forcing a heavy form immediately.
 
 **Entry points:**
+
 - Requirements view toolbar,
 - welcome state,
 - command palette.
 
 **Step 1: Quick creation flow**
 Use a small multi-step Quick Pick/input flow:
+
 1. Choose domain.
 2. Enter short title.
 3. Choose initial status.
@@ -487,11 +517,13 @@ This uses progressive disclosure well: short creation first, deeper editing seco
 **Goal:** reduce friction from one real-world evidence artefact to every requirement it supports.
 
 **Entry points:**
+
 - requirement context menu,
 - evidence context menu,
 - requirement detail screen.
 
 **Preferred flow:**
+
 1. User selects `Add Evidence` from Workshop Home, the command palette, or Requirement Detail.
 2. Workshop captures the evidence title, type, reference, and freshness once.
 3. Workshop asks how to browse Requirements: all Requirements, one-or-more domains, one-or-more assessment statuses, or Requirements missing evidence.
@@ -506,11 +538,13 @@ VS Code Quick Pick guidance explicitly supports multi-select and short pre-filte
 **Goal:** turn a missing evidence or weak requirement pattern into one concrete remediation action linked to every affected requirement.
 
 **Entry points:**
+
 - requirement context menu,
 - validation warning action,
 - summary view “needs attention” card.
 
 **Flow:**
+
 1. User selects `Create Action` from Workshop Home, the command palette, a requirement, or a warning.
 2. Workshop captures the action title, status, and due date once.
 3. Workshop uses the same Requirement browser as Evidence: all Requirements, one-or-more domains, one-or-more assessment statuses, or Requirements missing evidence.
@@ -523,11 +557,13 @@ VS Code Quick Pick guidance explicitly supports multi-select and short pre-filte
 **Goal:** record one risk once and show every requirement it affects.
 
 **Entry points:**
+
 - requirement context menu,
 - risk or assessment dashboard action,
 - command palette.
 
 **Flow:**
+
 1. User selects `Create Risk`.
 2. Workshop captures the risk title, status, likelihood, and impact once.
 3. Workshop uses the shared Requirement browser to select one or more affected Requirements.
@@ -539,6 +575,7 @@ VS Code Quick Pick guidance explicitly supports multi-select and short pre-filte
 **Goal:** work through old, incomplete, changed, unverified, missing, or unlinked evidence efficiently.
 
 **Entry points:**
+
 - Summary view card,
 - Evidence tree review groups,
 - domain filter,
@@ -546,6 +583,7 @@ VS Code Quick Pick guidance explicitly supports multi-select and short pre-filte
 - command palette.
 
 **Flow:**
+
 1. Open Evidence view focused on a domain or selected requirement set.
 2. Apply review filters such as `stale`, `incomplete`, `changed`, `unverified`, `missing`, or `unlinked`.
 3. Sort by downstream impact, affected requirement count, or last reviewed date.
@@ -560,6 +598,7 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 **Goal:** find a PSPF requirement or group, review the requirement text, guidance, related links, and evidence, then record the current assessment and supporting evidence.
 
 **Entry points:**
+
 - Requirements tree by domain/status/readiness,
 - Summary view posture or gap card,
 - Evidence review queue,
@@ -567,6 +606,7 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 - command palette.
 
 **Flow:**
+
 1. Search, browse, or filter to a requirement or requirement group. The Requirements navigator filter bar offers domain, status, and tag (multi-select, `any` / `all` toggle); selecting tags narrows the tree to requirements that carry the chosen tags.
 2. Open Requirement Detail and review statement, implementation guidance, source authority, current assessment, rationale, linked evidence, linked actions, linked risks, Directions, applied tags, and history.
 3. Update `assessmentStatus`, `effectiveness`, `evidenceStatus`, `reportingReadiness`, and rationale as needed. Apply or remove tags using the tag rail (chips with a picker; pickers offer existing tags and a `Create new tag…` affordance that opens the tag manager).
@@ -582,6 +622,7 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 **Goal:** identify and act on the work most likely to improve compliance posture.
 
 **Entry points:**
+
 - Summary view highest-impact actions block,
 - Requirement detail validation rail,
 - Evidence review queue,
@@ -589,6 +630,7 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 - Actions view.
 
 **Flow:**
+
 1. Open the action-impact ranking for overall posture, a domain, Essential Eight, a Direction, or a single requirement.
 2. Review the explanation for each ranked action, including affected requirements, stale or missing evidence, readiness blockers, linked risks, and Direction response gaps.
 3. Open an existing action or create a new one from the gap.
@@ -602,6 +644,7 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 **Goal:** answer “what work is required to deliver this requirement or group?” in a form that can be emailed or pasted into Teams.
 
 **Entry points:**
+
 - Requirement detail,
 - Requirements tree group,
 - Summary view highest-impact actions block,
@@ -609,6 +652,7 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 - command palette.
 
 **Flow:**
+
 1. User selects a requirement, multiple requirements, a domain, Essential Eight scope, or a Direction.
 2. User invokes `Copy Shareable Brief`.
 3. Workshop previews a compact brief with current assessment, evidence state, required work, highest-impact actions, blockers, risks, and traceability links/IDs.
@@ -622,11 +666,13 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 **Goal:** add a new authoritative Direction, understand its affected PSPF requirements, assess the organisation's response, and manage evidence/actions like a requirement.
 
 **Entry points:**
+
 - command palette,
 - Directions view,
 - Requirement detail linked-items rail.
 
 **Flow:**
+
 1. Create Direction with reference, title, issued date, source authority, source reference, and description.
 2. Link affected requirements and domains using pickers.
 3. Review linked requirements, guidance, existing evidence, risks, and actions.
@@ -641,22 +687,24 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 **Goal:** convert operational state into a reporting-ready view.
 
 **Entry points:**
+
 - Summary view,
 - command palette,
 - selected reporting period.
 
 **Flow:**
+
 1. User chooses reporting period/profile.
 2. System builds readiness summary.
 3. Report Prep WebviewPanel opens with:
-    - readiness overview,
-    - posture brief for overall, domain, and Essential Eight,
-    - missing evidence items,
-    - open blockers,
-    - highest-impact action plan,
-    - top risks,
-    - shareable brief preview/copy controls,
-    - export options.
+   - readiness overview,
+   - posture brief for overall, domain, and Essential Eight,
+   - missing evidence items,
+   - open blockers,
+   - highest-impact action plan,
+   - top risks,
+   - shareable brief preview/copy controls,
+   - export options.
 4. User either exports or navigates back to fix blockers.
 
 This is intentionally not a full-screen editor first; it should feel like a structured review and launch point.
@@ -668,11 +716,13 @@ This is intentionally not a full-screen editor first; it should feel like a stru
 **Authoritative spec:** [pspf-questionnaire-spec.md](pspf-questionnaire-spec.md). **ADR:** [adr/0075-questionnaire-population.md](adr/0075-questionnaire-population.md).
 
 **Entry points:**
+
 - `PSPF: Run Quickstart Questionnaire` (Starter pack),
 - `PSPF: Run Domain Deep Dive…` (per-Domain packs),
 - Workshop Welcome stale-review prompt when a prior run exists.
 
 **Flow:**
+
 1. User selects a pack and mode (first-run / update / answer all). Update mode is the default when a prior run exists and filters to stale-review and previously uncertain questions.
 2. WebviewPanel walks the user through one question card at a time; answers, links and notes are draft-saved per change.
 3. Review screen lists every record that will be created, updated, or superseded, grouped by Requirement, with a "Take Snapshot and apply" primary action.
@@ -688,6 +738,7 @@ This is intentionally not a full-screen editor first; it should feel like a stru
 ### Primary navigation
 
 The user should mostly navigate by:
+
 - Tree View selection,
 - Command Palette,
 - context menus,
@@ -696,6 +747,7 @@ The user should mostly navigate by:
 ### Secondary navigation
 
 Use inline links/buttons within summary or detail panels to:
+
 - reveal an item in a tree,
 - open a linked entity,
 - jump from warning to fix location,
@@ -704,6 +756,7 @@ Use inline links/buttons within summary or detail panels to:
 ### Reveal pattern
 
 Every detail screen should support:
+
 - `Reveal in Requirements/Evidence/Actions/Risks View`
 - `Copy ID`
 - `Open Linked Items`
@@ -728,6 +781,7 @@ Welcome or empty states should be used sparingly and only when helpful. VS Code 
 - No risks recorded.
 
 Each empty state should answer:
+
 - what this area is for,
 - why it is empty,
 - and what the primary first action is.
@@ -810,6 +864,7 @@ VS Code also notes that Webviews are separate focus regions and users may naviga
 ## Future but not now
 
 Out of scope for the first build:
+
 - side-by-side diff of snapshots,
 - drag-and-drop graph editing,
 - embedded Explorer inside VS Code,

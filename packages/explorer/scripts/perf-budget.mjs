@@ -21,7 +21,7 @@ const BUDGETS = [
   { pattern: /^index-.*\.js$/, label: 'app shell', maxGzipKb: 38 },
   { pattern: /^pspf-.*\.js$/, label: 'pspf data', maxGzipKb: 22 },
   { pattern: /^requirement-view-.*\.js$/, label: 'requirement view', maxGzipKb: 6.6 },
-  { pattern: /^analytics-view-.*\.js$/, label: 'analytics view', maxGzipKb: 4.4 },
+  { pattern: /^analytics-view-.*\.js$/, label: 'analytics view', maxGzipKb: 5.0 },
   { pattern: /^home-view-.*\.js$/, label: 'home view', maxGzipKb: 3.1 },
   { pattern: /^risks-view-.*\.js$/, label: 'risks view', maxGzipKb: 5.5 },
   { pattern: /^actions-view-.*\.js$/, label: 'actions view', maxGzipKb: 5.5 },

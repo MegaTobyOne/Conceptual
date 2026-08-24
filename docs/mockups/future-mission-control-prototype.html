@@ -629,8 +629,7 @@
           "Requirement GOV-88 selected: this is the key control obligation connecting strategy intent to delivery evidence.",
         action:
           "Action ACT-233 selected: this is the main delivery lever; timing decisions here drive confidence movement.",
-        risk:
-          "Risk RSK-41 selected: this is the top blocking risk and should influence sequencing choices in Next horizon.",
+        risk: "Risk RSK-41 selected: this is the top blocking risk and should influence sequencing choices in Next horizon.",
         evidence:
           "Evidence EVD-27 selected: freshness risk is high; assurance confidence depends on timely evidence renewal."
       };
@@ -700,18 +699,14 @@
       plainLanguageButton.addEventListener("click", () => {
         plainLanguageEnabled = !plainLanguageEnabled;
         plainLanguageButton.setAttribute("aria-pressed", String(plainLanguageEnabled));
-        plainLanguageButton.textContent = plainLanguageEnabled
-          ? "Plain language: On"
-          : "Plain language: Off";
+        plainLanguageButton.textContent = plainLanguageEnabled ? "Plain language: On" : "Plain language: Off";
         lensPlain.hidden = !plainLanguageEnabled;
       });
 
       reduceMotionButton.addEventListener("click", () => {
         reducedMotionEnabled = !reducedMotionEnabled;
         reduceMotionButton.setAttribute("aria-pressed", String(reducedMotionEnabled));
-        reduceMotionButton.textContent = reducedMotionEnabled
-          ? "Reduced motion: On"
-          : "Reduced motion: Off";
+        reduceMotionButton.textContent = reducedMotionEnabled ? "Reduced motion: On" : "Reduced motion: Off";
       });
 
       nodes.forEach((node) => {

@@ -7,9 +7,14 @@ import {
   ESSENTIAL_EIGHT_CATCHALL_ID,
   ESSENTIAL_EIGHT_REQUIREMENT_IDS,
   essentialEightCoverage,
+  evidenceExpiringSoonCount,
+  metComplianceBasis,
   overdueActionCount,
+  requirementConsequence,
   riskBandCounts,
   riskBandOf,
+  topActionBlockers,
+  uncoveredRiskStatement,
 } from './analytics.ts';
 import { allRequirements } from '../pspf/index.ts';
 import type {
@@ -172,5 +177,219 @@ describe('directionsSummary', () => {
     expect(out.byState['not-set']).toBe(1);
     expect(out.needsResponseCount).toBe(1);
     expect(out.addressedPct).toBe(Math.round((2 / 3) * 100));
+  });
+});
+
+describe('metComplianceBasis', () => {
+  const reference = new Date('2026-08-24T00:00:00Z');
+
+  it('is zeroed when no requirement is fully implemented', () => {
+    const m = new Map<RequirementId, ComplianceEntry>();
+    const [a] = allRequirements;
+    m.set(a!.id, entry(a!.id, 'no'));
+    const out = metComplianceBasis(m, reference);
+    expect(out).toEqual({
+      total: 0,
+      asserted: 0,
+      evidenced: 0,
+      evidencedFresh: 0,
+      evidencedFreshPercentage: 0,
+    });
+  });
+
+  it('treats a met entry with no evidence as asserted', () => {
+    const m = new Map<RequirementId, ComplianceEntry>();
+    const [a] = allRequirements;
+    m.set(a!.id, entry(a!.id, 'yes'));
+    const out = metComplianceBasis(m, reference);
+    expect(out).toEqual({
+      total: 1,
+      asserted: 1,
+      evidenced: 0,
+      evidencedFresh: 0,
+      evidencedFreshPercentage: 0,
+    });
+  });
+
+  it('treats a met entry with only old evidence as evidenced, not fresh', () => {
+    const m = new Map<RequirementId, ComplianceEntry>();
+    const [a] = allRequirements;
+    m.set(a!.id, {
+      requirementId: a!.id,
+      state: 'yes',
+      evidence: [{ kind: 'note', value: 'old note', addedAt: '2024-01-01T00:00:00Z' }],
+      createdAt: now,
+      updatedAt: now,
+    });
+    const out = metComplianceBasis(m, reference);
+    expect(out).toEqual({
+      total: 1,
+      asserted: 0,
+      evidenced: 1,
+      evidencedFresh: 0,
+      evidencedFreshPercentage: 0,
+    });
+  });
+
+  it('treats a met entry with recent evidence as evidenced-fresh', () => {
+    const m = new Map<RequirementId, ComplianceEntry>();
+    const [a] = allRequirements;
+    m.set(a!.id, {
+      requirementId: a!.id,
+      state: 'yes',
+      evidence: [{ kind: 'note', value: 'recent note', addedAt: '2026-08-01T00:00:00Z' }],
+      createdAt: now,
+      updatedAt: now,
+    });
+    const out = metComplianceBasis(m, reference);
+    expect(out).toEqual({
+      total: 1,
+      asserted: 0,
+      evidenced: 0,
+      evidencedFresh: 1,
+      evidencedFreshPercentage: 100,
+    });
+  });
+});
+
+function risk(id: string, requirementIds: RequirementId[], status: Risk['status'] = 'open'): Risk {
+  return {
+    id: id as Risk['id'],
+    title: `Risk ${id}`,
+    likelihood: 4,
+    impact: 4,
+    status,
+    requirementIds,
+    actionIds: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+describe('requirementConsequence', () => {
+  it('states no open risks are linked when there are none', () => {
+    const [a] = allRequirements;
+    expect(requirementConsequence(a!.id, 'yes', [])).toBe(
+      'No open risks are currently linked to this requirement.',
+    );
+  });
+
+  it('states exposure when not met with linked open risks', () => {
+    const [a] = allRequirements;
+    const statement = requirementConsequence(a!.id, 'no', [risk('risk-1', [a!.id])]);
+    expect(statement).toMatch(/1 linked risk remains exposed/);
+  });
+});
+
+describe('uncoveredRiskStatement', () => {
+  it('reports all covered when every open risk has a met linked requirement', () => {
+    const [a] = allRequirements;
+    const m = new Map<RequirementId, ComplianceEntry>();
+    m.set(a!.id, entry(a!.id, 'yes'));
+    const statement = uncoveredRiskStatement(m, [risk('risk-1', [a!.id])]);
+    expect(statement).toBe('All 1 open risk(s) are covered by at least one met requirement.');
+  });
+
+  it('reports uncovered risks when no linked requirement is met', () => {
+    const [a] = allRequirements;
+    const m = new Map<RequirementId, ComplianceEntry>();
+    m.set(a!.id, entry(a!.id, 'no'));
+    const statement = uncoveredRiskStatement(m, [risk('risk-1', [a!.id])]);
+    expect(statement).toBe('1 of 1 open risk has no met requirement covering them.');
+  });
+});
+
+function action(
+  id: string,
+  requirementIds: RequirementId[],
+  type: Action['type'] = 'remediation',
+  status: Action['status'] = 'todo',
+): Action {
+  return {
+    id: id as Action['id'],
+    title: `Action ${id}`,
+    type,
+    status,
+    requirementIds,
+    riskIds: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+describe('topActionBlockers', () => {
+  it('ranks the action gating the most not-met requirements first', () => {
+    const [a, b, c] = allRequirements;
+    const m = new Map<RequirementId, ComplianceEntry>();
+    m.set(a!.id, entry(a!.id, 'no'));
+    m.set(b!.id, entry(b!.id, 'no'));
+    m.set(c!.id, entry(c!.id, 'no'));
+    const blockers = topActionBlockers(
+      [action('a1', [a!.id]), action('a2', [a!.id, b!.id, c!.id])],
+      m,
+    );
+    expect(blockers[0]?.actionId).toBe('a2');
+    expect(blockers[0]?.gatedRequirementCount).toBe(3);
+  });
+
+  it('excludes requirements that are already met or not applicable', () => {
+    const [a, b] = allRequirements;
+    const m = new Map<RequirementId, ComplianceEntry>();
+    m.set(a!.id, entry(a!.id, 'yes'));
+    m.set(b!.id, entry(b!.id, 'no'));
+    const blockers = topActionBlockers([action('a1', [a!.id, b!.id])], m);
+    expect(blockers[0]?.gatedRequirementCount).toBe(1);
+  });
+
+  it('classifies a review-type action as waiting on assessor', () => {
+    const [a] = allRequirements;
+    const m = new Map<RequirementId, ComplianceEntry>();
+    m.set(a!.id, entry(a!.id, 'no'));
+    const blockers = topActionBlockers([action('a1', [a!.id], 'review')], m);
+    expect(blockers[0]?.blockerClass).toBe('assessor');
+  });
+
+  it('excludes done and cancelled actions', () => {
+    const [a] = allRequirements;
+    const m = new Map<RequirementId, ComplianceEntry>();
+    m.set(a!.id, entry(a!.id, 'no'));
+    const blockers = topActionBlockers([action('a1', [a!.id], 'remediation', 'done')], m);
+    expect(blockers).toHaveLength(0);
+  });
+});
+
+describe('evidenceExpiringSoonCount', () => {
+  const reference = new Date('2026-08-24T00:00:00Z');
+
+  it('counts met requirements whose evidence expires within 90 days', () => {
+    const [a] = allRequirements;
+    const m = new Map<RequirementId, ComplianceEntry>();
+    m.set(a!.id, {
+      requirementId: a!.id,
+      state: 'yes',
+      evidence: [
+        {
+          kind: 'note',
+          value: 'ageing',
+          addedAt: new Date(reference.getTime() - 160 * 86400000).toISOString(),
+        },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    });
+    expect(evidenceExpiringSoonCount(m, reference)).toBe(1);
+  });
+
+  it('does not count requirements with fresh evidence', () => {
+    const [a] = allRequirements;
+    const m = new Map<RequirementId, ComplianceEntry>();
+    m.set(a!.id, {
+      requirementId: a!.id,
+      state: 'yes',
+      evidence: [{ kind: 'note', value: 'fresh', addedAt: reference.toISOString() }],
+      createdAt: now,
+      updatedAt: now,
+    });
+    expect(evidenceExpiringSoonCount(m, reference)).toBe(0);
   });
 });

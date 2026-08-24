@@ -15,7 +15,7 @@ For this team — a single maintainer working in VS Code on macOS with a persona
 - ADRs, specs, and runbooks already cross-cut every product and would either fragment or have to live in a sixth repo;
 - the three semantic-version axes (`schemaVersion`, `bundleVersion`, `apiVersion`) become release-coordination work in their own right.
 
-Independent VSIX *publishing* is a packaging concern, not a source-layout concern. It can be satisfied from a single repository.
+Independent VSIX _publishing_ is a packaging concern, not a source-layout concern. It can be satisfied from a single repository.
 
 ## Decision
 

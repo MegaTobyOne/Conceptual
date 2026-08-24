@@ -25,16 +25,16 @@ Each OSCAL release ships a master `ISM_catalog.{json,xml,yaml}` plus resolved pr
 
 ## Phasing summary
 
-| Phase | Target version | Scope |
-|---|---|---|
-| 0 | v0.1 | No model change. ISM references are free text in `Evidence.reference`, `Action.notes`, `Risk.notes`. |
-| 1 | v0.2 | Read-only ISM source library: vendored OSCAL snapshot → `source-control` (`SRC-*`) entities, browsable in Workshop and Explorer. See ADR 0018. |
-| 2 | v0.2 | First-class **Requirement ↔ ISM control mapping** entity (`MAP-*`) with `rationale`, `coverageQualifier`, `applicabilityProfile`. Posture brief gains an ISM coverage section. See ADR 0019. |
-| 3 | v0.3 | Mapping `confidence`, `lastReviewedAt`, `reviewBy`; automated version-drift detection across OSCAL releases. The profile picker remains deferred. See ADR 0020. |
-| 4a | v1.35 | **ISM control as a workable entity**: direct `source-control` to evidence/action/risk linking (`supported-by`, `addressed-by`, `exposed-by`), no schema-version bump. See ADR 0071. |
-| 4b | v1.35 | `SourceControl.implementationStatus` posture (`internal`, stripped at publication), implementation column/filter/metric on the ISM control browser, and control-side Requirement mapping from the ISM control detail. See ADR 0071. |
-| 4c | v1.35 | Dedicated `workshop-source-controls` saved-view scope and `implementationStatuses` filters, aggregate ISM posture rollups in Workshop/posture brief, and read-only Explorer obligation navigation spanning PSPF Requirements and ISM Controls. `VERSION_AXES` bump to `1.12.0` because saved views are public/exportable. See ADR 0071. |
-| 4d | v1.36 | ISM Review Workbench queues for unmapped, not-assessed, drift-review, needs-direct-work, and risk-without-action controls, plus public Explorer review-state cues. No schema-axis bump. See ADR 0072. |
+| Phase | Target version | Scope                                                                                                                                                                                                                                                                                                                                   |
+| ----- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | v0.1           | No model change. ISM references are free text in `Evidence.reference`, `Action.notes`, `Risk.notes`.                                                                                                                                                                                                                                    |
+| 1     | v0.2           | Read-only ISM source library: vendored OSCAL snapshot → `source-control` (`SRC-*`) entities, browsable in Workshop and Explorer. See ADR 0018.                                                                                                                                                                                          |
+| 2     | v0.2           | First-class **Requirement ↔ ISM control mapping** entity (`MAP-*`) with `rationale`, `coverageQualifier`, `applicabilityProfile`. Posture brief gains an ISM coverage section. See ADR 0019.                                                                                                                                            |
+| 3     | v0.3           | Mapping `confidence`, `lastReviewedAt`, `reviewBy`; automated version-drift detection across OSCAL releases. The profile picker remains deferred. See ADR 0020.                                                                                                                                                                         |
+| 4a    | v1.35          | **ISM control as a workable entity**: direct `source-control` to evidence/action/risk linking (`supported-by`, `addressed-by`, `exposed-by`), no schema-version bump. See ADR 0071.                                                                                                                                                     |
+| 4b    | v1.35          | `SourceControl.implementationStatus` posture (`internal`, stripped at publication), implementation column/filter/metric on the ISM control browser, and control-side Requirement mapping from the ISM control detail. See ADR 0071.                                                                                                     |
+| 4c    | v1.35          | Dedicated `workshop-source-controls` saved-view scope and `implementationStatuses` filters, aggregate ISM posture rollups in Workshop/posture brief, and read-only Explorer obligation navigation spanning PSPF Requirements and ISM Controls. `VERSION_AXES` bump to `1.12.0` because saved views are public/exportable. See ADR 0071. |
+| 4d    | v1.36          | ISM Review Workbench queues for unmapped, not-assessed, drift-review, needs-direct-work, and risk-without-action controls, plus public Explorer review-state cues. No schema-axis bump. See ADR 0072.                                                                                                                                   |
 
 ## Phase 1 — Read-only ISM Source Library
 
@@ -46,18 +46,18 @@ Each OSCAL release ships a master `ISM_catalog.{json,xml,yaml}` plus resolved pr
 
 ### Entity sketch — `SourceControl` (prefix `SRC`)
 
-| Field | Type | Publication policy | Notes |
-|---|---|---|---|
-| `id` | string | n/a | `SRC-<UUIDv7>`, time-stripped on publication per ADR 0002 |
-| `entityType` | string | n/a | `source-control` |
-| `controlId` | string | `public` | Natural ISM identifier (e.g. `ISM-0123`) |
-| `title` | string | `public` | ISM control title |
-| `statement` | string | `public` | ISM control text from OSCAL |
-| `profileTags` | string[] | `public` | E.g. `e8-ml2`, `official-sensitive` |
-| `externalRefs` | object[] | `public` | `{ scheme, value }` — at minimum the OSCAL UUID and the ISM control identifier |
-| `provenance` | object | `public` | `{ oscalRelease, catalog, profile, sourceUrl }` |
-| `localApplicabilityNote` | string | `sensitive` | Optional operator note; not editable in v0.1 |
-| `createdAt` / `updatedAt` | string | `internal` | Snapshot-time, not authoring-time |
+| Field                     | Type     | Publication policy | Notes                                                                          |
+| ------------------------- | -------- | ------------------ | ------------------------------------------------------------------------------ |
+| `id`                      | string   | n/a                | `SRC-<UUIDv7>`, time-stripped on publication per ADR 0002                      |
+| `entityType`              | string   | n/a                | `source-control`                                                               |
+| `controlId`               | string   | `public`           | Natural ISM identifier (e.g. `ISM-0123`)                                       |
+| `title`                   | string   | `public`           | ISM control title                                                              |
+| `statement`               | string   | `public`           | ISM control text from OSCAL                                                    |
+| `profileTags`             | string[] | `public`           | E.g. `e8-ml2`, `official-sensitive`                                            |
+| `externalRefs`            | object[] | `public`           | `{ scheme, value }` — at minimum the OSCAL UUID and the ISM control identifier |
+| `provenance`              | object   | `public`           | `{ oscalRelease, catalog, profile, sourceUrl }`                                |
+| `localApplicabilityNote`  | string   | `sensitive`        | Optional operator note; not editable in v0.1                                   |
+| `createdAt` / `updatedAt` | string   | `internal`         | Snapshot-time, not authoring-time                                              |
 
 The bundle schema gains a `source-controls` collection. `bundleVersion` rolls forward; `schemaVersion` rolls forward when the runtime entity schema changes.
 
@@ -65,7 +65,7 @@ The bundle schema gains a `source-controls` collection. `bundleVersion` rolls fo
 
 - Workshop Item Detail for a Requirement displays an "ISM references" panel listing linked `SRC-*` records (read-only in Phase 1).
 - Explorer publication mode renders the same panel and a stand-alone ISM source browser scoped to the bundle's `source-controls` collection.
-- No "Edit" affordance on `SRC-*` records. Attribution line: *"ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0 · OSCAL release `<oscalRelease>`."*
+- No "Edit" affordance on `SRC-*` records. Attribution line: _"ISM source: cyber.gov.au · ASD/ACSC · CC BY 4.0 · OSCAL release `<oscalRelease>`."_
 
 ## Phase 2 — Explicit Requirement ↔ ISM control mapping
 
@@ -73,15 +73,15 @@ The bundle schema gains a `source-controls` collection. `bundleVersion` rolls fo
 
 ADR 0019 fixes the mapping as a first-class entity with prefix `MAP`. The closed 22-verb link taxonomy remains unchanged in v0.2. Shape:
 
-| Field | Type | Publication policy | Notes |
-|---|---|---|---|
-| `id` | string | n/a | `MAP-<UUIDv7>` |
-| `requirementId` | string | `internal` | `REQ-*` endpoint |
-| `sourceControlId` | string | `internal` | `SRC-*` endpoint |
-| `coverageQualifier` | enum | `internal` | `primary`, `partial`, `compensating` |
-| `applicabilityProfile` | string | `internal` | E.g. `e8-ml2`, `official-sensitive`, or `all` |
-| `rationale` | string | `sensitive` | Operator interpretation; default-deny applies |
-| `provenance` | object | `internal` | `{ author, createdAt, oscalRelease }` |
+| Field                  | Type   | Publication policy | Notes                                         |
+| ---------------------- | ------ | ------------------ | --------------------------------------------- |
+| `id`                   | string | n/a                | `MAP-<UUIDv7>`                                |
+| `requirementId`        | string | `internal`         | `REQ-*` endpoint                              |
+| `sourceControlId`      | string | `internal`         | `SRC-*` endpoint                              |
+| `coverageQualifier`    | enum   | `internal`         | `primary`, `partial`, `compensating`          |
+| `applicabilityProfile` | string | `internal`         | E.g. `e8-ml2`, `official-sensitive`, or `all` |
+| `rationale`            | string | `sensitive`        | Operator interpretation; default-deny applies |
+| `provenance`           | object | `internal`         | `{ author, createdAt, oscalRelease }`         |
 
 ### Link taxonomy implications
 

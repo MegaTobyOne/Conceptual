@@ -112,6 +112,9 @@ function normaliseRelationshipEndpoints(
   return a <= b ? [a, b] : [b, a];
 }
 
+/** J5 (v1.59.0 UX review): meta-store key for the reader-anchor timestamp. */
+export const READER_LAST_VISIT_META_KEY = 'reader-last-visit-at';
+
 export class AppStore {
   readonly db: PspfDb;
 
@@ -127,6 +130,14 @@ export class AppStore {
   readonly relationships: Signal<readonly Relationship[]>;
   readonly posture: Signal<PostureRecord | undefined>;
   readonly ready: Signal<boolean>;
+  /**
+   * J5 (v1.59.0 UX review): the reader-anchor timestamp from the start of
+   * the reader's PREVIOUS session, set once per app boot in {@link open}.
+   * `undefined` on a reader's first-ever visit. Read once and never
+   * rewritten mid-session, so repeated navigation within one visit keeps a
+   * stable "since you were last here" anchor rather than resetting itself.
+   */
+  lastVisitAt: string | undefined;
 
   constructor(db: PspfDb) {
     this.db = db;
@@ -148,7 +159,13 @@ export class AppStore {
     const db = await openPspfDb(name);
     const store = new AppStore(db);
     await store.loadAll();
+    await store.#anchorReaderVisit();
     return store;
+  }
+
+  async #anchorReaderVisit(): Promise<void> {
+    this.lastVisitAt = (await this.getMeta(READER_LAST_VISIT_META_KEY)) as string | undefined;
+    await this.setMeta(READER_LAST_VISIT_META_KEY, new Date().toISOString());
   }
 
   async loadAll(): Promise<void> {

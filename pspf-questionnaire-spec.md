@@ -52,53 +52,53 @@ publication policy per question. Packs are reference data: read-only at
 runtime, hashed, attributed, and CI-validated against the active PSPF
 baseline.
 
-| Field                  | Meaning                                                                 |
-| ---------------------- | ----------------------------------------------------------------------- |
-| `packId`               | Stable kebab-case identifier (`starter-v1`, `deep-gov-v1`).             |
+| Field                  | Meaning                                                                    |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `packId`               | Stable kebab-case identifier (`starter-v1`, `deep-gov-v1`).                |
 | `packVersion`          | Semver. Additive question additions bump minor; breaking edits bump major. |
-| `title`, `description` | AU-English; lint-checked.                                               |
-| `domains`              | Set of PSPF Domains covered.                                            |
-| `questions`            | Ordered list (see § Question).                                          |
-| `publicationPolicy`    | Default per-pack; can be overridden per question.                       |
+| `title`, `description` | AU-English; lint-checked.                                                  |
+| `domains`              | Set of PSPF Domains covered.                                               |
+| `questions`            | Ordered list (see § Question).                                             |
+| `publicationPolicy`    | Default per-pack; can be overridden per question.                          |
 
 ### Question
 
-| Field                | Meaning                                                                                                                          |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                 | Stable identifier (`q.gov.security-plan`). Never reused.                                                                         |
-| `domain`             | One of `GOV`, `RISK`, `INFO`, `TECH`, `PER`, `PHYS`.                                                                             |
-| `requirementRefs`    | Non-empty list of PSPF Requirement IDs the answer drives. Validated at pack-build time.                                          |
-| `prompt`             | Plain-English question. AU-English.                                                                                              |
-| `helpText`           | Short explanation of why we ask. May reference Requirement titles but never personal data.                                       |
-| `answerType`         | Fixed string `"yes-no-partial-unknown-na"` for this slice.                                                                       |
-| `evidenceTemplate`   | Title, type, default review-cycle days, and prompt mode (`url-or-note`, `note-only`, `none`).                                    |
-| `actionTemplates`    | One template per answer branch that creates an Action: `yes-no-link`, `partial`, `no`, `unknown`. `yes-with-link` may also create a review-cycle Action via `evidenceTemplate.defaultReviewCycleDays`. |
-| `riskTemplate`       | Optional; declares the answer set on which to create a Risk and the default likelihood/consequence.                              |
-| `publicationPolicy`  | Per-question override; defaults to the pack's policy.                                                                            |
+| Field               | Meaning                                                                                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`                | Stable identifier (`q.gov.security-plan`). Never reused.                                                                                                                                               |
+| `domain`            | One of `GOV`, `RISK`, `INFO`, `TECH`, `PER`, `PHYS`.                                                                                                                                                   |
+| `requirementRefs`   | Non-empty list of PSPF Requirement IDs the answer drives. Validated at pack-build time.                                                                                                                |
+| `prompt`            | Plain-English question. AU-English.                                                                                                                                                                    |
+| `helpText`          | Short explanation of why we ask. May reference Requirement titles but never personal data.                                                                                                             |
+| `answerType`        | Fixed string `"yes-no-partial-unknown-na"` for this slice.                                                                                                                                             |
+| `evidenceTemplate`  | Title, type, default review-cycle days, and prompt mode (`url-or-note`, `note-only`, `none`).                                                                                                          |
+| `actionTemplates`   | One template per answer branch that creates an Action: `yes-no-link`, `partial`, `no`, `unknown`. `yes-with-link` may also create a review-cycle Action via `evidenceTemplate.defaultReviewCycleDays`. |
+| `riskTemplate`      | Optional; declares the answer set on which to create a Risk and the default likelihood/consequence.                                                                                                    |
+| `publicationPolicy` | Per-question override; defaults to the pack's policy.                                                                                                                                                  |
 
 ### Answer
 
-| Field          | Meaning                                                                |
-| -------------- | ---------------------------------------------------------------------- |
-| `runId`        | The questionnaire run this answer belongs to.                          |
-| `packId`       | Pack the question belongs to.                                          |
-| `questionId`   | Question identifier.                                                   |
-| `value`        | One of `yes`, `no`, `partial`, `unknown`, `na`, `skipped`.             |
-| `link`         | Optional URL when the question asked for one. Validated.               |
-| `note`         | Optional operator note. Default publication `internal`.                |
-| `naRationale`  | Required when `value = na`.                                            |
-| `answeredAt`   | ISO-8601 UTC timestamp.                                                |
+| Field         | Meaning                                                    |
+| ------------- | ---------------------------------------------------------- |
+| `runId`       | The questionnaire run this answer belongs to.              |
+| `packId`      | Pack the question belongs to.                              |
+| `questionId`  | Question identifier.                                       |
+| `value`       | One of `yes`, `no`, `partial`, `unknown`, `na`, `skipped`. |
+| `link`        | Optional URL when the question asked for one. Validated.   |
+| `note`        | Optional operator note. Default publication `internal`.    |
+| `naRationale` | Required when `value = na`.                                |
+| `answeredAt`  | ISO-8601 UTC timestamp.                                    |
 
 ### Questionnaire run
 
-| Field         | Meaning                                                              |
-| ------------- | -------------------------------------------------------------------- |
-| `runId`       | UUID.                                                                |
-| `packId`, `packVersion` | Pack identity captured at run start.                       |
-| `mode`        | `first-run`, `update`, or `answer-all`.                              |
-| `snapshotId`  | The Snapshot taken immediately before apply.                         |
-| `startedAt`, `appliedAt` | Timestamps. `appliedAt` null if draft.                    |
-| `appliedCounts` | Summary counts: requirements affected, evidence created, actions created/closed, risks created. |
+| Field                    | Meaning                                                                                         |
+| ------------------------ | ----------------------------------------------------------------------------------------------- |
+| `runId`                  | UUID.                                                                                           |
+| `packId`, `packVersion`  | Pack identity captured at run start.                                                            |
+| `mode`                   | `first-run`, `update`, or `answer-all`.                                                         |
+| `snapshotId`             | The Snapshot taken immediately before apply.                                                    |
+| `startedAt`, `appliedAt` | Timestamps. `appliedAt` null if draft.                                                          |
+| `appliedCounts`          | Summary counts: requirements affected, evidence created, actions created/closed, risks created. |
 
 ## Answer policy (deterministic)
 
@@ -106,15 +106,15 @@ This table is the **single source of truth** for the mapping. The Workshop
 implementation in `packages/workshop/src/questionnaire/policy.ts` mirrors it
 exactly; the unit test asserts equivalence on every row.
 
-| Answer                  | Requirement assessment                | Evidence                                                                                | Action                                                                                    | Risk                              |
-| ----------------------- | ------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------- |
-| `yes` with link/note    | `met`                                 | One Evidence created per `evidenceTemplate`, with `reviewCycleDays` and `nextReview = today + cycle`. | One "Review on `<nextReview>`" Action per Evidence, priority `low`, due = `nextReview`.   | None.                             |
-| `yes` without link/note | `partial`                             | None.                                                                                   | One "Attach evidence for `<requirement>`" Action per `requirementRefs`, priority `medium`, due = today + 30 days. | None.                             |
-| `partial`               | `partial`                             | Optional Evidence from operator note, type `narrative-note`, no review cycle.           | One uplift Action from `actionTemplates.partial`, due = today + 60 days.                  | Optional per `riskTemplate.applyOn`. |
-| `no`                    | `not-met`                             | None.                                                                                   | One "Find out / remediate" Action from `actionTemplates.no`, priority `high`, due = today + 14 days. | Created if `riskTemplate.applyOn` includes `no`. |
-| `unknown`               | Unchanged.                            | None.                                                                                   | One "Investigate" Action from `actionTemplates.unknown`, priority `high`, due = today + 14 days. | None.                             |
-| `na` with rationale     | `not-applicable`, rationale stored.   | None.                                                                                   | None.                                                                                     | None.                             |
-| `skipped`               | Unchanged.                            | None.                                                                                   | None.                                                                                     | None.                             |
+| Answer                  | Requirement assessment              | Evidence                                                                                              | Action                                                                                                            | Risk                                             |
+| ----------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `yes` with link/note    | `met`                               | One Evidence created per `evidenceTemplate`, with `reviewCycleDays` and `nextReview = today + cycle`. | One "Review on `<nextReview>`" Action per Evidence, priority `low`, due = `nextReview`.                           | None.                                            |
+| `yes` without link/note | `partial`                           | None.                                                                                                 | One "Attach evidence for `<requirement>`" Action per `requirementRefs`, priority `medium`, due = today + 30 days. | None.                                            |
+| `partial`               | `partial`                           | Optional Evidence from operator note, type `narrative-note`, no review cycle.                         | One uplift Action from `actionTemplates.partial`, due = today + 60 days.                                          | Optional per `riskTemplate.applyOn`.             |
+| `no`                    | `not-met`                           | None.                                                                                                 | One "Find out / remediate" Action from `actionTemplates.no`, priority `high`, due = today + 14 days.              | Created if `riskTemplate.applyOn` includes `no`. |
+| `unknown`               | Unchanged.                          | None.                                                                                                 | One "Investigate" Action from `actionTemplates.unknown`, priority `high`, due = today + 14 days.                  | None.                                            |
+| `na` with rationale     | `not-applicable`, rationale stored. | None.                                                                                                 | None.                                                                                                             | None.                                            |
+| `skipped`               | Unchanged.                          | None.                                                                                                 | None.                                                                                                             | None.                                            |
 
 Additional rules:
 
@@ -206,14 +206,14 @@ Migration is additive only — no existing tables are altered.
 
 New API namespace `pspf.core.questionnaire.*`:
 
-| Method                                            | Purpose                                                                       |
-| ------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `listPacks()`                                     | Read-only list of installed packs with version and source-hash.               |
-| `getLatestAnswers(packId)`                        | Most recent answers per question for an Update-mode picker.                   |
-| `startRun({ packId, packVersion, mode })`         | Acquires writer lock, returns a `runId`. Does not write records yet.          |
-| `saveDraft(runId, answers[])`                     | Idempotent draft save; survives VS Code restart.                              |
-| `apply(runId)`                                    | Atomic: take pre-apply Snapshot, run policy, write records, commit.           |
-| `listRuns()` / `getRun(runId)`                    | Read history.                                                                 |
+| Method                                    | Purpose                                                              |
+| ----------------------------------------- | -------------------------------------------------------------------- |
+| `listPacks()`                             | Read-only list of installed packs with version and source-hash.      |
+| `getLatestAnswers(packId)`                | Most recent answers per question for an Update-mode picker.          |
+| `startRun({ packId, packVersion, mode })` | Acquires writer lock, returns a `runId`. Does not write records yet. |
+| `saveDraft(runId, answers[])`             | Idempotent draft save; survives VS Code restart.                     |
+| `apply(runId)`                            | Atomic: take pre-apply Snapshot, run policy, write records, commit.  |
+| `listRuns()` / `getRun(runId)`            | Read history.                                                        |
 
 All methods are subject to the writer lock, redaction gate, and trusted-caller
 policy unchanged. `apply` is the only mutating method.
@@ -224,7 +224,7 @@ A single WebviewPanel `pspf.workshop.questionnaire`:
 
 1. **Pack picker.** Cards for the Starter pack and any installed Domain
    deep-dive packs. Shows pack version and, when a previous run exists,
-   "Last run *X days ago*" and "*Y questions stale*".
+   "Last run _X days ago_" and "_Y questions stale_".
 2. **Mode selector** (only when a prior run exists). Default: Update.
 3. **Progress rail.** One segment per Domain in the chosen pack.
 4. **Question card.**
@@ -251,11 +251,11 @@ All screens:
 
 ## Commands and activation
 
-| Command                                       | Purpose                                                  |
-| --------------------------------------------- | -------------------------------------------------------- |
-| `PSPF: Run Quickstart Questionnaire`          | Opens the panel on the Starter pack.                     |
-| `PSPF: Run Domain Deep Dive…`                 | Quick Pick of installed Domain packs, then opens panel.  |
-| `PSPF: Open Questionnaire History`            | Tree View of prior runs with Snapshot deep-links.        |
+| Command                              | Purpose                                                 |
+| ------------------------------------ | ------------------------------------------------------- |
+| `PSPF: Run Quickstart Questionnaire` | Opens the panel on the Starter pack.                    |
+| `PSPF: Run Domain Deep Dive…`        | Quick Pick of installed Domain packs, then opens panel. |
+| `PSPF: Open Questionnaire History`   | Tree View of prior runs with Snapshot deep-links.       |
 
 Activation events:
 
@@ -286,15 +286,15 @@ Add an optional step to the v0.8 first-run test path in
 
 ## Failure paths
 
-| Failure                                                 | What the user sees                                                                                |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Pack fails build-time validation                        | Pack does not ship; CI red. Operator never sees a broken pack at runtime.                         |
-| `requirementRefs` reference a Requirement that does not exist in the active PSPF baseline | Pack-check gate fails; ADR 0069 § Compatibility axes blocks the release.            |
-| Writer lock held by another window during `startRun`    | Standard `PSPF_WRITER_LOCK_HELD` banner; questionnaire panel disabled with explanation.           |
-| Apply detects redaction violation in a `note`           | Apply aborts with `PSPF_PUBLICATION_POLICY_VIOLATION`; offending field highlighted; nothing written. |
-| Apply transaction error mid-flight                      | Transaction rolled back; pre-apply Snapshot remains; result screen shows abort reason.            |
-| Operator closes VS Code mid-draft                       | Draft restored on next open; "Resume questionnaire" prompt in Workshop Welcome.                    |
-| Pack version newer than installed Core supports         | Pack picker disables the pack with `PSPF_PACK_INCOMPATIBLE`; remediation: update Core.             |
+| Failure                                                                                   | What the user sees                                                                                   |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Pack fails build-time validation                                                          | Pack does not ship; CI red. Operator never sees a broken pack at runtime.                            |
+| `requirementRefs` reference a Requirement that does not exist in the active PSPF baseline | Pack-check gate fails; ADR 0069 § Compatibility axes blocks the release.                             |
+| Writer lock held by another window during `startRun`                                      | Standard `PSPF_WRITER_LOCK_HELD` banner; questionnaire panel disabled with explanation.              |
+| Apply detects redaction violation in a `note`                                             | Apply aborts with `PSPF_PUBLICATION_POLICY_VIOLATION`; offending field highlighted; nothing written. |
+| Apply transaction error mid-flight                                                        | Transaction rolled back; pre-apply Snapshot remains; result screen shows abort reason.               |
+| Operator closes VS Code mid-draft                                                         | Draft restored on next open; "Resume questionnaire" prompt in Workshop Welcome.                      |
+| Pack version newer than installed Core supports                                           | Pack picker disables the pack with `PSPF_PACK_INCOMPATIBLE`; remediation: update Core.               |
 
 ## Acceptance signals
 

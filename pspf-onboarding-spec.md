@@ -18,13 +18,13 @@ Onboarding is a v0.1 acceptance criterion (see [adr/0014-v0-1-thin-slice.md](adr
 
 > **v0.1 implementation note.** v0.1 does not ship a unified Core Health view; the "First-run target" entries below that reference it are surfaced through the discrete commands `PSPF: Validate Workspace`, `PSPF: Verify Integrity`, and `PSPF: Show Writer Lock`. The unified view arrives in v0.2 (see [pspf-development-readiness-review.md](pspf-development-readiness-review.md) § Remaining readiness risks).
 
-| Order | What the user installs | What VS Code prompts | First-run target |
-|---|---|---|---|
-| A | PSPF Core only | nothing | Core Health view with welcome state |
-| B | PSPF Workshop only | "PSPF Workshop depends on PSPF Core. Install?" | After install of Core, Core Health welcome |
-| C | Core + Workshop together | nothing | Core Health welcome |
-| D | Workshop, Shop, Pub (no Core) | "These extensions depend on PSPF Core. Install?" | Core Health welcome |
-| E | Explorer (web) only, given a bundle | n/a (browser) | Explorer publication-mode home |
+| Order | What the user installs              | What VS Code prompts                             | First-run target                           |
+| ----- | ----------------------------------- | ------------------------------------------------ | ------------------------------------------ |
+| A     | PSPF Core only                      | nothing                                          | Core Health view with welcome state        |
+| B     | PSPF Workshop only                  | "PSPF Workshop depends on PSPF Core. Install?"   | After install of Core, Core Health welcome |
+| C     | Core + Workshop together            | nothing                                          | Core Health welcome                        |
+| D     | Workshop, Shop, Pub (no Core)       | "These extensions depend on PSPF Core. Install?" | Core Health welcome                        |
+| E     | Explorer (web) only, given a bundle | n/a (browser)                                    | Explorer publication-mode home             |
 
 Permutation B is enforced by **`extensionDependencies`**: each of Workshop, Shop, Pub declares `"extensionDependencies": ["your-org.pspf-core"]` in its `package.json`, so VS Code blocks activation until Core is present.
 
@@ -117,9 +117,9 @@ The report is written under `.tmp/release-readiness/` with the active slice vers
 
 ### Explorer publication-mode — after loading a bundle
 
-> **OFFICIAL: Sensitive · TLP:AMBER+STRICT** *(banner)*
-> Posture summary, generated *<time>* from snapshot *<id>*.
-> *<headline number>* PSPF requirements assessed across *<n>* domains.
+> **OFFICIAL: Sensitive · TLP:AMBER+STRICT** _(banner)_
+> Posture summary, generated _<time>_ from snapshot _<id>_.
+> _<headline number>_ PSPF requirements assessed across _<n>_ domains.
 
 ## Trust prompts
 
@@ -151,14 +151,14 @@ In all cases the OFFICIAL: Sensitive banner and the freshness/source caveat are 
 
 ## Failure paths
 
-| Failure | What the user sees |
-|---|---|
-| Core not installed when Workshop activates | VS Code's standard "extensionDependencies" prompt to install Core. |
-| Workspace not trusted | Banner: "Workspace Trust is required for PSPF". One action: "Trust this workspace". |
-| Writer lock held by another window | Banner naming the other window; read-only mode; "Take over as writer". |
-| Schema version newer than installed Core | Health-view error `PSPF_SCHEMA_INCOMPATIBLE`; remediation: "Update PSPF Core". No automatic migration. |
-| Bundle import fails validation | Plan-and-review pane stays in the validate stage; reasons listed per row; nothing is written. |
-| Personal data found in export attempt | Export fails closed with `PSPF_PUBLICATION_POLICY_VIOLATION`; offending field paths listed; export blocked. |
+| Failure                                    | What the user sees                                                                                          |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| Core not installed when Workshop activates | VS Code's standard "extensionDependencies" prompt to install Core.                                          |
+| Workspace not trusted                      | Banner: "Workspace Trust is required for PSPF". One action: "Trust this workspace".                         |
+| Writer lock held by another window         | Banner naming the other window; read-only mode; "Take over as writer".                                      |
+| Schema version newer than installed Core   | Health-view error `PSPF_SCHEMA_INCOMPATIBLE`; remediation: "Update PSPF Core". No automatic migration.      |
+| Bundle import fails validation             | Plan-and-review pane stays in the validate stage; reasons listed per row; nothing is written.               |
+| Personal data found in export attempt      | Export fails closed with `PSPF_PUBLICATION_POLICY_VIOLATION`; offending field paths listed; export blocked. |
 
 ## Acceptance signals
 

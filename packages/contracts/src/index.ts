@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.14.0",
-  bundleVersion: "1.14.0",
-  apiVersion: "1.14.0"
+  schemaVersion: "1.15.0",
+  bundleVersion: "1.15.0",
+  apiVersion: "1.15.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.53.0" as const;
+export const PSPF_SLICE_VERSION = "1.60.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -465,6 +465,9 @@ export interface RequirementEntity extends EntityEnvelope {
   readonly summary?: string;
   readonly assessmentRationale?: string;
   readonly assessmentReviewedAt?: string;
+  /** J1b (v1.57.0): what an assessor would accept as "met" for this requirement. */
+  readonly acceptanceDefinition?: string;
+  readonly acceptanceDefinitionUpdatedAt?: string;
 }
 
 export type EvidenceFreshness = "current" | "ageing" | "stale" | "expired" | "unknown";
@@ -510,6 +513,8 @@ export interface ActionEntity extends EntityEnvelope {
   readonly effortBasis?: string;
   readonly commentary?: readonly ActionCommentaryEntry[];
   readonly impact?: ActionImpact;
+  /** J3b (v1.57.0): operator-set override of the derived blocker classification. */
+  readonly blockerClass?: BlockerClass;
 }
 
 export type RiskStatus = "open" | "monitored" | "closed";
@@ -1167,7 +1172,9 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
       ),
       { field: "summary", publication: "sensitive" },
       { field: "assessmentRationale", publication: "sensitive" },
-      { field: "assessmentReviewedAt", publication: "sensitive" }
+      { field: "assessmentReviewedAt", publication: "sensitive" },
+      { field: "acceptanceDefinition", publication: "sensitive" },
+      { field: "acceptanceDefinitionUpdatedAt", publication: "sensitive" }
     ]
   },
   {
@@ -1210,7 +1217,8 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "effortConfidence"
       ),
       { field: "commentary", publication: "sensitive" },
-      { field: "effortBasis", publication: "sensitive" }
+      { field: "effortBasis", publication: "sensitive" },
+      { field: "blockerClass", publication: "sensitive" }
     ]
   },
   {
@@ -3151,6 +3159,345 @@ export function sanitiseEntityForPublication(entity: V01Entity): V01Entity {
   }
 
   return output as unknown as V01Entity;
+}
+
+/**
+ * J1 (v1.53.0 UX review): trust gradient for a compliance assertion.
+ *
+ * `asserted` means a status was recorded with no supporting evidence.
+ * `evidenced` means at least one evidence item is linked but none is fresh.
+ * `evidenced-fresh` means at least one linked evidence item is within the
+ * freshness window. This is the single shared derivation; callers in
+ * Workshop, Explorer, and brief-renderer must not reimplement it.
+ */
+export type AssessmentBasis = "asserted" | "evidenced" | "evidenced-fresh";
+
+/** Default evidence freshness window used where a caller has no explicit freshness field (e.g. Explorer). */
+export const DEFAULT_EVIDENCE_FRESHNESS_WINDOW_DAYS = 180;
+
+export function assessmentBasis(evidenceCount: number, freshEvidenceCount: number): AssessmentBasis {
+  if (evidenceCount <= 0) {
+    return "asserted";
+  }
+  return freshEvidenceCount > 0 ? "evidenced-fresh" : "evidenced";
+}
+
+export function assessmentBasisLabel(basis: AssessmentBasis): string {
+  switch (basis) {
+    case "asserted":
+      return "Asserted (no evidence)";
+    case "evidenced":
+      return "Evidenced";
+    case "evidenced-fresh":
+      return "Evidenced and fresh";
+  }
+}
+
+/** True if an ISO timestamp falls within `windowDays` of `referenceDate`. */
+export function isWithinFreshnessWindow(
+  isoTimestamp: string,
+  referenceDate: Date,
+  windowDays: number = DEFAULT_EVIDENCE_FRESHNESS_WINDOW_DAYS
+): boolean {
+  const parsed = Date.parse(isoTimestamp);
+  if (Number.isNaN(parsed)) {
+    return false;
+  }
+  const ageMs = referenceDate.getTime() - parsed;
+  return ageMs >= 0 && ageMs <= windowDays * 24 * 60 * 60 * 1000;
+}
+
+export interface AssessmentBasisSummary {
+  readonly total: number;
+  readonly asserted: number;
+  readonly evidenced: number;
+  readonly evidencedFresh: number;
+  readonly evidencedFreshPercentage: number;
+}
+
+/** Aggregates per-item evidence counts (e.g. one row per "met" requirement) into a basis summary. */
+export function summariseAssessmentBasis(
+  items: readonly { readonly evidenceCount: number; readonly freshEvidenceCount: number }[]
+): AssessmentBasisSummary {
+  let asserted = 0;
+  let evidenced = 0;
+  let evidencedFresh = 0;
+  for (const item of items) {
+    const basis = assessmentBasis(item.evidenceCount, item.freshEvidenceCount);
+    if (basis === "asserted") asserted += 1;
+    else if (basis === "evidenced") evidenced += 1;
+    else evidencedFresh += 1;
+  }
+  const total = items.length;
+  return {
+    total,
+    asserted,
+    evidenced,
+    evidencedFresh,
+    evidencedFreshPercentage: total === 0 ? 0 : Math.round((evidencedFresh / total) * 100)
+  };
+}
+
+/**
+ * J2 (v1.55.0 UX review): "why care" consequence chain. Callers supply the
+ * open risks linked to a requirement (via their own link representation —
+ * Workshop's link rows or Explorer's direct requirementIds arrays); this
+ * function is the single shared statement builder so the wording of the
+ * consequence cannot drift between products.
+ */
+export interface ConsequenceStatementInput {
+  readonly met: boolean;
+  readonly openLinkedRiskCount: number;
+  readonly maxLinkedRiskSeverity: number;
+}
+
+export function buildConsequenceStatement(input: ConsequenceStatementInput): string {
+  if (input.openLinkedRiskCount === 0) {
+    return input.met
+      ? "No open risks are currently linked to this requirement."
+      : "No open risks are currently linked to this requirement, but it is not yet met.";
+  }
+  const severityWord =
+    input.maxLinkedRiskSeverity >= 10 ? "material" : input.maxLinkedRiskSeverity >= 5 ? "moderate" : "low-severity";
+  const riskWord = input.openLinkedRiskCount === 1 ? "risk remains" : "risks remain";
+  if (input.met) {
+    return `This requirement is met; ${input.openLinkedRiskCount} linked ${riskWord} open (highest severity ${severityWord}). Continued evidence currency keeps this exposure covered.`;
+  }
+  return `Not meeting this requirement leaves ${input.openLinkedRiskCount} linked ${riskWord} exposed (highest severity ${severityWord}).`;
+}
+
+export interface UncoveredRiskSummary {
+  readonly openRiskCount: number;
+  readonly uncoveredRiskCount: number;
+  readonly uncoveredRiskIds: readonly string[];
+}
+
+/**
+ * Ecosystem-wide "why care" lead statement: of all open risks, how many have
+ * no requirement covering them that is currently met. `hasMetCoverage` is
+ * supplied per risk id by the caller, which owns the link representation.
+ */
+export function summariseUncoveredRisk(
+  openRisks: readonly { readonly id: string }[],
+  hasMetCoverage: ReadonlyMap<string, boolean>
+): UncoveredRiskSummary {
+  const uncovered = openRisks.filter((risk) => !(hasMetCoverage.get(risk.id) ?? false));
+  return {
+    openRiskCount: openRisks.length,
+    uncoveredRiskCount: uncovered.length,
+    uncoveredRiskIds: uncovered.map((risk) => risk.id)
+  };
+}
+
+export function buildUncoveredRiskStatement(summary: UncoveredRiskSummary): string {
+  if (summary.openRiskCount === 0) {
+    return "No open risks are recorded.";
+  }
+  if (summary.uncoveredRiskCount === 0) {
+    return `All ${summary.openRiskCount} open risk(s) are covered by at least one met requirement.`;
+  }
+  const riskWord = summary.uncoveredRiskCount === 1 ? "risk has" : "risks have";
+  return `${summary.uncoveredRiskCount} of ${summary.openRiskCount} open ${riskWord} no met requirement covering them.`;
+}
+
+/**
+ * J3 (v1.56.0 UX review): "what's blocking us" fan-in ranking. Ranks
+ * candidate blockers (actions, evidence items) by how many not-met
+ * requirements they gate, so the single highest-leverage blocker surfaces
+ * first instead of a flat gap list.
+ */
+export interface BlockerCandidate {
+  readonly id: string;
+  readonly gatedRequirementIds: readonly string[];
+}
+
+export interface RankedBlocker {
+  readonly id: string;
+  readonly gatedRequirementCount: number;
+  readonly gatedRequirementIds: readonly string[];
+}
+
+export function rankBlockersByFanIn(candidates: readonly BlockerCandidate[], limit = 5): readonly RankedBlocker[] {
+  return candidates
+    .map((candidate) => ({
+      id: candidate.id,
+      gatedRequirementCount: candidate.gatedRequirementIds.length,
+      gatedRequirementIds: candidate.gatedRequirementIds
+    }))
+    .filter((candidate) => candidate.gatedRequirementCount > 0)
+    .sort((a, b) => b.gatedRequirementCount - a.gatedRequirementCount)
+    .slice(0, limit);
+}
+
+/**
+ * Blocker classification: who moves next on a blocked item. `us`, `funding`,
+ * and `assessor` can be derived heuristically via {@link classifyBlocker};
+ * `supplier` is operator-set only (S4/v1.57.0) since no ecosystem link today
+ * evidences a supplier as the blocking party.
+ */
+export type BlockerClass = "us" | "funding" | "assessor" | "supplier";
+
+export interface BlockerClassificationInput {
+  readonly isReviewType: boolean;
+  readonly hasCommercialLink: boolean;
+}
+
+export function classifyBlocker(input: BlockerClassificationInput): BlockerClass {
+  if (input.isReviewType) {
+    return "assessor";
+  }
+  if (input.hasCommercialLink) {
+    return "funding";
+  }
+  return "us";
+}
+
+export function blockerClassLabel(blockerClass: BlockerClass): string {
+  switch (blockerClass) {
+    case "us":
+      return "Waiting on us";
+    case "funding":
+      return "Waiting on funding";
+    case "assessor":
+      return "Waiting on assessor";
+    case "supplier":
+      return "Waiting on supplier";
+  }
+}
+
+/**
+ * Staleness preview: true if evidence added/refreshed at `isoTimestamp` will
+ * fall outside the freshness window within `horizonDays` of `referenceDate`
+ * — i.e. it is about to become a future blocker, not yet one today.
+ */
+export function isExpiringWithinDays(
+  isoTimestamp: string,
+  referenceDate: Date,
+  horizonDays = 90,
+  windowDays: number = DEFAULT_EVIDENCE_FRESHNESS_WINDOW_DAYS
+): boolean {
+  const parsed = Date.parse(isoTimestamp);
+  if (Number.isNaN(parsed)) {
+    return false;
+  }
+  const msUntilExpiry = parsed + windowDays * 24 * 60 * 60 * 1000 - referenceDate.getTime();
+  return msUntilExpiry >= 0 && msUntilExpiry <= horizonDays * 24 * 60 * 60 * 1000;
+}
+
+/**
+ * J4 (v1.58.0 UX review): trajectory. Observed closure velocity is derived
+ * from a caller-supplied series of {date, value} points (Workshop's local
+ * posture history, or Explorer's metric-bearing Core checkpoint snapshots)
+ * — never inferred or reconstructed history, only what was actually
+ * recorded.
+ */
+export interface TrendPoint {
+  readonly date: string;
+  readonly value: number;
+}
+
+export interface ClosureVelocity {
+  readonly pointsPerDay: number;
+  readonly windowDays: number;
+}
+
+export function computeClosureVelocity(trend: readonly TrendPoint[]): ClosureVelocity | undefined {
+  const first = trend[0];
+  const last = trend[trend.length - 1];
+  if (!first || !last || trend.length < 2) {
+    return undefined;
+  }
+  const firstMs = Date.parse(first.date);
+  const lastMs = Date.parse(last.date);
+  if (Number.isNaN(firstMs) || Number.isNaN(lastMs)) {
+    return undefined;
+  }
+  const days = (lastMs - firstMs) / (24 * 60 * 60 * 1000);
+  if (days <= 0) {
+    return undefined;
+  }
+  return { pointsPerDay: (last.value - first.value) / days, windowDays: Math.round(days) };
+}
+
+export interface TrajectoryProjection {
+  readonly reachable: boolean;
+  readonly assumption: string;
+  readonly estimatedDate?: string;
+  readonly rangeLowDate?: string;
+  readonly rangeHighDate?: string;
+}
+
+/**
+ * Projects when `targetValue` is reached at the observed velocity. Always
+ * returns a range with a stated assumption; never an unqualified single
+ * date. `blockerCount` (from J3 fan-in ranking) is folded into the
+ * assumption sentence so trajectory and blockers stay visibly coupled.
+ */
+export function projectTrajectory(
+  currentValue: number,
+  velocity: ClosureVelocity | undefined,
+  targetValue: number,
+  referenceDate: Date,
+  blockerCount = 0
+): TrajectoryProjection {
+  if (currentValue >= targetValue) {
+    return { reachable: true, assumption: "Target already reached.", estimatedDate: referenceDate.toISOString() };
+  }
+  if (!velocity || velocity.pointsPerDay <= 0) {
+    return {
+      reachable: false,
+      assumption:
+        blockerCount > 0
+          ? `No positive closure velocity observed; resolving the top ${blockerCount} blocker(s) would be needed to establish a trend.`
+          : "No positive closure velocity observed in the recorded history."
+    };
+  }
+  const daysNeeded = (targetValue - currentValue) / velocity.pointsPerDay;
+  const estimate = new Date(referenceDate.getTime() + daysNeeded * 24 * 60 * 60 * 1000);
+  const rangeLow = new Date(referenceDate.getTime() + daysNeeded * 0.75 * 24 * 60 * 60 * 1000);
+  const rangeHigh = new Date(referenceDate.getTime() + daysNeeded * 1.25 * 24 * 60 * 60 * 1000);
+  return {
+    reachable: true,
+    assumption:
+      `Assumes the observed closure rate of ${velocity.pointsPerDay.toFixed(2)} points/day over the last ${velocity.windowDays} days continues` +
+      (blockerCount > 0 ? `; resolving the top ${blockerCount} blocker(s) would shift this range earlier.` : "."),
+    estimatedDate: estimate.toISOString(),
+    rangeLowDate: rangeLow.toISOString(),
+    rangeHighDate: rangeHigh.toISOString()
+  };
+}
+
+/** Sustain-line note: a target date means nothing if the position cannot be held once reached. */
+export function buildSustainNote(expiringSoonCount: number): string {
+  if (expiringSoonCount === 0) {
+    return "No met requirements are due to lose evidence backing in the next 90 days.";
+  }
+  const requirementWord = expiringSoonCount === 1 ? "requirement needs" : "requirements need";
+  return `${expiringSoonCount} met ${requirementWord} refreshed evidence within 90 days to sustain the current position.`;
+}
+
+/**
+ * J5 (v1.59.0 UX review): "what changed" roll-up narrative, anchored to a
+ * reader-relative period (since last visit, since last brief) rather than a
+ * fixed calendar window. All three counts are supplied by the caller from
+ * whatever change history it can honestly evidence.
+ */
+export interface ChangeRollup {
+  readonly improved: number;
+  readonly regressed: number;
+  readonly wentStale: number;
+}
+
+export function describeChangeRollup(rollup: ChangeRollup): string {
+  const { improved, regressed, wentStale } = rollup;
+  if (improved === 0 && regressed === 0 && wentStale === 0) {
+    return "No recorded changes in this period.";
+  }
+  const parts: string[] = [];
+  if (improved > 0) parts.push(`${improved} improved`);
+  if (regressed > 0) parts.push(`${regressed} regressed`);
+  if (wentStale > 0) parts.push(`${wentStale} went stale`);
+  return parts.join(", ") + ".";
 }
 
 export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Entity[] {

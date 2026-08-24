@@ -8,13 +8,24 @@ import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
 import {
   actionStatusCounts,
+  changeRollupStatement,
   complianceBreakdown,
   complianceEventsSince,
   directionsSummary,
   essentialEightCoverage,
+  evidenceExpiringSoonCount,
+  metComplianceBasis,
   overdueActionCount,
   riskBandCounts,
+  topActionBlockers,
+  uncoveredRiskStatement,
 } from '../domain/analytics.ts';
+import {
+  blockerClassLabel,
+  buildSustainNote,
+  computeClosureVelocity,
+  projectTrajectory,
+} from '@pspf/contracts';
 import { directionResponseLabel } from '../domain/reporting.ts';
 import { summariseAllDomains } from '../domain/summary.ts';
 import { complianceColourVar, complianceLabel } from '../domain/compliance-display.ts';
@@ -31,6 +42,12 @@ export class AnalyticsView extends LitElement {
       h2 {
         margin: 0 0 var(--space-3) 0;
         font-size: var(--text-xl);
+      }
+      .lead-statement {
+        font-size: var(--text-md);
+        font-weight: 600;
+        color: var(--pspf-text);
+        margin: 0 0 var(--space-2) 0;
       }
       h3 {
         margin: var(--space-3) 0 var(--space-2) 0;
@@ -79,6 +96,11 @@ export class AnalyticsView extends LitElement {
       .kpi .label {
         font-size: var(--text-xs);
         color: var(--pspf-muted);
+      }
+      .kpi .kpi-note {
+        font-size: var(--text-xs);
+        color: var(--pspf-muted);
+        margin-top: var(--space-1);
       }
       table {
         width: 100%;
@@ -268,7 +290,7 @@ export class AnalyticsView extends LitElement {
       : [],
   );
 
-  #temporalDays: 30 | 90 | 'all' = 30;
+  #temporalDays: 30 | 90 | 'all' | 'since-visit' = 30;
 
   override render(): TemplateResult {
     const compliance = this.store?.compliance.value ?? new Map();
@@ -279,6 +301,24 @@ export class AnalyticsView extends LitElement {
     const snapshotMetrics = this.store?.snapshotMetrics.value ?? [];
 
     const breakdown = complianceBreakdown(compliance);
+    const metBasis = metComplianceBasis(compliance);
+    const leadStatement = uncoveredRiskStatement(compliance, risks);
+    const blockers = topActionBlockers(actions, compliance);
+    const expiringSoonCount = evidenceExpiringSoonCount(compliance);
+    const velocity = computeClosureVelocity(
+      snapshotMetrics.map((point) => ({
+        date: point.createdAt,
+        value: point.compliancePercentage,
+      })),
+    );
+    const trajectoryAssumption = projectTrajectory(
+      breakdown.compliantPct,
+      velocity,
+      100,
+      new Date(),
+      blockers.length,
+    ).assumption;
+    const sustainNote = buildSustainNote(expiringSoonCount);
     const e8 = essentialEightCoverage(compliance);
     const directionStats = directionsSummary(directions);
     const bands = riskBandCounts(risks);
@@ -290,8 +330,11 @@ export class AnalyticsView extends LitElement {
     const temporalFrom =
       this.#temporalDays === 'all'
         ? new Date(0)
-        : new Date(Date.now() - this.#temporalDays * 24 * 60 * 60 * 1000);
+        : this.#temporalDays === 'since-visit'
+          ? new Date(this.store?.lastVisitAt ?? Date.now() - 30 * 24 * 60 * 60 * 1000)
+          : new Date(Date.now() - this.#temporalDays * 24 * 60 * 60 * 1000);
     const recentChanges = complianceEventsSince(complianceEvents, temporalFrom);
+    const rollupStatement = changeRollupStatement(recentChanges, expiringSoonCount);
 
     let runningCompliancePct = 0;
     const complianceRing = COMPLIANCE_STATES.map((state) => {
@@ -305,6 +348,7 @@ export class AnalyticsView extends LitElement {
     return html`
       <article>
         <h2>Analytics</h2>
+        <p class="lead-statement" data-testid="uncovered-risk-lead">${leadStatement}</p>
         <p>
           Snapshot of programme health: compliance, risk posture, and action throughput. All numbers
           are computed live from the in-browser store.
@@ -315,6 +359,9 @@ export class AnalyticsView extends LitElement {
             <div class="kpi">
               <div class="value" data-kpi="compliant-pct">${breakdown.compliantPct}%</div>
               <div class="label">Fully implemented (excl. n/a)</div>
+              <div class="kpi-note" data-kpi="met-basis">
+                ${metBasis.evidencedFreshPercentage}% of that evidenced and fresh
+              </div>
             </div>
             <div class="kpi">
               <div class="value" data-kpi="not-set">${breakdown.byState['not-set']}</div>
@@ -459,6 +506,44 @@ export class AnalyticsView extends LitElement {
           </table>
         </section>
 
+        <section class="panel" aria-label="Top blockers">
+          <h3>Top blockers</h3>
+          <p class="muted">
+            Open actions ranked by how many not-yet-met requirements they gate. Resolving the top
+            blocker moves the most requirements at once.
+            ${expiringSoonCount > 0
+              ? html`${' '}${expiringSoonCount} requirement${expiringSoonCount === 1 ? '' : 's'}
+                will lose evidence backing within 90 days unless refreshed.`
+              : ''}
+          </p>
+          ${blockers.length === 0
+            ? html`<p class="placeholder" data-testid="no-blockers">
+                No open action currently gates a not-met requirement.
+              </p>`
+            : html`
+                <table data-testid="top-blockers">
+                  <thead>
+                    <tr>
+                      <th>Action</th>
+                      <th>Requirements gated</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${blockers.map(
+                      (blocker) => html`
+                        <tr>
+                          <td>${blocker.title}</td>
+                          <td>${blocker.gatedRequirementCount}</td>
+                          <td>${blockerClassLabel(blocker.blockerClass)}</td>
+                        </tr>
+                      `,
+                    )}
+                  </tbody>
+                </table>
+              `}
+        </section>
+
         <section class="panel" aria-label="Compliance by domain">
           <h3>Compliance by domain</h3>
           <table>
@@ -494,22 +579,27 @@ export class AnalyticsView extends LitElement {
 
         <section class="panel" aria-label="Recorded changes over time">
           <h3>Recorded changes over time</h3>
+          <p class="lead-statement" data-testid="change-rollup">${rollupStatement}</p>
           <p class="temporal-note">
             ${recentChanges.length} compliance change${recentChanges.length === 1 ? '' : 's'}
             recorded in the selected period. This is durable event history; it does not reconstruct
             an historical posture snapshot.
           </p>
           <div class="temporal-controls" role="group" aria-label="Change history period">
-            ${([30, 90, 'all'] as const).map(
-              (days) => html`
+            ${(['since-visit', 30, 90, 'all'] as const).map(
+              (period) => html`
                 <button
                   type="button"
-                  aria-pressed=${String(this.#temporalDays === days)}
+                  aria-pressed=${String(this.#temporalDays === period)}
                   @click=${() => {
-                    this.#temporalDays = days;
+                    this.#temporalDays = period;
                   }}
                 >
-                  ${days === 'all' ? 'All recorded' : `${days} days`}
+                  ${period === 'all'
+                    ? 'All recorded'
+                    : period === 'since-visit'
+                      ? 'Since your last visit'
+                      : `${period} days`}
                 </button>
               `,
             )}
@@ -590,6 +680,12 @@ export class AnalyticsView extends LitElement {
                 </div>
               `
             : html`<p class="temporal-note">No metric-bearing Core checkpoints are loaded.</p>`}
+        </section>
+
+        <section class="panel" aria-label="Trajectory">
+          <h3>Trajectory</h3>
+          <p data-testid="trajectory-assumption">${trajectoryAssumption}</p>
+          <p class="temporal-note" data-testid="sustain-note">${sustainNote}</p>
         </section>
 
         <section class="panel" aria-label="Compliance state distribution">

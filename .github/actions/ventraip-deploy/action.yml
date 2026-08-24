@@ -8,7 +8,7 @@ inputs:
   ssh_passphrase:
     description: Passphrase for the SSH key. Leave empty if the key has no passphrase.
     required: false
-    default: ''
+    default: ""
   ssh_user:
     description: SSH user on the VentraIP host.
     required: true
@@ -19,7 +19,7 @@ inputs:
   ssh_port:
     description: SSH port on the VentraIP host.
     required: false
-    default: '2683'
+    default: "2683"
   app_dir:
     description: Application release root on the host (releases/<id> live under here, plus the current symlink).
     required: true
@@ -39,7 +39,7 @@ inputs:
   protected_paths:
     description: Newline-separated docroot-relative paths that rsync --delete must preserve, such as child subdomain directories.
     required: false
-    default: ''
+    default: ""
 
 runs:
   using: composite

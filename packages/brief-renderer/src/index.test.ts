@@ -216,7 +216,7 @@ test("CISO magazine edition is dark and scoped to Information and Technology", (
   assert.equal(model.pspfDomainTitle, "Information + Technology");
   assert.ok(model.masterPlan);
   assert.equal(model.masterPlan.title, "CISO Master Plan");
-  assert.equal(model.postureSnapshot[1]?.value, "2");
+  assert.equal(model.postureSnapshot.find((metric) => metric.label === "PSPF Requirements in scope")?.value, "2");
   assert.match(markdown, /Digital CISO Magazine/);
   assert.match(markdown, /## CISO Master Plan/);
   assert.match(markdown, /Information \+ Technology/);

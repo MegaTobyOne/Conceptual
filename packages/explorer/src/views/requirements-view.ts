@@ -9,6 +9,7 @@ import { appStoreContext } from '../state/contexts.ts';
 import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
+import { complianceEventsSince } from '../domain/analytics.ts';
 import '../components/compliance-badge.ts';
 import '../components/breadcrumbs.ts';
 import '../components/list-workbench.ts';
@@ -133,6 +134,21 @@ export class RequirementsView extends LitElement {
         border-color: var(--pspf-accent);
         box-shadow: var(--shadow-2);
       }
+      .requirement-status {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+      }
+      .changed-badge {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 999px;
+        font-size: var(--text-xs);
+        font-weight: 600;
+        color: var(--pspf-accent-contrast, #fff);
+        background: var(--pspf-accent);
+        white-space: nowrap;
+      }
       li.requirement a {
         color: inherit;
         text-decoration: none;
@@ -177,7 +193,9 @@ export class RequirementsView extends LitElement {
   private lens: PresentationLens = 'ciso';
 
   // eslint-disable-next-line no-unused-private-class-members
-  #watcher = new SignalWatcher(this, () => (this.store ? [this.store.compliance] : []));
+  #watcher = new SignalWatcher(this, () =>
+    this.store ? [this.store.compliance, this.store.complianceEvents] : [],
+  );
 
   override willUpdate(changed: Map<PropertyKey, unknown>): void {
     // Pre-filter to domain from URL param if present
@@ -225,6 +243,16 @@ export class RequirementsView extends LitElement {
     const filteredDomain = domainKey ? allDomains.find((d) => d.key === domainKey) : undefined;
     const compliance: ReadonlyMap<RequirementId, ComplianceEntry> =
       this.store?.compliance.value ?? new Map();
+    // J5 (v1.59.0 UX review): badge rows changed since the reader's last visit.
+    // No badges on a reader's first-ever visit, since there is no prior anchor to compare against.
+    const changedSinceVisit = this.store?.lastVisitAt
+      ? new Set(
+          complianceEventsSince(
+            this.store.complianceEvents.value,
+            new Date(this.store.lastVisitAt),
+          ).map((change) => change.requirementId),
+        )
+      : new Set<RequirementId>();
 
     // Filter requirements
     const filtered = allRequirements.filter((r) => {
@@ -409,7 +437,14 @@ export class RequirementsView extends LitElement {
                             <li class="requirement">
                               <a href="#/requirement/${r.id}">${r.id}</a>
                               <span>${r.title}</span>
-                              <pspf-compliance-badge .state=${state}></pspf-compliance-badge>
+                              <span class="requirement-status">
+                                ${changedSinceVisit.has(r.id)
+                                  ? html`<span class="changed-badge" data-testid="changed-badge"
+                                      >Changed</span
+                                    >`
+                                  : ''}
+                                <pspf-compliance-badge .state=${state}></pspf-compliance-badge>
+                              </span>
                             </li>
                           `;
                         })}

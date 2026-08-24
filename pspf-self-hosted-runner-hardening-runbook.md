@@ -114,11 +114,11 @@ Do not attempt to allowlist all GitHub-hosted Actions ranges for this project; t
 
 Keep the existing environment split:
 
-| Environment | Secret | Purpose |
-|---|---|---|
-| `test-web` | `VENTRAIP_DEPLOY_KEY_TEST` | Test SSH deploy key |
-| `test-web` | `VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST` | Passphrase for the test SSH deploy key |
-| `production-web` | `VENTRAIP_DEPLOY_KEY_PROD` | Production SSH deploy key |
+| Environment      | Secret                                | Purpose                                      |
+| ---------------- | ------------------------------------- | -------------------------------------------- |
+| `test-web`       | `VENTRAIP_DEPLOY_KEY_TEST`            | Test SSH deploy key                          |
+| `test-web`       | `VENTRAIP_DEPLOY_KEY_PASSPHRASE_TEST` | Passphrase for the test SSH deploy key       |
+| `production-web` | `VENTRAIP_DEPLOY_KEY_PROD`            | Production SSH deploy key                    |
 | `production-web` | `VENTRAIP_DEPLOY_KEY_PASSPHRASE_PROD` | Passphrase for the production SSH deploy key |
 
 Required environment variables remain:
@@ -179,12 +179,12 @@ Not allowed on the self-hosted runner:
 
 10. Confirm the test hostname resolves and has HTTPS enabled:
 
-   ```sh
-   dig +short test.tobyharvey.online A
-   curl -I https://test.tobyharvey.online/
-   ```
+```sh
+dig +short test.tobyharvey.online A
+curl -I https://test.tobyharvey.online/
+```
 
-   If DNS resolves but LiteSpeed returns `404`, the workflow artefact is usually not the problem. Check that the VentraIP/cPanel subdomain document root for `test.tobyharvey.online` still points at the same path as the `test-web` environment's `VENTRAIP_DOCROOT` value; cPanel subdomain recreation can reset that mapping outside Git.
+If DNS resolves but LiteSpeed returns `404`, the workflow artefact is usually not the problem. Check that the VentraIP/cPanel subdomain document root for `test.tobyharvey.online` still points at the same path as the `test-web` environment's `VENTRAIP_DOCROOT` value; cPanel subdomain recreation can reset that mapping outside Git.
 
 11. Trigger a manual `web-release` deployment to `test`.
 12. Confirm `https://test.tobyharvey.online/` and `https://test.tobyharvey.online/explorer/` load.

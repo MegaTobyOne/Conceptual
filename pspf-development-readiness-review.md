@@ -8,9 +8,9 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.52.0 is the active release baseline. Studio System unifies compact `--pspf-*` tokens, responsive navigation and tables, labelled status chips, and product/domain wayfinding across Explorer and extension webviews. ADR 0084's unified Lit/Vite Explorer remains the single web surface, ADR 0085's Assurance City remains lazy-loaded, and `VERSION_AXES` remain `1.14.0`. Pub workforce decision cockpit (ADR 0083) remains local-only at store `1.3.0`, with no AI/model call and no new publication path.
+**Current implementation note:** v1.60.0 is the active release baseline. The v1.53.0–v1.60.0 UX judgement-support programme (ADRs 0087–0094) added Workshop/Explorer basis, consequence, blocker, trajectory, reader-anchored change, and Shop supplier-verdict composition on top of the Studio System visual baseline. `VERSION_AXES` moved once, at v1.57.0, from `1.14.0` to `1.15.0` (`requirement.acceptanceDefinition`, `action.blockerClass`, both `sensitive`). ADR 0084's unified Lit/Vite Explorer remains the single web surface, ADR 0085's Assurance City remains lazy-loaded. Pub workforce decision cockpit (ADR 0083) remains local-only at store `1.3.0`, with no AI/model call and no new publication path.
 
-**Status: v1.52.0 implementation is ready for automated and manual Studio System validation. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is ready for facilitated concept testing only and is not part of shipped product scope.**
+**Status: v1.60.0 implementation is ready for automated and manual UX judgement-support validation. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is ready for facilitated concept testing only and is not part of shipped product scope.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
 
@@ -39,6 +39,7 @@ The validated spine from the original readiness sequence is fully landed and has
 - v1.8 is governed by [adr/0042-v1-8-saved-views.md](adr/0042-v1-8-saved-views.md). It adds Requirements-only Explorer saved views as `saved-view` records in `saved-views`, persisted in IndexedDB and round-tripped through local-authoring exports/imports. Schema, bundle, and API axes bump together to `1.5.0`; product version bumps to `1.8.0`.
 - v1.9 is governed by [adr/0043-v1-9-saved-view-expansion.md](adr/0043-v1-9-saved-view-expansion.md). It expands saved views to Explorer Relationships and Workshop Requirement views, keeps saved views as optional user convenience records, makes names unique within scope, and adds Explorer reload guidance when remembered browser JSON is from an older schema. Schema, bundle, and API axes bump together to `1.6.0`; product version bumps to `1.9.0`.
 - v1.0 scope is governed by [adr/0022-v1-0-scope.md](adr/0022-v1-0-scope.md): Core + Workshop + Explorer publication mode plus the v0.5 surface; Shop, Pub, Explorer local authoring, chart export, plan-apply, and third-party accessibility audit were deferred past v1.0; performance reference is a current MacBook Air. Current Explorer releases now include local authoring and an editable posture screen.
+- v1.53.0–v1.60.0 are governed by [adr/0087-v1-53-ux-evidence-and-judgement-baseline.md](adr/0087-v1-53-ux-evidence-and-judgement-baseline.md) through [adr/0094-v1-60-supplier-verdict-and-publication-deferral.md](adr/0094-v1-60-supplier-verdict-and-publication-deferral.md). This programme adds a UX evidence pack and e2e chain-continuity gate (S0), then one shared `@pspf/contracts` primitive per operator judgement wired into Workshop/Explorer: assessment basis (S1), consequence chain (S2), blocker fan-in ranking (S3), an acceptance-definition/blocker-class schema bump to `1.15.0` (S4), trajectory velocity/projection (S5), reader-anchored change (S6), and a Shop supplier verdict with Explorer publication deliberately deferred (S7). See `pspf-grand-plan.md` and `docs/ux-improvement-ideas.md` for the full judgement set and remaining backlog.
 
 The core product decisions remain stable:
 
@@ -51,13 +52,13 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is the final automated gate for v1.52.0:
+`npx pnpm@10.10.0 run release:readiness` is the final automated gate for v1.60.0:
 
-1. Spine workflow (headless `e2e:v1.48`, including Pub cockpit behavioural and boundary tests).
+1. Spine workflow (headless `e2e:v1.60`, including Pub cockpit behavioural and boundary tests).
 2. Schema-policy.
 3. Personal-data exclusion.
 4. AU-English lint.
-5. Per-version schema publication (`schemas/explorer-bundle/1.14.0/`).
+5. Per-version schema publication (`schemas/explorer-bundle/1.15.0/`).
 6. Writer lock.
 7. Integrity scan.
 8. Sample workspace.
@@ -119,8 +120,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.52.0, with emphasis on compact responsive navigation, command access, bounded tables and status chips, canonical product/domain wayfinding, dark/light/high-contrast presentation, relationship map and Board behaviour, reduced motion, unified Explorer publication/local-authoring/Core-round-trip behaviour, cockpit keyboard navigation, and the existing Workshop, Shop, import, and release-dry-run regression surfaces.
+The next sequence is manual validation of v1.60.0, with emphasis on the new basis/consequence/blocker/trajectory/reader-anchored-change surfaces, the Shop supplier verdict, compact responsive navigation, command access, bounded tables and status chips, canonical product/domain wayfinding, dark/light/high-contrast presentation, relationship map and Board behaviour, reduced motion, unified Explorer publication/local-authoring/Core-round-trip behaviour, cockpit keyboard navigation, and the existing Workshop, Shop, import, and release-dry-run regression surfaces.
 
 ## Review conclusion
 
-The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, Assurance City, Studio System identity, and Pub workforce decision cockpit are implemented for v1.52.0 readiness. Manual validation now needs to confirm the compact visual matrix, responsive navigation/tables/chips, relationship map/Board contract, five Pub cockpit views, routed Attention, filters, pathway caveat, and suppressed safe-summary workflows in the Extension Host.
+The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, Assurance City, Studio System identity, Pub workforce decision cockpit, and the S0–S7 UX judgement-support programme (basis, consequence, blockers, trajectory, reader-anchored change, supplier verdict) are implemented for v1.60.0 readiness. Manual validation now needs to confirm the compact visual matrix, responsive navigation/tables/chips, relationship map/Board contract, five Pub cockpit views, routed Attention, filters, pathway caveat, and suppressed safe-summary workflows in the Extension Host.

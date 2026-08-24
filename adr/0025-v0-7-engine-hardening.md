@@ -17,7 +17,7 @@ The existing writer-lock gate blocked writes when another live process held the 
    - `CoreWriteApi` for initialisation, snapshotting, writer-lock state, and entity writes.
    - `CoreExchangeApi` for export/import.
    - `CoreIntegrityApi` for SQLite integrity and the richer integrity scan.
-   `createCoreService()` remains the compatibility facade and composes these layers.
+     `createCoreService()` remains the compatibility facade and composes these layers.
 2. Core adds `runIntegrityScan()` and the command `PSPF: Run Integrity Scan`. The scan writes `.pspf/logs/integrity-scan.json` and checks:
    - SQLite integrity.
    - entity payload JSON parseability.

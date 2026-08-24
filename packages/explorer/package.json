@@ -1,6 +1,6 @@
 {
   "name": "pspf-explorer",
-  "version": "1.53.0",
+  "version": "1.60.0",
   "private": true,
   "type": "module",
   "description": "PSPF Explorer — friendly web surface for publication-mode review and browser-local authoring, with Core exchange round-trip (ADR 0084).",
