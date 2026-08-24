@@ -10,7 +10,7 @@ PSPF (the Protective Security Policy Framework, administered by the Department o
 - **PSPF** sets the assurance outcomes the Australian Government expects an entity to demonstrate.
 - **ISM** is the implementation control catalogue cyber teams use to deliver and evidence those outcomes.
 
-Operators routinely answer the question *"which ISM controls implement this PSPF requirement?"* and the inverse *"if my ISM posture changed, which PSPF requirements are affected?"*. Today the product has no model for either side.
+Operators routinely answer the question _"which ISM controls implement this PSPF requirement?"_ and the inverse _"if my ISM posture changed, which PSPF requirements are affected?"_. Today the product has no model for either side.
 
 ASD publishes the ISM as a machine-readable OSCAL catalogue at <https://github.com/AustralianCyberSecurityCentre/ism-oscal> (the Australian Cyber Security Centre's repository), with the human-readable form at <https://www.cyber.gov.au/ism>. The OSCAL catalogue is released roughly quarterly (the current release at the time of this ADR is `v2026.03.24` — the March 2026 ISM). Each release ships:
 
@@ -47,7 +47,7 @@ Treat ISM as a **distinct external control catalogue** that PSPF Requirements re
 - The closed 22-verb link taxonomy (ADR 0003) is reviewed before Phase 2 ships. Existing verbs are insufficient because the mapping carries its own attributes; a `Link` row would lose them. Either:
   - extend the link taxonomy with a `mapped-to` verb plus a sidecar mapping record, or
   - model the mapping as its own entity with two outbound `supports` and `addressed-by` links.
-  The decision belongs in the Phase 2 ADR, not here.
+    The decision belongs in the Phase 2 ADR, not here.
 - Mapping `rationale` defaults to `sensitive` publication policy; mapping endpoints and `coverageQualifier` default to `internal` so coverage statistics can roll into the posture brief without leaking interpretive copy.
 - The posture brief gains an "ISM coverage" section that is derived from mappings; no claim appears unless it traces to a mapping record (consistent with E27).
 

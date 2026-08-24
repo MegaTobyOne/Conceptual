@@ -120,7 +120,22 @@ import {
   isAiEnabled,
   sanitiseEntityForPublication,
   PspfError,
-  withEnvelope
+  withEnvelope,
+  assessmentBasisLabel,
+  isWithinFreshnessWindow,
+  summariseAssessmentBasis,
+  type AssessmentBasisSummary,
+  buildConsequenceStatement,
+  buildUncoveredRiskStatement,
+  summariseUncoveredRisk,
+  blockerClassLabel,
+  classifyBlocker,
+  rankBlockersByFanIn,
+  isExpiringWithinDays,
+  type BlockerClass,
+  computeClosureVelocity,
+  projectTrajectory,
+  buildSustainNote
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import {
@@ -179,6 +194,7 @@ interface WorkshopMomentumSnapshot {
   readonly risks: number;
   readonly directions: number;
   readonly metPercentage: number;
+  readonly expiringSoonCount: number;
 }
 let momentumBaseline: WorkshopMomentumSnapshot | undefined;
 interface PostureHistoryPoint {
@@ -957,6 +973,16 @@ interface WorkshopHomeModel {
   readonly changeRecords: number;
   readonly recentRequirementTitle: string;
   readonly metPercentage: number;
+  readonly metBasis: AssessmentBasisSummary;
+  readonly uncoveredRiskStatement: string;
+  readonly topBlockers: readonly {
+    readonly title: string;
+    readonly gatedRequirementCount: number;
+    readonly blockerClassLabel: string;
+  }[];
+  readonly expiringSoonCount: number;
+  readonly trajectoryAssumption: string;
+  readonly sustainNote: string;
   readonly statusCounts: Readonly<Record<string, number>>;
   readonly momentum: string | undefined;
   readonly trend: readonly PostureHistoryPoint[];
@@ -998,9 +1024,86 @@ async function buildHomeModel(): Promise<WorkshopHomeModel> {
     : undefined;
 
   const applicableRequirements = requirements.filter((requirement) => !isNotApplicableRequirement(requirement));
-  const metRequirements = applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met").length;
+  const metRequirements = applicableRequirements.filter((requirement) => requirement.assessmentStatus === "met");
   const metPercentage =
-    applicableRequirements.length === 0 ? 0 : Math.round((metRequirements / applicableRequirements.length) * 100);
+    applicableRequirements.length === 0
+      ? 0
+      : Math.round((metRequirements.length / applicableRequirements.length) * 100);
+  const evidenceByRequirementId = new Map<string, EvidenceEntity[]>();
+  for (const link of links) {
+    if (link.linkType !== "supported-by" || link.fromType !== "requirement" || link.toType !== "evidence") continue;
+    const linkedEvidence = evidence.find((item) => item.id === link.toId);
+    if (!linkedEvidence) continue;
+    evidenceByRequirementId.set(link.fromId, [...(evidenceByRequirementId.get(link.fromId) ?? []), linkedEvidence]);
+  }
+  const now = new Date();
+  const metBasis = summariseAssessmentBasis(
+    metRequirements.map((requirement) => {
+      const linkedEvidence = evidenceByRequirementId.get(requirement.id) ?? [];
+      const freshEvidence = linkedEvidence.filter(
+        (item) => item.freshness === "current" && isWithinFreshnessWindow(item.updatedAt, now)
+      );
+      return { evidenceCount: linkedEvidence.length, freshEvidenceCount: freshEvidence.length };
+    })
+  );
+  const metRequirementIds = new Set(metRequirements.map((requirement) => requirement.id));
+  const riskCoverage = new Map<string, boolean>();
+  for (const link of links) {
+    if (link.linkType === "exposed-by" && link.fromType === "requirement" && link.toType === "risk") {
+      if (metRequirementIds.has(link.fromId)) {
+        riskCoverage.set(link.toId, true);
+      } else if (!riskCoverage.has(link.toId)) {
+        riskCoverage.set(link.toId, false);
+      }
+    }
+  }
+  const openRisks = risks.filter((risk) => risk.status !== "closed");
+  const uncoveredRiskStatementText = buildUncoveredRiskStatement(summariseUncoveredRisk(openRisks, riskCoverage));
+  const nonFinalRequirementIds = new Set(
+    requirements
+      .filter((requirement) => !["met", "not-applicable"].includes(requirement.assessmentStatus))
+      .map((requirement) => requirement.id)
+  );
+  const gatedByAction = new Map<string, Set<string>>();
+  for (const link of links) {
+    if (link.linkType === "addressed-by" && link.fromType === "requirement" && link.toType === "action") {
+      if (!nonFinalRequirementIds.has(link.fromId)) continue;
+      const gated = gatedByAction.get(link.toId) ?? new Set<string>();
+      gated.add(link.fromId);
+      gatedByAction.set(link.toId, gated);
+    }
+  }
+  const actionsById2 = new Map(actions.map((action) => [action.id, action]));
+  const topBlockers = rankBlockersByFanIn(
+    [...gatedByAction.entries()].map(([actionId, gated]) => ({ id: actionId, gatedRequirementIds: [...gated] }))
+  )
+    .map((ranked) => {
+      const blockerAction = actionsById2.get(ranked.id);
+      if (!blockerAction || blockerAction.status === "done" || blockerAction.status === "cancelled") return undefined;
+      const hasCommercialLink = links.some(
+        (link) => link.fromId === ranked.id && link.fromType === "action" && link.toType === "contract"
+      );
+      // Workshop actions have no explicit type field to signal an assessor-review blocker,
+      // so the classifier here can only distinguish funding vs everything-else ("us")
+      // unless the operator has set an explicit override.
+      return {
+        title: blockerAction.title,
+        gatedRequirementCount: ranked.gatedRequirementCount,
+        blockerClassLabel: blockerClassLabel(
+          blockerAction.blockerClass ?? classifyBlocker({ isReviewType: false, hasCommercialLink })
+        )
+      };
+    })
+    .filter(
+      (entry): entry is { title: string; gatedRequirementCount: number; blockerClassLabel: string } =>
+        entry !== undefined
+    );
+  const now2 = new Date();
+  const expiringSoonCount = requirements.filter((requirement) => {
+    if (requirement.assessmentStatus !== "met") return false;
+    const linkedEvidence = evidenceByRequirementId.get(requirement.id) ?? [];
+    return linkedEvidence.some((item) => isExpiringWithinDays(item.updatedAt, now2));
+  }).length;
   const openActions = actions.filter((action) => action.status !== "done" && action.status !== "cancelled").length;
 
   const currentSnapshot: WorkshopMomentumSnapshot = {
@@ -1011,11 +1114,21 @@ async function buildHomeModel(): Promise<WorkshopHomeModel> {
     openActions,
     risks: risks.length,
     directions: directions.length,
-    metPercentage
+    metPercentage,
+    expiringSoonCount
   };
   const momentum = describeMomentum(momentumBaseline, currentSnapshot);
   void workshopContext?.workspaceState.update(momentumSnapshotKey, currentSnapshot);
   const trend = recordPostureHistory(metPercentage);
+  const velocity = computeClosureVelocity(trend.map((point) => ({ date: point.day, value: point.metPercentage })));
+  const trajectoryAssumption = projectTrajectory(
+    metPercentage,
+    velocity,
+    100,
+    new Date(),
+    topBlockers.length
+  ).assumption;
+  const sustainNote = buildSustainNote(expiringSoonCount);
   const shareNudge = describeShareNudge(
     workshopContext?.workspaceState.get<WorkshopShareState>(lastSharedKey),
     currentSnapshot
@@ -1038,6 +1151,12 @@ async function buildHomeModel(): Promise<WorkshopHomeModel> {
     changeRecords: changeRecords.length,
     recentRequirementTitle: recentRequirement?.title ?? "None selected yet",
     metPercentage,
+    metBasis,
+    uncoveredRiskStatement: uncoveredRiskStatementText,
+    topBlockers,
+    expiringSoonCount,
+    trajectoryAssumption,
+    sustainNote,
     statusCounts: requirements.reduce<Record<string, number>>((counts, requirement) => {
       counts[requirement.assessmentStatus] = (counts[requirement.assessmentStatus] ?? 0) + 1;
       return counts;
@@ -1134,10 +1253,14 @@ function describeMomentum(
   if (postureDelta !== 0) {
     parts.push(`posture ${baseline.metPercentage}% → ${current.metPercentage}%`);
   }
+  const staleDelta = current.expiringSoonCount - baseline.expiringSoonCount;
+  if (staleDelta > 0) {
+    parts.push(`${staleDelta} more requirement${staleDelta === 1 ? "" : "s"} due to go stale within 90 days`);
+  }
   if (parts.length === 0) {
     return undefined;
   }
-  return `Since you were last here: ${parts.join(" · ")}.`;
+  return `Since you were last here on ${formatDisplayDate(new Date(baseline.capturedAt))}: ${parts.join(" · ")}.`;
 }
 
 async function continueNextTask(): Promise<void> {
@@ -1196,7 +1319,8 @@ function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens): strin
     <section class="hero-section lens-hero">
       <p class="eyebrow">System of record</p>
       <h2>PSPF Workshop</h2>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · ${model.metPercentage}% met</p>
+      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · ${model.metPercentage}% met · ${model.metBasis.evidencedFreshPercentage}% ${escapeHtml(assessmentBasisLabel("evidenced-fresh").toLowerCase())}</p>
+      <p class="muted">${escapeHtml(model.uncoveredRiskStatement)}</p>
       ${lensSelectorHtml({ lens, command: "pspf.workshop.home.selectLens" })}
       ${model.momentum ? `<p class="momentum">${escapeHtml(model.momentum)}</p>` : ""}
       ${renderPostureSparkline(model.trend)}
@@ -1209,6 +1333,32 @@ function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens): strin
         ${metricCard("Directions", model.counts.directions)}
         ${metricCard("Change records", model.changeRecords)}
       </div>
+    </section>
+    <section class="lens-status">
+      <h2>Blockers</h2>
+      <p class="muted">Open actions ranked by how many not-yet-met requirements they gate.${
+        model.expiringSoonCount > 0
+          ? ` ${model.expiringSoonCount} met requirement${model.expiringSoonCount === 1 ? "" : "s"} will lose evidence backing within 90 days unless refreshed.`
+          : ""
+      }</p>
+      ${
+        model.topBlockers.length === 0
+          ? `<p class="muted">No open action currently gates a not-met requirement.</p>`
+          : recordTable(
+              "Top blockers",
+              model.topBlockers.map((blocker) => ({
+                title: blocker.title,
+                gatedRequirementCount: blocker.gatedRequirementCount,
+                status: blocker.blockerClassLabel
+              })),
+              ["title", "gatedRequirementCount", "status"]
+            )
+      }
+    </section>
+    <section class="lens-status">
+      <h2>Trajectory</h2>
+      <p class="muted">${escapeHtml(model.trajectoryAssumption)}</p>
+      <p class="muted">${escapeHtml(model.sustainNote)}</p>
     </section>
     <section class="lens-status">
       <h2>Status Distribution</h2>
@@ -10107,6 +10257,12 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     likelihood: risk.likelihood,
     impact: risk.impact
   }));
+  const openLinkedRisks = risks.filter((risk) => risk.status !== "closed");
+  const consequenceStatement = buildConsequenceStatement({
+    met: requirement.assessmentStatus === "met",
+    openLinkedRiskCount: openLinkedRisks.length,
+    maxLinkedRiskSeverity: openLinkedRisks.reduce((max, risk) => Math.max(max, risk.likelihood * risk.impact), 0)
+  });
   const tagsById = new Map(
     allEntities
       .filter((entity): entity is TagEntity => entity.entityType === "tag" && entity.recordStatus !== "deleted")
@@ -10199,6 +10355,10 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
       <div class="form-actions"><button type="button" data-command="openEntity" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Edit</button><button type="button" data-command="applyTag" data-requirement-id="${escapeHtml(requirement.id)}">Apply tag</button><button type="button" data-command="recordChange" data-entity-type="requirement" data-entity-id="${escapeHtml(requirement.id)}">Record significant change</button></div>
     </section>
     ${renderRequirementRelationshipManager(requirement, allEntities)}
+    <section class="consequence">
+      <h2>Consequence</h2>
+      <p>${escapeHtml(consequenceStatement)}</p>
+    </section>
     ${recordTable("Tags", tagRows, ["title", "colour", "status", "action"])}
     ${recordTable("Directions Targeting This Requirement", directionRows, ["reference", "title", "responseState", "sourceAuthority"])}
     ${recordTable("Evidence", evidenceRows, ["title", "evidenceType", "freshness", "reference"])}
@@ -10958,6 +11118,7 @@ async function buildUpdatedEntity(
         await vscode.window.showWarningMessage("Select a valid Requirement domain before saving.");
         return undefined;
       }
+      const nextAcceptanceDefinition = trimOptional(fields.acceptanceDefinition);
       return {
         ...entity,
         title,
@@ -10969,6 +11130,9 @@ async function buildUpdatedEntity(
           status !== entity.assessmentStatus || fields.assessmentRationale !== entity.assessmentRationale
             ? updatedAt
             : entity.assessmentReviewedAt,
+        acceptanceDefinition: nextAcceptanceDefinition,
+        acceptanceDefinitionUpdatedAt:
+          nextAcceptanceDefinition !== entity.acceptanceDefinition ? updatedAt : entity.acceptanceDefinitionUpdatedAt,
         updatedAt
       };
     }
@@ -11026,6 +11190,9 @@ async function buildUpdatedEntity(
           ? fields.effortConfidence
           : undefined,
         effortBasis: trimOptional(fields.effortBasis),
+        blockerClass: ["us", "funding", "assessor", "supplier"].includes(fields.blockerClass ?? "")
+          ? (fields.blockerClass as BlockerClass)
+          : undefined,
         commentary: actionCommentaryEntries(entity.commentary, fields.newCommentary, updatedAt),
         updatedAt
       };
@@ -11309,6 +11476,12 @@ function renderRequirementEditor(
     ${isBaseline ? readonlyField("Domain", domainName(requirement.domainId)) : selectField("domainId", "Domain", domainOptions, requirement.domainId)}
     ${selectField("assessmentStatus", "Assessment status", assessmentStatusItems, requirement.assessmentStatus)}
     ${textareaField("assessmentRationale", "Assessment rationale", requirement.assessmentRationale ?? "")}
+    ${textareaField(
+      "acceptanceDefinition",
+      "Acceptance definition (what an assessor would accept as met)",
+      requirement.acceptanceDefinition ?? ""
+    )}
+    ${requirement.acceptanceDefinitionUpdatedAt ? `<p class="muted">Definition last changed ${escapeHtml(formatDisplayDate(new Date(requirement.acceptanceDefinitionUpdatedAt)))}.</p>` : ""}
     ${textareaField("summary", "Summary", requirement.summary ?? "")}
   `,
     isBaseline ? "Official PSPF baseline title and domain are locked." : undefined,
@@ -11865,6 +12038,18 @@ function renderActionEditor(
       action.effortConfidence ?? "medium"
     )}
     ${textareaField("effortBasis", "Effort basis", action.effortBasis ?? "")}
+    ${selectField(
+      "blockerClass",
+      "Blocker (who moves next, overrides the automatic guess)",
+      [
+        { label: "Automatic", value: "" },
+        { label: blockerClassLabel("us"), value: "us" },
+        { label: blockerClassLabel("funding"), value: "funding" },
+        { label: blockerClassLabel("assessor"), value: "assessor" },
+        { label: blockerClassLabel("supplier"), value: "supplier" }
+      ],
+      action.blockerClass ?? ""
+    )}
     ${textareaField("newCommentary", "New commentary update", "")}
   `,
     undefined,

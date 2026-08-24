@@ -54,7 +54,7 @@ Treat the Australian context as a first-class product strength and amplify it ac
 
 ### 7. Documentation framing
 
-- The repo `README.md`, every product `README.md`, and the Explorer About screen open with a one-paragraph statement: *"PSPF is the Australian Government's Protective Security Policy Framework, administered by the Department of Home Affairs. This product helps Australian entities assess and report against PSPF requirements and the ASD Essential Eight, locally and offline."*
+- The repo `README.md`, every product `README.md`, and the Explorer About screen open with a one-paragraph statement: _"PSPF is the Australian Government's Protective Security Policy Framework, administered by the Department of Home Affairs. This product helps Australian entities assess and report against PSPF requirements and the ASD Essential Eight, locally and offline."_
 - Marketing copy states the product is built for Australian entities; non-Australian users are welcome but the framing is not generic.
 
 ## Consequences

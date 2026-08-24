@@ -96,13 +96,13 @@ Every field must declare a publication policy.
 
 Recommended v1.8 defaults:
 
-| Field | Policy | Rationale |
-|---|---|---|
-| `id`, `entityType`, `schemaVersion`, `title`, `createdAt`, `updatedAt`, `sourceProduct`, `recordStatus` | public | Standard envelope fields already present in published bundles. |
-| `name` | public | User-facing saved-view label. Operators should avoid sensitive names, but the label is needed to render the view. |
-| `scope` | public | Non-sensitive enum. |
-| `filters` | public | Contains IDs/enums/query terms needed to restore the view. |
-| `presentation` | public | Contains display preferences only. |
+| Field                                                                                                   | Policy | Rationale                                                                                                         |
+| ------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- |
+| `id`, `entityType`, `schemaVersion`, `title`, `createdAt`, `updatedAt`, `sourceProduct`, `recordStatus` | public | Standard envelope fields already present in published bundles.                                                    |
+| `name`                                                                                                  | public | User-facing saved-view label. Operators should avoid sensitive names, but the label is needed to render the view. |
+| `scope`                                                                                                 | public | Non-sensitive enum.                                                                                               |
+| `filters`                                                                                               | public | Contains IDs/enums/query terms needed to restore the view.                                                        |
+| `presentation`                                                                                          | public | Contains display preferences only.                                                                                |
 
 Decision: `filters.query` is public and round-trips in v1.8. Operators should avoid sensitive saved-view names and query phrases; this matches the broader Explorer local-authoring warning that exported JSON must be handled at the OFFICIAL: Sensitive level.
 

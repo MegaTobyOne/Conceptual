@@ -69,21 +69,21 @@ The privileged Core API is available only to trusted PSPF extensions. Core shoul
 
 Define three access levels:
 
-| Access level | Meaning |
-|---|---|
-| `platform-admin` | full Core administrative access |
-| `domain-write` | read/write in governed domain workflows |
-| `read-only` | read/query only |
+| Access level     | Meaning                                 |
+| ---------------- | --------------------------------------- |
+| `platform-admin` | full Core administrative access         |
+| `domain-write`   | read/write in governed domain workflows |
+| `read-only`      | read/query only                         |
 
 ### Suggested mapping
 
-| Product | Access level |
-|---|---|
-| Core UI | `platform-admin` |
+| Product  | Access level                                     |
+| -------- | ------------------------------------------------ |
+| Core UI  | `platform-admin`                                 |
 | Workshop | `domain-write` plus selected platform operations |
-| Shop | `domain-write` |
-| Pub | `domain-write` |
-| Explorer | no local Core API access in v1 |
+| Shop     | `domain-write`                                   |
+| Pub      | `domain-write`                                   |
+| Explorer | no local Core API access in v1                   |
 
 ### Trust constraints
 
@@ -121,14 +121,14 @@ The Platform API exposes capability negotiation, health, compatibility, trust st
 
 ### Methods
 
-| Method | Purpose |
-|---|---|
-| `getCapabilities()` | return supported capabilities and access scope |
-| `getHealth()` | return current health summary |
-| `getWorkspaceInfo()` | return workspace identity and storage info |
+| Method               | Purpose                                        |
+| -------------------- | ---------------------------------------------- |
+| `getCapabilities()`  | return supported capabilities and access scope |
+| `getHealth()`        | return current health summary                  |
+| `getWorkspaceInfo()` | return workspace identity and storage info     |
 | `getCompatibility()` | return API/schema/bundle compatibility details |
-| `getTrustState()` | return trust and execution mode state |
-| `ping()` | lightweight liveness check |
+| `getTrustState()`    | return trust and execution mode state          |
+| `ping()`             | lightweight liveness check                     |
 
 ### Example types
 
@@ -150,7 +150,7 @@ Capability negotiation should be explicit. The caller identifies itself and requ
 ```ts
 interface CapabilityRequest {
   callerExtensionId: string;
-  callerProduct: 'core' | 'workshop' | 'shop' | 'pub' | 'unknown';
+  callerProduct: "core" | "workshop" | "shop" | "pub" | "unknown";
   requestedScopes: string[];
   supportedApiVersions: string[];
 }
@@ -162,7 +162,7 @@ interface CapabilityResponse {
   apiVersion: string;
   schemaVersion: string;
   bundleVersion: string;
-  compatibility: 'compatible' | 'degraded' | 'incompatible';
+  compatibility: "compatible" | "degraded" | "incompatible";
   reasons?: string[];
 }
 ```
@@ -175,26 +175,26 @@ The Query API supports current-state reads, targeted search, relationship traver
 
 ### Query groups
 
-| Group | Purpose |
-|---|---|
-| Entity retrieval | get by ID, list by type, filter by fields |
-| Link retrieval | get links for entity, get related entities |
-| Summary retrieval | counts, readiness, freshness, health, risk summaries |
-| Snapshot/report retrieval | snapshot detail, report pack detail |
-| Search | lightweight text and structured search |
+| Group                     | Purpose                                              |
+| ------------------------- | ---------------------------------------------------- |
+| Entity retrieval          | get by ID, list by type, filter by fields            |
+| Link retrieval            | get links for entity, get related entities           |
+| Summary retrieval         | counts, readiness, freshness, health, risk summaries |
+| Snapshot/report retrieval | snapshot detail, report pack detail                  |
+| Search                    | lightweight text and structured search               |
 
 ### Methods
 
-| Method | Purpose |
-|---|---|
-| `getEntity()` | fetch one entity by canonical ID |
-| `getEntities()` | fetch entities by type and filter |
-| `getLinks()` | fetch links by entity or link criteria |
+| Method                 | Purpose                                          |
+| ---------------------- | ------------------------------------------------ |
+| `getEntity()`          | fetch one entity by canonical ID                 |
+| `getEntities()`        | fetch entities by type and filter                |
+| `getLinks()`           | fetch links by entity or link criteria           |
 | `getRelatedEntities()` | fetch linked entities with optional link filters |
-| `getSummary()` | fetch named summary views |
-| `search()` | keyword/filter search |
-| `getSnapshot()` | fetch snapshot by ID |
-| `getReportPack()` | fetch report pack by ID |
+| `getSummary()`         | fetch named summary views                        |
+| `search()`             | keyword/filter search                            |
+| `getSnapshot()`        | fetch snapshot by ID                             |
+| `getReportPack()`      | fetch report pack by ID                          |
 
 ### Example types
 
@@ -232,7 +232,7 @@ interface GetLinksRequest {
   linkType?: string;
   fromId?: string;
   toId?: string;
-  status?: 'active' | 'inactive' | 'superseded';
+  status?: "active" | "inactive" | "superseded";
 }
 ```
 
@@ -259,14 +259,14 @@ This keeps v1 small while supporting rich UI projections.
 
 The daily Workshop and Explorer surfaces depend on a small set of explainable summary projections:
 
-| Summary | Purpose |
-|---|---|
-| `evidence-review-queue` | Group old, incomplete, changed, unverified, missing, or unlinked evidence by domain and requirement, with downstream impact counts. |
-| `action-impact-ranking` | Rank actions by likely positive effect on requirement, domain, Essential Eight, Direction, and overall posture. |
-| `direction-response-overview` | Summarise Directions by response state, affected requirements, missing evidence, and open actions. |
-| `posture-brief` | Produce the simple graphic-ready and text-ready posture summary used in reporting surfaces. |
-| `shop-spend-forecast` | Forecast planned/committed spend, expected savings, net benefit, payback, and confidence by supplier, contract, domain, requirement, action, financial year, or overall scope. |
-| `shop-savings-opportunities` | Rank invest-now-save-later opportunities by expected savings, action impact, linked risk reduction, contract optimisation, and confidence. |
+| Summary                       | Purpose                                                                                                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `evidence-review-queue`       | Group old, incomplete, changed, unverified, missing, or unlinked evidence by domain and requirement, with downstream impact counts.                                            |
+| `action-impact-ranking`       | Rank actions by likely positive effect on requirement, domain, Essential Eight, Direction, and overall posture.                                                                |
+| `direction-response-overview` | Summarise Directions by response state, affected requirements, missing evidence, and open actions.                                                                             |
+| `posture-brief`               | Produce the simple graphic-ready and text-ready posture summary used in reporting surfaces.                                                                                    |
+| `shop-spend-forecast`         | Forecast planned/committed spend, expected savings, net benefit, payback, and confidence by supplier, contract, domain, requirement, action, financial year, or overall scope. |
+| `shop-savings-opportunities`  | Rank invest-now-save-later opportunities by expected savings, action impact, linked risk reduction, contract optimisation, and confidence.                                     |
 
 `action-impact-ranking` MUST return an explanation for each ranked action. Consumers must be able to show why an action ranked highly using facts such as linked not-met requirements, blocked reporting readiness, stale or missing evidence, high-risk treatment, Essential Eight coverage, or affected Directions. The API should not return an opaque recommendation score without the explanatory facts.
 
@@ -278,35 +278,35 @@ The Command API is the authoritative mutation boundary. It creates, updates, lin
 
 ### Command groups
 
-| Group | Purpose |
-|---|---|
-| Entity lifecycle | create, update, archive, restore |
-| Link lifecycle | create, supersede, deactivate |
-| Snapshot/export | snapshot, bundle export, bundle import |
-| Validation | validate entity, validate workspace |
+| Group                | Purpose                                |
+| -------------------- | -------------------------------------- |
+| Entity lifecycle     | create, update, archive, restore       |
+| Link lifecycle       | create, supersede, deactivate          |
+| Snapshot/export      | snapshot, bundle export, bundle import |
+| Validation           | validate entity, validate workspace    |
 | Platform maintenance | migrate, rebuild indexes, repair links |
 
 ### Methods
 
-| Method | Purpose |
-|---|---|
-| `createEntity()` | create a canonical entity |
-| `updateEntity()` | patch an existing entity |
-| `archiveEntity()` | archive/inactivate entity |
-| `restoreEntity()` | restore archived entity |
-| `createLink()` | create semantic link |
-| `updateLink()` | update link metadata or status |
-| `supersedeLink()` | supersede an existing link |
-| `createSnapshot()` | create immutable snapshot |
-| `exportBundle()` | create JSON export bundle |
-| `importBundle()` | import compatible bundle |
-| `validateEntity()` | validate a specific entity |
-| `validateWorkspace()` | run broader validation |
-| `runMigration()` | execute authorized migration |
-| `verifyIntegrity()` | run integrity checks |
-| `repairLinks()` | run or propose link repair |
-| `recordRedactionEvent()` | record a tombstone that supersedes specified fields on an entity (APP 11.2 support; see ADR 0006) |
-| `purgeEntity()` | destructively erase an entity and replace with permanent tombstone; requires `platform-admin`, Workspace Trust, and explicit operator confirmation |
+| Method                   | Purpose                                                                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `createEntity()`         | create a canonical entity                                                                                                                          |
+| `updateEntity()`         | patch an existing entity                                                                                                                           |
+| `archiveEntity()`        | archive/inactivate entity                                                                                                                          |
+| `restoreEntity()`        | restore archived entity                                                                                                                            |
+| `createLink()`           | create semantic link                                                                                                                               |
+| `updateLink()`           | update link metadata or status                                                                                                                     |
+| `supersedeLink()`        | supersede an existing link                                                                                                                         |
+| `createSnapshot()`       | create immutable snapshot                                                                                                                          |
+| `exportBundle()`         | create JSON export bundle                                                                                                                          |
+| `importBundle()`         | import compatible bundle                                                                                                                           |
+| `validateEntity()`       | validate a specific entity                                                                                                                         |
+| `validateWorkspace()`    | run broader validation                                                                                                                             |
+| `runMigration()`         | execute authorized migration                                                                                                                       |
+| `verifyIntegrity()`      | run integrity checks                                                                                                                               |
+| `repairLinks()`          | run or propose link repair                                                                                                                         |
+| `recordRedactionEvent()` | record a tombstone that supersedes specified fields on an entity (APP 11.2 support; see ADR 0006)                                                  |
+| `purgeEntity()`          | destructively erase an entity and replace with permanent tombstone; requires `platform-admin`, Workspace Trust, and explicit operator confirmation |
 
 ### Example types
 
@@ -360,18 +360,18 @@ Events are long-lived contracts. They should evolve additively where possible, a
 
 ### Event groups
 
-| Event | Purpose |
-|---|---|
-| `entityChanged` | entity created, updated, archived, restored |
-| `linkChanged` | link created, updated, superseded |
-| `snapshotCreated` | immutable snapshot produced |
-| `bundleExported` | export completed |
-| `bundleImported` | import completed |
-| `workspaceValidated` | workspace validation completed |
-| `integrityVerified` | integrity verification completed |
-| `migrationCompleted` | schema migration completed |
-| `healthChanged` | platform health meaningfully changed |
-| `trustStateChanged` | trust or execution mode changed |
+| Event                | Purpose                                     |
+| -------------------- | ------------------------------------------- |
+| `entityChanged`      | entity created, updated, archived, restored |
+| `linkChanged`        | link created, updated, superseded           |
+| `snapshotCreated`    | immutable snapshot produced                 |
+| `bundleExported`     | export completed                            |
+| `bundleImported`     | import completed                            |
+| `workspaceValidated` | workspace validation completed              |
+| `integrityVerified`  | integrity verification completed            |
+| `migrationCompleted` | schema migration completed                  |
+| `healthChanged`      | platform health meaningfully changed        |
+| `trustStateChanged`  | trust or execution mode changed             |
 
 ### Example types
 
@@ -453,7 +453,15 @@ Errors should be structured, machine-readable, and stable enough for consumers t
 interface ApiError {
   code: string;
   message: string;
-  category: 'validation' | 'permission' | 'compatibility' | 'trust' | 'integrity' | 'not-found' | 'conflict' | 'internal';
+  category:
+    | "validation"
+    | "permission"
+    | "compatibility"
+    | "trust"
+    | "integrity"
+    | "not-found"
+    | "conflict"
+    | "internal";
   details?: Record<string, unknown>;
   retryable?: boolean;
 }
@@ -461,20 +469,20 @@ interface ApiError {
 
 ### Standard error codes
 
-| Code | Meaning |
-|---|---|
-| `CORE_API_INCOMPATIBLE` | caller and Core major versions incompatible |
-| `CORE_SCOPE_DENIED` | requested capability denied |
-| `CORE_WORKSPACE_UNTRUSTED` | operation blocked by trust state |
-| `CORE_ENTITY_NOT_FOUND` | entity not found |
-| `CORE_LINK_NOT_FOUND` | link not found |
-| `CORE_VALIDATION_FAILED` | entity or command validation failed |
-| `CORE_IMMUTABLE_FIELD` | attempted mutation of immutable field |
-| `CORE_DUPLICATE_LINK` | duplicate active link not permitted |
-| `CORE_INTEGRITY_FAILED` | integrity verification failed |
-| `CORE_IMPORT_INCOMPATIBLE` | import bundle schema unsupported |
-| `CORE_MIGRATION_REQUIRED` | operation blocked pending migration |
-| `CORE_INTERNAL_ERROR` | unexpected internal failure |
+| Code                       | Meaning                                     |
+| -------------------------- | ------------------------------------------- |
+| `CORE_API_INCOMPATIBLE`    | caller and Core major versions incompatible |
+| `CORE_SCOPE_DENIED`        | requested capability denied                 |
+| `CORE_WORKSPACE_UNTRUSTED` | operation blocked by trust state            |
+| `CORE_ENTITY_NOT_FOUND`    | entity not found                            |
+| `CORE_LINK_NOT_FOUND`      | link not found                              |
+| `CORE_VALIDATION_FAILED`   | entity or command validation failed         |
+| `CORE_IMMUTABLE_FIELD`     | attempted mutation of immutable field       |
+| `CORE_DUPLICATE_LINK`      | duplicate active link not permitted         |
+| `CORE_INTEGRITY_FAILED`    | integrity verification failed               |
+| `CORE_IMPORT_INCOMPATIBLE` | import bundle schema unsupported            |
+| `CORE_MIGRATION_REQUIRED`  | operation blocked pending migration         |
+| `CORE_INTERNAL_ERROR`      | unexpected internal failure                 |
 
 ### Error detail guidance
 
@@ -503,7 +511,7 @@ interface PageInfo {
 ```ts
 interface SortRequest {
   field: string;
-  direction: 'asc' | 'desc';
+  direction: "asc" | "desc";
 }
 ```
 
@@ -519,7 +527,7 @@ Validation should return structured findings rather than plain strings.
 
 ```ts
 interface ValidationFinding {
-  severity: 'info' | 'warning' | 'error';
+  severity: "info" | "warning" | "error";
   code: string;
   message: string;
   entityId?: string;
@@ -549,7 +557,7 @@ Workspace validation should be able to check:
 ```ts
 interface CreateSnapshotRequest {
   title: string;
-  snapshotType: 'reporting' | 'checkpoint' | 'backup' | 'export';
+  snapshotType: "reporting" | "checkpoint" | "backup" | "export";
   scope?: SnapshotScope;
   notes?: string;
 }
@@ -559,7 +567,7 @@ interface CreateSnapshotRequest {
 
 ```ts
 interface ExportBundleRequest {
-  bundleType: 'explorer' | 'backup' | 'reporting' | 'exchange';
+  bundleType: "explorer" | "backup" | "reporting" | "exchange";
   scope?: ExportScope;
   snapshotId?: string;
   includeHistory?: boolean;
@@ -611,14 +619,14 @@ export interface PspfCoreApi {
 ### Consumer bootstrap pattern
 
 ```ts
-const ext = vscode.extensions.getExtension<PspfCoreApi>('your-org.pspf-core');
-if (!ext) throw new Error('PSPF Core not installed');
+const ext = vscode.extensions.getExtension<PspfCoreApi>("your-org.pspf-core");
+if (!ext) throw new Error("PSPF Core not installed");
 const api = ext.isActive ? ext.exports : await ext.activate();
 const caps = await api.platform.getCapabilities({
-  callerExtensionId: 'your-org.pspf-workshop',
-  callerProduct: 'workshop',
-  requestedScopes: ['domain-write', 'summary-read'],
-  supportedApiVersions: ['1.x']
+  callerExtensionId: "your-org.pspf-workshop",
+  callerProduct: "workshop",
+  requestedScopes: ["domain-write", "summary-read"],
+  supportedApiVersions: ["1.x"]
 });
 ```
 

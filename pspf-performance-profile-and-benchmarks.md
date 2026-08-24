@@ -17,15 +17,15 @@ This document defines performance assumptions, benchmark method, and acceptance 
 
 Headline thresholds in this document and in `pspf-acceptance-and-quality-gates.md` are measured against the **PSPF reference machine**:
 
-| Property | Value |
-|---|---|
-| CPU | Apple Silicon, 8 performance cores (e.g. M2 or later) |
-| RAM | 16 GB |
-| Storage | NVMe SSD with at least 10 GB free |
-| OS | macOS 14 or later |
-| Runtime | Node.js LTS aligned with VS Code's bundled version |
+| Property        | Value                                                         |
+| --------------- | ------------------------------------------------------------- |
+| CPU             | Apple Silicon, 8 performance cores (e.g. M2 or later)         |
+| RAM             | 16 GB                                                         |
+| Storage         | NVMe SSD with at least 10 GB free                             |
+| OS              | macOS 14 or later                                             |
+| Runtime         | Node.js LTS aligned with VS Code's bundled version            |
 | Foreground load | VS Code only; no concurrent builds, downloads, or video calls |
-| Power | Mains power; not on battery saver |
+| Power           | Mains power; not on battery saver                             |
 
 Equivalent x86_64 reference: 8 physical cores at ~3.0 GHz base, 16 GB RAM, NVMe SSD, Linux or Windows 11.
 
@@ -90,16 +90,16 @@ Use these standard profiles:
 
 The standalone PSPF Explorer prototype shipped with the budgets below and met them on a comparable codebase (see `extracted-spec-pspf-explorer.md`). The rewrite inherits them as **non-regression** budgets: a measured release MUST NOT regress beyond these numbers, and CI gates are added once a baseline run exists.
 
-| Scenario | Budget | Notes |
-|---|---|---|
-| First Contentful Paint, cold cache | < 1.0 s | Prototype-validated; reference machine. |
-| Time To Interactive, cold cache | < 1.5 s | Prototype-validated. |
-| View switch between primary screens, p95 | < 100 ms | Prototype-validated. |
-| Search over 10,000 records, p95 | < 50 ms | Prototype-validated; client-side index. |
-| Sustained interaction at 10,000 records | 60 fps target; no jank > 100 ms | Prototype-validated. |
-| Relationships Board initial render at 10,000 records | < 150 ms | New for v1; the Board replaces the prototype's network graph (ADR 0010). |
-| Plan-and-review render at a 1,000-row import | TBD at first measuring milestone (M1) | Spec-deferred; once baselined, regression gate at +15% per the standard rule above. |
-| Integrity scan | Non-blocking; UI thread idle ≥ 95% during scan | Owned by invariant E15; runs in a worker. |
+| Scenario                                             | Budget                                         | Notes                                                                               |
+| ---------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------- |
+| First Contentful Paint, cold cache                   | < 1.0 s                                        | Prototype-validated; reference machine.                                             |
+| Time To Interactive, cold cache                      | < 1.5 s                                        | Prototype-validated.                                                                |
+| View switch between primary screens, p95             | < 100 ms                                       | Prototype-validated.                                                                |
+| Search over 10,000 records, p95                      | < 50 ms                                        | Prototype-validated; client-side index.                                             |
+| Sustained interaction at 10,000 records              | 60 fps target; no jank > 100 ms                | Prototype-validated.                                                                |
+| Relationships Board initial render at 10,000 records | < 150 ms                                       | New for v1; the Board replaces the prototype's network graph (ADR 0010).            |
+| Plan-and-review render at a 1,000-row import         | TBD at first measuring milestone (M1)          | Spec-deferred; once baselined, regression gate at +15% per the standard rule above. |
+| Integrity scan                                       | Non-blocking; UI thread idle ≥ 95% during scan | Owned by invariant E15; runs in a worker.                                           |
 
 The prototype's "graph render < 200 ms" budget is **retired** with the network-graph view (ADR 0010) and MUST NOT be reintroduced unless a future ADR reopens the graph surface.
 

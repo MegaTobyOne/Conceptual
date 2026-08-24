@@ -137,6 +137,85 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 6. **Extension alignment gate**: Core, Assurance, Workshop, Shop, Pub, and Explorer retain VS Code theme inheritance and OFFICIAL: Sensitive handling while using canonical product identity tokens.
 7. **Release-chain gate**: `e2e:v1.52` inherits the complete v1.50 chain, runs the Studio System browser matrix, and `release:readiness` targets `e2e:v1.52:run`.
 
+### v1.53 UX evidence and judgement baseline gates (per ADR 0087)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.53.0`; `VERSION_AXES` remain `1.14.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Evidence pack gate**: `scripts/ux-evidence-pack.mjs` runs the Explorer evidence-pack Playwright suite, asserts a screenshot for every {empty, typical, volume} × {dark, light} combination across the key-screen set, asserts both flagship journeys recorded at least one interaction step, and writes `.tmp/ux-evidence/v1.53.0/summary.json`.
+3. **Release-chain continuity gate**: `scripts/check-gate-integrity.mjs` asserts every `e2e:v1.<minor>` and `:run` script from the first to the latest release exists and invokes its immediate predecessor; the historical `e2e:v1.15` and `e2e:v1.51` gaps are closed with pass-through links.
+4. **Command identity gate**: no two extensions expose an identical palette command title; Workshop's delegating import/export commands are titled `PSPF Workshop: …`.
+5. **Marketplace presentation gate**: Core, Assurance, Workshop, Shop, and Pub each declare a package.json `icon` pointing at a real PNG under `resources/`.
+6. **Explorer lint gate**: CI runs the Explorer package's own lint (lit, lit-a11y, unicorn rule sets) as a required step in addition to the root lint.
+7. **Release-chain gate**: `e2e:v1.53` inherits the complete v1.52 chain and adds the evidence-pack run; `release:readiness` targets `e2e:v1.53:run`.
+
+### v1.54 assessment basis trust gradient gates (per ADR 0088)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.54.0`; `VERSION_AXES` remain `1.14.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Shared classifier gate**: `@pspf/contracts` is the only implementation of `assessmentBasis`, `assessmentBasisLabel`, `isWithinFreshnessWindow`, and `summariseAssessmentBasis`; Workshop, Explorer, and brief-renderer import rather than reimplement them.
+3. **Workshop headline gate**: Workshop Home renders the evidenced-and-fresh percentage of met requirements alongside the met percentage.
+4. **Explorer headline gate**: the Analytics view's compliance-mix KPI renders a met-basis note computed by `metComplianceBasis`.
+5. **Brief gate**: the CISO/CSO Magazine and posture brief posture snapshot include a "Met requirements evidenced and fresh" line; `check:ciso-magazine` and `check:brief-redaction` remain green.
+6. **Release-chain gate**: `e2e:v1.54` inherits the complete v1.53 chain and adds `check:assessment-basis`; `release:readiness` targets `e2e:v1.54:run`.
+
+### v1.55 consequence chain gates (per ADR 0089)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.55.0`; `VERSION_AXES` remain `1.14.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Shared statement gate**: `@pspf/contracts` is the only implementation of `buildConsequenceStatement`, `summariseUncoveredRisk`, and `buildUncoveredRiskStatement`; Workshop, Explorer, and brief-renderer import rather than reimplement them.
+3. **Workshop consequence gate**: the requirement item detail webview renders a Consequence section; Workshop Home renders the ecosystem-wide uncovered-risk statement.
+4. **Explorer consequence gate**: the requirement detail view renders a Consequence section; the Analytics view leads with the uncovered-risk statement above the headline KPIs.
+5. **Brief lead gate**: the CISO/CSO Magazine and posture brief posture snapshot lead with "Open risks with no met requirement covering them" ahead of overall compliance, and render the uncovered-risk sentence under the cover hook; `check:ciso-magazine` and `check:brief-redaction` remain green.
+6. **Release-chain gate**: `e2e:v1.55` inherits the complete v1.54 chain and adds `check:consequence-chain`; `release:readiness` targets `e2e:v1.55:run`.
+
+### v1.56 blocker fan-in ranking gates (per ADR 0090)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.56.0`; `VERSION_AXES` remain `1.14.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Shared ranking gate**: `@pspf/contracts` is the only implementation of `rankBlockersByFanIn`, `classifyBlocker`, `blockerClassLabel`, and `isExpiringWithinDays`; Workshop and Explorer import rather than reimplement them.
+3. **Workshop blockers gate**: Workshop Home renders a Blockers section ranking open actions by gated-requirement count with a classification label, and a staleness-preview count.
+4. **Explorer blockers gate**: the Analytics view renders a Top blockers table with the same ranking and a staleness-preview count.
+5. **Release-chain gate**: `e2e:v1.56` inherits the complete v1.55 chain and adds `check:blocker-fan-in`; `release:readiness` targets `e2e:v1.56:run`.
+
+### v1.57 schema axis bump gates (per ADR 0091)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.57.0`; `VERSION_AXES` (`schemaVersion`, `bundleVersion`, `apiVersion`) move together from `1.14.0` to `1.15.0`.
+2. **Schema directory gate**: `schemas/explorer-bundle/1.15.0/` publishes the same collection set as `1.14.0/`; the historic `1.14.0/` directory remains byte-identical.
+3. **Field policy gate**: `requirement.acceptanceDefinition`, `requirement.acceptanceDefinitionUpdatedAt`, and `action.blockerClass` each have a declared `sensitive` publication policy; `check:schema-coverage` and `check:schema-policy` remain green against the standard fixture.
+4. **Blocker class gate**: `BlockerClass` includes `supplier` alongside `us`, `funding`, and `assessor`.
+5. **Workshop editor gate**: the requirement editor exposes an acceptance-definition field with a last-changed note; the action editor exposes a blocker-class override select that the Blockers section prefers over the derived classification when set.
+6. **Reference-data alignment gate**: `packages/reference-data`'s generated `schemaVersion` matches `VERSION_AXES.schemaVersion`, so Core's dataset diagnostics report zero schema-version mismatches.
+7. **Release-chain gate**: `e2e:v1.57` inherits the complete v1.56 chain and adds `check:schema-slice-s4`, `check:schema-coverage`, and `check:schema-policy`; `release:readiness` targets `e2e:v1.57:run`.
+
+### v1.58 trajectory gates (per ADR 0092)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.58.0`; `VERSION_AXES` remain `1.15.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Shared trajectory gate**: `@pspf/contracts` is the only implementation of `computeClosureVelocity`, `projectTrajectory`, and `buildSustainNote`; Workshop and Explorer import rather than reimplement them.
+3. **No-unqualified-date gate**: `projectTrajectory` never returns a bare date; every result is either "target already reached", a stated no-velocity reason, or a range with an assumption sentence.
+4. **Coupling gate**: the trajectory assumption sentence names the current top-blocker count when velocity is zero or projected, visibly coupling J4 to J3.
+5. **Workshop trajectory gate**: Workshop Home renders a Trajectory section with the assumption sentence and the sustain note.
+6. **Explorer trajectory gate**: the Analytics view renders the same Trajectory section directly after the snapshot posture trend table.
+7. **Release-chain gate**: `e2e:v1.58` inherits the complete v1.57 chain and adds `check:trajectory`; `release:readiness` targets `e2e:v1.58:run`.
+
+### v1.59 reader-anchored change gates (per ADR 0093)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.59.0`; `VERSION_AXES` remain `1.15.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Shared narrative gate**: `@pspf/contracts` is the only implementation of `describeChangeRollup`.
+3. **Reader-anchor gate**: Explorer's `AppStore` persists a `lastVisitAt` reader anchor via the `meta` store, captured once per app boot and held for the session.
+4. **Explorer change gate**: the Analytics view offers a "since your last visit" change period and leads the change-history panel with the roll-up narrative; the Requirements list badges rows changed since the reader's last visit (no badges on a first-ever visit).
+5. **Workshop anchor gate**: Workshop Home's momentum sentence names the anchor date explicitly and includes a staleness-delta component.
+6. **Release-chain gate**: `e2e:v1.59` inherits the complete v1.58 chain and adds `check:reader-anchor`; `release:readiness` targets `e2e:v1.59:run`.
+
+### v1.60 supplier verdict gates (per ADR 0094)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.60.0`; `VERSION_AXES` remain `1.15.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Supplier verdict gate**: Shop composes `buildSupplierVerdict` from criticality, open linked risk, contract-expiry proximity, and assurance coverage, and the supplier detail webview renders the statement.
+3. **Publication deferral gate**: no Explorer view references suppliers; `scripts/check-supplier-verdict.mjs` fails the build if one is added without a dedicated follow-on ADR revising this gate.
+4. **Release-chain gate**: `e2e:v1.60` inherits the complete v1.59 chain and adds `check:supplier-verdict`; `release:readiness` targets `e2e:v1.60:run`.
+
+### v1.60 supplier verdict gates (per ADR 0094)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.60.0`; `VERSION_AXES` remain `1.15.0`; no entity, link, bundle, API, or Explorer schema change is introduced.
+2. **Supplier verdict gate**: Shop composes `buildSupplierVerdict` from criticality, open linked risk, contract-expiry proximity, and assurance coverage, and the supplier detail webview renders the statement.
+3. **Publication deferral gate**: no Explorer view references suppliers; `scripts/check-supplier-verdict.mjs` fails the build if one is added without a dedicated follow-on ADR revising this gate.
+4. **Release-chain gate**: `e2e:v1.60` inherits the complete v1.59 chain and adds `check:supplier-verdict`; `release:readiness` targets `e2e:v1.60:run`.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.

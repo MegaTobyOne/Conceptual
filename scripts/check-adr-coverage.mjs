@@ -325,6 +325,36 @@ const coverage = [
     "e2e:v1.50",
     "check:v150-visual",
     "release:readiness"
+  ]),
+  adr("0087-v1-53-ux-evidence-and-judgement-baseline.md", "automated", [
+    "e2e:v1.53",
+    "check:gate-integrity",
+    "release:readiness"
+  ]),
+  adr("0088-v1-54-assessment-basis-trust-gradient.md", "automated", [
+    "e2e:v1.54",
+    "check:assessment-basis",
+    "release:readiness"
+  ]),
+  adr("0089-v1-55-consequence-chain.md", "automated", ["e2e:v1.55", "check:consequence-chain", "release:readiness"]),
+  adr("0090-v1-56-blocker-fan-in-ranking.md", "automated", ["e2e:v1.56", "check:blocker-fan-in", "release:readiness"]),
+  adr("0091-v1-57-schema-axis-bump-acceptance-blocker.md", "automated", [
+    "e2e:v1.57",
+    "check:schema-slice-s4",
+    "check:schema-coverage",
+    "check:schema-policy",
+    "release:readiness"
+  ]),
+  adr("0092-v1-58-trajectory-velocity-and-sustain-line.md", "automated", [
+    "e2e:v1.58",
+    "check:trajectory",
+    "release:readiness"
+  ]),
+  adr("0093-v1-59-reader-anchored-change.md", "automated", ["e2e:v1.59", "check:reader-anchor", "release:readiness"]),
+  adr("0094-v1-60-supplier-verdict-and-publication-deferral.md", "automated", [
+    "e2e:v1.60",
+    "check:supplier-verdict",
+    "release:readiness"
   ])
 ];
 

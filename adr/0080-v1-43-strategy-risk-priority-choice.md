@@ -10,8 +10,8 @@ Status: **accepted**
 The Workshop Cyber Strategy Map (ADR 0060) represents strategy as a single canonical
 record with nested strategic choices, outcomes, posture measures, and inline references
 to Requirements, Risks, Actions, and Directions. Operators could link risks to a choice,
-but the surface treated every choice as equal: nothing expressed *which* choices matter
-most or *why*. Leadership views (`pspf-cyber-strategy-spec.md`) explicitly call for
+but the surface treated every choice as equal: nothing expressed _which_ choices matter
+most or _why_. Leadership views (`pspf-cyber-strategy-spec.md`) explicitly call for
 showing "top strategic risks" and answering "what are the cyber priorities, why do they
 matter, and are they moving in the right direction" — but priority was implied, never
 derived.

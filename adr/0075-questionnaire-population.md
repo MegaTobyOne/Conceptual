@@ -71,8 +71,8 @@ they reach the export step.
 7. **Pack scope.** v1.33 ships a curated Starter pack and per-Domain
    `Domain deep dive` packs (GOV / RISK / INFO / TECH / PER / PHYS), with
    identical answer semantics; any pack may be re-run independently.
-7. **v0.8 placement.** This feature ships as a sibling of `PSPF: Load Sample
-   Workspace` in the v0.8 first-run test path. It does not change the v0.1
+8. **v0.8 placement.** This feature ships as a sibling of `PSPF: Load Sample
+Workspace` in the v0.8 first-run test path. It does not change the v0.1
    thin-slice acceptance criteria (ADR 0014).
 
 ## Consequences

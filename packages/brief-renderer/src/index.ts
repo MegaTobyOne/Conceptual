@@ -12,6 +12,8 @@ import type {
   SpendItemEntity,
   StrategyEntity
 } from "@pspf/contracts";
+import { isWithinFreshnessWindow, summariseAssessmentBasis } from "@pspf/contracts";
+import { buildUncoveredRiskStatement, summariseUncoveredRisk } from "@pspf/contracts";
 
 export interface PostureBriefInput {
   readonly generatedAt: Date | string;
@@ -64,6 +66,7 @@ export interface CisoMagazineModel {
   readonly editorNote: string;
   readonly overallCompliancePercent: number | undefined;
   readonly complianceTrendSummary: string;
+  readonly uncoveredRiskLead: string;
   readonly postureSnapshot: readonly CisoMagazineMetric[];
   readonly executiveFraming: readonly CisoMagazineStory[];
   readonly featureStories: readonly CisoMagazineStory[];
@@ -221,6 +224,40 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
     ["not-started", "in-progress", "partially-met", "not-met", "under-review"].includes(requirement.assessmentStatus)
   );
   const overallCompliancePercent = compliancePercent(scopedRequirements);
+  const generatedAtDate = typeof input.generatedAt === "string" ? new Date(input.generatedAt) : input.generatedAt;
+  const evidenceById = new Map(input.evidence.map((item) => [item.id, item]));
+  const metBasis = summariseAssessmentBasis(
+    scopedRequirements
+      .filter((requirement) => requirement.assessmentStatus === "met")
+      .map((requirement) => {
+        const linkedEvidenceIds = targetIdsByRequirement.get(requirement.id)?.evidence ?? [];
+        const linkedEvidence = linkedEvidenceIds
+          .map((evidenceId) => evidenceById.get(evidenceId))
+          .filter((item): item is EvidenceEntity => item !== undefined);
+        const freshEvidence = linkedEvidence.filter(
+          (item) => item.freshness === "current" && isWithinFreshnessWindow(item.updatedAt, generatedAtDate)
+        );
+        return { evidenceCount: linkedEvidence.length, freshEvidenceCount: freshEvidence.length };
+      })
+  );
+  const metRequirementIds = new Set(
+    scopedRequirements
+      .filter((requirement) => requirement.assessmentStatus === "met")
+      .map((requirement) => requirement.id)
+  );
+  const riskCoverage = new Map<string, boolean>();
+  for (const requirement of scopedRequirements) {
+    const linkedRiskIds = targetIdsByRequirement.get(requirement.id)?.risks ?? [];
+    for (const riskId of linkedRiskIds) {
+      if (metRequirementIds.has(requirement.id)) {
+        riskCoverage.set(riskId, true);
+      } else if (!riskCoverage.has(riskId)) {
+        riskCoverage.set(riskId, false);
+      }
+    }
+  }
+  const uncoveredRisk = summariseUncoveredRisk(openRisks, riskCoverage);
+  const uncoveredRiskLead = buildUncoveredRiskStatement(uncoveredRisk);
   const activeStrategy = (input.strategies ?? []).find((strategy) => strategy.recordStatus !== "deleted");
   const linkedSpendItems = (input.spendItems ?? []).filter(
     (item) =>
@@ -284,10 +321,19 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
     editorNote: buildEditorNote(edition, pspfDomainTitle, activeStrategy, input.editorNoteOverride),
     overallCompliancePercent,
     complianceTrendSummary,
+    uncoveredRiskLead,
     postureSnapshot: [
+      {
+        label: "Open risks with no met requirement covering them",
+        value: String(uncoveredRisk.uncoveredRiskCount)
+      },
       {
         label: "Overall compliance",
         value: overallCompliancePercent === undefined ? "n/a" : `${overallCompliancePercent}%`
+      },
+      {
+        label: "Met requirements evidenced and fresh",
+        value: metBasis.total === 0 ? "n/a" : `${metBasis.evidencedFreshPercentage}%`
       },
       { label: "PSPF Requirements in scope", value: String(scopedRequirements.length) },
       { label: "Requirements needing attention", value: String(requirementsNeedingAttention.length) },
@@ -643,6 +689,8 @@ export function renderCisoMagazineMarkdown(input: CisoMagazineInput): string {
     "",
     `> ${model.coverHook}`,
     "",
+    `**${model.uncoveredRiskLead}**`,
+    "",
     "## Editor's Note",
     "",
     model.editorNote,
@@ -746,6 +794,7 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
     h3 { margin: 0 0 8px; font-size: 20px; line-height: 1.2; letter-spacing: 0; }
     p { font-size: 17px; line-height: 1.55; }
     .hook { max-width: 760px; font-size: 26px; line-height: 1.2; font-weight: 700; }
+    .lead-risk { max-width: 760px; font-size: 15px; font-weight: 600; color: var(--accent); margin-top: 4px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 18px; }
     .panel { border: 2px solid var(--ink); background: var(--panel); padding: 16px; box-shadow: 5px 5px 0 rgba(32,31,30,.15); }
     .metric { border-left: 6px solid var(--line); }
@@ -766,6 +815,7 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
         <h1 id="issue-title">${escapeHtml(model.title)}</h1>
       </div>
       <p class="hook">${escapeHtml(model.coverHook)}</p>
+      <p class="lead-risk">${escapeHtml(model.uncoveredRiskLead)}</p>
       <div class="meta">${metadata.map(escapeHtml).join(" | ")}</div>
     </section>
     <section class="grid" aria-label="Current posture snapshot">

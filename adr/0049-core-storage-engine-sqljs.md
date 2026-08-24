@@ -33,11 +33,11 @@ A local benchmark comparing the current CLI-spawn approach with sql.js is availa
 On 17 May 2026, against the representative Core workload (schema init, batched insert, list all, integrity check), sql.js completed faster than the CLI approach across tested sizes:
 
 | Entities | CLI total | sql.js total |
-| --- | ---: | ---: |
-| 10 | 33.9 ms | 27.4 ms |
-| 100 | 32.0 ms | 4.4 ms |
-| 1,000 | 48.6 ms | 11.7 ms |
-| 5,000 | 109.0 ms | 38.9 ms |
+| -------- | --------: | -----------: |
+| 10       |   33.9 ms |      27.4 ms |
+| 100      |   32.0 ms |       4.4 ms |
+| 1,000    |   48.6 ms |      11.7 ms |
+| 5,000    |  109.0 ms |      38.9 ms |
 
 The measured WASM cold-start cost was 6.3 ms once per process. The bundled asset cost was approximately 644 KB for `sql-wasm.wasm` and 45 KB for the JS glue.
 

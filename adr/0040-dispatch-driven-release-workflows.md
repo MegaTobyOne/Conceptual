@@ -7,7 +7,7 @@
 
 ADR 0038 established VentraIP-only web hosting and Marketplace publishing under `tobyharvey`, with `production-web` and `marketplace` GitHub environments as the human approval gates. ADR 0039 added a three-level branch model that reserves `main` for release.
 
-The first release pipelines (`explorer-production-tag.yml`, `web-release.yml`, `core-release.yml`, `workshop-release.yml`) used hand-cut `explorer/<v>`, `core/<v>`, and `workshop/<v>` tags as the *trigger* for production deploys and Marketplace publishes. In practice this proved fragile:
+The first release pipelines (`explorer-production-tag.yml`, `web-release.yml`, `core-release.yml`, `workshop-release.yml`) used hand-cut `explorer/<v>`, `core/<v>`, and `workshop/<v>` tags as the _trigger_ for production deploys and Marketplace publishes. In practice this proved fragile:
 
 - A failed release run freezes the workflow file at the tagged commit; subsequent fixes on `main` cannot reach that tag, so each retry needs a new tag.
 - Tags accumulated in the repo for releases that never actually shipped.

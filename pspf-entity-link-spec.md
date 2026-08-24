@@ -86,27 +86,27 @@ Optional short display IDs may exist for human-friendly tables and summaries, bu
 
 ### Prefix registry
 
-| Prefix | Entity |
-|---|---|
-| `REQ` | Requirement |
-| `EVD` | Evidence |
-| `ACT` | Action |
-| `RSK` | Risk |
-| `SNP` | Snapshot |
-| `RPT` | Report pack |
-| `DOM` | Domain |
-| `SUP` | Supplier |
-| `CTR` | Contract |
-| `SPD` | Spend item |
-| `PER` | Person |
-| `ROL` | Role |
-| `TEM` | Team / unit |
-| `ASM` | Assignment |
-| `NTF` | Notification rule |
-| `LNK` | Link record |
-| `TAG` | Tag / classification label |
-| `SRC` | Source control |
-| `MAP` | Requirement-control mapping |
+| Prefix | Entity                      |
+| ------ | --------------------------- |
+| `REQ`  | Requirement                 |
+| `EVD`  | Evidence                    |
+| `ACT`  | Action                      |
+| `RSK`  | Risk                        |
+| `SNP`  | Snapshot                    |
+| `RPT`  | Report pack                 |
+| `DOM`  | Domain                      |
+| `SUP`  | Supplier                    |
+| `CTR`  | Contract                    |
+| `SPD`  | Spend item                  |
+| `PER`  | Person                      |
+| `ROL`  | Role                        |
+| `TEM`  | Team / unit                 |
+| `ASM`  | Assignment                  |
+| `NTF`  | Notification rule           |
+| `LNK`  | Link record                 |
+| `TAG`  | Tag / classification label  |
+| `SRC`  | Source control              |
+| `MAP`  | Requirement-control mapping |
 
 ## Common entity envelope
 
@@ -114,33 +114,33 @@ Every canonical entity should share a common envelope, regardless of business ty
 
 ### Required common fields
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | Canonical immutable ID |
-| `entityType` | string | Canonical entity type enum |
-| `schemaVersion` | string | Schema version active at write time |
-| `createdAt` | string | ISO-8601 timestamp |
-| `updatedAt` | string | ISO-8601 timestamp |
-| `createdBy` | string | product/user/service origin identifier |
-| `updatedBy` | string | product/user/service origin identifier |
-| `sourceProduct` | string | originating product, e.g. `core`, `workshop`, `shop`, `pub`, `explorer` |
-| `lifecycleState` | string | generic lifecycle state |
-| `recordStatus` | string | active, archived, inactive, deleted-like state |
-| `provenance` | object | source, import, or derivation metadata |
-| `security` | object | sensitivity, handling, or export metadata |
+| Field            | Type   | Description                                                             |
+| ---------------- | ------ | ----------------------------------------------------------------------- |
+| `id`             | string | Canonical immutable ID                                                  |
+| `entityType`     | string | Canonical entity type enum                                              |
+| `schemaVersion`  | string | Schema version active at write time                                     |
+| `createdAt`      | string | ISO-8601 timestamp                                                      |
+| `updatedAt`      | string | ISO-8601 timestamp                                                      |
+| `createdBy`      | string | product/user/service origin identifier                                  |
+| `updatedBy`      | string | product/user/service origin identifier                                  |
+| `sourceProduct`  | string | originating product, e.g. `core`, `workshop`, `shop`, `pub`, `explorer` |
+| `lifecycleState` | string | generic lifecycle state                                                 |
+| `recordStatus`   | string | active, archived, inactive, deleted-like state                          |
+| `provenance`     | object | source, import, or derivation metadata                                  |
+| `security`       | object | sensitivity, handling, or export metadata                               |
 
 ### Optional common fields
 
-| Field | Type | Description |
-|---|---|---|
-| `displayId` | string | optional short human-friendly ID |
-| `title` | string | human-readable primary label |
-| `summary` | string | short explanatory text |
-| `tags` | array | classification tags |
-| `deletedAt` | string/null | soft-delete timestamp |
-| `deletedBy` | string/null | soft-delete actor |
-| `supersedesId` | string/null | prior record replaced by this one |
-| `externalRefs` | array | references to external identifiers |
+| Field          | Type        | Description                        |
+| -------------- | ----------- | ---------------------------------- |
+| `displayId`    | string      | optional short human-friendly ID   |
+| `title`        | string      | human-readable primary label       |
+| `summary`      | string      | short explanatory text             |
+| `tags`         | array       | classification tags                |
+| `deletedAt`    | string/null | soft-delete timestamp              |
+| `deletedBy`    | string/null | soft-delete actor                  |
+| `supersedesId` | string/null | prior record replaced by this one  |
+| `externalRefs` | array       | references to external identifiers |
 
 ### Provenance object
 
@@ -193,14 +193,14 @@ Represents a major PSPF grouping, policy area, or internal capability grouping u
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `DOM-*` |
-| `code` | string | stable short code |
-| `name` | string | display name |
-| `description` | string | optional |
-| `sortOrder` | integer | reporting order |
-| `statusModel` | string | compliance or internal scoring mode |
+| Field         | Type    | Notes                               |
+| ------------- | ------- | ----------------------------------- |
+| `id`          | string  | `DOM-*`                             |
+| `code`        | string  | stable short code                   |
+| `name`        | string  | display name                        |
+| `description` | string  | optional                            |
+| `sortOrder`   | integer | reporting order                     |
+| `statusModel` | string  | compliance or internal scoring mode |
 
 ### Requirement
 
@@ -208,26 +208,27 @@ Represents a PSPF requirement or an internal requirement-like control record.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `REQ-*` |
-| `domainId` | string | parent domain |
-| `requirementCode` | string | stable PSPF or internal code |
-| `name` | string | short title |
-| `statement` | string | full requirement text or normalized statement |
-| `guidance` | string | optional explanatory guidance |
-| `sourceAuthority` | string | PSPF or internal source |
-| `assessmentStatus` | string | current status |
-| `reportingReadiness` | string | draft, review, ready, blocked |
-| `rationale` | string | user-entered or generated rationale |
-| `effectiveness` | string | effective, partial, ineffective, unknown |
-| `evidenceStatus` | string | missing, partial, attached, stale, verified |
-| `ownerTeamId` | string/null | primary responsible team |
-| `reviewDueAt` | string/null | next review date |
+| Field                | Type        | Notes                                         |
+| -------------------- | ----------- | --------------------------------------------- |
+| `id`                 | string      | `REQ-*`                                       |
+| `domainId`           | string      | parent domain                                 |
+| `requirementCode`    | string      | stable PSPF or internal code                  |
+| `name`               | string      | short title                                   |
+| `statement`          | string      | full requirement text or normalized statement |
+| `guidance`           | string      | optional explanatory guidance                 |
+| `sourceAuthority`    | string      | PSPF or internal source                       |
+| `assessmentStatus`   | string      | current status                                |
+| `reportingReadiness` | string      | draft, review, ready, blocked                 |
+| `rationale`          | string      | user-entered or generated rationale           |
+| `effectiveness`      | string      | effective, partial, ineffective, unknown      |
+| `evidenceStatus`     | string      | missing, partial, attached, stale, verified   |
+| `ownerTeamId`        | string/null | primary responsible team                      |
+| `reviewDueAt`        | string/null | next review date                              |
 
 #### Requirement enums
 
 `assessmentStatus`:
+
 - `not-started`
 - `in-progress`
 - `met`
@@ -237,18 +238,21 @@ Represents a PSPF requirement or an internal requirement-like control record.
 - `under-review`
 
 `reportingReadiness`:
+
 - `draft`
 - `needs-review`
 - `ready`
 - `blocked`
 
 `effectiveness`:
+
 - `effective`
 - `partial`
 - `ineffective`
 - `unknown`
 
 `evidenceStatus`:
+
 - `missing`
 - `partial`
 - `attached`
@@ -261,29 +265,30 @@ Represents evidence used to support a requirement, action, risk treatment, or re
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `EVD-*` |
-| `title` | string | short label |
-| `evidenceType` | string | document, link, record, note, screenshot, attestation |
-| `storageType` | string | file, url, inline, external-reference |
-| `location` | object | where the evidence lives |
-| `capturedAt` | string/null | when evidence was captured |
-| `effectiveFrom` | string/null | optional effective date |
-| `effectiveTo` | string/null | optional expiry date |
-| `freshnessStatus` | string | current freshness view |
-| `verificationStatus` | string | unverified, reviewed, verified |
-| `lastReviewedAt` | string/null | when the evidence was last assessed for currency and completeness |
-| `reviewDueAt` | string/null | next planned evidence review date |
-| `sourceUpdatedAt` | string/null | last known update time of the source artefact, if detectable |
-| `changeStatus` | string | unchanged, changed, unknown |
-| `confidentiality` | string | handling indicator |
-| `hash` | string/null | integrity hash where relevant |
-| `summary` | string | short description |
+| Field                | Type        | Notes                                                             |
+| -------------------- | ----------- | ----------------------------------------------------------------- |
+| `id`                 | string      | `EVD-*`                                                           |
+| `title`              | string      | short label                                                       |
+| `evidenceType`       | string      | document, link, record, note, screenshot, attestation             |
+| `storageType`        | string      | file, url, inline, external-reference                             |
+| `location`           | object      | where the evidence lives                                          |
+| `capturedAt`         | string/null | when evidence was captured                                        |
+| `effectiveFrom`      | string/null | optional effective date                                           |
+| `effectiveTo`        | string/null | optional expiry date                                              |
+| `freshnessStatus`    | string      | current freshness view                                            |
+| `verificationStatus` | string      | unverified, reviewed, verified                                    |
+| `lastReviewedAt`     | string/null | when the evidence was last assessed for currency and completeness |
+| `reviewDueAt`        | string/null | next planned evidence review date                                 |
+| `sourceUpdatedAt`    | string/null | last known update time of the source artefact, if detectable      |
+| `changeStatus`       | string      | unchanged, changed, unknown                                       |
+| `confidentiality`    | string      | handling indicator                                                |
+| `hash`               | string/null | integrity hash where relevant                                     |
+| `summary`            | string      | short description                                                 |
 
 #### Evidence enums
 
 `evidenceType`:
+
 - `document`
 - `url`
 - `record`
@@ -293,12 +298,14 @@ Represents evidence used to support a requirement, action, risk treatment, or re
 - `dataset`
 
 `storageType`:
+
 - `file`
 - `url`
 - `inline`
 - `external-ref`
 
 `freshnessStatus`:
+
 - `current`
 - `aging`
 - `stale`
@@ -306,11 +313,13 @@ Represents evidence used to support a requirement, action, risk treatment, or re
 - `unknown`
 
 `verificationStatus`:
+
 - `unverified`
 - `reviewed`
 - `verified`
 
 `changeStatus`:
+
 - `unchanged`
 - `changed`
 - `unknown`
@@ -336,25 +345,26 @@ Represents a remediation, implementation, validation, or reporting action.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `ACT-*` |
-| `title` | string | short action name |
-| `description` | string | full action text |
-| `actionType` | string | remediation, review, validation, reporting, procurement, workforce |
-| `status` | string | current state |
-| `priority` | string | low, medium, high, critical |
-| `ownerPersonId` | string/null | responsible person |
-| `ownerTeamId` | string/null | responsible team |
-| `dueAt` | string/null | target completion |
-| `startedAt` | string/null | optional |
-| `completedAt` | string/null | optional |
-| `blockingState` | string | blocked, unblocked, at-risk |
-| `outcomeSummary` | string | optional close-out note |
+| Field            | Type        | Notes                                                              |
+| ---------------- | ----------- | ------------------------------------------------------------------ |
+| `id`             | string      | `ACT-*`                                                            |
+| `title`          | string      | short action name                                                  |
+| `description`    | string      | full action text                                                   |
+| `actionType`     | string      | remediation, review, validation, reporting, procurement, workforce |
+| `status`         | string      | current state                                                      |
+| `priority`       | string      | low, medium, high, critical                                        |
+| `ownerPersonId`  | string/null | responsible person                                                 |
+| `ownerTeamId`    | string/null | responsible team                                                   |
+| `dueAt`          | string/null | target completion                                                  |
+| `startedAt`      | string/null | optional                                                           |
+| `completedAt`    | string/null | optional                                                           |
+| `blockingState`  | string      | blocked, unblocked, at-risk                                        |
+| `outcomeSummary` | string      | optional close-out note                                            |
 
 #### Action enums
 
 `actionType`:
+
 - `remediation`
 - `review`
 - `validation`
@@ -363,6 +373,7 @@ Represents a remediation, implementation, validation, or reporting action.
 - `workforce`
 
 `status`:
+
 - `draft`
 - `open`
 - `in-progress`
@@ -371,12 +382,14 @@ Represents a remediation, implementation, validation, or reporting action.
 - `cancelled`
 
 `priority`:
+
 - `low`
 - `medium`
 - `high`
 - `critical`
 
 `blockingState`:
+
 - `unblocked`
 - `at-risk`
 - `blocked`
@@ -387,18 +400,18 @@ Action Impact is a computed, explainable projection used to rank work by likely 
 
 The projection should expose, at minimum:
 
-| Field | Type | Description |
-|---|---|---|
-| `actionId` | string | `ACT-*` source action |
-| `scope` | string | requirement, domain, overall, essential-eight, direction |
-| `affectedRequirementIds` | string[] | linked or inferred requirements affected by the action |
-| `affectedDomainIds` | string[] | domains affected through those requirements |
-| `postureUplift` | integer | transparent relative score for likely compliance/readiness improvement |
-| `readinessUplift` | integer | transparent relative score for reporting-readiness improvement |
-| `riskReduction` | integer | transparent relative score for linked risk treatment |
-| `evidenceUplift` | integer | transparent relative score for missing/stale/incomplete evidence improvement |
-| `urgency` | string | normal, due-soon, overdue, blocked |
-| `explanation` | string[] | short facts explaining why the action is ranked here |
+| Field                    | Type     | Description                                                                  |
+| ------------------------ | -------- | ---------------------------------------------------------------------------- |
+| `actionId`               | string   | `ACT-*` source action                                                        |
+| `scope`                  | string   | requirement, domain, overall, essential-eight, direction                     |
+| `affectedRequirementIds` | string[] | linked or inferred requirements affected by the action                       |
+| `affectedDomainIds`      | string[] | domains affected through those requirements                                  |
+| `postureUplift`          | integer  | transparent relative score for likely compliance/readiness improvement       |
+| `readinessUplift`        | integer  | transparent relative score for reporting-readiness improvement               |
+| `riskReduction`          | integer  | transparent relative score for linked risk treatment                         |
+| `evidenceUplift`         | integer  | transparent relative score for missing/stale/incomplete evidence improvement |
+| `urgency`                | string   | normal, due-soon, overdue, blocked                                           |
+| `explanation`            | string[] | short facts explaining why the action is ranked here                         |
 
 The v1 scoring model MUST be deterministic and explainable. It should prefer simple additive weights over opaque recommendation logic. Recommended signals include:
 
@@ -418,25 +431,26 @@ Represents a risk, exposure, or issue requiring monitoring or treatment.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `RSK-*` |
-| `title` | string | short risk statement |
-| `description` | string | fuller detail |
-| `riskType` | string | security, delivery, supplier, workforce, reporting |
-| `status` | string | open, accepted, treated, closed |
-| `likelihood` | string | low to extreme model |
-| `impact` | string | low to extreme model |
-| `residualLevel` | string | low to extreme model |
-| `treatmentStatus` | string | not-started, in-progress, monitoring, complete |
-| `ownerPersonId` | string/null | risk owner |
-| `ownerTeamId` | string/null | risk owner team |
-| `acceptedBy` | string/null | approver reference |
-| `reviewDueAt` | string/null | next review |
+| Field             | Type        | Notes                                              |
+| ----------------- | ----------- | -------------------------------------------------- |
+| `id`              | string      | `RSK-*`                                            |
+| `title`           | string      | short risk statement                               |
+| `description`     | string      | fuller detail                                      |
+| `riskType`        | string      | security, delivery, supplier, workforce, reporting |
+| `status`          | string      | open, accepted, treated, closed                    |
+| `likelihood`      | string      | low to extreme model                               |
+| `impact`          | string      | low to extreme model                               |
+| `residualLevel`   | string      | low to extreme model                               |
+| `treatmentStatus` | string      | not-started, in-progress, monitoring, complete     |
+| `ownerPersonId`   | string/null | risk owner                                         |
+| `ownerTeamId`     | string/null | risk owner team                                    |
+| `acceptedBy`      | string/null | approver reference                                 |
+| `reviewDueAt`     | string/null | next review                                        |
 
 #### Risk enums
 
 `riskType`:
+
 - `security`
 - `delivery`
 - `supplier`
@@ -445,18 +459,21 @@ Represents a risk, exposure, or issue requiring monitoring or treatment.
 - `data`
 
 `status`:
+
 - `open`
 - `accepted`
 - `treated`
 - `closed`
 
 `likelihood`, `impact`, `residualLevel`:
+
 - `low`
 - `moderate`
 - `high`
 - `extreme`
 
 `treatmentStatus`:
+
 - `not-started`
 - `in-progress`
 - `monitoring`
@@ -468,21 +485,22 @@ Represents an immutable reporting or assurance capture of the system at a point 
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `SNP-*` |
-| `title` | string | snapshot label |
-| `snapshotType` | string | reporting, checkpoint, backup, export |
-| `capturedAt` | string | immutable timestamp |
-| `scope` | object | what was included |
-| `schemaVersion` | string | bundle/schema version |
-| `createdFrom` | string | trigger source |
-| `integrityHash` | string/null | optional package hash |
-| `notes` | string | optional |
+| Field           | Type        | Notes                                 |
+| --------------- | ----------- | ------------------------------------- |
+| `id`            | string      | `SNP-*`                               |
+| `title`         | string      | snapshot label                        |
+| `snapshotType`  | string      | reporting, checkpoint, backup, export |
+| `capturedAt`    | string      | immutable timestamp                   |
+| `scope`         | object      | what was included                     |
+| `schemaVersion` | string      | bundle/schema version                 |
+| `createdFrom`   | string      | trigger source                        |
+| `integrityHash` | string/null | optional package hash                 |
+| `notes`         | string      | optional                              |
 
 #### Snapshot enums
 
 `snapshotType`:
+
 - `reporting`
 - `checkpoint`
 - `backup`
@@ -494,15 +512,15 @@ Represents a curated reporting package or narrative output boundary.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `RPT-*` |
-| `title` | string | report title |
-| `reportType` | string | executive, annual, working, export |
-| `status` | string | draft, ready, issued, archived |
-| `snapshotId` | string/null | source snapshot |
-| `summaryNarrative` | string | user-facing summary |
-| `audience` | string | internal, executive, external |
+| Field              | Type        | Notes                              |
+| ------------------ | ----------- | ---------------------------------- |
+| `id`               | string      | `RPT-*`                            |
+| `title`            | string      | report title                       |
+| `reportType`       | string      | executive, annual, working, export |
+| `status`           | string      | draft, ready, issued, archived     |
+| `snapshotId`       | string/null | source snapshot                    |
+| `summaryNarrative` | string      | user-facing summary                |
+| `audience`         | string      | internal, executive, external      |
 
 ## Commercial entities
 
@@ -512,15 +530,15 @@ Represents an external supplier, vendor, or service provider.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `SUP-*` |
-| `name` | string | supplier name |
-| `supplierType` | string | software, service, advisory, managed-service, other |
-| `status` | string | active, inactive, proposed |
-| `criticality` | string | low, medium, high, critical |
-| `primaryContact` | string/null | contact text or linked person |
-| `notes` | string | optional |
+| Field            | Type        | Notes                                               |
+| ---------------- | ----------- | --------------------------------------------------- |
+| `id`             | string      | `SUP-*`                                             |
+| `name`           | string      | supplier name                                       |
+| `supplierType`   | string      | software, service, advisory, managed-service, other |
+| `status`         | string      | active, inactive, proposed                          |
+| `criticality`    | string      | low, medium, high, critical                         |
+| `primaryContact` | string/null | contact text or linked person                       |
+| `notes`          | string      | optional                                            |
 
 ### Contract
 
@@ -528,17 +546,17 @@ Represents a contractual relationship or procurement instrument.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `CTR-*` |
-| `supplierId` | string | linked supplier |
-| `title` | string | contract title |
-| `contractRef` | string | business reference |
-| `status` | string | draft, active, expired, terminated |
-| `startsAt` | string/null | start date |
-| `endsAt` | string/null | end date |
-| `value` | object/null | amount + currency |
-| `serviceSummary` | string | what it covers |
+| Field            | Type        | Notes                              |
+| ---------------- | ----------- | ---------------------------------- |
+| `id`             | string      | `CTR-*`                            |
+| `supplierId`     | string      | linked supplier                    |
+| `title`          | string      | contract title                     |
+| `contractRef`    | string      | business reference                 |
+| `status`         | string      | draft, active, expired, terminated |
+| `startsAt`       | string/null | start date                         |
+| `endsAt`         | string/null | end date                           |
+| `value`          | object/null | amount + currency                  |
+| `serviceSummary` | string      | what it covers                     |
 
 ### Spend item
 
@@ -546,28 +564,29 @@ Represents a spend commitment, uplift item, costed control activity, or investme
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `SPD-*` |
-| `title` | string | summary |
-| `spendType` | string | capex, opex, uplift, licence, service |
-| `status` | string | proposed, approved, committed, spent, cancelled |
-| `amount` | object | amount + currency |
-| `financialYear` | string | FY label |
-| `billingCadence` | string/null | one-off, monthly, annual; sensitive Shop planning metadata |
-| `forecastStartAt` | string/null | when forecast cost/saving begins |
-| `forecastEndAt` | string/null | when forecast cost/saving ends |
-| `forecastCost` | object/null | expected total cost over the forecast period |
-| `expectedSavings` | object/null | expected savings over the forecast period |
-| `savingsType` | string | avoided-cost, efficiency, consolidation, risk-reduction, contract-optimisation, other |
-| `paybackPeriodMonths` | integer/null | expected months until savings exceed investment |
-| `confidence` | string | low, medium, high |
-| `assumptions` | string | key forecast assumptions |
-| `notes` | string | optional |
+| Field                 | Type         | Notes                                                                                 |
+| --------------------- | ------------ | ------------------------------------------------------------------------------------- |
+| `id`                  | string       | `SPD-*`                                                                               |
+| `title`               | string       | summary                                                                               |
+| `spendType`           | string       | capex, opex, uplift, licence, service                                                 |
+| `status`              | string       | proposed, approved, committed, spent, cancelled                                       |
+| `amount`              | object       | amount + currency                                                                     |
+| `financialYear`       | string       | FY label                                                                              |
+| `billingCadence`      | string/null  | one-off, monthly, annual; sensitive Shop planning metadata                            |
+| `forecastStartAt`     | string/null  | when forecast cost/saving begins                                                      |
+| `forecastEndAt`       | string/null  | when forecast cost/saving ends                                                        |
+| `forecastCost`        | object/null  | expected total cost over the forecast period                                          |
+| `expectedSavings`     | object/null  | expected savings over the forecast period                                             |
+| `savingsType`         | string       | avoided-cost, efficiency, consolidation, risk-reduction, contract-optimisation, other |
+| `paybackPeriodMonths` | integer/null | expected months until savings exceed investment                                       |
+| `confidence`          | string       | low, medium, high                                                                     |
+| `assumptions`         | string       | key forecast assumptions                                                              |
+| `notes`               | string       | optional                                                                              |
 
 #### Spend item enums
 
 `savingsType`:
+
 - `avoided-cost`
 - `efficiency`
 - `consolidation`
@@ -576,6 +595,7 @@ Represents a spend commitment, uplift item, costed control activity, or investme
 - `other`
 
 `confidence`:
+
 - `low`
 - `medium`
 - `high`
@@ -586,21 +606,21 @@ Spend forecast is a Shop-owned planning projection that helps answer “where ca
 
 The projection should expose, at minimum:
 
-| Field | Type | Description |
-|---|---|---|
-| `scope` | string | supplier, contract, domain, requirement, action, financial-year, overall |
-| `forecastPeriod` | object | start/end dates or financial-year range |
-| `plannedSpend` | object | total planned/committed spend for the scope |
-| `expectedSavings` | object | total expected savings for the scope |
-| `netBenefit` | object | expectedSavings minus plannedSpend where comparable |
-| `paybackPeriodMonths` | integer/null | expected payback period where calculable |
-| `confidence` | string | low, medium, high, or mixed |
-| `linkedRequirementIds` | string[] | requirements affected by the spend |
-| `linkedActionIds` | string[] | actions funded or enabled by the spend |
-| `linkedRiskIds` | string[] | risks reduced or avoided by the spend |
-| `linkedTagIds` | string[] | tags inherited from linked requirements for reporting, not direct spend-item tags |
-| `scenarioStatus` | string | baseline, proposed, or mixed status grouping derived from Spend Item statuses |
-| `explanation` | string[] | short facts explaining forecast and savings assumptions |
+| Field                  | Type         | Description                                                                       |
+| ---------------------- | ------------ | --------------------------------------------------------------------------------- |
+| `scope`                | string       | supplier, contract, domain, requirement, action, financial-year, overall          |
+| `forecastPeriod`       | object       | start/end dates or financial-year range                                           |
+| `plannedSpend`         | object       | total planned/committed spend for the scope                                       |
+| `expectedSavings`      | object       | total expected savings for the scope                                              |
+| `netBenefit`           | object       | expectedSavings minus plannedSpend where comparable                               |
+| `paybackPeriodMonths`  | integer/null | expected payback period where calculable                                          |
+| `confidence`           | string       | low, medium, high, or mixed                                                       |
+| `linkedRequirementIds` | string[]     | requirements affected by the spend                                                |
+| `linkedActionIds`      | string[]     | actions funded or enabled by the spend                                            |
+| `linkedRiskIds`        | string[]     | risks reduced or avoided by the spend                                             |
+| `linkedTagIds`         | string[]     | tags inherited from linked requirements for reporting, not direct spend-item tags |
+| `scenarioStatus`       | string       | baseline, proposed, or mixed status grouping derived from Spend Item statuses     |
+| `explanation`          | string[]     | short facts explaining forecast and savings assumptions                           |
 
 The v1 forecast MUST be explainable and assumption-led. It should not imply accounting precision unless backed by source data. Recommended signals include contract renewal dates, supplier criticality, action impact, linked risk severity, evidence gaps, current manual effort, duplicate suppliers/contracts, contract optimisation opportunities, avoided incident/remediation cost, and requirements whose uplift depends on funding.
 
@@ -618,14 +638,14 @@ Represents a person relevant to ownership, assignment, approval, or contact.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `PER-*` |
-| `name` | string | display name |
-| `email` | string/null | optional |
-| `status` | string | active, inactive |
-| `employmentType` | string | employee, contractor, supplier-contact, other |
-| `teamId` | string/null | home team |
+| Field            | Type        | Notes                                         |
+| ---------------- | ----------- | --------------------------------------------- |
+| `id`             | string      | `PER-*`                                       |
+| `name`           | string      | display name                                  |
+| `email`          | string/null | optional                                      |
+| `status`         | string      | active, inactive                              |
+| `employmentType` | string      | employee, contractor, supplier-contact, other |
+| `teamId`         | string/null | home team                                     |
 
 ### Role
 
@@ -633,13 +653,13 @@ Represents a role or function rather than a person.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `ROL-*` |
-| `title` | string | role title |
-| `roleType` | string | governance, operational, assurance, delivery |
-| `description` | string | optional |
-| `status` | string | active, inactive |
+| Field         | Type   | Notes                                        |
+| ------------- | ------ | -------------------------------------------- |
+| `id`          | string | `ROL-*`                                      |
+| `title`       | string | role title                                   |
+| `roleType`    | string | governance, operational, assurance, delivery |
+| `description` | string | optional                                     |
+| `status`      | string | active, inactive                             |
 
 ### Team / unit
 
@@ -647,13 +667,13 @@ Represents an organisational unit.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `TEM-*` |
-| `name` | string | team name |
-| `code` | string/null | optional short code |
-| `status` | string | active, inactive |
-| `parentTeamId` | string/null | hierarchy support |
+| Field          | Type        | Notes               |
+| -------------- | ----------- | ------------------- |
+| `id`           | string      | `TEM-*`             |
+| `name`         | string      | team name           |
+| `code`         | string/null | optional short code |
+| `status`       | string      | active, inactive    |
+| `parentTeamId` | string/null | hierarchy support   |
 
 ### Assignment
 
@@ -661,17 +681,17 @@ Represents a person or role being assigned to a responsibility, action, or capab
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `ASM-*` |
-| `assignmentType` | string | ownership, contributor, approver, reviewer |
-| `status` | string | active, ended, pending |
-| `personId` | string/null | assigned person |
-| `roleId` | string/null | assigned role |
-| `teamId` | string/null | assigned team |
-| `startsAt` | string/null | optional |
-| `endsAt` | string/null | optional |
-| `notes` | string | optional |
+| Field            | Type        | Notes                                      |
+| ---------------- | ----------- | ------------------------------------------ |
+| `id`             | string      | `ASM-*`                                    |
+| `assignmentType` | string      | ownership, contributor, approver, reviewer |
+| `status`         | string      | active, ended, pending                     |
+| `personId`       | string/null | assigned person                            |
+| `roleId`         | string/null | assigned role                              |
+| `teamId`         | string/null | assigned team                              |
+| `startsAt`       | string/null | optional                                   |
+| `endsAt`         | string/null | optional                                   |
+| `notes`          | string      | optional                                   |
 
 ## Supporting entities
 
@@ -681,14 +701,14 @@ Represents an automation or reminder rule.
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `NTF-*` |
-| `title` | string | rule name |
+| Field         | Type   | Notes                                                        |
+| ------------- | ------ | ------------------------------------------------------------ |
+| `id`          | string | `NTF-*`                                                      |
+| `title`       | string | rule name                                                    |
 | `triggerType` | string | stale-evidence, overdue-action, snapshot-due, status-changed |
-| `status` | string | active, paused, disabled |
-| `channel` | string | in-app, export-flag, summary-only |
-| `ruleConfig` | object | config payload |
+| `status`      | string | active, paused, disabled                                     |
+| `channel`     | string | in-app, export-flag, summary-only                            |
+| `ruleConfig`  | object | config payload                                               |
 
 ### Tag
 
@@ -698,16 +718,16 @@ In v1.7 the only taggable entity type is `requirement`. Tags are applied through
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `TAG-*` |
-| `entityType` | string | `tag` |
-| `label` | string | canonical unique key; 1..40 chars; NFC-normalised; allowed characters are Unicode letters, Unicode digits, spaces, hyphen, and apostrophe; case- and whitespace-insensitive uniqueness per E20 |
-| `title` | string | display label shown in chips and pickers; 1..60 chars; defaults to `label` |
-| `description` | string | optional free-text note; 0..1000 chars; publication `sensitive` (default-deny) |
-| `colour` | string | required; one of `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `grey`; creation default is `grey` |
-| `emoji` | string | optional single grapheme cluster rendered before the title; validated with `Intl.Segmenter` where available |
-| `recordStatus` | string | active, archived, inactive, deleted; pickers MUST exclude `archived` |
+| Field          | Type   | Notes                                                                                                                                                                                          |
+| -------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`           | string | `TAG-*`                                                                                                                                                                                        |
+| `entityType`   | string | `tag`                                                                                                                                                                                          |
+| `label`        | string | canonical unique key; 1..40 chars; NFC-normalised; allowed characters are Unicode letters, Unicode digits, spaces, hyphen, and apostrophe; case- and whitespace-insensitive uniqueness per E20 |
+| `title`        | string | display label shown in chips and pickers; 1..60 chars; defaults to `label`                                                                                                                     |
+| `description`  | string | optional free-text note; 0..1000 chars; publication `sensitive` (default-deny)                                                                                                                 |
+| `colour`       | string | required; one of `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `grey`; creation default is `grey`                                                                              |
+| `emoji`        | string | optional single grapheme cluster rendered before the title; validated with `Intl.Segmenter` where available                                                                                    |
+| `recordStatus` | string | active, archived, inactive, deleted; pickers MUST exclude `archived`                                                                                                                           |
 
 #### Limits
 
@@ -724,18 +744,18 @@ ISM `SRC-*` records carry `externalRefs` to the natural ISM control identifier a
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `SRC-*` |
-| `entityType` | string | `source-control` |
-| `controlId` | string | natural ISM identifier |
-| `title` | string | ISM control title |
-| `statement` | string | ISM control text from OSCAL |
-| `profileTags` | string[] | ISM profile membership |
-| `statementChangeStatus` | string | unchanged, changed, new, removed |
-| `externalRefs` | object[] | OSCAL UUID and natural ISM identifier |
-| `provenance` | object | `oscalRelease`, `catalog`, `profile`, `sourceUrl` |
-| `localApplicabilityNote` | string | optional operator interpretation; sensitive by default |
+| Field                    | Type     | Notes                                                  |
+| ------------------------ | -------- | ------------------------------------------------------ |
+| `id`                     | string   | `SRC-*`                                                |
+| `entityType`             | string   | `source-control`                                       |
+| `controlId`              | string   | natural ISM identifier                                 |
+| `title`                  | string   | ISM control title                                      |
+| `statement`              | string   | ISM control text from OSCAL                            |
+| `profileTags`            | string[] | ISM profile membership                                 |
+| `statementChangeStatus`  | string   | unchanged, changed, new, removed                       |
+| `externalRefs`           | object[] | OSCAL UUID and natural ISM identifier                  |
+| `provenance`             | object   | `oscalRelease`, `catalog`, `profile`, `sourceUrl`      |
+| `localApplicabilityNote` | string   | optional operator interpretation; sensitive by default |
 
 ### Requirement-control mapping
 
@@ -743,19 +763,19 @@ Represents a first-class mapping from one PSPF Requirement to one ISM source con
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `MAP-*` |
-| `entityType` | string | `requirement-control-mapping` |
-| `requirementId` | string | `REQ-*` endpoint |
-| `sourceControlId` | string | `SRC-*` endpoint |
-| `coverageQualifier` | string | primary, partial, compensating |
-| `applicabilityProfile` | string | ISM profile key or all |
-| `confidence` | string | low, medium, high |
-| `lastReviewedAt` | string/null | optional mapping review timestamp |
-| `reviewBy` | string/null | optional free-text reviewer label; not a Person link |
-| `rationale` | string | operator-authored explanation; sensitive by default |
-| `provenance` | object | author, createdAt, oscalRelease |
+| Field                  | Type        | Notes                                                |
+| ---------------------- | ----------- | ---------------------------------------------------- |
+| `id`                   | string      | `MAP-*`                                              |
+| `entityType`           | string      | `requirement-control-mapping`                        |
+| `requirementId`        | string      | `REQ-*` endpoint                                     |
+| `sourceControlId`      | string      | `SRC-*` endpoint                                     |
+| `coverageQualifier`    | string      | primary, partial, compensating                       |
+| `applicabilityProfile` | string      | ISM profile key or all                               |
+| `confidence`           | string      | low, medium, high                                    |
+| `lastReviewedAt`       | string/null | optional mapping review timestamp                    |
+| `reviewBy`             | string/null | optional free-text reviewer label; not a Person link |
+| `rationale`            | string      | operator-authored explanation; sensitive by default  |
+| `provenance`           | object      | author, createdAt, oscalRelease                      |
 
 ### Direction
 
@@ -768,24 +788,25 @@ Directions differ from Requirements in two ways:
 
 #### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `id` | string | `DIR-*` |
-| `reference` | string | authoritative reference, unique case- and whitespace-insensitively |
-| `title` | string | short title |
-| `issuedAt` | string | issue date |
-| `sourceAuthority` | string | issuing authority |
-| `sourceControlId` | string/null | linked source control where available |
-| `description` | string | direction text or normalised summary |
-| `implementationGuidance` | string | optional local interpretation or guidance |
-| `responseState` | string | not-set, yes, no, risk-managed |
-| `assessmentRationale` | string | user-entered assessment notes |
-| `evidenceStatus` | string | missing, partial, attached, stale, verified |
-| `reviewDueAt` | string/null | next review date |
+| Field                    | Type        | Notes                                                              |
+| ------------------------ | ----------- | ------------------------------------------------------------------ |
+| `id`                     | string      | `DIR-*`                                                            |
+| `reference`              | string      | authoritative reference, unique case- and whitespace-insensitively |
+| `title`                  | string      | short title                                                        |
+| `issuedAt`               | string      | issue date                                                         |
+| `sourceAuthority`        | string      | issuing authority                                                  |
+| `sourceControlId`        | string/null | linked source control where available                              |
+| `description`            | string      | direction text or normalised summary                               |
+| `implementationGuidance` | string      | optional local interpretation or guidance                          |
+| `responseState`          | string      | not-set, yes, no, risk-managed                                     |
+| `assessmentRationale`    | string      | user-entered assessment notes                                      |
+| `evidenceStatus`         | string      | missing, partial, attached, stale, verified                        |
+| `reviewDueAt`            | string/null | next review date                                                   |
 
 #### Direction enums
 
 `responseState`:
+
 - `not-set`
 - `yes`
 - `no`
@@ -799,21 +820,21 @@ Represents a significant change captured by Workshop so later readers can unders
 
 #### Change Record fields
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | `CHG-*` canonical ID |
-| `title` | string | concise operator-facing title |
-| `summary` | string | public explanation safe for Explorer publication |
-| `reason` | string | sensitive reason, redacted by default |
-| `impactSummary` | string | sensitive impact note, redacted by default |
-| `changeType` | string | priority, direction, scope, timeline, dependency, risk-response, posture, other |
-| `status` | string | proposed, active, resolved, absorbed, withdrawn |
-| `persistence` | string | temporary or persistent |
-| `source` | string | executive-direction, risk-event, compliance-event, operational, external-trigger, other |
-| `raisedAt` | string | timestamp the change was raised |
-| `effectiveAt` | string/null | optional timestamp the change takes effect |
-| `reviewDueAt` | string/null | optional review timestamp |
-| `decisionOwnerRef` | string | restricted decision-owner reference, never exported |
+| Field              | Type        | Description                                                                             |
+| ------------------ | ----------- | --------------------------------------------------------------------------------------- |
+| `id`               | string      | `CHG-*` canonical ID                                                                    |
+| `title`            | string      | concise operator-facing title                                                           |
+| `summary`          | string      | public explanation safe for Explorer publication                                        |
+| `reason`           | string      | sensitive reason, redacted by default                                                   |
+| `impactSummary`    | string      | sensitive impact note, redacted by default                                              |
+| `changeType`       | string      | priority, direction, scope, timeline, dependency, risk-response, posture, other         |
+| `status`           | string      | proposed, active, resolved, absorbed, withdrawn                                         |
+| `persistence`      | string      | temporary or persistent                                                                 |
+| `source`           | string      | executive-direction, risk-event, compliance-event, operational, external-trigger, other |
+| `raisedAt`         | string      | timestamp the change was raised                                                         |
+| `effectiveAt`      | string/null | optional timestamp the change takes effect                                              |
+| `reviewDueAt`      | string/null | optional review timestamp                                                               |
+| `decisionOwnerRef` | string      | restricted decision-owner reference, never exported                                     |
 
 ## Link specification
 
@@ -827,40 +848,43 @@ Each meaningful relationship should be represented by a `Link` record.
 
 #### Link fields
 
-| Field | Type | Description |
-|---|---|---|
-| `id` | string | `LNK-*` canonical ID |
-| `linkType` | string | semantic relationship type |
-| `fromId` | string | source entity ID |
-| `fromType` | string | source entity type |
-| `toId` | string | target entity ID |
-| `toType` | string | target entity type |
-| `status` | string | active, inactive, superseded |
-| `strength` | string | required, strong, supporting, informational |
-| `directionality` | string | directional or bidirectional |
-| `createdAt` | string | timestamp |
-| `createdBy` | string | product/user/service origin |
-| `updatedAt` | string | timestamp |
-| `updatedBy` | string | product/user/service origin |
-| `rationale` | string/null | explanation of the link |
-| `effectiveFrom` | string/null | optional |
-| `effectiveTo` | string/null | optional |
-| `snapshotId` | string/null | if link was established in a snapshot context |
+| Field            | Type        | Description                                   |
+| ---------------- | ----------- | --------------------------------------------- |
+| `id`             | string      | `LNK-*` canonical ID                          |
+| `linkType`       | string      | semantic relationship type                    |
+| `fromId`         | string      | source entity ID                              |
+| `fromType`       | string      | source entity type                            |
+| `toId`           | string      | target entity ID                              |
+| `toType`         | string      | target entity type                            |
+| `status`         | string      | active, inactive, superseded                  |
+| `strength`       | string      | required, strong, supporting, informational   |
+| `directionality` | string      | directional or bidirectional                  |
+| `createdAt`      | string      | timestamp                                     |
+| `createdBy`      | string      | product/user/service origin                   |
+| `updatedAt`      | string      | timestamp                                     |
+| `updatedBy`      | string      | product/user/service origin                   |
+| `rationale`      | string/null | explanation of the link                       |
+| `effectiveFrom`  | string/null | optional                                      |
+| `effectiveTo`    | string/null | optional                                      |
+| `snapshotId`     | string/null | if link was established in a snapshot context |
 
 ### Link enums
 
 `status`:
+
 - `active`
 - `inactive`
 - `superseded`
 
 `strength`:
+
 - `required`
 - `strong`
 - `supporting`
 - `informational`
 
 `directionality`:
+
 - `directional`
 - `bidirectional`
 
@@ -880,109 +904,109 @@ This table is authoritative. CI validates that every link in every fixture match
 
 #### Requirement-centred
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| requirement | in | domain | requirement belongs to domain |
-| requirement | supported-by | evidence | evidence supports requirement claim |
-| requirement | addressed-by | action | action contributes to requirement uplift |
-| requirement | exposed-by | risk | risk affects requirement outcome |
-| requirement | owned-by | team | team owns requirement |
-| requirement | reviewed-by | person | person is reviewer |
-| requirement | cited-by | report-pack | report references requirement |
+| fromType    | linkType     | toType      | Meaning                                  |
+| ----------- | ------------ | ----------- | ---------------------------------------- |
+| requirement | in           | domain      | requirement belongs to domain            |
+| requirement | supported-by | evidence    | evidence supports requirement claim      |
+| requirement | addressed-by | action      | action contributes to requirement uplift |
+| requirement | exposed-by   | risk        | risk affects requirement outcome         |
+| requirement | owned-by     | team        | team owns requirement                    |
+| requirement | reviewed-by  | person      | person is reviewer                       |
+| requirement | cited-by     | report-pack | report references requirement            |
 
 #### Direction-centred
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| direction | in | domain | direction affects domain |
-| direction | targets | requirement | direction applies to requirement |
-| direction | supported-by | evidence | evidence supports direction response |
-| direction | addressed-by | action | action contributes to direction response |
-| direction | exposed-by | risk | risk affects direction response |
+| fromType  | linkType     | toType         | Meaning                                     |
+| --------- | ------------ | -------------- | ------------------------------------------- |
+| direction | in           | domain         | direction affects domain                    |
+| direction | targets      | requirement    | direction applies to requirement            |
+| direction | supported-by | evidence       | evidence supports direction response        |
+| direction | addressed-by | action         | action contributes to direction response    |
+| direction | exposed-by   | risk           | risk affects direction response             |
 | direction | sourced-from | source-control | direction derives from authoritative source |
 
 #### Evidence-centred
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| evidence | supports | action | evidence supports action completion |
-| evidence | supports | risk | evidence supports risk treatment |
-| evidence | sourced-from | source-control | evidence derives from source |
-| evidence | included-in | snapshot | evidence captured in snapshot |
+| fromType | linkType     | toType         | Meaning                             |
+| -------- | ------------ | -------------- | ----------------------------------- |
+| evidence | supports     | action         | evidence supports action completion |
+| evidence | supports     | risk           | evidence supports risk treatment    |
+| evidence | sourced-from | source-control | evidence derives from source        |
+| evidence | included-in  | snapshot       | evidence captured in snapshot       |
 
 #### Action-centred
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| action | owned-by | person | direct action owner |
-| action | owned-by | team | team owner |
-| action | assigned-via | assignment | assignment record governs responsibility |
-| action | blocked-by | risk | risk blocks completion |
-| action | related-to | contract | action relates to contract obligation |
-| action | included-in | snapshot | action captured in snapshot |
+| fromType | linkType     | toType     | Meaning                                  |
+| -------- | ------------ | ---------- | ---------------------------------------- |
+| action   | owned-by     | person     | direct action owner                      |
+| action   | owned-by     | team       | team owner                               |
+| action   | assigned-via | assignment | assignment record governs responsibility |
+| action   | blocked-by   | risk       | risk blocks completion                   |
+| action   | related-to   | contract   | action relates to contract obligation    |
+| action   | included-in  | snapshot   | action captured in snapshot              |
 
 #### Risk-centred
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| risk | owned-by | person | direct owner |
-| risk | owned-by | team | team owner |
-| risk | treated-by | action | action treats risk |
-| risk | associated-with | supplier | supplier contributes to risk |
-| risk | associated-with | contract | contract contributes to risk |
-| risk | included-in | report-pack | risk reported in pack |
+| fromType | linkType        | toType      | Meaning                      |
+| -------- | --------------- | ----------- | ---------------------------- |
+| risk     | owned-by        | person      | direct owner                 |
+| risk     | owned-by        | team        | team owner                   |
+| risk     | treated-by      | action      | action treats risk           |
+| risk     | associated-with | supplier    | supplier contributes to risk |
+| risk     | associated-with | contract    | contract contributes to risk |
+| risk     | included-in     | report-pack | risk reported in pack        |
 
 #### Commercial
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| supplier | has | contract | supplier linked to contract |
-| supplier | supports | requirement | supplier relevant to requirement |
-| supplier | associated-with | risk | supplier affects risk |
-| contract | supports | requirement | contract obligation supports requirement |
-| contract | funds | spend-item | spend tied to contract |
-| spend-item | supports | action | spend enables action |
-| spend-item | supports | requirement | spend contributes to control uplift |
+| fromType   | linkType        | toType      | Meaning                                  |
+| ---------- | --------------- | ----------- | ---------------------------------------- |
+| supplier   | has             | contract    | supplier linked to contract              |
+| supplier   | supports        | requirement | supplier relevant to requirement         |
+| supplier   | associated-with | risk        | supplier affects risk                    |
+| contract   | supports        | requirement | contract obligation supports requirement |
+| contract   | funds           | spend-item  | spend tied to contract                   |
+| spend-item | supports        | action      | spend enables action                     |
+| spend-item | supports        | requirement | spend contributes to control uplift      |
 
 #### Workforce
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| person | member-of | team | person belongs to team |
-| person | holds | role | person currently holds role |
-| assignment | targets | action | assignment applies to action |
-| assignment | targets | requirement | assignment applies to requirement |
-| assignment | targets | risk | assignment applies to risk |
-| role | owned-by | team | role sits within team |
+| fromType   | linkType  | toType      | Meaning                           |
+| ---------- | --------- | ----------- | --------------------------------- |
+| person     | member-of | team        | person belongs to team            |
+| person     | holds     | role        | person currently holds role       |
+| assignment | targets   | action      | assignment applies to action      |
+| assignment | targets   | requirement | assignment applies to requirement |
+| assignment | targets   | risk        | assignment applies to risk        |
+| role       | owned-by  | team        | role sits within team             |
 
 #### Reporting
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| snapshot | includes | requirement | requirement captured |
-| snapshot | includes | risk | risk captured |
-| snapshot | generates | report-pack | report derived from snapshot |
-| report-pack | includes | evidence | evidence included in pack |
-| report-pack | includes | action | action included in pack |
+| fromType    | linkType  | toType      | Meaning                      |
+| ----------- | --------- | ----------- | ---------------------------- |
+| snapshot    | includes  | requirement | requirement captured         |
+| snapshot    | includes  | risk        | risk captured                |
+| snapshot    | generates | report-pack | report derived from snapshot |
+| report-pack | includes  | evidence    | evidence included in pack    |
+| report-pack | includes  | action      | action included in pack      |
 
 #### Tags
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| requirement | tagged-with | tag | operator-applied classification on a requirement |
+| fromType    | linkType    | toType | Meaning                                          |
+| ----------- | ----------- | ------ | ------------------------------------------------ |
+| requirement | tagged-with | tag    | operator-applied classification on a requirement |
 
 In v1.7 this is the only permitted `(fromType, toType)` pair for `tagged-with`. See `pspf-invariants.md` § T2.
 
 #### Change Records
 
-| fromType | linkType | toType | Meaning |
-|---|---|---|---|
-| change-record | changes | requirement | change explains why a requirement changed |
-| change-record | changes | action | change explains why an action changed |
-| change-record | changes | risk | change explains why a risk changed |
-| change-record | changes | direction | change explains why a Direction response or treatment changed |
-| change-record | changes | tag | change explains why a tag is relevant |
-| change-record | changes | saved-view | change explains why a saved view matters |
+| fromType      | linkType | toType      | Meaning                                                       |
+| ------------- | -------- | ----------- | ------------------------------------------------------------- |
+| change-record | changes  | requirement | change explains why a requirement changed                     |
+| change-record | changes  | action      | change explains why an action changed                         |
+| change-record | changes  | risk        | change explains why a risk changed                            |
+| change-record | changes  | direction   | change explains why a Direction response or treatment changed |
+| change-record | changes  | tag         | change explains why a tag is relevant                         |
+| change-record | changes  | saved-view  | change explains why a saved view matters                      |
 
 In v1.10 these are the only permitted `(fromType, toType)` pairs for `changes`. Tombstoned endpoints may remain linked so historical explanations survive erasure or archive workflows.
 

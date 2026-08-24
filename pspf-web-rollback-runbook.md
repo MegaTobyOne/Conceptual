@@ -93,7 +93,6 @@ Use the production values for production and test values for test.
    ```
 
 8. Record the rollback in the release notes or incident log with:
-
    - time of rollback,
    - bad release ID,
    - restored release ID,

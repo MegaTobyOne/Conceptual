@@ -88,6 +88,44 @@ This short operating plan sits alongside the longer architecture and remediation
 
 ---
 
+## UX judgement-support programme (v1.53.0–v1.60.0)
+
+Status: **implemented — governed by ADRs 0087–0094**
+
+### Outcome
+
+A dedicated UX review (2026-08) found that the ecosystem's structural UX gates measure completeness and consistency but not whether a screen helps an operator answer the questions they are actually asked. It defined six operator judgements (J1–J6: basis of "compliant", consequence, blockers, trajectory, reader-anchored change, supplier verdict) and found that in each case the underlying data mostly existed but was never composed into a stated answer. This programme closed that gap across eight small vertical slices, one shared `@pspf/contracts` primitive per judgement, wired into the highest-traffic Workshop and Explorer surfaces, each independently gated by a dedicated `check-*.mjs` script.
+
+### Decisions
+
+1. Each slice adds exactly one shared, tested primitive to `@pspf/contracts` (never duplicated per-product) and wires it into 2–3 highest-traffic surfaces rather than every screen; full rollout is tracked as backlog in `docs/ux-improvement-ideas.md`, not delivered inline.
+2. Schema changes are batched into a single slice (S4, v1.57.0) rather than spread across the programme: `schemaVersion`/`bundleVersion`/`apiVersion` moved `1.14.0` → `1.15.0` once, adding `requirement.acceptanceDefinition`/`acceptanceDefinitionUpdatedAt` and `action.blockerClass` (both `sensitive`, unpublished).
+3. Any new judgement-support field defaults to `sensitive` publication unless a considered decision states otherwise — S7's supplier verdict is Shop-only by design; Explorer publication of Shop supplier/commercial data is explicitly deferred pending a dedicated policy ADR, not delivered under programme time pressure.
+4. `projectTrajectory` (S5) is structurally incapable of returning an unqualified date: every result is either "target reached", a stated no-velocity reason, or a range with an assumption sentence.
+5. The e2e release chain gained continuity enforcement (S0) after this programme's own predecessor review found two prior silent gaps in it.
+
+### Implementation slices
+
+| #   | Version | Judgement                     | Primitive(s) added to `@pspf/contracts`                                                       |
+| --- | ------- | ----------------------------- | --------------------------------------------------------------------------------------------- |
+| S0  | 1.53.0  | Review harness (no judgement) | UX evidence pack, e2e chain-continuity gate, palette dedupe, Marketplace icons                |
+| S1  | 1.54.0  | J1 basis of "compliant"       | `assessmentBasis`, `summariseAssessmentBasis`, `isWithinFreshnessWindow`                      |
+| S2  | 1.55.0  | J2 consequence                | `buildConsequenceStatement`, `summariseUncoveredRisk`, `buildUncoveredRiskStatement`          |
+| S3  | 1.56.0  | J3 blockers                   | `rankBlockersByFanIn`, `classifyBlocker`, `blockerClassLabel`, `isExpiringWithinDays`         |
+| S4  | 1.57.0  | J1b/J3b (schema bump)         | `RequirementEntity.acceptanceDefinition`, `ActionEntity.blockerClass` (widened to `supplier`) |
+| S5  | 1.58.0  | J4 trajectory                 | `computeClosureVelocity`, `projectTrajectory`, `buildSustainNote`                             |
+| S6  | 1.59.0  | J5 reader-anchored change     | `describeChangeRollup`; Explorer `AppStore.lastVisitAt` reader anchor                         |
+| S7  | 1.60.0  | J6 supplier verdict           | Shop `buildSupplierVerdict` (local, not contracts — single consumer)                          |
+
+### Explicitly deferred
+
+- Full rollout of each primitive to every screen (only the highest-traffic surfaces were wired; see `docs/ux-improvement-ideas.md` for the remaining backlog).
+- A `supplier` blocker class derived automatically (it is operator-set only; automatic supplier detection needs the richer supplier-linked data a future slice would add).
+- Explorer publication of Shop supplier/contract/commercial data — needs a dedicated field-by-field publication-policy ADR before any Explorer surface may reference suppliers.
+- First-class recorded event types for risk-opened/closed and action-slipped (J5's roll-up currently composes compliance-state transitions plus reused staleness data rather than adding new event storage).
+
+---
+
 ## v1.50 dark-first ecosystem redesign
 
 Status: **implemented — governed by ADR 0086**
