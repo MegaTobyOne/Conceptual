@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { cp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { createCoreService } from "../packages/core/dist/service.js";
@@ -26,6 +27,9 @@ await source.upsertEntity(
   )
 );
 await source.createSnapshot();
+await source.releaseWriterLock();
+assert.equal(existsSync(join(sourcePaths.locks, "writer-v2.lock")), false);
+assert.equal(existsSync(join(sourcePaths.locks, "writer-lock.json")), false);
 
 await cp(sourcePaths.pspf, join(restoredWorkspace, ".pspf"), { recursive: true });
 const restored = createCoreService(restoredWorkspace);
@@ -34,5 +38,18 @@ assert.equal(integrity.ok, true, integrity.detail);
 const validation = await restored.validateWorkspace();
 assert.equal(validation.ok, true, validation.message);
 assert.equal(validation.counts.requirements, PSPF_BASELINE_REQUIREMENTS.length + 1);
+await restored.upsertEntity(
+  withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Restored workspace write-lock check",
+      domainId: PSPF_DOMAINS[0].id,
+      assessmentStatus: "in-progress"
+    },
+    "workshop"
+  )
+);
+await restored.releaseWriterLock();
 
 console.log("ok backup/restore dry-run restored .pspf and passed integrity plus Core validation");

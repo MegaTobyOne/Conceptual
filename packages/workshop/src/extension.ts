@@ -14855,7 +14855,7 @@ function versionStrip(): string {
 }
 
 function metricCard(label: string, value: number | string): string {
-  return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${value}</strong></div>`;
+  return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
 }
 
 function directionChips(counts: Record<DirectionResponseState, number>): string {
@@ -14873,8 +14873,8 @@ function readRecordField(record: object, field: string): unknown {
     : undefined;
 }
 
-function label(value: string): string {
-  return value
+function label(value: unknown): string {
+  return String(value ?? "")
     .replaceAll("-", " ")
     .replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`)
     .replace(/^./, (letter) => letter.toUpperCase());

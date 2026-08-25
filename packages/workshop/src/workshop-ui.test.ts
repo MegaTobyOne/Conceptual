@@ -2,6 +2,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
+import { escapeHtml } from "./webview/shell.js";
+
+test("Workshop HTML escaping tolerates missing legacy fields", () => {
+  assert.equal(escapeHtml(undefined), "");
+  assert.equal(escapeHtml(null), "");
+  assert.equal(
+    escapeHtml(`<img src=x onerror="alert('x')">`),
+    "&lt;img src=x onerror=&quot;alert(&#39;x&#39;)&quot;&gt;"
+  );
+});
 
 test("requirement editor tabs use the requirement number instead of the full title", () => {
   const title = shortWorkshopPanelTitle({
@@ -105,6 +115,13 @@ test("Workshop Strategy trends render labelled pills without arrows", async () =
   const trendMatch = source.match(/function trendIndicator\(value: string\): string \{[\s\S]*?\n}/);
   assert.ok(trendMatch, "trend indicator helper should be present");
   assert.doesNotMatch(trendMatch[0], /&uarr;|&rarr;|&darr;|&ndash;/);
+});
+
+test("Workshop metric cards escape persisted text values", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+  const metricCardMatch = source.match(/function metricCard\([\s\S]*?\n}/);
+  assert.ok(metricCardMatch, "metric card helper should be present");
+  assert.match(metricCardMatch[0], /<strong>\$\{escapeHtml\(value\)\}<\/strong>/);
 });
 
 test("Essential Eight dashboard renders visual posture charts", async () => {

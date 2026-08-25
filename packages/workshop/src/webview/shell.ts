@@ -21,8 +21,8 @@ import {
  * Workshop". If you change them, update the gate too.
  */
 
-export function escapeHtml(value: string): string {
-  return value
+export function escapeHtml(value: unknown): string {
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")

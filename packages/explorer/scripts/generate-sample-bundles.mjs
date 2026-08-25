@@ -92,7 +92,7 @@ function buildSampleBundleFor(variant) {
   const referencedControlIds = new Set(
     sample
       .filter((entity) => entity.entityType === 'requirement-control-mapping')
-      .map((entity) => entity.controlId),
+      .map((entity) => entity.sourceControlId),
   );
   const sourceControls = ISM_SOURCE_CONTROLS.filter((control) =>
     referencedControlIds.has(control.id),

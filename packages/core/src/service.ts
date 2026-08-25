@@ -1,8 +1,10 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, open, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Ajv, type ValidateFunction } from "ajv";
+import addFormats from "ajv-formats";
 import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
@@ -61,8 +63,11 @@ import {
   PSPF_REFERENCE_DATA_REPORT
 } from "@pspf/reference-data";
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
+import lockfile from "proper-lockfile";
 
 const SQLITE_BUSY_TIMEOUT_MS = 5000;
+const WRITER_LOCK_STALE_MS = 10_000;
+const WRITER_LOCK_UPDATE_MS = 2_000;
 const IMPORT_LIMITS = {
   maxBundleBytes: 50 * 1024 * 1024,
   maxItemsPerCollection: 200_000,
@@ -73,7 +78,22 @@ const IMPORT_LIMITS = {
   maxLinks: 2_000_000
 } as const;
 const workspaceOperationQueues = new Map<string, Promise<void>>();
+const heldWriterLocks = new Map<string, HeldWriterLock>();
+const writerLockAcquisitions = new Map<string, Promise<WriterLockState>>();
 let sqlJsPromise: Promise<SqlJsStatic> | undefined;
+let importSchemaValidatorsPromise: Promise<ImportSchemaValidators> | undefined;
+
+interface ImportSchemaValidators {
+  readonly manifest: ValidateFunction;
+  readonly collections: ReadonlyMap<V01Collection, ValidateFunction>;
+}
+
+interface HeldWriterLock {
+  readonly ownershipToken: string;
+  readonly release: () => Promise<void>;
+  readonly state: WriterLockState;
+  compromised?: Error;
+}
 
 export interface WorkspacePaths {
   readonly root: string;
@@ -131,6 +151,7 @@ export interface CoreService {
   readonly importBundle: (bundlePath: string, mode: ImportMode) => Promise<ImportResult>;
   readonly undoLastImport: () => Promise<ImportUndoResult>;
   readonly getWriterLock: () => Promise<WriterLockState>;
+  readonly releaseWriterLock: () => Promise<void>;
   readonly upsertEntity: (entity: V01Entity) => Promise<V01Entity>;
   readonly upsertEntities: (entities: readonly V01Entity[]) => Promise<readonly V01Entity[]>;
   readonly listEntities: (entityType?: V01Entity["entityType"]) => Promise<V01Entity[]>;
@@ -147,6 +168,7 @@ export interface CoreWriteApi {
   readonly resetWorkspace: () => Promise<WorkspaceResetResult>;
   readonly createSnapshot: () => Promise<V01Entity>;
   readonly getWriterLock: () => Promise<WriterLockState>;
+  readonly releaseWriterLock: () => Promise<void>;
   readonly upsertEntity: (entity: V01Entity) => Promise<V01Entity>;
   readonly upsertEntities: (entities: readonly V01Entity[]) => Promise<readonly V01Entity[]>;
 }
@@ -288,6 +310,8 @@ export function createCoreWriteApi(workspaceRoot: string): CoreWriteApi {
     resetWorkspace: () => serialiseWorkspaceOperation(workspaceRoot, () => resetWorkspace(workspaceRoot)),
     createSnapshot: () => serialiseWorkspaceOperation(workspaceRoot, () => createSnapshot(workspaceRoot)),
     getWriterLock: () => serialiseWorkspaceOperation(workspaceRoot, () => getWriterLock(workspaceRoot)),
+    releaseWriterLock: () =>
+      serialiseWorkspaceOperation(workspaceRoot, () => releaseWriterLock(getWorkspacePaths(workspaceRoot))),
     upsertEntity: (entity) => serialiseWorkspaceOperation(workspaceRoot, () => upsertEntity(workspaceRoot, entity)),
     upsertEntities: (entities) =>
       serialiseWorkspaceOperation(workspaceRoot, () => upsertEntities(workspaceRoot, entities))
@@ -345,7 +369,7 @@ async function initialiseWorkspace(workspaceRoot: string): Promise<WorkspacePath
     mkdir(paths.migrations, { recursive: true }),
     mkdir(paths.share, { recursive: true })
   ]);
-  await acquireWriterLock(paths);
+  assertWriterLockWritable(await acquireWriterLock(paths));
 
   await writeJson(join(paths.config, "workspace.json"), {
     createdAt: nowIso(),
@@ -444,7 +468,22 @@ INSERT INTO metadata(key, value) VALUES ('apiVersion', '${VERSION_AXES.apiVersio
 async function resetWorkspace(workspaceRoot: string): Promise<WorkspaceResetResult> {
   const paths = getWorkspacePaths(workspaceRoot);
   await assertWritable(paths);
-  await rm(paths.pspf, { recursive: true, force: true });
+  await Promise.all(
+    [
+      paths.db,
+      `${paths.db}-shm`,
+      `${paths.db}-wal`,
+      paths.config,
+      paths.exports,
+      paths.imports,
+      paths.snapshots,
+      paths.logs,
+      paths.cache,
+      paths.journal,
+      paths.migrations,
+      paths.share
+    ].map((path) => rm(path, { recursive: true, force: true }))
+  );
   const resetPaths = await initialiseWorkspace(workspaceRoot);
   return {
     reset: true,
@@ -1012,14 +1051,16 @@ async function importBundle(workspaceRoot: string, bundlePath: string, mode: Imp
   const entities = writeSet;
   const existingEntities = await listEntities(workspaceRoot);
   if (mode === "full-replace") {
-    await writeJson(join(paths.imports, `pre-full-replace-${new Date().toISOString().replace(/[:.]/g, "-")}.json`), {
+    await writeJsonDurably(join(paths.imports, `pre-${importId}.json`), {
       generatedAt: nowIso(),
+      importId,
+      mode,
+      bundlePath,
       reason: "pre full-replace import rollback point",
       entities: existingEntities
     });
-    await runSql(paths.db, "DELETE FROM entities;");
   } else if (entities.length > 0) {
-    await writeJson(join(paths.imports, `pre-${importId}.json`), {
+    await writeJsonDurably(join(paths.imports, `pre-${importId}.json`), {
       generatedAt: nowIso(),
       importId,
       mode,
@@ -1029,10 +1070,28 @@ async function importBundle(workspaceRoot: string, bundlePath: string, mode: Imp
     });
   }
 
-  if (entities.length > 0) {
-    await runSql(paths.db, ["BEGIN IMMEDIATE;", ...entities.map(upsertEntitySql), "COMMIT;"].join("\n"));
+  if (mode === "full-replace") {
+    await runSql(
+      paths.db,
+      [
+        "BEGIN IMMEDIATE;",
+        "DELETE FROM entities;",
+        ...entities.map(upsertEntitySql),
+        operationSql("import", "success", `${mode}:${importId}:${bundlePath}`),
+        "COMMIT;"
+      ].join("\n")
+    );
+  } else {
+    await runSql(
+      paths.db,
+      [
+        "BEGIN IMMEDIATE;",
+        ...entities.map(upsertEntitySql),
+        operationSql("import", "success", `${mode}:${importId}:${bundlePath}`),
+        "COMMIT;"
+      ].join("\n")
+    );
   }
-  await recordOperation(paths, "import", "success", `${mode}:${importId}:${bundlePath}`);
   return { imported: entities.length, mode, bundlePath, importId, summary };
 }
 
@@ -1048,11 +1107,8 @@ async function buildImportPlan(
   bundlePath: string,
   mode: ImportMode
 ): Promise<{ incomingEntities: readonly V01Entity[]; writeSet: readonly V01Entity[]; summary: ImportSummary }> {
-  const bundle = await readAndValidateImportBundle(bundlePath);
+  const bundle = await readAndValidateImportBundle(bundlePath, mode);
   let incomingEntities = flattenImportEntities(bundle.collections ?? {});
-  if (mode === "full-replace") {
-    incomingEntities = await includeExistingReferencedSourceControls(workspaceRoot, incomingEntities);
-  }
   const existingEntities = await listEntities(workspaceRoot);
   const tagImportResult =
     mode === "additive-merge" || mode === "plan-apply"
@@ -1084,7 +1140,7 @@ async function buildImportPlan(
   };
 }
 
-async function readAndValidateImportBundle(bundlePath: string): Promise<ImportBundlePayload> {
+async function readAndValidateImportBundle(bundlePath: string, mode: ImportMode): Promise<ImportBundlePayload> {
   const bundleStat = await stat(bundlePath);
   if (bundleStat.size > IMPORT_LIMITS.maxBundleBytes) {
     throwImportLimitExceeded("Total bundle size", IMPORT_LIMITS.maxBundleBytes, bundleStat.size);
@@ -1136,8 +1192,16 @@ async function readAndValidateImportBundle(bundlePath: string): Promise<ImportBu
   }
 
   const manifestByName = new Map(manifestCollections.map((collection) => [collection.name, collection]));
+  if (manifestByName.size !== manifestCollections.length) {
+    throwInvalidImportBundle("Manifest collection names must be unique.");
+  }
+  if (mode === "full-replace") {
+    validateFullReplaceBundleShape(bundle, manifestByName);
+    await validateFullReplaceBundleSchemas(manifest, bundle.collections);
+  }
   let totalEntities = 0;
   let totalLinks = 0;
+  const entityIds = new Set<string>();
   for (const collectionName of V0_1_COLLECTIONS) {
     const collectionPresent = Object.hasOwn(bundle.collections, collectionName);
     const records = bundle.collections[collectionName] ?? [];
@@ -1168,6 +1232,10 @@ async function readAndValidateImportBundle(bundlePath: string): Promise<ImportBu
     validateImportDepthAndStrings(records, collectionName);
     for (const record of records) {
       validateImportEntityEnvelope(record, collectionName);
+      if (entityIds.has(record.id)) {
+        throwInvalidImportBundle(`Duplicate entity id ${record.id} appears more than once.`);
+      }
+      entityIds.add(record.id);
     }
   }
 
@@ -1179,6 +1247,106 @@ async function readAndValidateImportBundle(bundlePath: string): Promise<ImportBu
   }
 
   return bundle;
+}
+
+function validateFullReplaceBundleShape(
+  bundle: ImportBundlePayload,
+  manifestByName: ReadonlyMap<string, ManifestCollection>
+): void {
+  const manifest = bundle.manifest;
+  const collections = bundle.collections;
+  if (!manifest || !collections) {
+    throwInvalidImportBundle("Full-replace bundle must contain a manifest and collections object.");
+  }
+  const unknownEnvelopeProperties = Object.keys(bundle).filter(
+    (propertyName) => propertyName !== "manifest" && propertyName !== "collections"
+  );
+  if (unknownEnvelopeProperties.length > 0) {
+    throwInvalidImportBundle(
+      `Full-replace bundle contains unknown top-level properties: ${unknownEnvelopeProperties.join(", ")}.`
+    );
+  }
+  if (
+    manifest.schemaVersion !== VERSION_AXES.schemaVersion ||
+    manifest.bundleVersion !== VERSION_AXES.bundleVersion ||
+    manifest.apiVersion !== VERSION_AXES.apiVersion
+  ) {
+    throwInvalidImportBundle(
+      `Full-replace requires current version axes ${VERSION_AXES.schemaVersion}; use additive merge for compatible legacy bundles.`
+    );
+  }
+  const collectionKeys = Object.keys(collections);
+  const unknownCollections = collectionKeys.filter(
+    (collectionName) => !V0_1_COLLECTIONS.includes(collectionName as V01Collection)
+  );
+  if (unknownCollections.length > 0) {
+    throwInvalidImportBundle(`Full-replace bundle contains unknown collections: ${unknownCollections.join(", ")}.`);
+  }
+  const unknownManifestCollections = [...manifestByName.keys()].filter(
+    (collectionName) => !V0_1_COLLECTIONS.includes(collectionName as V01Collection)
+  );
+  if (unknownManifestCollections.length > 0) {
+    throwInvalidImportBundle(
+      `Full-replace manifest contains unknown collections: ${unknownManifestCollections.join(", ")}.`
+    );
+  }
+  for (const collectionName of V0_1_COLLECTIONS) {
+    if (!Object.hasOwn(collections, collectionName)) {
+      throwInvalidImportBundle(`Full-replace bundle is missing collection ${collectionName}.`);
+    }
+    const manifestCollection = manifestByName.get(collectionName);
+    if (!manifestCollection) {
+      throwInvalidImportBundle(`Full-replace manifest is missing collection ${collectionName}.`);
+    }
+    if (manifestCollection.hash?.alg !== "SHA-256" || !manifestCollection.hash.value) {
+      throwInvalidImportBundle(`Full-replace manifest is missing the SHA-256 checksum for ${collectionName}.`);
+    }
+  }
+}
+
+async function validateFullReplaceBundleSchemas(
+  manifest: ImportBundleManifest,
+  collections: Partial<BundleCollections>
+): Promise<void> {
+  const validators = await getImportSchemaValidators();
+  if (!validators.manifest(manifest)) {
+    throwInvalidImportBundle(`Manifest schema validation failed: ${formatSchemaErrors(validators.manifest)}`);
+  }
+  for (const collectionName of V0_1_COLLECTIONS) {
+    const validate = validators.collections.get(collectionName);
+    if (!validate) {
+      throwInvalidImportBundle(`No packaged schema validator exists for ${collectionName}.`);
+    }
+    if (!validate(collections[collectionName])) {
+      throwInvalidImportBundle(`${collectionName} schema validation failed: ${formatSchemaErrors(validate)}`);
+    }
+  }
+}
+
+async function getImportSchemaValidators(): Promise<ImportSchemaValidators> {
+  importSchemaValidatorsPromise ??= loadImportSchemaValidators();
+  return importSchemaValidatorsPromise;
+}
+
+async function loadImportSchemaValidators(): Promise<ImportSchemaValidators> {
+  const ajv = new Ajv({ allErrors: true, strict: false });
+  addFormats.default(ajv);
+  const schemaRoot = join(dirname(fileURLToPath(import.meta.url)), "explorer-bundle", VERSION_AXES.schemaVersion);
+  const manifestSchema = JSON.parse(await readFile(join(schemaRoot, "manifest.schema.json"), "utf8")) as object;
+  const collections = new Map<V01Collection, ValidateFunction>();
+  for (const collectionName of V0_1_COLLECTIONS) {
+    const schema = JSON.parse(
+      await readFile(join(schemaRoot, "collections", `${collectionName}.schema.json`), "utf8")
+    ) as object;
+    collections.set(collectionName, ajv.compile(schema));
+  }
+  return { manifest: ajv.compile(manifestSchema), collections };
+}
+
+function formatSchemaErrors(validate: ValidateFunction): string {
+  return (validate.errors ?? [])
+    .map((error) => `${error.instancePath || "/"} ${error.message ?? "is invalid"}`)
+    .join("; ");
 }
 
 function validateImportEntityEnvelope(record: unknown, collectionName: V01Collection): asserts record is V01Entity {
@@ -1322,10 +1490,12 @@ async function undoLastImport(workspaceRoot: string): Promise<ImportUndoResult> 
     (operation) =>
       operation.operation_type === "import" &&
       operation.status === "success" &&
-      (operation.detail.startsWith("additive-merge:import-") || operation.detail.startsWith("plan-apply:import-"))
+      (operation.detail.startsWith("additive-merge:import-") ||
+        operation.detail.startsWith("plan-apply:import-") ||
+        operation.detail.startsWith("full-replace:import-"))
   );
   if (!lastImport) {
-    return { undone: false, restored: 0, message: "No additive or plan-apply import is available to undo." };
+    return { undone: false, restored: 0, message: "No import is available to undo." };
   }
   const [, importId] = lastImport.detail.split(":");
   if (!importId) {
@@ -1342,7 +1512,10 @@ async function undoLastImport(workspaceRoot: string): Promise<ImportUndoResult> 
   }
   const snapshot = JSON.parse(await readFile(snapshotPath, "utf8")) as { readonly entities?: readonly V01Entity[] };
   const entities = snapshot.entities || [];
-  await runSql(paths.db, ["DELETE FROM entities;", ...entities.map(upsertEntitySql)].join("\n"));
+  await runSql(
+    paths.db,
+    ["BEGIN IMMEDIATE;", "DELETE FROM entities;", ...entities.map(upsertEntitySql), "COMMIT;"].join("\n")
+  );
   await recordOperation(paths, "import-undo", "success", importId);
   return {
     undone: true,
@@ -1567,31 +1740,6 @@ function flattenImportEntities(collections: Partial<BundleCollections>): V01Enti
     entities.push(...(records as V01Entity[]));
   }
   return entities;
-}
-
-async function includeExistingReferencedSourceControls(
-  workspaceRoot: string,
-  entities: readonly V01Entity[]
-): Promise<V01Entity[]> {
-  const entityIds = new Set(entities.map((entity) => entity.id));
-  const missingSourceControlIds = new Set<string>();
-  for (const entity of entities) {
-    if (entity.entityType === "requirement-control-mapping") {
-      const sourceControlId = (entity as EntityByCollection["requirement-control-mappings"]).sourceControlId;
-      if (!entityIds.has(sourceControlId)) {
-        missingSourceControlIds.add(sourceControlId);
-      }
-    }
-  }
-  if (missingSourceControlIds.size === 0) {
-    return [...entities];
-  }
-
-  const existingSourceControls = await listEntities(workspaceRoot, "source-control");
-  const sourceControlsToPreserve = existingSourceControls.filter((sourceControl) =>
-    missingSourceControlIds.has(sourceControl.id)
-  );
-  return [...entities, ...sourceControlsToPreserve];
 }
 
 function pushEntity<Collection extends V01Collection>(
@@ -2017,10 +2165,15 @@ function assertAllAllowed<T extends string>(
 }
 
 function validateImportedMappings(entities: readonly V01Entity[]): void {
-  const entityIds = new Set(entities.map((entity) => entity.id));
+  const entityTypesById = new Map(entities.map((entity) => [entity.id, entity.entityType]));
   for (const mapping of entities.filter((entity) => entity.entityType === "requirement-control-mapping")) {
-    if (!entityIds.has(mapping.requirementId)) {
+    if (entityTypesById.get(mapping.requirementId) !== "requirement") {
       throw new Error(`Import rejected: mapping ${mapping.id} references missing requirement ${mapping.requirementId}`);
+    }
+    if (entityTypesById.get(mapping.sourceControlId) !== "source-control") {
+      throw new Error(
+        `Import rejected: mapping ${mapping.id} references missing source control ${mapping.sourceControlId}`
+      );
     }
   }
 }
@@ -2272,7 +2425,10 @@ ON CONFLICT(id) DO NOTHING;`;
 }
 
 async function assertWritable(paths: WorkspacePaths): Promise<void> {
-  const lock = await acquireWriterLock(paths);
+  assertWriterLockWritable(await acquireWriterLock(paths));
+}
+
+function assertWriterLockWritable(lock: WriterLockState): void {
   if (!lock.writable) {
     throw new PspfError({
       code: "PSPF_WRITER_LOCK_HELD",
@@ -2287,48 +2443,41 @@ async function assertWritable(paths: WorkspacePaths): Promise<void> {
 }
 
 async function acquireWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
-  const lockFilePath = join(paths.locks, "writer.lock");
-  const lockStatePath = join(paths.locks, "writer-lock.json");
-  const existing = await readWriterLock(paths);
-  if (existing.holderPid === process.pid && existsSync(lockFilePath)) {
-    return existing;
-  }
-  if (existing.holderPid && existing.holderPid !== process.pid && isProcessAlive(existing.holderPid)) {
-    return existing;
-  }
-  await rm(lockFilePath, { force: true });
-  await rm(lockStatePath, { force: true });
-  try {
-    const lockFile = await open(lockFilePath, "wx");
-    await lockFile.writeFile(`${process.pid}\n`, "utf8");
-    await lockFile.close();
-  } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST") {
-      return readWriterLock(paths);
-    }
-    throw error;
+  const lockPath = writerLockPath(paths);
+  const held = heldWriterLocks.get(lockPath);
+  if (held) {
+    return held.compromised
+      ? { ...held.state, writable: false, detail: `Writer lock was compromised: ${held.compromised.message}` }
+      : held.state;
   }
 
-  const state: WriterLockState = {
-    holderPid: process.pid,
-    acquiredAt: nowIso(),
-    currentPid: process.pid,
-    policy: "single-writer",
-    writable: true,
-    detail: "Writer lock held by current process."
-  };
-  await writeJson(lockStatePath, state);
-  return state;
+  const pending = writerLockAcquisitions.get(lockPath);
+  if (pending) {
+    return pending;
+  }
+
+  const acquisition = acquireWriterLockOwnership(paths, lockPath);
+  writerLockAcquisitions.set(lockPath, acquisition);
+  try {
+    return await acquisition;
+  } finally {
+    writerLockAcquisitions.delete(lockPath);
+  }
 }
 
 async function readWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
-  const lockFilePath = join(paths.locks, "writer.lock");
-  const lockStatePath = join(paths.locks, "writer-lock.json");
-  const lockFileExists = existsSync(lockFilePath);
-  if (!lockFileExists && !existsSync(lockStatePath)) {
+  const lockPath = writerLockPath(paths);
+  const held = heldWriterLocks.get(lockPath);
+  if (held) {
+    return held.compromised
+      ? { ...held.state, writable: false, detail: `Writer lock was compromised: ${held.compromised.message}` }
+      : held.state;
+  }
+  if (!existsSync(lockPath)) {
     return { currentPid: process.pid, policy: "single-writer", writable: true, detail: "No writer lock exists yet." };
   }
-  if (!existsSync(lockStatePath)) {
+  const value = await readWriterLockMetadata(paths);
+  if (!value) {
     return {
       currentPid: process.pid,
       policy: "single-writer",
@@ -2336,24 +2485,137 @@ async function readWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
       detail: "Workspace is read-only because writer lock metadata is unavailable."
     };
   }
-
-  const value = JSON.parse(await readFile(lockStatePath, "utf8")) as Partial<WriterLockState>;
   const holderPid = typeof value.holderPid === "number" ? value.holderPid : undefined;
-  const heldByCurrentProcess = lockFileExists && holderPid === process.pid;
-  const writable =
-    !lockFileExists || heldByCurrentProcess || (typeof holderPid === "number" && !isProcessAlive(holderPid));
   return {
     holderPid,
     acquiredAt: value.acquiredAt,
     currentPid: process.pid,
     policy: "single-writer",
-    writable,
-    detail: writable
-      ? heldByCurrentProcess
-        ? "Writer lock held by current process."
-        : "Writer lock is available."
-      : `Workspace is read-only because writer lock is held by process ${holderPid ?? "unknown"}.`
+    writable: false,
+    detail: `Workspace is read-only because writer lock is held by process ${holderPid ?? "unknown"}.`
   };
+}
+
+async function acquireWriterLockOwnership(paths: WorkspacePaths, lockPath: string): Promise<WriterLockState> {
+  const legacy = await readLegacyWriterLock(paths);
+  if (legacy) {
+    return legacy;
+  }
+  if (existsSync(lockPath)) {
+    const metadata = await readWriterLockMetadata(paths);
+    if (!metadata) {
+      return readWriterLock(paths);
+    }
+    if (typeof metadata.holderPid === "number" && isProcessAlive(metadata.holderPid)) {
+      return readWriterLock(paths);
+    }
+  }
+
+  let ownership: HeldWriterLock | undefined;
+  try {
+    const release = await lockfile.lock(paths.locks, {
+      lockfilePath: lockPath,
+      realpath: false,
+      retries: 0,
+      stale: WRITER_LOCK_STALE_MS,
+      update: WRITER_LOCK_UPDATE_MS,
+      onCompromised: (error) => {
+        if (ownership) {
+          ownership.compromised = error;
+        }
+      }
+    });
+    const state: WriterLockState = {
+      holderPid: process.pid,
+      acquiredAt: nowIso(),
+      currentPid: process.pid,
+      policy: "single-writer",
+      writable: true,
+      detail: "Writer lock held by current process."
+    };
+    ownership = { ownershipToken: randomUUID(), release, state };
+    heldWriterLocks.set(lockPath, ownership);
+    await writeJson(writerLockMetadataPath(paths), { ...state, ownershipToken: ownership.ownershipToken });
+    return state;
+  } catch (error) {
+    if (errorCode(error) === "ELOCKED") {
+      return readWriterLock(paths);
+    }
+    if (ownership) {
+      heldWriterLocks.delete(lockPath);
+      await ownership.release().catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
+async function releaseWriterLock(paths: Pick<WorkspacePaths, "locks">): Promise<void> {
+  const lockPath = writerLockPath(paths);
+  const ownership = heldWriterLocks.get(lockPath);
+  if (!ownership) {
+    return;
+  }
+  heldWriterLocks.delete(lockPath);
+  const metadata = await readWriterLockMetadata(paths);
+  if (metadata?.ownershipToken === ownership.ownershipToken) {
+    await rm(writerLockMetadataPath(paths), { force: true });
+  }
+  await ownership.release();
+}
+
+export async function releaseAllWriterLocks(): Promise<void> {
+  await Promise.all([...heldWriterLocks.keys()].map((lockPath) => releaseWriterLock({ locks: dirname(lockPath) })));
+}
+
+function writerLockPath(paths: Pick<WorkspacePaths, "locks">): string {
+  return join(paths.locks, "writer-v2.lock");
+}
+
+function writerLockMetadataPath(paths: Pick<WorkspacePaths, "locks">): string {
+  return join(paths.locks, "writer-lock.json");
+}
+
+async function readWriterLockMetadata(
+  paths: Pick<WorkspacePaths, "locks">
+): Promise<(Partial<WriterLockState> & { readonly ownershipToken?: string }) | undefined> {
+  try {
+    return JSON.parse(await readFile(writerLockMetadataPath(paths), "utf8")) as Partial<WriterLockState> & {
+      readonly ownershipToken?: string;
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+async function readLegacyWriterLock(paths: WorkspacePaths): Promise<WriterLockState | undefined> {
+  const legacyLockPath = join(paths.locks, "writer.lock");
+  if (!existsSync(legacyLockPath)) {
+    return undefined;
+  }
+  let holderPid: number | undefined;
+  try {
+    const parsedPid = Number.parseInt((await readFile(legacyLockPath, "utf8")).trim(), 10);
+    holderPid = Number.isSafeInteger(parsedPid) && parsedPid > 0 ? parsedPid : undefined;
+  } catch {
+    holderPid = undefined;
+  }
+  if (holderPid === process.pid || (holderPid !== undefined && !isProcessAlive(holderPid))) {
+    await rm(legacyLockPath, { force: true });
+    return undefined;
+  }
+  return {
+    holderPid,
+    currentPid: process.pid,
+    policy: "single-writer",
+    writable: false,
+    detail: `Workspace is read-only because a legacy writer lock is held by process ${holderPid ?? "unknown"}.`
+  };
+}
+
+function errorCode(error: unknown): string | undefined {
+  return typeof error === "object" && error !== null && "code" in error && typeof error.code === "string"
+    ? error.code
+    : undefined;
 }
 
 function isProcessAlive(pid: number): boolean {
@@ -2371,16 +2633,31 @@ async function recordOperation(
   status: string,
   detail: string
 ): Promise<void> {
-  const id = `${operationType}-${Date.now()}`;
-  await runSql(
-    paths.db,
-    `INSERT INTO operations(id, operation_type, status, detail, created_at)
-VALUES ('${sqlEscape(id)}', '${sqlEscape(operationType)}', '${sqlEscape(status)}', '${sqlEscape(detail)}', '${nowIso()}');`
-  );
+  await runSql(paths.db, operationSql(operationType, status, detail));
+}
+
+function operationSql(operationType: string, status: string, detail: string): string {
+  const id = `${operationType}-${crypto.randomUUID()}`;
+  return `INSERT INTO operations(id, operation_type, status, detail, created_at)
+VALUES ('${sqlEscape(id)}', '${sqlEscape(operationType)}', '${sqlEscape(status)}', '${sqlEscape(detail)}', '${nowIso()}');`;
 }
 
 async function writeJson(path: string, value: unknown): Promise<void> {
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+async function writeJsonDurably(path: string, value: unknown): Promise<void> {
+  await mkdir(dirname(path), { recursive: true });
+  const tmpPath = `${path}.tmp-${process.pid}-${Date.now()}`;
+  const file = await open(tmpPath, "w");
+  try {
+    await file.writeFile(`${JSON.stringify(value, null, 2)}\n`, "utf8");
+    await file.sync();
+  } finally {
+    await file.close();
+  }
+  await rename(tmpPath, path);
+  await syncDirectory(dirname(path));
 }
 
 async function runSql(dbPath: string, sql: string, extraArgs: readonly string[] = []): Promise<string> {

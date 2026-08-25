@@ -35,6 +35,13 @@ describe.skipIf(!hasSample)('sample bundle round-trip', () => {
     expect(plan.risks.length).toBeGreaterThan(0);
     expect(plan.actions.length).toBeGreaterThan(0);
     expect(plan.directions.length).toBeGreaterThan(0);
+    const sourceControlIds = new Set(
+      (bundle.collections['source-controls'] ?? []).map((control) => control.id),
+    );
+    expect(sourceControlIds.size).toBeGreaterThan(0);
+    for (const mapping of bundle.collections['requirement-control-mappings'] ?? []) {
+      expect(sourceControlIds.has(String(mapping.sourceControlId))).toBe(true);
+    }
 
     const { idMap } = await applyCoreBundleImport(plan, {
       setCompliance: () => Promise.resolve(undefined),
