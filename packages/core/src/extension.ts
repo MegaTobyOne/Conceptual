@@ -3,7 +3,7 @@ import { basename, join, relative } from "node:path";
 import { PSPF_SLICE_VERSION } from "@pspf/contracts";
 import { homePanelShellHtml, metricStripHtml, pageHeaderHtml, trustChipsHtml } from "@pspf/webview-shell";
 import * as vscode from "vscode";
-import { createCoreService, type ImportMode, type ImportResult } from "./service.js";
+import { createCoreService, releaseAllWriterLocks, type ImportMode, type ImportResult } from "./service.js";
 
 export function activate(context: vscode.ExtensionContext): Record<string, unknown> {
   const output = vscode.window.createOutputChannel("PSPF Core");
@@ -518,8 +518,8 @@ function escapeHtml(value: unknown): string {
     .replace(/'/g, "&#39;");
 }
 
-export function deactivate(): void {
-  // No runtime resources to dispose yet.
+export async function deactivate(): Promise<void> {
+  await releaseAllWriterLocks();
 }
 
 function getService() {

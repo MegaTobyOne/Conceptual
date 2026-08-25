@@ -1,7 +1,34 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
+import {
+  formatShortAuDateTime,
+  formatWorkshopLabel,
+  normaliseShortAuDateTime,
+  shortWorkshopPanelTitle
+} from "./workshop-ui.js";
+import { escapeHtml, metricCardHtml } from "./webview/shell.js";
+
+test("Workshop HTML escaping tolerates missing legacy fields", () => {
+  assert.equal(escapeHtml(undefined), "");
+  assert.equal(escapeHtml(null), "");
+  assert.equal(
+    escapeHtml(`<img src=x onerror="alert('x')">`),
+    "&lt;img src=x onerror=&quot;alert(&#39;x&#39;)&quot;&gt;"
+  );
+  assert.equal(formatWorkshopLabel(undefined), "");
+  assert.equal(formatWorkshopLabel(null), "");
+});
+
+test("Workshop metric cards escape persisted labels and values", () => {
+  const html = metricCardHtml(`<img src=x onerror="alert('label')">`, `<script>alert("value")</script>`);
+
+  assert.equal(
+    html,
+    '<div class="metric"><span>&lt;img src=x onerror=&quot;alert(&#39;label&#39;)&quot;&gt;</span><strong>&lt;script&gt;alert(&quot;value&quot;)&lt;/script&gt;</strong></div>'
+  );
+  assert.equal(metricCardHtml(undefined, undefined), '<div class="metric"><span></span><strong></strong></div>');
+});
 
 test("requirement editor tabs use the requirement number instead of the full title", () => {
   const title = shortWorkshopPanelTitle({

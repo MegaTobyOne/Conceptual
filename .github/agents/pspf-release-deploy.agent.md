@@ -22,8 +22,8 @@ You are the PSPF release, test, and deployment specialist. Your job is to keep r
 
 - Do not release from a feature branch.
 - Do not treat `develop` as production-ready until `release:readiness` passes.
-- Do not deploy production web except from a signed `explorer/<version>` tag cut from `main`.
-- Do not publish Marketplace extensions except from `core/<version>` or `workshop/<version>` tags cut from `main`.
+- Do not deploy or publish production releases from any branch other than `main`.
+- Do not hand-cut release tags before publication. Marketplace and production web releases are workflow-dispatched from `main`; successful workflows create tags as receipts.
 - Do not route secrets through chat, logs, committed files, artefacts, or bundled Explorer data.
 - Do not deploy `.pspf/`, SQLite, debug workspaces, VSIX files, `.env` files, raw source, or unvetted bundles to VentraIP.
 - Do not bypass `check:deployment-safety`, `check:personal-data`, or `release:readiness` for production release jobs.
@@ -33,7 +33,7 @@ You are the PSPF release, test, and deployment specialist. Your job is to keep r
 - Feature branches merge into `develop` by PR.
 - `develop` auto-deploys to `test.tobyharvey.online` after CI and web safety gates pass.
 - `main` is protected and receives release-candidate PRs from `develop`.
-- Release tags are cut only from `main`.
+- Release receipt tags are created only after a successful production workflow from `main`.
 - Hotfixes branch from `main`, release from `main`, then merge back to `develop`.
 
 ## Workflow
@@ -41,10 +41,11 @@ You are the PSPF release, test, and deployment specialist. Your job is to keep r
 1. Confirm the current branch and intended target: feature, `develop`, `main`, or release tag.
 2. Run or verify the smallest relevant gate first.
 3. For web release, confirm `.tmp/web-release` contains only root page, `/explorer`, `/schemas`, and deployment headers.
-4. For Marketplace release, run `bundle:extensions` and dry-package Core/Workshop VSIX files before publishing.
+4. For Marketplace release, run `bundle:extensions` and dry-package the selected Core, Workshop, Shop, Pub, and/or Assurance VSIX files before publishing.
 5. Confirm GitHub environment approvals and secrets are scoped to `test-web`, `production-web`, and `marketplace`.
-6. For production, verify rollback instructions and the previous release ID before approving deploy.
-7. Report exactly which commands passed, which human approvals remain, and which host or Marketplace surface was touched.
+6. For Marketplace, dispatch `Marketplace release` from `main` with `target=core|workshop|shop|pub|assurance|both|all`; treat `core/<version>`, `workshop/<version>`, `shop/<version>`, `pub/<version>`, and `assurance/<version>` as post-publish receipts.
+7. For production, verify rollback instructions and the previous release ID before approving deploy.
+8. Report exactly which commands passed, which human approvals remain, and which host or Marketplace surface was touched.
 
 ## Output Format
 

@@ -10,7 +10,12 @@
  * round trip (Core → Explorer → Core) is non-destructive.
  */
 
-import { PSPF_SLICE_VERSION, VERSION_AXES, hasCompatibleMajorVersion } from '@pspf/contracts';
+import {
+  PSPF_SLICE_VERSION,
+  VERSION_AXES,
+  V0_1_COLLECTIONS,
+  hasCompatibleMajorVersion,
+} from '@pspf/contracts';
 import type {
   Action,
   ComplianceEntry,
@@ -648,22 +653,6 @@ export interface CoreExportInput {
   now?: string;
 }
 
-const EXPORT_COLLECTION_ORDER = [
-  'domains',
-  'requirements',
-  'evidence',
-  'actions',
-  'risks',
-  'snapshots',
-  'links',
-  'tags',
-  'saved-views',
-  'source-controls',
-  'requirement-control-mappings',
-  'directions',
-  'posture',
-];
-
 async function sha256Hex(text: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
@@ -711,6 +700,9 @@ export async function buildCoreBundleExport(
   const collections: CoreCollections = input.source
     ? (JSON.parse(JSON.stringify(input.source.collections)) as CoreCollections)
     : {};
+  for (const collectionName of V0_1_COLLECTIONS) {
+    collections[collectionName] ??= [];
+  }
 
   // Requirements: overlay assessment statuses onto baseline records.
   const requirements = collections.requirements ?? [];
@@ -909,12 +901,20 @@ export async function buildCoreBundleExport(
   collections.evidence = evidence;
   collections.links = links;
 
-  // Posture: refresh pass-through summary counts, if present.
-  if (Array.isArray(collections.posture)) {
-    collections.posture = collections.posture.map((record) => ({
-      ...record,
-      updatedAt: now,
-      sourceProduct: 'explorer',
+  // Posture: emit the required singleton and refresh its summary counts.
+  const previousPosture = collections.posture?.[0];
+  collections.posture = [
+    {
+      ...previousPosture,
+      ...envelope(
+        'POSTURE',
+        'posture',
+        typeof previousPosture?.title === 'string'
+          ? previousPosture.title
+          : 'PSPF Explorer posture',
+        typeof previousPosture?.createdAt === 'string' ? previousPosture.createdAt : now,
+        now,
+      ),
       requirementCount: collections.requirements?.length ?? 0,
       evidenceCount: collections.evidence?.length ?? 0,
       actionCount: collections.actions?.length ?? 0,
@@ -922,16 +922,17 @@ export async function buildCoreBundleExport(
       sourceControlCount: collections['source-controls']?.length ?? 0,
       requirementControlMappingCount: collections['requirement-control-mappings']?.length ?? 0,
       directionCount: collections.directions?.length ?? 0,
-    }));
-  }
+      changeRecordCount: collections['change-records']?.length ?? 0,
+      supplierCount: collections.suppliers?.length ?? 0,
+      contractCount: collections.contracts?.length ?? 0,
+      spendItemCount: collections['spend-items']?.length ?? 0,
+      strategyCount: collections.strategies?.length ?? 0,
+    },
+  ];
 
   // Manifest.
-  const collectionNames = [
-    ...EXPORT_COLLECTION_ORDER.filter((name) => collections[name] !== undefined),
-    ...Object.keys(collections).filter((name) => !EXPORT_COLLECTION_ORDER.includes(name)),
-  ];
   const manifestCollections: CoreManifestCollection[] = [];
-  for (const name of collectionNames) {
+  for (const name of V0_1_COLLECTIONS) {
     const records = collections[name] ?? [];
     const serialised = `${JSON.stringify(records, null, 2)}\n`;
     manifestCollections.push({
@@ -973,5 +974,8 @@ export async function buildCoreBundleExport(
     indexes: [],
   };
 
-  return { bundle: { manifest, collections }, idMap };
+  const currentCollections = Object.fromEntries(
+    V0_1_COLLECTIONS.map((collectionName) => [collectionName, collections[collectionName] ?? []]),
+  ) as CoreCollections;
+  return { bundle: { manifest, collections: currentCollections }, idMap };
 }

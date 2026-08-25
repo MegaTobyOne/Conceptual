@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { VERSION_AXES } from '@pspf/contracts';
+import { VERSION_AXES, V0_1_COLLECTIONS } from '@pspf/contracts';
 import {
   type CoreBundle,
   type CoreImportPlan,
@@ -269,6 +269,11 @@ describe('buildCoreBundleExport', () => {
     );
     expect(manifestRequirements?.count).toBe(bundle.collections.requirements?.length);
     expect(manifestRequirements?.hash?.value).toMatch(/^[0-9a-f]{64}$/);
+    expect(bundle.manifest.collections?.map((collection) => collection.name)).toEqual(
+      V0_1_COLLECTIONS,
+    );
+    expect(Object.keys(bundle.collections)).toEqual(V0_1_COLLECTIONS);
+    expect(bundle.collections.posture).toHaveLength(1);
     // The parser must accept our own exports.
     expect(() => parseCoreBundle(JSON.parse(JSON.stringify(bundle)))).not.toThrow();
   });

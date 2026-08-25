@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-08-23 (repo version 1.52.0)
+Last updated: 2026-08-25 (repo version 1.61.0)
 
 ## Purpose
 
@@ -13,6 +13,12 @@ This is the single forward plan for the PSPF ecosystem. It sequences two streams
 The ordering principle is deliberate: **make the documentation truthful first (F4), then close the trust boundary, then build new features on top of a boundary we trust.** New connected features (Graph, AI) must not land on an import/diagnostics layer that cannot validate or explain failures.
 
 This plan does not override the authority chain in `pspf-spec-consistency-index.md`. Every tranche below that changes architecture, schema, or invariants **starts with an ADR**; this document records the sequence and the design constraints, not the decisions themselves.
+
+## v1.61 release hardening
+
+Status: **implemented — governed by ADR 0095**
+
+The v1.61 release closes the Workshop persisted-value rendering, Core full-replace, writer-lock, Explorer exchange, and backup/restore findings from the release review. The durable regression contract is `check:release-hardening`: hostile and missing Workshop values are exercised through runtime helpers; full-replace is complete, strict, atomic, failure-rollback tested, and undoable; writer contention and stale recovery run across processes; Explorer emits a complete canonical bundle; and cold restore proves fresh ownership before writing. This is a reliability/security release only, so all compatibility axes remain `1.15.0`.
 
 ## Operational plan: compliance uplift workflow (next few days)
 
