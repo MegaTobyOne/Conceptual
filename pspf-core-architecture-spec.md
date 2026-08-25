@@ -178,13 +178,14 @@ VS Code may activate Core, Workshop, Shop, and Pub in the same window. They shar
 
 VS Code allows the same workspace folder to be opened in more than one window concurrently, and SQLite WAL mode does not prevent two processes from writing to the same database. Core enforces single-writer semantics with an OS-level lock:
 
-- On activation, Core acquires an exclusive lock on `.pspf/core/locks/writer.lock` and writes its PID, the VS Code window id, and the activation timestamp.
-- If the lock is already held by a live PID belonging to another window, Core opens the workspace in **read-only mode**: queries work, mutating commands return `PSPF_WRITER_LOCK_HELD`, and the Health view shows a banner naming the holding window with a single action **“Take over as writer”**. (v0.1 implementation: the same information is surfaced through `PSPF: Show Writer Lock` and the read-only banner inside Workshop webviews; the unified Health view arrives in v0.2.)
-- “Take over as writer” re-validates Workspace Trust, prompts the user once, then forces release of the prior lock (after confirming no in-flight writes via the WAL state) and re-acquires it.
-- On clean shutdown Core releases the lock; on crash the next activation detects the stale lock by PID liveness and reclaims it after a `PRAGMA wal_checkpoint(TRUNCATE)`.
-- The lock file is excluded from backup snapshots (see [pspf-backup-and-restore-runbook.md](pspf-backup-and-restore-runbook.md)).
+- Core acquires an atomic directory lock at `.pspf/core/locks/writer-v2.lock`. `proper-lockfile` supplies atomic acquisition, heartbeat, and stale-owner handling.
+- `.pspf/core/locks/writer-lock.json` is readable diagnostic metadata only. A random ownership token and process-local registry determine whether this process may release its own metadata; the file is never lock authority.
+- If another live process holds the lock, Core remains readable while initialisation and every mutating API fail closed with writer-lock guidance. There is no forced takeover of a live owner.
+- A live-PID guard prevents a delayed heartbeat from making a running owner stealable. A genuinely abandoned stale lock may be reclaimed through the locking library.
+- Core releases ownership on clean extension deactivation. A compromised lock remains read-only until ownership can be established safely.
+- Lock directories and diagnostic ownership metadata are runtime-only and excluded from every backup and restore (see [pspf-backup-and-restore-runbook.md](pspf-backup-and-restore-runbook.md)).
 
-This is the v0.1 mechanism; multi-writer concurrency is not in scope.
+Multi-writer concurrency is not in scope. The process-level behaviour is gated by `check:writer-lock` and `check:release-hardening` per ADR 0095.
 
 ### Runtime vs interchange
 

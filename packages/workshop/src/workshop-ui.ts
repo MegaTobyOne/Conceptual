@@ -8,6 +8,13 @@ export type WorkshopEntityTitleSource = {
 
 const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+export function formatWorkshopLabel(value: unknown): string {
+  return String(value ?? "")
+    .replaceAll("-", " ")
+    .replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`)
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
+
 export function shortWorkshopPanelTitle(entity: WorkshopEntityTitleSource): string {
   switch (entity.entityType) {
     case "requirement":

@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
+import initSqlJs from "sql.js";
 import {
   PSPF_DOMAINS,
   PSPF_SLICE_VERSION,
@@ -258,6 +259,62 @@ test("full-replace is undoable and restores the previous workspace", async () =>
   );
   assert.equal(
     (await service.listEntities()).some((entity) => entity.id === replacementRequirement.id),
+    false
+  );
+});
+
+test("full-replace rolls back the deletion when a replacement insert fails", async () => {
+  const workspaceRoot = await freshWorkspace("full-replace-transaction-rollback");
+  const bundlePath = join(workspaceRoot, "failed-full-replace.json");
+  const service = createCoreService(workspaceRoot);
+  const paths = await service.initialiseWorkspace();
+  const previousRequirement = await service.upsertEntity(
+    withEnvelope(
+      "requirement",
+      {
+        entityType: "requirement",
+        title: "Requirement retained after failed full replace",
+        domainId: PSPF_DOMAINS[0]!.id,
+        assessmentStatus: "in-progress"
+      },
+      "workshop"
+    )
+  );
+  const replacementRequirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Replacement that triggers rollback",
+      domainId: PSPF_DOMAINS[0]!.id,
+      assessmentStatus: "met"
+    },
+    "explorer"
+  );
+  await writeBundle(
+    bundlePath,
+    {
+      requirements: [replacementRequirement],
+      posture: [postureFixture("Failed replacement posture", 1)]
+    },
+    { complete: true }
+  );
+
+  const SQL = await initSqlJs({ locateFile: () => join(process.cwd(), "dist", "sql-wasm.wasm") });
+  const database = new SQL.Database(new Uint8Array(await readFile(paths.db)));
+  database.exec(
+    `CREATE TRIGGER reject_replacement BEFORE INSERT ON entities WHEN NEW.id = '${replacementRequirement.id}' BEGIN SELECT RAISE(ABORT, 'forced replacement failure'); END;`
+  );
+  await writeFile(paths.db, Buffer.from(database.export()));
+  database.close();
+
+  await assert.rejects(() => service.importBundle(bundlePath, "full-replace"), /forced replacement failure/i);
+  const entities = await service.listEntities();
+  assert.equal(
+    entities.some((entity) => entity.id === previousRequirement.id),
+    true
+  );
+  assert.equal(
+    entities.some((entity) => entity.id === replacementRequirement.id),
     false
   );
 });

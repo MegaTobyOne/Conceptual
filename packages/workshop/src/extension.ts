@@ -27,7 +27,7 @@ import {
   trustChipsHtml,
   type PresentationLens
 } from "@pspf/webview-shell";
-import { escapeHtml, homeButton, homeShellHtml, shellHtml } from "./webview/shell.js";
+import { escapeHtml, homeButton, homeShellHtml, metricCardHtml as metricCard, shellHtml } from "./webview/shell.js";
 import {
   buildPlanOfActionBoardModel,
   normalisePlanWorkstreamId,
@@ -146,7 +146,12 @@ import {
   requirementRelationshipItemTypes,
   type LinkableItemType
 } from "./relationship-rules.js";
-import { formatShortAuDateTime, normaliseShortAuDateTime, shortWorkshopPanelTitle } from "./workshop-ui.js";
+import {
+  formatShortAuDateTime,
+  formatWorkshopLabel as label,
+  normaliseShortAuDateTime,
+  shortWorkshopPanelTitle
+} from "./workshop-ui.js";
 import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire } from "./questionnaire/flow.js";
 import { ISM_SOURCE_CONTROL_CATEGORIES } from "@pspf/reference-data";
 
@@ -14854,10 +14859,6 @@ function versionStrip(): string {
   return `<div class="version-strip" aria-label="PSPF version context">${shellPill(`PSPF v${PSPF_SLICE_VERSION}`)}${shellPill(`Schema ${VERSION_AXES.schemaVersion}`)}${shellPill(`API ${VERSION_AXES.apiVersion}`)}</div>`;
 }
 
-function metricCard(label: string, value: number | string): string {
-  return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
-}
-
 function directionChips(counts: Record<DirectionResponseState, number>): string {
   const order: DirectionResponseState[] = ["not-set", "yes", "no", "risk-managed"];
   return order.map((state) => shellPill(`${label(state)}: ${counts[state] ?? 0}`)).join(" ");
@@ -14871,13 +14872,6 @@ function readRecordField(record: object, field: string): unknown {
   return Object.prototype.hasOwnProperty.call(record, field)
     ? (record as { readonly [key: string]: unknown })[field]
     : undefined;
-}
-
-function label(value: unknown): string {
-  return String(value ?? "")
-    .replaceAll("-", " ")
-    .replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`)
-    .replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function formatDisplayDate(date: Date): string {

@@ -8,9 +8,9 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.60.0 is the active release baseline. The v1.53.0–v1.60.0 UX judgement-support programme (ADRs 0087–0094) added Workshop/Explorer basis, consequence, blocker, trajectory, reader-anchored change, and Shop supplier-verdict composition on top of the Studio System visual baseline. `VERSION_AXES` moved once, at v1.57.0, from `1.14.0` to `1.15.0` (`requirement.acceptanceDefinition`, `action.blockerClass`, both `sensitive`). ADR 0084's unified Lit/Vite Explorer remains the single web surface, ADR 0085's Assurance City remains lazy-loaded. Pub workforce decision cockpit (ADR 0083) remains local-only at store `1.3.0`, with no AI/model call and no new publication path.
+**Current implementation note:** v1.61.0 is the active release baseline. It adds the ADR 0095 security and reliability hardening for Workshop persisted-value rendering, Core strict/atomic/recoverable full-replace, process-safe writer ownership, complete Explorer exchange, and lock-free cold backup/restore. The v1.53.0–v1.60.0 UX judgement-support programme (ADRs 0087–0094) remains complete. `VERSION_AXES` moved once, at v1.57.0, from `1.14.0` to `1.15.0` and remain there for v1.61.0.
 
-**Status: v1.60.0 implementation is ready for automated and manual UX judgement-support validation. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is ready for facilitated concept testing only and is not part of shipped product scope.**
+**Status: v1.61.0 implementation is ready for automated release-hardening and manual operator validation. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is ready for facilitated concept testing only and is not part of shipped product scope.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
 
@@ -52,9 +52,9 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is the final automated gate for v1.60.0:
+`npx pnpm@10.10.0 run release:readiness` is the final automated gate for v1.61.0:
 
-1. Spine workflow (headless `e2e:v1.60`, including Pub cockpit behavioural and boundary tests).
+1. Spine workflow (headless `e2e:v1.61`, inheriting the complete v1.60 chain).
 2. Schema-policy.
 3. Personal-data exclusion.
 4. AU-English lint.
@@ -68,11 +68,12 @@ The core product decisions remain stable:
 12. Accessibility floor (`axe-core` via Playwright).
 13. Brief redaction.
 14. Explorer publication smoke.
-15. Explorer local-authoring smoke.
-16. Explorer-to-Workshop import smoke.
-17. Master-bundle import.
-18. Cyber reference dataset diagnostics.
-19. UX coverage, including Workshop IA affordances and Pub team-date planning context.
+15. Release hardening: runtime Workshop escaping, strict/atomic full-replace, multi-process writer ownership, complete Explorer exchange, cold restore, and Explorer-to-Workshop import.
+16. Explorer local-authoring smoke.
+17. Explorer-to-Workshop import smoke.
+18. Master-bundle import.
+19. Cyber reference dataset diagnostics.
+20. UX coverage, including Workshop IA affordances and Pub team-date planning context.
 
 ## Remaining readiness risks
 
@@ -120,8 +121,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.60.0, with emphasis on the new basis/consequence/blocker/trajectory/reader-anchored-change surfaces, the Shop supplier verdict, compact responsive navigation, command access, bounded tables and status chips, canonical product/domain wayfinding, dark/light/high-contrast presentation, relationship map and Board behaviour, reduced motion, unified Explorer publication/local-authoring/Core-round-trip behaviour, cockpit keyboard navigation, and the existing Workshop, Shop, import, and release-dry-run regression surfaces.
+The next sequence is manual validation of v1.61.0, with emphasis on hostile and missing legacy Workshop display values, competing-window read-only behaviour, full-replace recovery messaging, restored-workspace first write, compact responsive navigation, command access, unified Explorer/Core round-trip behaviour, and the existing UX judgement-support surfaces.
 
 ## Review conclusion
 
-The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, Assurance City, Studio System identity, Pub workforce decision cockpit, and the S0–S7 UX judgement-support programme (basis, consequence, blockers, trajectory, reader-anchored change, supplier verdict) are implemented for v1.60.0 readiness. Manual validation now needs to confirm the compact visual matrix, responsive navigation/tables/chips, relationship map/Board contract, five Pub cockpit views, routed Attention, filters, pathway caveat, and suppressed safe-summary workflows in the Extension Host.
+The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, Assurance City, Studio System identity, Pub workforce decision cockpit, the S0–S7 UX judgement-support programme, and ADR 0095 hardening are implemented for v1.61.0 readiness. Manual validation now needs to confirm the operator-visible lock/import failure paths and the existing compact visual and accessibility matrix in the Extension Host.

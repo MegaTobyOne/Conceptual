@@ -355,6 +355,11 @@ const coverage = [
     "e2e:v1.60",
     "check:supplier-verdict",
     "release:readiness"
+  ]),
+  adr("0095-v1-61-import-lock-and-rendering-hardening.md", "automated", [
+    "e2e:v1.61",
+    "check:release-hardening",
+    "release:readiness"
   ])
 ];
 

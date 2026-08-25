@@ -4,7 +4,7 @@ Status: **active**
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently ships PSPF v1.60.0 with Core, Workshop, Assurance, Shop, Pub, and Explorer. Studio System provides compact, responsive navigation, tables, status chips, and product/domain wayfinding across the ecosystem. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.15.0`.
+The repository currently ships PSPF v1.61.0 with Core, Workshop, Assurance, Shop, Pub, and Explorer. Studio System provides compact, responsive navigation, tables, status chips, and product/domain wayfinding across the ecosystem. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.15.0`.
 
 ## Products
 
@@ -31,7 +31,9 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.60.0-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.61.0-readiness-report.md`.
+
+v1.61.0 hardens Workshop persisted-value rendering, Core full-replace validation/atomic rollback/undo, cross-process writer ownership, complete Explorer exchange, and lock-free cold backup/restore. `check:release-hardening` keeps those behaviours in the inherited release chain; compatibility axes remain `1.15.0` (ADR 0095).
 
 ## Current Product Direction
 

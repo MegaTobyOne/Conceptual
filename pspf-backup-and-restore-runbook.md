@@ -46,6 +46,8 @@ This runbook assumes the PSPF workspace uses a structure similar to:
 
 The exact filenames can vary, but the critical restore unit is the SQLite database plus any adjacent PSPF configuration and metadata required for Core to reopen the workspace correctly. PSPF Core bundles its runtime SQLite engine for normal extension use; the external `sqlite3` CLI is required only for the command-line backup, restore, and inspection steps in this runbook.
 
+The `.pspf/core/locks/` directory and `writer-lock.json` ownership metadata are runtime-only. They are never backup content and must never be restored. Release the active Core writer lock before taking a cold copy; the restored workspace acquires fresh ownership before its first mutation.
+
 ## Roles and ownership
 
 For a single-operator environment, the operator performing the backup is also responsible for confirming backup validity and recording the result. In a multi-person environment, the backup operator and restore approver should be separated where practical, especially for destructive restore actions. This supports stronger backup governance and reduces the risk of accidental or malicious destruction of backup data.
@@ -224,6 +226,8 @@ tar -czf ~/Backups/pspf/workspace-meta-$TS.tar.gz .pspf/config .pspf/logs .pspf/
 
 Do not assume logs and exports are authoritative, but keep them because they can help with diagnostics, traceability, and reconstruction after a restore.
 
+Do not add `.pspf/core/locks/` or `writer-lock.json` to the metadata archive. A lock identifies a live process and cannot be transferred to a restored workspace.
+
 ## Backup verification
 
 ### Immediate verification
@@ -352,6 +356,8 @@ sqlite3 .pspf/core/pspf-core.db "PRAGMA integrity_check;"
 ### Optional metadata restore
 
 Only restore metadata archives if the workspace config or auxiliary PSPF directories are also damaged or missing.
+
+Before extraction, inspect the archive and reject it if it contains `.pspf/core/locks/` or `writer-lock.json`. Remove any legacy lock artefact from the restore target while VS Code is closed; Core must establish new ownership when the workspace reopens.
 
 ```bash
 tar -xzf ~/Backups/pspf/workspace-meta-YYYYMMDD-HHMMSS.tar.gz

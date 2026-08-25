@@ -30,6 +30,10 @@ export function escapeHtml(value: unknown): string {
     .replaceAll("'", "&#39;");
 }
 
+export function metricCardHtml(label: unknown, value: unknown): string {
+  return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+
 export function homeShellHtml(title: string, body: string): string {
   return homePanelShellHtml({
     extensionLabel: "PSPF Workshop",

@@ -99,6 +99,15 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0084 | Explorer unification: adopt pspfexplorer2 as the PSPF Explorer web surface           | accepted                                                              |
 | 0085 | v1.49 Assurance City                                                                 | accepted                                                              |
 | 0086 | v1.50 dark-first ecosystem redesign                                                  | accepted                                                              |
+| 0087 | v1.53 UX evidence and judgement baseline                                             | accepted                                                              |
+| 0088 | v1.54 assessment-basis trust gradient                                                | accepted                                                              |
+| 0089 | v1.55 consequence chain                                                              | accepted                                                              |
+| 0090 | v1.56 blocker fan-in ranking                                                         | accepted                                                              |
+| 0091 | v1.57 schema-axis bump acceptance blocker                                            | accepted                                                              |
+| 0092 | v1.58 trajectory velocity and sustain line                                           | accepted                                                              |
+| 0093 | v1.59 reader-anchored change                                                         | accepted                                                              |
+| 0094 | v1.60 supplier verdict and publication deferral                                      | accepted                                                              |
+| 0095 | v1.61 import, writer-lock, and rendering hardening                                   | accepted                                                              |
 
 ## Template
 

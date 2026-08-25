@@ -31,16 +31,17 @@ The pipeline should follow these principles:
 
 The ecosystem lives in a **single private GitHub repository** at `https://github.com/MegaTobyOne/Conceptual.git` on the maintainer's GitHub account. Each PSPF product is a workspace package; each VSIX-producing package still releases independently (ADR 0007). The earlier polyrepo proposal (`pspf-contracts` + `pspf-core` + `pspf-workshop` + `pspf-shop` + `pspf-pub` + `pspf-explorer`) is **retired**.
 
-| Path                                       | Contents                                                                                                                          | Releases as                                           |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `packages/contracts/`                      | Shared schema, SDK, API contract types, ID utilities, importer/exporter, brief renderer, chart renderer, contract tests, fixtures | Internal workspace packages only                      |
-| `packages/core/`                           | Core extension (system of record, storage, trust, migrations)                                                                     | `core/<version>` tag → signed VSIX                    |
-| `packages/workshop/`                       | Workshop extension (authoring)                                                                                                    | `workshop/<version>` tag → signed VSIX                |
-| `packages/shop/`                           | Shop extension (suppliers/contracts; v0.2+)                                                                                       | `shop/<version>` tag → signed VSIX                    |
-| `packages/pub/`                            | Pub extension (people/roles; v0.2+)                                                                                               | `pub/<version>` tag → signed VSIX                     |
-| `packages/explorer/`                       | Explorer SPA + static-host pipeline                                                                                               | `explorer/<version>` tag → VentraIP production deploy |
-| `docs/`                                    | Specs, ADRs, runbooks, glossary, onboarding                                                                                       | Lives with the code                                   |
-| `schemas/explorer-bundle/<schemaVersion>/` | Per-version bundle JSON Schemas                                                                                                   | Served same-origin from the Explorer site (E23)       |
+| Path                                       | Contents                                                                                                                          | Releases as                                                     |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `packages/contracts/`                      | Shared schema, SDK, API contract types, ID utilities, importer/exporter, brief renderer, chart renderer, contract tests, fixtures | Internal workspace packages only                                |
+| `packages/core/`                           | Core extension (system of record, storage, trust, migrations)                                                                     | Marketplace workflow → VSIX + `core/<version>` receipt tag      |
+| `packages/assurance/`                      | Assurance extension (assessment and pentest workbench)                                                                            | Marketplace workflow → VSIX + `assurance/<version>` receipt tag |
+| `packages/workshop/`                       | Workshop extension (authoring)                                                                                                    | Marketplace workflow → VSIX + `workshop/<version>` receipt tag  |
+| `packages/shop/`                           | Shop extension (suppliers/contracts)                                                                                              | Marketplace workflow → VSIX + `shop/<version>` receipt tag      |
+| `packages/pub/`                            | Pub extension (people/roles)                                                                                                      | Marketplace workflow → VSIX + `pub/<version>` receipt tag       |
+| `packages/explorer/`                       | Explorer SPA + static-host pipeline                                                                                               | Web workflow → VentraIP + `explorer/<version>` receipt tag      |
+| `docs/`                                    | Specs, ADRs, runbooks, glossary, onboarding                                                                                       | Lives with the code                                             |
+| `schemas/explorer-bundle/<schemaVersion>/` | Per-version bundle JSON Schemas                                                                                                   | Served same-origin from the Explorer site (E23)                 |
 
 ### Why a monorepo (and not the earlier polyrepo)
 
@@ -120,7 +121,7 @@ The standing instruction is:
 
 Production releases are driven by `workflow_dispatch` from `main`, not by hand-cut tags:
 
-- **Marketplace**: run `Marketplace release` with `target=core|workshop|shop|pub|both|all`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates `core/<version>`, `workshop/<version>`, `shop/<version>`, and/or `pub/<version>` tags and GitHub releases as receipts. `both` remains Core+Workshop for compatibility with earlier runbooks; use `all` for Core+Workshop+Shop+Pub. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection; dry-run state is shown in the workflow run name and job summaries so a green dry run is not treated as a published extension. Marketplace Gallery verification waits 60 seconds between attempts because newly published versions can take several minutes to appear through the public API.
+- **Marketplace**: run `Marketplace release` with `target=core|workshop|shop|pub|assurance|both|all`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates per-extension tags and GitHub releases as receipts. `both` remains Core+Workshop for compatibility with earlier runbooks; use `all` for all five extensions. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection; dry-run state is shown in the workflow run name and job summaries so a green dry run is not treated as a published extension. Marketplace Gallery verification waits 60 seconds between attempts because newly published versions can take several minutes to appear through the public API.
 - **Explorer web**: run `Web release` with `target=production`. The workflow gates on the `production-web` environment and deploys to `tobyharvey.online` through the VentraIP composite action. Test deploys to `test.tobyharvey.online` still run automatically on push to `develop`.
 
 ### Pull request discipline
@@ -342,19 +343,18 @@ GitHub Copilot guidance emphasizes that AI-generated code should still be review
 
 All workflow files live in `.github/workflows/` at the repo root. Each is scoped by triggers and `paths:` filters so a Workshop-only PR does not run the Pub package's heavy bench job.
 
-| Workflow                 | Trigger                                                                                              | Purpose                                                                                                                                                                                                                                                 |
-| ------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ci.yml`                 | PR, push to `develop` or `main`                                                                      | Ubuntu lane for build, typecheck, all package tests, package-shape checks, release-candidate checks, deployment-safety checks, and lint                                                                                                                 |
-| `accessibility.yml`      | PR touching `packages/explorer/**`                                                                   | `axe-core` per primary route on the standard fixture                                                                                                                                                                                                    |
-| `schema-publish.yml`     | PR touching `schemas/**`                                                                             | hash-match validator vs served schema; remote `$ref` lint; per-version directory check (E23)                                                                                                                                                            |
-| `personal-data-gate.yml` | every PR                                                                                             | exporter run against personal-data fixture; fail-closed assertion (N6, S7)                                                                                                                                                                              |
-| `deployment-safety.yml`  | every PR and release/deploy tag                                                                      | static deployment and publication-bundle safety scan; blocks hosted sensitive/restricted fields, personal data, secrets, and workspace/runtime artefacts                                                                                                |
-| `au-english-lint.yml`    | every PR                                                                                             | scan `docs/**` and extracted UI strings against the spelling allowlist                                                                                                                                                                                  |
-| `marketplace.yml`        | `workflow_dispatch` from `main` with `target=core\|workshop\|shop\|both\|all` and optional `dry_run` | build once, package selected VSIX(es), show explicit dry-run state, gate on `marketplace` environment approval, publish via `vsce` when `dry_run=false`, then create `core/<v>`, `workshop/<v>`, and/or `shop/<v>` tags and GitHub releases as receipts |
-| `pub-release.yml`        | tag `pub/<v>`                                                                                        | as above for Pub (v0.2+)                                                                                                                                                                                                                                |
-| `web-release.yml`        | tag `explorer/<v>` from `main` (production) or push to `develop` (test)                              | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment                                                                                                                                                                |
-| `sync-develop.yml`       | push to `main`, or `workflow_dispatch`                                                               | keep `develop` aligned with `main` after a release merge: opens or updates a `main → develop` sync pull request whenever `main` has commits not yet on `develop`                                                                                        |
-| `nightly-bench.yml`      | nightly                                                                                              | full performance benchmarks against reference machine fixture                                                                                                                                                                                           |
+| Workflow                 | Trigger                                                                                                              | Purpose                                                                                                                                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`                 | PR, push to `develop` or `main`                                                                                      | Ubuntu lane for build, typecheck, all package tests, package-shape checks, release-candidate checks, deployment-safety checks, and lint                                                                                 |
+| `accessibility.yml`      | PR touching `packages/explorer/**`                                                                                   | `axe-core` per primary route on the standard fixture                                                                                                                                                                    |
+| `schema-publish.yml`     | PR touching `schemas/**`                                                                                             | hash-match validator vs served schema; remote `$ref` lint; per-version directory check (E23)                                                                                                                            |
+| `personal-data-gate.yml` | every PR                                                                                                             | exporter run against personal-data fixture; fail-closed assertion (N6, S7)                                                                                                                                              |
+| `deployment-safety.yml`  | every PR and release/deploy tag                                                                                      | static deployment and publication-bundle safety scan; blocks hosted sensitive/restricted fields, personal data, secrets, and workspace/runtime artefacts                                                                |
+| `au-english-lint.yml`    | every PR                                                                                                             | scan `docs/**` and extracted UI strings against the spelling allowlist                                                                                                                                                  |
+| `marketplace.yml`        | `workflow_dispatch` from `main` with `target=core\|workshop\|shop\|pub\|assurance\|both\|all` and optional `dry_run` | build once, package selected VSIX(es), show explicit dry-run state, gate on `marketplace` environment approval, publish via `vsce` when `dry_run=false`, then create per-extension tags and GitHub releases as receipts |
+| `web-release.yml`        | tag `explorer/<v>` from `main` (production) or push to `develop` (test)                                              | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment                                                                                                                                |
+| `sync-develop.yml`       | push to `main`, or `workflow_dispatch`                                                                               | keep `develop` aligned with `main` after a release merge: opens or updates a `main → develop` sync pull request whenever `main` has commits not yet on `develop`                                                        |
+| `nightly-bench.yml`      | nightly                                                                                                              | full performance benchmarks against reference machine fixture                                                                                                                                                           |
 
 ### Marketplace publishing
 
@@ -362,11 +362,12 @@ VS Code extensions publish through `vsce` invoked from GitHub Actions, with the 
 
 Release pattern:
 
+- dispatch the approved workflow from `main`,
 - package the `.vsix` in CI from the relevant `packages/<name>/`,
-- attach to the GitHub release,
-- publish only from signed-off tags,
-- generate release notes from PR labels.
-- run a post-publish smoke check in a clean VS Code profile before announcing the release.
+- publish after the `marketplace` environment approval,
+- attach the artefact and create the release tag as a post-publish receipt,
+- generate release notes from PR labels,
+- and run a post-publish smoke check in a clean VS Code profile before announcing the release.
 
 Marketplace and web deployment are separate channels. `VSCE_TOKEN` is used only by extension release workflows; VentraIP SSH keys are used only by static web deployment workflows.
 
@@ -662,8 +663,8 @@ Suggested release flow:
 3. open a release-candidate PR from `develop` to `main`,
 4. run `release:readiness`,
 5. merge to `main`,
-6. create the relevant release tag from `main`,
-7. approve and run the production web or Marketplace job,
+6. dispatch the production web or Marketplace workflow from `main`,
+7. approve the protected environment and let the successful workflow create its receipt tag,
 8. publish release notes,
 9. verify smoke checks post-release.
 
@@ -696,7 +697,7 @@ For v0.1 (per ADR 0014), the minimum useful CI footprint is:
 - `personal-data-gate.yml` and `au-english-lint.yml` on every PR.
 - `schema-publish.yml` on PRs that touch `schemas/**`.
 - `accessibility.yml` on PRs that touch `packages/explorer/**`.
-- `marketplace.yml` for Core, Workshop, and Shop VSIX release receipts, plus `web-release.yml` for Explorer web deploys.
+- `marketplace.yml` for all five extension VSIX releases and receipt tags, plus `web-release.yml` for Explorer web deploys.
 
 Pub and the nightly bench are added in a later slice.
 
