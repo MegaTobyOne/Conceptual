@@ -15,7 +15,8 @@ const extensionPackages = [
       "pspf.core.createSnapshot",
       "pspf.core.exportBundle",
       "pspf.core.importBundle",
-      "pspf.core.showWriterLock"
+      "pspf.core.showWriterLock",
+      "pspf.core.recoverWriterLock"
     ]
   },
   {

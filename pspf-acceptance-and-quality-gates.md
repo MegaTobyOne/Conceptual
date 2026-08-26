@@ -204,10 +204,10 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 
 ### v1.61 import, writer-lock, and rendering hardening gates (per ADR 0095)
 
-1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.61.1`; `VERSION_AXES` remain `1.15.0`; no entity, link, API, bundle shape, publication policy, or Explorer schema change is introduced.
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.61.2`; `VERSION_AXES` remain `1.15.0`; no entity, link, API, bundle shape, publication policy, or Explorer schema change is introduced.
 2. **Workshop rendering gate**: behavioural tests pass hostile and missing persisted values through the actual null-safe HTML escaping, metric-card rendering, and label normalisation helpers.
 3. **Full-replace gate**: Core requires a complete current-version bundle, performs strict schema/format/manifest/referential validation, atomically replaces the entity set and success marker, preserves the prior set after injected SQL failure, and can undo a successful replacement from a durable checkpoint.
-4. **Writer ownership gate**: a process-level test proves exactly one writer, blocks mutation and initialisation in contenders, rejects takeover of a live owner with an aged heartbeat, and safely reclaims an abandoned stale lock.
+4. **Writer ownership gate**: a process-level test proves exactly one writer, blocks mutation and initialisation in contenders, rejects takeover of a live owner with an aged heartbeat, and safely reclaims an abandoned stale lock. A behavioural regression externally changes the active lock timestamp, proves Core fails closed with environment diagnostics, and permits explicit recovery only for the current PID/token-matched compromised lock.
 5. **Exchange and recovery gate**: Explorer emits all canonical collections and valid mapping endpoints; Explorer-to-Workshop full-replace succeeds; cold backup excludes runtime lock artefacts and the restored service acquires fresh ownership before writing.
 6. **Release-chain gate**: `e2e:v1.61` inherits the complete v1.60 chain and adds `check:release-hardening`; `release:readiness` targets `e2e:v1.61:run`.
 

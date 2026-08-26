@@ -8,9 +8,9 @@ This review records whether the PSPF spec set is ready to move from conceptual d
 
 ## Readiness status
 
-**Current implementation note:** v1.61.1 is the active hotfix release candidate. It carries the ADR 0095 security and reliability hardening from v1.61.0 and extends malformed persisted-value protection across the shared webview shell, Assurance, Shop, Pub, Workshop, and Core write/integrity boundaries. The v1.53.0–v1.60.0 UX judgement-support programme (ADRs 0087–0094) remains complete. `VERSION_AXES` moved once, at v1.57.0, from `1.14.0` to `1.15.0` and remain there for v1.61.1.
+**Current implementation note:** v1.61.2 is the active hotfix release candidate. It carries the ADR 0095 security and reliability hardening from v1.61.0, the cross-product malformed persisted-value protection from v1.61.1, and adds environment-specific writer-lock diagnostics plus explicit PID/token-matched recovery. The v1.53.0–v1.60.0 UX judgement-support programme (ADRs 0087–0094) remains complete. `VERSION_AXES` moved once, at v1.57.0, from `1.14.0` to `1.15.0` and remain there for v1.61.2.
 
-**Status: v1.61.1 implementation is ready for automated release-hardening and manual operator validation. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is ready for facilitated concept testing only and is not part of shipped product scope.**
+**Status: v1.61.2 implementation is ready for automated release-hardening and manual operator validation. Future Mission Control remains aspirational; Phase A prototype implementation in `docs/mockups/` is ready for facilitated concept testing only and is not part of shipped product scope.**
 
 The validated spine from the original readiness sequence is fully landed and has now been cut as the v1.0 initial assurance user testing release:
 
@@ -52,7 +52,7 @@ The core product decisions remain stable:
 
 ## Gate status
 
-`npx pnpm@10.10.0 run release:readiness` is the final automated gate for v1.61.1:
+`npx pnpm@10.10.0 run release:readiness` is the final automated gate for v1.61.2:
 
 1. Spine workflow (headless `e2e:v1.61`, inheriting the complete v1.60 chain).
 2. Schema-policy.
@@ -121,8 +121,8 @@ The original implementation sequence and the v0.3-v1.0 hardening sequence are co
 7. Snapshot, master-bundle export, and Explorer publication-mode load.
 8. v1.0 end-to-end spine test (`scripts/e2e-v01.mjs`, surfaced through `e2e:v1.0`).
 
-The next sequence is manual validation of v1.61.1, with emphasis on hostile and missing legacy display values across all extension surfaces, competing-window read-only behaviour, full-replace recovery messaging, restored-workspace first write, compact responsive navigation, command access, unified Explorer/Core round-trip behaviour, and the existing UX judgement-support surfaces.
+The next sequence is manual validation of v1.61.2, with emphasis on environment-specific writer-lock diagnostics and recovery, hostile and missing legacy display values across all extension surfaces, competing-window read-only behaviour, full-replace recovery messaging, restored-workspace first write, compact responsive navigation, command access, unified Explorer/Core round-trip behaviour, and the existing UX judgement-support surfaces.
 
 ## Review conclusion
 
-The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, Assurance City, Studio System identity, Pub workforce decision cockpit, the S0–S7 UX judgement-support programme, and ADR 0095 hardening are implemented for v1.61.1 readiness. Manual validation now needs to confirm the operator-visible lock/import failure paths, malformed legacy display fallbacks, and the existing compact visual and accessibility matrix in the Extension Host.
+The Core, Workshop, unified Explorer publication/local-authoring, ISM mapping, Directions, Action Impact, first-run sample, integrity/readiness spine, Requirement tags, saved views, Workshop import review, Shop commercial planning, optional AI controls, Assurance City, Studio System identity, Pub workforce decision cockpit, the S0–S7 UX judgement-support programme, and ADR 0095 hardening are implemented for v1.61.2 readiness. Manual validation now needs to confirm the operator-visible lock diagnostics/recovery, import failure paths, malformed legacy display fallbacks, and the existing compact visual and accessibility matrix in the Extension Host.

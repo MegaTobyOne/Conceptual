@@ -4,7 +4,7 @@ Status: **active**
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently targets the PSPF v1.61.1 hotfix release with Core, Workshop, Assurance, Shop, Pub, and Explorer. Studio System provides compact, responsive navigation, tables, status chips, and product/domain wayfinding across the ecosystem. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.15.0`.
+The repository currently targets the PSPF v1.61.2 hotfix release with Core, Workshop, Assurance, Shop, Pub, and Explorer. Studio System provides compact, responsive navigation, tables, status chips, and product/domain wayfinding across the ecosystem. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.15.0`.
 
 ## Products
 
@@ -31,9 +31,9 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.61.1-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.61.2-readiness-report.md`.
 
-v1.61.1 extends the v1.61.0 hardening with cross-product malformed persisted-value rendering guards, Core write-time Requirement title validation, legacy-corruption diagnostics, and permanent regressions across the shared shell and shipped products. `check:release-hardening` keeps these behaviours in the inherited release chain; compatibility axes remain `1.15.0` (ADR 0095).
+v1.61.2 extends the v1.61.1 hardening with environment-specific writer-lock diagnostics and explicit PID/token-matched compromised-lock recovery. Core continues to fail closed automatically; operators must close other workspace windows and pause tools touching `.pspf/core/locks/` before recovery. `check:release-hardening` keeps this behaviour in the inherited release chain; compatibility axes remain `1.15.0` (ADR 0095).
 
 ## Current Product Direction
 

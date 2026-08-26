@@ -1,6 +1,6 @@
 # PSPF Repository Instructions
 
-This repository implements the PSPF product ecosystem at v1.61.1: five VS Code extensions, a unified Explorer web app, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
+This repository implements the PSPF product ecosystem at v1.61.2: five VS Code extensions, a unified Explorer web app, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
 
 ## First Checks
 
@@ -15,7 +15,7 @@ This repository implements the PSPF product ecosystem at v1.61.1: five VS Code e
 ## Current Workspace
 
 - Package manager: pnpm workspaces, pinned by `packageManager` in `package.json`.
-- Current repo version: `1.61.1`; all workspace packages are expected to remain version-aligned.
+- Current repo version: `1.61.2`; all workspace packages are expected to remain version-aligned.
 - Shipped VS Code extensions:
   - `packages/core` (`pspf-core`) — local system of record, workspace bootstrap, validation, snapshots, import/export, and Core command API.
   - `packages/assurance` (`pspf-assurance`) — assurance evidence and pentest-workbench surface.
