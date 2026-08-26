@@ -183,6 +183,7 @@ VS Code allows the same workspace folder to be opened in more than one window co
 - If another live process holds the lock, Core remains readable while initialisation and every mutating API fail closed with writer-lock guidance. There is no forced takeover of a live owner.
 - A live-PID guard prevents a delayed heartbeat from making a running owner stealable. A genuinely abandoned stale lock may be reclaimed through the locking library.
 - Core releases ownership on clean extension deactivation. A compromised lock remains read-only until ownership can be established safely.
+- If the lock directory timestamp changes outside the owning process, Core reports the lock path and timestamp, identifies common sync/network/backup/security-tool causes, and fails closed. After closing every other workspace window and pausing the interfering tool, the operator may run `PSPF: Recover Writer Lock`; recovery quarantines only a lock whose diagnostic ownership token and PID still match the current process before reacquiring atomically.
 - Lock directories and diagnostic ownership metadata are runtime-only and excluded from every backup and restore (see [pspf-backup-and-restore-runbook.md](pspf-backup-and-restore-runbook.md)).
 
 Multi-writer concurrency is not in scope. The process-level behaviour is gated by `check:writer-lock` and `check:release-hardening` per ADR 0095.

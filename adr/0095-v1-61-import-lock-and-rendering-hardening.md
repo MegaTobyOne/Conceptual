@@ -22,6 +22,8 @@ Release-gate validation then exposed two related contract gaps: Explorer local-a
 
 The `1.61.1` hotfix extends decision 1 across the shared webview shell and all consuming extension surfaces, rejects newly malformed Requirement titles at the Core write boundary, retains integrity reporting for historical malformed Requirement rows, and adds those behaviours to `check:release-hardening`. The compatibility axes remain `1.15.0`.
 
+The `1.61.2` hotfix addresses environment-specific writer-heartbeat compromise. Core now reports external lock-directory timestamp interference, remains read-only automatically, and offers an explicit recovery command that quarantines only a current PID/token-matched compromised lock after the operator confirms other workspace windows and interfering sync/backup tools are stopped. The compatibility axes remain `1.15.0`.
+
 ## Consequences
 
 - Persisted hostile text no longer executes in the covered Workshop rendering path, and legacy missing fields no longer cause `.replace` or `.replaceAll` command failures.

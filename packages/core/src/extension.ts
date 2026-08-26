@@ -24,6 +24,7 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     undoLastImport: getService().undoLastImport,
     ensureWorkspaceReady: () => getService().initialiseWorkspace(),
     getWriterLock: () => getService().getWriterLock(),
+    recoverWriterLock: () => getService().recoverWriterLock(),
     upsertEntity: getService().upsertEntity,
     upsertEntities: getService().upsertEntities,
     listEntities: getService().listEntities
@@ -148,8 +149,40 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     vscode.commands.registerCommand("pspf.core.showWriterLock", async () => {
       const lock = await getService().getWriterLock();
       const message = lock.writable ? lock.detail : `PSPF workspace read-only: ${lock.detail}`;
-      await vscode.window.showInformationMessage(message);
+      const action = await vscode.window.showInformationMessage(
+        message,
+        ...(lock.compromised ? ["Recover Writer Lock"] : [])
+      );
+      if (action === "Recover Writer Lock") {
+        await vscode.commands.executeCommand("pspf.core.recoverWriterLock");
+      }
       return lock;
+    }),
+    vscode.commands.registerCommand("pspf.core.recoverWriterLock", async () => {
+      const lock = await getService().getWriterLock();
+      if (lock.writable) {
+        await vscode.window.showInformationMessage("PSPF writer lock is healthy; no recovery is required.");
+        return lock;
+      }
+      if (!lock.compromised) {
+        await vscode.window.showWarningMessage(
+          "PSPF writer lock is held by another process. Close the other workspace window before retrying."
+        );
+        return lock;
+      }
+      const action = await vscode.window.showWarningMessage(
+        "Recover the compromised PSPF writer lock? Close every other VS Code window for this workspace and pause any file-sync or backup tool touching .pspf/core/locks before continuing.",
+        { modal: true },
+        "Recover writer lock"
+      );
+      if (action !== "Recover writer lock") {
+        return lock;
+      }
+      const recovered = await getService().recoverWriterLock();
+      await vscode.window.showInformationMessage(
+        recovered.writable ? "PSPF writer lock recovered." : `PSPF writer lock remains unavailable: ${recovered.detail}`
+      );
+      return recovered;
     }),
     vscode.commands.registerCommand("pspf.core.openGitSettings", async () => {
       await vscode.commands.executeCommand("workbench.action.openSettings", "pspf.core.git");

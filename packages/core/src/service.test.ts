@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, stat, utimes, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import initSqlJs from "sql.js";
@@ -374,6 +374,54 @@ test("writer lock removes a dead legacy lock before acquiring current ownership"
   assert.equal((await service.getWriterLock()).writable, true);
 });
 
+test("writer lock reports external timestamp interference and recovers explicitly", async () => {
+  const workspaceRoot = await freshWorkspace("writer-lock-environment-recovery");
+  const service = createCoreService(workspaceRoot);
+  const paths = await service.initialiseWorkspace();
+  const lockPath = join(paths.locks, "writer-v2.lock");
+  const externalTimestamp = new Date(Date.now() - 60_000);
+  await utimes(lockPath, externalTimestamp, externalTimestamp);
+
+  const compromised = await waitForCompromisedWriterLock(service);
+  assert.equal(compromised.writable, false);
+  assert.equal(compromised.compromised, true);
+  assert.equal(compromised.lockPath, lockPath);
+  assert.match(compromised.detail, /changed outside this process/i);
+  assert.match(compromised.detail, /synced|network-mounted|security-scanned/i);
+
+  const requirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Recovered after environment interference",
+      domainId: PSPF_DOMAINS[0]!.id,
+      assessmentStatus: "in-progress"
+    },
+    "workshop"
+  );
+  await assert.rejects(
+    () => service.upsertEntity(requirement),
+    (error: unknown) => {
+      if (typeof error !== "object" || error === null || !("recommendedAction" in error)) {
+        return false;
+      }
+      assert.match(
+        String((error as { readonly recommendedAction?: unknown }).recommendedAction),
+        /Recover Writer Lock/i
+      );
+      return true;
+    }
+  );
+
+  const recovered = await service.recoverWriterLock();
+  assert.equal(recovered.writable, true, recovered.detail);
+  await service.upsertEntity(requirement);
+  assert.equal(
+    (await service.listEntities("requirement")).some((entity) => entity.id === requirement.id),
+    true
+  );
+});
+
 test("checkpoint snapshots persist allowlisted posture metrics", async () => {
   const workspaceRoot = await freshWorkspace("snapshot-metrics");
   const service = createCoreService(workspaceRoot);
@@ -662,6 +710,20 @@ async function freshWorkspace(name: string): Promise<string> {
   await rm(workspaceRoot, { recursive: true, force: true });
   await mkdir(workspaceRoot, { recursive: true });
   return workspaceRoot;
+}
+
+async function waitForCompromisedWriterLock(
+  service: ReturnType<typeof createCoreService>
+): Promise<Awaited<ReturnType<ReturnType<typeof createCoreService>["getWriterLock"]>>> {
+  const deadline = Date.now() + 6_000;
+  while (Date.now() < deadline) {
+    const lock = await service.getWriterLock();
+    if (lock.compromised) {
+      return lock;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  assert.fail("Writer lock did not report timestamp interference within the expected heartbeat window.");
 }
 
 async function writeBundle(
