@@ -6,6 +6,11 @@ export type WorkshopEntityTitleSource = {
   readonly controlId?: string;
 };
 
+export type RequirementBrowserTitleSource = {
+  readonly id: string;
+  readonly title?: unknown;
+};
+
 const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export function formatWorkshopLabel(value: unknown): string {
@@ -15,10 +20,28 @@ export function formatWorkshopLabel(value: unknown): string {
     .replace(/^./, (letter) => letter.toUpperCase());
 }
 
+export function requirementDisplayTitle(value: unknown): string {
+  const title = String(value ?? "").trim();
+  return title || "Untitled Requirement";
+}
+
+export function requirementBrowserTitlePreview(value: unknown): string {
+  const title = requirementDisplayTitle(value);
+  const naturalTitle = title.replace(/^\s*PSPF\s+\d+[A-Za-z]?\s*-\s*/i, "").trim();
+  return naturalTitle || title;
+}
+
+export function requirementNumberLabel(requirement: RequirementBrowserTitleSource): string {
+  const match = requirementDisplayTitle(requirement.title).match(
+    /^(?:requirement\s*)?([0-9]+[A-Za-z]?(?:\.[0-9]+[A-Za-z]?)*)\b/i
+  );
+  return match ? `Requirement ${match[1]}` : requirement.id;
+}
+
 export function shortWorkshopPanelTitle(entity: WorkshopEntityTitleSource): string {
   switch (entity.entityType) {
     case "requirement":
-      return `Requirement ${extractRequirementNumber(entity.title) ?? compactEntityId(entity.id)}`;
+      return requirementNumberLabel(entity);
     case "evidence":
       return `Evidence ${compactEntityId(entity.id)}`;
     case "action":
@@ -76,11 +99,6 @@ function resolveRelativeDateInput(value: string, referenceDate: Date): Date | un
     return undefined;
   }
   return validLocalDate(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate(), 0, 0);
-}
-
-function extractRequirementNumber(title: string | undefined): string | undefined {
-  const match = title?.trim().match(/^(?:requirement\s*)?([0-9]+[A-Za-z]?(?:\.[0-9]+[A-Za-z]?)*)\b/i);
-  return match?.[1];
 }
 
 function compactEntityId(id: string): string {

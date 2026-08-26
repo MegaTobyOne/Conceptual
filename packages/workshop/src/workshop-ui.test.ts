@@ -5,6 +5,9 @@ import {
   formatShortAuDateTime,
   formatWorkshopLabel,
   normaliseShortAuDateTime,
+  requirementBrowserTitlePreview,
+  requirementDisplayTitle,
+  requirementNumberLabel,
   shortWorkshopPanelTitle
 } from "./workshop-ui.js";
 import { escapeHtml, metricCardHtml } from "./webview/shell.js";
@@ -38,6 +41,24 @@ test("requirement editor tabs use the requirement number instead of the full tit
   });
 
   assert.equal(title, "Requirement 17");
+});
+
+test("Requirement browser title helpers tolerate malformed legacy rows", () => {
+  const requirementId = "REQ-00000000-0000-4000-8000-000000000899";
+  for (const title of [undefined, null, "", "   ", false, {}, []]) {
+    const requirement = { id: requirementId, title };
+    assert.doesNotThrow(() => requirementDisplayTitle(title));
+    assert.doesNotThrow(() => requirementBrowserTitlePreview(title));
+    assert.equal(requirementNumberLabel(requirement), requirementId);
+  }
+
+  assert.equal(requirementDisplayTitle(undefined), "Untitled Requirement");
+  assert.equal(requirementDisplayTitle(17), "17");
+  assert.equal(requirementDisplayTitle(`<img onerror="alert(1)">`), `<img onerror="alert(1)">`);
+  assert.equal(
+    requirementBrowserTitlePreview("PSPF 17 - Validate governance reporting workflow"),
+    "Validate governance reporting workflow"
+  );
 });
 
 test("other edit tabs use compact type and id labels", () => {
@@ -115,9 +136,8 @@ test("requirement browser list shows a compact natural-language title preview", 
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
   const shellSource = await readFile(new URL("../src/webview/shell.ts", import.meta.url), "utf8");
 
-  assert.match(source, /function requirementBrowserTitlePreview/);
+  assert.match(source, /requirementDisplayTitle\(requirement\.title\)/);
   assert.match(source, /class="requirement-browser__title-preview"/);
-  assert.match(source, /replace\(\/\^\\s\*PSPF/);
   assert.match(shellSource, /\.requirement-browser__title-preview/);
   assert.match(shellSource, /-webkit-line-clamp: 2/);
 });

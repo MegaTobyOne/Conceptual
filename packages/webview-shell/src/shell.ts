@@ -23,6 +23,7 @@
  */
 
 import { tokensCss, type ShellSurface } from "./tokens.js";
+import { escapeHtmlAttribute as escapeAttribute, escapeHtmlText as escapeText } from "./encoding.js";
 
 export type CspMode = "strict" | "nonce-styles" | "relaxed" | "none";
 export type PillTone = "primary" | "accent" | "warn" | "danger" | "ok" | "neutral";
@@ -89,14 +90,6 @@ export function cspNonce(): string {
  * (NOT attribute values). Sufficient for the few static labels the
  * shell injects itself; callers are expected to encode their own body.
  */
-function escapeText(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function escapeAttribute(value: string): string {
-  return escapeText(value).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
 function buildCspMeta(mode: CspMode, nonce: string | undefined): string {
   switch (mode) {
     case "none":

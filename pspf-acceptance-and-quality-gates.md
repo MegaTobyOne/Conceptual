@@ -204,7 +204,7 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 
 ### v1.61 import, writer-lock, and rendering hardening gates (per ADR 0095)
 
-1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.61.0`; `VERSION_AXES` remain `1.15.0`; no entity, link, API, bundle shape, publication policy, or Explorer schema change is introduced.
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.61.1`; `VERSION_AXES` remain `1.15.0`; no entity, link, API, bundle shape, publication policy, or Explorer schema change is introduced.
 2. **Workshop rendering gate**: behavioural tests pass hostile and missing persisted values through the actual null-safe HTML escaping, metric-card rendering, and label normalisation helpers.
 3. **Full-replace gate**: Core requires a complete current-version bundle, performs strict schema/format/manifest/referential validation, atomically replaces the entity set and success marker, preserves the prior set after injected SQL failure, and can undo a successful replacement from a durable checkpoint.
 4. **Writer ownership gate**: a process-level test proves exactly one writer, blocks mutation and initialisation in contenders, rejects takeover of a live owner with an aged heartbeat, and safely reclaims an abandoned stale lock.

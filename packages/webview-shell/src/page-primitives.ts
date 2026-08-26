@@ -1,12 +1,5 @@
 import { PRESENTATION_LENS_LABELS, type PresentationLens } from "./presentation-lens.js";
-
-function escapeText(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function escapeAttr(value: string): string {
-  return escapeText(value).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
+import { escapeHtmlAttribute as escapeAttr, escapeHtmlText as escapeText } from "./encoding.js";
 
 export interface PageHeaderOptions {
   readonly eyebrow?: string;

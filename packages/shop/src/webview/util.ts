@@ -7,21 +7,14 @@
  * VS Code APIs or shop store state.
  */
 
-export function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+export { escapeHtml } from "@pspf/webview-shell";
 
 export function commandUri(command: string, args: readonly unknown[]): string {
   return `command:${command}?${encodeURIComponent(JSON.stringify(args))}`;
 }
 
-export function formatToken(value: string): string {
-  return value
+export function formatToken(value: unknown): string {
+  return String(value ?? "")
     .split("-")
     .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
     .join(" ");

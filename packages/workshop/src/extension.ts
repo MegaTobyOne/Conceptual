@@ -150,6 +150,9 @@ import {
   formatShortAuDateTime,
   formatWorkshopLabel as label,
   normaliseShortAuDateTime,
+  requirementBrowserTitlePreview,
+  requirementDisplayTitle,
+  requirementNumberLabel,
   shortWorkshopPanelTitle
 } from "./workshop-ui.js";
 import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire } from "./questionnaire/flow.js";
@@ -11714,7 +11717,7 @@ function requirementBrowserNavItem(
   isDirectionTargeted: boolean,
   filterText = ""
 ): string {
-  const title = requirement.title;
+  const title = requirementDisplayTitle(requirement.title);
   const titlePreview = requirementBrowserTitlePreview(title);
   const domain = domainName(requirement.domainId);
   const status = label(requirement.assessmentStatus);
@@ -11726,11 +11729,6 @@ function requirementBrowserNavItem(
     <span class="requirement-browser__title-preview">${escapeHtml(titlePreview)}</span>
     <span class="requirement-browser__meta">${escapeHtml(domain)} · ${escapeHtml(status)}</span>
   </button>`;
-}
-
-function requirementBrowserTitlePreview(title: string): string {
-  const naturalTitle = title.replace(/^\s*PSPF\s+\d+[A-Za-z]?\s*-\s*/i, "").trim();
-  return naturalTitle || title;
 }
 
 function requirementStatusCounts(requirements: readonly RequirementEntity[]): Map<AssessmentStatus, number> {
@@ -11793,11 +11791,6 @@ function requirementBrowserScript(): string {
       applyRequirementFilters();
     })();
   </script>`;
-}
-
-function requirementNumberLabel(requirement: RequirementEntity): string {
-  const match = requirement.title.trim().match(/^(?:requirement\s*)?([0-9]+[A-Za-z]?(?:\.[0-9]+[A-Za-z]?)*)\b/i);
-  return match ? `Requirement ${match[1]}` : requirement.id;
 }
 
 type RecordWorkbenchEntity = EvidenceEntity | ActionEntity | RiskEntity;
@@ -14482,7 +14475,7 @@ function compareRequirementsForPicker(left: RequirementEntity, right: Requiremen
   if (leftDomain !== rightDomain) {
     return leftDomain - rightDomain;
   }
-  return left.title.localeCompare(right.title);
+  return requirementDisplayTitle(left.title).localeCompare(requirementDisplayTitle(right.title));
 }
 
 function compareDirectionsForPicker(left: DirectionEntity, right: DirectionEntity): number {

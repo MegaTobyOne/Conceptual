@@ -1,3 +1,4 @@
+import { escapeHtml } from "@pspf/webview-shell";
 import type { PubStore, RoleRecord, TeamRecord } from "./store.js";
 
 export interface OrgRoleView {
@@ -51,7 +52,7 @@ function buildTeamView(store: PubStore, team: TeamRecord, seen: ReadonlySet<stri
     .filter((role) => role.teamId === team.id && role.status !== "archived")
     .sort(compareTitles)
     .map((role) => roleView(store, role));
-  return { id: team.id, title: team.title, roles, children };
+  return { id: team.id, title: displayTitle(team.title, "Untitled team"), roles, children };
 }
 
 function roleView(store: PubStore, role: RoleRecord): OrgRoleView {
@@ -63,7 +64,12 @@ function roleView(store: PubStore, role: RoleRecord): OrgRoleView {
       : assignments.length > 0
         ? "filled"
         : "vacant";
-  return { id: role.id, title: role.title, status, reportsToRoleId: role.reportsToRoleId };
+  return {
+    id: role.id,
+    title: displayTitle(role.title, "Untitled role"),
+    status,
+    reportsToRoleId: role.reportsToRoleId
+  };
 }
 
 function appendTeam(lines: string[], team: OrgTeamView, depth: number): void {
@@ -79,17 +85,10 @@ function sortTeams(teams: readonly TeamRecord[]): readonly TeamRecord[] {
 }
 
 function compareTitles(left: { title: string }, right: { title: string }): number {
-  return left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" });
+  return displayTitle(left.title, "").localeCompare(displayTitle(right.title, ""), "en-AU", { sensitivity: "base" });
 }
 
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"]/g, (character) => {
-    const replacements: Readonly<Record<string, string>> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;"
-    };
-    return replacements[character] ?? character;
-  });
+function displayTitle(value: unknown, fallback: string): string {
+  const title = typeof value === "string" ? value.trim() : "";
+  return title || fallback;
 }

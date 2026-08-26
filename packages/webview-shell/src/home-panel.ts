@@ -14,6 +14,7 @@
 
 import { tokensCss } from "./tokens.js";
 import { commandButtonAcknowledgementScript } from "./interactions.js";
+import { escapeHtmlAttribute as escapeAttr, escapeHtmlText as escapeText } from "./encoding.js";
 
 export type ProductIdentity = "core" | "assurance" | "workshop" | "shop" | "pub" | "explorer";
 
@@ -46,14 +47,6 @@ export interface HomePanelOptions {
    * tooling" sentence. Pass an empty string to suppress.
    */
   readonly footer?: string;
-}
-
-function escapeText(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function escapeAttr(value: string): string {
-  return escapeText(value).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 const DEFAULT_FOOTER =

@@ -20,6 +20,8 @@ Release-gate validation then exposed two related contract gaps: Explorer local-a
 7. `check:release-hardening` permanently exercises Workshop hostile/missing-value rendering, strict/atomic/recoverable full-replace, complete Explorer export and mapping endpoints, multi-process writer contention and stale-owner recovery, cold backup/restore, and Explorer-to-Workshop import.
 8. The product and package version advances to `1.61.0`. No entity, link, API, bundle shape, or publication policy changes; `schemaVersion`, `bundleVersion`, and `apiVersion` remain `1.15.0` and no new schema directory is created.
 
+The `1.61.1` hotfix extends decision 1 across the shared webview shell and all consuming extension surfaces, rejects newly malformed Requirement titles at the Core write boundary, retains integrity reporting for historical malformed Requirement rows, and adds those behaviours to `check:release-hardening`. The compatibility axes remain `1.15.0`.
+
 ## Consequences
 
 - Persisted hostile text no longer executes in the covered Workshop rendering path, and legacy missing fields no longer cause `.replace` or `.replaceAll` command failures.
