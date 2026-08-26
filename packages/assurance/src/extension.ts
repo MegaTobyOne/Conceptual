@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import * as vscode from "vscode";
 import type { ActionEntity, LinkEntity, SourceProduct, TagEntity, V01Entity } from "@pspf/contracts";
 import { isValidTagLabel, normaliseTagLabel, PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
-import { homeActionButton, homeMetricCard, homePanelShellHtml, homeSection } from "@pspf/webview-shell";
+import { escapeHtml, homeActionButton, homeMetricCard, homePanelShellHtml, homeSection } from "@pspf/webview-shell";
 import {
   buildPentestWorkbenchModel,
   pentestSlaDeadline,
@@ -1081,21 +1081,12 @@ function formatDisplayDate(date: Date): string {
   return new Intl.DateTimeFormat("en-AU", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
-function label(value: string): string {
-  return value
+function label(value: unknown): string {
+  return String(value ?? "")
     .split(/[-_]/g)
     .filter(Boolean)
     .map((part) => part.charAt(0).toLocaleUpperCase("en-AU") + part.slice(1))
     .join(" ");
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }
 
 function errorMessage(error: unknown): string {

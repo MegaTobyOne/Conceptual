@@ -440,6 +440,68 @@ test("integrity scan reports links whose declared endpoint type does not match t
   );
 });
 
+test("integrity scan reports a Requirement with a missing legacy title", async () => {
+  const workspaceRoot = await freshWorkspace("integrity-missing-requirement-title");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+  const requirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Title removed by legacy persistence",
+      domainId: PSPF_DOMAINS[0]!.id,
+      assessmentStatus: "in-progress"
+    },
+    "workshop"
+  );
+  await service.upsertEntity(requirement);
+  const paths = service.getWorkspacePaths();
+  const SQL = await initSqlJs({ locateFile: () => join(process.cwd(), "dist", "sql-wasm.wasm") });
+  const database = new SQL.Database(new Uint8Array(await readFile(paths.db)));
+  const malformedRequirement = JSON.stringify({ ...requirement, title: undefined });
+  database.exec(
+    `UPDATE entities SET payload = '${malformedRequirement.replace(/'/g, "''")}' WHERE id = '${requirement.id.replace(/'/g, "''")}';`
+  );
+  await writeFile(paths.db, Buffer.from(database.export()));
+  database.close();
+
+  const report = await service.runIntegrityScan();
+
+  assert.equal(report.ok, false);
+  assert.match(report.findings.map((finding) => finding.message).join("\n"), /missing or invalid title/i);
+});
+
+test("Core rejects malformed Requirement titles on single and batch writes", async () => {
+  const workspaceRoot = await freshWorkspace("reject-invalid-requirement-titles");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+  const validRequirement = withEnvelope(
+    "requirement",
+    {
+      entityType: "requirement",
+      title: "Valid Requirement",
+      domainId: PSPF_DOMAINS[0]!.id,
+      assessmentStatus: "in-progress"
+    },
+    "workshop"
+  );
+  const malformedRequirement = {
+    ...validRequirement,
+    id: `${validRequirement.id}-invalid`,
+    title: undefined
+  } as unknown as RequirementEntity;
+
+  await assert.rejects(() => service.upsertEntity(malformedRequirement), /title must be a non-empty string/i);
+  await assert.rejects(
+    () => service.upsertEntities([validRequirement, malformedRequirement]),
+    /title must be a non-empty string/i
+  );
+  assert.equal(
+    (await service.listEntities("requirement")).some((entity) => entity.id === validRequirement.id),
+    false
+  );
+});
+
 test("tag validation permits Assurance finding actions to be tagged", async () => {
   const workspaceRoot = await freshWorkspace("assurance-action-tag-link");
   const service = createCoreService(workspaceRoot);

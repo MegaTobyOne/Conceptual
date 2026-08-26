@@ -9,6 +9,9 @@ import {
   decodePresentationLens,
   disclosureHtml,
   encodePresentationLens,
+  escapeHtml,
+  escapeHtmlAttribute,
+  escapeHtmlText,
   homePanelShellHtml,
   lensSelectorHtml,
   metricStripHtml,
@@ -21,6 +24,40 @@ import {
   tokensCss,
   versionPill
 } from "./index.js";
+
+test("shared HTML encoding tolerates malformed persisted values", () => {
+  const cases: readonly [unknown, string][] = [
+    [undefined, ""],
+    [null, ""],
+    ["", ""],
+    [42, "42"],
+    [false, "false"],
+    [{ legacy: true }, "[object Object]"]
+  ];
+
+  for (const [value, expected] of cases) {
+    assert.equal(escapeHtmlText(value), expected);
+    assert.equal(escapeHtmlAttribute(value), expected);
+    assert.equal(escapeHtml(value), expected);
+  }
+
+  const hostile = `<img src="x" onerror='alert(1)'>&`;
+  assert.equal(escapeHtmlText(hostile), `&lt;img src="x" onerror='alert(1)'&gt;&amp;`);
+  assert.equal(escapeHtml(hostile), "&lt;img src=&quot;x&quot; onerror=&#39;alert(1)&#39;&gt;&amp;");
+});
+
+test("shared webview renderers tolerate malformed persisted labels", () => {
+  const header = pageHeaderHtml({ title: undefined } as unknown as Parameters<typeof pageHeaderHtml>[0]);
+  const relationships = relationshipManagerHtml({
+    title: null,
+    actions: [{ label: undefined, fromLabel: 7, phrase: false, toLabel: { legacy: true } }]
+  } as unknown as Parameters<typeof relationshipManagerHtml>[0]);
+
+  assert.match(header, /<h1><\/h1>/);
+  assert.match(relationships, />7</);
+  assert.match(relationships, />false</);
+  assert.match(relationships, /\[object Object\]/);
+});
 
 test("tokensCss includes shared root tokens for every surface", () => {
   for (const surface of ["extension", "explorer", "marketing"] as const) {

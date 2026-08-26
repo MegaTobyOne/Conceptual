@@ -1,5 +1,6 @@
 export { tokensCss } from "./tokens.js";
 export type { ShellSurface } from "./tokens.js";
+export { escapeHtml, escapeHtmlAttribute, escapeHtmlText } from "./encoding.js";
 export { bannerHtml, cspNonce, pill, shellHtml, versionPill } from "./shell.js";
 export type { BannerTone, CspMode, PillTone, ShellHtmlOptions } from "./shell.js";
 export { commandButtonAcknowledgementScript } from "./interactions.js";

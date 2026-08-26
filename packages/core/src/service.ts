@@ -568,6 +568,16 @@ async function runIntegrityScan(workspaceRoot: string): Promise<IntegrityScanRep
           message: `Entity ${entity.id} entity_type column (${row.entity_type}) does not match payload entityType (${entity.entityType}).`
         });
       }
+      if (
+        entity.entityType === "requirement" &&
+        (!("title" in entity) || typeof entity.title !== "string" || entity.title.trim() === "")
+      ) {
+        findings.push({
+          section: "payload",
+          severity: "error",
+          message: `Requirement ${entity.id} has a missing or invalid title.`
+        });
+      }
       entitiesById.set(entity.id, entity);
     } catch (error) {
       unparseable += 1;
@@ -1638,6 +1648,7 @@ function canonicalEntityJson(entity: V01Entity): string {
 async function upsertEntity(workspaceRoot: string, entity: V01Entity): Promise<V01Entity> {
   const paths = await ensureInitialised(workspaceRoot, false);
   await assertWritable(paths);
+  validateEntityWriteRules([entity]);
   validateTagRules([entity], await readStoredEntities(paths));
   validateSavedViewRules([entity], await readStoredEntities(paths));
   validateChangeRecordRules([entity], await readStoredEntities(paths));
@@ -1651,11 +1662,20 @@ async function upsertEntities(workspaceRoot: string, entities: readonly V01Entit
   if (entities.length === 0) {
     return entities;
   }
+  validateEntityWriteRules(entities);
   validateTagRules(entities, await readStoredEntities(paths));
   validateSavedViewRules(entities, await readStoredEntities(paths));
   validateChangeRecordRules(entities, await readStoredEntities(paths));
   await runSql(paths.db, ["BEGIN IMMEDIATE;", ...entities.map(upsertEntitySql), "COMMIT;"].join("\n"));
   return entities;
+}
+
+function validateEntityWriteRules(entities: readonly V01Entity[]): void {
+  for (const entity of entities) {
+    if (entity.entityType === "requirement" && (typeof entity.title !== "string" || entity.title.trim().length === 0)) {
+      throw new Error(`Requirement ${entity.id} title must be a non-empty string.`);
+    }
+  }
 }
 
 function upsertEntitySql(entity: V01Entity): string {

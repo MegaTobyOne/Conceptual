@@ -40,3 +40,24 @@ test("HTML outline escapes structure and excludes restricted data", () => {
   assert.match(html, /Cyber &lt;script&gt;alert\(1\)&lt;\/script&gt;/);
   assert.doesNotMatch(html, /<script>alert\(1\)<\/script>|DISTINCTIVE SECRET NAME|SECRET NOTE|\bP1\b|\bA1\b/);
 });
+
+test("organisation outline tolerates malformed legacy titles", () => {
+  const malformedStore = {
+    ...store,
+    teams: [
+      { ...store.teams[0]!, title: undefined },
+      { ...store.teams[1]!, title: `<script>alert("team")</script>` }
+    ],
+    roles: [
+      { ...store.roles[0]!, title: null },
+      { ...store.roles[1]!, title: 17 }
+    ]
+  } as unknown as typeof store;
+
+  assert.doesNotThrow(() => buildOrganisationTree(malformedStore));
+  const html = renderOrganisationOutlineHtml(malformedStore, new Date("2026-07-18T00:00:00Z"));
+  assert.match(html, /Untitled team/);
+  assert.match(html, /Untitled role/);
+  assert.match(html, /&lt;script&gt;alert\(&quot;team&quot;\)&lt;\/script&gt;/);
+  assert.doesNotMatch(html, /<script>/);
+});

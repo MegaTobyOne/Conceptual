@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { writeFile } from "node:fs/promises";
 import * as vscode from "vscode";
-import { tokensCss } from "@pspf/webview-shell";
+import { escapeHtml, tokensCss } from "@pspf/webview-shell";
 import type {
   DevelopmentActivityRecord,
   DevelopmentPlanRecord,
@@ -815,12 +815,8 @@ function milestoneTemplate(): readonly RotationMilestoneRecord[] {
     outcome: ""
   }));
 }
-function label(value: string): string {
-  return value.replaceAll("-", " ").replace(/\b\w/g, (character) => character.toUpperCase());
-}
-function escapeHtml(value: string): string {
-  return value.replace(
-    /[&<>"]/g,
-    (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character] ?? character
-  );
+function label(value: unknown): string {
+  return String(value ?? "")
+    .replaceAll("-", " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }

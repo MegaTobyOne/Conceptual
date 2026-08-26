@@ -72,8 +72,8 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. If DNS resolves but LiteSpeed returns `404`, check that the VentraIP/cPanel subdomain document root still matches the `test-web` `VENTRAIP_DOCROOT`; subdomain recreation can reset that mapping outside Git. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.61.0`, `Schema 1.15.0`, and `API 1.15.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.61.0` and its tooltip includes `Schema 1.15.0`, `Bundle 1.15.0`, and `API 1.15.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.61.1`, `Schema 1.15.0`, and `API 1.15.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.61.1` and its tooltip includes `Schema 1.15.0`, `Bundle 1.15.0`, and `API 1.15.0`.
 4. From `Workshop Home`, click `Load sample`.
 5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, N/A-aware completion/evidence metrics, `Action Impact — Top 5`, latest activity, portal groups, actionable decision-loop cards, and no obvious cramped columns or wrapping regressions. Open `Plan of Action` and confirm the graphical plan shows Action date spans, status filters, a visible Today marker, and any Pub team dates marked for planning. Open `Essential Eight` and confirm the strategy tracker and uplift plan are populated from linked Requirements, Evidence, Risks, and Actions. Then open `Strategy Map` and confirm the Cyber Strategy Map shows three strategic choices, outcome summaries, grouped posture measures, labelled trend pills without arrow glyphs, confidence labels, and linked Requirements, Risks, Actions, and Directions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.
@@ -161,7 +161,7 @@ npx pnpm@10.10.0 run release:readiness
 
 Expected output:
 
-- A readiness report at `.tmp/release-readiness/v1.61.0-readiness-report.md`.
+- A readiness report at `.tmp/release-readiness/v1.61.1-readiness-report.md`.
 - A v1.50 extension visual report at `.tmp/accessibility/v1.50-extension-visual-report.json`.
 - An Explorer local-authoring smoke report at `.tmp/explorer-local-authoring/explorer-local-authoring-report.json`.
 - An Explorer-to-Workshop import smoke report at `.tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json`.

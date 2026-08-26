@@ -1,3 +1,5 @@
+import { escapeHtmlAttribute as escapeAttribute, escapeHtmlText as escapeText } from "./encoding.js";
+
 export interface RelationshipManagerAction {
   readonly label: string;
   readonly fromLabel: string;
@@ -15,14 +17,6 @@ export interface RelationshipManagerOptions {
   readonly description?: string;
   readonly actions: readonly RelationshipManagerAction[];
   readonly emptyText?: string;
-}
-
-function escapeText(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function escapeAttribute(value: string): string {
-  return escapeText(value).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 function dataAttributesHtml(attributes: Readonly<Record<string, string>> | undefined): string {

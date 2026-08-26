@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { PSPF_SLICE_VERSION, VERSION_AXES } from "@pspf/contracts";
 import {
   commandButtonAcknowledgementScript,
+  escapeHtml,
   homeActionButton,
   homePanelShellHtml,
   homePostureHeader,
@@ -4020,8 +4021,8 @@ function controlSummary(team: TeamRecord | undefined): string {
   return refs.length === 0 ? "No controls recorded" : refs.join(", ");
 }
 
-function label(value: string): string {
-  return value
+function label(value: unknown): string {
+  return String(value ?? "")
     .split("-")
     .filter(Boolean)
     .map((part) => part.charAt(0).toLocaleUpperCase("en-AU") + part.slice(1))
@@ -4170,21 +4171,4 @@ function formatDate(value: string): string {
 
 function isFileNotFound(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
-}
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"]/g, (character) => {
-    switch (character) {
-      case "&":
-        return "&amp;";
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
-      case '"':
-        return "&quot;";
-      default:
-        return character;
-    }
-  });
 }
