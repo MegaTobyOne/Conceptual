@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-08-26 (repo version 1.61.2)
+Last updated: 2026-08-27 (repo version 1.61.3)
 
 ## Purpose
 

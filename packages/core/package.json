@@ -12,7 +12,7 @@
     "GRC",
     "security"
   ],
-  "version": "1.61.2",
+  "version": "1.61.3",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -129,7 +129,7 @@
     ]
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && pnpm exec esbuild src/extension.ts --bundle --platform=node --format=esm --target=node22 --external:vscode --banner:js='import { createRequire as __pspfCreateRequire } from \"node:module\"; import { fileURLToPath as __pspfFileURLToPath } from \"node:url\"; import { dirname as __pspfDirname } from \"node:path\"; const require = __pspfCreateRequire(import.meta.url); const __filename = __pspfFileURLToPath(import.meta.url); const __dirname = __pspfDirname(__filename);' --outfile=dist/extension.js && cp ../../node_modules/sql.js/dist/sql-wasm.wasm dist/sql-wasm.wasm && rm -rf dist/explorer-bundle && cp -R ../../schemas/explorer-bundle dist/explorer-bundle",
+    "build": "tsc -p tsconfig.json && node ../../scripts/build-core-extension.mjs",
     "test": "node --test dist/**/*.test.js"
   },
   "dependencies": {
@@ -139,10 +139,6 @@
     "@pspf/webview-shell": "workspace:*",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "proper-lockfile": "^4.1.2",
     "sql.js": "^1.14.1"
-  },
-  "devDependencies": {
-    "@types/proper-lockfile": "^4.1.4"
   }
 }

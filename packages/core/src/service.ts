@@ -63,11 +63,8 @@ import {
   PSPF_REFERENCE_DATA_REPORT
 } from "@pspf/reference-data";
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
-import lockfile from "proper-lockfile";
 
 const SQLITE_BUSY_TIMEOUT_MS = 5000;
-const WRITER_LOCK_STALE_MS = 10_000;
-const WRITER_LOCK_UPDATE_MS = 2_000;
 const IMPORT_LIMITS = {
   maxBundleBytes: 50 * 1024 * 1024,
   maxItemsPerCollection: 200_000,
@@ -90,9 +87,7 @@ interface ImportSchemaValidators {
 
 interface HeldWriterLock {
   readonly ownershipToken: string;
-  readonly release: () => Promise<void>;
   readonly state: WriterLockState;
-  compromised?: Error;
 }
 
 export interface WorkspacePaths {
@@ -2480,7 +2475,7 @@ async function acquireWriterLock(paths: WorkspacePaths): Promise<WriterLockState
   const lockPath = writerLockPath(paths);
   const held = heldWriterLocks.get(lockPath);
   if (held) {
-    return held.compromised ? compromisedWriterLockState(paths, held) : held.state;
+    return held.state;
   }
 
   const pending = writerLockAcquisitions.get(lockPath);
@@ -2501,7 +2496,7 @@ async function readWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
   const lockPath = writerLockPath(paths);
   const held = heldWriterLocks.get(lockPath);
   if (held) {
-    return held.compromised ? compromisedWriterLockState(paths, held) : held.state;
+    return held.state;
   }
   if (!existsSync(lockPath)) {
     return { currentPid: process.pid, policy: "single-writer", writable: true, detail: "No writer lock exists yet." };
@@ -2526,55 +2521,9 @@ async function readWriterLock(paths: WorkspacePaths): Promise<WriterLockState> {
   };
 }
 
-async function compromisedWriterLockState(paths: WorkspacePaths, held: HeldWriterLock): Promise<WriterLockState> {
-  const lockPath = writerLockPath(paths);
-  const lockModifiedAt = await stat(lockPath)
-    .then((value) => value.mtime.toISOString())
-    .catch(() => undefined);
-  const code = errorCode(held.compromised) ?? "ECOMPROMISED";
-  return {
-    ...held.state,
-    writable: false,
-    compromised: true,
-    lockPath,
-    lockModifiedAt,
-    detail: `Writer lock heartbeat was compromised (${code}: ${held.compromised?.message ?? "unknown error"}). The lock directory was changed outside this process. This can be environment-specific on synced, network-mounted, externally backed-up, or security-scanned workspaces.`
-  };
-}
-
 async function recoverWriterLock(workspaceRoot: string): Promise<WriterLockState> {
   const paths = await ensureInitialised(workspaceRoot, false);
-  const lockPath = writerLockPath(paths);
-  const held = heldWriterLocks.get(lockPath);
-  if (!held?.compromised) {
-    return acquireWriterLock(paths);
-  }
-
-  const metadata = await readWriterLockMetadata(paths);
-  if (metadata?.holderPid !== process.pid || metadata.ownershipToken !== held.ownershipToken) {
-    return compromisedWriterLockState(paths, held);
-  }
-
-  const quarantinePath = `${lockPath}.compromised-${process.pid}-${Date.now()}`;
-  try {
-    await rename(lockPath, quarantinePath);
-  } catch (error) {
-    if (errorCode(error) !== "ENOENT") {
-      throw error;
-    }
-  }
-
-  heldWriterLocks.delete(lockPath);
-  const currentMetadata = await readWriterLockMetadata(paths);
-  if (currentMetadata?.ownershipToken === held.ownershipToken) {
-    await rm(writerLockMetadataPath(paths), { force: true });
-  }
-
-  try {
-    return await acquireWriterLock(paths);
-  } finally {
-    await rm(quarantinePath, { recursive: true, force: true });
-  }
+  return acquireWriterLock(paths);
 }
 
 async function acquireWriterLockOwnership(paths: WorkspacePaths, lockPath: string): Promise<WriterLockState> {
@@ -2582,30 +2531,29 @@ async function acquireWriterLockOwnership(paths: WorkspacePaths, lockPath: strin
   if (legacy) {
     return legacy;
   }
+  const metadata = existsSync(lockPath) ? await readWriterLockMetadata(paths) : undefined;
   if (existsSync(lockPath)) {
-    const metadata = await readWriterLockMetadata(paths);
-    if (!metadata) {
+    if (!metadata || typeof metadata.holderPid !== "number" || isProcessAlive(metadata.holderPid)) {
       return readWriterLock(paths);
     }
-    if (typeof metadata.holderPid === "number" && isProcessAlive(metadata.holderPid)) {
-      return readWriterLock(paths);
+    const quarantinePath = `${lockPath}.abandoned-${metadata.holderPid}-${Date.now()}-${randomUUID()}`;
+    try {
+      await rename(lockPath, quarantinePath);
+      if ((await readWriterLockMetadata(paths))?.ownershipToken === metadata.ownershipToken) {
+        await rm(writerLockMetadataPath(paths), { force: true });
+      }
+      await rm(quarantinePath, { recursive: true, force: true });
+    } catch (error) {
+      if (errorCode(error) !== "ENOENT") {
+        throw error;
+      }
     }
   }
 
-  let ownership: HeldWriterLock | undefined;
+  let lockDirectoryCreated = false;
   try {
-    const release = await lockfile.lock(paths.locks, {
-      lockfilePath: lockPath,
-      realpath: false,
-      retries: 0,
-      stale: WRITER_LOCK_STALE_MS,
-      update: WRITER_LOCK_UPDATE_MS,
-      onCompromised: (error) => {
-        if (ownership) {
-          ownership.compromised = error;
-        }
-      }
-    });
+    await mkdir(lockPath);
+    lockDirectoryCreated = true;
     const state: WriterLockState = {
       holderPid: process.pid,
       acquiredAt: nowIso(),
@@ -2614,17 +2562,17 @@ async function acquireWriterLockOwnership(paths: WorkspacePaths, lockPath: strin
       writable: true,
       detail: "Writer lock held by current process."
     };
-    ownership = { ownershipToken: randomUUID(), release, state };
+    const ownership: HeldWriterLock = { ownershipToken: randomUUID(), state };
     heldWriterLocks.set(lockPath, ownership);
     await writeJson(writerLockMetadataPath(paths), { ...state, ownershipToken: ownership.ownershipToken });
     return state;
   } catch (error) {
-    if (errorCode(error) === "ELOCKED") {
+    if (errorCode(error) === "EEXIST") {
       return readWriterLock(paths);
     }
-    if (ownership) {
-      heldWriterLocks.delete(lockPath);
-      await ownership.release().catch(() => undefined);
+    heldWriterLocks.delete(lockPath);
+    if (lockDirectoryCreated) {
+      await rm(lockPath, { recursive: true, force: true });
     }
     throw error;
   }
@@ -2638,25 +2586,10 @@ async function releaseWriterLock(paths: Pick<WorkspacePaths, "locks">): Promise<
   }
   heldWriterLocks.delete(lockPath);
   const metadata = await readWriterLockMetadata(paths);
-  if (ownership.compromised) {
-    if (metadata?.holderPid === process.pid && metadata.ownershipToken === ownership.ownershipToken) {
-      const quarantinePath = `${lockPath}.compromised-${process.pid}-${Date.now()}`;
-      try {
-        await rename(lockPath, quarantinePath);
-      } catch (error) {
-        if (errorCode(error) !== "ENOENT") {
-          throw error;
-        }
-      }
-      await rm(writerLockMetadataPath(paths), { force: true });
-      await rm(quarantinePath, { recursive: true, force: true });
-    }
-    return;
-  }
-  if (metadata?.ownershipToken === ownership.ownershipToken) {
+  if (metadata?.holderPid === process.pid && metadata.ownershipToken === ownership.ownershipToken) {
     await rm(writerLockMetadataPath(paths), { force: true });
+    await rm(lockPath, { recursive: true, force: true });
   }
-  await ownership.release();
 }
 
 export async function releaseAllWriterLocks(): Promise<void> {

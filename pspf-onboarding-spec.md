@@ -137,7 +137,7 @@ If a second VS Code window opens the same workspace folder while the first holds
 2. The second window opens in **read-only mode**: queries work, mutations are rejected with `PSPF_WRITER_LOCK_HELD` and a clear health-view banner naming the holding window.
 3. When the first window closes (or releases the lock), the second window's banner offers a single action **"Take over as writer"**, which re-validates Workspace Trust, re-acquires the lock, and re-enables mutations.
 
-If Core reports `Unable to update lock within the stale threshold`, the lock directory timestamp changed outside the owning process. This is commonly environment-specific: cloud-sync clients, network-mounted workspaces, backup/indexing tools, endpoint security software, or another process may touch `.pspf/core/locks/`. Close every other VS Code window for the workspace, pause the interfering tool or exclude `.pspf/core/locks/`, then run `PSPF: Recover Writer Lock`. Recovery remains unavailable for a normal lock held by another live process.
+Core writer locking uses built-in Node filesystem operations only. It does not require WSL, Bash, PowerShell, a native locking utility, or writable timestamp heartbeats. Restricted, synchronised, indexed, backed-up, and security-scanned workspaces remain writable when tooling changes lock timestamps; a lock held by another live process still makes the workspace read-only.
 
 This is the v0.1 design. Concurrent multi-writer is not in scope.
 

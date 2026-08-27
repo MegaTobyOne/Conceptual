@@ -46,7 +46,7 @@ This runbook assumes the PSPF workspace uses a structure similar to:
 
 The exact filenames can vary, but the critical restore unit is the SQLite database plus any adjacent PSPF configuration and metadata required for Core to reopen the workspace correctly. PSPF Core bundles its runtime SQLite engine for normal extension use; the external `sqlite3` CLI is required only for the command-line backup, restore, and inspection steps in this runbook.
 
-The `.pspf/core/locks/` directory and `writer-lock.json` ownership metadata are runtime-only. They are never backup content and must never be restored. Configure backup, sync, indexing, and endpoint-security tools to exclude `.pspf/core/locks/` from metadata rewrites while Core is open; changing the live lock directory timestamp compromises its heartbeat and Core correctly becomes read-only. Release the active Core writer lock before taking a cold copy; the restored workspace acquires fresh ownership before its first mutation.
+The `.pspf/core/locks/` directory and `writer-lock.json` ownership metadata are runtime-only. They are never backup content and must never be restored. Core does not invoke WSL or another external shell for writer locking, and external timestamp changes do not affect ownership. Excluding `.pspf/core/locks/` from backup and sync content is still recommended so runtime-only lock artefacts are not copied. Release the active Core writer lock before taking a cold copy; the restored workspace acquires fresh ownership before its first mutation.
 
 ## Roles and ownership
 
@@ -287,7 +287,7 @@ echo "$TS backup complete: $DB_BACKUP"
 
 ## Automated backup example
 
-The following shell script is suitable for macOS, Linux, or WSL and can be scheduled with cron or a task scheduler.
+The following optional shell script is suitable for macOS or Linux and can be scheduled with cron. It is not used by the PSPF extensions and is not a Windows or restricted-environment prerequisite.
 
 ```bash
 #!/usr/bin/env bash
