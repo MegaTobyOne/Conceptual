@@ -3,6 +3,12 @@ import { access, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const root = process.cwd();
+const rootManifest = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+assert.doesNotMatch(
+  rootManifest.scripts?.["bundle:extensions"] ?? "",
+  /(?:^|\s)(?:cp|rm|bash|wsl(?:\.exe)?)(?:\s|$)/i,
+  "Extension bundling has no POSIX-shell or WSL command dependency"
+);
 const extensionPackages = [
   {
     name: "Core",
@@ -134,7 +140,26 @@ for (const extensionPackage of extensionPackages) {
   );
   assert.equal(manifest.main, "./dist/extension.js", `${extensionPackage.name} main points at built extension output`);
   await access(join(root, extensionPackage.directory, ".vscodeignore"));
-  await access(join(root, extensionPackage.directory, "dist", "extension.js"));
+  const extensionBundlePath = join(root, extensionPackage.directory, "dist", "extension.js");
+  await access(extensionBundlePath);
+  if (extensionPackage.name === "Core") {
+    const dependencyNames = new Set([
+      ...Object.keys(manifest.dependencies ?? {}),
+      ...Object.keys(manifest.devDependencies ?? {})
+    ]);
+    assert.equal(dependencyNames.has("proper-lockfile"), false, "Core writer locking uses built-in Node APIs only");
+    assert.equal(dependencyNames.has("@types/proper-lockfile"), false, "Core has no lock-library type dependency");
+    assert.doesNotMatch(
+      manifest.scripts?.build ?? "",
+      /(?:^|\s)(?:cp|rm|bash|wsl(?:\.exe)?)(?:\s|$)/i,
+      "Core build has no POSIX-shell or WSL command dependency"
+    );
+    assert.doesNotMatch(
+      await readFile(extensionBundlePath, "utf8"),
+      /proper-lockfile|node:child_process|wsl\.exe|Windows Subsystem for Linux/i,
+      "Core package has no external lock, shell, or WSL runtime dependency"
+    );
+  }
   const commands = new Set((manifest.contributes?.commands ?? []).map((command) => command.command));
   for (const expectedCommand of extensionPackage.expectedCommands) {
     assert.equal(

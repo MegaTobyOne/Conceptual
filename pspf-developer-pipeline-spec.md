@@ -122,6 +122,7 @@ The standing instruction is:
 Production releases are driven by `workflow_dispatch` from `main`, not by hand-cut tags:
 
 - **Marketplace**: run `Marketplace release` with `target=core|workshop|shop|pub|assurance|both|all`. The workflow builds once, gates on the `marketplace` environment, publishes with `vsce`, then creates per-extension tags and GitHub releases as receipts. `both` remains Core+Workshop for compatibility with earlier runbooks; use `all` for all five extensions. A `dry_run` input skips publish/tag and only uploads the VSIX artefact for inspection; dry-run state is shown in the workflow run name and job summaries so a green dry run is not treated as a published extension. Marketplace Gallery verification waits 60 seconds between attempts because newly published versions can take several minutes to appear through the public API.
+- **Core packaging portability**: Core bundling and runtime-asset copying run through `scripts/build-core-extension.mjs` and built-in Node filesystem APIs. The build must not require WSL, Bash, POSIX `cp`/`rm`, or another platform shell.
 - **Explorer web**: run `Web release` with `target=production`. The workflow gates on the `production-web` environment and deploys to `tobyharvey.online` through the VentraIP composite action. Test deploys to `test.tobyharvey.online` still run automatically on push to `develop`.
 
 ### Pull request discipline
