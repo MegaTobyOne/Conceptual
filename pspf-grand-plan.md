@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-08-27 (repo version 1.61.3)
+Last updated: 2026-09-01 (repo version 1.61.3)
 
 ## Purpose
 
@@ -22,7 +22,7 @@ The v1.61 release closes the Workshop persisted-value rendering, Core full-repla
 
 ## Operational plan: compliance uplift workflow (next few days)
 
-Status: **active — next-slice direction**
+Status: **absorbed — superseded by the v1.70 Essentials programme below, which carries this direction forward with stakeholder-feedback priorities**
 
 The immediate product focus is the requirement-to-action journey in Explorer/Workshop. The user feedback is clear: the tool is already effective as a review surface, but the real value is the uplift loop — turning PSPF outcomes into justifiable decisions, standard mitigation language, and a practical work plan for the next cycle.
 
@@ -83,6 +83,53 @@ not merely the reporting cycle of:
 - Confirm the minimum outputs needed for a forward work plan and leadership review.
 
 This short operating plan sits alongside the longer architecture and remediation tranches above and should be revisited after the next working cycle.
+
+## v1.70 Essentials programme — plain-language PSPF (v1.62.0–v1.70.0)
+
+Status: **planned — governed by ADR 0096**
+
+### Outcome
+
+Stakeholder feedback (see `docs/feedback/stakeholder-feedback-design-spec.md`) confirms the product has value but demands too much specialist knowledge: a user should not need to be a CISO to understand or act on the content. By v1.70.0, a person with no security-specialist background can **find a PSPF requirement, understand it in plain AU English, record an evidence-backed decision, and see the effect of that decision** — with one consistent journey across Explorer and Workshop, and nothing superfluous in the path. This is a subtraction release as much as an addition release: the essentials journey ships alongside a deliberate reduction of the visible surface (Explorer currently exposes 26 routes; Workshop ~25 panels and ~70 commands).
+
+### Decisions
+
+1. **One default view for everyone.** The three presentation lenses (`ciso`/`auditor`/`solo`, ADR 0086 D6) are retired. Feedback shows users mostly want the same thing; a role switcher is itself a superfluous control. Analyst and CISO oversight needs are met later by two focused review screens (P1, v1.71+), not by modes. Stored lens preferences migrate deterministically to the default view, following the Colorful→Dark precedent.
+2. **Plain language is a first-class deliverable, not copy polish.** Every essentials-path requirement and status surface renders a three-part explainer — _What this means / Why it matters / What to do next_ — from curated AU-English strings in `@pspf/reference-data`, through one shared renderer. The S1–S7 judgement primitives supply the facts; the plain-language layer supplies the words. Explainer content is reference data: it carries source attribution and declares `publication` explicitly like all reference content.
+3. **Hybrid subtraction.** ADR 0096 names the retired views (Explorer Assurance City, Map, and GRC routes; Workshop Continuous Compliance Metro, Unified Security Model, and Human-Centred Risk panels) and demotes remaining specialist views behind a single **Advanced** disclosure per surface. Retirement is view-level only: no record, entity, command API, export, or datum is removed, and demoted views stay fully functional.
+4. **One requirement finder, two hosts.** Keyword search over requirement identifiers, titles, and controlled text plus PSPF Domain/section browsing is implemented once as a shared, deterministic `@pspf/contracts` primitive and consumed identically by Explorer (finder route) and Workshop (finder-backed pickers). Result summaries state current assessment, evidence confidence, open actions, and material risk.
+5. **No schema or axis change in this programme.** Compatibility axes remain `1.15.0` throughout; every P0 capability composes existing fields and builders. The standard-mitigation library (P1) is deferred to v1.71+ with its own ADR and an expected `1.16.0` axis bump for mitigation provenance.
+6. **Save and impact feedback is deterministic.** The post-save confirmation (what changed, saved successfully, affected evidence/actions/risks, resulting posture or priority signal with explanation) composes the existing posture and impact builders only — no prediction, no unqualified projection.
+
+### Implementation slices
+
+| #   | Version | Focus                             | Done when                                                                                                                                                           |
+| --- | ------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E0  | 1.62.0  | Governance and baseline           | ADR 0096 is accepted with the named retire/demote list; `check-essentials-surface.mjs` records the route/panel/command baseline it will enforce reductions against. |
+| E1  | 1.63.0  | Plain-language content layer      | Reference-data explainer pack (AU English, attributed, publication-declared) plus one shared explainer renderer; wired to requirement detail in both surfaces.      |
+| E2  | 1.64.0  | Requirement finder — Explorer     | Shared contracts search/browse primitive with deterministic ordering; Explorer finder route with visible filters, section browsing, and result decision summaries.  |
+| E3  | 1.65.0  | Requirement finder — Workshop     | Workshop pickers backed by the same primitive; parity test proves identical results for identical fixtures across both hosts.                                       |
+| E4  | 1.66.0  | Decision and action flow          | Requirement detail restructured plain-language-first (assess → justify → act); evidence/action/risk linking in the guided path; advanced fields behind disclosure.  |
+| E5  | 1.67.0  | Save and impact feedback          | Compact post-save confirmation composed from existing builders; every material change leads to a stated next action or a stated reason none is needed.              |
+| E6  | 1.68.0  | Explorer subtraction              | Retired routes removed; remaining specialist routes under one Advanced group; lens retirement with deterministic preference migration; essentials nav ≤ 7 items.    |
+| E7  | 1.69.0  | Workshop subtraction              | Retired panels removed; specialist panels and commands demoted; palette dedupe verified; essentials command set documented and gated.                               |
+| E8  | 1.70.0  | Release hardening and walkthrough | End-to-end journey gate passes; accessibility, AU-English, and publication scans cover all new copy; `e2e:v1.70` chains continuously from `e2e:v1.61`.              |
+
+### Release gates
+
+1. **Journey gate:** an automated walkthrough proves a user can search or browse to a requirement, read its explainer, add or link evidence and an action, save, and see the posture/risk effect — without touching any Advanced control.
+2. **Plain-language gate:** every essentials-path surface renders the three-part explainer; a banned-jargon lint (terms defined against `pspf-glossary.md`) fails specialist vocabulary on the essentials path; AU-English scan covers all new copy.
+3. **Subtraction gate:** `check-essentials-surface.mjs` fails if retired views reappear, demoted views surface outside Advanced, or essentials route/command counts exceed the ADR 0096 budget. No data, record, or export capability is removed.
+4. **Parity gate:** the finder primitive returns identical, deterministically ordered results in Explorer and Workshop for shared fixtures.
+5. **No-axis gate:** `schemaVersion`/`bundleVersion`/`apiVersion` remain `1.15.0`; no Core collection, bundle collection, or API change ships in this programme.
+6. **Migration gate:** any stored lens preference migrates to the default view exactly once, deterministically, with no dead setting left behind.
+7. **Publication gate:** explainer reference content declares publication policy; impact statements and result summaries pass the existing redaction and default-deny checks.
+
+### Explicitly deferred
+
+- **P1 (v1.71+):** standard mitigation suggestion library (needs curated ISM-aligned content, an attribution/licence pass, its own ADR, and a likely `1.16.0` axis bump), analyst period-over-period change review screen, and the CISO accountability view.
+- **P2:** summary-first Connected View default.
+- Predictive analytics, AI-generated action plans without operator acceptance, project-management automation, notifications, RBAC, and identity integration — unchanged from the feedback spec's out-of-scope list.
 
 ## Hard constraints (apply to every tranche)
 

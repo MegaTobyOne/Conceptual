@@ -20,7 +20,8 @@ Contract tests must cover:
 - capability and authorisation behaviour,
 - canonical entity and link schema validity,
 - Explorer bundle schema compatibility,
-- migration compatibility for supported upgrade paths.
+- migration compatibility for supported upgrade paths,
+- requirement finder determinism and cross-surface parity (Explorer and Workshop consume the single `@pspf/contracts` search primitive; identical fixtures must produce identical ordered results — planned under ADR 0096, live from v1.64).
 
 ## Ownership model
 
