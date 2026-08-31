@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-09-01 (repo version 1.61.3)
+Last updated: 2026-09-01 (repo version 1.62.0)
 
 ## Purpose
 
@@ -103,17 +103,17 @@ Stakeholder feedback (see `docs/feedback/stakeholder-feedback-design-spec.md`) c
 
 ### Implementation slices
 
-| #   | Version | Focus                             | Done when                                                                                                                                                           |
-| --- | ------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| E0  | 1.62.0  | Governance and baseline           | ADR 0096 is accepted with the named retire/demote list; `check-essentials-surface.mjs` records the route/panel/command baseline it will enforce reductions against. |
-| E1  | 1.63.0  | Plain-language content layer      | Reference-data explainer pack (AU English, attributed, publication-declared) plus one shared explainer renderer; wired to requirement detail in both surfaces.      |
-| E2  | 1.64.0  | Requirement finder — Explorer     | Shared contracts search/browse primitive with deterministic ordering; Explorer finder route with visible filters, section browsing, and result decision summaries.  |
-| E3  | 1.65.0  | Requirement finder — Workshop     | Workshop pickers backed by the same primitive; parity test proves identical results for identical fixtures across both hosts.                                       |
-| E4  | 1.66.0  | Decision and action flow          | Requirement detail restructured plain-language-first (assess → justify → act); evidence/action/risk linking in the guided path; advanced fields behind disclosure.  |
-| E5  | 1.67.0  | Save and impact feedback          | Compact post-save confirmation composed from existing builders; every material change leads to a stated next action or a stated reason none is needed.              |
-| E6  | 1.68.0  | Explorer subtraction              | Retired routes removed; remaining specialist routes under one Advanced group; lens retirement with deterministic preference migration; essentials nav ≤ 7 items.    |
-| E7  | 1.69.0  | Workshop subtraction              | Retired panels removed; specialist panels and commands demoted; palette dedupe verified; essentials command set documented and gated.                               |
-| E8  | 1.70.0  | Release hardening and walkthrough | End-to-end journey gate passes; accessibility, AU-English, and publication scans cover all new copy; `e2e:v1.70` chains continuously from `e2e:v1.61`.              |
+| #   | Version | Focus                             | Done when                                                                                                                                                                                                                                                                                                                                     |
+| --- | ------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E0  | 1.62.0  | Governance and baseline           | ADR 0096 is accepted with the named retire/demote list; `check-essentials-surface.mjs` records the route/panel/command baseline it will enforce reductions against. **Shipped**: baseline recorded (27 Explorer routes, 20 essentials nav items, 74 Workshop commands, 32 Workshop webview panels); the gate now fails on any further growth. |
+| E1  | 1.63.0  | Plain-language content layer      | Reference-data explainer pack (AU English, attributed, publication-declared) plus one shared explainer renderer; wired to requirement detail in both surfaces.                                                                                                                                                                                |
+| E2  | 1.64.0  | Requirement finder — Explorer     | Shared contracts search/browse primitive with deterministic ordering; Explorer finder route with visible filters, section browsing, and result decision summaries.                                                                                                                                                                            |
+| E3  | 1.65.0  | Requirement finder — Workshop     | Workshop pickers backed by the same primitive; parity test proves identical results for identical fixtures across both hosts.                                                                                                                                                                                                                 |
+| E4  | 1.66.0  | Decision and action flow          | Requirement detail restructured plain-language-first (assess → justify → act); evidence/action/risk linking in the guided path; advanced fields behind disclosure.                                                                                                                                                                            |
+| E5  | 1.67.0  | Save and impact feedback          | Compact post-save confirmation composed from existing builders; every material change leads to a stated next action or a stated reason none is needed.                                                                                                                                                                                        |
+| E6  | 1.68.0  | Explorer subtraction              | Retired routes removed; remaining specialist routes under one Advanced group; lens retirement with deterministic preference migration; essentials nav ≤ 7 items.                                                                                                                                                                              |
+| E7  | 1.69.0  | Workshop subtraction              | Retired panels removed; specialist panels and commands demoted; palette dedupe verified; essentials command set documented and gated.                                                                                                                                                                                                         |
+| E8  | 1.70.0  | Release hardening and walkthrough | End-to-end journey gate passes; accessibility, AU-English, and publication scans cover all new copy; `e2e:v1.70` chains continuously from `e2e:v1.61`.                                                                                                                                                                                        |
 
 ### Release gates
 

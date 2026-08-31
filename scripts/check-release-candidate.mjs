@@ -66,7 +66,8 @@ const axesByMinorVersion = new Map([
   [58, "1.15.0"],
   [59, "1.15.0"],
   [60, "1.15.0"],
-  [61, "1.15.0"]
+  [61, "1.15.0"],
+  [62, "1.15.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -114,7 +115,7 @@ assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion
 
 const e2eScript =
   minorVersion >= 60
-    ? `e2e:v1.${Math.min(minorVersion, 61)}`
+    ? `e2e:v1.${Math.min(minorVersion, 62)}`
     : minorVersion >= 59
       ? "e2e:v1.59"
       : minorVersion >= 58
@@ -1856,6 +1857,51 @@ if (isV1Release && minorVersion >= 44) {
       true,
       `Workshop v1.44 strategy inference should mention ${requiredText}`
     );
+  }
+}
+
+if (isV1Release && minorVersion >= 62) {
+  const v0096Adr = await readFile(join(root, "adr/0096-v1-70-essentials-programme-and-surface-reduction.md"), "utf8");
+  for (const requiredText of [
+    "v1.70 Essentials programme",
+    "check-essentials-surface.mjs",
+    "Assurance City",
+    "Continuous Compliance Metro",
+    "Unified Security Model",
+    "Human-Centred Risk"
+  ]) {
+    assert.equal(v0096Adr.includes(requiredText), true, `ADR 0096 should mention ${requiredText}`);
+  }
+  assert.equal(
+    existsSync(join(root, "scripts/check-essentials-surface.mjs")),
+    true,
+    "scripts/check-essentials-surface.mjs should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "scripts/lib/essentials-surface-baseline.json")),
+    true,
+    "essentials surface baseline snapshot should exist"
+  );
+  for (const requiredScript of ["check:essentials-surface", "e2e:v1.62", "e2e:v1.62:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.62"].includes("e2e:v1.61"), true, "e2e:v1.62 should include v1.61 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.62:run"].includes("e2e:v1.61:run"),
+    true,
+    "e2e:v1.62:run should include v1.61 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes("e2e:v1.62"),
+    true,
+    "release:readiness should run e2e:v1.62"
+  );
+  for (const requiredText of [
+    "Surface baseline and subtraction gate",
+    "Release-chain gate",
+    "check:essentials-surface"
+  ]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
   }
 }
 

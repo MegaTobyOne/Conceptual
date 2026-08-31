@@ -361,7 +361,10 @@ const coverage = [
     "check:release-hardening",
     "release:readiness"
   ]),
-  adr("0096-v1-70-essentials-programme-and-surface-reduction.md", "manual", ["release:readiness"])
+  adr("0096-v1-70-essentials-programme-and-surface-reduction.md", "automated", [
+    "check:essentials-surface",
+    "e2e:v1.62"
+  ])
 ];
 
 const adrFiles = (await readdir(adrDirectory)).filter((file) => /^\d{4}-.*\.md$/.test(file)).sort();
