@@ -360,6 +360,10 @@ const coverage = [
     "e2e:v1.61",
     "check:release-hardening",
     "release:readiness"
+  ]),
+  adr("0096-v1-70-essentials-programme-and-surface-reduction.md", "automated", [
+    "check:essentials-surface",
+    "e2e:v1.62"
   ])
 ];
 

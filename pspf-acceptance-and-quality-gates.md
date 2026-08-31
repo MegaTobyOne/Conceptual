@@ -218,6 +218,19 @@ These gates are not enforced in v0.1 and exist here as a forward-looking checkli
 3. **Publication deferral gate**: no Explorer view references suppliers; `scripts/check-supplier-verdict.mjs` fails the build if one is added without a dedicated follow-on ADR revising this gate.
 4. **Release-chain gate**: `e2e:v1.60` inherits the complete v1.59 chain and adds `check:supplier-verdict`; `release:readiness` targets `e2e:v1.60:run`.
 
+### v1.62–v1.70 Essentials programme candidate gates (per ADR 0096)
+
+These gates are planned, not yet enforced, except where noted below. Each slice (E0–E8, v1.62.0–v1.70.0) turns its gate live when it ships and chains `e2e:v1.62` … `e2e:v1.70` continuously from `e2e:v1.61`.
+
+1. **Version and compatibility gate**: each slice advances all package versions and `PSPF_SLICE_VERSION` together (E0: all package versions and `PSPF_SLICE_VERSION` are `1.62.0` … E8 = `1.70.0`); `VERSION_AXES` remain `1.15.0` for the entire programme; no entity, link, bundle, API, publication-policy, or Explorer schema change is introduced.
+2. **Surface baseline and subtraction gate** (live from E0/v1.62.0): `check:essentials-surface` records the E0 route/panel/command baseline (27 Explorer routes, 20 essentials nav items, 74 Workshop commands, 32 Workshop webview panels) and fails on any further growth. The retired-view-reappearance, demoted-view-outside-Advanced, and ≤ 7 essentials-nav-item checks activate in E6/E7 once the corresponding surface reduction ships. No record, entity, command API, or export capability is removed.
+3. **Plain-language gate**: every essentials-path requirement and status surface renders the three-part explainer (_What this means / Why it matters / What to do next_) through the one shared renderer; a banned-jargon lint (terms defined against `pspf-glossary.md`) fails specialist vocabulary on the essentials path; `lint:au` covers all new copy; explainer reference content carries source attribution and declares `publication`.
+4. **Finder parity gate**: the `@pspf/contracts` finder primitive is the only requirement search implementation; identical fixtures produce identical, deterministically ordered results in Explorer and Workshop; result summaries state current assessment, evidence confidence, open actions, and material risk.
+5. **Lens-migration gate**: any stored `ciso`/`auditor`/`solo` lens preference migrates to the default view exactly once and deterministically; lens-conditional code paths are removed together with their invariance tests; no dead setting remains.
+6. **Impact-feedback gate**: the post-save confirmation composes existing posture and impact builders only; behavioural tests cover what-changed, affected evidence/actions/risks, and the posture or priority explanation for save, no-op, and failure paths; no prediction or unqualified projection appears.
+7. **Journey gate**: an automated end-to-end walkthrough on the standard fixture proves search-or-browse → requirement explainer → evidence and action linking → save → visible posture/risk effect, without touching any Advanced control.
+8. **Release-chain gate** (live from E0/v1.62.0): each slice adds its `e2e:v1.6x` script inheriting the complete previous chain; `release:readiness` targets the newest chain; ADR 0096's coverage entry upgraded from `manual` to `automated` now that `check:essentials-surface` and `e2e:v1.62` exist.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.

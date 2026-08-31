@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   PNPM_VERSION: 10.10.0
   NODE_VERSION: 22.15.0
@@ -47,6 +51,15 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Explorer lint
+        run: pnpm --filter pspf-explorer run lint
+
+      - name: Governance gates
+        run: pnpm run check:gate-integrity && pnpm run check:adr-coverage && pnpm run check:spec-drift
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -91,9 +104,3 @@ jobs:
 
       - name: Deployment safety
         run: pnpm run check:deployment-safety
-
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Explorer lint
-        run: pnpm --filter pspf-explorer run lint

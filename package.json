@@ -1,6 +1,6 @@
 {
   "name": "pspf",
-  "version": "1.61.3",
+  "version": "1.62.0",
   "private": true,
   "description": "Local-first PSPF Core, Assurance, Workshop, Shop, Pub, and Explorer validation slice.",
   "license": "MIT",
@@ -41,7 +41,7 @@
     "check:explorer-local-authoring": "pnpm build && node scripts/check-explorer-local-authoring.mjs",
     "check:explorer-to-workshop-import": "pnpm build && node scripts/check-explorer-to-workshop-import.mjs",
     "check:gates": "pnpm build && pnpm run check:gates:run",
-    "check:gates:run": "node scripts/check-gate-integrity.mjs && node scripts/check-adr-coverage.mjs && node scripts/check-spec-drift.mjs && node scripts/check-reference-data-baseline.mjs && node scripts/check-cyber-reference-data.mjs && node scripts/check-schema-policy.mjs && node scripts/check-schema-coverage.mjs && node scripts/check-personal-data-exclusion.mjs && node scripts/check-ai-kill-switch.mjs && node scripts/check-ai-prompt-redaction.mjs && node scripts/check-deployment-safety.mjs && node scripts/check-design-drift.mjs && node scripts/check-ux-coverage.mjs && node --test scripts/check-ux-coverage.test.mjs && node scripts/check-workshop-navigation.mjs && node scripts/check-risk-source-integration.mjs && node scripts/check-brief-redaction.mjs && node scripts/check-assurance-redaction.mjs && node scripts/check-shop-money-fields.mjs && node scripts/check-ciso-magazine.mjs && node scripts/check-ism-drift.mjs && node scripts/check-explorer-publication.mjs && node scripts/check-explorer-local-authoring.mjs && node scripts/check-explorer-to-workshop-import.mjs && node scripts/check-writer-lock.mjs && node scripts/check-integrity-scan.mjs && node scripts/check-sample-workspace.mjs && node scripts/check-questionnaire-pack.mjs && node scripts/check-package-shape.mjs && node scripts/check-core-sqljs-runtime.mjs && node scripts/backup-restore-dry-run.mjs && node scripts/check-accessibility.mjs && node scripts/check-assessment-basis.mjs && node scripts/check-consequence-chain.mjs && node scripts/check-blocker-fan-in.mjs && node scripts/check-schema-slice-s4.mjs && node scripts/check-trajectory.mjs && node scripts/check-reader-anchor.mjs && node scripts/check-supplier-verdict.mjs",
+    "check:gates:run": "node scripts/check-gate-integrity.mjs && node scripts/check-adr-coverage.mjs && node scripts/check-spec-drift.mjs && node scripts/check-reference-data-baseline.mjs && node scripts/check-cyber-reference-data.mjs && node scripts/check-schema-policy.mjs && node scripts/check-schema-coverage.mjs && node scripts/check-personal-data-exclusion.mjs && node scripts/check-ai-kill-switch.mjs && node scripts/check-ai-prompt-redaction.mjs && node scripts/check-deployment-safety.mjs && node scripts/check-design-drift.mjs && node scripts/check-ux-coverage.mjs && node --test scripts/check-ux-coverage.test.mjs && node scripts/check-workshop-navigation.mjs && node scripts/check-risk-source-integration.mjs && node scripts/check-brief-redaction.mjs && node scripts/check-assurance-redaction.mjs && node scripts/check-shop-money-fields.mjs && node scripts/check-ciso-magazine.mjs && node scripts/check-ism-drift.mjs && node scripts/check-explorer-publication.mjs && node scripts/check-explorer-local-authoring.mjs && node scripts/check-explorer-to-workshop-import.mjs && node scripts/check-writer-lock.mjs && node scripts/check-integrity-scan.mjs && node scripts/check-sample-workspace.mjs && node scripts/check-questionnaire-pack.mjs && node scripts/check-package-shape.mjs && node scripts/check-core-sqljs-runtime.mjs && node scripts/backup-restore-dry-run.mjs && node scripts/check-accessibility.mjs && node scripts/check-assessment-basis.mjs && node scripts/check-consequence-chain.mjs && node scripts/check-blocker-fan-in.mjs && node scripts/check-schema-slice-s4.mjs && node scripts/check-trajectory.mjs && node scripts/check-reader-anchor.mjs && node scripts/check-supplier-verdict.mjs && node scripts/check-essentials-surface.mjs",
     "check:adr-coverage": "node scripts/check-adr-coverage.mjs",
     "check:gate-integrity": "node scripts/check-gate-integrity.mjs",
     "check:spec-drift": "node scripts/check-spec-drift.mjs",
@@ -58,6 +58,7 @@
     "check:shop-coverage-dashboard": "pnpm build && node scripts/check-shop-coverage-dashboard.mjs",
     "check:ux-coverage": "pnpm build && node scripts/check-ux-coverage.mjs && node --test scripts/check-ux-coverage.test.mjs",
     "check:workshop-navigation": "node scripts/check-workshop-navigation.mjs",
+    "check:essentials-surface": "node scripts/check-essentials-surface.mjs",
     "package:check": "pnpm build && node scripts/check-package-shape.mjs && node scripts/check-core-sqljs-runtime.mjs",
     "check:schema-coverage": "pnpm build && node scripts/check-schema-coverage.mjs",
     "check:schema-policy": "pnpm build && node scripts/check-schema-policy.mjs",
@@ -133,7 +134,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,js,json,jsonc}\"",
     "format:all": "prettier --write .",
     "format:check:all": "prettier --check .",
-    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.61:run",
+    "release:readiness": "pnpm build && node scripts/run-release-gates.mjs e2e:v1.62:run",
     "test": "pnpm build && pnpm -r --if-present test",
     "typecheck": "tsc -b tsconfig.json && pnpm --filter pspf-explorer run typecheck",
     "e2e:v1.39": "pnpm run e2e:v1.38 && pnpm run check:schema-coverage && pnpm run check:schema-policy && pnpm run check:ux-coverage",
@@ -182,6 +183,8 @@
     "e2e:v1.60:run": "pnpm run e2e:v1.59:run && node scripts/check-supplier-verdict.mjs",
     "e2e:v1.61": "pnpm run e2e:v1.60 && pnpm run check:release-hardening",
     "e2e:v1.61:run": "pnpm run e2e:v1.60:run && pnpm run check:release-hardening:run",
+    "e2e:v1.62": "pnpm run e2e:v1.61 && pnpm run check:essentials-surface",
+    "e2e:v1.62:run": "pnpm run e2e:v1.61:run && node scripts/check-essentials-surface.mjs",
     "check:pub-cockpit": "node scripts/check-pub-cockpit.mjs"
   },
   "devDependencies": {

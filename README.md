@@ -4,7 +4,7 @@ Status: **active**
 
 Local-first tooling for Australian Government PSPF assurance work.
 
-The repository currently targets the PSPF v1.61.3 hotfix release with Core, Workshop, Assurance, Shop, Pub, and Explorer. Studio System provides compact, responsive navigation, tables, status chips, and product/domain wayfinding across the ecosystem. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.15.0`.
+The repository currently targets the PSPF v1.62.0 release with Core, Workshop, Assurance, Shop, Pub, and Explorer. Studio System provides compact, responsive navigation, tables, status chips, and product/domain wayfinding across the ecosystem. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.15.0`.
 
 ## Products
 
@@ -31,7 +31,7 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.61.3-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.62.0-readiness-report.md`.
 
 v1.61.3 removes the external writer-lock dependency and timestamp heartbeat. Core writer ownership now uses built-in Node filesystem/process APIs only, requires no WSL or shell, tolerates external timestamp changes, and preserves atomic single-writer plus live-owner exclusion. `check:release-hardening` and package-shape validation keep this behaviour in the inherited release chain; compatibility axes remain `1.15.0` (ADR 0095).
 
