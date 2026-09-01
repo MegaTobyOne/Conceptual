@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.15.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.62.0" as const;
+export const PSPF_SLICE_VERSION = "1.64.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -3498,6 +3498,107 @@ export function describeChangeRollup(rollup: ChangeRollup): string {
   if (regressed > 0) parts.push(`${regressed} regressed`);
   if (wentStale > 0) parts.push(`${wentStale} went stale`);
   return parts.join(", ") + ".";
+}
+
+/**
+ * E2 (v1.64.0 Essentials programme, ADR 0096): shared requirement finder.
+ * One deterministic matching/ordering implementation for Explorer and Workshop —
+ * generalises Workshop's savedViewMatchesRequirement/compareRequirementsForPicker
+ * and Explorer's ad-hoc global-search substring matching. `status` and `domainId`
+ * are plain strings (not the `AssessmentStatus` enum) because Explorer's local
+ * compliance-state vocabulary differs from Workshop's and no axis change is
+ * permitted in this programme; callers map their own model onto this shape.
+ */
+export interface RequirementFinderRecord {
+  readonly id: string;
+  readonly title: string;
+  /** Additional free text to match — requirement body, notes, evidence values, references, etc. */
+  readonly searchText?: string;
+  readonly domainId: string;
+  readonly status: string;
+  readonly tagIds?: readonly string[];
+}
+
+export type RequirementFinderTagsMode = "any" | "all";
+
+export interface RequirementFinderFilters {
+  readonly query?: string;
+  readonly domainIds?: readonly string[];
+  readonly statuses?: readonly string[];
+  readonly tagIds?: readonly string[];
+  readonly tagsMode?: RequirementFinderTagsMode;
+}
+
+export function matchesRequirementFinderFilters<T extends RequirementFinderRecord>(
+  record: T,
+  filters: RequirementFinderFilters
+): boolean {
+  const query = filters.query?.trim().toLocaleLowerCase("en-AU");
+  if (query) {
+    const haystack = `${record.title} ${record.searchText ?? ""}`.toLocaleLowerCase("en-AU");
+    if (!haystack.includes(query)) {
+      return false;
+    }
+  }
+  if ((filters.domainIds ?? []).length > 0 && !filters.domainIds?.includes(record.domainId)) {
+    return false;
+  }
+  if ((filters.statuses ?? []).length > 0 && !filters.statuses?.includes(record.status)) {
+    return false;
+  }
+  const wantedTagIds = filters.tagIds ?? [];
+  if (wantedTagIds.length > 0) {
+    const recordTagIds = new Set(record.tagIds ?? []);
+    return filters.tagsMode === "all"
+      ? wantedTagIds.every((id) => recordTagIds.has(id))
+      : wantedTagIds.some((id) => recordTagIds.has(id));
+  }
+  return true;
+}
+
+/** Deterministic order: caller-supplied domain order, then title, then id as a final tie-break. */
+export function compareRequirementFinderRecords<T extends RequirementFinderRecord>(
+  left: T,
+  right: T,
+  domainOrder: readonly string[]
+): number {
+  const leftDomain = domainOrder.indexOf(left.domainId);
+  const rightDomain = domainOrder.indexOf(right.domainId);
+  if (leftDomain !== rightDomain) {
+    return leftDomain - rightDomain;
+  }
+  return left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" }) || left.id.localeCompare(right.id);
+}
+
+/** Filters then sorts — the single finder implementation both Explorer and Workshop call. */
+export function searchRequirements<T extends RequirementFinderRecord>(
+  records: readonly T[],
+  filters: RequirementFinderFilters,
+  domainOrder: readonly string[]
+): readonly T[] {
+  return records
+    .filter((record) => matchesRequirementFinderFilters(record, filters))
+    .slice()
+    .sort((a, b) => compareRequirementFinderRecords(a, b, domainOrder));
+}
+
+/** Result decision summary facts, supplied by the caller from its own S1-S3 primitives/data. */
+export interface RequirementFinderResultSummaryInput {
+  readonly statusLabel: string;
+  readonly evidenceBasis?: AssessmentBasis;
+  readonly openActionCount: number;
+  readonly hasMaterialRisk: boolean;
+}
+
+/** States current assessment, evidence confidence, open actions, and material risk — one deterministic sentence. */
+export function buildRequirementFinderResultSummary(input: RequirementFinderResultSummaryInput): string {
+  const parts: string[] = [input.statusLabel];
+  if (input.evidenceBasis) {
+    parts.push(assessmentBasisLabel(input.evidenceBasis));
+  }
+  parts.push(input.openActionCount === 0 ? "no open actions" : `${input.openActionCount} open action(s)`);
+  parts.push(input.hasMaterialRisk ? "material risk linked" : "no material risk linked");
+  return parts.join(" · ");
 }
 
 export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Entity[] {

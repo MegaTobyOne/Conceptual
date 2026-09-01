@@ -3,13 +3,30 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { consume } from '@lit/context';
 import type { PresentationLens } from '@pspf/webview-shell';
 import { designTokens } from '../app/design-tokens.ts';
-import { allDomains, allRequirements, requirementsByDomain } from '../pspf/index.ts';
-import type { ComplianceEntry, ComplianceState, DomainKey, RequirementId } from '../data/types.ts';
+import { allDomains, allRequirements } from '../pspf/index.ts';
+import {
+  asRequirementId,
+  type ComplianceEntry,
+  type ComplianceState,
+  type DomainKey,
+  type Requirement,
+  type RequirementId,
+  type Action,
+  type Risk,
+} from '../data/types.ts';
 import { appStoreContext } from '../state/contexts.ts';
 import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
 import { complianceEventsSince } from '../domain/analytics.ts';
+import {
+  assessmentBasis,
+  buildRequirementFinderResultSummary,
+  isWithinFreshnessWindow,
+  searchRequirements,
+  type RequirementFinderRecord,
+} from '@pspf/contracts';
+import { PSPF_REQUIREMENT_REFERENCES } from '@pspf/reference-data';
 import '../components/compliance-badge.ts';
 import '../components/breadcrumbs.ts';
 import '../components/list-workbench.ts';
@@ -105,6 +122,38 @@ export class RequirementsView extends LitElement {
         padding-bottom: var(--space-1);
         border-bottom: 2px solid var(--pspf-border);
       }
+      .section-group {
+        display: grid;
+        gap: var(--space-1);
+      }
+      .section-group h4 {
+        margin: var(--space-1) 0 0 0;
+        font-size: var(--text-sm);
+        color: var(--pspf-muted);
+        font-weight: 600;
+      }
+      .search-field {
+        display: grid;
+        gap: var(--space-1);
+      }
+      .search-field label {
+        font-weight: 600;
+        font-size: var(--text-sm);
+      }
+      .search-field input[type='search'] {
+        font: inherit;
+        color: inherit;
+        background: var(--pspf-surface);
+        border: 1px solid var(--pspf-border);
+        border-radius: var(--radius-sm);
+        padding: var(--space-1) var(--space-2);
+      }
+      .requirement-summary {
+        grid-column: 1 / -1;
+        margin: 0;
+        font-size: var(--text-xs);
+        color: var(--pspf-muted);
+      }
       ul.requirements {
         list-style: none;
         margin: 0;
@@ -177,6 +226,7 @@ export class RequirementsView extends LitElement {
 
   @property({ attribute: false }) params: Record<string, string> = {};
 
+  @state() private searchQuery = '';
   @state() private selectedDomains = new Set<DomainKey>(allDomains.map((d) => d.key));
   @state() private selectedStates = new Set<ComplianceState>([
     'yes',
@@ -238,6 +288,10 @@ export class RequirementsView extends LitElement {
     }
   }
 
+  private updateSearchQuery(value: string): void {
+    this.searchQuery = value;
+  }
+
   override render() {
     const domainKey = this.params.domain as DomainKey | undefined;
     const filteredDomain = domainKey ? allDomains.find((d) => d.key === domainKey) : undefined;
@@ -254,26 +308,114 @@ export class RequirementsView extends LitElement {
         )
       : new Set<RequirementId>();
 
-    // Filter requirements
-    const filtered = allRequirements.filter((r) => {
-      const domain = allDomains.find((d) => requirementsByDomain.get(d.key)?.includes(r));
-      if (!domain || !this.selectedDomains.has(domain.key)) return false;
+    // Filter and order via the shared requirement finder primitive (ADR 0096 E2).
+    const domainOrder = allDomains.map((d) => d.key);
+    const now = new Date();
+    const finderRecords: RequirementFinderRecord[] = allRequirements.map((r) => {
       const entry = compliance.get(r.id);
       const state: ComplianceState = entry ? entry.state : 'not-set';
-      return this.selectedStates.has(state);
+      return {
+        id: r.id,
+        title: r.title,
+        searchText: `${r.text} ${r.references?.join(' ') ?? ''} ${entry?.notes ?? ''}`,
+        domainId: r.domain,
+        status: state,
+      };
     });
+    const finderResults = searchRequirements(
+      finderRecords,
+      {
+        query: this.searchQuery,
+        domainIds: [...this.selectedDomains],
+        statuses: [...this.selectedStates],
+      },
+      domainOrder,
+    );
+    const requirementsById = new Map(allRequirements.map((r) => [r.id, r]));
+    const filtered = finderResults
+      .map((result) => requirementsById.get(asRequirementId(result.id)))
+      .filter((r): r is Requirement => r !== undefined);
 
-    // Group by domain
+    // PSPF Release 2025 baseline section lookup, for section browsing within each domain.
+    const sectionByRequirementId = new Map(
+      PSPF_REQUIREMENT_REFERENCES.map((ref) => [ref.requirementId as string, ref]),
+    );
+
+    const risksByRequirementId = new Map<RequirementId, Risk[]>();
+    for (const risk of this.store?.risks.value ?? []) {
+      for (const reqId of risk.requirementIds) {
+        risksByRequirementId.set(reqId, [...(risksByRequirementId.get(reqId) ?? []), risk]);
+      }
+    }
+    const actionsByRequirementId = new Map<RequirementId, Action[]>();
+    for (const action of this.store?.actions.value ?? []) {
+      for (const reqId of action.requirementIds) {
+        actionsByRequirementId.set(reqId, [...(actionsByRequirementId.get(reqId) ?? []), action]);
+      }
+    }
+    const stateLabel: Record<ComplianceState, string> = {
+      yes: 'Fully implemented',
+      'risk-managed': 'Risk-managed',
+      'not-applicable': 'Not applicable',
+      no: 'Not implemented',
+      'not-set': 'Not set',
+    };
+    // Result decision summary: current assessment, evidence confidence, open actions, material risk.
+    const summaryFor = (r: Requirement): string => {
+      const entry = compliance.get(r.id);
+      const state: ComplianceState = entry ? entry.state : 'not-set';
+      const evidenceCount = entry?.evidence.length ?? 0;
+      const freshEvidenceCount = (entry?.evidence ?? []).filter((e) =>
+        isWithinFreshnessWindow(e.addedAt, now),
+      ).length;
+      const openActionCount = (actionsByRequirementId.get(r.id) ?? []).filter(
+        (a) => a.status !== 'done' && a.status !== 'cancelled',
+      ).length;
+      const hasMaterialRisk = (risksByRequirementId.get(r.id) ?? []).some(
+        (risk) => risk.status !== 'closed' && risk.likelihood * risk.impact >= 10,
+      );
+      const evidenceBasis =
+        evidenceCount > 0 ? assessmentBasis(evidenceCount, freshEvidenceCount) : undefined;
+      return buildRequirementFinderResultSummary({
+        statusLabel: stateLabel[state],
+        ...(evidenceBasis ? { evidenceBasis } : {}),
+        openActionCount,
+        hasMaterialRisk,
+      });
+    };
+
+    // Group by domain, then by PSPF section within each domain, for section browsing.
     const grouped = allDomains
       .filter((d) => this.selectedDomains.has(d.key))
       .map((domain) => {
-        const reqs = requirementsByDomain.get(domain.key) ?? [];
-        const visible = reqs.filter((r) => {
-          const entry = compliance.get(r.id);
-          const state: ComplianceState = entry ? entry.state : 'not-set';
-          return this.selectedStates.has(state);
-        });
-        return { domain, requirements: visible };
+        const domainRequirements = filtered.filter((r) => r.domain === domain.key);
+        const sections = new Map<
+          string,
+          { sectionCode: string; sectionTitle: string; requirements: Requirement[] }
+        >();
+        const noSection: Requirement[] = [];
+        for (const r of domainRequirements) {
+          const ref = sectionByRequirementId.get(r.canonicalId);
+          if (!ref) {
+            noSection.push(r);
+            continue;
+          }
+          const group = sections.get(ref.sectionCode) ?? {
+            sectionCode: ref.sectionCode,
+            sectionTitle: ref.sectionTitle,
+            requirements: [],
+          };
+          group.requirements.push(r);
+          sections.set(ref.sectionCode, group);
+        }
+        return {
+          domain,
+          requirements: domainRequirements,
+          sections: [...sections.values()].sort((a, b) =>
+            a.sectionCode.localeCompare(b.sectionCode),
+          ),
+          noSection,
+        };
       })
       .filter((g) => g.requirements.length > 0);
 
@@ -340,6 +482,21 @@ export class RequirementsView extends LitElement {
                 <span class="summary-label">Not set</span>
                 <span class="summary-value">${notSetCount}</span>
               </div>
+            </div>
+
+            <div class="search-field">
+              <label for="requirement-finder-query">Search requirements</label>
+              <input
+                type="search"
+                id="requirement-finder-query"
+                data-testid="requirement-finder-query"
+                placeholder="Search id, title, or text"
+                .value=${this.searchQuery}
+                @input=${(event: Event): void => {
+                  const value = (event.target as HTMLInputElement).value;
+                  this.updateSearchQuery(value);
+                }}
+              />
             </div>
 
             <fieldset>
@@ -413,7 +570,8 @@ export class RequirementsView extends LitElement {
             </fieldset>
 
             <p class="panel-note">
-              Showing ${filtered.length} of ${total} requirements across
+              Showing ${filtered.length} of ${total}
+              requirements${this.searchQuery ? ` matching "${this.searchQuery}"` : ''} across
               ${this.selectedDomains.size}
               ${this.selectedDomains.size === 1 ? 'domain' : 'domains'}.
             </p>
@@ -422,39 +580,73 @@ export class RequirementsView extends LitElement {
           <section class="list" slot="right" aria-label="Requirements list">
             ${grouped.length === 0
               ? html`<div class="placeholder">
-                  No requirements match the selected filters. Adjust the domain or compliance state
-                  filters to see requirements.
+                  No requirements match the selected filters. Adjust the domain, compliance state,
+                  or search filters to see requirements.
                 </div>`
               : grouped.map(
                   (g) => html`
                     <div class="domain-group">
                       <h3>${g.domain.name}</h3>
-                      <ul class="requirements">
-                        ${g.requirements.map((r): TemplateResult => {
-                          const entry = compliance.get(r.id);
-                          const state: ComplianceState = entry ? entry.state : 'not-set';
-                          return html`
-                            <li class="requirement">
-                              <a href="#/requirement/${r.id}">${r.id}</a>
-                              <span>${r.title}</span>
-                              <span class="requirement-status">
-                                ${changedSinceVisit.has(r.id)
-                                  ? html`<span class="changed-badge" data-testid="changed-badge"
-                                      >Changed</span
-                                    >`
-                                  : ''}
-                                <pspf-compliance-badge .state=${state}></pspf-compliance-badge>
-                              </span>
-                            </li>
-                          `;
-                        })}
-                      </ul>
+                      ${g.sections.map(
+                        (section) => html`
+                          <div class="section-group" data-testid="section-group">
+                            <h4>${section.sectionCode} — ${section.sectionTitle}</h4>
+                            <ul class="requirements">
+                              ${section.requirements.map((r) =>
+                                this.#renderRequirementItem(
+                                  r,
+                                  compliance,
+                                  changedSinceVisit,
+                                  summaryFor,
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        `,
+                      )}
+                      ${g.noSection.length > 0
+                        ? html`
+                            <ul class="requirements">
+                              ${g.noSection.map((r) =>
+                                this.#renderRequirementItem(
+                                  r,
+                                  compliance,
+                                  changedSinceVisit,
+                                  summaryFor,
+                                ),
+                              )}
+                            </ul>
+                          `
+                        : ''}
                     </div>
                   `,
                 )}
           </section>
         </pspf-list-workbench>
       </article>
+    `;
+  }
+
+  #renderRequirementItem(
+    r: Requirement,
+    compliance: ReadonlyMap<RequirementId, ComplianceEntry>,
+    changedSinceVisit: ReadonlySet<RequirementId>,
+    summaryFor: (r: Requirement) => string,
+  ): TemplateResult {
+    const entry = compliance.get(r.id);
+    const state: ComplianceState = entry ? entry.state : 'not-set';
+    return html`
+      <li class="requirement">
+        <a href="#/requirement/${r.id}">${r.id}</a>
+        <span>${r.title}</span>
+        <span class="requirement-status">
+          ${changedSinceVisit.has(r.id)
+            ? html`<span class="changed-badge" data-testid="changed-badge">Changed</span>`
+            : ''}
+          <pspf-compliance-badge .state=${state}></pspf-compliance-badge>
+        </span>
+        <p class="requirement-summary" data-testid="requirement-summary">${summaryFor(r)}</p>
+      </li>
     `;
   }
 }

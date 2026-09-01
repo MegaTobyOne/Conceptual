@@ -363,7 +363,12 @@ const coverage = [
   ]),
   adr("0096-v1-70-essentials-programme-and-surface-reduction.md", "automated", [
     "check:essentials-surface",
-    "e2e:v1.62"
+    "e2e:v1.62",
+    "check:banned-jargon",
+    "check:explainer-content",
+    "e2e:v1.63",
+    "check:requirement-finder",
+    "e2e:v1.64"
   ])
 ];
 

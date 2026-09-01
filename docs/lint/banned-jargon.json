@@ -1,0 +1,16 @@
+{
+  "pairs": [
+    { "avoid": "residual risk", "use": "risk that remains" },
+    { "avoid": "assessment basis", "use": "how sure we are, based on evidence" },
+    { "avoid": "consequence chain", "use": "why it matters" },
+    { "avoid": "blocker fan-in", "use": "most common blocker" },
+    { "avoid": "uncovered risk", "use": "risk with no protection in place" },
+    { "avoid": "security posture", "use": "overall security state" },
+    { "avoid": "closure velocity", "use": "rate of progress" },
+    { "avoid": "trajectory", "use": "expected progress" },
+    { "avoid": "artefact", "use": "document or record" },
+    { "avoid": "uplift", "use": "improvement" },
+    { "avoid": "attestation", "use": "signed statement" },
+    { "avoid": "assurance level", "use": "how confident we are" }
+  ]
+}

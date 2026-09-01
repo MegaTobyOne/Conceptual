@@ -30,6 +30,11 @@ export {
   REFERENCE_DATA_SOURCES
 } from "./generated/reference-data.js";
 
+export type { RequirementExplainerEntry } from "./explainers/section-explainers.js";
+export { REQUIREMENT_EXPLAINERS } from "./explainers/section-explainers.js";
+export type { RequirementExplainer, RequirementExplainerFacts } from "./explainers/render-explainer.js";
+export { buildRequirementExplainer } from "./explainers/render-explainer.js";
+
 export {
   QUESTIONNAIRE_STARTER_PACK,
   QUESTIONNAIRE_DOMAIN_PACKS,

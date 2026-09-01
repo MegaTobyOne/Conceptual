@@ -12,7 +12,7 @@
     "GRC",
     "security"
   ],
-  "version": "1.62.0",
+  "version": "1.64.0",
   "private": true,
   "type": "module",
   "license": "MIT",
