@@ -7,7 +7,6 @@ export { commandButtonAcknowledgementScript } from "./interactions.js";
 export {
   attentionListHtml,
   disclosureHtml,
-  lensSelectorHtml,
   metricStripHtml,
   pageHeaderHtml,
   traceChainHtml,
@@ -17,18 +16,12 @@ export type {
   AttentionItem,
   AttentionTone,
   DisclosureOptions,
-  LensSelectorOptions,
   MetricStripItem,
   PageHeaderOptions,
   TraceChainItem,
   TrustChip
 } from "./page-primitives.js";
-export {
-  decodePresentationLens,
-  DEFAULT_PRESENTATION_LENS,
-  encodePresentationLens,
-  PRESENTATION_LENS_LABELS
-} from "./presentation-lens.js";
+export { DEFAULT_PRESENTATION_LENS, normalisePresentationLens } from "./presentation-lens.js";
 export type { PresentationLens } from "./presentation-lens.js";
 export { relationshipManagerHtml } from "./relationships.js";
 export type { RelationshipManagerAction, RelationshipManagerOptions } from "./relationships.js";

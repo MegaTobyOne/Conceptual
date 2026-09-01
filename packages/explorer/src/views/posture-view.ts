@@ -44,20 +44,6 @@ export class PostureView extends LitElement {
       .posture-heading {
         order: 1;
       }
-      article[data-lens='ciso'] .brief,
-      article[data-lens='auditor'] .brief {
-        order: 2;
-      }
-      article[data-lens='ciso'] pspf-list-workbench,
-      article[data-lens='auditor'] pspf-list-workbench {
-        order: 3;
-      }
-      article[data-lens='solo'] pspf-list-workbench {
-        order: 2;
-      }
-      article[data-lens='solo'] .brief {
-        order: 3;
-      }
       h2 {
         margin: 0 0 var(--space-3) 0;
         font-size: var(--text-xl);
@@ -249,11 +235,8 @@ export class PostureView extends LitElement {
         <div class="posture-heading">
           <h2>Posture &amp; threat level</h2>
           <p>
-            ${this.lens === 'auditor'
-              ? 'Review the recorded threat assumptions, posture settings, and domain overrides before copying the evidence-backed brief.'
-              : this.lens === 'solo'
-                ? 'Set the overall threat level first. Add a domain override only when one area genuinely differs.'
-                : 'Review the organisation posture, material domain differences, and the brief for the next decision.'}
+            Review the organisation posture, material domain differences, and the brief for the next
+            decision.
           </p>
         </div>
         <section class="brief" aria-labelledby="brief-heading">

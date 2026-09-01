@@ -32,7 +32,6 @@ const ROUTES = [
   { slug: 'analytics', hash: '#/analytics', component: 'pspf-analytics-view' },
   { slug: 'risks', hash: '#/risks', component: 'pspf-risks-view' },
   { slug: 'actions', hash: '#/actions', component: 'pspf-actions-view' },
-  { slug: 'map', hash: '#/map', component: 'pspf-relationship-map-view' },
 ] as const;
 
 const STATES = ['empty', 'typical', 'volume'] as const;
@@ -168,7 +167,7 @@ for (const state of STATES) {
   }
 }
 
-test('journey: record a direction and confirm it on the relationship map', async ({ page }) => {
+test('journey: record a direction and confirm its linked requirement', async ({ page }) => {
   await resetApp(page);
   const steps: string[] = [];
   const step = (description: string) => steps.push(description);
@@ -189,15 +188,14 @@ test('journey: record a direction and confirm it on the relationship map', async
   await dirs.getByLabel(/Linked requirement IDs/i).fill('GOV-001');
   step('Save the direction');
   await dirs.getByRole('button', { name: 'Add direction' }).click();
-  step('Open the relationship map to confirm the link');
-  await page.locator('pspf-app').getByRole('link', { name: /^Map$/ }).click();
-  await expect(page.locator('pspf-relationship-map-view').getByTestId('counts')).toContainText(
-    '2 nodes',
-  );
+  step('Open the saved direction to confirm the linked requirement');
+  const directionItem = dirs.locator('li.direction', { hasText: 'Confirm evidence pack journey' });
+  await directionItem.getByRole('button', { name: 'Open' }).click();
+  await expect(directionItem.locator('a[href="#/requirement/GOV-001"]')).toBeVisible();
 
   writeChunk('journey-record-direction', {
     id: 'record-direction-and-verify',
-    title: 'Record a direction and confirm it on the relationship map',
+    title: 'Record a direction and confirm its linked requirement',
     steps: steps.length,
     stepList: steps,
   });

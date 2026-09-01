@@ -120,9 +120,9 @@ try {
   check("imported risks render in the risk register", (await riskItems.count()) > 0);
 
   // Relationship surface (ADR 0010).
-  await page.goto(`${server.baseUrl}#/map`);
-  await page.locator("pspf-relationship-map-view").waitFor({ state: "visible", timeout: 15000 });
-  check("relationship map renders", true);
+  await page.goto(`${server.baseUrl}#/relationships`);
+  await page.locator("pspf-relationships-view").waitFor({ state: "visible", timeout: 15000 });
+  check("relationships view renders", true);
 
   // Posture brief copy (shared brief renderer).
   await page.goto(`${server.baseUrl}#/posture`);

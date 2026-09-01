@@ -438,12 +438,8 @@ export class RequirementsView extends LitElement {
           { label: filteredDomain.name },
         ]
       : [{ label: 'Home', href: '#/' }, { label: 'Requirements' }];
-    const lensDescription = {
-      ciso: 'Review readiness and open the requirements driving material decisions.',
-      auditor:
-        'Review implementation state and open a requirement to inspect evidence and traceability.',
-      solo: 'Choose one requirement to assess, then record the evidence or action you already have.',
-    }[this.lens];
+    const lensDescription =
+      'Review readiness and open the requirements driving material decisions.';
 
     return html`
       <article data-lens=${this.lens}>

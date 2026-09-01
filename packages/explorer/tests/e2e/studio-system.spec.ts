@@ -59,16 +59,16 @@ test('v1.52 command trigger opens the keyboard command palette', async ({ page }
 });
 
 test('v1.52 relationship statuses use the shared bounded chip', async ({ page }) => {
-  await page.goto('./#/map');
-  const map = page.locator('pspf-relationship-map-view');
-  await expect(map).toBeVisible();
-  await map.evaluate((element) => {
+  await page.goto('./#/actions');
+  const actions = page.locator('pspf-actions-view');
+  await expect(actions).toBeVisible();
+  await actions.evaluate((element) => {
     const chip = document.createElement('pspf-status-chip');
     chip.textContent = 'Risk-managed with a deliberately long bounded status label';
     element.shadowRoot?.append(chip);
   });
 
-  const chip = map.locator('pspf-status-chip').first();
+  const chip = actions.locator('pspf-status-chip').last();
   await expect(chip).toBeVisible();
   const layout = await chip.evaluate((element) => {
     const styles = getComputedStyle(element);

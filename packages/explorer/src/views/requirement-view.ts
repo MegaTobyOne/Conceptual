@@ -20,6 +20,7 @@ import '../components/compliance-badge.ts';
 import '../components/compliance-editor.ts';
 import '../components/work-log.ts';
 import '../components/breadcrumbs.ts';
+import '../components/disclosure.ts';
 
 @customElement('pspf-requirement-view')
 export class RequirementView extends LitElement {
@@ -34,41 +35,13 @@ export class RequirementView extends LitElement {
         flex-direction: column;
         gap: var(--space-3);
       }
-      pspf-breadcrumbs {
-        order: 0;
-      }
-      header.req {
-        order: 1;
-      }
-      .req-nav {
-        order: 2;
-      }
-      article[data-lens='ciso'] .assessment,
-      article[data-lens='solo'] .assessment {
-        order: 3;
-      }
-      article[data-lens='ciso'] .requirement-text,
-      article[data-lens='solo'] .requirement-text {
-        order: 4;
-      }
-      article[data-lens='ciso'] .requirement-context,
-      article[data-lens='solo'] .requirement-context {
-        order: 5;
-      }
-      article[data-lens='auditor'] .requirement-text {
-        order: 3;
-      }
-      article[data-lens='auditor'] .requirement-context {
-        order: 4;
-      }
-      article[data-lens='auditor'] .assessment {
-        order: 5;
-      }
-      .linker {
-        order: 6;
-      }
-      .work-log {
-        order: 7;
+      .flow-step {
+        margin: var(--space-2) 0 0 0;
+        font-size: var(--text-xs);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--pspf-muted);
       }
       header.req {
         display: flex;
@@ -179,6 +152,24 @@ export class RequirementView extends LitElement {
         color: var(--pspf-accent-ink);
         border-color: var(--pspf-accent);
       }
+      .linker .create-new {
+        margin-top: var(--space-3);
+        padding-top: var(--space-3);
+        border-top: 1px solid var(--pspf-border);
+      }
+      .linker .create-new h4 {
+        margin: 0 0 var(--space-2) 0;
+        font-size: var(--text-sm);
+        color: var(--pspf-muted);
+      }
+      .linker .create-new form {
+        grid-template-columns: 1fr auto;
+      }
+      .linker .create-new + .create-new {
+        margin-top: var(--space-2);
+        padding-top: var(--space-2);
+        border-top: none;
+      }
       ul.linked {
         list-style: none;
         margin: var(--space-2) 0 0 0;
@@ -222,6 +213,10 @@ export class RequirementView extends LitElement {
 
   @state() private accessor linkTargetType: 'risk' | 'action' | 'direction' = 'risk';
   @state() private accessor linkTargetId = '';
+  @state() private accessor newActionTitle = '';
+  @state() private accessor newRiskTitle = '';
+  @state() private accessor newRiskLikelihood: 1 | 2 | 3 | 4 | 5 = 3;
+  @state() private accessor newRiskImpact: 1 | 2 | 3 | 4 | 5 = 3;
 
   override render() {
     const raw = this.params.id;
@@ -290,27 +285,37 @@ export class RequirementView extends LitElement {
           <dd>${domain?.name ?? req.domain}</dd>
           <dt>Reporting</dt>
           <dd>${req.reportingType}</dd>
-          ${e8
-            ? html`
-                <dt>Essential Eight</dt>
-                <dd>${e8.name}</dd>
-              `
-            : ''}
-          ${req.references && req.references.length > 0
-            ? html`
-                <dt>References</dt>
-                <dd>
-                  <ul class="refs">
-                    ${req.references.map((r) => this.#renderReference(r))}
-                  </ul>
-                </dd>
-              `
-            : ''}
         </dl>
+        ${e8 || (req.references && req.references.length > 0)
+          ? html`
+              <pspf-disclosure summary="Essential Eight and references">
+                <dl class="requirement-context">
+                  ${e8
+                    ? html`
+                        <dt>Essential Eight</dt>
+                        <dd>${e8.name}</dd>
+                      `
+                    : ''}
+                  ${req.references && req.references.length > 0
+                    ? html`
+                        <dt>References</dt>
+                        <dd>
+                          <ul class="refs">
+                            ${req.references.map((r) => this.#renderReference(r))}
+                          </ul>
+                        </dd>
+                      `
+                    : ''}
+                </dl>
+              </pspf-disclosure>
+            `
+          : ''}
+        <p class="flow-step">Assess</p>
         <pspf-compliance-editor
           class="assessment"
           .requirementId=${req.id}
         ></pspf-compliance-editor>
+        <p class="flow-step">Justify</p>
         <section class="consequence" data-testid="consequence">
           <h3>Consequence</h3>
           <p>${consequence}</p>
@@ -324,6 +329,7 @@ export class RequirementView extends LitElement {
           <p>${explainer.whatToDoNext}</p>
           <p class="attribution">${explainer.attribution}</p>
         </section>
+        <p class="flow-step">Act</p>
         <section class="linker">
           <h3>Link this requirement</h3>
           <form
@@ -381,6 +387,90 @@ export class RequirementView extends LitElement {
                   ${related.map((relationship) => this.#renderRelated(req.id, relationship))}
                 </ul>
               `}
+          <div class="create-new">
+            <h4>Or create a new action</h4>
+            <form
+              @submit=${(event: Event): void => {
+                event.preventDefault();
+                void this.#createAction(req.id);
+              }}
+            >
+              <label>
+                Action title
+                <input
+                  type="text"
+                  aria-label="New action title"
+                  .value=${this.newActionTitle}
+                  @input=${(event: Event): void => {
+                    const value = (event.target as HTMLInputElement).value;
+                    this.newActionTitle = value;
+                  }}
+                />
+              </label>
+              <button type="submit" ?disabled=${this.newActionTitle.trim() === ''}>
+                Create action
+              </button>
+            </form>
+          </div>
+          <div class="create-new">
+            <h4>Or create a new risk</h4>
+            <form
+              @submit=${(event: Event): void => {
+                event.preventDefault();
+                void this.#createRisk(req.id);
+              }}
+            >
+              <label>
+                Risk title
+                <input
+                  type="text"
+                  aria-label="New risk title"
+                  .value=${this.newRiskTitle}
+                  @input=${(event: Event): void => {
+                    const value = (event.target as HTMLInputElement).value;
+                    this.newRiskTitle = value;
+                  }}
+                />
+              </label>
+              <label>
+                Likelihood
+                <select
+                  aria-label="New risk likelihood"
+                  .value=${String(this.newRiskLikelihood)}
+                  @change=${(event: Event): void => {
+                    this.newRiskLikelihood = Number((event.target as HTMLSelectElement).value) as
+                      | 1
+                      | 2
+                      | 3
+                      | 4
+                      | 5;
+                  }}
+                >
+                  ${[1, 2, 3, 4, 5].map((n) => html`<option value=${n}>${n}</option>`)}
+                </select>
+              </label>
+              <label>
+                Impact
+                <select
+                  aria-label="New risk impact"
+                  .value=${String(this.newRiskImpact)}
+                  @change=${(event: Event): void => {
+                    this.newRiskImpact = Number((event.target as HTMLSelectElement).value) as
+                      | 1
+                      | 2
+                      | 3
+                      | 4
+                      | 5;
+                  }}
+                >
+                  ${[1, 2, 3, 4, 5].map((n) => html`<option value=${n}>${n}</option>`)}
+                </select>
+              </label>
+              <button type="submit" ?disabled=${this.newRiskTitle.trim() === ''}>
+                Create risk
+              </button>
+            </form>
+          </div>
         </section>
         <pspf-work-log class="work-log" .requirementId=${req.id}></pspf-work-log>
       </article>
@@ -468,6 +558,43 @@ export class RequirementView extends LitElement {
       endpoints: [requirementId, targetId],
     });
     this.linkTargetId = '';
+  }
+
+  async #createAction(requirementId: string): Promise<void> {
+    if (!this.store) return;
+    const title = this.newActionTitle.trim();
+    if (!title) return;
+    const action = await this.store.createAction({
+      title,
+      type: 'remediation',
+      status: 'todo',
+      requirementIds: [],
+      riskIds: [],
+    });
+    await this.store.createRelationship({
+      kind: 'requirement-action',
+      endpoints: [requirementId, action.id],
+    });
+    this.newActionTitle = '';
+  }
+
+  async #createRisk(requirementId: string): Promise<void> {
+    if (!this.store) return;
+    const title = this.newRiskTitle.trim();
+    if (!title) return;
+    const risk = await this.store.createRisk({
+      title,
+      likelihood: this.newRiskLikelihood,
+      impact: this.newRiskImpact,
+      status: 'open',
+      requirementIds: [],
+      actionIds: [],
+    });
+    await this.store.createRelationship({
+      kind: 'requirement-risk',
+      endpoints: [requirementId, risk.id],
+    });
+    this.newRiskTitle = '';
   }
 }
 

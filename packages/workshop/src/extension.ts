@@ -18,10 +18,8 @@ import {
   CONNECTED_VIEW_BROWSER_SCRIPT
 } from "@pspf/connected-view";
 import {
-  decodePresentationLens,
   disclosureHtml,
-  encodePresentationLens,
-  lensSelectorHtml,
+  normalisePresentationLens,
   pageHeaderHtml,
   pill as shellPill,
   trustChipsHtml,
@@ -135,7 +133,11 @@ import {
   type BlockerClass,
   computeClosureVelocity,
   projectTrajectory,
-  buildSustainNote
+  buildSustainNote,
+  buildSaveImpactSummary,
+  matchesRequirementFinderFilters,
+  compareRequirementFinderRecords,
+  type RequirementFinderRecord
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import {
@@ -153,6 +155,7 @@ import {
   requirementBrowserTitlePreview,
   requirementDisplayTitle,
   requirementNumberLabel,
+  requirementToFinderRecord,
   shortWorkshopPanelTitle
 } from "./workshop-ui.js";
 import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire } from "./questionnaire/flow.js";
@@ -394,7 +397,10 @@ async function openTreeEntity(entity: V01Entity | undefined): Promise<void> {
 export function activate(context: vscode.ExtensionContext): void {
   workshopContext = context;
   momentumBaseline = context.workspaceState.get<WorkshopMomentumSnapshot>(momentumSnapshotKey);
-  workshopPresentationLens = decodePresentationLens(context.workspaceState.get<string>(workshopLensStateKey));
+  // ADR 0096 E6 (v1.68.0): ciso/auditor/solo lenses are retired to one default view. Any stored
+  // preference migrates once, deterministically, to the default, and the old key is cleared.
+  workshopPresentationLens = normalisePresentationLens(context.workspaceState.get<string>(workshopLensStateKey));
+  void context.workspaceState.update(workshopLensStateKey, undefined);
   homeViewProvider = new WorkshopHomeViewProvider();
   const statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 90);
   statusItem.text = `$(shield) PSPF v${PSPF_SLICE_VERSION}`;
@@ -825,7 +831,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       `<section><p class="muted">Loading PSPF Workshop Home...</p></section>`
     );
     webviewView.webview.onDidReceiveMessage((message: { readonly command?: string; readonly value?: unknown }) => {
-      void this.handleMessage(message.command, message.value).catch(async (error: unknown) => {
+      void this.handleMessage(message.command).catch(async (error: unknown) => {
         const detail = error instanceof Error ? error.message : String(error);
         await vscode.window.showErrorMessage(`PSPF Workshop action failed: ${detail}`);
         await this.refresh();
@@ -860,22 +866,12 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async handleMessage(command: string | undefined, value?: unknown): Promise<void> {
+  private async handleMessage(command: string | undefined): Promise<void> {
     if (!command) {
       return;
     }
 
     if (command === "pspf.workshop.home.refresh") {
-      await this.refresh();
-      return;
-    }
-
-    if (command === "pspf.workshop.home.selectLens") {
-      workshopPresentationLens = decodePresentationLens(value);
-      await workshopContext?.workspaceState.update(
-        workshopLensStateKey,
-        encodePresentationLens(workshopPresentationLens)
-      );
       await this.refresh();
       return;
     }
@@ -1300,12 +1296,8 @@ function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens): strin
     `
     <style>
       .workshop-home { display: flex; flex-direction: column; gap: 0; }
-      .workshop-home[data-lens="ciso"] .lens-focus { order: 2; }
-      .workshop-home[data-lens="ciso"] .lens-status { order: 3; }
-      .workshop-home[data-lens="auditor"] .lens-status { order: 2; }
-      .workshop-home[data-lens="auditor"] .lens-focus { order: 3; }
-      .workshop-home[data-lens="solo"] .lens-focus { order: 2; }
-      .workshop-home[data-lens="solo"] .lens-status { order: 3; }
+      .workshop-home .lens-focus { order: 2; }
+      .workshop-home .lens-status { order: 3; }
       .workshop-home .lens-hero { order: 1; }
       .workshop-home .lens-capture { order: 4; }
       .workshop-home .lens-review { order: 5; }
@@ -1329,7 +1321,6 @@ function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens): strin
       <h2>PSPF Workshop</h2>
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · ${model.metPercentage}% met · ${model.metBasis.evidencedFreshPercentage}% ${escapeHtml(assessmentBasisLabel("evidenced-fresh").toLowerCase())}</p>
       <p class="muted">${escapeHtml(model.uncoveredRiskStatement)}</p>
-      ${lensSelectorHtml({ lens, command: "pspf.workshop.home.selectLens" })}
       ${model.momentum ? `<p class="momentum">${escapeHtml(model.momentum)}</p>` : ""}
       ${renderPostureSparkline(model.trend)}
       ${versionStrip()}
@@ -10523,6 +10514,9 @@ async function openEntityEditor(
     hasUnsavedEditorChanges = false;
     unsavedEditorFields = undefined;
     celebrateClosure(previousEntity, updated);
+    if (previousEntity.entityType === "requirement" && updated.entityType === "requirement") {
+      notifyRequirementSaveImpact(previousEntity, updated, currentEntities);
+    }
     return true;
   };
   const confirmDirtyEditorChanges = async (): Promise<boolean> => {
@@ -11120,6 +11114,65 @@ function celebrateClosure(previous: EditableWorkshopEntity, next: EditableWorksh
   }
 }
 
+/** E5 (v1.67.0, ADR 0096): what changed since the previous save, from field deltas only — never inferred. */
+function requirementSaveWhatChanged(previous: RequirementEntity, updated: RequirementEntity): string {
+  if (previous.assessmentStatus !== updated.assessmentStatus) {
+    return `Status: ${label(previous.assessmentStatus)} \u2192 ${label(updated.assessmentStatus)}`;
+  }
+  if (previous.assessmentRationale !== updated.assessmentRationale) {
+    return "Assessment rationale updated.";
+  }
+  if (previous.acceptanceDefinition !== updated.acceptanceDefinition) {
+    return "Acceptance definition updated.";
+  }
+  if (previous.summary !== updated.summary) {
+    return "Summary updated.";
+  }
+  return "";
+}
+
+/**
+ * E5 (v1.67.0, ADR 0096): post-save impact feedback for the Requirement Detail guided path, composed
+ * from buildSaveImpactSummary — no prediction, only restated facts (linked-record counts, current
+ * consequence and material-risk state).
+ */
+function notifyRequirementSaveImpact(
+  previous: RequirementEntity,
+  updated: RequirementEntity,
+  allEntities: readonly V01Entity[]
+): void {
+  const whatChanged = requirementSaveWhatChanged(previous, updated);
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity =>
+      entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.fromId === updated.id
+  );
+  const linkedIds = new Set(links.map((link) => link.toId));
+  const evidenceCount = allEntities.filter(
+    (entity) => entity.entityType === "evidence" && linkedIds.has(entity.id)
+  ).length;
+  const actionCount = allEntities.filter((entity) => entity.entityType === "action" && linkedIds.has(entity.id)).length;
+  const openLinkedRisks = allEntities.filter(
+    (entity): entity is RiskEntity =>
+      entity.entityType === "risk" && linkedIds.has(entity.id) && entity.status !== "closed"
+  );
+  const hasMaterialRisk = openLinkedRisks.some((risk) => risk.likelihood * risk.impact >= 10);
+  const consequenceStatement = buildConsequenceStatement({
+    met: updated.assessmentStatus === "met",
+    openLinkedRiskCount: openLinkedRisks.length,
+    maxLinkedRiskSeverity: openLinkedRisks.reduce((max, risk) => Math.max(max, risk.likelihood * risk.impact), 0)
+  });
+  const summary = buildSaveImpactSummary({
+    whatChanged,
+    outcome: whatChanged ? "saved" : "no-op",
+    consequenceStatement,
+    affectedEvidenceCount: evidenceCount,
+    affectedActionCount: actionCount,
+    affectedRiskCount: openLinkedRisks.length,
+    postureOrPriorityStatement: hasMaterialRisk ? "Material risk linked." : "No material risk linked."
+  });
+  void vscode.window.showInformationMessage(`${summary.headline} — ${summary.detail} ${summary.nextAction}`);
+}
+
 async function buildUpdatedEntity(
   entity: EditableWorkshopEntity,
   fields: Record<string, string>
@@ -11470,22 +11523,27 @@ function renderRequirementEditor(
         reviewed: mapping.lastReviewedAt ? formatDisplayDate(new Date(mapping.lastReviewedAt)) : "Not recorded"
       };
     });
-  const linkedRecordsOpen = workshopPresentationLens === "auditor";
-  const advancedOpen = workshopPresentationLens === "auditor";
+  // ADR 0096 E6: lens-conditional disclosure defaults are retired; collapsed by default for everyone.
+  const linkedRecordsOpen = false;
+  const advancedOpen = false;
+  const openLinkedRisks = riskItems.filter((risk) => risk.status !== "closed");
+  const consequenceStatement = buildConsequenceStatement({
+    met: requirement.assessmentStatus === "met",
+    openLinkedRiskCount: openLinkedRisks.length,
+    maxLinkedRiskSeverity: openLinkedRisks.reduce((max, risk) => Math.max(max, risk.likelihood * risk.impact), 0)
+  });
+  const openActionCount = actionItems.filter(
+    (action) => action.status !== "done" && action.status !== "cancelled"
+  ).length;
+  const explainer = buildRequirementExplainer({
+    requirementId: requirement.id,
+    consequenceStatement,
+    openBlockerCount: openActionCount
+  });
   const editorContent = `${pageHeaderHtml({
-    eyebrow:
-      workshopPresentationLens === "ciso"
-        ? "Decision view"
-        : workshopPresentationLens === "auditor"
-          ? "Assurance view"
-          : "Guided view",
+    eyebrow: "Decision view",
     title: requirement.title,
-    description:
-      workshopPresentationLens === "ciso"
-        ? "Review readiness, material exposure, and the next decision."
-        : workshopPresentationLens === "auditor"
-          ? "Review evidence currency, provenance, mappings, and traceability."
-          : "Complete the essential assessment fields, then add supporting records when ready."
+    description: "Review readiness, material exposure, and the next decision."
   })}
   ${trustChipsHtml([
     { label: "OFFICIAL: Sensitive", strong: true },
@@ -11493,6 +11551,7 @@ function renderRequirementEditor(
     { label: label(requirement.assessmentStatus) },
     { label: domainName(requirement.domainId) }
   ])}
+  <h3 class="flow-step">Assess</h3>
   ${editorShell(
     requirement,
     "Edit Requirement",
@@ -11512,6 +11571,21 @@ function renderRequirementEditor(
     isBaseline ? "Official PSPF baseline title and domain are locked." : undefined,
     requirementNavigationStrip(requirement, allEntities)
   )}
+    <h3 class="flow-step">Justify</h3>
+    <section class="consequence">
+      <h2>Consequence</h2>
+      <p>${escapeHtml(consequenceStatement)}</p>
+    </section>
+    <section class="explainer">
+      <h2>What this means</h2>
+      <p>${escapeHtml(explainer.whatThisMeans)}</p>
+      <h2>Why it matters</h2>
+      <p>${escapeHtml(explainer.whyItMatters)}</p>
+      <h2>What to do next</h2>
+      <p>${escapeHtml(explainer.whatToDoNext)}</p>
+      <p class="attribution">${escapeHtml(explainer.attribution)}</p>
+    </section>
+    <h3 class="flow-step">Act</h3>
     <section>
       <h2>Requirement Workbench</h2>
       <p class="muted">Add or open the linked records that drive this Requirement's assessment.</p>
@@ -11590,6 +11664,7 @@ function requirementSignalCard(labelText: string, value: string, detail: string)
 function requirementWorkbenchStyles(): string {
   return `<style>
     .requirement-page { display: grid; gap: 12px; }
+    .flow-step { margin: 12px 0 0 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
     .requirement-page__tabs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
     .requirement-page__tabs button[aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 16%, var(--surface-strong)); }
     .requirement-signals { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
@@ -13317,33 +13392,22 @@ async function openWorkshopRequirementsView(savedView: SavedViewEntity): Promise
   });
 }
 
+// E3 (v1.65.0, ADR 0096): adapts a Workshop RequirementEntity onto the shared, host-agnostic
+// @pspf/contracts finder record so filtering/ordering can never drift from Explorer's (E2).
+function workshopFinderRecordFor(
+  requirement: RequirementEntity,
+  links: readonly LinkEntity[]
+): RequirementFinderRecord {
+  const tagIds = links.filter((link) => link.fromId === requirement.id).map((link) => link.toId);
+  return requirementToFinderRecord(requirement, tagIds);
+}
+
 function savedViewMatchesRequirement(
   savedView: SavedViewEntity,
   requirement: RequirementEntity,
   links: readonly LinkEntity[]
 ): boolean {
-  const filters = savedView.filters;
-  const query = filters.query?.trim().toLocaleLowerCase("en-AU");
-  if (query && !`${requirement.title} ${requirement.summary ?? ""}`.toLocaleLowerCase("en-AU").includes(query)) {
-    return false;
-  }
-  if ((filters.domainIds ?? []).length > 0 && !filters.domainIds?.includes(requirement.domainId)) {
-    return false;
-  }
-  if (
-    (filters.assessmentStatuses ?? []).length > 0 &&
-    !filters.assessmentStatuses?.includes(requirement.assessmentStatus)
-  ) {
-    return false;
-  }
-  const tagIds = filters.tagIds ?? [];
-  if (tagIds.length > 0) {
-    const requirementTagIds = new Set(links.filter((link) => link.fromId === requirement.id).map((link) => link.toId));
-    return filters.tagsMode === "all"
-      ? tagIds.every((id) => requirementTagIds.has(id))
-      : tagIds.some((id) => requirementTagIds.has(id));
-  }
-  return true;
+  return matchesRequirementFinderFilters(workshopFinderRecordFor(requirement, links), savedView.filters);
 }
 
 function savedViewMatchesSourceControl(savedView: SavedViewEntity, sourceControl: SourceControlEntity): boolean {
@@ -14487,12 +14551,12 @@ async function listRequirements(): Promise<RequirementEntity[]> {
 }
 
 function compareRequirementsForPicker(left: RequirementEntity, right: RequirementEntity): number {
-  const leftDomain = PSPF_DOMAINS.findIndex((domain) => domain.id === left.domainId);
-  const rightDomain = PSPF_DOMAINS.findIndex((domain) => domain.id === right.domainId);
-  if (leftDomain !== rightDomain) {
-    return leftDomain - rightDomain;
-  }
-  return requirementDisplayTitle(left.title).localeCompare(requirementDisplayTitle(right.title));
+  const domainOrder = PSPF_DOMAINS.map((domain) => domain.id);
+  return compareRequirementFinderRecords(
+    workshopFinderRecordFor(left, []),
+    workshopFinderRecordFor(right, []),
+    domainOrder
+  );
 }
 
 function compareDirectionsForPicker(left: DirectionEntity, right: DirectionEntity): number {

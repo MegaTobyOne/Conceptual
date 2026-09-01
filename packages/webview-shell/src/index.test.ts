@@ -6,15 +6,13 @@ import {
   bannerHtml,
   commandButtonAcknowledgementScript,
   cspNonce,
-  decodePresentationLens,
   disclosureHtml,
-  encodePresentationLens,
   escapeHtml,
   escapeHtmlAttribute,
   escapeHtmlText,
   homePanelShellHtml,
-  lensSelectorHtml,
   metricStripHtml,
+  normalisePresentationLens,
   pageHeaderHtml,
   pill,
   relationshipManagerHtml,
@@ -186,11 +184,12 @@ test("home panels consume every canonical product identity", () => {
   }
 });
 
-test("presentation lenses decode malformed values to the neutral CISO view", () => {
-  assert.equal(decodePresentationLens(undefined), "ciso");
-  assert.equal(decodePresentationLens("bad"), "ciso");
-  assert.equal(decodePresentationLens("auditor"), "auditor");
-  assert.equal(encodePresentationLens("solo"), "solo");
+test("presentation lenses are retired: any stored value normalises to the single default (ADR 0096 E6)", () => {
+  assert.equal(normalisePresentationLens(undefined), "ciso");
+  assert.equal(normalisePresentationLens("bad"), "ciso");
+  assert.equal(normalisePresentationLens("auditor"), "ciso");
+  assert.equal(normalisePresentationLens("solo"), "ciso");
+  assert.equal(normalisePresentationLens("ciso"), "ciso");
 });
 
 test("v1.50 page primitives escape text and preserve supplied safe action markup", () => {
@@ -211,14 +210,6 @@ test("v1.50 page primitives escape text and preserve supplied safe action markup
     disclosureHtml({ summary: "Advanced <tools>", bodyHtml: "<p>Body</p>", open: true }),
     /<details[^>]* open>/
   );
-});
-
-test("lens selector renders every presentation lens and selected state", () => {
-  const html = lensSelectorHtml({ lens: "auditor", command: 'choose"lens' });
-  assert.match(html, /value="ciso"/);
-  assert.match(html, /value="auditor" selected/);
-  assert.match(html, /value="solo"/);
-  assert.match(html, /data-command="choose&quot;lens"/);
 });
 
 test("button acknowledgement waits before showing busy state", () => {

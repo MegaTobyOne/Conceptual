@@ -7,7 +7,6 @@ import {
   attentionListHtml,
   disclosureHtml,
   homePanelShellHtml,
-  lensSelectorHtml,
   metricStripHtml,
   pageHeaderHtml,
   traceChainHtml,
@@ -76,7 +75,6 @@ function fixtureBody(product) {
         { label: "Local workspace" },
         { label: "Current snapshot" }
       ])}
-      ${lensSelectorHtml({ lens: "ciso", command: "selectLens" })}
       ${metricStripHtml([
         { label: "Requirements", value: 108 },
         { label: "Needs attention", value: 4 },
@@ -104,6 +102,7 @@ function fixtureBody(product) {
         bodyHtml: "<p>Provenance and compatibility details remain available.</p>",
         open: product === "assurance"
       })}
+      <button type="button" data-command="copy-brief">Copy posture brief</button>
     </section>`;
 }
 

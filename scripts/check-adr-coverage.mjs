@@ -368,7 +368,14 @@ const coverage = [
     "check:explainer-content",
     "e2e:v1.63",
     "check:requirement-finder",
-    "e2e:v1.64"
+    "e2e:v1.64",
+    "check:requirement-finder-parity",
+    "e2e:v1.65",
+    "check:requirement-decision-flow",
+    "e2e:v1.66",
+    "check:save-impact-feedback",
+    "e2e:v1.67",
+    "e2e:v1.68"
   ])
 ];
 

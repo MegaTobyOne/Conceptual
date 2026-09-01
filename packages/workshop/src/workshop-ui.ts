@@ -11,6 +11,42 @@ export type RequirementBrowserTitleSource = {
   readonly title?: unknown;
 };
 
+export type RequirementFinderAdapterSource = {
+  readonly id: string;
+  readonly title?: unknown;
+  readonly summary?: string;
+  readonly domainId: string;
+  readonly assessmentStatus: string;
+};
+
+export interface RequirementFinderRecordShape {
+  readonly id: string;
+  readonly title: string;
+  readonly searchText: string;
+  readonly domainId: string;
+  readonly status: string;
+  readonly tagIds: readonly string[];
+}
+
+/**
+ * E3 (v1.65.0, ADR 0096): adapts a Workshop requirement onto the shared, host-agnostic
+ * `@pspf/contracts` finder record shape so filtering/ordering can never drift from Explorer's (E2).
+ * Kept free of "vscode" and heavy contracts entity imports so it can be unit-tested directly.
+ */
+export function requirementToFinderRecord(
+  requirement: RequirementFinderAdapterSource,
+  tagIds: readonly string[]
+): RequirementFinderRecordShape {
+  return {
+    id: requirement.id,
+    title: requirementDisplayTitle(requirement.title),
+    searchText: requirement.summary ?? "",
+    domainId: requirement.domainId,
+    status: requirement.assessmentStatus,
+    tagIds
+  };
+}
+
 const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export function formatWorkshopLabel(value: unknown): string {

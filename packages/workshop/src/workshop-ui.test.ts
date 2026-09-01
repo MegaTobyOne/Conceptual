@@ -8,6 +8,7 @@ import {
   requirementBrowserTitlePreview,
   requirementDisplayTitle,
   requirementNumberLabel,
+  requirementToFinderRecord,
   shortWorkshopPanelTitle
 } from "./workshop-ui.js";
 import { escapeHtml, metricCardHtml } from "./webview/shell.js";
@@ -61,6 +62,37 @@ test("Requirement browser title helpers tolerate malformed legacy rows", () => {
   );
 });
 
+test("requirementToFinderRecord adapts a Workshop requirement onto the shared finder record shape", () => {
+  const record = requirementToFinderRecord(
+    {
+      id: "REQ-PSPF-2025-001",
+      title: "PSPF 001 - Governance roles",
+      summary: "Covers whole-of-government roles",
+      domainId: "DOM-GOV",
+      assessmentStatus: "met"
+    },
+    ["TAG-urgent"]
+  );
+  assert.deepEqual(record, {
+    id: "REQ-PSPF-2025-001",
+    title: "PSPF 001 - Governance roles",
+    searchText: "Covers whole-of-government roles",
+    domainId: "DOM-GOV",
+    status: "met",
+    tagIds: ["TAG-urgent"]
+  });
+});
+
+test("requirementToFinderRecord tolerates a missing summary and malformed title", () => {
+  const record = requirementToFinderRecord(
+    { id: "REQ-PSPF-2025-002", title: undefined, domainId: "DOM-GOV", assessmentStatus: "not-started" },
+    []
+  );
+  assert.equal(record.title, "Untitled Requirement");
+  assert.equal(record.searchText, "");
+  assert.deepEqual(record.tagIds, []);
+});
+
 test("other edit tabs use compact type and id labels", () => {
   assert.equal(
     shortWorkshopPanelTitle({
@@ -109,15 +141,15 @@ test("requirement browser exposes domain tabs, Directions lens, and clearable fi
   assert.match(source, /data-requirement-tab'\) === 'all'/);
 });
 
-test("Workshop presentation lenses remain local UI preferences", async () => {
+test("Workshop presentation lenses are retired to one default view (ADR 0096 E6)", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
-  assert.match(source, /pspf\.workshop\.presentationLens/);
-  assert.match(source, /decodePresentationLens/);
-  assert.match(source, /workspaceState\.update/);
-  assert.match(source, /pspf\.workshop\.home\.selectLens/);
+  assert.match(source, /normalisePresentationLens/);
+  assert.match(source, /workspaceState\.update\(workshopLensStateKey, undefined\)/);
   assert.match(source, /data-lens=/);
   assert.match(source, /disclosureHtml/);
+  assert.doesNotMatch(source, /decodePresentationLens|encodePresentationLens|lensSelectorHtml/);
+  assert.doesNotMatch(source, /pspf\.workshop\.home\.selectLens/);
   assert.doesNotMatch(source, /globalState\.update\([\s\S]*presentationLens/);
 });
 

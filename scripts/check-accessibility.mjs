@@ -18,7 +18,16 @@ await mkdir(reportDirectory, { recursive: true });
 
 assert.ok(existsSync(join(distDir, "index.html")), "packages/explorer/dist/index.html missing; run pnpm build first");
 
-const routes = ["#/", "#/requirements", "#/risks", "#/actions", "#/posture", "#/core", "#/map", "#/analytics"];
+const routes = [
+  "#/",
+  "#/requirements",
+  "#/risks",
+  "#/actions",
+  "#/posture",
+  "#/core",
+  "#/relationships",
+  "#/analytics"
+];
 
 const server = await serveStaticDir(distDir);
 const browser = await chromium.launch({ headless: true });

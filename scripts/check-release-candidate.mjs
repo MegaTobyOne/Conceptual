@@ -69,7 +69,11 @@ const axesByMinorVersion = new Map([
   [61, "1.15.0"],
   [62, "1.15.0"],
   [63, "1.15.0"],
-  [64, "1.15.0"]
+  [64, "1.15.0"],
+  [65, "1.15.0"],
+  [66, "1.15.0"],
+  [67, "1.15.0"],
+  [68, "1.15.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -117,7 +121,7 @@ assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion
 
 const e2eScript =
   minorVersion >= 60
-    ? `e2e:v1.${Math.min(minorVersion, 64)}`
+    ? `e2e:v1.${Math.min(minorVersion, 68)}`
     : minorVersion >= 59
       ? "e2e:v1.59"
       : minorVersion >= 58
@@ -1986,6 +1990,159 @@ if (isV1Release && minorVersion >= 64) {
     `PSPF_SLICE_VERSION\` are \`${expectedVersion}\``,
     "Finder parity gate",
     "check:requirement-finder"
+  ]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+}
+
+if (isV1Release && minorVersion >= 65) {
+  assert.equal(
+    existsSync(join(root, "scripts/check-requirement-finder-parity.mjs")),
+    true,
+    "scripts/check-requirement-finder-parity.mjs should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "packages/contracts/src/requirement-finder-parity.test.ts")),
+    true,
+    "packages/contracts/src/requirement-finder-parity.test.ts should exist"
+  );
+  for (const requiredScript of ["check:requirement-finder-parity", "e2e:v1.65", "e2e:v1.65:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.65"].includes("e2e:v1.64"), true, "e2e:v1.65 should include v1.64 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.65:run"].includes("e2e:v1.64:run"),
+    true,
+    "e2e:v1.65:run should include v1.64 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  for (const requiredText of [
+    `PSPF_SLICE_VERSION\` are \`${expectedVersion}\``,
+    "Finder parity gate",
+    "check:requirement-finder-parity"
+  ]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+}
+
+if (isV1Release && minorVersion >= 66) {
+  assert.equal(
+    existsSync(join(root, "scripts/check-requirement-decision-flow.mjs")),
+    true,
+    "scripts/check-requirement-decision-flow.mjs should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "packages/explorer/src/components/disclosure.ts")),
+    true,
+    "packages/explorer/src/components/disclosure.ts should exist"
+  );
+  for (const requiredScript of ["check:requirement-decision-flow", "e2e:v1.66", "e2e:v1.66:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.66"].includes("e2e:v1.65"), true, "e2e:v1.66 should include v1.65 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.66:run"].includes("e2e:v1.65:run"),
+    true,
+    "e2e:v1.66:run should include v1.65 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  for (const requiredText of [
+    `PSPF_SLICE_VERSION\` are \`${expectedVersion}\``,
+    "Decision and action flow gate",
+    "check:requirement-decision-flow"
+  ]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+}
+
+if (isV1Release && minorVersion >= 67) {
+  assert.equal(
+    existsSync(join(root, "scripts/check-save-impact-feedback.mjs")),
+    true,
+    "scripts/check-save-impact-feedback.mjs should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "packages/contracts/src/save-impact-summary.test.ts")),
+    true,
+    "packages/contracts/src/save-impact-summary.test.ts should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "packages/explorer/src/components/toast.ts")),
+    true,
+    "packages/explorer/src/components/toast.ts should exist"
+  );
+  for (const requiredScript of ["check:save-impact-feedback", "e2e:v1.67", "e2e:v1.67:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.67"].includes("e2e:v1.66"), true, "e2e:v1.67 should include v1.66 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.67:run"].includes("e2e:v1.66:run"),
+    true,
+    "e2e:v1.67:run should include v1.66 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  for (const requiredText of [
+    `PSPF_SLICE_VERSION\` are \`${expectedVersion}\``,
+    "Impact-feedback gate",
+    "check:save-impact-feedback"
+  ]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+}
+
+if (isV1Release && minorVersion >= 68) {
+  assert.equal(
+    existsSync(join(root, "scripts/check-essentials-surface.mjs")),
+    true,
+    "scripts/check-essentials-surface.mjs should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "packages/webview-shell/src/presentation-lens.ts")),
+    true,
+    "packages/webview-shell/src/presentation-lens.ts should exist"
+  );
+  const presentationLensSource = await readFile(join(root, "packages/webview-shell/src/presentation-lens.ts"), "utf8");
+  assert.equal(
+    presentationLensSource.includes("normalisePresentationLens"),
+    true,
+    "presentation-lens.ts should define normalisePresentationLens for the retired lens migration"
+  );
+  assert.equal(
+    presentationLensSource.includes("lensSelectorHtml"),
+    false,
+    "presentation-lens.ts should no longer expose a lens selector"
+  );
+  for (const requiredScript of ["check:essentials-surface", "e2e:v1.68", "e2e:v1.68:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.68"].includes("e2e:v1.67"), true, "e2e:v1.68 should include v1.67 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.68:run"].includes("e2e:v1.67:run"),
+    true,
+    "e2e:v1.68:run should include v1.67 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  for (const requiredText of [
+    `PSPF_SLICE_VERSION\` are \`${expectedVersion}\``,
+    "subtraction gate",
+    "Lens-migration gate",
+    "check:essentials-surface"
   ]) {
     assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
   }

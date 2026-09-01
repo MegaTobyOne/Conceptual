@@ -27,21 +27,11 @@ const BUDGETS = [
   { pattern: /^actions-view-.*\.js$/, label: 'actions view', maxGzipKb: 5.5 },
   { pattern: /^directions-view-.*\.js$/, label: 'directions view', maxGzipKb: 5.5 },
   { pattern: /^risk-action-import-view-.*\.js$/, label: 'work import view', maxGzipKb: 8.8 },
-  {
-    pattern: /^(cytoscape|relationship-map-view)-.*\.js$/,
-    label: 'relationship map (lazy)',
-    maxGzipKb: 176,
-  },
-  {
-    pattern: /^connected-view-3d-lab-.*\.js$/,
-    label: '3D concepts (lazy)',
-    maxGzipKb: 160,
-  },
 ];
 
 // Lazy chunks excluded from the total-JS budget because they only load on a
 // specific route. Each must still have its own per-file budget above.
-const EXCLUDE_FROM_TOTAL = /^(cytoscape|relationship-map-view|connected-view-3d-lab)-.*\.js$/;
+const EXCLUDE_FROM_TOTAL = /^$/;
 
 // Covers all non-map JS route chunks. Raised for the v3.2 long-list, import
 // review, Essential Eight, and Directions reporting release scope.
@@ -54,7 +44,10 @@ const EXCLUDE_FROM_TOTAL = /^(cytoscape|relationship-map-view|connected-view-3d-
 // imports buildRequirementExplainer from @pspf/reference-data, pulling in
 // PSPF_REQUIREMENT_REFERENCES for section lookup (~27.7 KB gz for the chunk alone).
 // New target is 160 KB (measured non-lazy total 157.33 KB + small headroom).
-const TOTAL_GZIP_KB_BUDGET = 160;
+// Rebaselined at v1.66.0 (ADR 0096 E4): requirement-view.ts gained a disclosure component and
+// create-new action/risk sub-forms (measured non-lazy total 159.50 KB); E5 (v1.67.0) is expected
+// to add a small toast/snackbar component next. New target is 165 KB.
+const TOTAL_GZIP_KB_BUDGET = 165;
 
 const files = readdirSync(ROOT).filter((f) => f.endsWith('.js'));
 let totalGzip = 0;
