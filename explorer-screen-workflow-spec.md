@@ -224,7 +224,9 @@ Theme and presentation preferences are browser-local UI state. First use is Dark
 
 **Primary content:**
 
-- filter bar
+- filter bar with text search (ADR 0096 E2: shared `@pspf/contracts` requirement finder — `searchRequirements`/`matchesRequirementFinderFilters`/`compareRequirementFinderRecords`, deterministic ordering)
+- PSPF section browsing within each domain group (section code + title, resolved from `@pspf/reference-data`)
+- per-result decision summary (current assessment, evidence confidence, open actions, material risk — `buildRequirementFinderResultSummary`)
 - requirements table/list
 - optional summary chips above table
 

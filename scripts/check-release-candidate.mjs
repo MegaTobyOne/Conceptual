@@ -68,7 +68,8 @@ const axesByMinorVersion = new Map([
   [60, "1.15.0"],
   [61, "1.15.0"],
   [62, "1.15.0"],
-  [63, "1.15.0"]
+  [63, "1.15.0"],
+  [64, "1.15.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -116,7 +117,7 @@ assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion
 
 const e2eScript =
   minorVersion >= 60
-    ? `e2e:v1.${Math.min(minorVersion, 63)}`
+    ? `e2e:v1.${Math.min(minorVersion, 64)}`
     : minorVersion >= 59
       ? "e2e:v1.59"
       : minorVersion >= 58
@@ -1951,6 +1952,40 @@ if (isV1Release && minorVersion >= 63) {
     "Plain-language gate",
     "check:explainer-content",
     "check:banned-jargon"
+  ]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+}
+
+if (isV1Release && minorVersion >= 64) {
+  assert.equal(
+    existsSync(join(root, "scripts/check-requirement-finder.mjs")),
+    true,
+    "scripts/check-requirement-finder.mjs should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "packages/contracts/src/requirement-finder.test.ts")),
+    true,
+    "packages/contracts/src/requirement-finder.test.ts should exist"
+  );
+  for (const requiredScript of ["check:requirement-finder", "e2e:v1.64", "e2e:v1.64:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.64"].includes("e2e:v1.63"), true, "e2e:v1.64 should include v1.63 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.64:run"].includes("e2e:v1.63:run"),
+    true,
+    "e2e:v1.64:run should include v1.63 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  for (const requiredText of [
+    `PSPF_SLICE_VERSION\` are \`${expectedVersion}\``,
+    "Finder parity gate",
+    "check:requirement-finder"
   ]) {
     assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
   }

@@ -366,7 +366,9 @@ const coverage = [
     "e2e:v1.62",
     "check:banned-jargon",
     "check:explainer-content",
-    "e2e:v1.63"
+    "e2e:v1.63",
+    "check:requirement-finder",
+    "e2e:v1.64"
   ])
 ];
 
