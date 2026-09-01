@@ -20,7 +20,7 @@ assert.equal(run.status, 0, "ux evidence pack Playwright run must pass");
 
 const EXPECTED_STATES = ["empty", "typical", "volume"];
 const EXPECTED_THEMES = ["dark", "light"];
-const EXPECTED_JOURNEYS = 2;
+const EXPECTED_JOURNEYS = 3;
 
 const chunkFiles = (await readdir(join(packRoot, "chunks"))).filter((file) => file.endsWith(".json")).sort();
 const screenshots = [];

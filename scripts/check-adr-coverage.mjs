@@ -375,7 +375,9 @@ const coverage = [
     "e2e:v1.66",
     "check:save-impact-feedback",
     "e2e:v1.67",
-    "e2e:v1.68"
+    "e2e:v1.68",
+    "e2e:v1.69",
+    "e2e:v1.70"
   ])
 ];
 

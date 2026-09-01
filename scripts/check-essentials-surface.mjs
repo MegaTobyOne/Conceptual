@@ -1,6 +1,7 @@
 // E0 gate (ADR 0096): records the Explorer/Workshop surface baseline and fails on further growth.
 // E6 (v1.68.0) activates the retired-view-reappearance, demoted-view-outside-Advanced, and
 // essentials-nav-item-count checks now that the surface reduction has shipped.
+// E7 (v1.69.0) activates the retired-command-reappearance check for the three removed Workshop panels.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -60,6 +61,24 @@ assert.ok(
   essentialsNavCount <= 7,
   `essentials nav items (${essentialsNavCount}) must be \u2264 7 per ADR 0096 E6; demote the rest behind 'advanced'`
 );
+
+// E7: retired Workshop panel commands must never reappear.
+for (const retiredCommand of [
+  "pspf.workshop.openHumanCentredRiskView",
+  "pspf.workshop.openContinuousComplianceMetro",
+  "pspf.workshop.openUnifiedSecurityOperatingModel"
+]) {
+  assert.equal(
+    workshopExtensionSource.includes(retiredCommand),
+    false,
+    `retired command ${retiredCommand} must not reappear in extension.ts (ADR 0096 E7)`
+  );
+  assert.equal(
+    workshopPackage.contributes.commands.some((entry) => entry.command === retiredCommand),
+    false,
+    `retired command ${retiredCommand} must not reappear in contributes.commands (ADR 0096 E7)`
+  );
+}
 
 console.log(
   `ok essentials surface within baseline: routes ${explorerRoutes}/${baseline.explorerRoutes}, ` +

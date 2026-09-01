@@ -403,7 +403,7 @@ test("Master Dashboard groups tools into portal sections", async () => {
   assert.match(shellSource, /\.portal-actions \{ display: grid; grid-template-rows: repeat\(3,/);
   assert.match(source, /function renderDecisionLoopCards/);
   assert.match(source, /class="decision-loop-grid"/);
-  assert.match(source, /"pspf\.workshop\.openHumanCentredRiskView"/);
+  assert.match(source, /"pspf\.workshop\.openConnectedView"/);
   assert.match(source, /function renderStrategyPerformanceCards/);
   assert.match(source, /class="strategy-performance-grid"/);
 });
@@ -443,17 +443,6 @@ test("Plan of Action hides closed work by default and exposes a deliberate revea
   assert.match(shellSource, /\.poa-bar--cancelled/);
 });
 
-test("Human-Centred Risk View renders an impact likelihood matrix", async () => {
-  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
-
-  assert.match(source, /function renderHumanCentredRiskMatrix/);
-  assert.match(source, /Impact v Likelihood Matrix/);
-  assert.match(source, /class="cc-risk-matrix"/);
-  assert.match(source, /data-band="green"/);
-  assert.match(source, /data-band="amber"/);
-  assert.match(source, /data-band="red"/);
-});
-
 test("ISM controls expose principle groups and safe display names", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
@@ -478,10 +467,7 @@ test("Workshop tree title menus link summaries to browse panels", async () => {
     manifest,
     /"command": "pspf\.workshop\.openPlanOfActionBoard"[\s\S]*"view == pspfWorkshop\.actionsView"/
   );
-  assert.match(
-    manifest,
-    /"command": "pspf\.workshop\.openHumanCentredRiskView"[\s\S]*"view == pspfWorkshop\.risksView"/
-  );
+  assert.match(manifest, /"command": "pspf\.workshop\.openConnectedView"[\s\S]*"view == pspfWorkshop\.risksView"/);
 });
 
 test("Requirement 92 is excluded from Essential Eight dashboard matching", async () => {

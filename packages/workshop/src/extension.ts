@@ -37,19 +37,12 @@ import {
 import {
   buildPspfGridModel,
   type PspfGridModel,
-  buildHumanCentredRiskModel,
-  type HumanCentredRiskModel,
-  buildContinuousComplianceMetroModel,
-  type ContinuousComplianceMetroModel,
-  buildUnifiedSecurityOperatingModel,
-  type UnifiedSecurityOperatingModel,
   buildCyberAwarenessChangeStrategyModel,
   type CyberAwarenessChangeStrategyModel,
   buildStrategyPrioritySummary,
   type StrategyPrioritySummary,
   buildStrategyDeliverySummary,
-  CONTINUOUS_COMPLIANCE_ASSURANCE_BANDS,
-  CONTINUOUS_COMPLIANCE_RISK_SEVERITIES
+  CONTINUOUS_COMPLIANCE_ASSURANCE_BANDS
 } from "./continuous-compliance.js";
 import {
   buildPentestWorkbenchModel,
@@ -460,12 +453,6 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
     vscode.commands.registerCommand("pspf.workshop.openMasterDashboard", openMasterDashboard),
     vscode.commands.registerCommand("pspf.workshop.openPspfGridView", openPspfGridView),
-    vscode.commands.registerCommand("pspf.workshop.openHumanCentredRiskView", openHumanCentredRiskView),
-    vscode.commands.registerCommand("pspf.workshop.openContinuousComplianceMetro", openContinuousComplianceMetro),
-    vscode.commands.registerCommand(
-      "pspf.workshop.openUnifiedSecurityOperatingModel",
-      openUnifiedSecurityOperatingModel
-    ),
     vscode.commands.registerCommand("pspf.workshop.openCyberAwarenessChangeStrategy", openCyberAwarenessChangeStrategy),
     vscode.commands.registerCommand("pspf.workshop.openPentestWorkbench", openPentestWorkbench),
     vscode.commands.registerCommand("pspf.workshop.openRequirementCardView", openRequirementCardView),
@@ -916,9 +903,6 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openAssessmentDashboard",
       "pspf.workshop.openMasterDashboard",
       "pspf.workshop.openPspfGridView",
-      "pspf.workshop.openHumanCentredRiskView",
-      "pspf.workshop.openContinuousComplianceMetro",
-      "pspf.workshop.openUnifiedSecurityOperatingModel",
       "pspf.workshop.openCyberAwarenessChangeStrategy",
       "pspf.workshop.openPentestWorkbench",
       "pspf.workshop.openRequirementCardView",
@@ -3962,8 +3946,8 @@ async function openMasterDashboard(): Promise<void> {
       strategyChoices,
       `${strategyMeasures} measures`,
       "Why this control here, why now?",
-      "pspf.workshop.openHumanCentredRiskView",
-      "Open risk panel"
+      "pspf.workshop.openConnectedView",
+      "Open risk trace"
     ),
     masterLoopRow(
       "Governance, Metrics and Reporting",
@@ -4933,314 +4917,6 @@ function continuousComplianceStyles(): string {
     .cc-support-body strong { font-size: 13px; }
     .cc-support-meta { color: var(--muted); font-size: 12px; }
   </style>`;
-}
-
-async function openHumanCentredRiskView(): Promise<void> {
-  await ensureCoreReady();
-  const panel = vscode.window.createWebviewPanel(
-    "pspfHumanCentredRiskView",
-    "Human-Centred Risk View",
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-  wireWorkshopPanelMessages(panel, async () => {
-    panel.webview.html = renderHumanCentredRiskView(buildHumanCentredRiskModel(await listAllEntities()));
-  });
-  panel.webview.html = renderHumanCentredRiskView(buildHumanCentredRiskModel(await listAllEntities()));
-}
-
-function renderHumanCentredRiskItem(item: {
-  readonly title: string;
-  readonly severityId: string;
-  readonly severityLabel: string;
-  readonly statusLabel: string;
-  readonly treatmentLabel: string;
-  readonly linkedActions: number;
-}): string {
-  const actionsNote =
-    item.linkedActions > 0
-      ? `${item.linkedActions} linked action${item.linkedActions === 1 ? "" : "s"}`
-      : "No linked actions yet";
-  return `
-    <li class="cc-risk-item">
-      <span class="cc-severity-pill" data-severity="${escapeHtml(item.severityId)}">${escapeHtml(item.severityLabel)}</span>
-      <div class="cc-risk-item__body">
-        <strong>${escapeHtml(item.title)}</strong>
-        <span class="cc-risk-item__meta">${escapeHtml(item.statusLabel)} · ${escapeHtml(item.treatmentLabel)} · ${escapeHtml(actionsNote)}</span>
-      </div>
-    </li>`;
-}
-
-function renderHumanCentredRiskMatrix(model: HumanCentredRiskModel): string {
-  const rows = [5, 4, 3, 2, 1]
-    .map((impact) => {
-      const cells = [1, 2, 3, 4, 5]
-        .map((likelihood) => {
-          const cell = model.riskMatrix.find(
-            (candidate) => candidate.impact === impact && candidate.likelihood === likelihood
-          );
-          const riskCount = cell?.riskCount ?? 0;
-          const band = cell?.band ?? "green";
-          return `<td class="cc-risk-matrix__cell" data-band="${escapeHtml(band)}"><strong>${riskCount}</strong><span>${escapeHtml(
-            band
-          )}</span></td>`;
-        })
-        .join("");
-      return `<tr><th scope="row">Impact ${impact}</th>${cells}</tr>`;
-    })
-    .join("");
-  return `<section>
-    <h2>Impact v Likelihood Matrix</h2>
-    <p class="muted">Risk count by score. Green is low exposure, amber is medium exposure, and red is high exposure.</p>
-    <div class="cc-risk-matrix-wrap">
-      <table class="cc-risk-matrix" aria-label="Risk matrix showing impact by likelihood">
-        <thead><tr><th class="cc-risk-matrix__axis" scope="col">Impact</th><th scope="col">Likelihood 1</th><th scope="col">Likelihood 2</th><th scope="col">Likelihood 3</th><th scope="col">Likelihood 4</th><th scope="col">Likelihood 5</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-  </section>`;
-}
-
-function renderHumanCentredRiskView(model: HumanCentredRiskModel): string {
-  const groups = model.groups
-    .map(
-      (group) => `
-      <article class="cc-outcome-card">
-        <header class="cc-outcome-card__header">
-          <p class="eyebrow">${escapeHtml(group.capabilityArea)}</p>
-          <h3>${escapeHtml(group.outcomeStatement)}</h3>
-        </header>
-        <ul class="cc-risk-list">${group.risks.map(renderHumanCentredRiskItem).join("")}</ul>
-      </article>`
-    )
-    .join("");
-  const unassigned =
-    model.unassigned.length > 0
-      ? `
-    <section>
-      <h2>Risks Not Yet Tied To A Business Outcome</h2>
-      <p class="muted">Connect each risk to a strategic outcome so leaders can see what is at stake in plain terms.</p>
-      <ul class="cc-risk-list">${model.unassigned.map(renderHumanCentredRiskItem).join("")}</ul>
-    </section>`
-      : "";
-  const legend = CONTINUOUS_COMPLIANCE_RISK_SEVERITIES.map(
-    (band) => `<span class="cc-severity-pill" data-severity="${escapeHtml(band.id)}">${escapeHtml(band.label)}</span>`
-  ).join("");
-  const groupsBlock =
-    model.groups.length > 0
-      ? `<div class="cc-outcome-grid">${groups}</div>`
-      : `<p class="muted">No business outcomes have linked risks yet. Open the Strategy Map to connect strategic outcomes to the risks that threaten them.</p>`;
-  return shellHtml(
-    "Human-Centred Risk View",
-    `
-    ${continuousComplianceStyles()}
-    <section>
-      <p class="eyebrow">Continuous Compliance · Output 1</p>
-      <h1>Human-Centred Risk View</h1>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · What business outcome is at risk, the specific risk, and how it is being treated — described for people, not auditors.</p>
-      ${versionStrip()}
-      <div class="grid">
-        ${metricCard("Risks in view", model.counts.total)}
-        ${metricCard("High severity", model.counts.high)}
-        ${metricCard("Treatment underway", model.treated)}
-        ${metricCard("No treatment yet", model.untreated)}
-      </div>
-      <div class="form-actions">
-        <button type="button" data-command="refresh">Refresh</button>
-        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
-        <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
-        <button type="button" data-command="pspf.workshop.createRisk">Create risk</button>
-      </div>
-    </section>
-    ${renderHumanCentredRiskMatrix(model)}
-    <section>
-      <h2>Outcomes At Risk</h2>
-      <p class="muted">Severity bands: ${legend}</p>
-      ${groupsBlock}
-    </section>
-    ${unassigned}
-  `
-  );
-}
-
-async function openContinuousComplianceMetro(): Promise<void> {
-  await ensureCoreReady();
-  const panel = vscode.window.createWebviewPanel(
-    "pspfContinuousComplianceMetro",
-    "Continuous Compliance Metro",
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-  wireWorkshopPanelMessages(panel, async () => {
-    panel.webview.html = renderContinuousComplianceMetro(buildContinuousComplianceMetroModel(await listAllEntities()));
-  });
-  panel.webview.html = renderContinuousComplianceMetro(buildContinuousComplianceMetroModel(await listAllEntities()));
-}
-
-function renderContinuousComplianceMetro(model: ContinuousComplianceMetroModel): string {
-  const lines = model.lines
-    .map((line, index) => {
-      const stations = line.stations
-        .map(
-          (station) => `
-          <li class="cc-metro-station">
-            <span class="cc-metro-dot" aria-hidden="true"></span>
-            <div class="cc-metro-station__body">
-              <strong>${escapeHtml(station.label)}</strong>
-              <span class="cc-metro-station__meta">${station.measures} measure${station.measures === 1 ? "" : "s"} · ${station.references} link${station.references === 1 ? "" : "s"}</span>
-            </div>
-          </li>`
-        )
-        .join("");
-      const stationsBlock =
-        line.stations.length > 0
-          ? `<ul class="cc-metro-stations">${stations}</ul>`
-          : `<p class="muted cc-metro-empty">No functional outputs mapped yet. Add outcomes to this strategic choice.</p>`;
-      return `
-      <article class="cc-metro-line" data-line="${index % 6}">
-        <header class="cc-metro-line__header">
-          <span class="cc-metro-line__marker" aria-hidden="true"></span>
-          <div>
-            <strong>${escapeHtml(line.capabilityArea)}</strong>
-            <span class="cc-metro-line__meta">${escapeHtml(trendIndicator(line.trend as StrategyEntity["choices"][number]["trend"]))} · ${escapeHtml(label(line.confidence))} confidence · target ${escapeHtml(line.targetPosture)}</span>
-          </div>
-        </header>
-        ${stationsBlock}
-      </article>`;
-    })
-    .join("");
-  const linesBlock =
-    model.lines.length > 0
-      ? `<div class="cc-metro">${lines}</div>`
-      : `<p class="muted">No capability lines yet. Open the Strategy Map to author strategic choices and their outcomes, then return to see the capability metro.</p>`;
-  return shellHtml(
-    "Continuous Compliance Metro",
-    `
-    ${continuousComplianceStyles()}
-    <section>
-      <p class="eyebrow">Continuous Compliance · Output 6</p>
-      <h1>Continuous Compliance Metro</h1>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · The capability landscape that supports continuous compliance, mapped as connected lines and stations around a central hub.</p>
-      ${versionStrip()}
-      <div class="grid">
-        ${metricCard("Central hub", "GRC")}
-        ${metricCard("Capability lines", model.totalCapabilities)}
-        ${metricCard("Functional stations", model.totalStations)}
-      </div>
-      <div class="form-actions">
-        <button type="button" data-command="refresh">Refresh</button>
-        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
-        <button type="button" data-command="pspf.workshop.openPspfGridView">PSPF Grid View</button>
-      </div>
-    </section>
-    <section>
-      <div class="cc-metro-hub"><span class="cc-metro-hub__dot" aria-hidden="true"></span>${escapeHtml(model.hub)}</div>
-      ${linesBlock}
-    </section>
-  `
-  );
-}
-
-async function openUnifiedSecurityOperatingModel(): Promise<void> {
-  await ensureCoreReady();
-  const panel = vscode.window.createWebviewPanel(
-    "pspfUnifiedSecurityOperatingModel",
-    "Unified Security Operating Model",
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-  wireWorkshopPanelMessages(panel, async () => {
-    panel.webview.html = renderUnifiedSecurityOperatingModel(
-      buildUnifiedSecurityOperatingModel(await listAllEntities())
-    );
-  });
-  panel.webview.html = renderUnifiedSecurityOperatingModel(buildUnifiedSecurityOperatingModel(await listAllEntities()));
-}
-
-function renderUnifiedSecurityOperatingModel(model: UnifiedSecurityOperatingModel): string {
-  const teams = model.teams
-    .map((team) => {
-      const services =
-        team.services.length > 0
-          ? `<ul class="cc-team-services">${team.services
-              .map((service) => `<li>${escapeHtml(service.label)}</li>`)
-              .join("")}</ul>`
-          : `<p class="muted cc-metro-empty">No services mapped yet.</p>`;
-      const functions =
-        team.capabilityAreas.length > 0
-          ? team.capabilityAreas
-              .map((capability) => `<span class="cc-team-function">${escapeHtml(capability)}</span>`)
-              .join("")
-          : `<span class="muted">No capability areas recorded</span>`;
-      return `
-      <article class="cc-team-card">
-        <header class="cc-team-card__header">
-          <strong>${escapeHtml(team.name)}</strong>
-          <span class="cc-team-card__count">${team.services.length} service${team.services.length === 1 ? "" : "s"}</span>
-        </header>
-        <div class="cc-team-functions">${functions}</div>
-        ${services}
-      </article>`;
-    })
-    .join("");
-  const coverage = model.coverage
-    .map(
-      (item) => `
-      <li class="cc-coverage-row" data-covered="${item.covered ? "yes" : "no"}">
-        <span class="cc-coverage-status">${item.covered ? "Covered" : "Gap"}</span>
-        <div class="cc-coverage-body">
-          <strong>${escapeHtml(item.label)}</strong>
-          <span class="cc-coverage-meta">${item.covered ? escapeHtml(item.teams.join(", ")) : "No team currently owns this function"}</span>
-        </div>
-      </li>`
-    )
-    .join("");
-  const teamsBlock =
-    model.teams.length > 0
-      ? `<div class="cc-team-grid">${teams}</div>`
-      : `<p class="muted">No teams or owners are mapped yet. Add an executive owner to each strategic choice on the Strategy Map to populate the operating model.</p>`;
-  const unmapped =
-    model.unmappedCapabilities.length > 0
-      ? `<section>
-      <h2>Capabilities Outside The Standard Functions</h2>
-      <p class="muted">These capability areas did not match a standard security function. Review the wording or treat them as bespoke functions.</p>
-      <div class="cc-team-functions">${model.unmappedCapabilities
-        .map((capability) => `<span class="cc-team-function">${escapeHtml(capability)}</span>`)
-        .join("")}</div>
-    </section>`
-      : "";
-  return shellHtml(
-    "Unified Security Operating Model",
-    `
-    ${continuousComplianceStyles()}
-    <section>
-      <p class="eyebrow">Continuous Compliance · Output 5</p>
-      <h1>Unified Security Operating Model</h1>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Which teams deliver which security functions and outcomes, with coverage and gaps visible on one page.</p>
-      ${versionStrip()}
-      <div class="grid">
-        ${metricCard("Teams in scope", model.teams.length)}
-        ${metricCard("Functions covered", `${model.coveredFunctions}/${model.coverage.length}`)}
-        ${metricCard("Coverage gaps", model.gapFunctions)}
-      </div>
-      <div class="form-actions">
-        <button type="button" data-command="refresh">Refresh</button>
-        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
-        <button type="button" data-command="pspf.workshop.openContinuousComplianceMetro">Capability Metro</button>
-      </div>
-    </section>
-    <section>
-      <h2>Teams And Their Functions</h2>
-      ${teamsBlock}
-    </section>
-    <section>
-      <h2>Function Coverage</h2>
-      <p class="muted">Standard security functions in fixed order. Gaps show where no team currently owns a function.</p>
-      <ul class="cc-coverage-list">${coverage}</ul>
-    </section>
-    ${unmapped}
-  `
-  );
 }
 
 async function openCyberAwarenessChangeStrategy(): Promise<void> {
@@ -11046,8 +10722,6 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.openEssentialEightDashboard",
         "pspf.workshop.openRequirementsList",
         "pspf.workshop.openPspfGridView",
-        "pspf.workshop.openHumanCentredRiskView",
-        "pspf.workshop.openContinuousComplianceMetro",
         "pspf.workshop.openPentestWorkbench",
         "pspf.workshop.openRequirementCardView",
         "pspf.workshop.openPlanOfActionBoard",

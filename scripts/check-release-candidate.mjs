@@ -73,7 +73,9 @@ const axesByMinorVersion = new Map([
   [65, "1.15.0"],
   [66, "1.15.0"],
   [67, "1.15.0"],
-  [68, "1.15.0"]
+  [68, "1.15.0"],
+  [69, "1.15.0"],
+  [70, "1.15.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -121,7 +123,7 @@ assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion
 
 const e2eScript =
   minorVersion >= 60
-    ? `e2e:v1.${Math.min(minorVersion, 68)}`
+    ? `e2e:v1.${Math.min(minorVersion, 70)}`
     : minorVersion >= 59
       ? "e2e:v1.59"
       : minorVersion >= 58
@@ -2146,6 +2148,107 @@ if (isV1Release && minorVersion >= 68) {
   ]) {
     assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
   }
+}
+
+if (isV1Release && minorVersion >= 69) {
+  assert.equal(
+    existsSync(join(root, "scripts/check-workshop-essentials-commands.mjs")),
+    true,
+    "scripts/check-workshop-essentials-commands.mjs should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "docs/workshop-essentials-commands.md")),
+    true,
+    "docs/workshop-essentials-commands.md should exist"
+  );
+  const workshopExtensionSource = await readFile(join(root, "packages/workshop/src/extension.ts"), "utf8");
+  for (const retiredCommand of [
+    "pspf.workshop.openHumanCentredRiskView",
+    "pspf.workshop.openContinuousComplianceMetro",
+    "pspf.workshop.openUnifiedSecurityOperatingModel"
+  ]) {
+    assert.equal(
+      workshopExtensionSource.includes(retiredCommand),
+      false,
+      `${retiredCommand} should stay removed from extension.ts`
+    );
+  }
+  for (const requiredScript of ["check:workshop-essentials-commands", "e2e:v1.69", "e2e:v1.69:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.69"].includes("e2e:v1.68"), true, "e2e:v1.69 should include v1.68 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.69:run"].includes("e2e:v1.68:run"),
+    true,
+    "e2e:v1.69:run should include v1.68 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  for (const requiredText of [
+    `PSPF_SLICE_VERSION\` are \`${expectedVersion}\``,
+    "Workshop subtraction gate",
+    "check:workshop-essentials-commands"
+  ]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+}
+
+if (isV1Release && minorVersion >= 70) {
+  assert.equal(
+    existsSync(join(root, "packages/explorer/tests/e2e/ux-evidence-pack.spec.ts")),
+    true,
+    "packages/explorer/tests/e2e/ux-evidence-pack.spec.ts should exist"
+  );
+  const uxEvidencePackSpec = await readFile(join(root, "packages/explorer/tests/e2e/ux-evidence-pack.spec.ts"), "utf8");
+  assert.match(
+    uxEvidencePackSpec,
+    /journey: assess, evidence, action, save, and see the effect/,
+    "ux-evidence-pack.spec.ts should include the E8 assess/evidence/action/save journey"
+  );
+  const uxEvidencePackScript = await readFile(join(root, "scripts/ux-evidence-pack.mjs"), "utf8");
+  assert.match(
+    uxEvidencePackScript,
+    /const EXPECTED_JOURNEYS = 3;/,
+    "scripts/ux-evidence-pack.mjs should expect 3 journey records"
+  );
+  for (const requiredScript of ["e2e:v1.70", "e2e:v1.70:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.70"].includes("e2e:v1.69"), true, "e2e:v1.70 should include v1.69 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.70:run"].includes("e2e:v1.69:run"),
+    true,
+    "e2e:v1.70:run should include v1.69 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  assert.equal(
+    acceptanceGates.includes(`PSPF_SLICE_VERSION\` are \`${expectedVersion}\``),
+    true,
+    "acceptance gates should mention the final v1.70.0 version"
+  );
+  assert.equal(
+    acceptanceGates.includes("planned, not yet enforced"),
+    false,
+    "acceptance gates should no longer describe the Essentials programme gates as planned"
+  );
+  assert.equal(
+    acceptanceGates.includes("Journey gate** (live from E8/v1.70.0)"),
+    true,
+    "acceptance gates should describe the implemented journey gate"
+  );
+  const grandPlan = await readFile(join(root, "pspf-grand-plan.md"), "utf8");
+  assert.equal(
+    grandPlan.includes("planned — governed by ADR 0096"),
+    false,
+    "grand-plan should no longer describe the Essentials programme as planned"
+  );
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

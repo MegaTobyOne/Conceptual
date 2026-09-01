@@ -23,6 +23,7 @@ const routes = [
   "#/requirements",
   "#/risks",
   "#/actions",
+  "#/directions",
   "#/posture",
   "#/core",
   "#/relationships",

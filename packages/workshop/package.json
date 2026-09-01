@@ -12,7 +12,7 @@
     "evidence",
     "risk"
   ],
-  "version": "1.68.0",
+  "version": "1.70.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -305,21 +305,6 @@
         "icon": "$(table)"
       },
       {
-        "command": "pspf.workshop.openHumanCentredRiskView",
-        "title": "PSPF: Open Human-Centred Risk View",
-        "icon": "$(person)"
-      },
-      {
-        "command": "pspf.workshop.openContinuousComplianceMetro",
-        "title": "PSPF: Open Continuous Compliance Metro",
-        "icon": "$(circuit-board)"
-      },
-      {
-        "command": "pspf.workshop.openUnifiedSecurityOperatingModel",
-        "title": "PSPF: Open Unified Security Operating Model",
-        "icon": "$(organization)"
-      },
-      {
         "command": "pspf.workshop.openCyberAwarenessChangeStrategy",
         "title": "PSPF: Open Cyber Awareness Change Strategy",
         "icon": "$(megaphone)"
@@ -525,7 +510,7 @@
           "group": "navigation@1"
         },
         {
-          "command": "pspf.workshop.openHumanCentredRiskView",
+          "command": "pspf.workshop.openConnectedView",
           "when": "view == pspfWorkshop.risksView",
           "group": "navigation@2"
         },
@@ -578,21 +563,6 @@
           "command": "pspf.workshop.openPspfGridView",
           "when": "view == pspfWorkshop.homeView",
           "group": "navigation@4.55"
-        },
-        {
-          "command": "pspf.workshop.openHumanCentredRiskView",
-          "when": "view == pspfWorkshop.homeView",
-          "group": "navigation@4.56"
-        },
-        {
-          "command": "pspf.workshop.openContinuousComplianceMetro",
-          "when": "view == pspfWorkshop.homeView",
-          "group": "navigation@4.57"
-        },
-        {
-          "command": "pspf.workshop.openUnifiedSecurityOperatingModel",
-          "when": "view == pspfWorkshop.homeView",
-          "group": "navigation@4.58"
         },
         {
           "command": "pspf.workshop.openCyberAwarenessChangeStrategy",

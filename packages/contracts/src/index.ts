@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.15.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.68.0" as const;
+export const PSPF_SLICE_VERSION = "1.70.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -3535,7 +3535,7 @@ export function matchesRequirementFinderFilters<T extends RequirementFinderRecor
 ): boolean {
   const query = filters.query?.trim().toLocaleLowerCase("en-AU");
   if (query) {
-    const haystack = `${record.title} ${record.searchText ?? ""}`.toLocaleLowerCase("en-AU");
+    const haystack = `${record.id} ${record.title} ${record.searchText ?? ""}`.toLocaleLowerCase("en-AU");
     if (!haystack.includes(query)) {
       return false;
     }
