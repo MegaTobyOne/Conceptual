@@ -279,6 +279,7 @@ Theme and presentation preferences are browser-local UI state. First use is Dark
 
 **Required content:**
 
+- plain-language explainer (What this means / Why it matters / What to do next, ADR 0096 E1), curated in `@pspf/reference-data` and rendered through the shared `buildRequirementExplainer` renderer
 - concise statement of current posture
 - rationale / notes if included in bundle
 - all linked evidence with freshness cues

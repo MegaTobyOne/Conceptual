@@ -156,7 +156,7 @@ import {
   shortWorkshopPanelTitle
 } from "./workshop-ui.js";
 import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire } from "./questionnaire/flow.js";
-import { ISM_SOURCE_CONTROL_CATEGORIES } from "@pspf/reference-data";
+import { ISM_SOURCE_CONTROL_CATEGORIES, buildRequirementExplainer } from "@pspf/reference-data";
 
 // v1.33 questionnaire surface: re-run modes include the literal
 // "Answer all questions again" so operators can refresh their full answer set
@@ -10271,6 +10271,14 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     openLinkedRiskCount: openLinkedRisks.length,
     maxLinkedRiskSeverity: openLinkedRisks.reduce((max, risk) => Math.max(max, risk.likelihood * risk.impact), 0)
   });
+  const openLinkedActionCount = actions.filter(
+    (action) => action.status !== "done" && action.status !== "cancelled"
+  ).length;
+  const explainer = buildRequirementExplainer({
+    requirementId: requirement.id,
+    consequenceStatement,
+    openBlockerCount: openLinkedActionCount
+  });
   const tagsById = new Map(
     allEntities
       .filter((entity): entity is TagEntity => entity.entityType === "tag" && entity.recordStatus !== "deleted")
@@ -10366,6 +10374,15 @@ async function openItemDetailForRequirement(requirement: RequirementEntity): Pro
     <section class="consequence">
       <h2>Consequence</h2>
       <p>${escapeHtml(consequenceStatement)}</p>
+    </section>
+    <section class="explainer">
+      <h2>What this means</h2>
+      <p>${escapeHtml(explainer.whatThisMeans)}</p>
+      <h2>Why it matters</h2>
+      <p>${escapeHtml(explainer.whyItMatters)}</p>
+      <h2>What to do next</h2>
+      <p>${escapeHtml(explainer.whatToDoNext)}</p>
+      <p class="attribution">${escapeHtml(explainer.attribution)}</p>
     </section>
     ${recordTable("Tags", tagRows, ["title", "colour", "status", "action"])}
     ${recordTable("Directions Targeting This Requirement", directionRows, ["reference", "title", "responseState", "sourceAuthority"])}

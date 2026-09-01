@@ -608,7 +608,7 @@ This workflow should be optimised for repeated queue processing, not rich one-of
 **Flow:**
 
 1. Search, browse, or filter to a requirement or requirement group. The Requirements navigator filter bar offers domain, status, and tag (multi-select, `any` / `all` toggle); selecting tags narrows the tree to requirements that carry the chosen tags.
-2. Open Requirement Detail and review statement, implementation guidance, source authority, current assessment, rationale, linked evidence, linked actions, linked risks, Directions, applied tags, and history.
+2. Open Requirement Detail and review the plain-language explainer (What this means / Why it matters / What to do next, ADR 0096 E1), statement, implementation guidance, source authority, current assessment, rationale, linked evidence, linked actions, linked risks, Directions, applied tags, and history.
 3. Update `assessmentStatus`, `effectiveness`, `evidenceStatus`, `reportingReadiness`, and rationale as needed. Apply or remove tags using the tag rail (chips with a picker; pickers offer existing tags and a `Create new tag…` affordance that opens the tag manager).
 4. Link existing evidence or create new evidence from the detail screen.
 5. Run validation for the requirement.

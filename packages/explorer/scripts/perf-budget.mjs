@@ -20,7 +20,7 @@ const ROOT = fileURLToPath(new URL('../dist/assets/', import.meta.url));
 const BUDGETS = [
   { pattern: /^index-.*\.js$/, label: 'app shell', maxGzipKb: 38 },
   { pattern: /^pspf-.*\.js$/, label: 'pspf data', maxGzipKb: 22 },
-  { pattern: /^requirement-view-.*\.js$/, label: 'requirement view', maxGzipKb: 6.6 },
+  { pattern: /^requirement-view-.*\.js$/, label: 'requirement view', maxGzipKb: 28 },
   { pattern: /^analytics-view-.*\.js$/, label: 'analytics view', maxGzipKb: 5.0 },
   { pattern: /^home-view-.*\.js$/, label: 'home view', maxGzipKb: 3.1 },
   { pattern: /^risks-view-.*\.js$/, label: 'risks view', maxGzipKb: 5.5 },
@@ -50,7 +50,11 @@ const EXCLUDE_FROM_TOTAL = /^(cytoscape|relationship-map-view|connected-view-3d-
 // only — raise deliberately, never casually. The v1.51 snapshot trend table adds
 // a measured 0.42 KB gzipped to the non-lazy route total; the current 10% headroom
 // target is 144.1 KB (110% of the prior 131 KB budget).
-const TOTAL_GZIP_KB_BUDGET = 144.1;
+// Rebaselined at v1.63.0 (ADR 0096 E1): the requirement-view explainer section now
+// imports buildRequirementExplainer from @pspf/reference-data, pulling in
+// PSPF_REQUIREMENT_REFERENCES for section lookup (~27.7 KB gz for the chunk alone).
+// New target is 160 KB (measured non-lazy total 157.33 KB + small headroom).
+const TOTAL_GZIP_KB_BUDGET = 160;
 
 const files = readdirSync(ROOT).filter((f) => f.endsWith('.js'));
 let totalGzip = 0;

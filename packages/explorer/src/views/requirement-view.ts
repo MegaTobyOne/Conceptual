@@ -15,6 +15,7 @@ import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
 import { requirementConsequence } from '../domain/analytics.ts';
+import { buildRequirementExplainer } from '@pspf/reference-data';
 import '../components/compliance-badge.ts';
 import '../components/compliance-editor.ts';
 import '../components/work-log.ts';
@@ -118,6 +119,11 @@ export class RequirementView extends LitElement {
       p.text {
         max-width: 70ch;
         line-height: 1.5;
+      }
+      .explainer p.attribution {
+        margin: var(--space-2) 0 0 0;
+        font-size: var(--text-xs);
+        color: var(--pspf-muted);
       }
       .placeholder {
         padding: var(--space-3);
@@ -242,6 +248,17 @@ export class RequirementView extends LitElement {
       relationship.endpoints.includes(req.id),
     );
     const consequence = requirementConsequence(req.id, state, this.store?.risks.value ?? []);
+    const openBlockerCount = related.filter((relationship) => {
+      const targetId =
+        relationship.endpoints.find((endpoint) => endpoint !== req.id) ?? relationship.endpoints[0];
+      const action = this.store?.actions.value.find((a) => a.id === targetId);
+      return Boolean(action) && action?.status !== 'done' && action?.status !== 'cancelled';
+    }).length;
+    const explainer = buildRequirementExplainer({
+      requirementId: req.canonicalId,
+      consequenceStatement: consequence,
+      openBlockerCount,
+    });
     return html`
       <article data-lens=${this.lens}>
         <pspf-breadcrumbs
@@ -297,6 +314,15 @@ export class RequirementView extends LitElement {
         <section class="consequence" data-testid="consequence">
           <h3>Consequence</h3>
           <p>${consequence}</p>
+        </section>
+        <section class="explainer" data-testid="explainer">
+          <h3>What this means</h3>
+          <p>${explainer.whatThisMeans}</p>
+          <h3>Why it matters</h3>
+          <p>${explainer.whyItMatters}</p>
+          <h3>What to do next</h3>
+          <p>${explainer.whatToDoNext}</p>
+          <p class="attribution">${explainer.attribution}</p>
         </section>
         <section class="linker">
           <h3>Link this requirement</h3>
