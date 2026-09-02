@@ -1,6 +1,6 @@
 {
   "name": "pspf-explorer",
-  "version": "1.64.0",
+  "version": "1.70.0",
   "private": true,
   "type": "module",
   "description": "PSPF Explorer — friendly web surface for publication-mode review and browser-local authoring, with Core exchange round-trip (ADR 0084).",
@@ -25,19 +25,15 @@
     "@pspf/brief-renderer": "workspace:*",
     "@pspf/contracts": "workspace:*",
     "@pspf/webview-shell": "workspace:*",
-    "cytoscape": "3.33.3",
     "idb": "8.0.3",
-    "lit": "3.3.2",
-    "three": "^0.185.1"
+    "lit": "3.3.2"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.59.1",
     "@pspf/reference-data": "workspace:*",
-    "@types/cytoscape": "^3.21.9",
     "@types/node": "^25.6.0",
-    "@types/three": "^0.185.1",
     "@vitest/coverage-v8": "^4.1.5",
     "esbuild": "^0.28.0",
     "eslint": "^10.3.0",

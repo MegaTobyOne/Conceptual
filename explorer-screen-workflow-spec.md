@@ -264,6 +264,8 @@ Theme and presentation preferences are browser-local UI state. First use is Dark
 
 **Purpose:** Explain one requirement and its connected operational story.
 
+**Layout (ADR 0096 E4, v1.66.0): assess → justify → act, one order for every reader** — requirement text and context, then an Advanced disclosure (Essential Eight mapping, references), then Assess (compliance editor), then Justify (consequence + plain-language explainer), then Act (link existing or create new evidence/action/risk, work log). No lens-conditional reordering.
+
 **Layout:**
 
 - title block with requirement ID, name, domain, status, confidence, updated time
@@ -282,6 +284,9 @@ Theme and presentation preferences are browser-local UI state. First use is Dark
 **Required content:**
 
 - plain-language explainer (What this means / Why it matters / What to do next, ADR 0096 E1), curated in `@pspf/reference-data` and rendered through the shared `buildRequirementExplainer` renderer
+- Advanced disclosure (`<pspf-disclosure>`) for Essential Eight mapping and references (ADR 0096 E4)
+- act step supports linking an existing action/risk or creating a new one inline, auto-linked to the current requirement (ADR 0096 E4)
+- post-save impact banner (what changed, affected evidence/actions/risks, current material-risk signal, stated next action or stated reason none is needed — ADR 0096 E5, `buildSaveImpactSummary`)
 - concise statement of current posture
 - rationale / notes if included in bundle
 - all linked evidence with freshness cues

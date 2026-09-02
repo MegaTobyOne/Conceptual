@@ -4,7 +4,7 @@ export const VERSION_AXES = {
   apiVersion: "1.15.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.64.0" as const;
+export const PSPF_SLICE_VERSION = "1.70.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -3535,7 +3535,7 @@ export function matchesRequirementFinderFilters<T extends RequirementFinderRecor
 ): boolean {
   const query = filters.query?.trim().toLocaleLowerCase("en-AU");
   if (query) {
-    const haystack = `${record.title} ${record.searchText ?? ""}`.toLocaleLowerCase("en-AU");
+    const haystack = `${record.id} ${record.title} ${record.searchText ?? ""}`.toLocaleLowerCase("en-AU");
     if (!haystack.includes(query)) {
       return false;
     }
@@ -3599,6 +3599,71 @@ export function buildRequirementFinderResultSummary(input: RequirementFinderResu
   parts.push(input.openActionCount === 0 ? "no open actions" : `${input.openActionCount} open action(s)`);
   parts.push(input.hasMaterialRisk ? "material risk linked" : "no material risk linked");
   return parts.join(" · ");
+}
+
+/**
+ * E5 (v1.66.0->v1.67.0 Essentials programme, ADR 0096): post-save impact feedback. Composes ONLY
+ * from caller-supplied facts already computed elsewhere (buildConsequenceStatement, linked-record
+ * counts, a restated — not predicted — posture/priority signal) — this function never calculates a
+ * new projection itself, it only assembles a stated headline/detail/next-action from what the caller
+ * already knows to be true.
+ */
+export interface SaveImpactSummaryInput {
+  /** Caller-stated field delta, e.g. "Status: not-met -> met". Empty string means nothing changed. */
+  readonly whatChanged: string;
+  readonly outcome: "saved" | "no-op" | "failed";
+  /** Required when outcome is "failed"; ignored otherwise. */
+  readonly failureReason?: string;
+  /** From buildConsequenceStatement (already exists) — omit if not applicable. */
+  readonly consequenceStatement?: string;
+  readonly affectedEvidenceCount: number;
+  readonly affectedActionCount: number;
+  readonly affectedRiskCount: number;
+  /** Caller restates the CURRENT posture/priority signal (e.g. material-risk flag) — never a prediction. */
+  readonly postureOrPriorityStatement: string;
+}
+
+export interface SaveImpactSummary {
+  readonly headline: string;
+  readonly detail: string;
+  readonly nextAction: string;
+}
+
+export function buildSaveImpactSummary(input: SaveImpactSummaryInput): SaveImpactSummary {
+  if (input.outcome === "failed") {
+    return {
+      headline: "Not saved",
+      detail: input.failureReason ?? "The save could not be completed.",
+      nextAction: "Fix the issue above and try again."
+    };
+  }
+  if (input.outcome === "no-op") {
+    return {
+      headline: "No changes to save",
+      detail: "Nothing changed since the last save.",
+      nextAction: "No further action needed."
+    };
+  }
+  const affectedParts: string[] = [];
+  if (input.affectedEvidenceCount > 0) affectedParts.push(`${input.affectedEvidenceCount} evidence`);
+  if (input.affectedActionCount > 0) affectedParts.push(`${input.affectedActionCount} action(s)`);
+  if (input.affectedRiskCount > 0) affectedParts.push(`${input.affectedRiskCount} risk(s)`);
+  const affectedStatement =
+    affectedParts.length > 0
+      ? `Affects ${affectedParts.join(", ")}.`
+      : "No linked evidence, actions, or risks affected.";
+  const detailParts = [affectedStatement, input.postureOrPriorityStatement];
+  if (input.consequenceStatement) {
+    detailParts.push(input.consequenceStatement);
+  }
+  return {
+    headline: input.whatChanged || "Saved",
+    detail: detailParts.join(" "),
+    nextAction:
+      input.affectedActionCount > 0
+        ? `${input.affectedActionCount} linked action(s) still need attention.`
+        : "No further action needed right now."
+  };
 }
 
 export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Entity[] {

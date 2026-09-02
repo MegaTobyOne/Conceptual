@@ -1,8 +1,8 @@
 {
-  "recordedAtVersion": "1.62.0",
+  "recordedAtVersion": "1.69.0",
   "recordedAtAdr": "adr/0096-v1-70-essentials-programme-and-surface-reduction.md",
-  "explorerRoutes": 27,
-  "explorerNavItems": 20,
-  "workshopCommands": 74,
-  "workshopWebviewPanels": 32
+  "explorerRoutes": 24,
+  "explorerNavItems": 18,
+  "workshopCommands": 71,
+  "workshopWebviewPanels": 29
 }

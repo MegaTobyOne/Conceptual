@@ -1,4 +1,3 @@
-import { PRESENTATION_LENS_LABELS, type PresentationLens } from "./presentation-lens.js";
 import { escapeHtmlAttribute as escapeAttr, escapeHtmlText as escapeText } from "./encoding.js";
 
 export interface PageHeaderOptions {
@@ -87,22 +86,4 @@ export interface DisclosureOptions {
 
 export function disclosureHtml(options: DisclosureOptions): string {
   return `<details class="pspf-disclosure"${options.open ? " open" : ""}><summary>${escapeText(options.summary)}</summary><div class="pspf-disclosure__body">${options.bodyHtml}</div></details>`;
-}
-
-export interface LensSelectorOptions {
-  readonly lens: PresentationLens;
-  readonly command: string;
-  readonly label?: string;
-}
-
-export function lensSelectorHtml(options: LensSelectorOptions): string {
-  const label = options.label ?? "View for";
-  return `<label class="pspf-lens-selector">${escapeText(label)}<select data-command="${escapeAttr(options.command)}" aria-label="${escapeAttr(label)}">${(
-    Object.keys(PRESENTATION_LENS_LABELS) as PresentationLens[]
-  )
-    .map(
-      (lens) =>
-        `<option value="${lens}"${lens === options.lens ? " selected" : ""}>${escapeText(PRESENTATION_LENS_LABELS[lens])}</option>`
-    )
-    .join("")}</select></label>`;
 }

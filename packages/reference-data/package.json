@@ -1,6 +1,6 @@
 {
   "name": "@pspf/reference-data",
-  "version": "1.64.0",
+  "version": "1.70.0",
   "private": true,
   "type": "module",
   "main": "dist/index.js",

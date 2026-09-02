@@ -18,10 +18,8 @@ import {
   CONNECTED_VIEW_BROWSER_SCRIPT
 } from "@pspf/connected-view";
 import {
-  decodePresentationLens,
   disclosureHtml,
-  encodePresentationLens,
-  lensSelectorHtml,
+  normalisePresentationLens,
   pageHeaderHtml,
   pill as shellPill,
   trustChipsHtml,
@@ -39,19 +37,12 @@ import {
 import {
   buildPspfGridModel,
   type PspfGridModel,
-  buildHumanCentredRiskModel,
-  type HumanCentredRiskModel,
-  buildContinuousComplianceMetroModel,
-  type ContinuousComplianceMetroModel,
-  buildUnifiedSecurityOperatingModel,
-  type UnifiedSecurityOperatingModel,
   buildCyberAwarenessChangeStrategyModel,
   type CyberAwarenessChangeStrategyModel,
   buildStrategyPrioritySummary,
   type StrategyPrioritySummary,
   buildStrategyDeliverySummary,
-  CONTINUOUS_COMPLIANCE_ASSURANCE_BANDS,
-  CONTINUOUS_COMPLIANCE_RISK_SEVERITIES
+  CONTINUOUS_COMPLIANCE_ASSURANCE_BANDS
 } from "./continuous-compliance.js";
 import {
   buildPentestWorkbenchModel,
@@ -135,7 +126,11 @@ import {
   type BlockerClass,
   computeClosureVelocity,
   projectTrajectory,
-  buildSustainNote
+  buildSustainNote,
+  buildSaveImpactSummary,
+  matchesRequirementFinderFilters,
+  compareRequirementFinderRecords,
+  type RequirementFinderRecord
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import {
@@ -153,6 +148,7 @@ import {
   requirementBrowserTitlePreview,
   requirementDisplayTitle,
   requirementNumberLabel,
+  requirementToFinderRecord,
   shortWorkshopPanelTitle
 } from "./workshop-ui.js";
 import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire } from "./questionnaire/flow.js";
@@ -394,7 +390,10 @@ async function openTreeEntity(entity: V01Entity | undefined): Promise<void> {
 export function activate(context: vscode.ExtensionContext): void {
   workshopContext = context;
   momentumBaseline = context.workspaceState.get<WorkshopMomentumSnapshot>(momentumSnapshotKey);
-  workshopPresentationLens = decodePresentationLens(context.workspaceState.get<string>(workshopLensStateKey));
+  // ADR 0096 E6 (v1.68.0): ciso/auditor/solo lenses are retired to one default view. Any stored
+  // preference migrates once, deterministically, to the default, and the old key is cleared.
+  workshopPresentationLens = normalisePresentationLens(context.workspaceState.get<string>(workshopLensStateKey));
+  void context.workspaceState.update(workshopLensStateKey, undefined);
   homeViewProvider = new WorkshopHomeViewProvider();
   const statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 90);
   statusItem.text = `$(shield) PSPF v${PSPF_SLICE_VERSION}`;
@@ -454,12 +453,6 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.openAssessmentDashboard", openAssessmentDashboard),
     vscode.commands.registerCommand("pspf.workshop.openMasterDashboard", openMasterDashboard),
     vscode.commands.registerCommand("pspf.workshop.openPspfGridView", openPspfGridView),
-    vscode.commands.registerCommand("pspf.workshop.openHumanCentredRiskView", openHumanCentredRiskView),
-    vscode.commands.registerCommand("pspf.workshop.openContinuousComplianceMetro", openContinuousComplianceMetro),
-    vscode.commands.registerCommand(
-      "pspf.workshop.openUnifiedSecurityOperatingModel",
-      openUnifiedSecurityOperatingModel
-    ),
     vscode.commands.registerCommand("pspf.workshop.openCyberAwarenessChangeStrategy", openCyberAwarenessChangeStrategy),
     vscode.commands.registerCommand("pspf.workshop.openPentestWorkbench", openPentestWorkbench),
     vscode.commands.registerCommand("pspf.workshop.openRequirementCardView", openRequirementCardView),
@@ -825,7 +818,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       `<section><p class="muted">Loading PSPF Workshop Home...</p></section>`
     );
     webviewView.webview.onDidReceiveMessage((message: { readonly command?: string; readonly value?: unknown }) => {
-      void this.handleMessage(message.command, message.value).catch(async (error: unknown) => {
+      void this.handleMessage(message.command).catch(async (error: unknown) => {
         const detail = error instanceof Error ? error.message : String(error);
         await vscode.window.showErrorMessage(`PSPF Workshop action failed: ${detail}`);
         await this.refresh();
@@ -860,22 +853,12 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async handleMessage(command: string | undefined, value?: unknown): Promise<void> {
+  private async handleMessage(command: string | undefined): Promise<void> {
     if (!command) {
       return;
     }
 
     if (command === "pspf.workshop.home.refresh") {
-      await this.refresh();
-      return;
-    }
-
-    if (command === "pspf.workshop.home.selectLens") {
-      workshopPresentationLens = decodePresentationLens(value);
-      await workshopContext?.workspaceState.update(
-        workshopLensStateKey,
-        encodePresentationLens(workshopPresentationLens)
-      );
       await this.refresh();
       return;
     }
@@ -920,9 +903,6 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       "pspf.workshop.openAssessmentDashboard",
       "pspf.workshop.openMasterDashboard",
       "pspf.workshop.openPspfGridView",
-      "pspf.workshop.openHumanCentredRiskView",
-      "pspf.workshop.openContinuousComplianceMetro",
-      "pspf.workshop.openUnifiedSecurityOperatingModel",
       "pspf.workshop.openCyberAwarenessChangeStrategy",
       "pspf.workshop.openPentestWorkbench",
       "pspf.workshop.openRequirementCardView",
@@ -1300,12 +1280,8 @@ function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens): strin
     `
     <style>
       .workshop-home { display: flex; flex-direction: column; gap: 0; }
-      .workshop-home[data-lens="ciso"] .lens-focus { order: 2; }
-      .workshop-home[data-lens="ciso"] .lens-status { order: 3; }
-      .workshop-home[data-lens="auditor"] .lens-status { order: 2; }
-      .workshop-home[data-lens="auditor"] .lens-focus { order: 3; }
-      .workshop-home[data-lens="solo"] .lens-focus { order: 2; }
-      .workshop-home[data-lens="solo"] .lens-status { order: 3; }
+      .workshop-home .lens-focus { order: 2; }
+      .workshop-home .lens-status { order: 3; }
       .workshop-home .lens-hero { order: 1; }
       .workshop-home .lens-capture { order: 4; }
       .workshop-home .lens-review { order: 5; }
@@ -1329,7 +1305,6 @@ function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens): strin
       <h2>PSPF Workshop</h2>
       <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · ${model.metPercentage}% met · ${model.metBasis.evidencedFreshPercentage}% ${escapeHtml(assessmentBasisLabel("evidenced-fresh").toLowerCase())}</p>
       <p class="muted">${escapeHtml(model.uncoveredRiskStatement)}</p>
-      ${lensSelectorHtml({ lens, command: "pspf.workshop.home.selectLens" })}
       ${model.momentum ? `<p class="momentum">${escapeHtml(model.momentum)}</p>` : ""}
       ${renderPostureSparkline(model.trend)}
       ${versionStrip()}
@@ -3971,8 +3946,8 @@ async function openMasterDashboard(): Promise<void> {
       strategyChoices,
       `${strategyMeasures} measures`,
       "Why this control here, why now?",
-      "pspf.workshop.openHumanCentredRiskView",
-      "Open risk panel"
+      "pspf.workshop.openConnectedView",
+      "Open risk trace"
     ),
     masterLoopRow(
       "Governance, Metrics and Reporting",
@@ -4942,314 +4917,6 @@ function continuousComplianceStyles(): string {
     .cc-support-body strong { font-size: 13px; }
     .cc-support-meta { color: var(--muted); font-size: 12px; }
   </style>`;
-}
-
-async function openHumanCentredRiskView(): Promise<void> {
-  await ensureCoreReady();
-  const panel = vscode.window.createWebviewPanel(
-    "pspfHumanCentredRiskView",
-    "Human-Centred Risk View",
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-  wireWorkshopPanelMessages(panel, async () => {
-    panel.webview.html = renderHumanCentredRiskView(buildHumanCentredRiskModel(await listAllEntities()));
-  });
-  panel.webview.html = renderHumanCentredRiskView(buildHumanCentredRiskModel(await listAllEntities()));
-}
-
-function renderHumanCentredRiskItem(item: {
-  readonly title: string;
-  readonly severityId: string;
-  readonly severityLabel: string;
-  readonly statusLabel: string;
-  readonly treatmentLabel: string;
-  readonly linkedActions: number;
-}): string {
-  const actionsNote =
-    item.linkedActions > 0
-      ? `${item.linkedActions} linked action${item.linkedActions === 1 ? "" : "s"}`
-      : "No linked actions yet";
-  return `
-    <li class="cc-risk-item">
-      <span class="cc-severity-pill" data-severity="${escapeHtml(item.severityId)}">${escapeHtml(item.severityLabel)}</span>
-      <div class="cc-risk-item__body">
-        <strong>${escapeHtml(item.title)}</strong>
-        <span class="cc-risk-item__meta">${escapeHtml(item.statusLabel)} · ${escapeHtml(item.treatmentLabel)} · ${escapeHtml(actionsNote)}</span>
-      </div>
-    </li>`;
-}
-
-function renderHumanCentredRiskMatrix(model: HumanCentredRiskModel): string {
-  const rows = [5, 4, 3, 2, 1]
-    .map((impact) => {
-      const cells = [1, 2, 3, 4, 5]
-        .map((likelihood) => {
-          const cell = model.riskMatrix.find(
-            (candidate) => candidate.impact === impact && candidate.likelihood === likelihood
-          );
-          const riskCount = cell?.riskCount ?? 0;
-          const band = cell?.band ?? "green";
-          return `<td class="cc-risk-matrix__cell" data-band="${escapeHtml(band)}"><strong>${riskCount}</strong><span>${escapeHtml(
-            band
-          )}</span></td>`;
-        })
-        .join("");
-      return `<tr><th scope="row">Impact ${impact}</th>${cells}</tr>`;
-    })
-    .join("");
-  return `<section>
-    <h2>Impact v Likelihood Matrix</h2>
-    <p class="muted">Risk count by score. Green is low exposure, amber is medium exposure, and red is high exposure.</p>
-    <div class="cc-risk-matrix-wrap">
-      <table class="cc-risk-matrix" aria-label="Risk matrix showing impact by likelihood">
-        <thead><tr><th class="cc-risk-matrix__axis" scope="col">Impact</th><th scope="col">Likelihood 1</th><th scope="col">Likelihood 2</th><th scope="col">Likelihood 3</th><th scope="col">Likelihood 4</th><th scope="col">Likelihood 5</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-  </section>`;
-}
-
-function renderHumanCentredRiskView(model: HumanCentredRiskModel): string {
-  const groups = model.groups
-    .map(
-      (group) => `
-      <article class="cc-outcome-card">
-        <header class="cc-outcome-card__header">
-          <p class="eyebrow">${escapeHtml(group.capabilityArea)}</p>
-          <h3>${escapeHtml(group.outcomeStatement)}</h3>
-        </header>
-        <ul class="cc-risk-list">${group.risks.map(renderHumanCentredRiskItem).join("")}</ul>
-      </article>`
-    )
-    .join("");
-  const unassigned =
-    model.unassigned.length > 0
-      ? `
-    <section>
-      <h2>Risks Not Yet Tied To A Business Outcome</h2>
-      <p class="muted">Connect each risk to a strategic outcome so leaders can see what is at stake in plain terms.</p>
-      <ul class="cc-risk-list">${model.unassigned.map(renderHumanCentredRiskItem).join("")}</ul>
-    </section>`
-      : "";
-  const legend = CONTINUOUS_COMPLIANCE_RISK_SEVERITIES.map(
-    (band) => `<span class="cc-severity-pill" data-severity="${escapeHtml(band.id)}">${escapeHtml(band.label)}</span>`
-  ).join("");
-  const groupsBlock =
-    model.groups.length > 0
-      ? `<div class="cc-outcome-grid">${groups}</div>`
-      : `<p class="muted">No business outcomes have linked risks yet. Open the Strategy Map to connect strategic outcomes to the risks that threaten them.</p>`;
-  return shellHtml(
-    "Human-Centred Risk View",
-    `
-    ${continuousComplianceStyles()}
-    <section>
-      <p class="eyebrow">Continuous Compliance · Output 1</p>
-      <h1>Human-Centred Risk View</h1>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · What business outcome is at risk, the specific risk, and how it is being treated — described for people, not auditors.</p>
-      ${versionStrip()}
-      <div class="grid">
-        ${metricCard("Risks in view", model.counts.total)}
-        ${metricCard("High severity", model.counts.high)}
-        ${metricCard("Treatment underway", model.treated)}
-        ${metricCard("No treatment yet", model.untreated)}
-      </div>
-      <div class="form-actions">
-        <button type="button" data-command="refresh">Refresh</button>
-        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
-        <button type="button" data-command="pspf.workshop.openConnectedView">Connected View</button>
-        <button type="button" data-command="pspf.workshop.createRisk">Create risk</button>
-      </div>
-    </section>
-    ${renderHumanCentredRiskMatrix(model)}
-    <section>
-      <h2>Outcomes At Risk</h2>
-      <p class="muted">Severity bands: ${legend}</p>
-      ${groupsBlock}
-    </section>
-    ${unassigned}
-  `
-  );
-}
-
-async function openContinuousComplianceMetro(): Promise<void> {
-  await ensureCoreReady();
-  const panel = vscode.window.createWebviewPanel(
-    "pspfContinuousComplianceMetro",
-    "Continuous Compliance Metro",
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-  wireWorkshopPanelMessages(panel, async () => {
-    panel.webview.html = renderContinuousComplianceMetro(buildContinuousComplianceMetroModel(await listAllEntities()));
-  });
-  panel.webview.html = renderContinuousComplianceMetro(buildContinuousComplianceMetroModel(await listAllEntities()));
-}
-
-function renderContinuousComplianceMetro(model: ContinuousComplianceMetroModel): string {
-  const lines = model.lines
-    .map((line, index) => {
-      const stations = line.stations
-        .map(
-          (station) => `
-          <li class="cc-metro-station">
-            <span class="cc-metro-dot" aria-hidden="true"></span>
-            <div class="cc-metro-station__body">
-              <strong>${escapeHtml(station.label)}</strong>
-              <span class="cc-metro-station__meta">${station.measures} measure${station.measures === 1 ? "" : "s"} · ${station.references} link${station.references === 1 ? "" : "s"}</span>
-            </div>
-          </li>`
-        )
-        .join("");
-      const stationsBlock =
-        line.stations.length > 0
-          ? `<ul class="cc-metro-stations">${stations}</ul>`
-          : `<p class="muted cc-metro-empty">No functional outputs mapped yet. Add outcomes to this strategic choice.</p>`;
-      return `
-      <article class="cc-metro-line" data-line="${index % 6}">
-        <header class="cc-metro-line__header">
-          <span class="cc-metro-line__marker" aria-hidden="true"></span>
-          <div>
-            <strong>${escapeHtml(line.capabilityArea)}</strong>
-            <span class="cc-metro-line__meta">${escapeHtml(trendIndicator(line.trend as StrategyEntity["choices"][number]["trend"]))} · ${escapeHtml(label(line.confidence))} confidence · target ${escapeHtml(line.targetPosture)}</span>
-          </div>
-        </header>
-        ${stationsBlock}
-      </article>`;
-    })
-    .join("");
-  const linesBlock =
-    model.lines.length > 0
-      ? `<div class="cc-metro">${lines}</div>`
-      : `<p class="muted">No capability lines yet. Open the Strategy Map to author strategic choices and their outcomes, then return to see the capability metro.</p>`;
-  return shellHtml(
-    "Continuous Compliance Metro",
-    `
-    ${continuousComplianceStyles()}
-    <section>
-      <p class="eyebrow">Continuous Compliance · Output 6</p>
-      <h1>Continuous Compliance Metro</h1>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · The capability landscape that supports continuous compliance, mapped as connected lines and stations around a central hub.</p>
-      ${versionStrip()}
-      <div class="grid">
-        ${metricCard("Central hub", "GRC")}
-        ${metricCard("Capability lines", model.totalCapabilities)}
-        ${metricCard("Functional stations", model.totalStations)}
-      </div>
-      <div class="form-actions">
-        <button type="button" data-command="refresh">Refresh</button>
-        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
-        <button type="button" data-command="pspf.workshop.openPspfGridView">PSPF Grid View</button>
-      </div>
-    </section>
-    <section>
-      <div class="cc-metro-hub"><span class="cc-metro-hub__dot" aria-hidden="true"></span>${escapeHtml(model.hub)}</div>
-      ${linesBlock}
-    </section>
-  `
-  );
-}
-
-async function openUnifiedSecurityOperatingModel(): Promise<void> {
-  await ensureCoreReady();
-  const panel = vscode.window.createWebviewPanel(
-    "pspfUnifiedSecurityOperatingModel",
-    "Unified Security Operating Model",
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-  wireWorkshopPanelMessages(panel, async () => {
-    panel.webview.html = renderUnifiedSecurityOperatingModel(
-      buildUnifiedSecurityOperatingModel(await listAllEntities())
-    );
-  });
-  panel.webview.html = renderUnifiedSecurityOperatingModel(buildUnifiedSecurityOperatingModel(await listAllEntities()));
-}
-
-function renderUnifiedSecurityOperatingModel(model: UnifiedSecurityOperatingModel): string {
-  const teams = model.teams
-    .map((team) => {
-      const services =
-        team.services.length > 0
-          ? `<ul class="cc-team-services">${team.services
-              .map((service) => `<li>${escapeHtml(service.label)}</li>`)
-              .join("")}</ul>`
-          : `<p class="muted cc-metro-empty">No services mapped yet.</p>`;
-      const functions =
-        team.capabilityAreas.length > 0
-          ? team.capabilityAreas
-              .map((capability) => `<span class="cc-team-function">${escapeHtml(capability)}</span>`)
-              .join("")
-          : `<span class="muted">No capability areas recorded</span>`;
-      return `
-      <article class="cc-team-card">
-        <header class="cc-team-card__header">
-          <strong>${escapeHtml(team.name)}</strong>
-          <span class="cc-team-card__count">${team.services.length} service${team.services.length === 1 ? "" : "s"}</span>
-        </header>
-        <div class="cc-team-functions">${functions}</div>
-        ${services}
-      </article>`;
-    })
-    .join("");
-  const coverage = model.coverage
-    .map(
-      (item) => `
-      <li class="cc-coverage-row" data-covered="${item.covered ? "yes" : "no"}">
-        <span class="cc-coverage-status">${item.covered ? "Covered" : "Gap"}</span>
-        <div class="cc-coverage-body">
-          <strong>${escapeHtml(item.label)}</strong>
-          <span class="cc-coverage-meta">${item.covered ? escapeHtml(item.teams.join(", ")) : "No team currently owns this function"}</span>
-        </div>
-      </li>`
-    )
-    .join("");
-  const teamsBlock =
-    model.teams.length > 0
-      ? `<div class="cc-team-grid">${teams}</div>`
-      : `<p class="muted">No teams or owners are mapped yet. Add an executive owner to each strategic choice on the Strategy Map to populate the operating model.</p>`;
-  const unmapped =
-    model.unmappedCapabilities.length > 0
-      ? `<section>
-      <h2>Capabilities Outside The Standard Functions</h2>
-      <p class="muted">These capability areas did not match a standard security function. Review the wording or treat them as bespoke functions.</p>
-      <div class="cc-team-functions">${model.unmappedCapabilities
-        .map((capability) => `<span class="cc-team-function">${escapeHtml(capability)}</span>`)
-        .join("")}</div>
-    </section>`
-      : "";
-  return shellHtml(
-    "Unified Security Operating Model",
-    `
-    ${continuousComplianceStyles()}
-    <section>
-      <p class="eyebrow">Continuous Compliance · Output 5</p>
-      <h1>Unified Security Operating Model</h1>
-      <p class="muted">OFFICIAL: Sensitive · ${escapeHtml(formatDisplayDate(new Date()))} · Which teams deliver which security functions and outcomes, with coverage and gaps visible on one page.</p>
-      ${versionStrip()}
-      <div class="grid">
-        ${metricCard("Teams in scope", model.teams.length)}
-        ${metricCard("Functions covered", `${model.coveredFunctions}/${model.coverage.length}`)}
-        ${metricCard("Coverage gaps", model.gapFunctions)}
-      </div>
-      <div class="form-actions">
-        <button type="button" data-command="refresh">Refresh</button>
-        <button type="button" data-command="pspf.workshop.openStrategyMap">Strategy Map</button>
-        <button type="button" data-command="pspf.workshop.openContinuousComplianceMetro">Capability Metro</button>
-      </div>
-    </section>
-    <section>
-      <h2>Teams And Their Functions</h2>
-      ${teamsBlock}
-    </section>
-    <section>
-      <h2>Function Coverage</h2>
-      <p class="muted">Standard security functions in fixed order. Gaps show where no team currently owns a function.</p>
-      <ul class="cc-coverage-list">${coverage}</ul>
-    </section>
-    ${unmapped}
-  `
-  );
 }
 
 async function openCyberAwarenessChangeStrategy(): Promise<void> {
@@ -10523,6 +10190,9 @@ async function openEntityEditor(
     hasUnsavedEditorChanges = false;
     unsavedEditorFields = undefined;
     celebrateClosure(previousEntity, updated);
+    if (previousEntity.entityType === "requirement" && updated.entityType === "requirement") {
+      notifyRequirementSaveImpact(previousEntity, updated, currentEntities);
+    }
     return true;
   };
   const confirmDirtyEditorChanges = async (): Promise<boolean> => {
@@ -11052,8 +10722,6 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
         "pspf.workshop.openEssentialEightDashboard",
         "pspf.workshop.openRequirementsList",
         "pspf.workshop.openPspfGridView",
-        "pspf.workshop.openHumanCentredRiskView",
-        "pspf.workshop.openContinuousComplianceMetro",
         "pspf.workshop.openPentestWorkbench",
         "pspf.workshop.openRequirementCardView",
         "pspf.workshop.openPlanOfActionBoard",
@@ -11118,6 +10786,65 @@ function celebrateClosure(previous: EditableWorkshopEntity, next: EditableWorksh
   ) {
     void vscode.window.showInformationMessage(`Action closed — ${next.title}. One less thing on the plan.`);
   }
+}
+
+/** E5 (v1.67.0, ADR 0096): what changed since the previous save, from field deltas only — never inferred. */
+function requirementSaveWhatChanged(previous: RequirementEntity, updated: RequirementEntity): string {
+  if (previous.assessmentStatus !== updated.assessmentStatus) {
+    return `Status: ${label(previous.assessmentStatus)} \u2192 ${label(updated.assessmentStatus)}`;
+  }
+  if (previous.assessmentRationale !== updated.assessmentRationale) {
+    return "Assessment rationale updated.";
+  }
+  if (previous.acceptanceDefinition !== updated.acceptanceDefinition) {
+    return "Acceptance definition updated.";
+  }
+  if (previous.summary !== updated.summary) {
+    return "Summary updated.";
+  }
+  return "";
+}
+
+/**
+ * E5 (v1.67.0, ADR 0096): post-save impact feedback for the Requirement Detail guided path, composed
+ * from buildSaveImpactSummary — no prediction, only restated facts (linked-record counts, current
+ * consequence and material-risk state).
+ */
+function notifyRequirementSaveImpact(
+  previous: RequirementEntity,
+  updated: RequirementEntity,
+  allEntities: readonly V01Entity[]
+): void {
+  const whatChanged = requirementSaveWhatChanged(previous, updated);
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity =>
+      entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.fromId === updated.id
+  );
+  const linkedIds = new Set(links.map((link) => link.toId));
+  const evidenceCount = allEntities.filter(
+    (entity) => entity.entityType === "evidence" && linkedIds.has(entity.id)
+  ).length;
+  const actionCount = allEntities.filter((entity) => entity.entityType === "action" && linkedIds.has(entity.id)).length;
+  const openLinkedRisks = allEntities.filter(
+    (entity): entity is RiskEntity =>
+      entity.entityType === "risk" && linkedIds.has(entity.id) && entity.status !== "closed"
+  );
+  const hasMaterialRisk = openLinkedRisks.some((risk) => risk.likelihood * risk.impact >= 10);
+  const consequenceStatement = buildConsequenceStatement({
+    met: updated.assessmentStatus === "met",
+    openLinkedRiskCount: openLinkedRisks.length,
+    maxLinkedRiskSeverity: openLinkedRisks.reduce((max, risk) => Math.max(max, risk.likelihood * risk.impact), 0)
+  });
+  const summary = buildSaveImpactSummary({
+    whatChanged,
+    outcome: whatChanged ? "saved" : "no-op",
+    consequenceStatement,
+    affectedEvidenceCount: evidenceCount,
+    affectedActionCount: actionCount,
+    affectedRiskCount: openLinkedRisks.length,
+    postureOrPriorityStatement: hasMaterialRisk ? "Material risk linked." : "No material risk linked."
+  });
+  void vscode.window.showInformationMessage(`${summary.headline} — ${summary.detail} ${summary.nextAction}`);
 }
 
 async function buildUpdatedEntity(
@@ -11470,22 +11197,27 @@ function renderRequirementEditor(
         reviewed: mapping.lastReviewedAt ? formatDisplayDate(new Date(mapping.lastReviewedAt)) : "Not recorded"
       };
     });
-  const linkedRecordsOpen = workshopPresentationLens === "auditor";
-  const advancedOpen = workshopPresentationLens === "auditor";
+  // ADR 0096 E6: lens-conditional disclosure defaults are retired; collapsed by default for everyone.
+  const linkedRecordsOpen = false;
+  const advancedOpen = false;
+  const openLinkedRisks = riskItems.filter((risk) => risk.status !== "closed");
+  const consequenceStatement = buildConsequenceStatement({
+    met: requirement.assessmentStatus === "met",
+    openLinkedRiskCount: openLinkedRisks.length,
+    maxLinkedRiskSeverity: openLinkedRisks.reduce((max, risk) => Math.max(max, risk.likelihood * risk.impact), 0)
+  });
+  const openActionCount = actionItems.filter(
+    (action) => action.status !== "done" && action.status !== "cancelled"
+  ).length;
+  const explainer = buildRequirementExplainer({
+    requirementId: requirement.id,
+    consequenceStatement,
+    openBlockerCount: openActionCount
+  });
   const editorContent = `${pageHeaderHtml({
-    eyebrow:
-      workshopPresentationLens === "ciso"
-        ? "Decision view"
-        : workshopPresentationLens === "auditor"
-          ? "Assurance view"
-          : "Guided view",
+    eyebrow: "Decision view",
     title: requirement.title,
-    description:
-      workshopPresentationLens === "ciso"
-        ? "Review readiness, material exposure, and the next decision."
-        : workshopPresentationLens === "auditor"
-          ? "Review evidence currency, provenance, mappings, and traceability."
-          : "Complete the essential assessment fields, then add supporting records when ready."
+    description: "Review readiness, material exposure, and the next decision."
   })}
   ${trustChipsHtml([
     { label: "OFFICIAL: Sensitive", strong: true },
@@ -11493,6 +11225,7 @@ function renderRequirementEditor(
     { label: label(requirement.assessmentStatus) },
     { label: domainName(requirement.domainId) }
   ])}
+  <h3 class="flow-step">Assess</h3>
   ${editorShell(
     requirement,
     "Edit Requirement",
@@ -11512,6 +11245,21 @@ function renderRequirementEditor(
     isBaseline ? "Official PSPF baseline title and domain are locked." : undefined,
     requirementNavigationStrip(requirement, allEntities)
   )}
+    <h3 class="flow-step">Justify</h3>
+    <section class="consequence">
+      <h2>Consequence</h2>
+      <p>${escapeHtml(consequenceStatement)}</p>
+    </section>
+    <section class="explainer">
+      <h2>What this means</h2>
+      <p>${escapeHtml(explainer.whatThisMeans)}</p>
+      <h2>Why it matters</h2>
+      <p>${escapeHtml(explainer.whyItMatters)}</p>
+      <h2>What to do next</h2>
+      <p>${escapeHtml(explainer.whatToDoNext)}</p>
+      <p class="attribution">${escapeHtml(explainer.attribution)}</p>
+    </section>
+    <h3 class="flow-step">Act</h3>
     <section>
       <h2>Requirement Workbench</h2>
       <p class="muted">Add or open the linked records that drive this Requirement's assessment.</p>
@@ -11590,6 +11338,7 @@ function requirementSignalCard(labelText: string, value: string, detail: string)
 function requirementWorkbenchStyles(): string {
   return `<style>
     .requirement-page { display: grid; gap: 12px; }
+    .flow-step { margin: 12px 0 0 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
     .requirement-page__tabs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
     .requirement-page__tabs button[aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 16%, var(--surface-strong)); }
     .requirement-signals { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
@@ -13317,33 +13066,22 @@ async function openWorkshopRequirementsView(savedView: SavedViewEntity): Promise
   });
 }
 
+// E3 (v1.65.0, ADR 0096): adapts a Workshop RequirementEntity onto the shared, host-agnostic
+// @pspf/contracts finder record so filtering/ordering can never drift from Explorer's (E2).
+function workshopFinderRecordFor(
+  requirement: RequirementEntity,
+  links: readonly LinkEntity[]
+): RequirementFinderRecord {
+  const tagIds = links.filter((link) => link.fromId === requirement.id).map((link) => link.toId);
+  return requirementToFinderRecord(requirement, tagIds);
+}
+
 function savedViewMatchesRequirement(
   savedView: SavedViewEntity,
   requirement: RequirementEntity,
   links: readonly LinkEntity[]
 ): boolean {
-  const filters = savedView.filters;
-  const query = filters.query?.trim().toLocaleLowerCase("en-AU");
-  if (query && !`${requirement.title} ${requirement.summary ?? ""}`.toLocaleLowerCase("en-AU").includes(query)) {
-    return false;
-  }
-  if ((filters.domainIds ?? []).length > 0 && !filters.domainIds?.includes(requirement.domainId)) {
-    return false;
-  }
-  if (
-    (filters.assessmentStatuses ?? []).length > 0 &&
-    !filters.assessmentStatuses?.includes(requirement.assessmentStatus)
-  ) {
-    return false;
-  }
-  const tagIds = filters.tagIds ?? [];
-  if (tagIds.length > 0) {
-    const requirementTagIds = new Set(links.filter((link) => link.fromId === requirement.id).map((link) => link.toId));
-    return filters.tagsMode === "all"
-      ? tagIds.every((id) => requirementTagIds.has(id))
-      : tagIds.some((id) => requirementTagIds.has(id));
-  }
-  return true;
+  return matchesRequirementFinderFilters(workshopFinderRecordFor(requirement, links), savedView.filters);
 }
 
 function savedViewMatchesSourceControl(savedView: SavedViewEntity, sourceControl: SourceControlEntity): boolean {
@@ -14487,12 +14225,12 @@ async function listRequirements(): Promise<RequirementEntity[]> {
 }
 
 function compareRequirementsForPicker(left: RequirementEntity, right: RequirementEntity): number {
-  const leftDomain = PSPF_DOMAINS.findIndex((domain) => domain.id === left.domainId);
-  const rightDomain = PSPF_DOMAINS.findIndex((domain) => domain.id === right.domainId);
-  if (leftDomain !== rightDomain) {
-    return leftDomain - rightDomain;
-  }
-  return requirementDisplayTitle(left.title).localeCompare(requirementDisplayTitle(right.title));
+  const domainOrder = PSPF_DOMAINS.map((domain) => domain.id);
+  return compareRequirementFinderRecords(
+    workshopFinderRecordFor(left, []),
+    workshopFinderRecordFor(right, []),
+    domainOrder
+  );
 }
 
 function compareDirectionsForPicker(left: DirectionEntity, right: DirectionEntity): number {

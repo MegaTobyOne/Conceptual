@@ -42,6 +42,12 @@ test("matchesRequirementFinderFilters: query also matches searchText", () => {
   assert.equal(matchesRequirementFinderFilters(betaRecord, { query: "quarterly" }), true);
 });
 
+test("matchesRequirementFinderFilters: query also matches the requirement id (E8, ADR 0096)", () => {
+  assert.equal(matchesRequirementFinderFilters(alphaRecord, { query: "REQ-001" }), true);
+  assert.equal(matchesRequirementFinderFilters(alphaRecord, { query: "req-001" }), true);
+  assert.equal(matchesRequirementFinderFilters(alphaRecord, { query: "REQ-002" }), false);
+});
+
 test("matchesRequirementFinderFilters: domainIds and statuses narrow results", () => {
   assert.equal(matchesRequirementFinderFilters(zebraRecord, { domainIds: ["risk"] }), false);
   assert.equal(matchesRequirementFinderFilters(zebraRecord, { statuses: ["not-met"] }), false);

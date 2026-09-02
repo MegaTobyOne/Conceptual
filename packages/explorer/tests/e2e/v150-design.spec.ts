@@ -62,44 +62,20 @@ test('v1.50 System theme follows OS changes and reduced motion', async ({ page }
   await expect(app).toHaveAttribute('data-theme', 'dark');
 });
 
-test('v1.50 lenses preserve Requirement records and controls', async ({ page }) => {
+test('v1.68 presentation lenses are retired: stored preference migrates once and the selector is gone', async ({
+  page,
+}) => {
+  await page.goto('./');
+  await page.evaluate(() => localStorage.setItem('pspf-presentation-lens', 'auditor'));
+  await page.reload();
   await page.goto('./#/requirement/GOV-001');
   const app = page.locator('pspf-app');
   const requirement = page.locator('pspf-requirement-view');
   await expect(requirement).toContainText('GOV-001');
 
-  const snapshots: string[] = [];
-  const routeSets: string[][] = [];
-  for (const lens of ['ciso', 'auditor', 'solo'] as const) {
-    await app.getByLabel('Choose presentation view').selectOption(lens);
-    await expect(requirement.locator('article')).toHaveAttribute('data-lens', lens);
-    await expect
-      .poll(() => page.evaluate(() => localStorage.getItem('pspf-presentation-lens')))
-      .toBe(lens);
-    snapshots.push(
-      await requirement
-        .locator('article')
-        .evaluate((article) =>
-          article.outerHTML.replace(/data-lens="(?:ciso|auditor|solo)"/, 'data-lens="lens"'),
-        ),
-    );
-    routeSets.push(
-      (
-        await app
-          .locator('nav.primary a')
-          .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))
-      ).sort(),
-    );
-  }
-
-  expect(snapshots[1]).toBe(snapshots[0]);
-  expect(snapshots[2]).toBe(snapshots[0]);
-  expect(routeSets[1]).toEqual(routeSets[0]);
-  expect(routeSets[2]).toEqual(routeSets[0]);
-  await page.reload();
+  await expect(app.getByLabel('Choose presentation view')).toHaveCount(0);
+  await expect(requirement.locator('article')).toHaveAttribute('data-lens', 'ciso');
   await expect
     .poll(() => page.evaluate(() => localStorage.getItem('pspf-presentation-lens')))
-    .toBe('solo');
-  await expect(app.getByLabel('Choose presentation view')).toHaveValue('solo');
-  await expect(requirement).toContainText('GOV-001');
+    .toBe(null);
 });

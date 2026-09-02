@@ -11,6 +11,22 @@ const pentest = readFileSync(join(root, "packages/workshop/src/pentest-workbench
 const outputs = [
   { id: "O4", command: "pspf.workshop.openPspfGridView", open: "openPspfGridView", render: "renderPspfGridView" },
   {
+    id: "O3",
+    command: "pspf.workshop.openCyberAwarenessChangeStrategy",
+    open: "openCyberAwarenessChangeStrategy",
+    render: "renderCyberAwarenessChangeStrategy"
+  },
+  {
+    id: "O7",
+    command: "pspf.workshop.openRequirementCardView",
+    open: "openRequirementCardView",
+    render: "renderRequirementCardView"
+  }
+];
+
+// O1, O5, and O6 were retired in ADR 0096 E7 (Workshop subtraction) — assert they stay gone.
+const retiredOutputs = [
+  {
     id: "O1",
     command: "pspf.workshop.openHumanCentredRiskView",
     open: "openHumanCentredRiskView",
@@ -27,18 +43,6 @@ const outputs = [
     command: "pspf.workshop.openUnifiedSecurityOperatingModel",
     open: "openUnifiedSecurityOperatingModel",
     render: "renderUnifiedSecurityOperatingModel"
-  },
-  {
-    id: "O3",
-    command: "pspf.workshop.openCyberAwarenessChangeStrategy",
-    open: "openCyberAwarenessChangeStrategy",
-    render: "renderCyberAwarenessChangeStrategy"
-  },
-  {
-    id: "O7",
-    command: "pspf.workshop.openRequirementCardView",
-    open: "openRequirementCardView",
-    render: "renderRequirementCardView"
   }
 ];
 
@@ -57,6 +61,30 @@ for (const output of outputs) {
     `${output.id}: ${output.command} missing from contributes.commands`
   );
   assert.equal(menuCommands.has(output.command), true, `${output.id}: ${output.command} missing from view/title menu`);
+}
+
+for (const output of retiredOutputs) {
+  assert.equal(
+    extension.includes(`function ${output.open}`),
+    false,
+    `${output.id}: ${output.open} should stay removed`
+  );
+  assert.equal(
+    extension.includes(`function ${output.render}`),
+    false,
+    `${output.id}: ${output.render} should stay removed`
+  );
+  assert.equal(extension.includes(`"${output.command}"`), false, `${output.id}: ${output.command} should stay removed`);
+  assert.equal(
+    commandTitles.has(output.command),
+    false,
+    `${output.id}: ${output.command} should stay out of contributes.commands`
+  );
+  assert.equal(
+    menuCommands.has(output.command),
+    false,
+    `${output.id}: ${output.command} should stay out of the view/title menu`
+  );
 }
 
 assert.equal(extension.includes("function openPentestWorkbench"), true, "Pentest: openPentestWorkbench should exist");
@@ -98,13 +126,22 @@ for (const symbol of [
   "CONTINUOUS_COMPLIANCE_DOMAIN_ORDER",
   "CONTINUOUS_COMPLIANCE_ASSURANCE_BANDS",
   "CONTINUOUS_COMPLIANCE_RISK_SEVERITIES",
-  "CONTINUOUS_COMPLIANCE_METRO_HUB",
-  "CONTINUOUS_COMPLIANCE_SECURITY_FUNCTIONS",
   "CONTINUOUS_COMPLIANCE_CHANGE_THEMES",
   "CONTINUOUS_COMPLIANCE_TERM_TRANSLATIONS"
 ]) {
   assert.match(taxonomy, new RegExp(`export const ${symbol}`), `continuous-compliance should export ${symbol}`);
 }
+
+assert.equal(
+  taxonomy.includes("CONTINUOUS_COMPLIANCE_METRO_HUB"),
+  false,
+  "continuous-compliance should not re-export the retired metro hub constant"
+);
+assert.equal(
+  taxonomy.includes("CONTINUOUS_COMPLIANCE_SECURITY_FUNCTIONS"),
+  false,
+  "continuous-compliance should not re-export the retired security functions taxonomy"
+);
 
 for (const symbol of ["PENTEST_ASSESSMENT_TAG_PREFIX", "PENTEST_FINDING_SEVERITIES"]) {
   assert.match(pentest, new RegExp(`export const ${symbol}`), `pentest-workbench should export ${symbol}`);

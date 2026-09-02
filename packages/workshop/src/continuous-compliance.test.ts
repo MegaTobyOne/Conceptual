@@ -12,14 +12,11 @@ import {
 } from "@pspf/contracts";
 import {
   assuranceBandForPercentage,
-  buildContinuousComplianceMetroModel,
   buildCyberAwarenessChangeStrategyModel,
-  buildHumanCentredRiskModel,
   buildPspfGridModel,
   buildExposureSummary,
   buildStrategyDeliverySummary,
   buildStrategyPrioritySummary,
-  buildUnifiedSecurityOperatingModel,
   riskSeverityForScore
 } from "./continuous-compliance.js";
 
@@ -53,59 +50,6 @@ test("PSPF grid view excludes not-applicable requirements from met percentage", 
   assert.equal(model.applicable, 2);
   assert.equal(model.met, 1);
   assert.equal(model.overallMetPercentage, 50);
-});
-
-test("human-centred risk view groups risks under the business outcome that references them", () => {
-  const entities: V01Entity[] = [
-    risk({ id: "RSK-1", title: "Legacy identity exposure", likelihood: 5, impact: 4, status: "open" }),
-    strategy({
-      capabilityArea: "Identity and access",
-      executiveOwner: "Identity Team",
-      outcomeId: "OUT-1",
-      outcomeStatement: "Trusted access to critical services",
-      riskRefId: "RSK-1"
-    })
-  ];
-  const model = buildHumanCentredRiskModel(entities, { now: NOW });
-
-  assert.equal(model.groups.length, 1);
-  assert.equal(model.groups[0]?.outcomeStatement, "Trusted access to critical services");
-  assert.equal(model.groups[0]?.risks[0]?.riskId, "RSK-1");
-  assert.equal(model.groups[0]?.risks[0]?.severityId, "high");
-  assert.equal(model.unassigned.length, 0);
-  assert.equal(model.counts.total, 1);
-});
-
-test("human-centred risk view lists risks with no outcome under unassigned", () => {
-  const entities: V01Entity[] = [risk({ id: "RSK-9", title: "Orphan risk", likelihood: 1, impact: 1, status: "open" })];
-  const model = buildHumanCentredRiskModel(entities, { now: NOW });
-
-  assert.equal(model.groups.length, 0);
-  assert.equal(model.unassigned.length, 1);
-  assert.equal(model.unassigned[0]?.treatmentLabel, "No treatment yet");
-});
-
-test("human-centred risk matrix counts risks by impact and likelihood", () => {
-  const entities: V01Entity[] = [
-    risk({ id: "RSK-1", title: "Low exposure", likelihood: 1, impact: 1, status: "open" }),
-    risk({ id: "RSK-2", title: "Medium exposure", likelihood: 4, impact: 2, status: "open" }),
-    risk({ id: "RSK-3", title: "High exposure", likelihood: 5, impact: 4, status: "open" })
-  ];
-  const model = buildHumanCentredRiskModel(entities, { now: NOW });
-
-  assert.equal(model.riskMatrix.length, 25);
-  assert.deepEqual(
-    model.riskMatrix.find((cell) => cell.likelihood === 1 && cell.impact === 1),
-    { likelihood: 1, impact: 1, riskCount: 1, band: "green" }
-  );
-  assert.deepEqual(
-    model.riskMatrix.find((cell) => cell.likelihood === 4 && cell.impact === 2),
-    { likelihood: 4, impact: 2, riskCount: 1, band: "amber" }
-  );
-  assert.deepEqual(
-    model.riskMatrix.find((cell) => cell.likelihood === 5 && cell.impact === 4),
-    { likelihood: 5, impact: 4, riskCount: 1, band: "red" }
-  );
 });
 
 test("strategy priority reports no priority before risks are linked", () => {
@@ -322,42 +266,6 @@ test("strategy priority excludes unresolved risks but keeps repair cue", () => {
   assert.equal(summary.band, "none");
   assert.equal(summary.unresolvedRiskReferenceCount, 1);
   assert.match(summary.rationale, /unresolved risk reference/);
-});
-
-test("metro map collapses duplicate capability areas and counts stations", () => {
-  const entities: V01Entity[] = [
-    strategy({
-      capabilityArea: "Network security",
-      executiveOwner: "Network Team",
-      outcomeId: "OUT-2",
-      outcomeStatement: "Segmented and monitored network"
-    })
-  ];
-  const model = buildContinuousComplianceMetroModel(entities, { now: NOW });
-
-  assert.equal(model.hub, "GRC and security management");
-  assert.equal(model.totalCapabilities, 1);
-  assert.equal(model.totalStations, 1);
-  assert.equal(model.lines[0]?.capabilityArea, "Network security");
-});
-
-test("operating model maps capability areas to fixed functions and surfaces gaps", () => {
-  const entities: V01Entity[] = [
-    strategy({
-      capabilityArea: "Identity and access management",
-      executiveOwner: "Identity Team",
-      outcomeId: "OUT-3",
-      outcomeStatement: "Least privilege everywhere"
-    })
-  ];
-  const model = buildUnifiedSecurityOperatingModel(entities, { now: NOW });
-
-  assert.equal(model.teams.length, 1);
-  assert.equal(model.teams[0]?.name, "Identity Team");
-  const identity = model.coverage.find((item) => item.functionId === "identity-access");
-  assert.equal(identity?.covered, true);
-  assert.equal(model.gapFunctions, model.coverage.length - model.coveredFunctions);
-  assert.ok(model.gapFunctions > 0);
 });
 
 test("change strategy weaves the live met percentage into the leadership message", () => {

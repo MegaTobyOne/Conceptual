@@ -1,6 +1,7 @@
-// E0 gate (ADR 0096): records the Explorer/Workshop surface baseline and fails
-// on further growth. Retired/demoted/Advanced-group checks land in E6/E7 once
-// the surface-reduction UI exists.
+// E0 gate (ADR 0096): records the Explorer/Workshop surface baseline and fails on further growth.
+// E6 (v1.68.0) activates the retired-view-reappearance, demoted-view-outside-Advanced, and
+// essentials-nav-item-count checks now that the surface reduction has shipped.
+// E7 (v1.69.0) activates the retired-command-reappearance check for the three removed Workshop panels.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -38,8 +39,49 @@ assert.deepEqual(
     "if this growth is deliberate, update the baseline together with an ADR-visible reason."
 );
 
+// E6: retired routes must never reappear.
+for (const retiredPath of ["/map-3d-concepts", "'/map'", "'/grc'"]) {
+  assert.equal(
+    routesSource.includes(retiredPath),
+    false,
+    `retired route ${retiredPath} must not reappear in routes.ts (ADR 0096 E6)`
+  );
+}
+
+// E6: every essentials-path nav item must be classified essentials or advanced; essentials capped at 7.
+const navGroupMatches = [...navRoutesSection.matchAll(/group:\s*'([^']+)'/g)].map((match) => match[1]);
+const unknownGroups = navGroupMatches.filter((group) => group !== "essentials" && group !== "advanced");
+assert.deepEqual(
+  unknownGroups,
+  [],
+  `NAV_ROUTES entries must be classified 'essentials' or 'advanced' only (found: ${unknownGroups.join(", ")})`
+);
+const essentialsNavCount = navGroupMatches.filter((group) => group === "essentials").length;
+assert.ok(
+  essentialsNavCount <= 7,
+  `essentials nav items (${essentialsNavCount}) must be \u2264 7 per ADR 0096 E6; demote the rest behind 'advanced'`
+);
+
+// E7: retired Workshop panel commands must never reappear.
+for (const retiredCommand of [
+  "pspf.workshop.openHumanCentredRiskView",
+  "pspf.workshop.openContinuousComplianceMetro",
+  "pspf.workshop.openUnifiedSecurityOperatingModel"
+]) {
+  assert.equal(
+    workshopExtensionSource.includes(retiredCommand),
+    false,
+    `retired command ${retiredCommand} must not reappear in extension.ts (ADR 0096 E7)`
+  );
+  assert.equal(
+    workshopPackage.contributes.commands.some((entry) => entry.command === retiredCommand),
+    false,
+    `retired command ${retiredCommand} must not reappear in contributes.commands (ADR 0096 E7)`
+  );
+}
+
 console.log(
-  `ok essentials surface within E0 baseline: routes ${explorerRoutes}/${baseline.explorerRoutes}, ` +
-    `nav ${explorerNavItems}/${baseline.explorerNavItems}, commands ${workshopCommands}/${baseline.workshopCommands}, ` +
-    `panels ${workshopWebviewPanels}/${baseline.workshopWebviewPanels}`
+  `ok essentials surface within baseline: routes ${explorerRoutes}/${baseline.explorerRoutes}, ` +
+    `nav ${explorerNavItems}/${baseline.explorerNavItems} (essentials ${essentialsNavCount}/7), ` +
+    `commands ${workshopCommands}/${baseline.workshopCommands}, panels ${workshopWebviewPanels}/${baseline.workshopWebviewPanels}`
 );

@@ -29,33 +29,6 @@ export class HomeView extends LitElement {
         display: grid;
         gap: var(--space-4);
       }
-      article[data-lens='ciso'] .overview {
-        order: 1;
-      }
-      article[data-lens='ciso'] .hero {
-        order: 2;
-      }
-      article[data-lens='ciso'] .domains {
-        order: 3;
-      }
-      article[data-lens='auditor'] .overview {
-        order: 1;
-      }
-      article[data-lens='auditor'] .domains {
-        order: 2;
-      }
-      article[data-lens='auditor'] .hero {
-        order: 3;
-      }
-      article[data-lens='solo'] .hero {
-        order: 1;
-      }
-      article[data-lens='solo'] .overview {
-        order: 2;
-      }
-      article[data-lens='solo'] .domains {
-        order: 3;
-      }
       pspf-breadcrumbs {
         order: 0;
       }
@@ -319,50 +292,12 @@ export class HomeView extends LitElement {
       },
     ] as const;
     const lensCopy = {
-      ciso: {
-        title: 'Protection posture and decisions in one working view',
-        lede: 'Start with material posture signals, then trace every decision back to requirements, risks, actions, and evidence.',
-      },
-      auditor: {
-        title: 'Evidence, requirements, and traceability in one review view',
-        lede: 'Review implementation state and follow each claim into the records that support or qualify it. Your work stays on this device.',
-      },
-      solo: {
-        title: 'Your next PSPF steps in one guided view',
-        lede: 'Start with a requirement, record what you already have, and turn gaps into practical actions. Your work stays on this device.',
-      },
-    }[this.lens];
+      title: 'Protection posture and decisions in one working view',
+      lede: 'Start with material posture signals, then trace every decision back to requirements, risks, actions, and evidence.',
+    };
     return html`
       <article data-lens=${this.lens}>
         <pspf-breadcrumbs .items=${[{ label: 'Home' }]}></pspf-breadcrumbs>
-        <section class="hero" aria-label="Home overview and quick start">
-          <div class="hero-copy">
-            <h1>${lensCopy.title}</h1>
-            <p class="lede">${lensCopy.lede}</p>
-            <div class="hero-meta" aria-label="Product highlights">
-              <span>Offline first</span>
-              <span>Fast local search</span>
-              <span>Command palette: Ctrl/Cmd+K</span>
-            </div>
-          </div>
-          <aside class="hero-panel" aria-label="Quick start links">
-            <h2>Start here</h2>
-            <p>Choose the most common path and get straight to the next decision.</p>
-            <ul class="start-grid">
-              ${quickStarts.map(
-                (item) => html`
-                  <li>
-                    <a class="start-card" href=${item.href}>
-                      <span class="title">${item.title}</span>
-                      <span class="text">${item.text}</span>
-                    </a>
-                  </li>
-                `,
-              )}
-            </ul>
-          </aside>
-        </section>
-
         <section class="overview" aria-label="Programme overview">
           <h2 class="section-title">Programme overview</h2>
           <p class="section-note">
@@ -390,6 +325,34 @@ export class HomeView extends LitElement {
               </a>
             </section>
           </div>
+        </section>
+
+        <section class="hero" aria-label="Home overview and quick start">
+          <div class="hero-copy">
+            <h1>${lensCopy.title}</h1>
+            <p class="lede">${lensCopy.lede}</p>
+            <div class="hero-meta" aria-label="Product highlights">
+              <span>Offline first</span>
+              <span>Fast local search</span>
+              <span>Command palette: Ctrl/Cmd+K</span>
+            </div>
+          </div>
+          <aside class="hero-panel" aria-label="Quick start links">
+            <h2>Start here</h2>
+            <p>Choose the most common path and get straight to the next decision.</p>
+            <ul class="start-grid">
+              ${quickStarts.map(
+                (item) => html`
+                  <li>
+                    <a class="start-card" href=${item.href}>
+                      <span class="title">${item.title}</span>
+                      <span class="text">${item.text}</span>
+                    </a>
+                  </li>
+                `,
+              )}
+            </ul>
+          </aside>
         </section>
 
         <section class="domains" aria-label="Domain cards">

@@ -32,7 +32,6 @@ const ROUTES = [
   { slug: 'analytics', hash: '#/analytics', component: 'pspf-analytics-view' },
   { slug: 'risks', hash: '#/risks', component: 'pspf-risks-view' },
   { slug: 'actions', hash: '#/actions', component: 'pspf-actions-view' },
-  { slug: 'map', hash: '#/map', component: 'pspf-relationship-map-view' },
 ] as const;
 
 const STATES = ['empty', 'typical', 'volume'] as const;
@@ -168,7 +167,7 @@ for (const state of STATES) {
   }
 }
 
-test('journey: record a direction and confirm it on the relationship map', async ({ page }) => {
+test('journey: record a direction and confirm its linked requirement', async ({ page }) => {
   await resetApp(page);
   const steps: string[] = [];
   const step = (description: string) => steps.push(description);
@@ -189,15 +188,14 @@ test('journey: record a direction and confirm it on the relationship map', async
   await dirs.getByLabel(/Linked requirement IDs/i).fill('GOV-001');
   step('Save the direction');
   await dirs.getByRole('button', { name: 'Add direction' }).click();
-  step('Open the relationship map to confirm the link');
-  await page.locator('pspf-app').getByRole('link', { name: /^Map$/ }).click();
-  await expect(page.locator('pspf-relationship-map-view').getByTestId('counts')).toContainText(
-    '2 nodes',
-  );
+  step('Open the saved direction to confirm the linked requirement');
+  const directionItem = dirs.locator('li.direction', { hasText: 'Confirm evidence pack journey' });
+  await directionItem.getByRole('button', { name: 'Open' }).click();
+  await expect(directionItem.locator('a[href="#/requirement/GOV-001"]')).toBeVisible();
 
   writeChunk('journey-record-direction', {
     id: 'record-direction-and-verify',
-    title: 'Record a direction and confirm it on the relationship map',
+    title: 'Record a direction and confirm its linked requirement',
     steps: steps.length,
     stepList: steps,
   });
@@ -223,6 +221,67 @@ test('journey: answer "what changed in the last 30 days"', async ({ page }) => {
   writeChunk('journey-what-changed', {
     id: 'what-changed-30-days',
     title: 'Answer "what changed in the last 30 days"',
+    steps: steps.length,
+    stepList: steps,
+  });
+  expect(steps.length).toBeGreaterThan(0);
+});
+
+test('journey: assess, evidence, action, save, and see the effect (E8, ADR 0096)', async ({
+  page,
+}) => {
+  await resetApp(page);
+  const steps: string[] = [];
+  const step = (description: string) => steps.push(description);
+
+  step('Browse to Requirements from primary navigation');
+  await page
+    .locator('pspf-app')
+    .getByRole('link', { name: /^Requirements$/ })
+    .click();
+  const reqsView = page.locator('pspf-requirements-view');
+  await expect(reqsView).toBeVisible();
+
+  step('Search for the requirement by id');
+  await reqsView.locator('#requirement-finder-query').fill('GOV-001');
+  step('Open the matching requirement');
+  await reqsView.locator('a[href="#/requirement/GOV-001"]').first().click();
+  const reqView = page.locator('pspf-requirement-view');
+  await expect(reqView).toBeVisible();
+
+  step('Read the requirement explainer');
+  const explainer = reqView.locator('[data-testid="explainer"]');
+  await expect(explainer.getByRole('heading', { name: 'What this means' })).toBeVisible();
+  await expect(explainer.getByRole('heading', { name: 'Why it matters' })).toBeVisible();
+  await expect(explainer.getByRole('heading', { name: 'What to do next' })).toBeVisible();
+
+  const editor = reqView.locator('pspf-compliance-editor');
+  step('Add supporting evidence');
+  await editor.getByLabel('Evidence value').fill('Uplift plan endorsed by governance committee');
+  await editor.getByRole('button', { name: 'Add' }).click();
+  await expect(editor.locator('ul.evidence li')).toContainText(
+    'Uplift plan endorsed by governance committee',
+  );
+
+  step('Create and link a new action from the guided path');
+  const linker = reqView.locator('section.linker');
+  await linker.getByLabel('New action title').fill('Confirm uplift plan with governance committee');
+  await linker.getByRole('button', { name: 'Create action' }).click();
+  await expect(linker.locator('ul.linked')).toContainText(
+    'Confirm uplift plan with governance committee',
+  );
+
+  step('Save the assessment by recording the current status');
+  await editor.getByRole('radio', { name: 'Risk-managed', exact: true }).check();
+
+  step('See the save impact and posture effect without opening Advanced');
+  const banner = reqView.locator('[data-testid="save-impact-banner"]');
+  await expect(banner).toBeVisible();
+  await expect(banner).toContainText(/Risk-managed/);
+
+  writeChunk('journey-assess-evidence-action-save', {
+    id: 'assess-evidence-action-save-effect',
+    title: 'Assess, link evidence and an action, save, and see the posture/risk effect',
     steps: steps.length,
     stepList: steps,
   });

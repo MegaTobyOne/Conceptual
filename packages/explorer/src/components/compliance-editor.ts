@@ -15,6 +15,8 @@ import type { AppStore } from '../state/app-store.ts';
 import { SignalWatcher } from '../state/signal-watcher.ts';
 import { complianceLabel } from '../domain/compliance-display.ts';
 import { formatDateTime } from '../domain/date-display.ts';
+import { buildConsequenceStatement, buildSaveImpactSummary } from '@pspf/contracts';
+import './toast.ts';
 
 @customElement('pspf-compliance-editor')
 export class ComplianceEditor extends LitElement {
@@ -176,6 +178,7 @@ export class ComplianceEditor extends LitElement {
   @state() private evidenceKind: EvidenceRef['kind'] = 'url';
   @state() private evidenceValue = '';
   @state() private notesDraft: string | undefined;
+  @state() private saveImpactMessage: string | undefined;
 
   private get entry(): ComplianceEntry | undefined {
     return this.store?.compliance.value.get(this.requirementId);
@@ -197,6 +200,14 @@ export class ComplianceEditor extends LitElement {
     const entry = this.entry;
     const state: ComplianceState = entry?.state ?? 'not-set';
     return html`
+      ${this.saveImpactMessage
+        ? html`<pspf-toast
+            .message=${this.saveImpactMessage}
+            @dismiss=${(): void => {
+              this.saveImpactMessage = undefined;
+            }}
+          ></pspf-toast>`
+        : ''}
       <h3>Update compliance</h3>
       <fieldset>
         <legend>Status</legend>
@@ -343,7 +354,62 @@ export class ComplianceEditor extends LitElement {
 
   async #setState(next: ComplianceState): Promise<void> {
     if (!this.store) return;
+    const previousState = this.entry?.state ?? 'not-set';
     await this.store.setCompliance(this.requirementId, { state: next });
+    this.saveImpactMessage = this.#describeSaveImpact(previousState, next);
+  }
+
+  #describeSaveImpact(previousState: ComplianceState, nextState: ComplianceState): string {
+    if (!this.store) return '';
+    const whatChanged =
+      previousState === nextState
+        ? ''
+        : `Status: ${complianceLabel(previousState)} → ${complianceLabel(nextState)}`;
+    const relationships = this.store.relationships.value.filter((relationship) =>
+      relationship.endpoints.includes(this.requirementId),
+    );
+    const linkedActionIds = new Set(
+      relationships
+        .filter((relationship) => relationship.kind === 'requirement-action')
+        .map(
+          (relationship) =>
+            relationship.endpoints.find((endpoint) => endpoint !== this.requirementId) ??
+            relationship.endpoints[0],
+        ),
+    );
+    const linkedRiskIds = new Set(
+      relationships
+        .filter((relationship) => relationship.kind === 'requirement-risk')
+        .map(
+          (relationship) =>
+            relationship.endpoints.find((endpoint) => endpoint !== this.requirementId) ??
+            relationship.endpoints[0],
+        ),
+    );
+    const openLinkedRisks = this.store.risks.value.filter(
+      (risk) => linkedRiskIds.has(risk.id) && risk.status !== 'closed',
+    );
+    const hasMaterialRisk = openLinkedRisks.some((risk) => risk.likelihood * risk.impact >= 10);
+    const consequenceStatement = buildConsequenceStatement({
+      met: nextState === 'yes',
+      openLinkedRiskCount: openLinkedRisks.length,
+      maxLinkedRiskSeverity: openLinkedRisks.reduce(
+        (max, risk) => Math.max(max, risk.likelihood * risk.impact),
+        0,
+      ),
+    });
+    const summary = buildSaveImpactSummary({
+      whatChanged,
+      outcome: whatChanged ? 'saved' : 'no-op',
+      consequenceStatement,
+      affectedEvidenceCount: this.entry?.evidence.length ?? 0,
+      affectedActionCount: linkedActionIds.size,
+      affectedRiskCount: openLinkedRisks.length,
+      postureOrPriorityStatement: hasMaterialRisk
+        ? 'Material risk linked.'
+        : 'No material risk linked.',
+    });
+    return `${summary.headline} — ${summary.detail} ${summary.nextAction}`;
   }
 
   async #saveNotes(): Promise<void> {

@@ -1,6 +1,8 @@
 import type { RouteSpec } from './router.ts';
 
-export type NavGroupKey = 'work' | 'analyse' | 'organise' | 'share';
+// E6 (v1.68.0, ADR 0096): two groups only — essentials (≤ 7 nav items, always visible) and
+// advanced (everything else, demoted behind one disclosure). No per-topic groups.
+export type NavGroupKey = 'essentials' | 'advanced';
 
 export interface NavRoute {
   path: string;
@@ -9,10 +11,8 @@ export interface NavRoute {
 }
 
 export const NAV_GROUPS: readonly { key: NavGroupKey; label: string }[] = [
-  { key: 'work', label: 'Work' },
-  { key: 'analyse', label: 'Analyse' },
-  { key: 'organise', label: 'Organise' },
-  { key: 'share', label: 'Share/Data' },
+  { key: 'essentials', label: 'Essentials' },
+  { key: 'advanced', label: 'Advanced' },
 ];
 
 export const routes: readonly RouteSpec[] = [
@@ -85,24 +85,9 @@ export const routes: readonly RouteSpec[] = [
     load: () => import('../views/relationships-view.ts'),
   },
   {
-    path: '/map',
-    component: 'pspf-relationship-map-view',
-    load: () => import('../views/relationship-map-view.ts'),
-  },
-  {
-    path: '/map-3d-concepts',
-    component: 'pspf-connected-view-3d-lab',
-    load: () => import('../views/connected-view-3d-lab.ts'),
-  },
-  {
     path: '/share',
     component: 'pspf-share-view',
     load: () => import('../views/share-view.ts'),
-  },
-  {
-    path: '/grc',
-    component: 'pspf-grc-view',
-    load: () => import('../views/grc-view.ts'),
   },
   {
     path: '/import',
@@ -138,24 +123,22 @@ export const routes: readonly RouteSpec[] = [
 ];
 
 export const NAV_ROUTES: readonly NavRoute[] = [
-  { path: '/', label: 'Home', group: 'work' },
-  { path: '/directions', label: 'Directions', group: 'work' },
-  { path: '/risks', label: 'Risks', group: 'work' },
-  { path: '/actions', label: 'Actions', group: 'work' },
-  { path: '/relationships', label: 'Relationships', group: 'work' },
-  { path: '/analytics', label: 'Analytics', group: 'analyse' },
-  { path: '/coverage', label: 'Coverage', group: 'analyse' },
-  { path: '/map', label: 'Map', group: 'analyse' },
-  { path: '/map-3d-concepts', label: 'Assurance City', group: 'analyse' },
-  { path: '/integrity', label: 'Integrity', group: 'analyse' },
-  { path: '/tags', label: 'Tags', group: 'organise' },
-  { path: '/views', label: 'Saved views', group: 'organise' },
-  { path: '/posture', label: 'Posture', group: 'organise' },
-  { path: '/share', label: 'Share', group: 'share' },
-  { path: '/core', label: 'Core exchange', group: 'share' },
-  { path: '/backup', label: 'Backup', group: 'share' },
-  { path: '/restore', label: 'Restore', group: 'share' },
-  { path: '/grc', label: 'GRC capture', group: 'share' },
-  { path: '/import', label: 'Import work', group: 'share' },
-  { path: '/help', label: 'Help', group: 'share' },
+  { path: '/', label: 'Home', group: 'essentials' },
+  { path: '/requirements', label: 'Requirements', group: 'essentials' },
+  { path: '/risks', label: 'Risks', group: 'essentials' },
+  { path: '/actions', label: 'Actions', group: 'essentials' },
+  { path: '/directions', label: 'Directions', group: 'essentials' },
+  { path: '/relationships', label: 'Relationships', group: 'essentials' },
+  { path: '/posture', label: 'Posture', group: 'essentials' },
+  { path: '/analytics', label: 'Analytics', group: 'advanced' },
+  { path: '/coverage', label: 'Coverage', group: 'advanced' },
+  { path: '/integrity', label: 'Integrity', group: 'advanced' },
+  { path: '/tags', label: 'Tags', group: 'advanced' },
+  { path: '/views', label: 'Saved views', group: 'advanced' },
+  { path: '/share', label: 'Share', group: 'advanced' },
+  { path: '/core', label: 'Core exchange', group: 'advanced' },
+  { path: '/backup', label: 'Backup', group: 'advanced' },
+  { path: '/restore', label: 'Restore', group: 'advanced' },
+  { path: '/import', label: 'Import work', group: 'advanced' },
+  { path: '/help', label: 'Help', group: 'advanced' },
 ];

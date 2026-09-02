@@ -8,12 +8,7 @@ import { AppStore } from '../state/app-store.ts';
 import { appStoreContext } from '../state/contexts.ts';
 import { presentationLensContext } from '../state/presentation-lens-context.ts';
 import '../components/command-palette.ts';
-import {
-  decodePresentationLens,
-  encodePresentationLens,
-  PRESENTATION_LENS_LABELS,
-  type PresentationLens,
-} from '@pspf/webview-shell';
+import { normalisePresentationLens, type PresentationLens } from '@pspf/webview-shell';
 import {
   normaliseThemePreference,
   resolveEffectiveTheme,
@@ -21,11 +16,16 @@ import {
 } from './app-theme.ts';
 
 const THEME_STORAGE_KEY = 'pspf-theme';
+// ADR 0096 E6: the ciso/auditor/solo lenses are retired to one default view. Any stored
+// preference migrates once, deterministically, to the default, and the old key is removed —
+// following the ADR 0086 Colorful→Dark migration precedent.
 const LENS_STORAGE_KEY = 'pspf-presentation-lens';
 
 function readPresentationLensPreference(): PresentationLens {
   try {
-    return decodePresentationLens(localStorage.getItem(LENS_STORAGE_KEY));
+    const migrated = normalisePresentationLens(localStorage.getItem(LENS_STORAGE_KEY));
+    localStorage.removeItem(LENS_STORAGE_KEY);
+    return migrated;
   } catch {
     return 'ciso';
   }
@@ -363,12 +363,7 @@ export class PspfApp extends LitElement {
   }
 
   private navigationGroups() {
-    const order: Record<PresentationLens, readonly NavGroupKey[]> = {
-      ciso: ['analyse', 'work', 'organise', 'share'],
-      auditor: ['work', 'analyse', 'share', 'organise'],
-      solo: ['work', 'organise', 'analyse', 'share'],
-    };
-    return order[this.lens].map((key) => NAV_GROUPS.find((group) => group.key === key)!);
+    return NAV_GROUPS;
   }
 
   private loadTheme(): AppThemePreference {
@@ -389,24 +384,11 @@ export class PspfApp extends LitElement {
     }
   }
 
-  private persistLens(lens: PresentationLens): void {
-    try {
-      localStorage.setItem(LENS_STORAGE_KEY, encodePresentationLens(lens));
-    } catch {
-      // Ignore storage access failures.
-    }
-  }
-
   private onThemeChange = (event: Event): void => {
     const value = (event.target as HTMLSelectElement).value;
     if (value === 'dark' || value === 'light' || value === 'system') {
       this.theme = value;
     }
-  };
-
-  private onLensChange = (event: Event): void => {
-    this.lens = decodePresentationLens((event.target as HTMLSelectElement).value);
-    this.persistLens(this.lens);
   };
 
   private onSystemThemeChange = (): void => {
@@ -461,22 +443,6 @@ export class PspfApp extends LitElement {
             >
               Search commands <kbd>⌘K</kbd>
             </button>
-            <label class="theme-picker" for="lens-select">
-              View for
-              <select
-                id="lens-select"
-                .value=${this.lens}
-                @change=${this.onLensChange}
-                aria-label="Choose presentation view"
-              >
-                ${(Object.keys(PRESENTATION_LENS_LABELS) as PresentationLens[]).map(
-                  (lens) =>
-                    html`<option value=${lens} ?selected=${lens === this.lens}>
-                      ${PRESENTATION_LENS_LABELS[lens]}
-                    </option>`,
-                )}
-              </select>
-            </label>
             <label class="theme-picker" for="theme-select">
               Theme
               <select
