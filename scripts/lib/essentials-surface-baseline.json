@@ -1,8 +1,9 @@
 {
-  "recordedAtVersion": "1.69.0",
-  "recordedAtAdr": "adr/0096-v1-70-essentials-programme-and-surface-reduction.md",
+  "recordedAtVersion": "1.71.0",
+  "recordedAtAdr": "adr/0097-v1-74-brief-once-act-often-reporting-programme.md",
+  "rebaselineReason": "ADR 0097 R1 Reporting Workbench: +1 Workshop command (pspf.workshop.openReportingWorkbench) and +1 webview panel on the v1.69.0 ADR 0096 baseline (71/29).",
   "explorerRoutes": 24,
   "explorerNavItems": 18,
-  "workshopCommands": 71,
-  "workshopWebviewPanels": 29
+  "workshopCommands": 72,
+  "workshopWebviewPanels": 30
 }

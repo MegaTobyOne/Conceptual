@@ -6,11 +6,14 @@ import { join } from "node:path";
 import test from "node:test";
 import initSqlJs from "sql.js";
 import {
+  type ActionEntity,
   PSPF_DOMAINS,
   PSPF_SLICE_VERSION,
+  PspfError,
   type RequirementEntity,
   VERSION_AXES,
   V0_1_COLLECTIONS,
+  narrativeSlotFor,
   withEnvelope
 } from "@pspf/contracts";
 import { createCoreService, releaseAllWriterLocks } from "./service.js";
@@ -416,6 +419,63 @@ test("checkpoint snapshots persist allowlisted posture metrics", async () => {
   assert.equal(typeof payload.statusSummary, "object");
 });
 
+test("checkpoint snapshot side files record per-record status and list newest-first", async () => {
+  const workspaceRoot = await freshWorkspace("snapshot-record-status");
+  const service = createCoreService(workspaceRoot);
+  const paths = await service.initialiseWorkspace();
+
+  const requirement = await service.upsertEntity(
+    withEnvelope(
+      "requirement",
+      {
+        entityType: "requirement",
+        title: "Record status fixture",
+        domainId: PSPF_DOMAINS[0]!.id,
+        assessmentStatus: "met"
+      },
+      "workshop"
+    )
+  );
+  const action = await service.upsertEntity(
+    withEnvelope("action", { entityType: "action", title: "Record status action", status: "in-progress" }, "workshop")
+  );
+  const risk = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      { entityType: "risk", title: "Record status risk", status: "open", likelihood: 2, impact: 3 },
+      "workshop"
+    )
+  );
+  const deletedAction = await service.upsertEntity(
+    withEnvelope("action", { entityType: "action", title: "Deleted action", status: "todo" }, "workshop")
+  );
+  await service.upsertEntity({ ...deletedAction, recordStatus: "deleted" });
+
+  const first = await service.createSnapshot();
+  const payload = JSON.parse(await readFile(join(paths.snapshots, `${first.id}.json`), "utf8")) as {
+    recordStatus?: {
+      requirements: Record<string, string>;
+      risks: Record<string, string>;
+      actions: Record<string, string>;
+    };
+  };
+  assert.equal(payload.recordStatus?.requirements[requirement.id], "met");
+  assert.equal(payload.recordStatus?.actions[action.id], "in-progress");
+  assert.equal(payload.recordStatus?.risks[risk.id], "open");
+  assert.equal(deletedAction.id in (payload.recordStatus?.actions ?? {}), false);
+
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const second = await service.createSnapshot();
+  const sideFiles = await service.listSnapshotSideFiles();
+  assert.deepEqual(
+    sideFiles.map((item) => item.snapshotId),
+    [second.id, first.id]
+  );
+  assert.equal(sideFiles[0]?.capturedAt, second.createdAt);
+  assert.equal(sideFiles[0]?.recordStatus?.requirements[requirement.id], "met");
+  assert.equal(sideFiles[0]?.counts?.requirements.met, 1);
+});
+
 test("integrity scan reports links whose declared endpoint type does not match the target record", async () => {
   const workspaceRoot = await freshWorkspace("integrity-mistyped-link");
   const service = createCoreService(workspaceRoot);
@@ -666,6 +726,193 @@ test("additive import does not downgrade existing Core reference data", async ()
   assert.equal(currentCyberFunction?.title, cyberFunction.title);
 });
 
+test("action writes append due-date history and seed legacy actions from their stored date", async () => {
+  const workspaceRoot = await freshWorkspace("action-due-date-history");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const created = (await service.upsertEntity(
+    withEnvelope(
+      "action",
+      { entityType: "action", title: "History fixture", status: "todo", dueDate: "2026-10-01" },
+      "workshop"
+    )
+  )) as ActionEntity;
+  assert.deepEqual(
+    created.dueDateHistory?.map((entry) => entry.dueDate),
+    ["2026-10-01"]
+  );
+
+  const unchanged = (await service.upsertEntity({ ...created, title: "Renamed, same date" })) as ActionEntity;
+  assert.equal(unchanged.dueDateHistory?.length, 1);
+
+  const moved = (await service.upsertEntity({ ...unchanged, dueDate: "2026-10-15" })) as ActionEntity;
+  assert.deepEqual(
+    moved.dueDateHistory?.map((entry) => entry.dueDate),
+    ["2026-10-01", "2026-10-15"]
+  );
+  const stored = (await service.listEntities("action")).find((entity) => entity.id === created.id) as ActionEntity;
+  assert.equal(stored.dueDateHistory?.length, 2);
+
+  // Legacy honesty: an action persisted before 1.16.0 has a dueDate but no history.
+  const legacy = withEnvelope(
+    "action",
+    { entityType: "action", title: "Legacy fixture", status: "todo", dueDate: "2026-03-01" },
+    "workshop"
+  );
+  const { dueDateHistory: _seeded, ...legacyStored } = (await service.upsertEntity(legacy)) as ActionEntity;
+  await writeRawEntityPayload(service.getWorkspacePaths().db, legacyStored);
+  const legacyMoved = (await service.upsertEntity({
+    ...legacyStored,
+    dueDate: "2026-04-01",
+    updatedAt: "2026-03-20T00:00:00.000Z"
+  })) as ActionEntity;
+  assert.deepEqual(
+    legacyMoved.dueDateHistory?.map((entry) => entry.dueDate),
+    ["2026-03-01", "2026-04-01"]
+  );
+  assert.equal(legacyMoved.dueDateHistory?.[0]?.changedAt, legacyStored.updatedAt);
+});
+
+test("narrative writes enforce slot, body, and supersedes rules with a structured diagnostic", async () => {
+  const workspaceRoot = await freshWorkspace("narrative-write-rules");
+  const service = createCoreService(workspaceRoot);
+  const paths = await service.initialiseWorkspace();
+
+  const original = await service.upsertEntity(
+    withEnvelope(
+      "narrative",
+      {
+        entityType: "narrative",
+        title: "Where we stand",
+        slot: narrativeSlotFor("exec-brief.where-we-stand"),
+        body: "Posture is steady.",
+        audience: "executive"
+      },
+      "workshop"
+    )
+  );
+
+  await assert.rejects(
+    () =>
+      service.upsertEntity(
+        withEnvelope(
+          "narrative",
+          {
+            entityType: "narrative",
+            title: "Bad supersede",
+            slot: narrativeSlotFor("exec-brief.where-we-stand"),
+            body: "Replacement text.",
+            audience: "executive",
+            supersedesId: "NAR-does-not-exist"
+          },
+          "workshop"
+        )
+      ),
+    (error: unknown) =>
+      error instanceof PspfError &&
+      error.code === "PSPF_NARRATIVE_RULE_VIOLATION" &&
+      /not a known narrative/.test(error.message)
+  );
+  await assert.rejects(
+    () =>
+      service.upsertEntities([
+        withEnvelope(
+          "narrative",
+          {
+            entityType: "narrative",
+            title: "Slot mismatch",
+            slot: narrativeSlotFor("exec-brief.what-changed"),
+            body: "Replacement text.",
+            audience: "executive",
+            supersedesId: original.id
+          },
+          "workshop"
+        )
+      ]),
+    (error: unknown) => error instanceof PspfError && error.code === "PSPF_NARRATIVE_RULE_VIOLATION"
+  );
+
+  const replacement = await service.upsertEntity(
+    withEnvelope(
+      "narrative",
+      {
+        entityType: "narrative",
+        title: "Where we stand (revised)",
+        slot: narrativeSlotFor("exec-brief.where-we-stand"),
+        body: "Posture improved this period.",
+        audience: "executive",
+        supersedesId: original.id
+      },
+      "workshop"
+    )
+  );
+  assert.equal((await service.listEntities("narrative")).length, 2);
+
+  const snapshot = await service.createSnapshot();
+  const sideFile = JSON.parse(await readFile(join(paths.snapshots, `${snapshot.id}.json`), "utf8")) as {
+    counts: Record<string, number>;
+    statusSummary: { narratives?: Record<string, number> };
+  };
+  assert.equal(sideFile.counts.narratives, 2);
+  assert.equal(sideFile.statusSummary.narratives?.executive, 2);
+
+  const exported = await service.exportBundle();
+  const bundle = JSON.parse(await readFile(join(exported.exportDirectory, "bundle.json"), "utf8")) as {
+    manifest: { collections: { name: string; count: number }[] };
+    collections: { narratives: { id: string; body?: string }[] };
+  };
+  assert.equal(bundle.manifest.collections.find((item) => item.name === "narratives")?.count, 2);
+  assert.ok(bundle.collections.narratives.some((item) => item.id === replacement.id));
+  assert.equal(
+    bundle.collections.narratives.every((item) => item.body === undefined),
+    true,
+    "narrative body is sensitive and must be redacted from the publication bundle"
+  );
+});
+
+test("a same-major legacy workspace opens under the current axes and is moved forward on first write", async () => {
+  const workspaceRoot = await freshWorkspace("legacy-schema-version-workspace");
+  const service = createCoreService(workspaceRoot);
+  const paths = await service.initialiseWorkspace();
+  await writeMetadataSchemaVersion(paths.db, "1.15.0");
+  await writeFile(
+    join(paths.config, "workspace.json"),
+    JSON.stringify({ createdAt: "2026-08-01T00:00:00.000Z", versions: { ...VERSION_AXES, schemaVersion: "1.15.0" } }),
+    "utf8"
+  );
+
+  const requirement = await service.upsertEntity(
+    withEnvelope(
+      "requirement",
+      {
+        entityType: "requirement",
+        title: "Written by newer Core",
+        domainId: PSPF_DOMAINS[0]!.id,
+        assessmentStatus: "in-progress"
+      },
+      "workshop"
+    )
+  );
+  assert.equal(
+    (await service.listEntities("requirement")).some((entity) => entity.id === requirement.id),
+    true
+  );
+  assert.equal(await readMetadataSchemaVersion(paths.db), VERSION_AXES.schemaVersion);
+  const workspaceJson = JSON.parse(await readFile(join(paths.config, "workspace.json"), "utf8")) as {
+    createdAt: string;
+    versions: { schemaVersion: string };
+  };
+  assert.equal(workspaceJson.versions.schemaVersion, VERSION_AXES.schemaVersion);
+  assert.equal(workspaceJson.createdAt, "2026-08-01T00:00:00.000Z");
+
+  await writeMetadataSchemaVersion(paths.db, "0.9.0");
+  await assert.rejects(
+    () => service.upsertEntity(requirement),
+    (error: unknown) => error instanceof PspfError && error.code === "PSPF_MIGRATION_REQUIRED"
+  );
+});
+
 test("mutating operations require an initialised workspace", async () => {
   const workspaceRoot = await freshWorkspace("mutating-requires-initialised-workspace");
   const service = createCoreService(workspaceRoot);
@@ -688,6 +935,35 @@ async function freshWorkspace(name: string): Promise<string> {
   await rm(workspaceRoot, { recursive: true, force: true });
   await mkdir(workspaceRoot, { recursive: true });
   return workspaceRoot;
+}
+
+async function withRawDatabase(dbPath: string, statement: string): Promise<string | undefined> {
+  const SQL = await initSqlJs({ locateFile: () => join(process.cwd(), "dist", "sql-wasm.wasm") });
+  const database = new SQL.Database(new Uint8Array(await readFile(dbPath)));
+  try {
+    const rows = database.exec(statement);
+    const value = rows[0]?.values[0]?.[0];
+    await writeFile(dbPath, Buffer.from(database.export()));
+    return value === undefined || value === null ? undefined : String(value);
+  } finally {
+    database.close();
+  }
+}
+
+async function writeRawEntityPayload(dbPath: string, entity: { readonly id: string }): Promise<void> {
+  const payload = JSON.stringify(entity).replace(/'/g, "''");
+  await withRawDatabase(
+    dbPath,
+    `UPDATE entities SET payload = '${payload}' WHERE id = '${entity.id.replace(/'/g, "''")}';`
+  );
+}
+
+async function writeMetadataSchemaVersion(dbPath: string, schemaVersion: string): Promise<void> {
+  await withRawDatabase(dbPath, `UPDATE metadata SET value = '${schemaVersion}' WHERE key = 'schemaVersion';`);
+}
+
+async function readMetadataSchemaVersion(dbPath: string): Promise<string | undefined> {
+  return withRawDatabase(dbPath, "SELECT value FROM metadata WHERE key = 'schemaVersion';");
 }
 
 async function writeBundle(

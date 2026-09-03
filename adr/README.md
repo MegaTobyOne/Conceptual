@@ -108,6 +108,8 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0093 | v1.59 reader-anchored change                                                         | accepted                                                              |
 | 0094 | v1.60 supplier verdict and publication deferral                                      | accepted                                                              |
 | 0095 | v1.61 import, writer-lock, and rendering hardening                                   | accepted                                                              |
+| 0096 | v1.70 Essentials programme and surface reduction                                     | accepted                                                              |
+| 0097 | v1.71–v1.74 "Brief once, act often" reporting and accountability programme           | accepted                                                              |
 
 ## Template
 

@@ -207,6 +207,7 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     vscode.commands.registerCommand("pspf.core.upsertEntity", (entity) => getService().upsertEntity(entity)),
     vscode.commands.registerCommand("pspf.core.upsertEntities", (entities) => getService().upsertEntities(entities)),
     vscode.commands.registerCommand("pspf.core.listEntities", (entityType) => getService().listEntities(entityType)),
+    vscode.commands.registerCommand("pspf.core.listSnapshotAnchors", () => getService().listSnapshotSideFiles()),
     vscode.commands.registerCommand("pspf.core.getWorkspacePaths", async () => getService().getWorkspacePaths())
   );
 

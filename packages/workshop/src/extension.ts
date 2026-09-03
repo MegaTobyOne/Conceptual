@@ -6,10 +6,24 @@ import {
   type CisoMagazineEdition,
   type CisoMagazineTrendPoint,
   buildCisoMasterPlanModel,
+  buildReportingPackModel,
   renderCisoMagazineHtml,
   renderCisoMagazineMarkdown,
   renderCisoMasterPlanMarkdown,
-  renderPostureBriefMarkdown
+  renderExecutiveBriefPlainText,
+  renderPostureBriefMarkdown,
+  renderReportingPackMarkdown,
+  renderReportingPackPlainText,
+  renderTeamCardPlainText,
+  renderTeamReportCardPlainText,
+  type DomainPackModel,
+  type ExecutiveBriefSection,
+  type OperatorNote,
+  type ReadinessItem,
+  type ReportingPackAnchor,
+  type ReportingPackInput,
+  type ReportingPackModel,
+  type ReportingPackScope
 } from "@pspf/brief-renderer";
 import {
   buildConnectedViewModel,
@@ -26,6 +40,7 @@ import {
   type PresentationLens
 } from "@pspf/webview-shell";
 import { escapeHtml, homeButton, homeShellHtml, metricCardHtml as metricCard, shellHtml } from "./webview/shell.js";
+import { collectOwnerTeams } from "./owner-team.js";
 import {
   buildPlanOfActionBoardModel,
   normalisePlanWorkstreamId,
@@ -60,6 +75,15 @@ import {
   type RequirementCardViewModel
 } from "./requirement-card-view.js";
 import {
+  REPORTING_DOMAIN_OPTIONS,
+  resolveMyDomainIds,
+  resolveReportingScope,
+  selectReportingAnchor,
+  toReportingAnchor
+} from "./reporting-workbench.js";
+import { buildNarrativeDraft, collectRetireChain, resolveRestoreTarget } from "./reporting-narrative.js";
+import { buildAcceptedActionDrafts, buildWorkbenchSuggestions } from "./reporting-suggestions.js";
+import {
   CHANGE_RECORD_PERSISTENCE,
   CHANGE_RECORD_SOURCES,
   CHANGE_RECORD_STATUSES,
@@ -87,6 +111,7 @@ import {
   type EvidenceFreshness,
   type LinkEntity,
   type MappingConfidence,
+  type NarrativeEntity,
   type RequirementEntity,
   type RequirementControlMappingEntity,
   type RiskEntity,
@@ -95,6 +120,7 @@ import {
   SAVED_VIEW_LIMITS,
   type SavedViewEntity,
   type SavedViewScope,
+  type SnapshotEntity,
   type SourceControlEntity,
   type SourceControlImplementationStatus,
   type SpendItemEntity,
@@ -123,6 +149,7 @@ import {
   classifyBlocker,
   rankBlockersByFanIn,
   isExpiringWithinDays,
+  summariseSlippage,
   type BlockerClass,
   computeClosureVelocity,
   projectTrajectory,
@@ -130,7 +157,15 @@ import {
   buildSaveImpactSummary,
   matchesRequirementFinderFilters,
   compareRequirementFinderRecords,
-  type RequirementFinderRecord
+  type RequirementFinderRecord,
+  stampNarrativesWithSnapshot,
+  type SuggestedAction,
+  TEAM_VERDICT_LABELS,
+  TEAM_VERDICT_RULES,
+  describeTeamVerdict,
+  type TeamReportCardModel,
+  type TeamReportCardRow,
+  type TeamVerdict
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import {
@@ -152,6 +187,8 @@ import {
   shortWorkshopPanelTitle
 } from "./workshop-ui.js";
 import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire } from "./questionnaire/flow.js";
+import { isEvidenceSweepAction, planEvidenceSweep, type EvidenceSweepAction } from "./evidence-sweep.js";
+import { RANKER_DRAFT_CANDIDATE_LIMIT, buildRankerMappingDrafts, type RankerMappingPair } from "./ism-sweep.js";
 import { ISM_SOURCE_CONTROL_CATEGORIES, buildRequirementExplainer } from "@pspf/reference-data";
 
 // v1.33 questionnaire surface: re-run modes include the literal
@@ -481,6 +518,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.removeTag", removeTag),
     vscode.commands.registerCommand("pspf.workshop.filterRequirementsByTag", filterRequirementsByTag),
     vscode.commands.registerCommand("pspf.workshop.copyPostureBrief", copyPostureBrief),
+    vscode.commands.registerCommand("pspf.workshop.openReportingWorkbench", openReportingWorkbench),
     vscode.commands.registerCommand("pspf.workshop.openCisoNewsletterReview", openCisoNewsletterReview),
     vscode.commands.registerCommand("pspf.workshop.openCsoMagazine", openCsoMagazine),
     vscode.commands.registerCommand("pspf.workshop.copyCsoMagazine", copyCsoMagazine),
@@ -747,16 +785,23 @@ function rankSourceControlsForRequirement(
   controls: readonly SourceControlEntity[],
   limit: number
 ): readonly SourceControlEntity[] {
-  const tokens = tokenizeRequirementHint(`${requirement.title} ${requirement.summary ?? ""}`);
-  const scored = controls.map((control) => {
-    const haystack = `${control.controlId} ${control.title} ${control.statement}`.toLowerCase();
-    const score = tokens.reduce((total, token) => (haystack.includes(token) ? total + 1 : total), 0);
-    return { control, score };
-  });
-  return scored
-    .sort((left, right) => right.score - left.score || left.control.controlId.localeCompare(right.control.controlId))
+  return scoreSourceControlsForRequirement(requirement, controls)
     .slice(0, Math.max(limit, 10))
     .map((item) => item.control);
+}
+
+function scoreSourceControlsForRequirement(
+  requirement: RequirementEntity,
+  controls: readonly SourceControlEntity[]
+): readonly { readonly control: SourceControlEntity; readonly score: number }[] {
+  const tokens = tokenizeRequirementHint(`${requirement.title} ${requirement.summary ?? ""}`);
+  return controls
+    .map((control) => {
+      const haystack = `${control.controlId} ${control.title} ${control.statement}`.toLowerCase();
+      const score = tokens.reduce((total, token) => (haystack.includes(token) ? total + 1 : total), 0);
+      return { control, score };
+    })
+    .sort((left, right) => right.score - left.score || left.control.controlId.localeCompare(right.control.controlId));
 }
 
 function tokenizeRequirementHint(input: string): readonly string[] {
@@ -5729,10 +5774,13 @@ function renderPlanOfActionWorklist(model: PlanOfActionBoardModel): string {
   const body = rows.length
     ? rows
         .map(({ task, phase }) => {
-          const searchText = `${task.title} ${phase.title} ${label(task.status)} ${label(task.urgency)}`.toLowerCase();
+          const searchText =
+            `${task.title} ${phase.title} ${label(task.status)} ${label(task.urgency)} ${task.ownerTeam ?? ""}`.toLowerCase();
           return `<tr data-poa-worklist-row data-poa-status="${escapeHtml(task.status)}" data-poa-urgency="${escapeHtml(task.urgency)}" data-poa-workstream="${escapeHtml(phase.id)}" data-poa-search="${escapeHtml(searchText)}" data-poa-due="${escapeHtml(planOfActionTaskDueSortValue(task))}" data-poa-impact="${task.impactTotal}">
+            <td data-field="select"><input type="checkbox" data-action-id="${escapeHtml(task.actionId)}" aria-label="Select ${escapeHtml(task.title)}"></td>
             <td data-field="open"><button type="button" data-command="openEntity" data-entity-type="action" data-entity-id="${escapeHtml(task.actionId)}">Open</button></td>
             <td data-field="title"><span class="cell-compact">${escapeHtml(task.title)}</span></td>
+            <td data-field="ownerTeam">${escapeHtml(task.ownerTeam ?? "Unassigned")}</td>
             <td data-field="stream">${escapeHtml(phase.title)}</td>
             <td data-field="streamSource">${escapeHtml(task.phaseSource === "override" ? "Manual" : "Inferred")}</td>
             <td data-field="status">${escapeHtml(label(task.status))}</td>
@@ -5746,16 +5794,20 @@ function renderPlanOfActionWorklist(model: PlanOfActionBoardModel): string {
           </tr>`;
         })
         .join("")
-    : `<tr><td colspan="12">No Actions are available yet.</td></tr>`;
+    : `<tr><td colspan="14">No Actions are available yet.</td></tr>`;
   return `<section class="poa-worklist" data-poa-worklist>
     <h2>Action Worklist</h2>
     <div class="poa-worklist-filters" aria-label="Action worklist filters">
-      <label>Search <input type="search" data-poa-worklist-search placeholder="Title, stream, status or urgency"></label>
+      <label>Search <input type="search" data-poa-worklist-search placeholder="Title, stream, status, urgency or owner team"></label>
       <label>Status <select data-poa-worklist-status><option value="open">Open work</option><option value="all">All statuses</option>${actionStatusItems.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join("")}</select></label>
       <label>Urgency <select data-poa-worklist-urgency><option value="all">All urgency</option><option value="blocked">Blocked</option><option value="overdue">Overdue</option><option value="due-soon">Due soon</option><option value="normal">Normal</option></select></label>
       <label>Sort <select data-poa-worklist-sort><option value="urgency">Urgency</option><option value="due">Due date</option><option value="impact">Impact</option><option value="title">Title</option></select></label>
     </div>
-    <div class="table-wrap" tabindex="0" aria-label="Scrollable Action Worklist table"><table data-poa-worklist-table><thead><tr><th data-field="open">Open</th><th data-field="title">Title</th><th data-field="stream">Stream</th><th data-field="streamSource">Source</th><th data-field="status">Status</th><th data-field="urgency">Urgency</th><th data-field="startDate">Start date</th><th data-field="endDate">End date</th><th data-field="dueDate">Due date</th><th data-field="linkedRequirements">Linked requirements</th><th data-field="linkedRisks">Linked risks</th><th data-field="impact">Impact</th></tr></thead><tbody>${body}</tbody></table></div>
+    <div class="form-actions" aria-label="Bulk actions for selected rows">
+      <button type="button" data-command="bulkAssignOwner">Assign owner team…</button>
+      <span class="muted">Tick rows, then assign one team to all of them.</span>
+    </div>
+    <div class="table-wrap" tabindex="0" aria-label="Scrollable Action Worklist table"><table data-poa-worklist-table><thead><tr><th data-field="select">Select</th><th data-field="open">Open</th><th data-field="title">Title</th><th data-field="ownerTeam">Owner team</th><th data-field="stream">Stream</th><th data-field="streamSource">Source</th><th data-field="status">Status</th><th data-field="urgency">Urgency</th><th data-field="startDate">Start date</th><th data-field="endDate">End date</th><th data-field="dueDate">Due date</th><th data-field="linkedRequirements">Linked requirements</th><th data-field="linkedRisks">Linked risks</th><th data-field="impact">Impact</th></tr></thead><tbody>${body}</tbody></table></div>
   </section>`;
 }
 
@@ -7828,6 +7880,12 @@ function renderEvidenceReviewQueue(model: EvidenceReviewQueueModel): string {
         <button type="button" data-command="refresh">Refresh</button>
       </div>
       <p class="muted" data-evidence-review-count></p>
+      <div class="form-actions evidence-review-sweep" aria-label="Bulk actions for ticked cards">
+        <button type="button" data-command="sweepEvidence" data-sweep-action="confirm-current">Confirm current</button>
+        <button type="button" data-command="sweepEvidence" data-sweep-action="mark-stale">Mark stale</button>
+        <button type="button" data-command="sweepEvidence" data-sweep-action="link-requirements">Link to requirements…</button>
+        <span class="muted" data-evidence-sweep-count>Tick evidence cards, then confirm, mark stale, or link them in one go. Ticked Requirement cards become the link targets.</span>
+      </div>
     </section>
     <section class="evidence-review-board" aria-label="Evidence review work queue">
       ${evidenceReviewCardGroup("Missing evidence", "Capture a source against these Requirements.", "missing", model.missingEvidence)}
@@ -7893,6 +7951,7 @@ function evidenceReviewCard(kind: EvidenceReviewCardKind, row: EvidenceReviewCar
     <div class="evidence-review-card__top">
       <span class="evidence-review-priority evidence-review-priority--${escapeHtml(row.priority.toLocaleLowerCase("en-AU"))}">${escapeHtml(row.priority)}</span>
       <span class="muted">${escapeHtml(row.freshness ?? row.status ?? row.urgency ?? row.domain ?? "Review")}</span>
+      ${evidenceReviewSweepCheckbox(row)}
     </div>
     <h3>${escapeHtml(row.title)}</h3>
     <p>${escapeHtml(row.reason)}</p>
@@ -7909,10 +7968,21 @@ function evidenceReviewOpenButton(row: EvidenceReviewCard): string {
   return `<button type="button" data-command="openEntity" data-entity-type="${escapeHtml(row.openEntityType)}" data-entity-id="${escapeHtml(row.openEntityId)}">Open</button>`;
 }
 
+function evidenceReviewSweepCheckbox(row: EvidenceReviewCard): string {
+  if (row.openEntityType === "action") {
+    return "";
+  }
+  const purpose = row.openEntityType === "evidence" ? "Select evidence" : "Select Requirement as link target";
+  return `<label class="evidence-review-card__select"><input type="checkbox" data-sweep-id="${escapeHtml(row.openEntityId)}" data-sweep-type="${escapeHtml(row.openEntityType)}" aria-label="${escapeHtml(`${purpose}: ${row.title}`)}"><span>Select</span></label>`;
+}
+
 function evidenceReviewQueueStyles(): string {
   return `<style>
     .evidence-review-actions { align-items: center; margin-top: 14px; }
     .evidence-review-actions [aria-pressed="true"] { border-color: var(--workshop-blue); background: color-mix(in srgb, var(--workshop-blue) 12%, var(--surface-strong)); }
+    .evidence-review-sweep { align-items: center; margin-top: 10px; flex-wrap: wrap; }
+    .evidence-review-card__select { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 12px; white-space: nowrap; cursor: pointer; }
+    .evidence-review-card__select input { margin: 0; }
     .evidence-review-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; background: transparent; border: 0; padding: 0; }
     .evidence-review-lane { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: color-mix(in srgb, var(--surface) 92%, var(--workshop-blue)); }
     .evidence-review-lane[hidden] { display: none; }
@@ -7954,6 +8024,16 @@ function evidenceReviewQueueScript(): string {
       }
       buttons.forEach((button) => button.addEventListener('click', () => applyFilter(button.getAttribute('data-evidence-filter') || 'all')));
       applyFilter('all');
+      const sweepCount = document.querySelector('[data-evidence-sweep-count]');
+      const sweepHint = sweepCount ? sweepCount.textContent : '';
+      document.addEventListener('change', (event) => {
+        if (!(event.target instanceof HTMLInputElement) || !event.target.hasAttribute('data-sweep-id') || !sweepCount) return;
+        const evidenceTicked = document.querySelectorAll('input[data-sweep-type="evidence"]:checked').length;
+        const requirementTicked = document.querySelectorAll('input[data-sweep-type="requirement"]:checked').length;
+        sweepCount.textContent = evidenceTicked + requirementTicked === 0
+          ? sweepHint
+          : evidenceTicked + ' evidence item' + (evidenceTicked === 1 ? '' : 's') + ' and ' + requirementTicked + ' Requirement' + (requirementTicked === 1 ? '' : 's') + ' ticked.';
+      });
     })();
   </script>`;
 }
@@ -8264,6 +8344,91 @@ async function linkEvidenceToRequirements(evidenceId: string): Promise<void> {
   );
 }
 
+/**
+ * R4 (v1.74.0, ADR 0097): Evidence Review Queue bulk sweep. Returns true when records were written so
+ * the panel re-renders; false leaves the operator's ticks in place.
+ */
+async function runEvidenceSweep(
+  action: EvidenceSweepAction,
+  evidenceIds: readonly string[],
+  requirementIds: readonly string[]
+): Promise<boolean> {
+  await ensureCoreReady();
+  if (evidenceIds.length === 0) {
+    await vscode.window.showInformationMessage("Tick at least one evidence card first.");
+    return false;
+  }
+  const allEntities = await listAllEntities();
+  const selectedIds = new Set(evidenceIds);
+  const evidence = allEntities.filter(
+    (entity): entity is EvidenceEntity =>
+      entity.entityType === "evidence" && entity.recordStatus !== "deleted" && selectedIds.has(entity.id)
+  );
+  if (evidence.length === 0) {
+    await vscode.window.showWarningMessage("The ticked evidence records could not be found. Refresh and try again.");
+    return false;
+  }
+
+  let requirements: readonly Pick<RequirementEntity, "id" | "title">[] = [];
+  if (action === "link-requirements") {
+    const tickedRequirementIds = new Set(requirementIds);
+    requirements =
+      requirementIds.length > 0
+        ? allEntities.filter(
+            (entity): entity is RequirementEntity =>
+              entity.entityType === "requirement" &&
+              entity.recordStatus !== "deleted" &&
+              tickedRequirementIds.has(entity.id)
+          )
+        : await pickRequirementsForLinkedItem("evidence");
+    if (requirements.length === 0) {
+      return false;
+    }
+  }
+
+  const existingLinks = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const plan = planEvidenceSweep(action, evidence, requirements, existingLinks, new Date().toISOString());
+  if (plan.upserts.length === 0) {
+    await vscode.window.showInformationMessage(
+      action === "link-requirements"
+        ? "Every ticked evidence item is already linked to the chosen Requirement(s)."
+        : "Nothing to update."
+    );
+    return false;
+  }
+
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", plan.upserts);
+  await refreshWorkshopSurfaces();
+
+  const supportedRequirementIds = new Set(
+    existingLinks
+      .filter((link) => link.linkType === "supported-by" && link.toType === "evidence" && selectedIds.has(link.toId))
+      .map((link) => link.fromId)
+  );
+  const whatChanged =
+    action === "confirm-current"
+      ? `Freshness: current for ${evidence.length} evidence item${evidence.length === 1 ? "" : "s"}`
+      : action === "mark-stale"
+        ? `Freshness: stale for ${evidence.length} evidence item${evidence.length === 1 ? "" : "s"}`
+        : `Linked ${plan.upserts.length} Requirement–evidence pair${plan.upserts.length === 1 ? "" : "s"}`;
+  const postureOrPriorityStatement =
+    action === "link-requirements"
+      ? `${requirements.length} Requirement${requirements.length === 1 ? "" : "s"} now supported${plan.skippedPairs > 0 ? `; ${plan.skippedPairs} existing pair${plan.skippedPairs === 1 ? "" : "s"} skipped` : ""}.`
+      : `${supportedRequirementIds.size} Requirement${supportedRequirementIds.size === 1 ? "" : "s"} rely on this evidence.`;
+  const summary = buildSaveImpactSummary({
+    whatChanged,
+    outcome: "saved",
+    affectedEvidenceCount: evidence.length,
+    affectedActionCount: 0,
+    affectedRiskCount: 0,
+    postureOrPriorityStatement
+  });
+  void vscode.window.showInformationMessage(`${summary.headline} — ${summary.detail}`);
+  return true;
+}
+
 async function collectEvidenceLinkContext(): Promise<Pick<LinkEntity, "evidenceNote" | "evidenceSection">> {
   const evidenceSection = trimOptional(
     await vscode.window.showInputBox({
@@ -8548,11 +8713,114 @@ async function openIsmReviewWorkbench(): Promise<void> {
         <button type="button" data-command="refresh">Refresh</button>
         <button type="button" data-command="pspf.workshop.browseIsmSourceControls">All ISM controls</button>
         <button type="button" data-command="pspf.workshop.createRequirementControlMapping">Map Requirement</button>
+        <button type="button" data-command="suggestIsmMappings">Suggest mappings for unmapped requirements…</button>
       </div>
     </section>
     ${renderIsmReviewWorkbenchTable(rows)}
   `
   );
+}
+
+/**
+ * R4 (v1.74.0, ADR 0097): batch ISM mapping sweep. Offers the deterministic ranker's top candidates for
+ * every in-scope Requirement with no mapping, pre-ticking rank 1, and writes accepted pairs as drafts.
+ * Returns true when drafts were written.
+ */
+async function suggestIsmMappingsForUnmappedRequirements(): Promise<boolean> {
+  await ensureCoreReady();
+  const scope = await vscode.window.showQuickPick(
+    [
+      { label: "All domains", domainId: undefined },
+      ...PSPF_DOMAINS.map((domain) => ({ label: domain.title, description: domain.id, domainId: domain.id }))
+    ],
+    {
+      title: "Suggest ISM Mappings",
+      placeHolder: "Choose the Requirement group to sweep for unmapped Requirements",
+      ignoreFocusOut: true
+    }
+  );
+  if (!scope) {
+    return false;
+  }
+
+  const allEntities = await listAllEntities();
+  const sourceControls = allEntities.filter(
+    (entity): entity is SourceControlEntity =>
+      entity.entityType === "source-control" && entity.recordStatus !== "deleted"
+  );
+  if (sourceControls.length === 0) {
+    await vscode.window.showWarningMessage("No ISM source controls are loaded.");
+    return false;
+  }
+  const mappedRequirementIds = new Set(
+    allEntities
+      .filter(
+        (entity): entity is RequirementControlMappingEntity =>
+          entity.entityType === "requirement-control-mapping" && entity.recordStatus !== "deleted"
+      )
+      .map((mapping) => mapping.requirementId)
+  );
+  const unmappedRequirements = allEntities
+    .filter(
+      (entity): entity is RequirementEntity =>
+        entity.entityType === "requirement" &&
+        entity.recordStatus !== "deleted" &&
+        (!scope.domainId || entity.domainId === scope.domainId) &&
+        !mappedRequirementIds.has(entity.id)
+    )
+    .sort(compareRequirementsForPicker);
+  if (unmappedRequirements.length === 0) {
+    await vscode.window.showInformationMessage(`Every Requirement in ${scope.label} already has at least one mapping.`);
+    return false;
+  }
+
+  const items = unmappedRequirements.flatMap((requirement) =>
+    scoreSourceControlsForRequirement(requirement, sourceControls)
+      .filter((candidate) => candidate.score > 0)
+      .slice(0, RANKER_DRAFT_CANDIDATE_LIMIT)
+      .map((candidate, index) => {
+        const pair: RankerMappingPair = {
+          requirement,
+          sourceControl: candidate.control,
+          score: candidate.score,
+          rank: index + 1
+        };
+        return {
+          label: `${requirement.title} → ${candidate.control.controlId} ${candidate.control.title}`,
+          description: `score ${candidate.score}`,
+          detail: `${domainName(requirement.domainId)} · rank ${pair.rank} of ${RANKER_DRAFT_CANDIDATE_LIMIT}`,
+          picked: index === 0,
+          pair
+        };
+      })
+  );
+  if (items.length === 0) {
+    await vscode.window.showInformationMessage(
+      `${unmappedRequirements.length} unmapped Requirement(s) found, but no ISM control shares wording with them. Map them manually.`
+    );
+    return false;
+  }
+
+  const picked = await vscode.window.showQuickPick(items, {
+    title: `Ranker suggestions for ${unmappedRequirements.length} unmapped Requirement(s)`,
+    placeHolder: "Untick pairs you do not want. Accepted pairs become draft mappings for review.",
+    canPickMany: true,
+    ignoreFocusOut: true,
+    matchOnDescription: true,
+    matchOnDetail: true
+  });
+  if (!picked || picked.length === 0) {
+    return false;
+  }
+
+  const drafts = buildRankerMappingDrafts(
+    picked.map((item) => item.pair),
+    new Date().toISOString()
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", drafts);
+  await refreshWorkshopSurfaces();
+  await vscode.window.showInformationMessage(`Created ${drafts.length} draft mapping(s) for review.`);
+  return true;
 }
 
 function buildIsmReviewWorkbenchRows(
@@ -10510,10 +10778,42 @@ function wireWorkshopPanelMessages(panel: vscode.WebviewPanel, refreshPanel?: ()
       readonly direction?: string;
       readonly evidenceReference?: string;
       readonly newsletterEdition?: string;
+      readonly actionIds?: readonly unknown[];
+      readonly sweepAction?: unknown;
+      readonly evidenceIds?: readonly unknown[];
+      readonly requirementIds?: readonly unknown[];
       readonly fields?: Readonly<Record<string, unknown>>;
     }) => {
       if (message.command === "refresh") {
         await refreshPanel?.();
+        return;
+      }
+      if (message.command === "bulkAssignOwner") {
+        const actionIds = (message.actionIds ?? []).filter(
+          (id): id is string => typeof id === "string" && id.length > 0
+        );
+        if (await bulkAssignOwnerTeam(actionIds)) {
+          await refreshPanel?.();
+        }
+        return;
+      }
+      if (message.command === "sweepEvidence") {
+        if (!isEvidenceSweepAction(message.sweepAction)) {
+          return;
+        }
+        const stringIds = (ids: readonly unknown[] | undefined): string[] =>
+          (ids ?? []).filter((id): id is string => typeof id === "string" && id.length > 0);
+        if (
+          await runEvidenceSweep(message.sweepAction, stringIds(message.evidenceIds), stringIds(message.requirementIds))
+        ) {
+          await refreshPanel?.();
+        }
+        return;
+      }
+      if (message.command === "suggestIsmMappings") {
+        if (await suggestIsmMappingsForUnmappedRequirements()) {
+          await refreshPanel?.();
+        }
         return;
       }
       if (message.command === "saveNewsletterEditorNote" && isCisoMagazineEdition(message.newsletterEdition)) {
@@ -10885,6 +11185,7 @@ async function buildUpdatedEntity(
         acceptanceDefinition: nextAcceptanceDefinition,
         acceptanceDefinitionUpdatedAt:
           nextAcceptanceDefinition !== entity.acceptanceDefinition ? updatedAt : entity.acceptanceDefinitionUpdatedAt,
+        ownerTeam: trimOptional(fields.ownerTeam),
         updatedAt
       };
     }
@@ -10945,6 +11246,7 @@ async function buildUpdatedEntity(
         blockerClass: ["us", "funding", "assessor", "supplier"].includes(fields.blockerClass ?? "")
           ? (fields.blockerClass as BlockerClass)
           : undefined,
+        ownerTeam: trimOptional(fields.ownerTeam),
         commentary: actionCommentaryEntries(entity.commentary, fields.newCommentary, updatedAt),
         updatedAt
       };
@@ -11240,6 +11542,7 @@ function renderRequirementEditor(
       requirement.acceptanceDefinition ?? ""
     )}
     ${requirement.acceptanceDefinitionUpdatedAt ? `<p class="muted">Definition last changed ${escapeHtml(formatDisplayDate(new Date(requirement.acceptanceDefinitionUpdatedAt)))}.</p>` : ""}
+    ${ownerTeamField(requirement.ownerTeam, allEntities)}
     ${textareaField("summary", "Summary", requirement.summary ?? "")}
   `,
     isBaseline ? "Official PSPF baseline title and domain are locked." : undefined,
@@ -11786,6 +12089,8 @@ function renderActionEditor(
     ${inputField("startDate", "Start date", formatShortAuDateTime(action.startDate) ?? "", false, "today or 1 Jul 2026")}
     ${inputField("endDate", "End date", formatShortAuDateTime(action.endDate) ?? "", false, "30 Sep 2026")}
     ${inputField("dueDate", "Due date", formatShortAuDateTime(action.dueDate) ?? "", false, "today or 30 Jun 2026")}
+    ${slippageNote(action)}
+    ${ownerTeamField(action.ownerTeam, allEntities)}
     ${selectField("planWorkstreamId", "Plan of Action stream", planWorkstreamOptions, actionPlanWorkstreamId)}
     ${selectField(
       "planningState",
@@ -12000,6 +12305,29 @@ function editorShell(
 
 function inputField(name: string, fieldLabel: string, value: string, required = false, placeholder = ""): string {
   return `<label>${escapeHtml(fieldLabel)}<input name="${escapeHtml(name)}" value="${escapeHtml(value)}"${required ? " required" : ""}${placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ""}></label>`;
+}
+
+const OWNER_TEAM_DATALIST_ID = "pspf-owner-teams";
+
+/** Pick-or-type owner team: a text input backed by a datalist of teams already in use. */
+function ownerTeamField(value: string | undefined, allEntities: readonly V01Entity[]): string {
+  const options = collectOwnerTeams(allEntities)
+    .map((team) => `<option value="${escapeHtml(team)}"></option>`)
+    .join("");
+  return `<label>Owner team<input name="ownerTeam" list="${OWNER_TEAM_DATALIST_ID}" value="${escapeHtml(value ?? "")}" placeholder="Team that owns this, never a person" autocomplete="off"></label><datalist id="${OWNER_TEAM_DATALIST_ID}">${options}</datalist>`;
+}
+
+function slippageNote(action: ActionEntity): string {
+  if ((action.dueDateHistory?.length ?? 0) < 2) {
+    return "";
+  }
+  const slippage = summariseSlippage(action, new Date().toISOString());
+  const times = slippage.changes === 1 ? "once" : `${slippage.changes} times`;
+  const net =
+    slippage.netDays === undefined
+      ? ""
+      : ` (net ${slippage.netDays >= 0 ? "+" : ""}${slippage.netDays} ${Math.abs(slippage.netDays) === 1 ? "day" : "days"})`;
+  return `<p class="muted">Due date changed ${escapeHtml(times)}${escapeHtml(net)}.</p>`;
 }
 
 function textareaField(name: string, fieldLabel: string, value: string): string {
@@ -12262,6 +12590,79 @@ async function applyTag(requirementId?: string): Promise<void> {
   await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
   await refreshWorkshopSurfaces();
   await rememberRequirement(requirement);
+}
+
+/** R2 (ADR 0097): assign one owner team to several Actions at once. Returns true when a write happened. */
+async function bulkAssignOwnerTeam(actionIds: readonly string[]): Promise<boolean> {
+  if (actionIds.length === 0) {
+    void vscode.window.showInformationMessage(
+      "Tick at least one Action in the worklist before assigning an owner team."
+    );
+    return false;
+  }
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const selectedIds = new Set(actionIds);
+  const actions = allEntities.filter(
+    (entity): entity is ActionEntity =>
+      entity.entityType === "action" && entity.recordStatus !== "deleted" && selectedIds.has(entity.id)
+  );
+  if (actions.length === 0) {
+    void vscode.window.showWarningMessage(
+      "None of the selected Actions could be found. Refresh the board and try again."
+    );
+    return false;
+  }
+  const teams = collectOwnerTeams(allEntities);
+  const countLabel = `${actions.length} ${actions.length === 1 ? "Action" : "Actions"}`;
+  const picked = await vscode.window.showQuickPick(
+    [
+      { label: "$(add) Enter new team…", description: "Type a team name", create: true as const },
+      {
+        label: "$(circle-slash) Clear owner team",
+        description: "Remove the owner team from the selection",
+        clear: true as const
+      },
+      ...teams.map((team) => ({ label: team, team }))
+    ],
+    {
+      title: `Assign owner team to ${countLabel}`,
+      placeHolder: "Teams already in use, or enter a new one",
+      ignoreFocusOut: true
+    }
+  );
+  if (!picked) {
+    return false;
+  }
+  let ownerTeam: string | undefined;
+  if ("create" in picked) {
+    const entered = await vscode.window.showInputBox({
+      title: `Owner team for ${countLabel}`,
+      prompt: "Team label only — never a person's name.",
+      placeHolder: "for example Security Operations",
+      ignoreFocusOut: true,
+      validateInput: (value) => (value.trim().length === 0 ? "Enter a team name." : undefined)
+    });
+    if (entered === undefined) {
+      return false;
+    }
+    ownerTeam = entered.trim();
+  } else if (!("clear" in picked)) {
+    ownerTeam = picked.team;
+  }
+  const updatedAt = new Date().toISOString();
+  const updated = actions.map((action) => {
+    const { ownerTeam: _previous, ...rest } = action;
+    return ownerTeam === undefined ? { ...rest, updatedAt } : { ...rest, ownerTeam, updatedAt };
+  });
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", updated);
+  await refreshWorkshopSurfaces();
+  void vscode.window.showInformationMessage(
+    ownerTeam === undefined
+      ? `Cleared the owner team on ${countLabel}.`
+      : `Assigned ${ownerTeam} as owner team on ${countLabel}.`
+  );
+  return true;
 }
 
 async function removeTag(requirementId?: string, tagId?: string): Promise<void> {
@@ -13309,12 +13710,762 @@ async function copyPostureBrief(): Promise<void> {
     domains: PSPF_DOMAINS,
     sourceLabel: "PSPF Workshop",
     requirementControlMappings: input.requirementControlMappings,
-    sourceControls: input.sourceControls
+    sourceControls: input.sourceControls,
+    narratives: input.narratives
   });
 
   await vscode.env.clipboard.writeText(brief);
   await recordShareState(allEntities, "Posture brief");
   await vscode.window.showInformationMessage("PSPF posture brief copied to clipboard.");
+}
+
+// Slice R1 (ADR 0097): Reporting Workbench panel — Me/All scope, snapshot anchor, copy-out.
+interface ReportingWorkbenchState {
+  scopeKind?: ReportingPackScope["kind"];
+  anchorSelection?: string;
+  tab: "executive" | "domains" | "teams" | "readiness";
+}
+
+type ReportingCopyFormat = "markdown" | "plain" | "executive-plain" | "teams-plain" | "team-card";
+const REPORTING_TABS: readonly ReportingWorkbenchState["tab"][] = ["executive", "domains", "teams", "readiness"];
+const REPORTING_PERIOD_DAYS = 30;
+
+function readMyDomainSetting(): readonly unknown[] {
+  const value = vscode.workspace.getConfiguration("pspf.workshop").get<unknown>("myDomains");
+  return Array.isArray(value) ? value : [];
+}
+
+async function listReportingAnchors(): Promise<readonly ReportingPackAnchor[]> {
+  try {
+    const sideFiles = await vscode.commands.executeCommand<readonly unknown[]>("pspf.core.listSnapshotAnchors");
+    return (sideFiles ?? [])
+      .map(toReportingAnchor)
+      .filter((anchor): anchor is ReportingPackAnchor => anchor !== undefined);
+  } catch {
+    return [];
+  }
+}
+
+function buildReportingPackInput(
+  allEntities: readonly V01Entity[],
+  scope: ReportingPackScope,
+  anchor: ReportingPackAnchor | undefined
+): ReportingPackInput {
+  return {
+    ...buildShareArtefactInput(allEntities),
+    scope,
+    ...(anchor ? { anchor } : {}),
+    now: new Date().toISOString(),
+    // R3: the renderer does not filter by audience; only executive narratives replace generated text.
+    narratives: allEntities.filter(
+      (entity): entity is NarrativeEntity => entity.entityType === "narrative" && entity.audience === "executive"
+    ),
+    periodDays: REPORTING_PERIOD_DAYS
+  };
+}
+
+async function openReportingWorkbench(): Promise<void> {
+  await ensureCoreReady();
+  const state: ReportingWorkbenchState = { tab: "executive" };
+  const panel = vscode.window.createWebviewPanel(
+    "pspfReportingWorkbench",
+    "PSPF Reporting Workbench",
+    vscode.ViewColumn.One,
+    { enableScripts: true }
+  );
+
+  const buildModel = async (): Promise<{
+    readonly model: ReportingPackModel;
+    readonly anchors: readonly ReportingPackAnchor[];
+    readonly scope: ReportingPackScope;
+    readonly anchor: ReportingPackAnchor | undefined;
+    readonly allEntities: readonly V01Entity[];
+    readonly suggestions: readonly SuggestedAction[];
+  }> => {
+    const [allEntities, anchors] = await Promise.all([listAllEntities(), listReportingAnchors()]);
+    const scope = resolveReportingScope(readMyDomainSetting(), state.scopeKind);
+    const anchor = selectReportingAnchor(anchors, state.anchorSelection);
+    return {
+      model: buildReportingPackModel(buildReportingPackInput(allEntities, scope, anchor)),
+      anchors,
+      scope,
+      anchor,
+      allEntities,
+      suggestions: buildWorkbenchSuggestions(allEntities, scope, new Date().toISOString())
+    };
+  };
+
+  const render = async (): Promise<void> => {
+    const { model, anchors, scope, anchor, suggestions } = await buildModel();
+    panel.webview.html = renderReportingWorkbench(model, {
+      scope,
+      anchors,
+      anchor,
+      anchorSelection: state.anchorSelection,
+      myDomainCount: resolveMyDomainIds(readMyDomainSetting()).length,
+      tab: state.tab,
+      suggestions
+    });
+  };
+
+  panel.webview.onDidReceiveMessage(
+    async (message: {
+      readonly command?: string;
+      readonly scope?: string;
+      readonly value?: string;
+      readonly format?: string;
+      readonly team?: string;
+      readonly targetType?: string;
+      readonly targetId?: string;
+      readonly narrativeId?: string;
+      readonly requirementIds?: readonly unknown[];
+      readonly fields?: Readonly<Record<string, string>>;
+    }) => {
+      switch (message.command) {
+        case "refresh":
+          await render();
+          return;
+        case "setScope":
+          if (message.scope === "me" || message.scope === "all") {
+            state.scopeKind = message.scope;
+            await render();
+          }
+          return;
+        case "setAnchor":
+          state.anchorSelection = message.value || undefined;
+          await render();
+          return;
+        case "setTab":
+          if (isReportingTab(message.value)) {
+            state.tab = message.value;
+          }
+          return;
+        case "copy":
+          if (isReportingCopyFormat(message.format)) {
+            await copyReportingPack((await buildModel()).model, message.format, message.team);
+          }
+          return;
+        case "createSnapshot":
+          await vscode.commands.executeCommand("pspf.core.createSnapshot");
+          state.anchorSelection = undefined;
+          await render();
+          return;
+        case "acceptSuggestions": {
+          const selectedIds = (message.requirementIds ?? []).filter(
+            (id): id is string => typeof id === "string" && id.length > 0
+          );
+          if (selectedIds.length === 0) {
+            await vscode.window.showWarningMessage("Tick at least one suggested action first.");
+            return;
+          }
+          const drafts = buildAcceptedActionDrafts(
+            (await buildModel()).suggestions,
+            selectedIds,
+            new Date().toISOString()
+          );
+          if (drafts.length === 0) {
+            await vscode.window.showWarningMessage("Those suggestions are no longer current. Refresh and try again.");
+            return;
+          }
+          await vscode.commands.executeCommand(
+            "pspf.core.upsertEntities",
+            drafts.flatMap((draft) => [draft.action, draft.link])
+          );
+          await refreshWorkshopSurfaces();
+          await render();
+          await vscode.window.showInformationMessage(
+            `Created ${drafts.length} action${drafts.length === 1 ? "" : "s"} from suggestions.`
+          );
+          return;
+        }
+        case "closeReportingPeriod": {
+          const confirmed = await vscode.window.showWarningMessage(
+            "Create a snapshot and pin all current narratives to it?",
+            { modal: true },
+            "Close reporting period"
+          );
+          if (confirmed !== "Close reporting period") {
+            return;
+          }
+          const snapshot = await resolveCreatedSnapshot();
+          if (!snapshot) {
+            await vscode.window.showWarningMessage("The snapshot could not be confirmed. Refresh and try again.");
+            return;
+          }
+          const narratives = (await listAllEntities()).filter(
+            (entity): entity is NarrativeEntity => entity.entityType === "narrative"
+          );
+          const pinned = stampNarrativesWithSnapshot(narratives, snapshot.id, new Date().toISOString());
+          if (pinned.length > 0 && !(await writeNarratives(pinned))) {
+            return;
+          }
+          state.anchorSelection = snapshot.id;
+          await render();
+          await vscode.window.showInformationMessage(
+            `Reporting period closed: ${snapshot.title}; ${pinned.length} narrative${pinned.length === 1 ? "" : "s"} pinned.`
+          );
+          return;
+        }
+        case "openRecord":
+          if (message.targetType && message.targetId) {
+            await openItemDetailForEntity(message.targetType, message.targetId);
+          }
+          return;
+        case "saveNarrative": {
+          // Narratives are pinned to a period only by "Close reporting period", not to the comparison anchor.
+          const fields = Object.fromEntries(
+            Object.entries(message.fields ?? {}).filter(
+              (entry): entry is [string, string] => typeof entry[1] === "string"
+            )
+          );
+          const draft = buildNarrativeDraft(fields, {});
+          if (!draft.ok) {
+            await vscode.window.showWarningMessage(draft.reason);
+            return;
+          }
+          if (await writeNarratives([withEnvelope("narrative", draft.draft, "workshop")])) {
+            await render();
+            await vscode.window.showInformationMessage(`Narrative saved for ${draft.heading}.`);
+          }
+          return;
+        }
+        case "useGenerated": {
+          const { allEntities } = await buildModel();
+          const narratives = allEntities.filter(
+            (entity): entity is NarrativeEntity => entity.entityType === "narrative"
+          );
+          const current = narratives.find((entity) => entity.id === message.narrativeId);
+          if (!current) {
+            await vscode.window.showWarningMessage("That narrative is no longer active. Refresh and try again.");
+            return;
+          }
+          if (await writeNarratives(collectRetireChain(current, narratives).map(retireNarrative))) {
+            await render();
+          }
+          return;
+        }
+        case "restorePrevious": {
+          const { allEntities } = await buildModel();
+          const narratives = allEntities.filter(
+            (entity): entity is NarrativeEntity => entity.entityType === "narrative"
+          );
+          const current = narratives.find((entity) => entity.id === message.narrativeId);
+          const target = current ? resolveRestoreTarget(current, narratives) : undefined;
+          if (!target) {
+            await vscode.window.showWarningMessage("There is no earlier wording to restore for this section.");
+            return;
+          }
+          const writes =
+            target.mode === "retire-current"
+              ? [retireNarrative(target.current)]
+              : [
+                  withEnvelope(
+                    "narrative",
+                    {
+                      entityType: "narrative",
+                      title: target.previous.title,
+                      slot: target.previous.slot,
+                      body: target.previous.body,
+                      audience: target.previous.audience,
+                      ...(target.previous.basedOnSnapshotId
+                        ? { basedOnSnapshotId: target.previous.basedOnSnapshotId }
+                        : {}),
+                      ...(target.previous.targetType && target.previous.targetId
+                        ? { targetType: target.previous.targetType, targetId: target.previous.targetId }
+                        : {}),
+                      supersedesId: target.current.id
+                    },
+                    "workshop"
+                  )
+                ];
+          if (await writeNarratives(writes)) {
+            await render();
+          }
+          return;
+        }
+        default:
+          return;
+      }
+    }
+  );
+
+  await render();
+}
+
+function isReportingTab(value: string | undefined): value is ReportingWorkbenchState["tab"] {
+  return REPORTING_TABS.some((tab) => tab === value);
+}
+
+// Core's createSnapshot returns the SnapshotEntity; fall back to the newest anchor if a host returns nothing.
+async function resolveCreatedSnapshot(): Promise<{ readonly id: string; readonly title: string } | undefined> {
+  const created = await vscode.commands.executeCommand<SnapshotEntity | undefined>("pspf.core.createSnapshot");
+  if (created && typeof created.id === "string") {
+    return { id: created.id, title: created.title || created.id };
+  }
+  const newest = [...(await listReportingAnchors())].sort((left, right) =>
+    right.capturedAt.localeCompare(left.capturedAt)
+  )[0];
+  return newest ? { id: newest.snapshotId, title: newest.title } : undefined;
+}
+
+function retireNarrative(narrative: NarrativeEntity): NarrativeEntity {
+  return { ...narrative, recordStatus: "deleted", updatedAt: new Date().toISOString() };
+}
+
+// Core raises PSPF_NARRATIVE_RULE_VIOLATION for slot/body/supersedes rule breaches; surface it as a warning.
+async function writeNarratives(narratives: readonly NarrativeEntity[]): Promise<boolean> {
+  try {
+    await vscode.commands.executeCommand("pspf.core.upsertEntities", narratives);
+    return true;
+  } catch (error) {
+    const code = typeof error === "object" && error !== null ? (error as { readonly code?: unknown }).code : undefined;
+    if (code === "PSPF_NARRATIVE_RULE_VIOLATION") {
+      await vscode.window.showWarningMessage(`Narrative not saved: ${errorMessage(error)}`);
+      return false;
+    }
+    throw error;
+  }
+}
+
+function isReportingCopyFormat(value: string | undefined): value is ReportingCopyFormat {
+  return (
+    value === "markdown" ||
+    value === "plain" ||
+    value === "executive-plain" ||
+    value === "teams-plain" ||
+    value === "team-card"
+  );
+}
+
+async function copyReportingPack(model: ReportingPackModel, format: ReportingCopyFormat, team?: string): Promise<void> {
+  const card = model.teamReportCard;
+  let text: string;
+  let artefact: string;
+  switch (format) {
+    case "markdown":
+      text = renderReportingPackMarkdown(model);
+      artefact = "PSPF reporting pack (Markdown)";
+      break;
+    case "plain":
+      text = renderReportingPackPlainText(model);
+      artefact = "PSPF reporting pack (plain text)";
+      break;
+    case "executive-plain":
+      text = renderExecutiveBriefPlainText(model);
+      artefact = "PSPF executive brief (plain text)";
+      break;
+    case "teams-plain":
+      if (!card) {
+        await vscode.window.showWarningMessage("No team report card is available for this scope.");
+        return;
+      }
+      text = renderTeamReportCardPlainText(card);
+      artefact = "PSPF team report card (plain text)";
+      break;
+    case "team-card": {
+      const row = card?.rows.find((item) => item.team === team);
+      if (!card || !row) {
+        await vscode.window.showWarningMessage("That team is no longer in the report card. Refresh and try again.");
+        return;
+      }
+      text = renderTeamCardPlainText(row, card.periodLabel);
+      artefact = `Team report card for ${row.team}`;
+      break;
+    }
+  }
+  await vscode.env.clipboard.writeText(text);
+  await vscode.window.showInformationMessage(`${artefact} copied to clipboard.`);
+}
+
+interface ReportingWorkbenchViewOptions {
+  readonly scope: ReportingPackScope;
+  readonly anchors: readonly ReportingPackAnchor[];
+  readonly anchor: ReportingPackAnchor | undefined;
+  readonly anchorSelection: string | undefined;
+  readonly myDomainCount: number;
+  readonly tab: ReportingWorkbenchState["tab"];
+  readonly suggestions: readonly SuggestedAction[];
+}
+
+function renderReportingWorkbench(model: ReportingPackModel, options: ReportingWorkbenchViewOptions): string {
+  const meDisabled = options.myDomainCount === 0;
+  const meHint = meDisabled
+    ? `<span class="muted">Set <code>pspf.workshop.myDomains</code> (for example INFO, TECH) to enable the Me scope.</span>`
+    : "";
+  const myDomainTitles = REPORTING_DOMAIN_OPTIONS.filter((option) => options.scope.domainIds.includes(option.id))
+    .map((option) => option.title)
+    .join(", ");
+  const anchorOptions = [
+    `<option value="none"${options.anchorSelection === "none" ? " selected" : ""}>None (no comparison)</option>`,
+    ...options.anchors.map(
+      (anchor) =>
+        `<option value="${escapeHtml(anchor.snapshotId)}"${options.anchor?.snapshotId === anchor.snapshotId ? " selected" : ""}>${escapeHtml(anchor.title)} · ${escapeHtml(formatDisplayDate(new Date(anchor.capturedAt)))}</option>`
+    )
+  ].join("");
+  const tabButton = (id: ReportingWorkbenchState["tab"], text: string): string =>
+    `<button type="button" data-reporting-tab="${id}" aria-pressed="${options.tab === id}">${escapeHtml(text)}</button>`;
+  return shellHtml(
+    "PSPF Reporting Workbench",
+    `
+    ${reportingWorkbenchStyles()}
+    <section>
+      <p class="eyebrow">Workshop · Reporting</p>
+      <h1>Reporting Workbench</h1>
+      <p class="muted">${escapeHtml(model.classification)} · generated ${escapeHtml(formatDisplayDate(new Date(model.metadata.generatedAt)))} · ${escapeHtml(model.metadata.scopeLabel)} · compared with ${escapeHtml(model.metadata.anchorLabel)}</p>
+      <p>Brief once, act often: a deterministic reporting pack built from live Workshop records. Choose your scope, pick a snapshot to compare against, then copy the pack or the executive brief.</p>
+      ${versionStrip()}
+      <div class="reporting-controls">
+        <div class="reporting-controls__group" role="group" aria-label="Scope">
+          <span class="reporting-controls__label">Scope</span>
+          <button type="button" data-command="setScope" data-scope="me" aria-pressed="${options.scope.kind === "me"}"${meDisabled ? " disabled" : ""} title="${escapeHtml(myDomainTitles || "Domains you are the named owner of")}">Me</button>
+          <button type="button" data-command="setScope" data-scope="all" aria-pressed="${options.scope.kind === "all"}">All</button>
+          ${meHint}
+        </div>
+        <label class="reporting-controls__group">Compare with snapshot
+          <select data-command="setAnchor">${anchorOptions}</select>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="copy" data-format="markdown">Copy Markdown</button>
+        <button type="button" data-command="copy" data-format="plain">Copy plain text</button>
+        <button type="button" data-command="copy" data-format="executive-plain">Copy executive brief (plain text)</button>
+        <button type="button" data-command="copy" data-format="teams-plain">Copy team report card</button>
+        <button type="button" data-command="createSnapshot">Create snapshot now</button>
+        <button type="button" data-command="closeReportingPeriod" title="Create a snapshot and pin unpinned executive narratives to it">Close reporting period</button>
+        <button type="button" data-command="refresh">Refresh</button>
+      </div>
+      <div class="grid">
+        ${metricCard("Domain packs", model.domainPacks.length)}
+        ${metricCard("Readiness items", model.readiness.length)}
+        ${metricCard("High severity", model.readiness.filter((item) => item.severity === "high").length)}
+        ${metricCard("Snapshots", options.anchors.length)}
+      </div>
+    </section>
+    <div class="reporting-tabs" role="tablist">
+      ${tabButton("executive", "Executive Brief")}
+      ${tabButton("domains", "Domain packs")}
+      ${tabButton("teams", "Team report card")}
+      ${tabButton("readiness", "Readiness")}
+    </div>
+    <div data-reporting-panel="executive"${options.tab === "executive" ? "" : " hidden"}>
+      ${model.executiveBrief.sections.map(reportingSectionHtml).join("")}
+    </div>
+    <div data-reporting-panel="domains"${options.tab === "domains" ? "" : " hidden"}>
+      ${model.domainPacks.length > 0 ? model.domainPacks.map(reportingDomainPackHtml).join("") : `<section><p class="muted">No Domains in scope.</p></section>`}
+    </div>
+    <div data-reporting-panel="teams"${options.tab === "teams" ? "" : " hidden"}>
+      ${reportingTeamCardHtml(model.teamReportCard)}
+    </div>
+    <div data-reporting-panel="readiness"${options.tab === "readiness" ? "" : " hidden"}>
+      ${reportingSuggestionsHtml(options.suggestions)}
+      ${reportingReadinessHtml(model.readiness)}
+    </div>
+    ${reportingWorkbenchScript()}
+  `
+  );
+}
+
+function reportingSectionHtml(section: ExecutiveBriefSection): string {
+  return `<section>
+    <h3>${escapeHtml(section.heading)}</h3>
+    <p class="reporting-verdict">${escapeHtml(section.verdict)}</p>
+    ${reportingNarrativeHtml({
+      slot: section.slot,
+      heading: section.heading,
+      paragraphs: section.paragraphs,
+      generatedParagraphs: section.generatedParagraphs,
+      operatorNote: section.operatorNote
+    })}
+    ${section.bullets.length > 0 ? `<ul>${section.bullets.map((bullet) => `<li>${escapeHtml(bullet)}</li>`).join("")}</ul>` : ""}
+  </section>`;
+}
+
+interface ReportingNarrativeView {
+  readonly slot: string;
+  readonly heading: string;
+  readonly paragraphs: readonly string[];
+  readonly generatedParagraphs: readonly string[];
+  readonly operatorNote: OperatorNote | undefined;
+  readonly targetType?: string;
+  readonly targetId?: string;
+}
+
+// R3: section text with an inline operator-note editor. Buttons post through shell.ts's generic handler.
+function reportingNarrativeHtml(view: ReportingNarrativeView): string {
+  const note = view.operatorNote;
+  const paragraphsHtml = (paragraphs: readonly string[]): string =>
+    paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("");
+  const hiddenField = (name: string, value: string | undefined): string =>
+    value ? `<input type="hidden" name="${escapeHtml(name)}" value="${escapeHtml(value)}">` : "";
+  const editorId = `narrative-editor-${view.slot.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const noteBlock = note
+    ? `<div class="reporting-narrative__head">
+        <span class="reporting-note-badge">Operator note</span>
+        <span class="muted">Saved ${escapeHtml(formatDisplayDate(new Date(note.updatedAt)))}</span>
+      </div>
+      ${paragraphsHtml(view.paragraphs)}
+      <details class="reporting-narrative__generated">
+        <summary>Generated text</summary>
+        ${paragraphsHtml(view.generatedParagraphs)}
+      </details>`
+    : paragraphsHtml(view.paragraphs);
+  const noteButtons = note
+    ? `<button type="button" data-command="useGenerated" data-narrative-id="${escapeHtml(note.narrativeId)}">Use generated</button>
+       <button type="button" data-command="restorePrevious" data-narrative-id="${escapeHtml(note.narrativeId)}"${note.supersedesId ? "" : " disabled"}>Restore previous</button>`
+    : "";
+  return `<div class="reporting-narrative" data-narrative-slot="${escapeHtml(view.slot)}">
+    ${noteBlock}
+    <div class="form-actions">
+      <button type="button" data-narrative-edit="${escapeHtml(editorId)}" aria-expanded="false" aria-controls="${escapeHtml(editorId)}">Edit</button>
+      ${noteButtons}
+    </div>
+    <form class="reporting-narrative__form" id="${escapeHtml(editorId)}" data-narrative-slot="${escapeHtml(view.slot)}" hidden>
+      <label>Operator note for ${escapeHtml(view.heading)}
+        <textarea name="body" rows="6">${escapeHtml(view.paragraphs.join("\n\n"))}</textarea>
+      </label>
+      <input type="hidden" name="slot" value="${escapeHtml(view.slot)}">
+      <input type="hidden" name="heading" value="${escapeHtml(view.heading)}">
+      ${hiddenField("targetType", view.targetType)}
+      ${hiddenField("targetId", view.targetId)}
+      ${hiddenField("supersedesId", note?.narrativeId)}
+      <div class="form-actions">
+        <button type="button" data-command="saveNarrative">Save narrative</button>
+        <button type="button" data-narrative-cancel="${escapeHtml(editorId)}">Cancel</button>
+      </div>
+    </form>
+  </div>`;
+}
+
+function reportingTeamCardHtml(card: TeamReportCardModel | undefined): string {
+  if (!card) {
+    return `<section><p class="muted">No team report card is available for this scope.</p></section>`;
+  }
+  const summary = `${escapeHtml(card.periodLabel)} · ${card.totals.teams} ${card.totals.teams === 1 ? "team" : "teams"} named · ${card.totals.unassignedOpen} open ${card.totals.unassignedOpen === 1 ? "action" : "actions"} without an owner team`;
+  const verdictPill = (verdict: TeamVerdict): string =>
+    `<span class="reporting-verdict-pill" data-verdict="${escapeHtml(verdict)}">${escapeHtml(TEAM_VERDICT_LABELS[verdict])}</span>`;
+  const rows = card.rows
+    .map(
+      (row) => `<tr>
+        <td>${escapeHtml(row.team)}</td>
+        <td>${verdictPill(row.verdict)}</td>
+        <td>${row.gapsOwned}</td>
+        <td>${row.open}</td>
+        <td>${row.dueInPeriod}</td>
+        <td>${row.overdue}</td>
+        <td>${row.slipped}${row.slipped > 0 ? ` (${row.slippedNetDays >= 0 ? "+" : ""}${row.slippedNetDays}d)` : ""}</td>
+        <td>${row.closedInPeriod}</td>
+        <td>${row.velocityPerWeek === undefined ? "–" : row.velocityPerWeek}</td>
+        <td>${row.nextDue ? `${escapeHtml(formatShortAuDateTime(row.nextDue.dueDate) ?? row.nextDue.dueDate)} · ${escapeHtml(row.nextDue.actionTitle)}` : "Nothing dated"}</td>
+      </tr>`
+    )
+    .join("");
+  const table =
+    card.rows.length === 0
+      ? `<p class="muted">No teams or actions in scope.</p>`
+      : `<div class="table-wrap" tabindex="0" aria-label="Scrollable team report card table"><table>
+        <thead><tr><th>Team</th><th>Verdict</th><th>Gaps</th><th>Open</th><th>Due in period</th><th>Overdue</th><th>Slipped (net days)</th><th>Closed</th><th>Velocity/wk</th><th>Next due</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>`;
+  const rules = (Object.keys(TEAM_VERDICT_RULES) as TeamVerdict[])
+    .map((verdict) => `<li>${verdictPill(verdict)} ${escapeHtml(TEAM_VERDICT_RULES[verdict])}</li>`)
+    .join("");
+  return `<section>
+    <h2>Team report card</h2>
+    <p class="muted">${summary}</p>
+    ${table}
+    <details class="reporting-rules"><summary>How verdicts are decided</summary>
+      <p class="muted">Rules apply in this order; the first that matches wins.</p>
+      <ul class="reporting-rules__list">${rules}</ul>
+    </details>
+  </section>
+  ${card.rows.map((row) => reportingTeamDetailHtml(row)).join("")}`;
+}
+
+function reportingTeamDetailHtml(row: TeamReportCardRow): string {
+  const gaps =
+    row.gapRequirementTitles.length === 0
+      ? `<p class="muted">No requirement gaps owned.</p>`
+      : `<ul>${row.gapRequirementTitles.map((title) => `<li>${escapeHtml(title)}</li>`).join("")}</ul>`;
+  return `<details class="reporting-team">
+    <summary><span class="reporting-verdict-pill" data-verdict="${escapeHtml(row.verdict)}">${escapeHtml(TEAM_VERDICT_LABELS[row.verdict])}</span> ${escapeHtml(row.team)}</summary>
+    <p>${escapeHtml(describeTeamVerdict(row))}</p>
+    <p class="muted">Rule: ${escapeHtml(row.verdictRule)}</p>
+    <h4>Requirement gaps owned</h4>
+    ${gaps}
+    <div class="form-actions">
+      <button type="button" data-command="copy" data-format="team-card" data-team="${escapeHtml(row.team)}">Copy card</button>
+    </div>
+  </details>`;
+}
+
+function reportingDomainPackHtml(pack: DomainPackModel): string {
+  const trend =
+    pack.trend.metAtAnchor === undefined
+      ? `${pack.trend.metNow} of ${pack.trend.applicable} met`
+      : `${pack.trend.metNow} of ${pack.trend.applicable} met (was ${pack.trend.metAtAnchor})`;
+  const responses = pack.responses.map((response) => ({
+    requirement: response.title,
+    status: label(response.assessmentStatus),
+    basis: response.basis,
+    rationale: response.rationale ?? ""
+  }));
+  const evidence = pack.evidence.map((item) => ({
+    evidence: item.evidenceTitle,
+    freshness: item.freshness,
+    reference: item.reference
+  }));
+  const actions = pack.actionPlan.map((item) => ({
+    actionTitle: item.actionTitle,
+    status: `${item.status}${item.overdue ? " · overdue" : ""}`,
+    dueDate: item.dueDate ?? "Not set",
+    requirements: item.linkedRequirementTitles.join(", ")
+  }));
+  return `<section>
+    <h2>${escapeHtml(pack.title)}</h2>
+    <p class="muted">Trend: ${escapeHtml(trend)}</p>
+    ${reportingNarrativeHtml({
+      slot: pack.slot,
+      heading: pack.title,
+      paragraphs: [pack.narrative],
+      generatedParagraphs: [pack.generatedNarrative],
+      operatorNote: pack.operatorNote,
+      targetType: "domain",
+      targetId: pack.domainId
+    })}
+    ${recordTable("Responses", responses, ["requirement", "status", "basis", "rationale"])}
+    ${recordTable("Evidence", evidence, ["evidence", "freshness", "reference"])}
+    ${recordTable("Action plan", actions, ["actionTitle", "status", "dueDate", "requirements"])}
+  </section>`;
+}
+
+// R4: deterministic suggestions; nothing is written until the operator ticks rows and clicks Create.
+function reportingSuggestionsHtml(suggestions: readonly SuggestedAction[]): string {
+  if (suggestions.length === 0) {
+    return `<section>
+      <h2>Suggested actions</h2>
+      <p class="muted">Every requirement gap in scope already has an open action.</p>
+    </section>`;
+  }
+  const rows = suggestions
+    .map(
+      (item) => `<tr>
+        <td><input type="checkbox" data-suggestion-id="${escapeHtml(item.requirementId)}" aria-label="Select ${escapeHtml(item.title)}"></td>
+        <td>${escapeHtml(item.title)}</td>
+        <td>${escapeHtml(item.requirementTitle)}</td>
+        <td>${escapeHtml(item.ownerTeam ?? "Unassigned")}</td>
+        <td>${escapeHtml(formatShortAuDateTime(item.suggestedDueDate) ?? item.suggestedDueDate)}</td>
+        <td><span class="reporting-impact" title="${escapeHtml(item.impactExplanation.join("\n"))}">${item.impactScore}</span></td>
+      </tr>`
+    )
+    .join("");
+  return `<section>
+    <h2>Suggested actions</h2>
+    <p class="muted">One suggested next step per requirement gap with no open action, ranked by impact. Tick the ones you want, then create them as to-do actions linked to their requirements.</p>
+    <div class="form-actions">
+      <button type="button" data-command="acceptSuggestions">Create selected actions</button>
+    </div>
+    <div class="table-wrap" tabindex="0" aria-label="Scrollable suggested actions table"><table>
+      <thead><tr><th aria-label="Select"></th><th>Suggested action</th><th>Requirement</th><th>Owner team</th><th>Suggested due</th><th>Impact</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+  </section>`;
+}
+
+function reportingReadinessHtml(items: readonly ReadinessItem[]): string {
+  if (items.length === 0) {
+    return `<section><p class="muted">Nothing outstanding. The pack is ready to send.</p></section>`;
+  }
+  const rows = items
+    .map(
+      (item) => `<li class="reporting-readiness__item">
+        <span class="reporting-severity" data-severity="${escapeHtml(item.severity)}">${escapeHtml(item.severity)}</span>
+        <span>${escapeHtml(item.message)}</span>
+        <button type="button" data-command="openRecord" data-target-type="${escapeHtml(item.targetType)}" data-target-id="${escapeHtml(item.targetId)}">Open</button>
+      </li>`
+    )
+    .join("");
+  return `<section>
+    <h2>Readiness before you send</h2>
+    <ul class="reporting-readiness">${rows}</ul>
+  </section>`;
+}
+
+function reportingWorkbenchStyles(): string {
+  return `<style>
+    .reporting-controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; margin: 10px 0; }
+    .reporting-controls__group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    label.reporting-controls__group { display: grid; gap: 5px; min-width: 260px; max-width: 420px; }
+    .reporting-controls__label { color: var(--muted); font-size: var(--pspf-type-label); text-transform: uppercase; letter-spacing: var(--pspf-letter-label); }
+    .reporting-controls button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--workshop-blue); }
+    .reporting-tabs { display: flex; gap: 8px; margin-bottom: var(--gap); }
+    .reporting-tabs button[aria-pressed="true"] { box-shadow: inset 0 -3px 0 var(--workshop-blue); font-weight: 700; }
+    .reporting-verdict { font-weight: 650; }
+    .reporting-readiness { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .reporting-readiness__item { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-strong); }
+    .reporting-severity { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+    .reporting-severity[data-severity="high"] { color: var(--pspf-danger); background: var(--pspf-danger-soft); border-color: color-mix(in srgb, var(--pspf-danger) 55%, var(--border)); }
+    .reporting-severity[data-severity="medium"] { color: var(--pspf-warn); background: var(--pspf-warn-soft); border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); }
+    .reporting-verdict-pill { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+    .reporting-verdict-pill[data-verdict="stalled"] { color: var(--pspf-danger); background: var(--pspf-danger-soft); border-color: color-mix(in srgb, var(--pspf-danger) 55%, var(--border)); }
+    .reporting-verdict-pill[data-verdict="at-risk"] { color: var(--pspf-warn); background: var(--pspf-warn-soft); border-color: color-mix(in srgb, var(--pspf-warn) 55%, var(--border)); }
+    .reporting-verdict-pill[data-verdict="on-track"] { color: var(--pspf-ok); background: var(--pspf-ok-soft); border-color: color-mix(in srgb, var(--pspf-ok) 55%, var(--border)); }
+    .reporting-verdict-pill[data-verdict="no-open-work"] { color: var(--muted); }
+    .reporting-impact { display: inline-block; min-width: 2ch; text-align: center; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; font-weight: 700; cursor: help; }
+    .reporting-rules { margin-top: 12px; }
+    .reporting-rules__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .reporting-rules__list li { display: flex; gap: 10px; align-items: baseline; }
+    .reporting-team { margin-bottom: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-strong); }
+    .reporting-team > summary { cursor: pointer; font-weight: 650; }
+    .reporting-team h4 { margin: 12px 0 4px; }
+    .reporting-narrative { margin: 8px 0; }
+    .reporting-narrative__head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+    .reporting-note-badge { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: var(--pspf-letter-label); color: var(--workshop-blue); border: 1px solid var(--workshop-blue); white-space: nowrap; }
+    .reporting-narrative__generated { margin: 6px 0; }
+    .reporting-narrative__generated > summary { cursor: pointer; color: var(--muted); }
+    .reporting-narrative__form { display: grid; gap: 10px; max-width: 720px; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-strong); }
+    .reporting-narrative__form label { display: grid; gap: 5px; }
+    .reporting-narrative__form textarea { min-height: 140px; }
+  </style>`;
+}
+
+function reportingWorkbenchScript(): string {
+  return `<script>
+    (() => {
+      const tabs = Array.from(document.querySelectorAll('[data-reporting-tab]'));
+      const panels = Array.from(document.querySelectorAll('[data-reporting-panel]'));
+      tabs.forEach((tab) => tab.addEventListener('click', () => {
+        const id = tab.getAttribute('data-reporting-tab');
+        tabs.forEach((item) => item.setAttribute('aria-pressed', String(item === tab)));
+        panels.forEach((panel) => { panel.hidden = panel.getAttribute('data-reporting-panel') !== id; });
+        if (typeof vscode !== 'undefined' && vscode) {
+          vscode.postMessage({ command: 'setTab', value: id });
+        }
+      }));
+      const toggleEditor = (id, open) => {
+        const form = id ? document.getElementById(id) : null;
+        const trigger = id ? document.querySelector('[data-narrative-edit="' + id + '"]') : null;
+        if (!form) {
+          return;
+        }
+        form.hidden = !open;
+        if (trigger) {
+          trigger.setAttribute('aria-expanded', String(open));
+        }
+        if (open) {
+          const textarea = form.querySelector('textarea');
+          if (textarea) {
+            textarea.focus();
+          }
+        }
+      };
+      document.querySelectorAll('[data-narrative-edit]').forEach((button) => button.addEventListener('click', () => {
+        const id = button.getAttribute('data-narrative-edit');
+        const form = id ? document.getElementById(id) : null;
+        toggleEditor(id, form ? form.hidden : false);
+      }));
+      document.querySelectorAll('[data-narrative-cancel]').forEach((button) => button.addEventListener('click', () => {
+        toggleEditor(button.getAttribute('data-narrative-cancel'), false);
+      }));
+    })();
+  </script>`;
 }
 
 async function recordShareState(allEntities: readonly V01Entity[], artefact: string): Promise<void> {
@@ -13702,6 +14853,8 @@ function buildShareArtefactInput(
     sourceControls: allEntities.filter(
       (entity): entity is SourceControlEntity => entity.entityType === "source-control"
     ),
+    // R4: renderers keep only active executive-audience notes; pass everything and let them filter.
+    narratives: allEntities.filter((entity): entity is NarrativeEntity => entity.entityType === "narrative"),
     sourceLabel: "PSPF Workshop",
     bundleVersion: VERSION_AXES.bundleVersion,
     schemaVersion: VERSION_AXES.schemaVersion

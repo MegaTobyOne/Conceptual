@@ -1,10 +1,10 @@
 export const VERSION_AXES = {
-  schemaVersion: "1.15.0",
-  bundleVersion: "1.15.0",
-  apiVersion: "1.15.0"
+  schemaVersion: "1.16.0",
+  bundleVersion: "1.16.0",
+  apiVersion: "1.16.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.70.0" as const;
+export const PSPF_SLICE_VERSION = "1.74.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -35,6 +35,7 @@ export const PSPF_DIAGNOSTIC_CODES = [
   "PSPF_PURGE_COMPLETED",
   "PSPF_PURGE_DENIED_NOT_TRUSTED",
   "PSPF_WRITER_LOCK_HELD",
+  "PSPF_NARRATIVE_RULE_VIOLATION",
   "PSPF_PUBLICATION_POLICY_VIOLATION",
   "PSPF_PACK_INCOMPATIBLE",
   "PSPF_AI_MODEL_UNAVAILABLE",
@@ -155,6 +156,7 @@ export const V0_1_ENTITY_TYPES = [
   "control-theme",
   "cyber-reference-mapping",
   "strategy",
+  "narrative",
   "posture"
 ] as const;
 
@@ -183,6 +185,7 @@ export const V0_1_COLLECTIONS = [
   "control-themes",
   "cyber-reference-mappings",
   "strategies",
+  "narratives",
   "posture"
 ] as const;
 
@@ -468,6 +471,8 @@ export interface RequirementEntity extends EntityEnvelope {
   /** J1b (v1.57.0): what an assessor would accept as "met" for this requirement. */
   readonly acceptanceDefinition?: string;
   readonly acceptanceDefinitionUpdatedAt?: string;
+  /** R2 (v1.72.0, ADR 0097): team label that owns this gap. Never a person. */
+  readonly ownerTeam?: string;
 }
 
 export type EvidenceFreshness = "current" | "ageing" | "stale" | "expired" | "unknown";
@@ -498,6 +503,12 @@ export interface ActionCommentaryEntry {
   readonly text: string;
 }
 
+/** R2 (v1.72.0, ADR 0097): one recorded due-date change; `dueDate` undefined means the date was cleared. */
+export interface ActionDueDateChange {
+  readonly dueDate?: string;
+  readonly changedAt: string;
+}
+
 export interface ActionEntity extends EntityEnvelope {
   readonly entityType: "action";
   readonly title: string;
@@ -515,6 +526,10 @@ export interface ActionEntity extends EntityEnvelope {
   readonly impact?: ActionImpact;
   /** J3b (v1.57.0): operator-set override of the derived blocker classification. */
   readonly blockerClass?: BlockerClass;
+  /** R2 (v1.72.0, ADR 0097): team label that owns this action. Never a person. */
+  readonly ownerTeam?: string;
+  /** R2 (v1.72.0, ADR 0097): appended by `appendDueDateHistory` whenever `dueDate` changes; callers do not write it directly. */
+  readonly dueDateHistory?: readonly ActionDueDateChange[];
 }
 
 export type RiskStatus = "open" | "monitored" | "closed";
@@ -1076,6 +1091,24 @@ export interface StrategyEntity extends EntityEnvelope {
   readonly assumptions?: string;
 }
 
+export type NarrativeAudience = "executive" | "internal";
+
+/**
+ * R2 (v1.72.0, ADR 0097): an operator-authored narrative paragraph written once and reused
+ * by the posture brief, Domain packs, and magazine. `slot` names where it belongs (see
+ * `narrativeSlotFor`); edits supersede earlier records via `supersedesId` rather than overwrite.
+ */
+export interface NarrativeEntity extends EntityEnvelope {
+  readonly entityType: "narrative";
+  readonly slot: string;
+  readonly body: string;
+  readonly audience: NarrativeAudience;
+  readonly basedOnSnapshotId?: string;
+  readonly targetType?: string;
+  readonly targetId?: string;
+  readonly supersedesId?: string;
+}
+
 export type V01Entity =
   | DomainEntity
   | RequirementEntity
@@ -1099,6 +1132,7 @@ export type V01Entity =
   | ControlThemeEntity
   | CyberReferenceMappingEntity
   | StrategyEntity
+  | NarrativeEntity
   | PostureEntity;
 
 export type EntityByCollection = {
@@ -1124,6 +1158,7 @@ export type EntityByCollection = {
   "control-themes": ControlThemeEntity;
   "cyber-reference-mappings": CyberReferenceMappingEntity;
   strategies: StrategyEntity;
+  narratives: NarrativeEntity;
   posture: PostureEntity;
 };
 
@@ -1174,7 +1209,8 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
       { field: "assessmentRationale", publication: "sensitive" },
       { field: "assessmentReviewedAt", publication: "sensitive" },
       { field: "acceptanceDefinition", publication: "sensitive" },
-      { field: "acceptanceDefinitionUpdatedAt", publication: "sensitive" }
+      { field: "acceptanceDefinitionUpdatedAt", publication: "sensitive" },
+      { field: "ownerTeam", publication: "sensitive" }
     ]
   },
   {
@@ -1218,7 +1254,9 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
       ),
       { field: "commentary", publication: "sensitive" },
       { field: "effortBasis", publication: "sensitive" },
-      { field: "blockerClass", publication: "sensitive" }
+      { field: "blockerClass", publication: "sensitive" },
+      { field: "ownerTeam", publication: "sensitive" },
+      { field: "dueDateHistory", publication: "sensitive" }
     ]
   },
   {
@@ -1610,6 +1648,29 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
     ]
   },
   {
+    entityType: "narrative",
+    fields: [
+      ...publicFields(
+        "id",
+        "entityType",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "sourceProduct",
+        "recordStatus",
+        "slot",
+        "audience",
+        "basedOnSnapshotId",
+        "targetType",
+        "targetId",
+        "supersedesId"
+      ),
+      // title is derived from operator-visible headings, so it is treated as free text.
+      { field: "title", publication: "sensitive" },
+      { field: "body", publication: "sensitive" }
+    ]
+  },
+  {
     entityType: "posture",
     fields: publicFields(
       "id",
@@ -1722,6 +1783,7 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   "control-theme": "control-themes",
   "cyber-reference-mapping": "cyber-reference-mappings",
   strategy: "strategies",
+  narrative: "narratives",
   posture: "posture"
 };
 
@@ -1748,6 +1810,7 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   "control-theme": "CTH",
   "cyber-reference-mapping": "CRM",
   strategy: "STR",
+  narrative: "NAR",
   posture: "POSTURE"
 };
 
@@ -3796,6 +3859,173 @@ export function assertNever(value: never): never {
 }
 
 // --------------------------------------------------------------------------
+// R2 (v1.72.0, ADR 0097): ownership, due-date history, and narrative records.
+// Pure helpers; Core owns persistence and calls these on write.
+// --------------------------------------------------------------------------
+
+/**
+ * Returns `next` with `dueDateHistory` extended by one entry when its `dueDate`
+ * differs from `previous`'s. Returns `next` unchanged (same reference) when the
+ * date has not moved. A brand-new action with a due date seeds a single entry so
+ * the first date is always on record for `summariseSlippage`.
+ */
+export function appendDueDateHistory(
+  previous: ActionEntity | undefined,
+  next: ActionEntity,
+  now: string
+): ActionEntity {
+  const previousDueDate = previous?.dueDate;
+  if (previous !== undefined && previousDueDate === next.dueDate) {
+    return next;
+  }
+  if (previous === undefined && next.dueDate === undefined) {
+    return next;
+  }
+  const history = previous?.dueDateHistory ?? next.dueDateHistory ?? [];
+  const entry: ActionDueDateChange =
+    next.dueDate === undefined ? { changedAt: now } : { dueDate: next.dueDate, changedAt: now };
+  return { ...next, dueDateHistory: [...history, entry] };
+}
+
+export interface SlippageSummary {
+  /** Number of recorded due-date changes after the first recorded date. */
+  readonly changes: number;
+  /** Whole days from the first recorded due date to the current one; undefined if either is missing. */
+  readonly netDays: number | undefined;
+  readonly latestDueDate?: string;
+}
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * Summarises how far an action's due date has moved since it was first recorded.
+ * `now` is accepted for signature stability with other judgement helpers and
+ * reserved for future overdue framing; the summary itself is purely historical.
+ */
+export function summariseSlippage(action: ActionEntity, _now: string): SlippageSummary {
+  const history = action.dueDateHistory ?? [];
+  const firstRecorded = history.find((entry) => entry.dueDate !== undefined)?.dueDate;
+  const latestDueDate = action.dueDate;
+  const changes = Math.max(0, history.length - 1);
+  if (firstRecorded === undefined || latestDueDate === undefined) {
+    return latestDueDate === undefined
+      ? { changes, netDays: undefined }
+      : { changes, netDays: undefined, latestDueDate };
+  }
+  const firstMs = Date.parse(firstRecorded);
+  const latestMs = Date.parse(latestDueDate);
+  if (Number.isNaN(firstMs) || Number.isNaN(latestMs)) {
+    return { changes, netDays: undefined, latestDueDate };
+  }
+  return { changes, netDays: Math.round((latestMs - firstMs) / MS_PER_DAY), latestDueDate };
+}
+
+export type NarrativeSlotKind =
+  | "exec-brief.where-we-stand"
+  | "exec-brief.what-changed"
+  | "exec-brief.top-exposures"
+  | "exec-brief.decisions-needed"
+  | "exec-brief.what-happens-next"
+  | "domain.exec-note"
+  | "risk.exec-note"
+  | "requirement.exec-note"
+  | "action.exec-note"
+  | "team.report-card-note";
+
+/**
+ * Builds the canonical slot string a narrative record is filed under.
+ * Executive-brief slots stand alone; entity-scoped slots interpose the id, e.g.
+ * `risk.RSK-….exec-note`. Throws when an entity-scoped kind is given no id.
+ */
+export function narrativeSlotFor(kind: NarrativeSlotKind, id?: string): string {
+  if (kind.startsWith("exec-brief.")) {
+    return kind;
+  }
+  const separator = kind.indexOf(".");
+  const scope = kind.slice(0, separator);
+  const suffix = kind.slice(separator + 1);
+  const trimmedId = id?.trim() ?? "";
+  if (trimmedId.length === 0) {
+    throw new Error(`Narrative slot kind ${kind} requires an entity id.`);
+  }
+  return `${scope}.${trimmedId}.${suffix}`;
+}
+
+export interface NarrativeRuleViolation {
+  readonly narrativeId: string;
+  readonly rule: "slot-empty" | "body-empty" | "supersedes-missing" | "supersedes-slot-mismatch" | "supersedes-self";
+  readonly message: string;
+}
+
+/**
+ * Pure write-rule check for narrative records: non-empty `slot` and `body`, and
+ * `supersedesId` must name an existing narrative in the same slot. Deleted
+ * incoming records are skipped. Returns violations in a stable order (by
+ * narrative id, then rule) so Core can raise the first as a diagnostic.
+ */
+export function validateNarrativeRules(
+  incomingEntities: readonly V01Entity[],
+  existingEntities: readonly V01Entity[]
+): readonly NarrativeRuleViolation[] {
+  const mergedById = new Map<string, V01Entity>(existingEntities.map((entity) => [entity.id, entity]));
+  for (const entity of incomingEntities) {
+    mergedById.set(entity.id, entity);
+  }
+  const isNarrative = (entity: V01Entity | undefined): entity is NarrativeEntity =>
+    entity !== undefined && entity.entityType === "narrative";
+
+  const violations: NarrativeRuleViolation[] = [];
+  for (const entity of incomingEntities) {
+    if (!isNarrative(entity) || entity.recordStatus === "deleted") {
+      continue;
+    }
+    if (entity.slot.trim().length === 0) {
+      violations.push({
+        narrativeId: entity.id,
+        rule: "slot-empty",
+        message: `Narrative ${entity.id} has an empty slot.`
+      });
+    }
+    if (entity.body.trim().length === 0) {
+      violations.push({
+        narrativeId: entity.id,
+        rule: "body-empty",
+        message: `Narrative ${entity.id} has an empty body.`
+      });
+    }
+    if (entity.supersedesId !== undefined) {
+      if (entity.supersedesId === entity.id) {
+        violations.push({
+          narrativeId: entity.id,
+          rule: "supersedes-self",
+          message: `Narrative ${entity.id} cannot supersede itself.`
+        });
+      } else {
+        const superseded = mergedById.get(entity.supersedesId);
+        if (!isNarrative(superseded)) {
+          violations.push({
+            narrativeId: entity.id,
+            rule: "supersedes-missing",
+            message: `Narrative ${entity.id} supersedes ${entity.supersedesId}, which is not a known narrative.`
+          });
+        } else if (superseded.slot !== entity.slot) {
+          violations.push({
+            narrativeId: entity.id,
+            rule: "supersedes-slot-mismatch",
+            message: `Narrative ${entity.id} (slot ${entity.slot}) cannot supersede ${superseded.id} (slot ${superseded.slot}).`
+          });
+        }
+      }
+    }
+  }
+  return violations.sort(
+    (left, right) =>
+      left.narrativeId.localeCompare(right.narrativeId, "en-AU", { sensitivity: "base" }) ||
+      left.rule.localeCompare(right.rule, "en-AU", { sensitivity: "base" })
+  );
+}
+
+// --------------------------------------------------------------------------
 // Questionnaire-driven population (ADR 0069, v1.33)
 // Type-only additions: questionnaire packs are reference data, runs are local
 // JSON files; no new entity envelopes or schema directories are introduced.
@@ -3877,3 +4107,9 @@ export interface QuestionnaireRunRecord {
 }
 
 export const QUESTIONNAIRE_RUN_DIRECTORY = ".pspf/questionnaire/runs" as const;
+
+// R3 (v1.73.0, ADR 0097): team report card primitive lives beside this file.
+export * from "./team-report-card.js";
+// R4 (v1.74.0, ADR 0097): suggested actions and close-of-period narrative stamping.
+export * from "./suggested-actions.js";
+export * from "./reporting-period.js";

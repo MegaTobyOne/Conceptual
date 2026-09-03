@@ -59,6 +59,9 @@ importers:
       '@pspf/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@pspf/reference-data':
+        specifier: workspace:*
+        version: link:../reference-data
 
   packages/connected-view:
     dependencies:

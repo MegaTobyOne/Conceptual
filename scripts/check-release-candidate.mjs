@@ -75,7 +75,11 @@ const axesByMinorVersion = new Map([
   [67, "1.15.0"],
   [68, "1.15.0"],
   [69, "1.15.0"],
-  [70, "1.15.0"]
+  [70, "1.15.0"],
+  [71, "1.15.0"],
+  [72, "1.16.0"],
+  [73, "1.16.0"],
+  [74, "1.16.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -123,7 +127,7 @@ assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion
 
 const e2eScript =
   minorVersion >= 60
-    ? `e2e:v1.${Math.min(minorVersion, 70)}`
+    ? `e2e:v1.${Math.min(minorVersion, 74)}`
     : minorVersion >= 59
       ? "e2e:v1.59"
       : minorVersion >= 58
@@ -2249,6 +2253,191 @@ if (isV1Release && minorVersion >= 70) {
     false,
     "grand-plan should no longer describe the Essentials programme as planned"
   );
+}
+
+if (isV1Release && minorVersion >= 71) {
+  const adr0097Path = join(root, "adr/0097-v1-74-brief-once-act-often-reporting-programme.md");
+  assert.equal(
+    existsSync(adr0097Path),
+    true,
+    "adr/0097-v1-74-brief-once-act-often-reporting-programme.md should exist"
+  );
+  const adr0097 = await readFile(adr0097Path, "utf8");
+  assert.equal(adr0097.includes("Reporting Workbench"), true, "ADR 0097 should describe the Reporting Workbench");
+  assert.equal(
+    existsSync(join(root, "scripts/check-reporting-workbench.mjs")),
+    true,
+    "scripts/check-reporting-workbench.mjs should exist"
+  );
+  for (const requiredScript of ["check:reporting-workbench", "e2e:v1.71", "e2e:v1.71:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.71"].includes("e2e:v1.70"), true, "e2e:v1.71 should include v1.70 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.71"].includes("check:reporting-workbench"),
+    true,
+    "e2e:v1.71 should run check:reporting-workbench"
+  );
+  assert.equal(
+    packageJson.scripts["e2e:v1.71:run"].includes("e2e:v1.70:run"),
+    true,
+    "e2e:v1.71:run should include v1.70 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  for (const requiredText of [`PSPF_SLICE_VERSION\` are \`${expectedVersion}\``, "v1.71", "Reporting Workbench"]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+  const essentialsBaseline = JSON.parse(
+    await readFile(join(root, "scripts/lib/essentials-surface-baseline.json"), "utf8")
+  );
+  assert.equal(
+    essentialsBaseline.workshopCommands,
+    72,
+    "essentials baseline should record 72 Workshop commands for R1"
+  );
+  assert.equal(
+    essentialsBaseline.workshopWebviewPanels,
+    30,
+    "essentials baseline should record 30 Workshop webview panels for R1"
+  );
+}
+
+if (isV1Release && minorVersion >= 72) {
+  assert.equal(
+    existsSync(join(root, "schemas/explorer-bundle/1.16.0/collections/narratives.schema.json")),
+    true,
+    "schemas/explorer-bundle/1.16.0/collections/narratives.schema.json should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "scripts/check-ownership-schema.mjs")),
+    true,
+    "scripts/check-ownership-schema.mjs should exist"
+  );
+  for (const requiredScript of ["check:ownership-schema", "e2e:v1.72", "e2e:v1.72:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.72"].includes("e2e:v1.71"), true, "e2e:v1.72 should include v1.71 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.72"].includes("check:ownership-schema"),
+    true,
+    "e2e:v1.72 should run check:ownership-schema"
+  );
+  assert.equal(
+    packageJson.scripts["e2e:v1.72:run"].includes("e2e:v1.71:run"),
+    true,
+    "e2e:v1.72:run should include v1.71 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  assert.equal(
+    checkGatesScript.includes("check-ownership-schema.mjs"),
+    true,
+    "check:gates:run should run check-ownership-schema.mjs"
+  );
+  for (const requiredText of [`PSPF_SLICE_VERSION\` are \`${expectedVersion}\``, "1.16.0", "check:ownership-schema"]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+  assert.equal(expectedAxes, "1.16.0", "v1.72 axes should be 1.16.0");
+  assert.match(contracts, /schemaVersion: "1\.16\.0"/, "contracts VERSION_AXES.schemaVersion should be 1.16.0");
+  assert.match(contracts, /bundleVersion: "1\.16\.0"/, "contracts VERSION_AXES.bundleVersion should be 1.16.0");
+  assert.match(contracts, /apiVersion: "1\.16\.0"/, "contracts VERSION_AXES.apiVersion should be 1.16.0");
+}
+
+if (isV1Release && minorVersion >= 73) {
+  const adr0097 = await readFile(join(root, "adr/0097-v1-74-brief-once-act-often-reporting-programme.md"), "utf8");
+  assert.equal(adr0097.includes("Team report card"), true, "ADR 0097 should describe the Team report card");
+  assert.equal(
+    existsSync(join(root, "packages/contracts/src/team-report-card.ts")),
+    true,
+    "packages/contracts/src/team-report-card.ts should exist"
+  );
+  assert.equal(
+    existsSync(join(root, "scripts/check-team-report-card.mjs")),
+    true,
+    "scripts/check-team-report-card.mjs should exist"
+  );
+  for (const requiredScript of ["check:team-report-card", "e2e:v1.73", "e2e:v1.73:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.73"].includes("e2e:v1.72"), true, "e2e:v1.73 should include v1.72 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.73"].includes("check:team-report-card"),
+    true,
+    "e2e:v1.73 should run check:team-report-card"
+  );
+  assert.equal(
+    packageJson.scripts["e2e:v1.73:run"].includes("e2e:v1.72:run"),
+    true,
+    "e2e:v1.73:run should include v1.72 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  assert.equal(
+    checkGatesScript.includes("check-team-report-card.mjs"),
+    true,
+    "check:gates:run should run check-team-report-card.mjs"
+  );
+  for (const requiredText of [`PSPF_SLICE_VERSION\` are \`${expectedVersion}\``, "team report card"]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+  assert.equal(expectedAxes, "1.16.0", "v1.73 axes should remain 1.16.0");
+}
+
+if (isV1Release && minorVersion >= 74) {
+  for (const requiredFile of [
+    "scripts/check-narrative-reuse.mjs",
+    "packages/contracts/src/suggested-actions.ts",
+    "packages/contracts/src/reporting-period.ts",
+    "packages/workshop/src/evidence-sweep.ts",
+    "packages/workshop/src/ism-sweep.ts",
+    "packages/workshop/src/reporting-suggestions.ts"
+  ]) {
+    assert.equal(existsSync(join(root, requiredFile)), true, `${requiredFile} should exist`);
+  }
+  for (const requiredScript of ["check:narrative-reuse", "e2e:v1.74", "e2e:v1.74:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.74"].includes("e2e:v1.73"), true, "e2e:v1.74 should include v1.73 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.74"].includes("check:narrative-reuse"),
+    true,
+    "e2e:v1.74 should run check:narrative-reuse"
+  );
+  assert.equal(
+    packageJson.scripts["e2e:v1.74:run"].includes("e2e:v1.73:run"),
+    true,
+    "e2e:v1.74:run should include v1.73 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  assert.equal(
+    checkGatesScript.includes("check-narrative-reuse.mjs"),
+    true,
+    "check:gates:run should run check-narrative-reuse.mjs"
+  );
+  for (const requiredText of [`PSPF_SLICE_VERSION\` are \`${expectedVersion}\``, "narrative reuse"]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+  const grandPlanR4 = await readFile(join(root, "pspf-grand-plan.md"), "utf8");
+  assert.equal(
+    grandPlanR4.includes("R1–R4 shipped") || grandPlanR4.includes("implemented (R1–R4"),
+    true,
+    "grand plan status header should record the ADR 0097 programme as implemented with R1–R4 shipped"
+  );
+  assert.equal(expectedAxes, "1.16.0", "v1.74 axes should remain 1.16.0");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

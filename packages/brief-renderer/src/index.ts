@@ -5,6 +5,7 @@ import type {
   DomainEntity,
   EvidenceEntity,
   LinkEntity,
+  NarrativeEntity,
   RequirementControlMappingEntity,
   RequirementEntity,
   RiskEntity,
@@ -12,8 +13,11 @@ import type {
   SpendItemEntity,
   StrategyEntity
 } from "@pspf/contracts";
-import { isWithinFreshnessWindow, summariseAssessmentBasis } from "@pspf/contracts";
+import { isWithinFreshnessWindow, narrativeSlotFor, summariseAssessmentBasis } from "@pspf/contracts";
 import { buildUncoveredRiskStatement, summariseUncoveredRisk } from "@pspf/contracts";
+import { resolveOperatorNotes, type OperatorNote } from "./reporting-pack.js";
+
+export * from "./reporting-pack.js";
 
 export interface PostureBriefInput {
   readonly generatedAt: Date | string;
@@ -27,6 +31,8 @@ export interface PostureBriefInput {
   readonly strategies?: readonly StrategyEntity[];
   readonly requirementControlMappings?: readonly RequirementControlMappingEntity[];
   readonly sourceControls?: readonly SourceControlEntity[];
+  /** R4 (ADR 0097): operator narratives; only active executive-audience notes are reused by these renderers. */
+  readonly narratives?: readonly NarrativeEntity[];
   readonly sourceLabel?: string;
   readonly bundleVersion?: string;
   readonly schemaVersion?: string;
@@ -35,6 +41,9 @@ export interface PostureBriefInput {
 export type CisoMagazinePspfDomainScope = "all" | "GOV" | "RISK" | "INFO" | "TECH" | "PER" | "PHYS";
 
 export type CisoMagazineEdition = "cso" | "ciso";
+
+/** Where the editor's note came from: an explicit override, the active operator narrative, or generated text. */
+export type CisoMagazineEditorNoteSource = "operator-override" | "operator-note" | "generated";
 
 export interface CisoMagazineInput extends PostureBriefInput {
   readonly issueTitle?: string;
@@ -64,6 +73,7 @@ export interface CisoMagazineModel {
   readonly pspfDomainTitle: string;
   readonly coverHook: string;
   readonly editorNote: string;
+  readonly editorNoteSource: CisoMagazineEditorNoteSource;
   readonly overallCompliancePercent: number | undefined;
   readonly complianceTrendSummary: string;
   readonly uncoveredRiskLead: string;
@@ -129,6 +139,8 @@ export interface CisoMasterPlanModel {
   readonly title: string;
   readonly horizon: string;
   readonly direction: string;
+  /** R4: active executive note for `exec-brief.decisions-needed`, when one exists. */
+  readonly operatorNarrative?: string;
   readonly streams: readonly CisoMasterPlanStream[];
   readonly initiativePlans: readonly CisoMasterPlanInitiative[];
   readonly phases: readonly CisoMasterPlanPhase[];
@@ -288,6 +300,7 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
           spendItems: linkedSpendItems,
           requirementControlMappings: scopedRequirementControlMappings,
           sourceControls: input.sourceControls,
+          narratives: input.narratives,
           sourceLabel: input.sourceLabel,
           bundleVersion: input.bundleVersion,
           schemaVersion: input.schemaVersion
@@ -303,6 +316,7 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
     roleByRequirementId,
     pspfDomainTitle
   );
+  const editorNote = resolveEditorNote(edition, pspfDomainTitle, activeStrategy, input);
 
   return {
     classification: "OFFICIAL: Sensitive",
@@ -318,7 +332,8 @@ export function buildCisoMagazineModel(input: CisoMagazineInput): CisoMagazineMo
     pspfDomainScope,
     pspfDomainTitle,
     coverHook: buildCoverHook(edition, requirementsNeedingAttention.length, openActions.length, pspfDomainTitle),
-    editorNote: buildEditorNote(edition, pspfDomainTitle, activeStrategy, input.editorNoteOverride),
+    editorNote: editorNote.text,
+    editorNoteSource: editorNote.source,
     overallCompliancePercent,
     complianceTrendSummary,
     uncoveredRiskLead,
@@ -455,11 +470,13 @@ export function buildCisoMasterPlanModel(input: CisoMagazineInput): CisoMasterPl
   ].slice(0, 8);
   const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings ?? []);
   const articleBody = `${streams.length} CISO plan stream(s) are combined into the Master Plan for ${horizon}. The plan starts from strategy, uses the Plan of Action as the delivery spine, includes ${initiativePlans.length} idea or initiative plan(s), and calls out ${dependencies.length} dependency or supplier milestone(s) that could change the path.`;
+  const operatorNarrative = executiveNoteFor(input.narratives, "exec-brief.decisions-needed")?.body;
 
   return {
     title: "CISO Master Plan",
     horizon,
     direction,
+    ...(operatorNarrative ? { operatorNarrative } : {}),
     streams,
     initiativePlans,
     phases,
@@ -481,6 +498,7 @@ export function renderCisoMasterPlanMarkdown(input: CisoMagazineInput): string {
     "",
     `Horizon: ${model.horizon}`,
     "",
+    ...(model.operatorNarrative ? ["## Operator narrative", "", model.operatorNarrative, ""] : []),
     "## Direction",
     "",
     model.direction,
@@ -694,6 +712,7 @@ export function renderCisoMagazineMarkdown(input: CisoMagazineInput): string {
     "## Editor's Note",
     "",
     model.editorNote,
+    ...(model.editorNoteSource === "operator-note" ? ["", "_Operator note_"] : []),
     "",
     "## Why This Matters",
     "",
@@ -828,7 +847,7 @@ export function renderCisoMagazineHtml(input: CisoMagazineInput): string {
       <article class="panel metric trend"><span>Compliance trend</span><strong>${escapeHtml(model.overallCompliancePercent === undefined ? "n/a" : `${model.overallCompliancePercent}%`)}</strong><p>${escapeHtml(model.complianceTrendSummary)}</p></article>
     </section>
     <section class="grid" aria-label="Magazine stories">
-      <article class="panel"><div class="section-label">Editor's note</div><p>${escapeHtml(model.editorNote)}</p></article>
+      <article class="panel"><div class="section-label">Editor's note</div><p>${escapeHtml(model.editorNote)}</p>${model.editorNoteSource === "operator-note" ? '<p class="meta">Operator note</p>' : ""}</article>
       ${renderHtmlStoryPanel("Why this matters", model.executiveFraming)}
       ${model.featureStories
         .map(
@@ -913,6 +932,8 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
   const evidenceNeedsReview = input.evidence.filter((item) => item.freshness !== "current").length;
   const roleOwnership = buildRoleOwnershipSummary(input.requirementControlMappings ?? []);
   const ismPostureRows = buildIsmControlPostureRows(input.sourceControls ?? [], input.links);
+  const whereWeStandNote = executiveNoteFor(input.narratives, "exec-brief.where-we-stand");
+  const whatChangedNote = executiveNoteFor(input.narratives, "exec-brief.what-changed");
   const postureFramingRows = buildPostureBriefFramingRows(
     input.requirements.length,
     openActions.length,
@@ -947,6 +968,8 @@ export function renderPostureBriefMarkdown(input: PostureBriefInput): string {
       : "- Strategy: None recorded",
     `- Role ownership: ${roleOwnership.length} role(s), ${roleOwnership.reduce((total, item) => total + item.requirements, 0)} requirement coverage count, ${roleOwnership.reduce((total, item) => total + item.controls, 0)} control coverage count`,
     "",
+    ...operatorNoteSection("## Where We Stand", whereWeStandNote),
+    ...operatorNoteSection("## What Changed", whatChangedNote),
     "## Why This Matters",
     "",
     ...postureFramingRows,
@@ -1015,6 +1038,38 @@ function directionBriefTitle(direction: DirectionEntity): string {
   const reference = direction.reference.trim();
   const title = direction.title.trim();
   return title.toLowerCase().startsWith(reference.toLowerCase()) ? title : `${reference}: ${title}`;
+}
+
+// R4: the active executive-audience operator note for an exec-brief slot, if any.
+function executiveNoteFor(
+  narratives: readonly NarrativeEntity[] | undefined,
+  kind: "exec-brief.where-we-stand" | "exec-brief.what-changed" | "exec-brief.decisions-needed"
+): OperatorNote | undefined {
+  if (!narratives || narratives.length === 0) {
+    return undefined;
+  }
+  return resolveOperatorNotes(narratives, { audience: "executive" }).get(narrativeSlotFor(kind));
+}
+
+function operatorNoteSection(heading: string, note: OperatorNote | undefined): readonly string[] {
+  return note ? [heading, "", "_Operator note_", "", note.body, ""] : [];
+}
+
+function resolveEditorNote(
+  edition: CisoMagazineEdition,
+  pspfDomainTitle: string,
+  strategy: StrategyEntity | undefined,
+  input: Pick<CisoMagazineInput, "editorNoteOverride" | "narratives">
+): { readonly text: string; readonly source: CisoMagazineEditorNoteSource } {
+  const override = input.editorNoteOverride?.trim();
+  if (override) {
+    return { text: override, source: "operator-override" };
+  }
+  const note = executiveNoteFor(input.narratives, "exec-brief.where-we-stand");
+  if (note) {
+    return { text: note.body, source: "operator-note" };
+  }
+  return { text: buildEditorNote(edition, pspfDomainTitle, strategy), source: "generated" };
 }
 
 function buildIsmControlPostureRows(
@@ -1464,16 +1519,7 @@ function buildCoverHook(
   return `${pspfDomainTitle} has ${requirementCount} requirement(s) and ${actionCount} action(s) needing attention before the next assurance checkpoint.`;
 }
 
-function buildEditorNote(
-  edition: CisoMagazineEdition,
-  pspfDomainTitle: string,
-  strategy?: StrategyEntity,
-  override?: string
-): string {
-  const cleanedOverride = override?.trim();
-  if (cleanedOverride) {
-    return cleanedOverride;
-  }
+function buildEditorNote(edition: CisoMagazineEdition, pspfDomainTitle: string, strategy?: StrategyEntity): string {
   const educationCue =
     " PSPF sets the assurance obligations, and ISM controls provide the implementation patterns that help teams show those obligations are being met.";
   const audienceCue =

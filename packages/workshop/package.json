@@ -12,7 +12,7 @@
     "evidence",
     "risk"
   ],
-  "version": "1.70.0",
+  "version": "1.74.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -137,6 +137,14 @@
           "minimum": 1000,
           "maximum": 60000,
           "markdownDescription": "Timeout in milliseconds for risk-source setup tests and integration runs."
+        },
+        "pspf.workshop.myDomains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "markdownDescription": "PSPF Domain codes you are the named owner of (for example INFO, TECH). Used by the Reporting Workbench 'Me' scope."
         }
       }
     },
@@ -407,6 +415,10 @@
       {
         "command": "pspf.workshop.copyPostureBrief",
         "title": "PSPF: Copy Posture Brief"
+      },
+      {
+        "command": "pspf.workshop.openReportingWorkbench",
+        "title": "PSPF: Open Reporting Workbench"
       },
       {
         "command": "pspf.workshop.openCisoNewsletterReview",
