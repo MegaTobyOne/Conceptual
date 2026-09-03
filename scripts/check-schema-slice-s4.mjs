@@ -1,7 +1,8 @@
 // S4 (v1.57.0, ADR 0091): the one batched schema-axis bump for this UX
-// stream. Asserts VERSION_AXES moved to 1.15.0 together, the new schema
-// directory exists, the two new fields have declared publication policy,
-// and Workshop exposes them for editing.
+// stream. Asserts VERSION_AXES moved to at least 1.15.0 together, the 1.15.0
+// schema directory exists, the two new fields have declared publication policy,
+// and Workshop exposes them for editing. Later programmes (R2/ADR 0097 → 1.16.0)
+// move the axes again, so this gate checks "1.15.0 or later", not equality.
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -10,9 +11,10 @@ import { PUBLICATION_FIELD_POLICIES, VERSION_AXES } from "../packages/contracts/
 
 const root = process.cwd();
 
-assert.equal(VERSION_AXES.schemaVersion, "1.15.0", "schemaVersion should be 1.15.0");
-assert.equal(VERSION_AXES.bundleVersion, "1.15.0", "bundleVersion should move with schemaVersion");
-assert.equal(VERSION_AXES.apiVersion, "1.15.0", "apiVersion should move with schemaVersion");
+const axisMinor = (version) => Number(version.split(".")[1]);
+assert.equal(axisMinor(VERSION_AXES.schemaVersion) >= 15, true, "schemaVersion should be 1.15.0 or later");
+assert.equal(VERSION_AXES.bundleVersion, VERSION_AXES.schemaVersion, "bundleVersion should move with schemaVersion");
+assert.equal(VERSION_AXES.apiVersion, VERSION_AXES.schemaVersion, "apiVersion should move with schemaVersion");
 
 const priorSchemaDir = join(root, "schemas/explorer-bundle/1.14.0/collections");
 const newSchemaDir = join(root, "schemas/explorer-bundle/1.15.0/collections");

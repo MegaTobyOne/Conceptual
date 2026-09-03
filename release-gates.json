@@ -1,6 +1,132 @@
 {
   "version": 1,
   "releases": {
+    "1.74": [
+      {
+        "name": "e2e built-artifact checks",
+        "parallel": false,
+        "commands": ["pnpm run e2e:v1.74:run"]
+      },
+      {
+        "name": "quality gates",
+        "parallel": false,
+        "commands": [
+          "pnpm run check:gates:run",
+          "pnpm run check:ai-kill-switch",
+          "pnpm run check:reporting-workbench",
+          "node scripts/check-ownership-schema.mjs",
+          "node scripts/check-team-report-card.mjs",
+          "node scripts/check-narrative-reuse.mjs"
+        ]
+      },
+      {
+        "name": "debug workspace validation",
+        "parallel": false,
+        "commands": ["pnpm run validate:debug-workspace:run"]
+      },
+      {
+        "name": "typecheck",
+        "parallel": false,
+        "commands": ["pnpm run typecheck"]
+      },
+      {
+        "name": "lint and release candidate",
+        "parallel": false,
+        "commands": ["pnpm lint", "node scripts/check-release-candidate.mjs", "node scripts/release-readiness.mjs"]
+      }
+    ],
+    "1.73": [
+      {
+        "name": "e2e built-artifact checks",
+        "parallel": false,
+        "commands": ["pnpm run e2e:v1.73:run"]
+      },
+      {
+        "name": "quality gates",
+        "parallel": false,
+        "commands": [
+          "pnpm run check:gates:run",
+          "pnpm run check:ai-kill-switch",
+          "pnpm run check:reporting-workbench",
+          "node scripts/check-ownership-schema.mjs",
+          "node scripts/check-team-report-card.mjs"
+        ]
+      },
+      {
+        "name": "debug workspace validation",
+        "parallel": false,
+        "commands": ["pnpm run validate:debug-workspace:run"]
+      },
+      {
+        "name": "typecheck",
+        "parallel": false,
+        "commands": ["pnpm run typecheck"]
+      },
+      {
+        "name": "lint and release candidate",
+        "parallel": false,
+        "commands": ["pnpm lint", "node scripts/check-release-candidate.mjs", "node scripts/release-readiness.mjs"]
+      }
+    ],
+    "1.72": [
+      {
+        "name": "e2e built-artifact checks",
+        "parallel": false,
+        "commands": ["pnpm run e2e:v1.72:run"]
+      },
+      {
+        "name": "quality gates",
+        "parallel": false,
+        "commands": [
+          "pnpm run check:gates:run",
+          "pnpm run check:ai-kill-switch",
+          "pnpm run check:reporting-workbench",
+          "node scripts/check-ownership-schema.mjs"
+        ]
+      },
+      {
+        "name": "debug workspace validation",
+        "parallel": false,
+        "commands": ["pnpm run validate:debug-workspace:run"]
+      },
+      {
+        "name": "typecheck",
+        "parallel": false,
+        "commands": ["pnpm run typecheck"]
+      },
+      {
+        "name": "lint and release candidate",
+        "parallel": false,
+        "commands": ["pnpm lint", "node scripts/check-release-candidate.mjs", "node scripts/release-readiness.mjs"]
+      }
+    ],
+    "1.71": [
+      {
+        "name": "e2e built-artifact checks",
+        "parallel": false,
+        "commands": ["pnpm run e2e:v1.71:run"]
+      },
+      {
+        "name": "quality gates",
+        "parallel": false,
+        "commands": ["pnpm run check:gates:run", "pnpm run check:ai-kill-switch", "pnpm run check:reporting-workbench"]
+      },
+      {
+        "name": "debug workspace validation",
+        "parallel": false,
+        "commands": ["pnpm run validate:debug-workspace:run"]
+      },
+      {
+        "name": "typecheck",
+        "parallel": false,
+        "commands": ["pnpm run typecheck"]
+      },
+      {
+        "name": "lint and release candidate",
+        "parallel": false,
+        "commands": ["pnpm lint", "node scripts/check-release-candidate.mjs", "node scripts/release-readiness.mjs"]
+      }
+    ],
     "1.70": [
       {
         "name": "e2e built-artifact checks",

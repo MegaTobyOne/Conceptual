@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-09-02 (repo version 1.70.0)
+Last updated: 2026-09-03 (repo version 1.74.0)
 
 ## Purpose
 
@@ -83,6 +83,51 @@ not merely the reporting cycle of:
 - Confirm the minimum outputs needed for a forward work plan and leadership review.
 
 This short operating plan sits alongside the longer architecture and remediation tranches above and should be revisited after the next working cycle.
+
+## v1.71–v1.74 "Brief once, act often" reporting and accountability programme
+
+Status: **implemented (R1–R4 shipped) — governed by ADR 0097**
+
+### Outcome
+
+A CISO who owns some PSPF Domains and is a stakeholder in the rest must, each reporting season, produce per Domain a set of responses, the evidence behind them, a trend, a narrative, and an action plan — and must know which team owns each gap and each action, and whether it is actually closing. By v1.74.0 the operator writes a narrative once and reuses it across the posture brief, Digital CISO Magazine, and CISO Master Plan; every generated sentence is deterministic and prints the rule that produced it; every gap and action has a team owner or sits in a visible Unassigned row; and due-date slippage is recorded rather than overwritten. Pub stays frozen and no person data is introduced.
+
+### Decisions
+
+1. **One new Workshop panel**: the Reporting Workbench (`pspf.workshop.openReportingWorkbench`, an Essentials command) with Executive Brief, Domain packs, Team report card (from R3), and Readiness tabs, a Me ↔ All scope toggle driven by `pspf.workshop.myDomains`, a snapshot anchor picker, and Markdown/plain-text copy-out; the essentials-surface baseline is re-based exactly once (Workshop 71→72 commands, 29→30 panels) and no other surface growth is permitted.
+2. **Deterministic narrative only**: every sentence composes existing `@pspf/contracts` primitives and `@pspf/reference-data` explainers; every verdict prints its rule; no AI prose.
+3. **Snapshot side files gain a per-record status map** so period-over-period comparison can name which records changed; pre-1.71 snapshots degrade to counts-only and say so; the master bundle and Explorer schema are untouched.
+4. **Single schema bump in R2 (v1.72.0) to axes `1.16.0`**: `action.ownerTeam`, `action.dueDateHistory`, `requirement.ownerTeam` (all `sensitive`), a new `narrative` entity, and an explicit publication policy for `strategy.owner`; Core appends `dueDateHistory` entries itself.
+5. **Owner is a team label, never a person**: free-text `ownerTeam` with a converging picker; Pub is frozen and is not a team source; no field may hold `Person.name`, `Person.email`, or `Assignment.personId`.
+6. **Team report card (R3)**: per-team gaps, action counts, closure velocity, and a deterministic On track / At risk / Stalled verdict with its rules printed, plus an always-present Unassigned row.
+7. **Write once, use many times (R3–R4)**: edited sections persist as `narrative` records chained by `supersedesId`; the brief, magazine, and master plan consume them as "Operator note"; Close reporting period snapshots and stamps `basedOnSnapshotId`.
+8. **Recommendations (R4)**: action stubs drafted from explainer _What to do next_ text, ranked by `rankBlockersByFanIn`, accepted through multi-select before anything persists; capture sweeps live inside existing panels only.
+9. **Publication**: all new fields and narrative bodies are `sensitive`; report cards and Domain packs are Workshop copy-outs marked **OFFICIAL: Sensitive**, never Explorer publications; nothing is added to the master bundle.
+
+### Implementation slices
+
+| #   | Version | Focus                                                            | Axes     | Done when                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --- | ------- | ---------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | 1.71.0  | Reporting Workbench                                              | `1.15.0` | Generated Executive Brief and Domain packs; Me/All scope; snapshot per-record status map. **Shipped**: `buildReportingPackModel` in `@pspf/brief-renderer` composes the S1–S7 primitives and E1 explainers into a deterministic reporting pack; the Workshop Reporting Workbench panel offers the Me ↔ All toggle, snapshot anchor picker, and Markdown/plain-text copy-out; snapshot side files record per-record `recordStatus` so anchored comparison names changed records (counts-only for pre-1.71 snapshots); `check:reporting-workbench` gates the wiring and the one-time essentials baseline re-base to 72 commands / 30 panels.                                                                                                                                                                                                                                                                                                                                                                 |
+| R2  | 1.72.0  | Schema `1.16.0`: ownership, slippage, narrative                  | `1.16.0` | `action.ownerTeam`, `action.dueDateHistory`, `requirement.ownerTeam`, the `narrative` entity and collection, and the `strategy.owner` publication policy ship together; Core appends due-date history on change; bulk owner assignment in Workshop; `check:ownership-schema` and `e2e:v1.72` pass. **Shipped**: `VERSION_AXES` move to `1.16.0`; `action.ownerTeam`/`action.dueDateHistory` and `requirement.ownerTeam` land as `sensitive` fields; the `narrative` entity and `narratives` collection are added to contracts and the `1.16.0` schemas; Core owns `appendDueDateHistory` with legacy seeding for pre-1.16 actions, raises `PspfError` `PSPF_NARRATIVE_RULE_VIOLATION`, and forward-syncs workspace metadata; the action and requirement editors gain an owner team field and the Plan of Action worklist a bulk **Assign owner team** action; readiness reports `gap-without-owner`/`action-without-owner`; `check:ownership-schema` gates the slice.                                      |
+| R3  | 1.73.0  | Team report card and editable narrative                          | `1.16.0` | Team report card tab with deterministic verdicts and an Unassigned row; generated sections editable and persisted as `narrative` records with a `supersedesId` restore chain; `check:team-report-card` and `e2e:v1.73` pass. **Shipped**: `buildTeamReportCard` and `TEAM_VERDICT_RULES` (On track / At risk / Stalled / No open work) in `@pspf/contracts` derive per-team rows from existing records with the rules printed on the card and an always-present Unassigned row; the Reporting Workbench gains a Team report card tab with a per-team **Copy card** action; Executive Brief sections and Domain packs offer **Edit**, **Use generated**, and **Restore previous** backed by `narrative` records chained by `supersedesId`; an executive-audience filter limits which slots appear in the Executive Brief; `check:team-report-card` gates the slice.                                                                                                                                         |
+| R4  | 1.74.0  | Suggested actions, capture sweeps, narrative reuse, close period | `1.16.0` | Ranked action stubs accepted by multi-select; bulk freshness/link sweeps in the Evidence Review Queue and batch mapping in the ISM Review Workbench with no new commands; narrative slots consumed by the posture brief, magazine, and master plan; Close reporting period snapshots and stamps narratives; `check:narrative-reuse` and `e2e:v1.74` pass. **Shipped**: `resolveOperatorNotes` is reused by the posture brief (Where We Stand / What Changed), the Digital CISO Magazine (`editorNoteSource`), and the CISO Master Plan (`operatorNarrative`); `buildSuggestedActions` in `@pspf/contracts` drives the Readiness tab's **Suggested actions** draft-and-confirm accept flow; the Evidence Review Queue gains a bulk sweep (confirm current / mark stale / link) and the ISM Review Workbench a deterministic batch mapping sweep whose drafts are flagged for review; **Close reporting period** snapshots and calls `stampNarrativesWithSnapshot`; `check:narrative-reuse` gates the slice. |
+
+### Release gates
+
+1. **Reporting Workbench gate (R1):** `check:reporting-workbench` proves the renderer composes existing primitives only, the panel/command wiring, the fixed section order, publication safety of every copy-out, and the one-time surface re-base to 72/30.
+2. **Ownership schema gate (R2):** `check:ownership-schema` proves the `1.16.0` axis bump, field policies, `narrative` entity, and Core-owned `dueDateHistory` append.
+3. **Team report card gate (R3):** `check:team-report-card` proves deterministic verdicts with printed rules and the always-present Unassigned row.
+4. **Narrative reuse gate (R4):** `check:narrative-reuse` proves slot consumption across brief, magazine, and master plan, the supersede chain, and Close reporting period.
+5. **No-person gate:** no new field, copy-out, or narrative body carries `Person.name`, `Person.email`, or `Assignment.personId`; Pub remains frozen.
+6. **Release-chain gate:** `e2e:v1.71` … `e2e:v1.74` each inherit the complete previous chain; `release:readiness` targets the newest chain.
+
+### Explicitly deferred
+
+- Native Office export (`.docx`/`.pptx`) of the reporting pack — Tranche 3 per ADR 0066.
+- AI narrative polish over generated sections — outside the ADR 0077 draft-and-confirm boundary.
+- Pub integration as a team source — Pub is frozen for this programme; any future team source is a person-free Core `team` entity.
+- Explorer publication of ownership and narrative fields — pending a dedicated field-level publication-policy ADR.
 
 ## v1.70 Essentials programme — plain-language PSPF (v1.62.0–v1.70.0)
 

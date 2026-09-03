@@ -2,14 +2,15 @@
 
 Per ADR 0096's "Workshop subtraction" slice, Workshop's command palette is not restructured or
 hidden — every command below stays fully registered and invocable exactly as before. This
-document classifies the 71 Workshop commands into an **essentials** set (day-to-day
+document classifies the 72 Workshop commands into an **essentials** set (day-to-day
 assess-justify-act workflow: requirements, evidence, actions, risks, directions, relationships,
-posture) and a **specialist** set (dashboards, integrations, AI assistance, strategy, questionnaires,
+posture, reporting) and a **specialist** set (dashboards, integrations, AI assistance, strategy, questionnaires,
 and reporting tools for power users). `scripts/check-workshop-essentials-commands.mjs` asserts this
 list stays complete and accurate against `packages/workshop/package.json`, and that no two commands
-across Core, Assurance, Workshop, Shop, and Pub share an exact palette title.
+across Core, Assurance, Workshop, Shop, and Pub share an exact palette title. ADR 0097 R1 (v1.71.0)
+adds `pspf.workshop.openReportingWorkbench` to Essentials (71 → 72 commands, 24 → 25 essentials).
 
-## Essentials (24)
+## Essentials (25)
 
 - `pspf.workshop.openHome`
 - `pspf.workshop.openWelcome`
@@ -33,6 +34,7 @@ across Core, Assurance, Workshop, Shop, and Pub share an exact palette title.
 - `pspf.workshop.openItemDetail`
 - `pspf.workshop.openTreeEntity`
 - `pspf.workshop.copyPostureBrief`
+- `pspf.workshop.openReportingWorkbench`
 - `pspf.workshop.importBundle`
 - `pspf.workshop.exportBackupJson`
 

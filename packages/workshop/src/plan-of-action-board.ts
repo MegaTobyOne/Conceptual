@@ -45,6 +45,7 @@ export interface PlanOfActionTaskModel {
   readonly startDate: string;
   readonly endDate: string;
   readonly dueDate?: string;
+  readonly ownerTeam?: string;
   readonly showLabelInTimeline: boolean;
   readonly timelineLabel?: string;
   readonly x: number;
@@ -141,6 +142,7 @@ export function buildPlanOfActionBoardModel(
         startDate: toIsoDateOnly(dates.startDate),
         endDate: toIsoDateOnly(dates.endDate),
         dueDate: action.dueDate,
+        ownerTeam: action.ownerTeam,
         showLabelInTimeline,
         timelineLabel: showLabelInTimeline ? fitPlanOfActionLabel(action.title, width) : undefined,
         x,

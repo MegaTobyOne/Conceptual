@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, open, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, open, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Ajv, type ValidateFunction } from "ajv";
@@ -28,6 +28,7 @@ import {
   SAVED_VIEW_WORKSHOP_DASHBOARD_COLUMNS,
   TAG_COLOURS,
   TAG_LIMITS,
+  type ActionEntity,
   type ActionStatus,
   type AssessmentStatus,
   type RiskStatus,
@@ -37,6 +38,7 @@ import {
   PSPF_DOMAINS,
   VERSION_AXES,
   V0_1_COLLECTIONS,
+  appendDueDateHistory,
   enrichActionsWithImpact,
   isValidSingleGrapheme,
   hasCompatibleMajorVersion,
@@ -47,6 +49,7 @@ import {
   normaliseTagLabel,
   nowIso,
   sanitiseEntityForPublication,
+  validateNarrativeRules,
   withEnvelope
 } from "@pspf/contracts";
 import { ISM_SOURCE_CONTROLS } from "@pspf/ism-source-library";
@@ -131,6 +134,25 @@ interface ImportBundlePayload {
   readonly collections?: Partial<BundleCollections>;
 }
 
+/** Per-record status map written beside each checkpoint snapshot (ADR 0097 R1). */
+export interface SnapshotRecordStatus {
+  readonly requirements: Readonly<Record<string, string>>;
+  readonly risks: Readonly<Record<string, string>>;
+  readonly actions: Readonly<Record<string, string>>;
+}
+
+export interface SnapshotSideFileSummary {
+  readonly snapshotId: string;
+  readonly title: string;
+  readonly capturedAt: string;
+  readonly recordStatus?: SnapshotRecordStatus;
+  readonly counts?: {
+    readonly requirements: Readonly<Record<string, number>>;
+    readonly risks: Readonly<Record<string, number>>;
+    readonly actions: Readonly<Record<string, number>>;
+  };
+}
+
 export interface CoreService {
   readonly getWorkspacePaths: () => WorkspacePaths;
   readonly initialiseWorkspace: () => Promise<WorkspacePaths>;
@@ -151,12 +173,14 @@ export interface CoreService {
   readonly upsertEntity: (entity: V01Entity) => Promise<V01Entity>;
   readonly upsertEntities: (entities: readonly V01Entity[]) => Promise<readonly V01Entity[]>;
   readonly listEntities: (entityType?: V01Entity["entityType"]) => Promise<V01Entity[]>;
+  readonly listSnapshotSideFiles: () => Promise<SnapshotSideFileSummary[]>;
 }
 
 export interface CoreReadApi {
   readonly getWorkspacePaths: () => WorkspacePaths;
   readonly validateWorkspace: () => Promise<{ ok: boolean; message: string; counts: Record<V01Collection, number> }>;
   readonly listEntities: (entityType?: V01Entity["entityType"]) => Promise<V01Entity[]>;
+  readonly listSnapshotSideFiles: () => Promise<SnapshotSideFileSummary[]>;
 }
 
 export interface CoreWriteApi {
@@ -300,7 +324,8 @@ export function createCoreReadApi(workspaceRoot: string): CoreReadApi {
     getWorkspacePaths: () => getWorkspacePaths(workspaceRoot),
     validateWorkspace: () => serialiseWorkspaceOperation(workspaceRoot, () => validateWorkspace(workspaceRoot)),
     listEntities: (entityType) =>
-      serialiseWorkspaceOperation(workspaceRoot, () => listEntities(workspaceRoot, entityType))
+      serialiseWorkspaceOperation(workspaceRoot, () => listEntities(workspaceRoot, entityType)),
+    listSnapshotSideFiles: () => listSnapshotSideFiles(workspaceRoot)
   };
 }
 
@@ -889,10 +914,68 @@ async function createSnapshot(workspaceRoot: string): Promise<V01Entity> {
     snapshot,
     counts,
     statusSummary: buildStatusSummary(collections),
+    recordStatus: buildSnapshotRecordStatus(collections),
     generatedAt: nowIso()
   });
   await recordOperation(paths, "snapshot", "success", snapshot.id);
   return snapshot;
+}
+
+function buildSnapshotRecordStatus(collections: BundleCollections): SnapshotRecordStatus {
+  return {
+    requirements: Object.fromEntries(collections.requirements.map((item) => [item.id, item.assessmentStatus])),
+    risks: Object.fromEntries(collections.risks.map((item) => [item.id, item.status])),
+    actions: Object.fromEntries(collections.actions.map((item) => [item.id, item.status]))
+  };
+}
+
+export async function listSnapshotSideFiles(workspaceRoot: string): Promise<SnapshotSideFileSummary[]> {
+  const paths = getWorkspacePaths(workspaceRoot);
+  if (!existsSync(paths.snapshots)) {
+    return [];
+  }
+  const summaries: SnapshotSideFileSummary[] = [];
+  for (const fileName of await readdir(paths.snapshots)) {
+    if (!fileName.endsWith(".json")) {
+      continue;
+    }
+    let payload: {
+      readonly snapshot?: { readonly id?: string; readonly title?: string; readonly createdAt?: string };
+      readonly statusSummary?: Record<string, unknown>;
+      readonly recordStatus?: SnapshotRecordStatus;
+    };
+    try {
+      payload = JSON.parse(await readFile(join(paths.snapshots, fileName), "utf8")) as typeof payload;
+    } catch {
+      continue;
+    }
+    const snapshot = payload.snapshot;
+    if (!snapshot || typeof snapshot.id !== "string" || typeof snapshot.createdAt !== "string") {
+      continue;
+    }
+    const summary = payload.statusSummary;
+    const counts =
+      summary && isCountRecord(summary.requirements) && isCountRecord(summary.risks) && isCountRecord(summary.actions)
+        ? { requirements: summary.requirements, risks: summary.risks, actions: summary.actions }
+        : undefined;
+    summaries.push({
+      snapshotId: snapshot.id,
+      title: typeof snapshot.title === "string" ? snapshot.title : snapshot.id,
+      capturedAt: snapshot.createdAt,
+      ...(payload.recordStatus ? { recordStatus: payload.recordStatus } : {}),
+      ...(counts ? { counts } : {})
+    });
+  }
+  return summaries.sort((left, right) => right.capturedAt.localeCompare(left.capturedAt));
+}
+
+function isCountRecord(value: unknown): value is Record<string, number> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.values(value).every((count) => typeof count === "number")
+  );
 }
 
 function buildSnapshotMetrics(collections: BundleCollections): NonNullable<SnapshotEntity["metrics"]> {
@@ -1137,6 +1220,7 @@ async function buildImportPlan(
   validateTagRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   validateSavedViewRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   validateChangeRecordRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
+  assertNarrativeRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   const writeSet =
     mode === "additive-merge" || mode === "plan-apply"
       ? additiveMergeWriteSet(incomingEntities, existingEntities)
@@ -1463,9 +1547,7 @@ function summariseImportChanges(
       created += 1;
       typeSummary.created += 1;
       pushImportExample(examples, `Created ${entityChangeLabel(incoming)}`);
-    } else if (
-      canonicalEntityJson({ ...incoming, createdAt: existing.createdAt } as V01Entity) === canonicalEntityJson(existing)
-    ) {
+    } else if (canonicalEntityJson(mergeIncomingEntity(existing, incoming)) === canonicalEntityJson(existing)) {
       unchanged += 1;
       typeSummary.unchanged += 1;
     } else if (written) {
@@ -1603,12 +1685,33 @@ function additiveMergeWriteSet(
       continue;
     }
 
-    const merged = { ...incoming, createdAt: existing.createdAt } as V01Entity;
+    const merged = mergeIncomingEntity(existing, incoming);
     if (canonicalEntityJson(merged) !== canonicalEntityJson(existing)) {
       writeSet.push(merged);
     }
   }
   return writeSet;
+}
+
+// Sanitised round-trip bundles omit sensitive ownership fields; a merge must not erase the local values.
+function mergeIncomingEntity(existing: V01Entity, incoming: V01Entity): V01Entity {
+  const merged = { ...incoming, createdAt: existing.createdAt } as V01Entity;
+  if (merged.entityType === "action" && existing.entityType === "action") {
+    const withPreserved: ActionEntity = {
+      ...merged,
+      ...(merged.ownerTeam === undefined && existing.ownerTeam !== undefined ? { ownerTeam: existing.ownerTeam } : {}),
+      ...(merged.dueDateHistory === undefined && existing.dueDateHistory !== undefined
+        ? { dueDateHistory: existing.dueDateHistory }
+        : {})
+    };
+    return appendDueDateHistory(seedLegacyDueDateHistory(existing), withPreserved, nowIso());
+  }
+  if (merged.entityType === "requirement" && existing.entityType === "requirement") {
+    return merged.ownerTeam === undefined && existing.ownerTeam !== undefined
+      ? { ...merged, ownerTeam: existing.ownerTeam }
+      : merged;
+  }
+  return merged;
 }
 
 function isProtectedCoreReferenceImport(existing: V01Entity, incoming: V01Entity): boolean {
@@ -1649,12 +1752,11 @@ function canonicalEntityJson(entity: V01Entity): string {
 async function upsertEntity(workspaceRoot: string, entity: V01Entity): Promise<V01Entity> {
   const paths = await ensureInitialised(workspaceRoot, false);
   await assertWritable(paths);
-  validateEntityWriteRules([entity]);
-  validateTagRules([entity], await readStoredEntities(paths));
-  validateSavedViewRules([entity], await readStoredEntities(paths));
-  validateChangeRecordRules([entity], await readStoredEntities(paths));
-  await runSql(paths.db, upsertEntitySql(entity));
-  return entity;
+  const stored = await readStoredEntities(paths);
+  const [prepared] = prepareEntitiesForWrite([entity], stored);
+  await runSql(paths.db, upsertEntitySql(prepared!));
+  await syncWorkspaceVersionMetadata(paths);
+  return prepared!;
 }
 
 async function upsertEntities(workspaceRoot: string, entities: readonly V01Entity[]): Promise<readonly V01Entity[]> {
@@ -1663,12 +1765,59 @@ async function upsertEntities(workspaceRoot: string, entities: readonly V01Entit
   if (entities.length === 0) {
     return entities;
   }
+  const stored = await readStoredEntities(paths);
+  const prepared = prepareEntitiesForWrite(entities, stored);
+  await runSql(paths.db, ["BEGIN IMMEDIATE;", ...prepared.map(upsertEntitySql), "COMMIT;"].join("\n"));
+  await syncWorkspaceVersionMetadata(paths);
+  return prepared;
+}
+
+/** Runs every write rule once against a single stored read, then applies Core-owned derived fields. */
+function prepareEntitiesForWrite(entities: readonly V01Entity[], stored: readonly V01Entity[]): readonly V01Entity[] {
   validateEntityWriteRules(entities);
-  validateTagRules(entities, await readStoredEntities(paths));
-  validateSavedViewRules(entities, await readStoredEntities(paths));
-  validateChangeRecordRules(entities, await readStoredEntities(paths));
-  await runSql(paths.db, ["BEGIN IMMEDIATE;", ...entities.map(upsertEntitySql), "COMMIT;"].join("\n"));
-  return entities;
+  validateTagRules(entities, stored);
+  validateSavedViewRules(entities, stored);
+  validateChangeRecordRules(entities, stored);
+  assertNarrativeRules(entities, stored);
+  const storedById = new Map(stored.map((entity) => [entity.id, entity]));
+  const now = nowIso();
+  return entities.map((entity) => {
+    if (entity.entityType !== "action") {
+      return entity;
+    }
+    const previous = storedById.get(entity.id);
+    return appendDueDateHistory(
+      previous?.entityType === "action" ? seedLegacyDueDateHistory(previous) : undefined,
+      entity,
+      now
+    );
+  });
+}
+
+/** Actions written before 1.16.0 carry a dueDate but no history; seed it so the first change records the original date. */
+function seedLegacyDueDateHistory(previous: ActionEntity): ActionEntity {
+  if (previous.dueDateHistory !== undefined || previous.dueDate === undefined) {
+    return previous;
+  }
+  return { ...previous, dueDateHistory: [{ dueDate: previous.dueDate, changedAt: previous.updatedAt }] };
+}
+
+function assertNarrativeRules(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): void {
+  const violations = validateNarrativeRules(incomingEntities, existingEntities);
+  const first = violations[0];
+  if (!first) {
+    return;
+  }
+  throw new PspfError({
+    code: "PSPF_NARRATIVE_RULE_VIOLATION",
+    severity: "error",
+    category: "validation",
+    message: first.message,
+    retryable: false,
+    recommendedAction:
+      "Give the narrative a slot and body, and only supersede an existing narrative filed under the same slot.",
+    detail: { violations }
+  });
 }
 
 function validateEntityWriteRules(entities: readonly V01Entity[]): void {
@@ -1747,6 +1896,7 @@ function createEmptyCollections(): BundleCollections {
     "control-themes": [],
     "cyber-reference-mappings": [],
     strategies: [],
+    narratives: [],
     posture: []
   };
 }
@@ -1824,6 +1974,7 @@ function getCollectionCounts(collections: BundleCollections): Record<V01Collecti
     "control-themes": collections["control-themes"].length,
     "cyber-reference-mappings": collections["cyber-reference-mappings"].length,
     strategies: collections.strategies.length,
+    narratives: collections.narratives.length,
     posture: collections.posture.length
   };
 }
@@ -1845,7 +1996,8 @@ function buildStatusSummary(collections: BundleCollections): Record<string, unkn
     ),
     suppliers: countBy(collections.suppliers, (supplier) => supplier.status),
     contracts: countBy(collections.contracts, (contract) => contract.status),
-    spendItems: countBy(collections["spend-items"], (spendItem) => spendItem.status)
+    spendItems: countBy(collections["spend-items"], (spendItem) => spendItem.status),
+    narratives: countBy(collections.narratives, (narrative) => narrative.audience)
   };
 }
 
@@ -2251,10 +2403,44 @@ async function ensureInitialised(workspaceRoot: string, createIfMissing = true):
   return paths;
 }
 
-async function assertWorkspaceSchemaCompatible(paths: WorkspacePaths): Promise<void> {
+async function readStoredSchemaVersion(paths: WorkspacePaths): Promise<string | undefined> {
   const output = await runSql(paths.db, "SELECT value FROM metadata WHERE key = 'schemaVersion';", ["-json"]);
   const rows = output.trim() === "" ? [] : (JSON.parse(output) as readonly { value: string }[]);
-  const storedSchemaVersion = rows[0]?.value;
+  return rows[0]?.value;
+}
+
+/**
+ * A same-major workspace opened by newer Core code is compatible as-is; on the first
+ * write, move its recorded axes forward so later readers see the version that wrote it.
+ */
+async function syncWorkspaceVersionMetadata(paths: WorkspacePaths): Promise<void> {
+  const storedSchemaVersion = await readStoredSchemaVersion(paths);
+  if (storedSchemaVersion === VERSION_AXES.schemaVersion) {
+    return;
+  }
+  await runSql(
+    paths.db,
+    [
+      "BEGIN IMMEDIATE;",
+      ...(Object.entries(VERSION_AXES) as [keyof typeof VERSION_AXES, string][]).map(
+        ([key, value]) =>
+          `INSERT INTO metadata(key, value) VALUES ('${key}', '${sqlEscape(value)}') ON CONFLICT(key) DO UPDATE SET value = excluded.value;`
+      ),
+      "COMMIT;"
+    ].join("\n")
+  );
+  const workspaceJsonPath = join(paths.config, "workspace.json");
+  let workspaceMetadata: Record<string, unknown> = {};
+  try {
+    workspaceMetadata = JSON.parse(await readFile(workspaceJsonPath, "utf8")) as Record<string, unknown>;
+  } catch {
+    workspaceMetadata = {};
+  }
+  await writeJson(workspaceJsonPath, { ...workspaceMetadata, versions: VERSION_AXES });
+}
+
+async function assertWorkspaceSchemaCompatible(paths: WorkspacePaths): Promise<void> {
+  const storedSchemaVersion = await readStoredSchemaVersion(paths);
   if (!storedSchemaVersion) {
     throw new PspfError({
       code: "PSPF_MIGRATION_REQUIRED",

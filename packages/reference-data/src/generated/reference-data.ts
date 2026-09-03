@@ -80,7 +80,7 @@ export const PSPF_BASELINE_DOMAINS = [
   {
     "id": "DOM-00000000-0000-7000-8000-000000000001",
     "entityType": "domain",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Governance",
     "code": "governance",
     "sortOrder": 1,
@@ -90,7 +90,7 @@ export const PSPF_BASELINE_DOMAINS = [
   {
     "id": "DOM-00000000-0000-7000-8000-000000000002",
     "entityType": "domain",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Security Risk",
     "code": "security-risk",
     "sortOrder": 2,
@@ -100,7 +100,7 @@ export const PSPF_BASELINE_DOMAINS = [
   {
     "id": "DOM-00000000-0000-7000-8000-000000000003",
     "entityType": "domain",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Information",
     "code": "information",
     "sortOrder": 3,
@@ -110,7 +110,7 @@ export const PSPF_BASELINE_DOMAINS = [
   {
     "id": "DOM-00000000-0000-7000-8000-000000000004",
     "entityType": "domain",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Technology",
     "code": "technology",
     "sortOrder": 4,
@@ -120,7 +120,7 @@ export const PSPF_BASELINE_DOMAINS = [
   {
     "id": "DOM-00000000-0000-7000-8000-000000000005",
     "entityType": "domain",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Personnel",
     "code": "personnel",
     "sortOrder": 5,
@@ -130,7 +130,7 @@ export const PSPF_BASELINE_DOMAINS = [
   {
     "id": "DOM-00000000-0000-7000-8000-000000000006",
     "entityType": "domain",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Physical",
     "code": "physical",
     "sortOrder": 6,
@@ -4486,7 +4486,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-001",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 001 - The Department of State supports portfolio entities to achieve and maintain an acceptable level of protective security through advice and guidance on government security.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4496,7 +4496,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-002",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 002 - The Accountable Authority complies with all Protective Security Directions.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4506,7 +4506,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-003",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 003 - The Technical Authority Entity provides technical advice and guidance to support entities to achieve and maintain an acceptable level of protective security.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4516,7 +4516,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-004",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 004 - The Shared Service Provider Entity supplies security services that help relevant entities achieve and maintain an acceptable level of security.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4526,7 +4526,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-005",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 005 - The Shared Service Provider Entity develops, implements and maintains documented responsibilities and accountabilities for partnerships or security service arrangements with other entities.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4536,7 +4536,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-006",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 006 - The Accountable Authority is answerable to their minister for the entity's protective security.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4546,7 +4546,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-007",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 007 - The Accountable Authority is responsible for managing the security risks of their entity.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4556,7 +4556,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-008",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 008 - A Chief Security Officer is appointed and empowered to oversee the entity's protective security arrangements.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4566,7 +4566,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-009",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 009 - The Chief Security Officer is a Senior Executive Service officer and holds a minimum security clearance of Negative Vetting 1.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4576,7 +4576,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-010",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 010 - The Chief Security Officer is accountable to the Accountable Authority for protective security matters.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4586,7 +4586,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-011",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 011 - A Chief Information Security Officer is appointed to oversee the entity's cyber security program and the cyber security for the entity’s most critical technology resources .",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4596,7 +4596,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-012",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 012 - The Chief Information Security Officer has the appropriate capability and experience and holds a minimum security clearance of Negative Vetting 1.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4606,7 +4606,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-013",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 013 - The Chief Information Security Officer is accountable to the Accountable Authority for cyber security risks and how the entity’s cyber security program is managing these risks.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4616,7 +4616,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-014",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 014 - Where appointed, security practitioners are appropriately skilled, empowered and resourced to perform their designated functions.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4626,7 +4626,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-015",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 015 - Where appointed, security practitioners have access to training across government to maintain and upskill on new and emerging security issues.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4636,7 +4636,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-016",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 016 - The Accountable Authority approves security governance arrangements that are tailored to the entity’s size, complexity and risk environment.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4646,7 +4646,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-017",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 017 - A dedicated security email address is established and monitored as the central conduit for distribution of protective security-related information across the entity.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4656,7 +4656,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-018",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 018 - A security plan is developed, implemented and maintained to address the mandatory elements of the plan.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4666,7 +4666,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-019",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 019 - The Accountable Authority approves the entity's security plan.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4676,7 +4676,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-020",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 020 - The security plan is considered annually and reviewed at least every two years to confirm its adequacy and ability to adapt to shifts in the entity's risk, threat or operating environment.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4686,7 +4686,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-021",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 021 - Procedures are developed, implemented and maintained to ensure all elements of the entity’s security plan are achieved.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4696,7 +4696,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-022",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 022 - Develop, establish and implement security monitoring arrangements to identify the effectiveness of the entity’s security plan and establish a continuous cycle of improvement.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4706,7 +4706,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-023",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 023 - The Accountable Authority and Chief Security Officer develop, implement and maintain a program to foster a positive security culture in the entity and support the secure delivery of government business.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4716,7 +4716,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-024",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 024 - Security awareness training is provided to personnel, including contractors, at engagement and annually thereafter.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4726,7 +4726,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-025",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 025 - Targeted security training is provided to personnel, including contractors, in specialist or high-risk positions.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4736,7 +4736,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-026",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 026 - Procedures are developed, implemented and maintained to ensure security incidents are responded to and managed.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4746,7 +4746,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-027",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 027 - Security incident management and response plans are incorporated into the entity’s business continuity arrangements.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4756,7 +4756,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-028",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 028 - Significant or externally reportable security incidents and referral obligations are reported to the relevant authority (or authorities) within the applicable timeframe.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4766,7 +4766,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-029",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 029 - Procedures are developed, implemented and maintained to investigate security incidents in accordance with the principles of the Australian Government Investigations Standards.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4776,7 +4776,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-030",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 030 - The principles of procedural fairness are applied to all security investigations, with due regard to national security considerations",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4786,7 +4786,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-031",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 031 - The annual protective security report is provided to the entity’s Minister.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4796,7 +4796,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-032",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 032 - The annual protective security report is submitted to the Department of Home Affairs.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4806,7 +4806,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-033",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 033 - The Accountable Authority approves the entity’s annual protective security report and confirms that they have verified the report’s content.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4816,7 +4816,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-034",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 034 - Entities cooperate with the Department of Home Affairs’ assurance activities to review annual protective security reports.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4826,7 +4826,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-035",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 035 - The annual Cyber Security Survey is submitted to the Australian Signals Directorate.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000001",
     "assessmentStatus": "not-started",
@@ -4836,7 +4836,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-036",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 036 - The Accountable Authority determines their entity’s tolerance for security risks and documents in the security plan.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4846,7 +4846,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-037",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 037 - A risk steward (or manager) is identified for each security risk or category of security risk, including shared risks.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4856,7 +4856,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-038",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 038 - The Accountable Authority considers the impact that their security risk management decisions could potentially have on other entities, and shares information on risks where appropriate.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4866,7 +4866,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-039",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 039 - The entity is accountable for the management of security risks arising from procuring goods and services and ensures procurement and contract decisions do not expose the entity or the Australian Government to an unacceptable level of risk.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4876,7 +4876,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-040",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 040 - Procurement, contracts and third-party outsourced arrangements contain proportionate security terms and conditions to ensure service providers, contractors and subcontractors comply with relevant PSPF Requirements and avoid exposing the entity or the Australian Government to an unacceptable level of risk.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4886,7 +4886,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-041",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 041 - Entity ensures service providers, contractors and subcontractors comply with relevant PSPF Requirements as detailed by the entity.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4896,7 +4896,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-042",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 042 - Contractual security terms and conditions require service providers to report any actual or suspected security incidents to the entity, and follow reasonable direction from the entity arising from incident investigations.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4906,7 +4906,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-043",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 043 - Government entities providing outsourced services provide IRAP assessment reports to the government entities consuming, or looking to consume, their services.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4916,7 +4916,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-044",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 044 - Contract security terms and conditions are monitored and reviewed to ensure the specified security controls, terms and conditions are implemented, operated and maintained by the contracted provider, including any subcontractors, over the life of a contract.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4926,7 +4926,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-045",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 045 - Contractual terms and conditions include appropriate security arrangements for the completion or termination of the contract.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4936,7 +4936,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-046",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 046 - Procurement and contract decisions consider the security risks before engaging providers operating under foreign ownership, control or influence, and in response to any developments during the contract period that may give rise to foreign ownership, control or influence risks.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4946,7 +4946,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-047",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 047 - Security risks arising from contractual arrangements for the provision of goods and services are managed, reassessed and adjusted over the life of a contract.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4956,7 +4956,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-048",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 048 - Secure and verifiable third-party vendors, providers, partners and associated services are used unless business operations require use, and the residual risks are managed and approved by the Chief Information Security Officer",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4966,7 +4966,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-049",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 049 - Entities manage the security risks associated with engaging with foreign partners.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4976,7 +4976,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-050",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 050 - Personnel do not publicise their security clearance level on social media platforms, including employment-focused platforms such as LinkedIn.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4986,7 +4986,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-051",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 051 - An insider threat program is implemented by entities that manage Baseline to Positive Vetting security clearance subjects, to manage the risk of insider threat in the entity.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -4996,7 +4996,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-052",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 052 - Where exceptional circumstances prevent or affect an entity’s capability to implement a PSPF requirement or standard, the Accountable Authority may vary application, for a limited period of time, consistent with the entity’s risk tolerance.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -5006,7 +5006,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-053",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 053 - Decisions to vary implementation of a PSPF requirement or standard due to exceptional circumstances are documented in the entity's security plan.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -5016,7 +5016,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-054",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 054 - Decisions to implement an alternative mitigation measure that meets or exceeds a PSPF requirement or standard are reviewed and reported annually.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -5026,7 +5026,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-055",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 055 - A business continuity plan is developed, implemented and maintained to respond effectively and minimise the impacts of significant business disruptions to the entity’s critical services and assets, and other services and assets when warranted by a threat and security risk assessment.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -5036,7 +5036,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-056",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 056 - Plans for managing a broad range of emergencies are integrated within the business continuity plan.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -5046,7 +5046,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-057",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 057 - Personnel who are likely to be impacted are notified if there is a heightened risk of an emergency.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000002",
     "assessmentStatus": "not-started",
@@ -5056,7 +5056,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-058",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 058 - The originator remains responsible for controlling the sanitisation, reclassification or declassification of official and security classified information, and approves any changes to the information’s security classification.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5066,7 +5066,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-059",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 059 - The value, importance or sensitivity of official information (intended for use as an official record) is assessed by the originator by considering the potential damage to the government, the national interest, organisations or individuals that would arise if the information’s confidentiality were compromised.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5076,7 +5076,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-060",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 060 - The security classification is set at the lowest reasonable level.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5086,7 +5086,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-061",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 061 - Security classified information is clearly marked with the applicable security classification, and when relevant, security caveat, by using text- based markings, unless impractical for operational reasons.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5096,7 +5096,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-062",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 062 - The minimum protections and handling requirements are applied to protect OFFICIAL and security classified information.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5106,7 +5106,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-063",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 063 - The Australian Government Security Caveat Standard and special handling requirements imposed by the controlling authority are applied to protect security caveated information.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5116,7 +5116,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-064",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 064 - Security caveats are clearly marked as text and only appear in conjunction with a security classification.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5126,7 +5126,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-065",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 065 - Accountable material has page and reference numbering.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5136,7 +5136,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-066",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 066 - Accountable material is handled in accordance with any special handling requirements imposed by the originator and security caveat owner detailed in the Australian Government Security Caveat Standard.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5146,7 +5146,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-067",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 067 - The Australian Government Email Protective Marking Standard is applied to protect OFFICIAL and security classified information exchanged by email in and between Australian Government entities, including other authorised parties.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5156,7 +5156,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-068",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 068 - The Australian Government Recordkeeping Metadata Standard’s 'Security Classification' property (and where relevant, the 'Security Caveat' property) is applied to protectively mark information on technology systems that store, process or communicate security classified information.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5166,7 +5166,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-069",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 069 - Apply the Australian Government Recordkeeping Metadata Standard’s ‘Rights’ property where the entity wishes to categorise information content by the type of restrictions on access.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5176,7 +5176,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-070",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 070 - Security classified discussions and dissemination of security classified information are only conducted in approved locations.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5186,7 +5186,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-071",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 071 - Entity implements operational controls for its information holdings that are proportional to their value, importance and sensitivity.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5196,7 +5196,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-072",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 072 - An auditable register is maintained for TOP SECRET information and accountable material.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5206,7 +5206,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-073",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 073 - OFFICIAL and security classified information is disposed of securely in accordance with the Minimum Protections and Handling Requirements, Information Security Manual, the Records Authorities, a Normal Administrative Practice and the Archives Act 1983.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5216,7 +5216,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-074",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 074 - Security classified information is appropriately destroyed in accordance with the Minimum Protections and Handling Requirements when it has passed the minimum retention requirements or reaches authorised destruction dates.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5226,7 +5226,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-075",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 075 - Access to security classified information or resources is only provided to people outside the entity with the appropriate security clearance (where required) and a need-to-know, and is transferred in accordance with the Minimum Protections and Handling Requirements",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5236,7 +5236,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-076",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 076 - The Memorandum of Understanding between the Commonwealth, States and Territories is applied when sharing information with state and territory government agencies.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5246,7 +5246,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-077",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 077 - An agreement or arrangement, such as a contract or deed, that establishes handling requirements and protections, is in place before security classified information or resources are disclosed or shared with a person or organisation outside of government, unless the entity is returning or responding to information provided by a person or organisation outside of government, or their authorised representative, which the government entity subsequently classified as OFFICIAL: Sensitive.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5256,7 +5256,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-078",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 078 - Provisions are met concerning the security of people, information and resources contained in international agreements and arrangements to which Australia is a party.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5266,7 +5266,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-079",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 079 - Australian Government security classified information or resources shared with a foreign entity is protected by an explicit legislative provision, international agreement or international arrangement.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5276,7 +5276,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-080",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 080 - Australian Government security classified information or resources bearing the Australian Eyes Only (AUSTEO) caveat is never shared with a person who is not an Australian citizen, even when an international agreement or international arrangement is in place, unless an exemption is granted.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5286,7 +5286,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-081",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 081 - Australian Government security classified information or resources bearing the Australian Government Access Only (AGAO) caveat is not shared with a person who is not an Australia citizen, even when an international agreement or international arrangement is in place, unless they are working for, or seconded to, an entity that is a member of National Intelligence Community, the Department of Defence or the Australian Submarine Agency.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5296,7 +5296,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-082",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 082 - Where an international agreement or international arrangement is in place, security classified foreign entity information or resources are safeguarded in accordance with the provisions set out in the agreement or arrangement.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5306,7 +5306,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-083",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 083 - Australian Government security classified information or resources shared with a foreign non-government stakeholder is protected by an explicit legislative provision, international agreement or international arrangement.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000003",
     "assessmentStatus": "not-started",
@@ -5316,7 +5316,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-084",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 084 - The Australian Signals Directorate’s Information Security Manual cyber security principles are applied during all stages of the lifecycle of each system",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5326,7 +5326,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-085",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 085 - The Australian Signals Directorate’s Information Security Manual controls and cyber security guidelines are applied on a risk-based approach.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5336,7 +5336,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-086",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 086 - The Authorising Officer authorises each technology system to operate based on the acceptance of the residual security risks associated with its operation before that system processes, stores or communicates government information or data.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5346,7 +5346,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-087",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 087 - Decisions to authorise (or reauthorise) a new technology system or make changes to an existing technology system are based on the Information Security Manual's risk-based approach to cyber security.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5356,7 +5356,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-088",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 088 - The technology system is authorised to the highest security classification of the information and data it will process, store or communicate.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5366,7 +5366,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-089",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 089 - A register of the entity’s authorised technology systems is developed, implemented and maintained, and includes the name and position of the Authorising Officer, system owner, date of authorisation, and any decisions to accept residual security risks.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5376,7 +5376,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-090",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 090 - Each technology system's suitability to be authorised to operate is reassessed when it undergoes significant functionality or architectural change, or where the system's security environment has changed considerably.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5386,7 +5386,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-091",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 091 - The TikTok application is prevented from being installed, and existing instances are removed, on government devices, unless a legitimate business reason exists which necessitates the installation or ongoing presence of the application.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5396,7 +5396,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-092",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 092 - Approved TikTok use on standalone devices",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5406,7 +5406,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-093",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 093 - The Australian Signals Directorate’s temporary mitigations for legacy IT are applied to manage legacy information technology that cannot yet be replaced.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5416,7 +5416,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-094",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 094 - Technology assets and their components, classified as SECRET or below are stored in the appropriate Security Zone based on their aggregated security classification or business impact level.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5426,7 +5426,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-095",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 095 - Technology assets and their components classified as TOP SECRET are stored in suitable SCEC-endorsed racks or compartments within an accredited Security Zone Five area meeting ASIO Technical Note 5/12 – Compartments within Zone Five areas requirements.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5436,7 +5436,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-096",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 096 - Outsourced facilities that house technology assets and their components with a catastrophic business impact level are certified by ASIO-T4 physical security and accredited by ASD before they are used operationally.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5446,7 +5446,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-097",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 097 - Technology assets are disposed of securely in accordance with the Information Security Manual.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5456,7 +5456,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-098",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 098 - A cyber security strategy and uplift plan is developed, implemented and maintained to manage the entity's cyber security risks in accordance with the Information Security Manual and the Guiding Principles to Embed a Zero Trust Culture.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5466,7 +5466,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-099",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 099 - Patch applications mitigation strategy is implemented to Maturity Level Two under ASD’s Essential Eight Maturity Model.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5476,7 +5476,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-100",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 100 - Patch operating systems mitigation strategy is implemented to Maturity Level Two under ASD’s Essential Eight Maturity Model.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5486,7 +5486,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-101",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 101 - Multi-factor authentication mitigation strategy is implemented to Maturity Level Two under ASD’s Essential Eight Maturity Model.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5496,7 +5496,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-102",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 102 - Restrict administrative privileges mitigation strategy is implemented to Maturity Level Two under ASD’s Essential Eight Maturity Model.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5506,7 +5506,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-103",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 103 - Application control mitigation strategy is implemented to Maturity Level Two under ASD’s Essential Eight Maturity Model.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5516,7 +5516,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-104",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 104 - Restrict Microsoft Office macros mitigation strategy is implemented to Maturity Level Two under ASD’s Essential Eight Maturity Model.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5526,7 +5526,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-105",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 105 - User application hardening mitigation strategy is implemented to Maturity Level Two under ASD’s Essential Eight Maturity Model.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5536,7 +5536,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-106",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 106 - Regular back-ups mitigation strategy is implemented to Maturity Level Two under ASD’s Essential Eight Maturity Model.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5546,7 +5546,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-107",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 107 - The remaining mitigation strategies from the Strategies to Mitigate Cyber Security Incidents are considered and, where required, implemented to achieve an acceptable level of residual risk for their entity.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5556,7 +5556,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-108",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 108 - A Protective Domain Name System service or other security mechanisms is used to prevent connections to and from known malicious endpoints.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5566,7 +5566,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-109",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 109 - Cloud Service Providers that have completed an IRAP assessment against the latest version of ASD’s Information Security Manual within the previous 24 months are used.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5576,7 +5576,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-110",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 110 - Entities consider IRAP assessment recommendations and findings, and implement on a risk-based approach.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5586,7 +5586,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-111",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 111 - Security classified or systems of government significance information and data is securely hosted using a Cloud Service Provider and Data Centre Provider that has been certified against the Australian Government Hosting Certification Framework.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5596,7 +5596,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-112",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 112 - The Data Centre Facilities Supplies Panel is used when procuring certified data centre space and services.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5606,7 +5606,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-114",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 114 - Gateways or Secure Service Edges that have completed an IRAP assessment (or ASD assessment for TOP SECRET gateways) against the latest version of ASD’s Information Security Manual within the previous 24 months are used.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5616,7 +5616,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-115",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 115 - A vulnerability disclosure program and supporting processes and procedures are established to receive, verify, resolve and report on vulnerabilities disclosed by both internal and external sources.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -5626,7 +5626,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-116",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 116 - The eligibility and suitability of personnel who have access to Australian Government people and resources is ensured.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5636,7 +5636,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-117",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 117 - The pre-employment screening identity check is conducted for all personnel, to verify identity to at least Level 3 (High) of Assurance of the National Identity Proofing Guidelines.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5646,7 +5646,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-118",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 118 - Biographic information in identity documents is verified to ensure the information matches the original record.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5656,7 +5656,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-119",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 119 - The pre-employment screening eligibility check is conducted for all personnel, to confirm their eligibility to work in Australia and for the Australian Government.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5666,7 +5666,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-120",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 120 - The entity obtains assurance of each person’s suitability to access Australian Government resources, including their agreement to comply with the government’s policies, standards, protocols and guidelines that safeguard resources from harm, during pre-employment screening.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5676,7 +5676,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-121",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 121 - Prior to granting temporary access to security classified information or resources, pre-employment checks are completed, and an existing Negative Vetting 1 security clearance is confirmed prior to granting temporary access to TOP SECRET information data or resources.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5686,7 +5686,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-122",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 122 - A risk assessment determines whether a person is granted temporary access to security classified information or resources.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5696,7 +5696,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-123",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 123 - Temporary access to security classified information, resources and activities is supervised.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5706,7 +5706,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-124",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 124 - Short-term temporary access to security classified information, resources and activities is limited to the period in which an application for a security clearance is being processed for the particular person, or up to a total combined maximum of three months in a 12-month period for all entities. Note: 12-months refers to the preceding 12-months from the date the short-term access would be granted.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5716,7 +5716,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-125",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 125 - The Authorised Vetting Agency confirms that the completed security clearance pack has been received, and that no initial concerns have been identified for the clearance subject, before short-term temporary access is changed to provisional temporary access.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5726,7 +5726,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-126",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 126 - Temporary access to classified caveated information, resources or activities is not granted, other than in exceptional circumstances, and only with the approval of the caveat controlling authority.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5736,7 +5736,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-127",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 127 - Prior to granting temporary access, the entity obtains an undertaking from the person to protect the security classified information, resources and activities they will access.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5746,7 +5746,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-128",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 128 - Prior to granting temporary access, the entity obtains agreement from any other entity (or third party) whose security classified information, resources and activities will be accessed by the person during the temporary access period.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5756,7 +5756,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-129",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 129 - Access to official information is facilitated for entity personnel and other relevant stakeholders.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5766,7 +5766,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-130",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 130 - Appropriate access to official information is enabled, including controlling access (including remote access) to supporting technology systems, networks, infrastructure, devices and applications.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5776,7 +5776,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-131",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 131 - Access to security classified information or resources is only given to entity personnel with a need-to-know that information.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5786,7 +5786,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-132",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 132 - Personnel requiring ongoing access to security classified information or resources are security cleared to the appropriate level.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5796,7 +5796,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-133",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 133 - Personnel requiring access to caveated information meet any clearance and suitability requirements imposed by the originator and caveat controlling authority.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5806,7 +5806,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-134",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 134 - A unique user identification, authentication and authorisation practice is implemented on each occasion where system access is granted, to manage access to systems holding security classified information.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5816,7 +5816,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-135",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 135 - A security risk assessment of the proposed location and work environment informs decisions by the Chief Security Officer to allow personnel to work in another government entity’s facilities in Australia.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5826,7 +5826,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-136",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 136 - An agreement is in place to manage the security risks associated with personnel working in another government entity’s facilities in Australia.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5836,7 +5836,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-137",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 137 - Approval for remote access to TOP SECRET information, data or systems in international locations outside of facilities meeting PSPF requirements is only granted if approved by the Australian Signals Directorate.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5846,7 +5846,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-138",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 138 - A security risk assessment of the proposed location and work environment informs decisions to allow personnel to work remotely in international locations.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5856,7 +5856,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-139",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 139 - Personnel are not granted approval to work remotely in locations where Australian Government information, or resources are exposed to extrajudicial directions from a foreign government that conflict with Australian law, unless operationally required, and the residual risks are managed and approved by the Chief Security Officer.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5866,7 +5866,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-140",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 140 - The Australian Government Security Vetting Agency (AGSVA) or the TOP SECRET-Privileged Access Vetting Authority is used to conduct security vetting, or where authorised, the entity conducts security vetting in a manner consistent with the Personnel Security Vetting Process and Australian Government Personnel Security Adjudicative Standard.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5876,7 +5876,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-141",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 141 - All vetting personnel attain and maintain the required skills and competencies for their role.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5886,7 +5886,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-142",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 142 - The gaining sponsoring entity establishes new clearance conditions before assuming sponsorship of an existing security clearance that is subject to clearance conditions.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5896,7 +5896,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-143",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 143 - The gaining sponsoring entity undertakes the exceptional business requirement and risk assessment provisions prior to requesting transfer of sponsorship of an existing security clearance that is subject to an eligibility waiver.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5906,7 +5906,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-144",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 144 - The Authorised Vetting Agency only issues a security clearance where the clearance is sponsored by an Australian Government entity or otherwise authorised by the Australian Government.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5916,7 +5916,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-145",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 145 - Positions that require a security clearance are identified and the level of clearance required is documented.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5926,7 +5926,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-146",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 146 - Each person working in an identified position has a valid security clearance issued by the relevant Authorised Vetting Agency.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5936,7 +5936,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-147",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 147 - Australian citizenship is confirmed and pre-employment screening is completed before the entity seeks a security clearance for a person in a position identified as requiring a security clearance.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5946,7 +5946,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-148",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 148 - The Sponsoring Entity establishes an exceptional business need and conducts a risk assessment before a citizenship eligibility waiver is considered for a non-Australian citizen who has a valid visa and work rights to work in an identified position.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5956,7 +5956,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-149",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 149 - The Accountable Authority (or the Chief Security Officer if delegated) approves a citizenship eligibility waiver (after accepting the residual risk of waiving the citizenship requirement for that person and confirming that a checkable background eligibility waiver is not in place), and maintains a record of all citizenship eligibility waivers approved.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5966,7 +5966,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-150",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 150 - The Sponsoring Entity establishes an exceptional business need and conducts a risk assessment (including seeking advice from the Authorised Vetting Agency), before a checkable background eligibility waiver is considered for a clearance subject assessed as having an uncheckable background.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5976,7 +5976,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-151",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 151 - The Sponsoring Entity’s Accountable Authority (or the Chief Security Officer if delegated) approves checkable background eligibility waivers (after accepting the residual risk of waiving the checkable background requirement for each person and confirming that a citizenship eligibility waiver is not in place), and maintains a record of all checkable background eligibility waivers approved.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5986,7 +5986,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-152",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 152 - The Authorised Vetting Agency provides the Sponsoring Entity with information to inform a risk assessment if a clearance subject has an uncheckable background and only issues a clearance if the Accountable Authority waives the checkable background requirement and provides the Authorised Vetting Agency with a copy of the waiver.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -5996,7 +5996,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-153",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 153 - The clearance subject’s informed consent is given to collect, use and disclose their personal information for the purposes of assessing and managing their eligibility and suitability to hold a security clearance.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6006,7 +6006,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-154",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 154 - The clearance subject’s eligibility and suitability to hold a Baseline, Negative Vetting 1, Negative Vetting 2 or Positive Vetting security clearance is assessed by considering their integrity (i.e. the character traits of maturity, trustworthiness, honesty, resilience, tolerance and loyalty) in accordance with the Australian Government Personnel Security Adjudicative Standard.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6016,7 +6016,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-155",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 155 - The clearance subject’s eligibility and suitability to hold a TOP SECRET-Privileged Access security clearance is assessed in accordance with the TOP SECRET-Privileged Access Standard.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6026,7 +6026,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-156",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 156 - The clearance subject’s eligibility and suitability to hold a Baseline, Negative Vetting 1, Negative Vetting 2 or Positive Vetting security clearance is assessed by conducting the minimum personnel security checks for the commensurate security clearance level.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6036,7 +6036,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-157",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 157 - The clearance subject’s eligibility and suitability to hold a Baseline, Negative Vetting 1, Negative Vetting 2 or Positive Vetting security clearance is assessed by resolving any doubt in the national interest.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6046,7 +6046,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-158",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 158 - Concerns that are identified during the vetting or security clearance suitability assessment process, that are not sufficient to deny a security clearance and where the related risks can be managed through conditions attached to the security clearance, the Authorised Vetting Agency must: • identify the clearance conditions • provide the sponsoring entity with information about the concerns to inform a risk assessment • only issue a conditional security clearance if the Accountable Authority and the clearance subject accept the clearance conditions. The Accountable Authority may delegate this decision to the Chief Security Officer, however the Chief Security Officer is required to notify the Accountable Authority of the clearance conditions.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6056,7 +6056,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-159",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 159 - The Authorised Vetting Agency provides the sponsoring entity any relevant information of concern, when advising them of the outcome of the security vetting process, to inform the sponsoring entity’s risk assessment.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6066,7 +6066,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-160",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 160 - The Authorised Vetting Agency applies the rules of procedural fairness to security clearance decisions that are adverse to a clearance subject, including decisions to deny a security clearance (including grant lower level) or grant a conditional security clearance, without compromising the national interest. Note: Separate arrangements ensure procedural fairness and national security are preserved where denial of a clearance is based on an ASIO security clearance suitability assessment.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6076,7 +6076,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-161",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 161 - The Authorised Vetting Agency reviews the conditions of conditional security clearances annually.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6086,7 +6086,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-162",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 162 - The Authorised Vetting Agency reviews the clearance holder’s eligibility and suitability to hold a security clearance, where concerns are identified (review for cause).",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6096,7 +6096,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-163",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 163 - The Authorised TOP SECRET-Privileged Access Vetting Agency implements the TOP SECRET-Privileged Access Standard in relation to the ongoing assessment and management of personnel with TOP SECRET-Privileged Access security clearances.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6106,7 +6106,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-164",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 164 - The Sponsoring Entity actively assesses, monitors and manages the ongoing suitability of personnel.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6116,7 +6116,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-165",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 165 - The Sponsoring Entity monitors and manages compliance with any conditional security clearance requirements and reports any non- compliance to the Authorised Vetting Agency.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6126,7 +6126,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-166",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 166 - The Sponsoring Entity monitors and manages compliance with security clearance maintenance obligations for the clearance holders they sponsor.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6136,7 +6136,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-167",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 167 - The Sponsoring Entity shares relevant information of concern, where appropriate.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6146,7 +6146,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-168",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 168 - The Sponsoring Entity conducts an annual security check with all security cleared personnel.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6156,7 +6156,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-169",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 169 - The Sponsoring Entity reviews eligibility waivers at least annually, before revalidation of a security clearance, and prior to any proposed position transfer.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6166,7 +6166,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-170",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 170 - The Sponsoring Entity monitors, assesses and manages personnel with TOP SECRET-Privileged access security clearances in accordance with the TOP SECRET-Privileged Access Standard.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6176,7 +6176,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-171",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 171 - The Authorised Vetting Agency reassesses a clearance holder’s eligibility and suitability to hold a security clearance by revalidating minimum personnel security checks for a security clearance.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6186,7 +6186,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-172",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 172 - The Authorised Vetting Agency reassesses a clearance holder’s eligibility and suitability to hold a Baseline, Negative Vetting 1, Negative Vetting 2 or Positive Vetting security clearance by considering their integrity in accordance with the Australian Government Personnel Security Adjudicative Standard.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6196,7 +6196,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-173",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 173 - The TOP SECRET-Privileged Access Vetting Authority reassesses a clearance holder’s eligibility and suitability to hold a TOP SECRET- Privileged Access security clearance by assessing their trustworthiness in accordance with the TOP SECRET-Privileged Access Standard.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6206,7 +6206,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-174",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 174 - The Authorised Vetting Agency reassesses a clearance holder’s eligibility and suitability to hold a security clearance by resolving any doubt in the national interest.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6216,7 +6216,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-175",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 175 - The Authorised Vetting Agency commences the security clearance revalidation process in sufficient time to complete the revalidation before the due date so that the security clearance does not lapse.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6226,7 +6226,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-176",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 176 - The Authorised Vetting Agency shares information of concern about security clearance holders with the Sponsoring Entity so they can decide whether to suspend or limit the clearance holder’s access to Australian Government classified information, resources or activities until the concerns are resolved.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6236,7 +6236,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-177",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 177 - The Sponsoring Entity shares relevant information of security concern, where appropriate with the Authorised Vetting Agency.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6246,7 +6246,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-178",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 178 - The Authorised Vetting Agency shares information of security concern about security clearance holders with the Sponsoring Entity.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6256,7 +6256,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-179",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 179 - The Authorised Vetting Agency assesses and responds to information of security concern about security clearance holders, including reports from Sponsoring Entities.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6266,7 +6266,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-180",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 180 - Negative Vetting 2 and higher clearance holders receive appropriate departmental travel briefings when undertaking international personal and work travel.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6276,7 +6276,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-181",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 181 - The Chief Security Officer, Chief Information Security Officer (or other relevant security practitioner) is advised prior to separation or transfer of any proposed cessation of employment resulting from misconduct or other adverse reasons.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6286,7 +6286,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-182",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 182 - Separating personnel are informed of any ongoing security obligations under the Commonwealth Criminal Code and other relevant legislation and those holding a security clearance or access security classified information are debriefed prior to separation from the entity.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6296,7 +6296,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-183",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 183 - Separating personnel transferring to another Australian Government entity, the entity, when requested, provides the receiving entity with relevant security information, including the outcome of pre-employment screening checks and any periodic employment suitability checks.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6306,7 +6306,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-184",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 184 - Separating personnel transferring to another Australian Government entity, the entity reports any security concerns (as defined in the Australian Security Intelligence Organisation Act 1979) to the Australian Security Intelligence Organisation.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6316,7 +6316,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-185",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 185 - A risk assessment is completed to identify any security implications in situations where it is not possible to undertake the required separation procedures.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6326,7 +6326,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-186",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 186 - Separating personnel have their access to Australian Government resources withdrawn upon separation or transfer from the entity, including information, technology systems, and resources.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6336,7 +6336,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-187",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 187 - The Sponsoring Entity advises the relevant Authorised Vetting Agency of the separation of a clearance holder, including any relevant circumstances (e.g. termination for cause) and any details, if known, of another entity or contracted service provider the clearance holder is transferring to, along with any identified risks or security concerns associated with the separation.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6346,7 +6346,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-188",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 188 - The Authorised Vetting Agency manages and records changes in the security clearance status of separating personnel, including a change of Sponsoring Entity, and transfer personal security files where a clearance subject transfers to an entity covered by a different Authorised Vetting Agency, to the extent that their enabling legislation allows.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6356,7 +6356,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-189",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 189 - Protective security is integrated in the process of planning, selecting, designing and modifying entity facilities for the protection of people, information and resources.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6366,7 +6366,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-190",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 190 - A facility security plan is developed for new facilities, facilities under construction or major refurbishments of existing facilities.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6376,7 +6376,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-191",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 191 - Decisions on entity facility locations are informed by considering the site selection factors for Australian Government facilities.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6386,7 +6386,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-192",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 192 - When designing or modifying facilities, the entity secures and controls access to facilities to meet the highest risk level to entity resources in accordance with Security Zone restricted access definitions.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6396,7 +6396,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-193",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 193 - Facilities are constructed in accordance the applicable ASIO Technical Notes to protect against the highest risk level in accordance with the entity security risk assessment in areas: • accessed by the public and authorised personnel, and • where physical resources and technical assets, other than security classified resources and technology, are stored.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6406,7 +6406,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-194",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 194 - Facilities for Security Zones Two to Five that process, store or communicate security classified information and resources are constructed in accordance with the applicable sections of ASIO Technical Note 1/15 – Physical Security Zones, and ASIO Technical Note 5/12 – Physical Security Zones (TOP SECRET) areas.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6416,7 +6416,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-195",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 195 - Entity facilities are operated and maintained in accordance with Security Zones and Physical Security Measures and Controls.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6426,7 +6426,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-196",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 196 - Security Zones One to Four are certified by the Certification Authority in accordance with the PSPF and applicable ASIO Technical Notes before they are used operationally.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6436,7 +6436,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-197",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 197 - Security Zone Five areas that contain TOP SECRET security classified information or aggregated information where the compromise of confidentiality, loss of integrity or unavailability of that information may have a catastrophic business impact level, are certified by ASIO-T4 before they are used operationally.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6446,7 +6446,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-198",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 198 - Security Zones One to Five are accredited by the Accreditation Authority before they are used operationally, on the basis that the required security controls are certified and the entity determines and accepts the residual risks.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6456,7 +6456,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-199",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 199 - Sensitive Compartmented Information Facility areas used to secure and access TOP SECRET systems and security classified compartmented information are accredited by the Australian Signals Directorate before they are used operationally.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6466,7 +6466,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-200",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 200 - Physical security measures are implemented to minimise or remove the risk of information and physical asset resources being made inoperable or inaccessible, or being accessed, used or removed without appropriate authorisation.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6476,7 +6476,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-201",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 201 - Physical security measures are implemented to protect entity resources, commensurate with the assessed business impact level of their compromise, loss or damage.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6486,7 +6486,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-202",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 202 - Physical security measures are implemented to minimise or remove the risk of harm to people.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6496,7 +6496,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-203",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 203 - The appropriate container, safe, vault, cabinet, secure room or strong rooms is used to protect entity information and resources based on the applicable Security Zone and business impact level of the compromise, loss or damage to information or physical resources.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6506,7 +6506,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-204",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 204 - Perimeter doors and hardware in areas that process, store or communicate security classified information or resources are constructed and secured in accordance with the physical security measures and controls for perimeter doors and hardware.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6516,7 +6516,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-205",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 205 - Access by authorised personnel, vehicles and equipment to Security Zones One to Five is controlled in accordance with the physical security measures and controls for access control for authorised personnel.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6526,7 +6526,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-206",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 206 - Access by visitors to Security Zones One to Five is controlled in accordance with the physical security measures and controls for access control for visitors.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6536,7 +6536,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-207",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 207 - The Accountable Authority or Chief Security Officer approves ongoing (or regular) access to entity facilities for people who are not directly engaged by the entity or covered by the terms of a contract or agreement, on the basis that the person: • has the required security clearance level for the Security Zone/s, and • a business need supported by a business case and security risk assessment, which is reassessed at least every two years.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6546,7 +6546,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-208",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 208 - Unauthorised access to Security Zones One to Five is controlled in accordance with the physical security measures and controls for security alarm systems.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6556,7 +6556,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-209",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 209 - Security guard arrangements in Security Zones One to Five are established in accordance with the physical security measures and controls for security guards.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6566,7 +6566,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-210",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 210 - Technical surveillance countermeasures for Security Zones One to Five are established in accordance with the physical security measures and controls for technical surveillance countermeasures.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000006",
     "assessmentStatus": "not-started",
@@ -6576,7 +6576,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-211",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 211 - A Technology Asset Stocktake and Technology Security Risk Management Plan is created to identify and manage the entity's internet-facing systems or services is maintained to ensure continuous visibility and monitoring of the entity’s resource and technology estate.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -6586,7 +6586,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-212",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 212 - Approved post-quantum cryptographic encryption algorithms are used for newly procured cryptographic equipment and software in accordance with the Information Security Manual’s guidelines for cryptography.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -6596,7 +6596,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-213",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 213 - The Chief Information Security Officer reports on the entity’s cyber security risk at each meeting of the Audit Committee and biannually on the progress of the cyber security strategy and uplift plan.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -6606,7 +6606,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-214",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 214 - Digital Infrastructure that processes, stores or communicates Australian Government security classified information is protected by a Gateway or Security Service Edge in accordance with the Australian Government Gateway Security Standard.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -6616,7 +6616,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-215",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 215 - Participate in the Australian Signals Directorate’s Cyber Security Partnership Program and notify ASD in the event of a change in the entity's risk profile.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -6626,7 +6626,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-216",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 216 - Connect to the Australian Signals Directorate’s Cyber Threat Intelligence Sharing platform.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -6636,7 +6636,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-217",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 217 - Declared Systems of Government Significance are protected in accordance with the Australian Government Systems of Government Significance Standard.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000004",
     "assessmentStatus": "not-started",
@@ -6646,7 +6646,7 @@ export const PSPF_BASELINE_REQUIREMENTS = [
   {
     "id": "REQ-PSPF-2025-218",
     "entityType": "requirement",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PSPF 218 - The Sponsoring Entity ensures clearance subjects with an eligibility waiver or where a waiver is being considered, are not given temporary or provisional access to security classified information or resources until the security vetting process is complete.",
     "domainId": "DOM-00000000-0000-7000-8000-000000000005",
     "assessmentStatus": "not-started",
@@ -6659,7 +6659,7 @@ export const PSPF_BASELINE_DIRECTIONS = [
   {
     "id": "DIR-PSPF-2026-001",
     "entityType": "direction",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 001-2026 on Mitigate Vulnerabilities in Cisco SD-WAN Systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6671,7 +6671,7 @@ export const PSPF_BASELINE_DIRECTIONS = [
   {
     "id": "DIR-PSPF-2025-004",
     "entityType": "direction",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 004-2025 on Commonwealth Technology Management",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6683,7 +6683,7 @@ export const PSPF_BASELINE_DIRECTIONS = [
   {
     "id": "DIR-PSPF-2025-003",
     "entityType": "direction",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 003-2025 Online Disclosure of Security Clearance and National Security Information",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6695,7 +6695,7 @@ export const PSPF_BASELINE_DIRECTIONS = [
   {
     "id": "DIR-PSPF-2025-002",
     "entityType": "direction",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 002-2025 on Kaspersky Lab, Inc. Products and Web Services",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6707,7 +6707,7 @@ export const PSPF_BASELINE_DIRECTIONS = [
   {
     "id": "DIR-PSPF-2025-001",
     "entityType": "direction",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 001-2025 on DeepSeek Products, Applications and Web Services",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6719,7 +6719,7 @@ export const PSPF_BASELINE_DIRECTIONS = [
   {
     "id": "DIR-PSPF-2024-003",
     "entityType": "direction",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 003-2024 Supporting Visibility of the Cyber Threat",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6731,7 +6731,7 @@ export const PSPF_BASELINE_DIRECTIONS = [
   {
     "id": "DIR-PSPF-2024-002",
     "entityType": "direction",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 002-2024 Technology Asset Stocktake",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6743,7 +6743,7 @@ export const PSPF_BASELINE_DIRECTIONS = [
   {
     "id": "DIR-PSPF-2024-001",
     "entityType": "direction",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 001-2024 Managing Foreign Ownership, Control or Influence Risks in Technology Assets",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6755,7 +6755,7 @@ export const PSPF_BASELINE_DIRECTIONS = [
   {
     "id": "DIR-PSPF-2023-001",
     "entityType": "direction",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 001-2023 on the TikTok application",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6770,7 +6770,7 @@ export const PSPF_BASELINE_DIRECTION_LINKS = [
   {
     "id": "LNK-PSPF-DIRECTION-0032025-REQ050",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 003-2025 is reflected in PSPF 050",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6783,7 +6783,7 @@ export const PSPF_BASELINE_DIRECTION_LINKS = [
   {
     "id": "LNK-PSPF-DIRECTION-0032024-REQ215",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 003-2024 is reflected in PSPF 215",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6796,7 +6796,7 @@ export const PSPF_BASELINE_DIRECTION_LINKS = [
   {
     "id": "LNK-PSPF-DIRECTION-0032024-REQ216",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 003-2024 is reflected in PSPF 216",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6809,7 +6809,7 @@ export const PSPF_BASELINE_DIRECTION_LINKS = [
   {
     "id": "LNK-PSPF-DIRECTION-0022024-REQ211",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 002-2024 is reflected in PSPF 211",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6822,7 +6822,7 @@ export const PSPF_BASELINE_DIRECTION_LINKS = [
   {
     "id": "LNK-PSPF-DIRECTION-0012024-REQ046",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 001-2024 is reflected in PSPF 046",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6835,7 +6835,7 @@ export const PSPF_BASELINE_DIRECTION_LINKS = [
   {
     "id": "LNK-PSPF-DIRECTION-0012023-REQ091",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 001-2023 is reflected in PSPF 091",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6848,7 +6848,7 @@ export const PSPF_BASELINE_DIRECTION_LINKS = [
   {
     "id": "LNK-PSPF-DIRECTION-0012023-REQ092",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Direction 001-2023 is reflected in PSPF 092",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6864,7 +6864,7 @@ export const CYBER_FUNCTIONS = [
   {
     "id": "FNC-f5ef00b7-cc5a-7000-d70c-0f3e07ccd4cf",
     "entityType": "cyber-function",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Govern",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6891,7 +6891,7 @@ export const CYBER_FUNCTIONS = [
   {
     "id": "FNC-6435580d-316c-7000-0a57-03e52a0f7727",
     "entityType": "cyber-function",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Protect",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6921,7 +6921,7 @@ export const CYBER_FUNCTIONS = [
   {
     "id": "FNC-8c6d391f-35eb-7000-f76c-96ef30a22489",
     "entityType": "cyber-function",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Detect",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6948,7 +6948,7 @@ export const CYBER_FUNCTIONS = [
   {
     "id": "FNC-c5ee9039-74d2-7000-65eb-30cef8b8ec23",
     "entityType": "cyber-function",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Respond",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -6978,7 +6978,7 @@ export const MITIGATION_STRATEGIES = [
   {
     "id": "MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "entityType": "mitigation-strategy",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Application control",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7026,7 +7026,7 @@ export const MITIGATION_STRATEGIES = [
   {
     "id": "MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "entityType": "mitigation-strategy",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Patch applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7071,7 +7071,7 @@ export const MITIGATION_STRATEGIES = [
   {
     "id": "MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "entityType": "mitigation-strategy",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Configure Microsoft Office macros",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7110,7 +7110,7 @@ export const MITIGATION_STRATEGIES = [
   {
     "id": "MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "entityType": "mitigation-strategy",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "User application hardening",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7166,7 +7166,7 @@ export const MITIGATION_STRATEGIES = [
   {
     "id": "MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "entityType": "mitigation-strategy",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Restrict administrative privileges",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7220,7 +7220,7 @@ export const MITIGATION_STRATEGIES = [
   {
     "id": "MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "entityType": "mitigation-strategy",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Patch operating systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7262,7 +7262,7 @@ export const MITIGATION_STRATEGIES = [
   {
     "id": "MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "entityType": "mitigation-strategy",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Multi-factor authentication",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7315,7 +7315,7 @@ export const MITIGATION_STRATEGIES = [
   {
     "id": "MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "entityType": "mitigation-strategy",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Regular backups",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7357,7 +7357,7 @@ export const MITIGATION_STRATEGIES = [
   {
     "id": "MST-96d8f363-0dd1-7000-a2d4-b89940b12979",
     "entityType": "mitigation-strategy",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Remaining mitigation strategies",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7393,7 +7393,7 @@ export const GUIDANCE_FRAMEWORKS = [
   {
     "id": "GDC-bce2046d-3c9e-7000-cc84-014b57a16493",
     "entityType": "guidance-framework",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM Cyber Security Principles",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7422,7 +7422,7 @@ export const GUIDANCE_FRAMEWORKS = [
   {
     "id": "GDC-2ea5bec7-fa5f-7000-c275-df3949b8b763",
     "entityType": "guidance-framework",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Essential Eight maturity model and ISM mapping",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7451,7 +7451,7 @@ export const GUIDANCE_FRAMEWORKS = [
   {
     "id": "GDC-b40a533d-23f3-7000-22b5-f05f51109afa",
     "entityType": "guidance-framework",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Blueprint for Secure Cloud",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7480,7 +7480,7 @@ export const GUIDANCE_FRAMEWORKS = [
   {
     "id": "GDC-76efffcb-8428-7000-0aa8-eb0b28ba9df8",
     "entityType": "guidance-framework",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Gateway Security Guidance Package",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7509,7 +7509,7 @@ export const GUIDANCE_FRAMEWORKS = [
   {
     "id": "GDC-715b2b55-b976-7000-91b2-7590f72fdd5f",
     "entityType": "guidance-framework",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Modern Defensible Architecture",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7538,7 +7538,7 @@ export const GUIDANCE_FRAMEWORKS = [
   {
     "id": "GDC-ecfc26fe-f04b-7000-5332-81af93f0c377",
     "entityType": "guidance-framework",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Strategies to Mitigate Cyber Security Incidents",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7570,7 +7570,7 @@ export const CONTROL_THEMES = [
   {
     "id": "CTH-472e4987-f5ce-7000-66d9-cd34ed0260c8",
     "entityType": "control-theme",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Trustworthy Software",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7600,7 +7600,7 @@ export const CONTROL_THEMES = [
   {
     "id": "CTH-af85f391-6b31-7000-4473-b16481df8527",
     "entityType": "control-theme",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "Secure Configuration Management",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7635,7 +7635,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-558c76b9-4a1a-7000-d271-e291ddd8ef06",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-084 implements SRC-6a038d68-893f-7000-a81b-91ce99c885ff",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7665,7 +7665,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-b23113eb-f45f-7000-8b31-65a7e7a0d569",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-084 implements SRC-884ff8dd-b3e4-7000-2749-8454f011baae",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7695,7 +7695,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-4b7686db-871c-7000-3e8c-2835f5946b73",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-084 implements SRC-73b91cb5-31ea-7000-acba-753f721ee5be",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7725,7 +7725,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-86b33206-42b3-7000-c262-116822364c76",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-084 implements SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7755,7 +7755,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-ef3f4cd0-f600-7000-5ebd-2497bafad01b",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-086 implements SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7785,7 +7785,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-c353f3ca-c454-7000-8684-742acefce70d",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-087 implements SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7815,7 +7815,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-36326db5-5355-7000-da97-14a94706e6e2",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-097 implements SRC-b4729fa3-3dbf-7000-3f40-047ad298982c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7845,7 +7845,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-2ed4b382-8bd9-7000-f872-8fc03990736a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-097 implements SRC-b1ff547a-ded2-7000-f1fb-5ae46fd2f4d1",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7875,7 +7875,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-c2245872-6d5e-7000-aefd-8785840b6fb0",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-098 implements SRC-62a5c39f-24f5-7000-5795-805c80de034b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7905,7 +7905,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-a7a5db5f-301c-7000-ff61-cb5871213394",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-108 implements SRC-ff66b99e-9356-7000-d2b3-b0bbb2a2d457",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7935,7 +7935,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-550cc688-302a-7000-c17b-2b3663da292c",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-115 implements SRC-f9539ad9-e58d-7000-958a-a646a965c9ea",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7965,7 +7965,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-9a6b81ef-3587-7000-1ff2-f2812f40f728",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-115 implements SRC-47ae556a-38ce-7000-f026-560be72e7595",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -7995,7 +7995,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-98bc3840-b4e7-7000-3510-4890812205af",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-115 implements SRC-42b283ec-2dc4-7000-2c1e-c65f5c800d6b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8025,7 +8025,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-a7275951-8d6b-7000-faf2-c9a338df20f2",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-103 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8055,7 +8055,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-b34f07d2-4a61-7000-5b59-760bc68a4119",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8085,7 +8085,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-762806e5-34cc-7000-1aa4-684095c65896",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-23c5f073-37f4-7000-56db-91caa1fa5c46 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8115,7 +8115,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-5bcddae6-c5f6-7000-3e36-bb566c1dc5dc",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-6e2a6d5c-ba4a-7000-cf66-4d90e89b8d3f supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8145,7 +8145,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-915d0e4b-4e03-7000-e76b-37fd1cf9ff3a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9d32c98e-31c3-7000-0c16-57b8673179bc supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8175,7 +8175,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-216c8b6e-ed15-7000-f2b2-c13938e61e21",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-cc58f2cc-f498-7000-dca6-d72cfce37d41 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8205,7 +8205,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-38f12ffa-f7be-7000-aff4-2ba8553c7983",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-44e35263-738e-7000-3ab6-6866957a40e4 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8235,7 +8235,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-971b1e9f-8832-7000-fa75-b1209574415d",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-1b352357-2f3a-7000-bbaf-d724da2c9857 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8265,7 +8265,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-4e711328-ffca-7000-f90a-feb3c6eb2b77",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-dda52be6-bae9-7000-b3e9-57329ee76b28 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8295,7 +8295,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-bb112c7b-4a91-7000-950a-f076e7d56d64",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-20fa51ff-84fc-7000-662b-6597becfd624 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8325,7 +8325,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-7d8610a1-dfff-7000-bfec-e3e4c519c0ed",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-22f11227-8c9e-7000-1a70-4a9fbaab6b92 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8355,7 +8355,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-dbb4d119-1f51-7000-29e1-fbfc8d675a14",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-97fff6a4-13f2-7000-ec5c-67f3b6034487 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8385,7 +8385,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-64fa58b7-1819-7000-ccfe-2a138cdaa60f",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-db66004e-25b0-7000-76e4-f5cb90d90af8 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8415,7 +8415,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-febc22b1-7f0d-7000-0a06-5064b7a12873",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2b2de4a7-9973-7000-d4a9-0cad0006228a supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8445,7 +8445,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f54a69ac-8907-7000-d7fd-59f8c204182e",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7e059351-c3c9-7000-5285-9e1b5dff4f0c supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8475,7 +8475,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-814e77e3-6d8d-7000-ce9e-6f156dc6573a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-099 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8505,7 +8505,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-5f754fb6-0a24-7000-7c01-684fbf120948",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-dd0af57e-0093-7000-0fb6-53cd11a396ab supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8535,7 +8535,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-ecbf808b-4a9b-7000-2e4a-85b717fd9e31",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a7927586-598d-7000-d864-c77e776af54d supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8565,7 +8565,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-c6b71d2b-f0b1-7000-d862-2e468044b338",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-32d394c5-7404-7000-fb48-f455f38049b2 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8595,7 +8595,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-af3f104d-1ea3-7000-962e-a41df389908c",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-f254e792-2683-7000-903b-302a15cb4825 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8625,7 +8625,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-2f896b42-43a0-7000-07cc-ed48fb73c955",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9b45052a-1406-7000-48b7-4ddb3d2d12e2 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8655,7 +8655,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-94bba690-cedf-7000-cf51-0d0ba7e90f96",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-430f3e1f-6eb6-7000-0f3a-ab20ac422ad9 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8685,7 +8685,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-b783bdc9-6592-7000-8f7b-abc5216c5096",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2c3c2bf1-4704-7000-8d46-b9536d4ea1d3 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8715,7 +8715,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-a56c9e7d-78e3-7000-316a-b913441a11e7",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-f6404d5c-9ad8-7000-c7d4-5ca81e5b776a supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8745,7 +8745,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-30ddc66f-d9d7-7000-b084-fcc4a7a56973",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-3bb2a629-dcc5-7000-64e3-b5976f2e4e5d supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8775,7 +8775,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-b4b66fa3-f0a4-7000-19f1-ade110b70d99",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-00585459-3d00-7000-0fe8-38626c8542ec supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8805,7 +8805,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-73cf0b45-8d1d-7000-447d-e36558c5f900",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a403de47-9ecf-7000-2288-a440f27768cf supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8835,7 +8835,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-a7b19624-0a20-7000-8bbd-c5d3936863dd",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-104 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8865,7 +8865,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-a14faf8e-9833-7000-0078-8c4ce358e2b2",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-45eda41b-e6bf-7000-bced-f4368aa2d2ba supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8895,7 +8895,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-0e62adf6-540a-7000-2496-0aa8cf04f55e",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-30704016-4200-7000-ab80-5bc3f559774c supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8925,7 +8925,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-d014616e-b5fc-7000-aab2-0543e6f61d53",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-87a9dba2-d1a4-7000-7782-5c8728ca960c supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8955,7 +8955,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-5a907d2c-fdff-7000-1355-b46972fc13c7",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-4ba9e681-24d7-7000-c7c4-f264a2889405 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -8985,7 +8985,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-40f7db27-5b88-7000-ba25-01dade0876d9",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a2fd2884-6818-7000-4cc9-5faa65985985 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9015,7 +9015,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f98ddb54-8f7e-7000-98ce-b4dc6e4b1809",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-105 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9045,7 +9045,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-2d5f6df4-2127-7000-54de-d65ca2772133",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9075,7 +9075,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-ef8dbdfd-832e-7000-4194-bcae82f740af",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-23c5f073-37f4-7000-56db-91caa1fa5c46 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9105,7 +9105,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-b808c48c-2af3-7000-79b2-1906a097e704",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9d32c98e-31c3-7000-0c16-57b8673179bc supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9135,7 +9135,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-ef888118-efb9-7000-083e-339bb280242e",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-d4f75434-4fec-7000-1baf-3788ef16ed05 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9165,7 +9165,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-9afbe51c-d33b-7000-ddbc-3f4dae4c3d30",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-30597a46-cc2a-7000-2e29-eb48ca14f634 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9195,7 +9195,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-aae8adcf-91b7-7000-bf3e-a60386110c32",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-add12f8a-ab77-7000-be02-44b2cb4e8175 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9225,7 +9225,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-0c788f7a-253b-7000-f1f3-49bea7de3e3a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-cb6abf2f-9165-7000-f488-fd421e5ae6f0 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9255,7 +9255,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-05951cfe-3ab1-7000-1169-98d88def1134",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-98d1b70c-82ff-7000-0a75-65531c861ce2 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9285,7 +9285,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-616c13c4-d07b-7000-1a5e-bbf1b116e0f3",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a8825008-bdea-7000-45fa-970706befad3 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9315,7 +9315,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-7d3dd12f-b68b-7000-7eb1-d78f77a65c9e",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-6d406a24-52fc-7000-6a37-6af6dee7352a supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9345,7 +9345,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-785f58cc-3bc7-7000-3983-592134de510e",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-d389889e-374d-7000-9166-5cf6995e7b87 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9375,7 +9375,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-4038fb5e-7e8c-7000-5f03-0bc2a3ae6a56",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-6f27149d-2478-7000-b700-b0ff70b72451 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9405,7 +9405,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-bdb3b8c3-9491-7000-3cd5-c2fa9312ec1b",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-89b32e91-ac9a-7000-4133-1fed3a69d630 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9435,7 +9435,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-c7d3fbc7-c38a-7000-630b-df4065b7ff2a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-96f5796d-268f-7000-1782-49db9c8f4825 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9465,7 +9465,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-332e6400-119f-7000-7ef9-0de81e20e4f5",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-22f11227-8c9e-7000-1a70-4a9fbaab6b92 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9495,7 +9495,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-5b3fbdbf-dff0-7000-60ac-caba74ef88a5",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-97fff6a4-13f2-7000-ec5c-67f3b6034487 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9525,7 +9525,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-aa23c217-15ff-7000-9e23-b17cce1bb4cd",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-76bc444f-2147-7000-709b-2cdee18ca5c5 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9555,7 +9555,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-59954be4-05b0-7000-ec03-22b4af80414a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7a551d8b-4880-7000-1930-93c018d423c8 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9585,7 +9585,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-5c8b60bb-b7af-7000-ecaf-fb37e8db1a5a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-31194bb9-279d-7000-b7f0-e59b3317f374 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9615,7 +9615,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-5e00b2b8-b5c1-7000-da83-6dc3bd37ebe1",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-009dd44d-7803-7000-683f-bbcba6ef7a46 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9645,7 +9645,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f9c0ef18-04b2-7000-60bf-7e1ad0d3a9c7",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-169c594a-1feb-7000-9634-ea4674809549 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9675,7 +9675,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-c578f07e-9806-7000-4bfd-9cd5a4a35fc7",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7e059351-c3c9-7000-5285-9e1b5dff4f0c supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9705,7 +9705,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f758fe54-8531-7000-0813-174fe68f0327",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-102 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9735,7 +9735,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-2b899066-6e6c-7000-eec2-f57253227818",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9765,7 +9765,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-ad72acea-4d4f-7000-dd7b-3f942e97ef96",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-23c5f073-37f4-7000-56db-91caa1fa5c46 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9795,7 +9795,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-4010435f-34e5-7000-50dc-2dbbacb91018",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-55411bd8-b738-7000-7b88-78936cb661f4 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9825,7 +9825,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-5ba7af12-06bb-7000-a53b-4c93f8e3c30e",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-90737eae-27e8-7000-590f-847b9a37f6a0 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9855,7 +9855,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-e5d15320-4f52-7000-6109-9c9b9601a0c6",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9d32c98e-31c3-7000-0c16-57b8673179bc supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9885,7 +9885,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-0c383169-53f8-7000-695d-0e3a44918b05",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-cf5bb720-df2b-7000-2281-9ee7c498d35d supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9915,7 +9915,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-19599a24-8284-7000-47d7-a881a880bda2",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-b8dcd3a3-9eaa-7000-f57a-5e49e167a26d supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9945,7 +9945,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-ace3c49d-9827-7000-e420-d084ce4e7983",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-6652d7f6-63f3-7000-df4b-d6ac4aea368e supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -9975,7 +9975,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f1ee2fe2-9f89-7000-f978-1db4eebc9da6",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-e48ba5ea-43d0-7000-e4ee-7fc96ba9944c supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10005,7 +10005,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-d446d03e-295a-7000-54a9-3023842459c0",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a11b14bd-ccb7-7000-740d-df7b32d72ec6 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10035,7 +10035,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-af90726b-111c-7000-a0d9-efd8c9dbcd8c",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-fdf6570a-e61c-7000-6b99-601ed3af6cc9 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10065,7 +10065,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-0217306f-ffcc-7000-1373-9e1b945fda37",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-14aa1af5-6913-7000-a96c-f09589a9b90b supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10095,7 +10095,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-2b2b2c84-d80b-7000-e312-6af8852a6744",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-4bbe376b-fda0-7000-56c2-aad85e6deef2 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10125,7 +10125,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-e6cda4bb-ca2c-7000-d99c-9f5f66b6f62b",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-fd1674a7-b9eb-7000-11a2-30fb54fa9118 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10155,7 +10155,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-a4778070-af27-7000-845d-ed98f7394d3c",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2b1d3271-4467-7000-68e5-f2333a13c5fd supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10185,7 +10185,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-40301641-b232-7000-9267-619c3de8ac23",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-26cb7348-5891-7000-7810-25512ce08740 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10215,7 +10215,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-e0c062c6-cd9e-7000-4534-1b3e456d9f67",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-22f11227-8c9e-7000-1a70-4a9fbaab6b92 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10245,7 +10245,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-76d2ad72-63cf-7000-a187-530dab5a69df",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-97fff6a4-13f2-7000-ec5c-67f3b6034487 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10275,7 +10275,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-fade73c3-11ef-7000-3ca0-887f33a82134",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-87178652-be63-7000-26ab-7869532d5098 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10305,7 +10305,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f5896205-15b8-7000-7370-d0f6749dbebe",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7e059351-c3c9-7000-5285-9e1b5dff4f0c supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10335,7 +10335,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-6b53de86-72e3-7000-b1cb-9a9a0dea30c6",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-100 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10365,7 +10365,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-d1ea0d32-c276-7000-4363-f5edb06de6aa",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-b9f460d9-85fe-7000-c21e-50c7bbe93511 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10395,7 +10395,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-52899649-2a3e-7000-100d-804b2b41cca3",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2c778ff0-72f5-7000-e5a5-ec08e8fbf6fe supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10425,7 +10425,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-7173222f-61d1-7000-3c77-beb8e7d10aa5",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2e7cfdf0-02d1-7000-d427-e165c938e34d supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10455,7 +10455,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-2bf698c9-6f17-7000-14d6-88ac3afc359b",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7a4bf942-426e-7000-b8f9-100a59e02970 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10485,7 +10485,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-be995f58-56f2-7000-8230-8782df520ec8",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-17a4b410-57b6-7000-0fb6-8c521ccf5186 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10515,7 +10515,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-b12faff2-e4f6-7000-9c5a-9dcdd9154731",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-f6404d5c-9ad8-7000-c7d4-5ca81e5b776a supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10545,7 +10545,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-8b5245c9-c7ed-7000-ee34-d1ec02d2a796",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-3bb2a629-dcc5-7000-64e3-b5976f2e4e5d supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10575,7 +10575,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-ca904869-a33d-7000-f1fc-c3577c5e89fe",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-82eba6c3-49c2-7000-7631-4647d7be16c8 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10605,7 +10605,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-63610c6d-248a-7000-38b0-0ec82f87c4a1",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-101 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10635,7 +10635,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-21130883-194c-7000-3aec-d52ed353b9c3",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10665,7 +10665,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-08b621a3-ae9c-7000-3ce0-fa154685dccb",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-23c5f073-37f4-7000-56db-91caa1fa5c46 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10695,7 +10695,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-94f4838f-14a1-7000-7a7d-7f8f9fa4b332",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-c6dbfa9a-322b-7000-7d6d-16b3e1a44e46 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10725,7 +10725,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-fa3428ea-9fbf-7000-214b-f749e0ae0661",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-84b83426-30a5-7000-30a4-c748762afb83 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10755,7 +10755,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-436c5c4c-33ba-7000-ff26-5640272b1abf",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9d32c98e-31c3-7000-0c16-57b8673179bc supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10785,7 +10785,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-4e11bbbd-fbd0-7000-9f3f-295aff56e681",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-c4bdfb2f-bb76-7000-be8f-76b402a37b93 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10815,7 +10815,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f5b76949-ccb0-7000-d064-9a6bc4870e82",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-15112c97-7b8f-7000-8280-6d490f10c25c supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10845,7 +10845,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-0734b5aa-9c26-7000-136d-89d0b41b1f0d",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-d36f1895-713a-7000-f949-c149fca7203a supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10875,7 +10875,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f492239b-d4fc-7000-fba7-6014521d2e6a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-c13af7ab-068d-7000-814b-f757c939fa71 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10905,7 +10905,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-904e5421-4ca0-7000-db1e-d380c0d1734a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-b13fcce9-d392-7000-1b00-f61db4b5d04d supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10935,7 +10935,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-ff6bfa61-7f0a-7000-4933-4021929ca9a7",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-aa030ae0-bad8-7000-12cf-f81a1fe665f8 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10965,7 +10965,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-e698cc13-8fde-7000-2e14-8ff554f5a170",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-99213058-a0a2-7000-f190-205f5a3169dd supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -10995,7 +10995,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f848d894-7d24-7000-e383-704318bfeef9",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-22f11227-8c9e-7000-1a70-4a9fbaab6b92 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11025,7 +11025,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-20945e75-83ef-7000-a07e-1b2e31427241",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-97fff6a4-13f2-7000-ec5c-67f3b6034487 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11055,7 +11055,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-785594ad-c509-7000-c4d0-5f5b42508796",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-0ad8bfc1-e266-7000-afa8-a667ee595297 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11085,7 +11085,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-41d7869e-dc3f-7000-3fb3-50705d20a2f6",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2ee7b656-864e-7000-8e4f-20b5e35e2544 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11115,7 +11115,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-2b5e16ad-462e-7000-e397-fe5b3b7f2a60",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-50712029-daa3-7000-3de5-c626864617d9 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11145,7 +11145,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-8002be43-09fd-7000-8e03-21ef08aca44f",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-ceff6b78-a734-7000-fd52-3b36ca7d5cd2 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11175,7 +11175,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-93f3ee08-80d4-7000-6839-385a09f79252",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7e059351-c3c9-7000-5285-9e1b5dff4f0c supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11205,7 +11205,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-67fb705f-99f2-7000-109d-720a86fd08c5",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-106 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11235,7 +11235,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-2cf2e439-df0b-7000-894b-6e762b2c2013",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-c1090ee4-7b04-7000-3ef8-c9cbb77a3f98 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11265,7 +11265,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-2486426b-4f75-7000-a4e4-b0b9bc8837c5",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-967f4aac-407c-7000-65a2-e4c54a140afd supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11295,7 +11295,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-7cdccc52-b2c9-7000-4dd8-58b849e1da78",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-05d9a8f5-f312-7000-5f94-f2a8d85d0d80 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11325,7 +11325,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-22212f51-95b2-7000-662e-04b9443d6df1",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-8f82ea80-e0c5-7000-836f-84cfbd91f533 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11355,7 +11355,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-5652f0d0-0fcf-7000-05bb-126c819a53ba",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-cb7d8c12-40a8-7000-b5d0-84bf4a92ec46 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11385,7 +11385,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-f142e772-5041-7000-c776-072f9e2ccbc6",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-93167d37-5b59-7000-43a3-325e336f670d supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11415,7 +11415,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-7614e07d-6e15-7000-897f-643d8f192c92",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-ebf6ee57-9e78-7000-1fe4-2f1f855b5ce9 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11445,7 +11445,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-4629cacf-4c5c-7000-eb7e-98d742031dcb",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-f7f898f1-5049-7000-b759-9d99a87d87e6 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11475,7 +11475,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-58526491-4d06-7000-6acb-114aa180c74a",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-107 supports MST-96d8f363-0dd1-7000-a2d4-b89940b12979",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11505,7 +11505,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-7a820703-d4e8-7000-1cd8-c17c52369de9",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-66ad9ecb-95e2-7000-0ffa-4c879ad6a9b2 supports MST-96d8f363-0dd1-7000-a2d4-b89940b12979",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11535,7 +11535,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-5126ae7b-7533-7000-870f-6a8a2877f23e",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-73b91cb5-31ea-7000-acba-753f721ee5be supports MST-96d8f363-0dd1-7000-a2d4-b89940b12979",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11565,7 +11565,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-bffc0be3-131c-7000-5684-09c05f66d954",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b supports MST-96d8f363-0dd1-7000-a2d4-b89940b12979",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11595,7 +11595,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-855447b9-f884-7000-879b-1cfd7d2b7343",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-3762cf14-df9c-7000-dd9b-c47c9fb67cda themes CTH-472e4987-f5ce-7000-66d9-cd34ed0260c8",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11625,7 +11625,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-9ae5b6cd-eb09-7000-1f51-e3a212dbd80e",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23 themes CTH-472e4987-f5ce-7000-66d9-cd34ed0260c8",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11655,7 +11655,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-d6e17291-93c4-7000-5f92-c39ad09df5fd",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-08dd9287-7262-7000-e798-4997ec6264d2 themes CTH-472e4987-f5ce-7000-66d9-cd34ed0260c8",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11685,7 +11685,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-4cce7572-8262-7000-63d2-026390bf0ac6",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-82f60a95-2c00-7000-aaf1-de1c799494df themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11715,7 +11715,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-7533a8ef-b8fc-7000-df5b-4c8e9110902b",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-104dafbd-1cde-7000-a31b-32ac2f2598bc themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11745,7 +11745,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-626bde76-a26a-7000-bcde-55013378680b",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-f8d4d9eb-3082-7000-6730-036708e8d67b themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11775,7 +11775,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-ee29ed1c-db31-7000-385e-6de34c5c98cc",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-03050ed5-a42d-7000-4ea3-258f02cd624f themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11805,7 +11805,7 @@ export const CYBER_REFERENCE_MAPPINGS = [
   {
     "id": "CRM-251fd70e-4e26-7000-4526-bccdf37d5237",
     "entityType": "cyber-reference-mapping",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763 themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11838,7 +11838,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f8dc2488-26be-7000-090e-3253bc180a13",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-084 implements SRC-6a038d68-893f-7000-a81b-91ce99c885ff",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11851,7 +11851,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-7454a594-728e-7000-3aa4-2f0f9402ccc0",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-084 implements SRC-884ff8dd-b3e4-7000-2749-8454f011baae",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11864,7 +11864,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-59d6f256-a348-7000-306e-7d8f9cf4f93f",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-084 implements SRC-73b91cb5-31ea-7000-acba-753f721ee5be",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11877,7 +11877,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-6281a95a-e4b1-7000-0f1f-71eac79e666a",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-084 implements SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11890,7 +11890,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-843398be-1245-7000-2201-4f54a435ab05",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-086 implements SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11903,7 +11903,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e21fdb21-88d6-7000-1fab-f1173314118d",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-087 implements SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11916,7 +11916,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-86797b87-0592-7000-f86f-87f2ef458c8a",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-097 implements SRC-b4729fa3-3dbf-7000-3f40-047ad298982c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11929,7 +11929,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-590a6d6a-7b84-7000-f379-ccd786e6b696",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-097 implements SRC-b1ff547a-ded2-7000-f1fb-5ae46fd2f4d1",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11942,7 +11942,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-02d55fe4-c509-7000-a07f-12247d0d45f5",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-098 implements SRC-62a5c39f-24f5-7000-5795-805c80de034b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11955,7 +11955,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e6cec41c-728b-7000-1381-95cffab51149",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-108 implements SRC-ff66b99e-9356-7000-d2b3-b0bbb2a2d457",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11968,7 +11968,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-0a99d7bb-6450-7000-0132-21ad0244e143",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-115 implements SRC-f9539ad9-e58d-7000-958a-a646a965c9ea",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11981,7 +11981,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-7b19e4f1-7691-7000-d355-96b1d892944e",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-115 implements SRC-47ae556a-38ce-7000-f026-560be72e7595",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -11994,7 +11994,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-5ca1d258-85ef-7000-40d1-567a394ae5ed",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-115 implements SRC-42b283ec-2dc4-7000-2c1e-c65f5c800d6b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12007,7 +12007,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-c740bfb7-8634-7000-1c28-310ec5cdcda7",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-103 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12020,7 +12020,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-810e469e-6f40-7000-133c-688d92d05088",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12033,7 +12033,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-4704e82f-f0c5-7000-e78f-1de0a6beb491",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-23c5f073-37f4-7000-56db-91caa1fa5c46 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12046,7 +12046,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-249a8a74-35b9-7000-a396-5a9dc42828df",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-6e2a6d5c-ba4a-7000-cf66-4d90e89b8d3f supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12059,7 +12059,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-acf05a05-51b5-7000-5b67-2da59b12ba5e",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9d32c98e-31c3-7000-0c16-57b8673179bc supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12072,7 +12072,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f37be81d-24a9-7000-459b-698b18504178",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-cc58f2cc-f498-7000-dca6-d72cfce37d41 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12085,7 +12085,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-1c876c65-74a5-7000-5732-c63c80fcad14",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-44e35263-738e-7000-3ab6-6866957a40e4 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12098,7 +12098,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-61f2b5c6-4cff-7000-abb3-d23da15cd8f0",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-1b352357-2f3a-7000-bbaf-d724da2c9857 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12111,7 +12111,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-ac16aa89-ee8c-7000-9091-26b07c4dcfd4",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-dda52be6-bae9-7000-b3e9-57329ee76b28 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12124,7 +12124,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-856a0364-24b9-7000-a1b4-97116be34664",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-20fa51ff-84fc-7000-662b-6597becfd624 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12137,7 +12137,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-b82aad0e-2ec9-7000-1270-049ff7d7d551",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-22f11227-8c9e-7000-1a70-4a9fbaab6b92 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12150,7 +12150,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e1a817bc-659c-7000-9352-cb75ba142923",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-97fff6a4-13f2-7000-ec5c-67f3b6034487 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12163,7 +12163,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-ddd3d181-3322-7000-df88-18c3f7ca9911",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-db66004e-25b0-7000-76e4-f5cb90d90af8 supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12176,7 +12176,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-1a0ac963-9ee2-7000-e142-1b3f506cf86b",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2b2de4a7-9973-7000-d4a9-0cad0006228a supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12189,7 +12189,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-fbc9b76c-8de4-7000-71f1-35ac68b92453",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7e059351-c3c9-7000-5285-9e1b5dff4f0c supports MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12202,7 +12202,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-52579a3d-33df-7000-28fb-3aa586c80621",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-099 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12215,7 +12215,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-c81b2bff-a8e6-7000-d984-13941fc907d9",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-dd0af57e-0093-7000-0fb6-53cd11a396ab supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12228,7 +12228,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f796fbc4-8e24-7000-8058-39d1346a490c",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a7927586-598d-7000-d864-c77e776af54d supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12241,7 +12241,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-c44164eb-afce-7000-ed32-02ff0290b0ca",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-32d394c5-7404-7000-fb48-f455f38049b2 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12254,7 +12254,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-7d776f21-e616-7000-584e-f9cc6bf93d53",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-f254e792-2683-7000-903b-302a15cb4825 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12267,7 +12267,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-5af88356-8500-7000-6116-0afa001a28a0",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9b45052a-1406-7000-48b7-4ddb3d2d12e2 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12280,7 +12280,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-1d0612a5-b339-7000-dc34-7b4a9397cfba",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-430f3e1f-6eb6-7000-0f3a-ab20ac422ad9 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12293,7 +12293,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-a00253c4-9a78-7000-bee0-3cd76187adaf",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2c3c2bf1-4704-7000-8d46-b9536d4ea1d3 supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12306,7 +12306,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f401c7cd-2640-7000-9567-37f869cb4aab",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-f6404d5c-9ad8-7000-c7d4-5ca81e5b776a supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12319,7 +12319,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-201bbff5-9d10-7000-5963-ee0587356e43",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-3bb2a629-dcc5-7000-64e3-b5976f2e4e5d supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12332,7 +12332,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-ecd8088d-dedc-7000-e79a-997a72c19144",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-00585459-3d00-7000-0fe8-38626c8542ec supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12345,7 +12345,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-33468a5c-84f6-7000-51f9-e3bba9c0a8e4",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a403de47-9ecf-7000-2288-a440f27768cf supports MST-08dd9287-7262-7000-e798-4997ec6264d2",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12358,7 +12358,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-b03f4658-d27f-7000-0abb-1b03b26fedb1",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-104 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12371,7 +12371,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-dd5c9201-691a-7000-de2b-b64dafbc57c2",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-45eda41b-e6bf-7000-bced-f4368aa2d2ba supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12384,7 +12384,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-485e8b00-60ba-7000-21ca-cab81438378d",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-30704016-4200-7000-ab80-5bc3f559774c supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12397,7 +12397,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e2e0d276-aa40-7000-7859-59b32e5d36a1",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-87a9dba2-d1a4-7000-7782-5c8728ca960c supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12410,7 +12410,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e090fa21-9480-7000-cd0b-d900e0ed4236",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-4ba9e681-24d7-7000-c7c4-f264a2889405 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12423,7 +12423,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f3edc9c0-1840-7000-9e0f-785009c2dd52",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a2fd2884-6818-7000-4cc9-5faa65985985 supports MST-03050ed5-a42d-7000-4ea3-258f02cd624f",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12436,7 +12436,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f96c3942-3745-7000-af8c-15a3b4bf0b02",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-105 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12449,7 +12449,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-a3cea5a8-8800-7000-d7cf-c8acc654f648",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12462,7 +12462,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-8fea7526-f95f-7000-8e67-0367e5ae60b1",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-23c5f073-37f4-7000-56db-91caa1fa5c46 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12475,7 +12475,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-b2cdb5f0-9054-7000-fc20-66cf6de0b1d5",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9d32c98e-31c3-7000-0c16-57b8673179bc supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12488,7 +12488,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-ce6ba90d-c7e0-7000-7208-acd86cc662c6",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-d4f75434-4fec-7000-1baf-3788ef16ed05 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12501,7 +12501,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-c4b39d79-f811-7000-9ee5-107cf225dc96",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-30597a46-cc2a-7000-2e29-eb48ca14f634 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12514,7 +12514,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-b3992a08-3ad7-7000-78bd-7508f1ea54ce",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-add12f8a-ab77-7000-be02-44b2cb4e8175 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12527,7 +12527,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-55552c00-ab68-7000-4d2d-f7efe9abc6a5",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-cb6abf2f-9165-7000-f488-fd421e5ae6f0 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12540,7 +12540,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-fb1f1df1-ef93-7000-b3f5-0eae7e542c4a",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-98d1b70c-82ff-7000-0a75-65531c861ce2 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12553,7 +12553,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e06f7637-2656-7000-d62c-4b6f8630ae1a",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a8825008-bdea-7000-45fa-970706befad3 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12566,7 +12566,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-9c7168fb-868a-7000-05a6-83e19bf6fcbf",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-6d406a24-52fc-7000-6a37-6af6dee7352a supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12579,7 +12579,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-d397a53f-2e7c-7000-1ebd-c8560a961093",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-d389889e-374d-7000-9166-5cf6995e7b87 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12592,7 +12592,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-fedd4665-13f8-7000-2750-2530cea376d2",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-6f27149d-2478-7000-b700-b0ff70b72451 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12605,7 +12605,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-558fc214-8287-7000-40b3-a56e9f9ea7ab",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-89b32e91-ac9a-7000-4133-1fed3a69d630 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12618,7 +12618,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-efe95170-c353-7000-0569-269fc3580ac6",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-96f5796d-268f-7000-1782-49db9c8f4825 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12631,7 +12631,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-a41d855a-7ac2-7000-347a-614b5d6c37ab",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-22f11227-8c9e-7000-1a70-4a9fbaab6b92 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12644,7 +12644,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-ebe5165a-7bda-7000-a8a7-891a8192d134",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-97fff6a4-13f2-7000-ec5c-67f3b6034487 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12657,7 +12657,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f31e881b-d83f-7000-f254-31dfaaef33e1",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-76bc444f-2147-7000-709b-2cdee18ca5c5 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12670,7 +12670,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-d334afc9-9cbf-7000-ec63-071b265d1271",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7a551d8b-4880-7000-1930-93c018d423c8 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12683,7 +12683,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-3166b617-b5d6-7000-c5cb-c18eed9c305e",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-31194bb9-279d-7000-b7f0-e59b3317f374 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12696,7 +12696,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-21e0f555-80cd-7000-a66c-645e181aaa2f",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-009dd44d-7803-7000-683f-bbcba6ef7a46 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12709,7 +12709,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-28b3c0c4-32b7-7000-6897-829c81937caa",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-169c594a-1feb-7000-9634-ea4674809549 supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12722,7 +12722,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-9b3ff2f8-2adb-7000-b349-3fc3c3afa575",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7e059351-c3c9-7000-5285-9e1b5dff4f0c supports MST-f8d4d9eb-3082-7000-6730-036708e8d67b",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12735,7 +12735,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-7d99caf4-4f13-7000-e2d2-548831c9bfbb",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-102 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12748,7 +12748,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-2a2fd91a-1058-7000-9b23-7a9e3da7128e",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12761,7 +12761,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-7213b872-b7f5-7000-e4ba-31b2548f7cb1",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-23c5f073-37f4-7000-56db-91caa1fa5c46 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12774,7 +12774,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-51e9217a-7e79-7000-b9b6-c626934f5d4e",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-55411bd8-b738-7000-7b88-78936cb661f4 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12787,7 +12787,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-41527f77-3fc3-7000-aa55-85bcdb12cfd8",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-90737eae-27e8-7000-590f-847b9a37f6a0 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12800,7 +12800,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e7736a72-2ec4-7000-ce64-e7d8d9e42fce",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9d32c98e-31c3-7000-0c16-57b8673179bc supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12813,7 +12813,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f4a10d96-a7ff-7000-3938-f867a3fe89cc",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-cf5bb720-df2b-7000-2281-9ee7c498d35d supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12826,7 +12826,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-afed8e3e-342b-7000-a619-a4afc75dc135",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-b8dcd3a3-9eaa-7000-f57a-5e49e167a26d supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12839,7 +12839,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-7451ac3d-79b2-7000-48bf-ae35bdfd74e6",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-6652d7f6-63f3-7000-df4b-d6ac4aea368e supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12852,7 +12852,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-954d4f15-b385-7000-cb81-2233c88e3994",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-e48ba5ea-43d0-7000-e4ee-7fc96ba9944c supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12865,7 +12865,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e3be21d1-24a0-7000-2820-0e341c72e18f",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-a11b14bd-ccb7-7000-740d-df7b32d72ec6 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12878,7 +12878,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-0f095767-b7cf-7000-bdd1-e95bfd9b677a",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-fdf6570a-e61c-7000-6b99-601ed3af6cc9 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12891,7 +12891,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f864415a-87a5-7000-4426-6792cba016f5",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-14aa1af5-6913-7000-a96c-f09589a9b90b supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12904,7 +12904,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-b029d049-c7aa-7000-2c1f-226d38a5bdaf",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-4bbe376b-fda0-7000-56c2-aad85e6deef2 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12917,7 +12917,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-35e2ba46-f206-7000-2322-d8813c0bd6ee",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-fd1674a7-b9eb-7000-11a2-30fb54fa9118 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12930,7 +12930,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-47511844-75da-7000-34bb-f2738da590af",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2b1d3271-4467-7000-68e5-f2333a13c5fd supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12943,7 +12943,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-01297ef9-e924-7000-c65d-1bb55af6988a",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-26cb7348-5891-7000-7810-25512ce08740 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12956,7 +12956,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-49d58f6d-108c-7000-e758-7b4bb21e6823",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-22f11227-8c9e-7000-1a70-4a9fbaab6b92 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12969,7 +12969,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-b27a7183-bb06-7000-b795-774a93218ecb",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-97fff6a4-13f2-7000-ec5c-67f3b6034487 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12982,7 +12982,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-85e541f8-fc96-7000-dee1-33c97b778a5d",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-87178652-be63-7000-26ab-7869532d5098 supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -12995,7 +12995,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-d24a372b-443b-7000-e672-913f65727e6a",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7e059351-c3c9-7000-5285-9e1b5dff4f0c supports MST-01e4fd6c-8310-7000-6606-ff564034fb2c",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13008,7 +13008,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-ad9e198d-abf5-7000-f1ff-69f86c10df41",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-100 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13021,7 +13021,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-27d9f79a-f18b-7000-b559-5a8f120dc9e2",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-b9f460d9-85fe-7000-c21e-50c7bbe93511 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13034,7 +13034,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-3f56388e-d0fb-7000-e5a0-b7c49608bd93",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2c778ff0-72f5-7000-e5a5-ec08e8fbf6fe supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13047,7 +13047,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-5a5bb7d7-4470-7000-3b6c-5389d7dce7d6",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2e7cfdf0-02d1-7000-d427-e165c938e34d supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13060,7 +13060,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-d45917e5-4908-7000-7f82-05b53324a643",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7a4bf942-426e-7000-b8f9-100a59e02970 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13073,7 +13073,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-3aae4906-e697-7000-3b00-9bd077593775",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-17a4b410-57b6-7000-0fb6-8c521ccf5186 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13086,7 +13086,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-6f0ca5b5-d92f-7000-6895-fcf5dc305710",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-f6404d5c-9ad8-7000-c7d4-5ca81e5b776a supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13099,7 +13099,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e627f544-8a12-7000-c810-8570db50853b",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-3bb2a629-dcc5-7000-64e3-b5976f2e4e5d supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13112,7 +13112,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-8e39bd18-c40e-7000-1934-7def332899cd",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-82eba6c3-49c2-7000-7631-4647d7be16c8 supports MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13125,7 +13125,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-b0c26b6c-1523-7000-b74b-860c2185c116",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-101 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13138,7 +13138,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-04947699-81f5-7000-bbbc-dc8b953b47ad",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13151,7 +13151,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-0add089d-bf0f-7000-082c-75653f7c04f4",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-23c5f073-37f4-7000-56db-91caa1fa5c46 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13164,7 +13164,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f5bb93e1-2901-7000-7696-fc16949f1cb1",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-c6dbfa9a-322b-7000-7d6d-16b3e1a44e46 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13177,7 +13177,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-cc84b62b-09af-7000-5498-65a38faabf19",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-84b83426-30a5-7000-30a4-c748762afb83 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13190,7 +13190,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-802f32b0-6f83-7000-5578-c718c9d81484",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-9d32c98e-31c3-7000-0c16-57b8673179bc supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13203,7 +13203,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-39efa34d-f2b1-7000-6164-0abfb26aeb8d",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-c4bdfb2f-bb76-7000-be8f-76b402a37b93 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13216,7 +13216,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-bf1bfb14-592a-7000-fb75-aadc6539aa9f",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-15112c97-7b8f-7000-8280-6d490f10c25c supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13229,7 +13229,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-1c7c65e8-fb93-7000-5216-a2cc641ea4af",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-d36f1895-713a-7000-f949-c149fca7203a supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13242,7 +13242,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f65ecf5c-03b5-7000-ce78-80895b52240f",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-c13af7ab-068d-7000-814b-f757c939fa71 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13255,7 +13255,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-09b91ab3-34ce-7000-2bca-a9e4b0ebd61d",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-b13fcce9-d392-7000-1b00-f61db4b5d04d supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13268,7 +13268,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-b54a833b-165e-7000-9c35-969b7f43bf36",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-aa030ae0-bad8-7000-12cf-f81a1fe665f8 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13281,7 +13281,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-6a3707fd-880e-7000-8133-be0620350db4",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-99213058-a0a2-7000-f190-205f5a3169dd supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13294,7 +13294,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-30362ce1-0105-7000-0cf4-42da8834e3ad",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-22f11227-8c9e-7000-1a70-4a9fbaab6b92 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13307,7 +13307,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-410ba307-9f9f-7000-cdb3-cbe3f6b5bd5e",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-97fff6a4-13f2-7000-ec5c-67f3b6034487 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13320,7 +13320,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-62fafa6a-42f7-7000-d0f0-9080066ddd4e",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-0ad8bfc1-e266-7000-afa8-a667ee595297 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13333,7 +13333,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-a687d71d-6ca3-7000-9755-9702fdec5379",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-2ee7b656-864e-7000-8e4f-20b5e35e2544 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13346,7 +13346,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-ee5323ec-effd-7000-efa7-3340e810b345",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-50712029-daa3-7000-3de5-c626864617d9 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13359,7 +13359,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-d5e416a4-c4ec-7000-2c4e-84d0c7982a9d",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-ceff6b78-a734-7000-fd52-3b36ca7d5cd2 supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13372,7 +13372,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-a068a34f-3670-7000-d806-6e114f1b26ce",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-7e059351-c3c9-7000-5285-9e1b5dff4f0c supports MST-ccb97f21-118d-7000-b2a9-9863d2987819",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13385,7 +13385,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-19697671-4549-7000-b5df-a779f8dc7028",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-106 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13398,7 +13398,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-c2c36a79-51f7-7000-3df2-0779d1a89129",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-c1090ee4-7b04-7000-3ef8-c9cbb77a3f98 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13411,7 +13411,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-d4cf7079-4f03-7000-9b31-fe5b078d9298",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-967f4aac-407c-7000-65a2-e4c54a140afd supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13424,7 +13424,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-6eec4f36-d41c-7000-ae57-8194be89f4ad",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-05d9a8f5-f312-7000-5f94-f2a8d85d0d80 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13437,7 +13437,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-31ab3352-8d07-7000-3a68-4600efad64d8",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-8f82ea80-e0c5-7000-836f-84cfbd91f533 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13450,7 +13450,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-dff1e3bb-32c3-7000-9fc5-7af6a2faef58",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-cb7d8c12-40a8-7000-b5d0-84bf4a92ec46 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13463,7 +13463,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-6643f7db-292f-7000-79bc-ee68f26c6c71",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-93167d37-5b59-7000-43a3-325e336f670d supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13476,7 +13476,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-09f6e660-a0e4-7000-f2b2-f61e88c99a24",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-ebf6ee57-9e78-7000-1fe4-2f1f855b5ce9 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13489,7 +13489,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f17a4bb9-cd34-7000-45f6-170d41ac7565",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-f7f898f1-5049-7000-b759-9d99a87d87e6 supports MST-ca13e8e6-fd5f-7000-ef46-2e9504b0e4f9",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13502,7 +13502,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-265b5ca5-208b-7000-8fe9-57a1888bfeca",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REQ-PSPF-2025-107 supports MST-96d8f363-0dd1-7000-a2d4-b89940b12979",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13515,7 +13515,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-e0f5c736-c350-7000-5a6d-f944b25b6a47",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-66ad9ecb-95e2-7000-0ffa-4c879ad6a9b2 supports MST-96d8f363-0dd1-7000-a2d4-b89940b12979",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13528,7 +13528,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-f224ad26-4451-7000-3d45-2b97aa375eb6",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-73b91cb5-31ea-7000-acba-753f721ee5be supports MST-96d8f363-0dd1-7000-a2d4-b89940b12979",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13541,7 +13541,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-1bdb4b55-fb64-7000-f55b-6a7cb4548c43",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b supports MST-96d8f363-0dd1-7000-a2d4-b89940b12979",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13554,7 +13554,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-6037b370-7029-7000-22be-58d2ebba3fcf",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-3762cf14-df9c-7000-dd9b-c47c9fb67cda themes CTH-472e4987-f5ce-7000-66d9-cd34ed0260c8",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13567,7 +13567,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-a24aab86-ea06-7000-631c-c042ecc50caa",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-fd7c2507-47f2-7000-d7a7-d60e4319bc23 themes CTH-472e4987-f5ce-7000-66d9-cd34ed0260c8",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13580,7 +13580,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-c17c5c88-8371-7000-835e-908f4d3920ce",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-08dd9287-7262-7000-e798-4997ec6264d2 themes CTH-472e4987-f5ce-7000-66d9-cd34ed0260c8",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13593,7 +13593,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-ad926c28-3b93-7000-3433-eca7a2a364f7",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-82f60a95-2c00-7000-aaf1-de1c799494df themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13606,7 +13606,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-8bc37274-aaa0-7000-853e-fa44608b1ff5",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "SRC-104dafbd-1cde-7000-a31b-32ac2f2598bc themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13619,7 +13619,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-bc86b856-9f15-7000-463b-b2d5e36f1901",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-f8d4d9eb-3082-7000-6730-036708e8d67b themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13632,7 +13632,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-0f2ce90d-849d-7000-a398-a806ab357d58",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-03050ed5-a42d-7000-4ea3-258f02cd624f themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13645,7 +13645,7 @@ export const CYBER_REFERENCE_LINKS = [
   {
     "id": "LNK-CYBER-0718fa55-fa72-7000-4456-889d58bfd6fb",
     "entityType": "link",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "MST-1a7881b2-2b05-7000-0f5f-1bc4139e4763 themes CTH-af85f391-6b31-7000-4473-b16481df8527",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13661,7 +13661,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6a038d68-893f-7000-a81b-91ce99c885ff",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-01 - Executive cyber security accountability",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13691,7 +13691,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7d51c2cf-7317-7000-60db-afc243a73d0b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-08 - Executive artificial intelligence accountability",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13721,7 +13721,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f42033d3-6276-7000-7df9-49b445886c79",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-02 - Cyber security leadership",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13751,7 +13751,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9bab8b1e-53ff-7000-d1c2-74c7e648466d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-04 - Cyber security resourcing",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13781,7 +13781,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-eb6299dd-d4c6-7000-e0f7-157d78b46acf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-09 - Security risk management responsibilities",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13811,7 +13811,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e546938a-949d-7000-9777-fcd0a9d0ba71",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-03 - Security risk management assurance",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13841,7 +13841,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a77ff8e7-c3fe-7000-18c7-fc010f77c70f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-05 - Security risk acceptance",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13871,7 +13871,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-139c7217-f5c0-7000-7791-6790df4e1d3d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-06 - Security risk communication",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13901,7 +13901,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-30e8ab5b-2789-7000-d9d5-727960e070ba",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-10 - System exposure minimisation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13931,7 +13931,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-69e2d8d5-bd2c-7000-bc2a-675fd0e73978",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-11 - Supplier cyber security assurance",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13961,7 +13961,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1cc6c1b1-60c5-7000-dc61-e4954923544f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-12 - Personnel suitability assurance",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -13991,7 +13991,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c908e15d-a123-7000-7060-2f68a2af3550",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-13 - Cyber security and safety",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14021,7 +14021,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f2553f9f-efeb-7000-04a0-9861f0988b44",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-14 - Legacy system management",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14051,7 +14051,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-568a099d-4a35-7000-caf3-e85292a4bbcb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "GOV-07 - Continuous cyber security improvement",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14081,7 +14081,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7ff0a9c5-d191-7000-0185-935912bb92e3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "IDE-01 - Asset identification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14111,7 +14111,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e8f7c0ff-efea-7000-31c1-b21c8f7f2a48",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "IDE-05 - Asset interdependencies",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14141,7 +14141,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c06b92c8-d22f-7000-cba7-e72cae524fe1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "IDE-02 - Business criticality rating identification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14171,7 +14171,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9b286220-7b6b-7000-0d19-606bb5570d73",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "IDE-03 - Security requirement identification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14201,7 +14201,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6631e6de-8569-7000-3419-4eac6b8436a9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "IDE-06 - Resilience requirement identification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14231,7 +14231,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5b134e5f-a8c0-7000-635f-8868feb58bca",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "IDE-04 - Security risk identification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14261,7 +14261,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-884ff8dd-b3e4-7000-2749-8454f011baae",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-01 - Secure system lifecycle",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14291,7 +14291,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9f065919-1bff-7000-451e-dcb95dc62254",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-16 - Cyber supply chain security",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14321,7 +14321,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-837339b0-7ee6-7000-27d1-4ba21da3c85e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-13 - Identity, credential and access management",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14351,7 +14351,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9395f4eb-484e-7000-ac92-3eec45cf9699",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-12 - Least privilege access",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14381,7 +14381,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1cac70f7-9ded-7000-7df8-2ed1b924e369",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-05 - Secure administration",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14411,7 +14411,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-82f60a95-2c00-7000-aaf1-de1c799494df",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-04 - Secure configuration management",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14442,7 +14442,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-66ad9ecb-95e2-7000-0ffa-4c879ad6a9b2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-06 - Vulnerability management",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14473,7 +14473,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3762cf14-df9c-7000-dd9b-c47c9fb67cda",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-07 - Trustworthy software",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14504,7 +14504,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cb4082dc-597a-7000-2f55-74eab07b5146",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-08 - Data protection",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14534,7 +14534,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7cce73d1-f413-7000-1853-2cca29c01437",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-17 - Cryptographic agility",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14564,7 +14564,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ca34e0b0-cd71-7000-4e80-93573adf7ebf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-10 - Regular and proven backups",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14594,7 +14594,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-49ff7403-50a0-7000-928a-1a05fe84a7a6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-18 - Network segmentation and segregation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14624,7 +14624,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1d1293fe-4a4e-7000-8be1-38d477ec5802",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-19 - Operational technology isolation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14654,7 +14654,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-12ebb628-f6ba-7000-841b-9662d7a4e85c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-20 - Remote access to operational technology",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14684,7 +14684,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-21cc2796-10ee-7000-5a91-4b9a7f569011",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-09 - Content filtering",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14714,7 +14714,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3e4125ae-ff62-7000-f3b2-d8463a9336aa",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-14 - Cyber security awareness training",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14744,7 +14744,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-231924eb-6012-7000-347f-034ea08315bb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "PRO-15 - Physical access control",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14774,7 +14774,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-73b91cb5-31ea-7000-acba-753f721ee5be",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "DET-01 - Centralised event logging",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14805,7 +14805,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ae88c0a1-cb1e-7000-9f9f-d8236a060665",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "DET-04 - Baselined high-risk access activities",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14835,7 +14835,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9542eabd-4363-7000-f249-f2cacde1f746",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "DET-02 - Cyber security event detection",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14865,7 +14865,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f8829ca3-3269-7000-bd3d-a05074e65f03",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "DET-03 - Cyber security incident identification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14895,7 +14895,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6f5ab5d1-c7f6-7000-28cb-e391063a7dec",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "DET-05 - Detection capability efficacy",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14925,7 +14925,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bc27a129-ed0d-7000-22d4-4bc87c21270b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "RES-01 - Cyber security incident planning",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14956,7 +14956,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d9edb8d0-f428-7000-1fba-ac1625941c82",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "RES-05 - Cyber security incident coordination",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -14986,7 +14986,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4e8ff10d-dd89-7000-682b-746784e2e583",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "RES-03 - Cyber security incident response",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15016,7 +15016,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-141b54e0-1dd5-7000-dbff-b45c3d2c8d59",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "RES-02 - Cyber security incident reporting",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15046,7 +15046,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5187c4b8-01e5-7000-901e-98b3c6ead1b6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "RES-04 - Cyber security incident insights",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15076,7 +15076,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1fa942b9-6d47-7000-5940-31df42a4fb5b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REC-02 - System recovery assurance",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15106,7 +15106,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a88ea5af-be02-7000-201a-1d32093c7835",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "REC-01 - Business operations resumption",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15136,7 +15136,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-291907ae-773c-7000-be9a-086820aeab3b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1997 - The board of directors or executive committee defines clear roles and responsibilities for cyber security both within...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15162,7 +15162,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8fc6b79e-9a66-7000-28f8-3dd39c4310d5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1998 - The board of directors or executive committee ensures that cyber security is integrated throughout all business funct...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15188,7 +15188,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5f95cc59-51c6-7000-8592-bd565f473bbd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1999 - The board of directors or executive committee ensures the cyber security strategy for their organisation is aligned w...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15214,7 +15214,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bec02d4d-6bb5-7000-2670-5d1cbae383d3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2000 - The board of directors or executive committee seeks regular briefings or reporting on the cyber security posture of t...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15240,7 +15240,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-af6f07bb-923b-7000-439e-ab67731c38a6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2001 - The board of directors or executive committee champions a positive cyber security culture within their organisation,...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15266,7 +15266,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f3112a9d-d1d0-7000-f4e0-9e3ba16bddb0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2002 - The board of directors or executive committee maintains a sufficient level of cyber security literacy to fulfil both...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15292,7 +15292,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b2043433-7d48-7000-8cd5-182de04e6c26",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2003 - The board of directors or executive committee maintains awareness of key cyber security recruitment activities, reten...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15318,7 +15318,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-28d07b87-e521-7000-6635-670399c3ef62",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2004 - The board of directors or executive committee supports the development of cyber security skills and experience for al...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15344,7 +15344,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5db12aa6-9dae-7000-da93-01a2e7295b28",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2005 - The board of directors or executive committee understands the business criticality of their organisation’s systems, i...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15370,7 +15370,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f1232ec8-a206-7000-ae43-98e32dda3612",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2006 - The board of directors or executive committee plans for major cyber security incidents, including by participating in...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15396,7 +15396,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-315ed14c-87c3-7000-adfc-1257d6ae0d96",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0714 - A CISO is appointed to provide cyber security leadership and guidance for their organisation (covering information te...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15422,7 +15422,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-062d3faa-b06c-7000-34a6-dd1f186d7832",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1478 - The CISO oversees their organisation’s cyber security program and ensures their organisation’s compliance with cyber...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15448,7 +15448,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b8fc6caa-025e-7000-fa65-727933eb3c09",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1617 - The CISO regularly reviews and updates their organisation’s cyber security program to ensure its relevance in address...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15474,7 +15474,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1d9c85e3-cbd8-7000-c36a-896c12da1545",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1966 - The CISO develops, implements, maintains and verifies on a regular basis a register of systems used by their organisa...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15500,7 +15500,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-be3f498f-d7d5-7000-0db1-66c6aaf65814",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0724 - The CISO implements cyber security measurement metrics and key performance indicators for their organisation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15526,7 +15526,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9472f3aa-1a70-7000-a4e1-ff37bf6befcb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0725 - The CISO coordinates cyber security and business alignment through a cyber security steering committee or advisory bo...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15552,7 +15552,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5d14cf71-10d6-7000-7942-3ef7369925a8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0726 - The CISO coordinates security risk management activities between cyber security and business teams",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15578,7 +15578,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e4031fe6-afd9-7000-a7a7-f7794fa5be54",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0718 - The CISO regularly reports directly to their organisation’s board of directors or executive committee on cyber securi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15604,7 +15604,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fffbb680-e324-7000-7983-1365a25ce472",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1918 - The CISO regularly reports directly to their organisation’s audit, risk and compliance committee (or equivalent) on c...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15630,7 +15630,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0387775c-8ea8-7000-5131-7089b5fbca37",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0733 - The CISO is fully aware of all cyber security incidents within their organisation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15656,7 +15656,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7ac1c329-43c6-7000-0904-c60fabbc6546",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1618 - The CISO oversees their organisation’s response to cyber security incidents",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15682,7 +15682,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8cc3568c-227f-7000-aa7b-ee8deb206060",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0734 - The CISO contributes to the development, implementation and maintenance of business continuity and disaster recovery...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15708,7 +15708,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2a2e4ce5-6292-7000-ec55-b7598c31309a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0720 - The CISO oversees the development, implementation and maintenance of a cyber security communications strategy to assi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15734,7 +15734,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-46825841-7896-7000-7ee0-b587f972e4cb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0731 - The CISO oversees cyber supply chain risk management activities for their organisation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15760,7 +15760,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-92498037-f59d-7000-21fd-c72764fbf376",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0732 - The CISO receives and manages a dedicated cyber security budget for their organisation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15786,7 +15786,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-35e16878-56c8-7000-2bbf-3c3d0be59a87",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0717 - The CISO oversees the management of cyber security personnel within their organisation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15812,7 +15812,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7e60ddb3-3f30-7000-28a6-d8cdfb3262fd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2020 - The CISO ensures sufficient cyber security personnel, with the right skills and experience, are acquired to support c...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15838,7 +15838,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-423e97e8-7ec3-7000-d84c-03d6ce9f28c4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0735 - The CISO oversees the development, implementation and maintenance of their organisation’s cyber security awareness tr...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15864,7 +15864,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e948da81-0bdd-7000-fbc3-2a32617deb1f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1071 - Each system has a designated system owner",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15890,7 +15890,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2aa450d9-2e97-7000-21f9-002c6194e4c3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1525 - System owners register each system with its authorising officer",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15916,7 +15916,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9abed3b4-b56f-7000-9f63-9b304bc3e7e6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1633 - System owners, in consultation with each system’s authorising officer, determine the system boundary, business critic...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15942,7 +15942,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e0f3f9bb-e408-7000-daaa-073f8237f595",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1203 - System owners, in consultation with each system’s authorising officer, conduct a threat and risk assessment for each...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15968,7 +15968,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5fcf0bb6-aa97-7000-12d8-eee848075389",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1634 - System owners, in consultation with each system’s authorising officer, select controls for each system and tailor the...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -15994,7 +15994,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9537422b-fc04-7000-9859-8d99c2516a43",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0009 - System owners, in consultation with each system’s authorising officer, identify any supplementary controls required b...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16020,7 +16020,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a12eddf9-21d3-7000-b884-5d07c89f3932",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1635 - System owners implement controls for each system and its operating environment",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16046,7 +16046,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-623f2367-0f84-7000-faec-dc6245dd378d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1636 - System owners, in consultation with each system’s authorising officer, ensure controls for each non-classified, OFFIC...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16072,7 +16072,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-290a7443-efc8-7000-f9fd-30fc7db3adf5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1967 - System owners, in consultation with each system’s authorising officer, ensure controls for each TOP SECRET system and...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16101,7 +16101,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-facb1566-a415-7000-3cf3-1718dba79ed7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0027 - System owners obtain an authorisation to operate for each non-classified, OFFICIAL: Sensitive, PROTECTED and SECRET s...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16127,7 +16127,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7a006788-2001-7000-2a07-8c893305fecc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1968 - System owners obtain an authorisation to operate for each TOP SECRET system, including for each sensitive compartment...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16156,7 +16156,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fdf95258-deb8-7000-6b9e-435f9d34859b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1526 - System owners continuously monitor the security of each system, and manage associated cyber threats, security risks a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16182,7 +16182,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fcb71f81-941c-7000-cf16-fce663fa019e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2021 - System owners implement and maintain data minimisation practices for each of their systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16208,7 +16208,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6aa276a5-a178-7000-3a83-8f2710f3e14a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1587 - System owners report the security status of each system to its authorising officer at least annually",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16234,7 +16234,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-126a7e57-3bba-7000-bfb1-a5da904fd962",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0576 - A cyber security incident management policy, and associated cyber security incident response plan, is developed, impl...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16260,7 +16260,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e463eba3-f7ae-7000-815f-1e9b8d994af2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1784 - The cyber security incident management policy, including the associated cyber security incident response plan, is exe...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16286,7 +16286,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-071b9ead-0818-7000-bd88-0e5642aba030",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0125 - A cyber security incident register is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16312,7 +16312,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-67927457-431b-7000-f455-701485952593",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1803 - A cyber security incident register contains the following for each cyber security incident: - the date the cyber secu...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16338,7 +16338,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9cdc04af-71d1-7000-df9b-662dd7018bd7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1625 - An insider threat mitigation program is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16364,7 +16364,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6b2988a1-1c9c-7000-3ce3-696c79d910a8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1626 - Legal advice is sought regarding the development and implementation of an insider threat mitigation program",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16390,7 +16390,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-feeb9153-a626-7000-b986-25600cbefd42",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0120 - Cyber security personnel have access to sufficient data sources and tools to ensure that systems can be monitored for...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16416,7 +16416,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5b0ba53c-695d-7000-1b2b-6ef979360189",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0123 - Cyber security incidents are reported to the chief information security officer, or one of their delegates, as soon a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16446,7 +16446,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-23c5f073-37f4-7000-56db-91caa1fa5c46",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0140 - Cyber security incidents are reported to ASD as soon as possible after they occur or are discovered",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16476,7 +16476,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0a674dac-5d59-7000-7624-ca13ab7dde8b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1880 - Cyber security incidents that involve customer data are reported to customers and the public in a timely manner after...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16502,7 +16502,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-db8cd8f2-472e-7000-92ac-d1022227c934",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1881 - Cyber security incidents that do not involve customer data are reported to customers and the public in a timely manne...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16528,7 +16528,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-97fff6a4-13f2-7000-ec5c-67f3b6034487",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1819 - Following the identification of a cyber security incident, the cyber security incident response plan is enacted",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16558,7 +16558,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-aad406a4-149c-7000-6246-9046e41c29de",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0133 - When a data spill occurs, data owners are advised and access to the data is restricted",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16584,7 +16584,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7ff931ea-961c-7000-21fb-18411fb7d0ba",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0917 - When malicious code is detected, the following steps are taken to handle the infection: - the infected systems are is...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16610,7 +16610,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b7cda7a5-47f8-7000-0bef-db2ac8d10817",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1969 - Malicious code, when stored or communicated, is treated beforehand to prevent accidental execution",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16636,7 +16636,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b3b559b8-bfd6-7000-327c-fd6cc248ab51",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1970 - Malicious code processed for cyber security incident response or research purposes is done so in a dedicated analysis...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16662,7 +16662,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e36b4326-ad15-7000-9ee9-03b880b87a26",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0137 - Legal advice is sought before allowing intrusion activity to continue on a system for the purpose of collecting furth...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16688,7 +16688,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fb44490a-7495-7000-fe4d-71b14a95c057",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1609 - System owners are consulted before allowing intrusion activity to continue on a system for the purpose of collecting...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16714,7 +16714,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b67ee143-838c-7000-3368-67b6c1a46dc3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1731 - Planning and coordination of intrusion remediation activities are conducted on a separate system to that which has be...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16740,7 +16740,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a54b66c5-fb42-7000-6333-3c653e6f7783",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1732 - To the extent possible, all intrusion remediation activities are conducted in a coordinated manner during the same pl...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16766,7 +16766,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e4fb4fdb-559f-7000-dce5-87b6e86d2ac1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1213 - Following intrusion remediation activities, full network traffic is captured for at least seven days and analysed to...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16792,7 +16792,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-edefefe1-0d47-7000-e777-e0e224d16935",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0138 - The integrity of evidence gathered during an investigation is maintained by investigators: - recording all of their a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16818,7 +16818,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b865928c-f886-7000-e3d8-8ae0d04077ce",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1631 - Suppliers of operating systems, applications, IT equipment, OT equipment and services associated with systems are ide...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16844,7 +16844,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-db1fffea-7a76-7000-7f12-26edf4a2f714",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1452 - A supply chain risk assessment is performed for suppliers of operating systems, applications, IT equipment, OT equipm...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16870,7 +16870,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-31a00207-bc16-7000-38e1-e0c5025e42ac",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1567 - Suppliers identified as high risk by a cyber supply chain risk assessment are not used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16896,7 +16896,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6af7173c-18a8-7000-930a-93ab242005f2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1568 - Operating systems, applications, IT equipment, OT equipment and services are procured from suppliers that have demons...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16922,7 +16922,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f8811828-4eb6-7000-cdf5-72d1a7313850",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1882 - Operating systems, applications, IT equipment, OT equipment and services are procured from suppliers that have demons...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16948,7 +16948,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-dd80a9a9-224c-7000-2838-042195e0f6e3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1632 - Operating systems, applications, IT equipment, OT equipment and services are procured from suppliers that have a stro...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -16974,7 +16974,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1dd5781d-d792-7000-b0e1-10d56941a9df",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1569 - A shared responsibility model is created, documented and shared between suppliers and their customers in order to art...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17000,7 +17000,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3719401e-f565-7000-f257-487381a6da89",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1785 - A supplier relationship management policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17026,7 +17026,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fd0bf414-e250-7000-0649-08d5218e6026",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1786 - An approved supplier list is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17052,7 +17052,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5e80d188-ff85-7000-5d74-6ad7e562e042",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1787 - Operating systems, applications, IT equipment, OT equipment and services are sourced from approved suppliers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17078,7 +17078,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c045b13b-0140-7000-ff33-6d73696ebca2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1788 - Multiple potential suppliers are identified for sourcing critical operating systems, applications, IT equipment, OT e...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17104,7 +17104,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-911e8c5b-0806-7000-8c52-acf82b95f902",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1789 - Sufficient spares of critical IT equipment and OT equipment are sourced and kept in reserve",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17130,7 +17130,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-894627e4-930f-7000-963e-6e7d85427957",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1790 - Operating systems, applications, IT equipment, OT equipment and services are delivered in a manner that maintains the...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17156,7 +17156,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6f1d58ee-8578-7000-2ebe-4521550c2f57",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1791 - The integrity of operating systems, applications, IT equipment, OT equipment and services are assessed as part of acc...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17182,7 +17182,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-296089b1-73e6-7000-403a-9c0fd979e9c4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1792 - The authenticity of operating systems, applications, IT equipment, OT equipment and services are assessed as part of...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17208,7 +17208,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-727ecbe4-3028-7000-dfb8-4a92e8dea3b2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1736 - A managed service register is developed, implemented, maintained and verified on a regular basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17234,7 +17234,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-991719eb-7f02-7000-ac3b-7cb4524825b0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1737 - A managed service register contains the following for each managed service: - managed service provider’s name - manag...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17260,7 +17260,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b9942531-3b64-7000-84c5-6e8f776ab347",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1793 - Managed service providers and their non-classified, OFFICIAL: Sensitive, PROTECTED and SECRET managed services underg...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17286,7 +17286,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f6b710a1-bbe9-7000-604a-0807f601b2d6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1971 - Managed service providers and their TOP SECRET managed services, including sensitive compartmented information manage...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17315,7 +17315,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ca269a29-1e6d-7000-32a9-8fbd2a9f1d13",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1637 - An outsourced cloud service register is developed, implemented, maintained and verified on a regular basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17341,7 +17341,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a0ccc8b8-60a3-7000-bad9-66b99307e987",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1638 - An outsourced cloud service register contains the following for each outsourced cloud service: - cloud service provid...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17367,7 +17367,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9c87ddce-4b8b-7000-ab1f-7b9caabdb611",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1529 - Only community or private clouds are used for outsourced SECRET and TOP SECRET cloud services",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17396,7 +17396,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b83bc508-2fc6-7000-6cc9-0a86893f9119",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1570 - Outsourced cloud service providers and their non-classified, OFFICIAL: Sensitive, PROTECTED and SECRET cloud services...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17422,7 +17422,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0684a051-1d3c-7000-ef7e-3a0bd248c5cf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1972 - Outsourced cloud service providers and their TOP SECRET cloud services, including sensitive compartmented information...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17451,7 +17451,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a3084e02-ed77-7000-3f4e-37c0a5bf8357",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1395 - Service providers, including any subcontractors, provide an appropriate level of protection for any data entrusted to...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17477,7 +17477,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2d3c07b1-85a5-7000-4596-347bbd7c9267",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0072 - Security requirements associated with the confidentiality, integrity and availability of data are documented in contr...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17503,7 +17503,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2a37f826-be34-7000-d9fb-fdfc1d5e4b69",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1571 - The right to verify compliance with security requirements is documented in contractual arrangements with service prov...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17529,7 +17529,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4abc55f6-24f7-7000-e6bb-3be0225f58ad",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1738 - The right to verify compliance with security requirements documented in contractual arrangements with service provide...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17555,7 +17555,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e128a945-aa4b-7000-eafe-991983f1ad9e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1804 - Break clauses associated with failure to meet security requirements are documented in contractual arrangements with s...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17581,7 +17581,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9846ee9e-ca0e-7000-3231-4acc7f708728",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0141 - The requirement for service providers to report cyber security incidents to a designated point of contact as soon as...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17607,7 +17607,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4843ffb9-78c6-7000-c643-fe70158dca6e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1794 - A minimum notification period of one month by service providers for significant changes to their own service provider...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17633,7 +17633,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-607a9d8d-9642-7000-d8dc-c4ccb970e799",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1451 - Types of data and its ownership is documented in contractual arrangements with service providers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17659,7 +17659,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9b8ebe9b-f6f3-7000-48bc-7141c6d1d5a5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1572 - The regions or availability zones where data will be processed, stored and communicated, as well as a minimum notific...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17685,7 +17685,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-44d54b85-361e-7000-a053-eaa97c8f778c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1573 - Access to all logs relating to an organisation’s data and services is documented in contractual arrangements with ser...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17711,7 +17711,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-99060adc-a55e-7000-bc04-393ddde705fb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1574 - The storage of data in a portable manner that allows for backups, service migration and service decommissioning witho...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17737,7 +17737,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-57b2e8a7-52d7-7000-97bb-a561fedb56b1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1575 - A minimum notification period of one month for the cessation of any services by a service provider is documented in c...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17763,7 +17763,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fb5416ef-2014-7000-7144-dfa6c85fa6e9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1073 - An organisation’s systems are not accessed or administered by a service provider unless a contractual arrangement exi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17789,7 +17789,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-669f8d82-c439-7000-c486-9b364cd3ce15",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1576 - If an organisation’s systems are accessed or administered by a service provider in an unauthorised manner, the organi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17815,7 +17815,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-62a5c39f-24f5-7000-5795-805c80de034b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0039 - A cyber security strategy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17841,7 +17841,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-09e3ea84-1dcf-7000-0b24-69a199689126",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0047 - Organisational-level cyber security documentation is approved by the chief information security officer while system-...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17867,7 +17867,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6ced6160-04b4-7000-419e-33224c360bb5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1739 - A system’s security architecture is approved prior to the development of the system",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17893,7 +17893,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-62add1d6-c949-7000-31db-a3523a1a087c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0888 - Cyber security documentation is reviewed at least annually and includes a ‘current as at \\[date\\]’ or equivalent stat...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17919,7 +17919,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-344635f9-156f-7000-3c2e-6d9d0c977c0e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1602 - Cyber security documentation, including notification of subsequent changes, is communicated to all stakeholders",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17945,7 +17945,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ceea6090-de14-7000-41e8-2dce02b98f1b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0041 - Systems have a system security plan that includes an overview of the system (covering the system’s purpose, the syste...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17971,7 +17971,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c2feebd9-d267-7000-3390-92bdd0c03506",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0043 - Systems have a cyber security incident response plan that covers the following: - guidelines on what constitutes a cy...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -17997,7 +17997,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-104dafbd-1cde-7000-a31b-32ac2f2598bc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0912 - Systems have a change and configuration management plan that includes: - the establishment and maintenance of authori...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18024,7 +18024,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f95e5843-e466-7000-b0e2-0fe609213aca",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1163 - Systems have a continuous monitoring plan that includes: - conducting vulnerability scans for systems at least fortni...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18050,7 +18050,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4411f57e-bdf3-7000-4de9-158e0128fe1e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1563 - At the conclusion of a security assessment for a system, a security assessment report is produced by the assessor and...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18076,7 +18076,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-98247c56-d2e5-7000-3511-9aeef5a54a1b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1564 - At the conclusion of a security assessment for a system, a plan of action and milestones is produced by the system owner",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18102,7 +18102,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3720119d-0ed6-7000-6a23-b6e5d0102f7a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1973 - Non-classified systems are secured in suitably secure facilities",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18128,7 +18128,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bac3398b-2ff5-7000-eff2-d537bc9c2fc5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0810 - Classified systems are secured in facilities that meet the requirements for a security zone suitable for their classi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18154,7 +18154,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-62c172be-ed1f-7000-2c7d-774738e8bac2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1974 - Non-classified servers, network devices and cryptographic equipment are secured in suitably secure server rooms or co...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18180,7 +18180,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f4e44011-facd-7000-4811-465d6abf717d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1053 - Classified servers, network devices and cryptographic equipment are secured in server rooms or communications rooms t...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18206,7 +18206,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d8e206d9-8ad6-7000-25d8-ab12e3d55f14",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1975 - Non-classified servers, network devices and cryptographic equipment are secured in suitably secure security containers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18232,7 +18232,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-83e49278-3900-7000-0f62-ed366465204d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1530 - Classified servers, network devices and cryptographic equipment are secured in security containers suitable for their...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18258,7 +18258,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-afbb1867-715b-7000-c6e0-19b3caf28d1a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0813 - Server rooms, communications rooms and security containers are not left in unsecured states",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18284,7 +18284,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-48004640-94ec-7000-1512-9507eba82c96",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1074 - Keys or equivalent access mechanisms to server rooms, communications rooms and security containers are appropriately...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18310,7 +18310,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2acac556-9f2e-7000-14f2-1fd6640a6be2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1296 - Physical security is implemented to protect network devices in public areas from physical damage or unauthorised access",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18336,7 +18336,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d42ee549-1867-7000-82d7-db819abed700",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1543 - An authorised RF and IR device register for SECRET and TOP SECRET areas is developed, implemented, maintained and ver...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18365,7 +18365,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-32e45198-2868-7000-1f23-c3abdda4323d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0225 - Unauthorised RF and IR devices are not brought into SECRET and TOP SECRET areas",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18394,7 +18394,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f1c9689f-ee6f-7000-5009-7ee08891a760",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0829 - Security measures are used to detect and respond to unauthorised RF devices in SECRET and TOP SECRET areas",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18423,7 +18423,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5b80927c-a016-7000-a469-4754feafe1f6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2069 - An authorised photographic and video recording device register for SECRET and TOP SECRET areas is developed, implemen...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18452,7 +18452,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-79de0117-b8ad-7000-d01f-2ff304acd670",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2070 - Unauthorised photographic and video recording devices are not brought into SECRET and TOP SECRET areas",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18481,7 +18481,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8b9af1ef-cafa-7000-f48c-df71fa67370c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2007 - An authorised medical device register for SECRET and TOP SECRET areas is developed, implemented, maintained and verif...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18510,7 +18510,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d106e7fe-cebb-7000-2190-a973b9ff8af9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2008 - Medical devices that are authorised to be brought into SECRET and TOP SECRET areas meet, at a minimum, the following...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18539,7 +18539,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-275bdb7c-37f4-7000-7116-5d98ef80c233",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2009 - Unauthorised medical devices are not brought into SECRET and TOP SECRET areas",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18568,7 +18568,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7b7305a5-12f4-7000-8294-abb1d06bcde5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0164 - Unauthorised people are prevented from observing systems, in particular workstation displays and keyboards, within fa...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18594,7 +18594,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f21b4c3a-a5eb-7000-92cf-b4734eea6619",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0161 - IT equipment and media are secured when not in use",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18620,7 +18620,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0efc2355-af5c-7000-e7e8-f7a7dc5d3798",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0252 - Cyber security awareness training is undertaken annually by all personnel and covers: - the purpose of the cyber secu...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18646,7 +18646,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bbbfe3d6-5bf7-7000-4f2f-245f76a31dec",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1565 - Tailored privileged user training is undertaken annually by all privileged users",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18672,7 +18672,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3af8c06d-2567-7000-7de6-0e8c8ef43395",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2022 - A cyber security awareness training register is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18698,7 +18698,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-214a99eb-b366-7000-c597-b6e3657238af",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1740 - Personnel dealing with banking details and payment requests are advised of what business email compromise is, how to...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18724,7 +18724,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-92d4078a-0a0d-7000-a0c4-1d6d0280a9e0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2071 - Personnel dealing with user account details are advised of what social engineering attacks are, how to manage such si...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18750,7 +18750,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6d852c2f-d4c4-7000-f2eb-ab03a3ba71c2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0817 - Personnel are advised of what suspicious contact via online services is and how to report it",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18776,7 +18776,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e8cbfb72-e1cd-7000-f2a5-5bc7251fa436",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0820 - Personnel are advised to not post work information to unauthorised online services and to report cases where such inf...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18802,7 +18802,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-63375c81-b939-7000-6125-606bc2418617",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1146 - Personnel are advised to maintain separate work and personal user accounts for online services",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18828,7 +18828,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-926cea58-1b24-7000-aea3-2ad939c5a18c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0821 - Personnel are advised of security risks associated with posting personal information to online services and are encou...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18854,7 +18854,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8931ed9b-1938-7000-6e20-2520dcea89ad",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0824 - Personnel are advised not to send or receive files via unauthorised online services",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18880,7 +18880,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-02903add-10ad-7000-e1c6-780c2d887b2a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1864 - A system usage policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18906,7 +18906,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0d05a146-0644-7000-bcfe-e84946cfd98f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2074 - A general-purpose artificial intelligence usage policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18932,7 +18932,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6ee396ae-f936-7000-ac05-b1dbc702804e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0258 - A web usage policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18958,7 +18958,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e511d413-a7e9-7000-f86b-2faef5b73181",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0432 - Access requirements for systems and their resources are documented in their system security plan",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -18984,7 +18984,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0befe419-eafb-7000-bc1d-e31f5b2dfb79",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0434 - Personnel undergo appropriate employment screening and, where necessary, hold an appropriate security clearance befor...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19010,7 +19010,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9a8fd5cd-24e9-7000-aa8e-b62d1299e9e9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0435 - Personnel receive any necessary briefings before being granted access to systems and their resources",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19036,7 +19036,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5344fe40-2876-7000-d487-49600da83653",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1865 - Personnel agree to abide by system usage policies before being granted access to systems and their resources",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19062,7 +19062,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ba1eb731-4bfe-7000-3065-3edad729fd40",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0414 - Personnel granted access to systems and their resources are uniquely identifiable",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19088,7 +19088,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3d4a06f3-7cfe-7000-06fc-3ffc5e6d57f4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0415 - The use of shared user accounts is strictly controlled, and personnel using such accounts are uniquely identifiable",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19114,7 +19114,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c52b25b9-56c4-7000-74c0-610ab111d180",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1583 - Personnel who are contractors are identified as such",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19140,7 +19140,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1cf301ad-6b56-7000-b98c-fa739b4309ef",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0420 - Where systems process, store or communicate AUSTEO, AGAO or REL data, personnel who are foreign nationals are identif...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19166,7 +19166,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ac65b3df-f72b-7000-689f-baffe1d1242d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0405 - Requests for unprivileged access to systems and their resources are validated when first requested",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19192,7 +19192,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a97823d3-5114-7000-54a9-1c8b02a3322f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1852 - Unprivileged access to systems and their resources is limited to only what is required for users and services to unde...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19218,7 +19218,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-96bac616-fb5d-7000-55d3-c8496a9eb286",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1566 - Use of unprivileged access is centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19244,7 +19244,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-86a2e0cd-8a58-7000-805d-09d653ef0147",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0409 - Foreign nationals, including seconded foreign nationals, do not have access to systems that process, store or communi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19270,7 +19270,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cb7a1be1-8c53-7000-bb14-81219baf8990",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0411 - Foreign nationals, excluding seconded foreign nationals, do not have access to systems that process, store or communi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19296,7 +19296,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6652d7f6-63f3-7000-df4b-d6ac4aea368e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1507 - Requests for privileged access to systems and their resources are validated when first requested",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19323,7 +19323,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-400590cc-60b6-7000-c1e6-83a0f5350b72",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1508 - Privileged access to systems and their resources is limited to only what is required for users and services to undert...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19349,7 +19349,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-90737eae-27e8-7000-590f-847b9a37f6a0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1175 - Privileged user accounts (excluding those explicitly authorised to access online services) are prevented from accessi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19376,7 +19376,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-87178652-be63-7000-26ab-7869532d5098",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1883 - Privileged user accounts explicitly authorised to access online services are strictly limited to only what is require...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19403,7 +19403,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-60c46e34-b59f-7000-5f88-4d81bb677310",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1649 - Just-in-time administration is used for the administration of systems and their resources",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19429,7 +19429,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-55411bd8-b738-7000-7b88-78936cb661f4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0445 - Privileged users are assigned a dedicated privileged user account to be used solely for duties requiring privileged a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19456,7 +19456,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-50247a45-8310-7000-d130-2dd7775afda7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1263 - Unique privileged user accounts are used for administering individual server applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19482,7 +19482,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e48ba5ea-43d0-7000-e4ee-7fc96ba9944c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1509 - Privileged access events are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19509,7 +19509,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-14aa1af5-6913-7000-a96c-f09589a9b90b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1650 - Privileged user account and security group management events are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19536,7 +19536,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fdea67c3-0860-7000-0635-3aeb5c1f81d2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0446 - Foreign nationals, including seconded foreign nationals, do not have privileged access to systems that process, store...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19562,7 +19562,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e887471f-e073-7000-1518-260fb52806e8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0447 - Foreign nationals, excluding seconded foreign nationals, do not have privileged access to systems that process, store...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19588,7 +19588,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-32356a9e-1a1f-7000-fb5e-85807e741188",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0430 - Access to systems and their resources are removed or suspended the same day personnel no longer have a legitimate req...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19614,7 +19614,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ba593e65-f364-7000-443c-f0514b16e39e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1591 - Access to systems and their resources are removed or suspended as soon as practicable when personnel are detected und...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19640,7 +19640,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-31e2d67f-05fb-7000-7c1a-2f5f3ce21507",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1404 - Unprivileged access to systems and their resources are disabled after 45 days of inactivity",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19666,7 +19666,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fdf6570a-e61c-7000-6b99-601ed3af6cc9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1648 - Privileged access to systems and their resources are disabled after 45 days of inactivity",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19693,7 +19693,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a11b14bd-ccb7-7000-740d-df7b32d72ec6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1647 - Privileged access to systems and their resources are disabled after 12 months unless revalidated",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19720,7 +19720,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d765497f-7b37-7000-a7c5-68a05e63c125",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0407 - A secure record is maintained for the life of systems and their resources that covers the following for each user: -...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19746,7 +19746,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0d23bffc-46c4-7000-46c5-a1b3fdcfac7e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0441 - When personnel are granted temporary access to systems and their resources, effective controls are put in place to re...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19772,7 +19772,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3e16ad90-3cae-7000-5b76-ea618cbbfde8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0443 - Temporary access is not granted to systems that process, store or communicate caveated or sensitive compartmented inf...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19798,7 +19798,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-284fe4ab-3624-7000-c080-fdb783296ae8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1610 - A method of emergency access to systems and their resources is documented and tested at least once when initially imp...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19824,7 +19824,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3cf0de84-f711-7000-82c4-158b0afdf739",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1611 - Break glass accounts are only used when normal authentication processes cannot be used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19850,7 +19850,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2b427967-d524-7000-a598-00c5b301e1c5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1612 - Break glass accounts are only used for specific authorised activities",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19876,7 +19876,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-740e26ad-7901-7000-98f8-8f46c152ff1d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1614 - Break glass account credentials are changed by the account custodian after they are accessed by any other party",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19902,7 +19902,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b11dba59-fdbe-7000-0521-259e9f7634cf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1615 - Break glass accounts are tested after credentials are changed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19928,7 +19928,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fce72846-e787-7000-d8bf-611d0bb3c776",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1613 - Use of break glass accounts is centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19954,7 +19954,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c0932659-3dfb-7000-0833-90e00c71b699",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0078 - Systems processing, storing or communicating AUSTEO or AGAO data remain at all times under the control of an Australi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -19980,7 +19980,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d10e55ba-f076-7000-db68-87111bc60be2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0854 - AUSTEO and AGAO data can only be accessed from systems under the sole control of the Australian Government that are l...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20006,7 +20006,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d4c063cf-ebd2-7000-a214-1afbd4f750e4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0181 - Cabling infrastructure is installed in accordance with relevant Australian Standards, as directed by the Australian C...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20032,7 +20032,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-468a65f7-a37d-7000-25a1-3cd07b3492d7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1111 - Fibre-optic cables are used for cabling infrastructure instead of copper cables",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20058,7 +20058,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f5995c9f-bd6c-7000-bf52-a5c94aa14002",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0211 - A cable register is developed, implemented, maintained and verified on a regular basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20084,7 +20084,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a1925d11-19b3-7000-403e-8e070861c746",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0208 - A cable register contains the following for each cable: - cable identifier - cable colour - sensitivity/classificatio...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20110,7 +20110,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b5a24682-645c-7000-2104-784b519b6914",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1645 - Floor plan diagrams are developed, implemented, maintained and verified on a regular basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20136,7 +20136,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-685a04c4-8448-7000-9ae2-4c2a93dccf4b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1646 - Floor plan diagrams contain the following: - cable paths (including ingress and egress points between floors) - cable...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20162,7 +20162,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f785a6d4-47c9-7000-53c9-9426d2482961",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0206 - Cable labelling processes, and supporting cable labelling procedures, are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20188,7 +20188,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-03c0281e-30be-7000-c865-59c4dd6ccb9b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1096 - Cables are labelled at each end with sufficient source and destination details to enable the physical identification...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20214,7 +20214,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-219e02ca-b1a4-7000-39f8-e28e5d03ff63",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1639 - Building management cables are labelled with their purpose in black writing on a yellow background, with a minimum si...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20240,7 +20240,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6851d07f-0102-7000-03e3-5bf2475035fa",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1640 - Cables for foreign systems installed in Australian facilities are labelled at inspection points",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20266,7 +20266,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a02ca9e6-19b2-7000-03f6-459137620f46",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1820 - Cables for individual systems use a consistent colour",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20292,7 +20292,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-26936a80-1671-7000-04cc-4884a19b2cc9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0926 - Non-classified, OFFICIAL: Sensitive and PROTECTED cables are coloured neither salmon pink nor red",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20318,7 +20318,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-42f0c4d9-eff9-7000-e6cc-790fce0fc0fe",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1718 - SECRET cables are coloured salmon pink",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20347,7 +20347,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-dfa956ec-dddd-7000-ca78-6e4280cab98d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1719 - TOP SECRET cables are coloured red",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20376,7 +20376,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e545c7cb-6218-7000-0acc-0c056f2dcfb2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1216 - SECRET and TOP SECRET cables with non-conformant cable colouring are banded with the appropriate colour and labelled...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20405,7 +20405,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-58bdf60d-45d2-7000-1a42-74cf0139c876",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1112 - Cables in non-TOP SECRET areas are inspectable every five metres or less",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20434,7 +20434,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6db4e250-36ad-7000-8945-eb6e47c7d378",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1119 - Cables in TOP SECRET areas are fully inspectable for their entire length",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20463,7 +20463,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1da8a290-aae2-7000-c762-8605e51eb35f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0187 - SECRET cables, when bundled together or run in conduit, are run exclusively in their own individual cable bundle or c...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20492,7 +20492,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9ca3b52f-102c-7000-c109-2d5763398038",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1821 - TOP SECRET cables, when bundled together or run in conduit, are run exclusively in their own individual cable bundle...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20521,7 +20521,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-39ed88f4-be81-7000-987d-600835070912",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1114 - Cable bundles or conduits sharing a common cable reticulation system have a dividing partition or visible gap between...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20547,7 +20547,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-911677b3-9cd1-7000-ee36-75ef3f4151d8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1130 - In shared facilities, cables are run in an enclosed cable reticulation system",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20573,7 +20573,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b923f989-2da0-7000-9bf7-606f6fdae7b3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1164 - In shared facilities, conduits or the front covers of ducts, cable trays in floors and ceilings, and associated fitti...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20599,7 +20599,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-09d986db-eb2e-7000-0a40-869262b527bf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0195 - In shared facilities, uniquely identifiable SCEC-approved tamper-evident seals are used to seal all removable covers...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20628,7 +20628,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-75395746-a3aa-7000-91e0-05214e600726",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0194 - In shared facilities, a visible smear of conduit glue is used to seal all plastic conduit joints and TOP SECRET condu...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20657,7 +20657,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-34e6bc3a-8977-7000-372d-11d9ea7fe4c1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0201 - Labels for TOP SECRET conduits are a minimum size of 2.5 cm x 1 cm, attached at five-metre intervals and marked as ‘T...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20686,7 +20686,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bca3c3be-9187-7000-539a-93f064e3fe64",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1115 - Cables from cable trays to wall outlet boxes are run in flexible or plastic conduit",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20712,7 +20712,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5fd9b86b-d0ca-7000-4b30-4f355710079b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1133 - In shared facilities, TOP SECRET cables are not run in party walls",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20741,7 +20741,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-847cb515-8173-7000-dfac-67ab728fc1ac",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1122 - Where wall penetrations exit a TOP SECRET area into a lower classified area, TOP SECRET cables are encased in conduit...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20770,7 +20770,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fa16cd0e-2b8c-7000-3b81-aeb10fd6efe3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1105 - SECRET and TOP SECRET wall outlet boxes contain exclusively SECRET or TOP SECRET cables",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20799,7 +20799,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6b4c1152-c884-7000-11d5-3d8c50f9b8a9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1095 - Wall outlet boxes denote the systems, cable identifiers and wall outlet box identifier",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20825,7 +20825,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-59f77985-fa12-7000-0811-9d6949475fbf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1822 - Wall outlet boxes for individual systems use a consistent colour",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20851,7 +20851,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fe93a7f6-8e5e-7000-8b17-77bf38782361",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1107 - Non-classified, OFFICIAL: Sensitive and PROTECTED wall outlet boxes are coloured neither salmon pink nor red",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20877,7 +20877,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e7f5e858-c7bf-7000-bf29-68ced600d884",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1720 - SECRET wall outlet boxes are coloured salmon pink",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20906,7 +20906,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-51597f63-8146-7000-5293-64bf7b418a48",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1721 - TOP SECRET wall outlet boxes are coloured red",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20935,7 +20935,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d3ef33a5-189c-7000-788c-e3dad6a549ac",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1109 - Wall outlet box covers are clear plastic",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20961,7 +20961,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8676b76a-1ee9-7000-49ed-2604143c8036",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0218 - If TOP SECRET fibre-optic fly leads exceeding five metres in length are used to connect wall outlet boxes to IT equip...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -20990,7 +20990,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bab44750-98bf-7000-f42e-e1e5114d371e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1102 - Cable reticulation systems leading into cabinets are terminated as close as possible to the cabinet",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21016,7 +21016,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7e9856eb-afbc-7000-10f7-c5b4bd4a88ef",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1101 - In TOP SECRET areas, cable reticulation systems leading into cabinets in server rooms or communications rooms are ter...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21045,7 +21045,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-52471f0c-053a-7000-5214-0dcad5ccd57e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1103 - In TOP SECRET areas, cable reticulation systems leading into cabinets not in server rooms or communications rooms are...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21074,7 +21074,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3e3f15bc-bd9d-7000-b899-2aad8866437e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1098 - SECRET cables are terminated in an individual cabinet; or for small systems, a cabinet with a division plate between...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21103,7 +21103,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-512ca08d-6006-7000-0bea-f8bd45332c7f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1100 - TOP SECRET cables are terminated in an individual TOP SECRET cabinet",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21132,7 +21132,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5ebdbc94-641b-7000-1330-6d83b7489f2b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0213 - SECRET and TOP SECRET cables are terminated on their own individual patch panels",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21161,7 +21161,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d700fe97-ac68-7000-02f3-6ae87bcaeb4b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0216 - TOP SECRET patch panels are installed in individual TOP SECRET cabinets",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21190,7 +21190,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ebd80501-73ed-7000-46d2-ae6a01d841e7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0217 - Where spatial constraints demand non-TOP SECRET patch panels be installed in the same cabinet as a TOP SECRET patch p...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21219,7 +21219,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5a6fc5b2-cd97-7000-3313-238494fe9831",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1116 - A visible gap exists between TOP SECRET cabinets and non-TOP SECRET cabinets",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21248,7 +21248,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9b69f27e-b431-7000-7862-22d76959aedc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0198 - When penetrating a TOP SECRET audio secure room, the Australian Security Intelligence Organisation is consulted and a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21277,7 +21277,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-485d7667-2d25-7000-fcf6-a3688b400434",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1123 - A power distribution board with a feed from an Uninterruptible Power Supply is used to power all TOP SECRET IT equipment",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21306,7 +21306,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4d7344ec-a9f0-7000-7990-00494404ec41",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0250 - IT equipment meets industry and government standards relating to electromagnetic interference/electromagnetic compati...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21332,7 +21332,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c0f989ad-7273-7000-8896-4fa9fa61d5fe",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1884 - Emanation security doctrine produced by ASD for the management of emanation security matters is complied with",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21358,7 +21358,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4d31f654-8d4d-7000-3e9f-9c4df3432913",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1137 - System owners deploying SECRET or TOP SECRET systems within fixed facilities contact ASD for an emanation security ri...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21387,7 +21387,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8b858aa3-c4eb-7000-3740-427872020e25",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0249 - System owners deploying SECRET or TOP SECRET systems in mobile platforms, or as a deployable capability, contact ASD...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21416,7 +21416,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4ac18dc8-491b-7000-78c3-1d4b587bd5fc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0246 - When an emanation security risk assessment is required, it is sought as early as possible in a system’s life cycle",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21442,7 +21442,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d6469305-af5e-7000-a6be-4015f136cd4f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1885 - Recommended actions contained within emanation security mitigation advice issued for systems are implemented by syste...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21468,7 +21468,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-efaf891f-c984-7000-ec87-0d5bd3f1f09d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1078 - A telephone system usage policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21494,7 +21494,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e26ef813-4e6a-7000-346e-4390cb87f40c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0229 - Personnel are advised of the permitted sensitivity or classification of information that can be discussed over intern...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21520,7 +21520,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8a8d6c41-6957-7000-3c0f-18027cd251f2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0230 - Personnel are advised of security risks posed by non-secure telephone systems in areas where sensitive or classified...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21546,7 +21546,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ddf62ebc-4f07-7000-6085-5ef2bdb39bd0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0231 - When using cryptographic equipment to permit different levels of conversation for different kinds of connections, tel...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21572,7 +21572,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-37f0d222-3ebf-7000-3de2-747eb0d76cc6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0232 - Telephone systems used for sensitive or classified conversations encrypt all traffic that passes over external systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21598,7 +21598,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-daa3ffd9-f6d5-7000-862a-783bd1b00b59",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0233 - Cordless telephone handsets and headsets are not used for sensitive or classified conversations unless all communicat...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21624,7 +21624,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1257e3ff-0330-7000-e173-e1ab2ee695c3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0235 - Speakerphones are not used on telephone systems in TOP SECRET areas unless the telephone system is located in an audi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21653,7 +21653,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c5b0f780-ca93-7000-75e1-f686084b88fd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0236 - Off-hook audio protection features are used on telephone systems in areas where background conversations may exceed t...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21679,7 +21679,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-69dd0776-1071-7000-9225-daa571fcbf12",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0931 - In SECRET and TOP SECRET areas, push-to-talk handsets or push-to-talk headsets are used to meet any off-hook audio pr...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21708,7 +21708,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bf363632-0baa-7000-8c73-6c5f5f223972",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1562 - Video conferencing and IP telephony infrastructure is hardened",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21734,7 +21734,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ab548e95-5faf-7000-d2e7-3e56920ffc51",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0546 - When video conferencing or IP telephony traffic passes through a gateway containing a firewall or proxy, a video-awar...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21760,7 +21760,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fdf7a19d-ea0c-7000-f9de-ab5aecd8f1b3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0548 - Video conferencing and IP telephony calls are established using a secure session initiation protocol",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21786,7 +21786,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0c48a17f-b92c-7000-99e0-9b03856d4c8c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0547 - Video conferencing and IP telephony calls are conducted using a secure real-time transport protocol",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21812,7 +21812,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3119eced-7c79-7000-6b9f-91a9b7c02d85",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0554 - An encrypted and non-replayable two-way authentication scheme is used for call authentication and authorisation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21838,7 +21838,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e19791a6-5452-7000-401a-284c4319a8a9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0553 - Authentication and authorisation is used for all actions on a video conferencing network, including call setup and ch...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21864,7 +21864,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d2b4dac7-6467-7000-0f7a-a4fd79fe607a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0555 - Authentication and authorisation is used for all actions on an IP telephony network, including registering a new IP p...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21890,7 +21890,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d84bd77f-1660-7000-4fd8-90951e09321c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0551 - IP telephony is configured such that: - IP phones authenticate themselves to the call controller upon registration -...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21916,7 +21916,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a0b827be-4762-7000-ffd5-263019532796",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1014 - Individual logins are implemented for IP phones used for SECRET or TOP SECRET conversations",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21945,7 +21945,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-74f9153d-cf0f-7000-73cb-66915c0b41cc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0549 - Video conferencing and IP telephony traffic is separated physically or logically from other data traffic",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21971,7 +21971,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-85cb73aa-bb8d-7000-4112-c414c69898c9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0556 - Workstations are not connected to video conferencing units or IP phones unless the workstation or the device uses Vir...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -21997,7 +21997,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-275539c6-9dd3-7000-4289-59c3f5ed843b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0558 - IP phones used in public areas do not have the ability to access data networks, voicemail and directory services",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22023,7 +22023,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9637c6b8-3551-7000-dd56-f252f6d9709c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0559 - Microphones (including headsets and USB handsets) and webcams are not used with non-SECRET workstations in SECRET areas",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22052,7 +22052,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-69d8cd59-dc91-7000-d82e-b7199905ec2e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1450 - Microphones (including headsets and USB handsets) and webcams are not used with non-TOP SECRET workstations in TOP SE...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22081,7 +22081,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-404f5cf6-27b8-7000-ef2f-d1b74d7cec00",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1019 - A denial of service response plan for video conferencing and IP telephony services is developed, implemented and main...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22107,7 +22107,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-dba1e2c3-7d44-7000-b484-5bae3969c0c5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1805 - A denial of service response plan for video conferencing and IP telephony services contains the following: - how to i...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22133,7 +22133,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fea49c85-a777-7000-f1c4-7f5c3ae8ff83",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0588 - An MFD usage policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22159,7 +22159,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a5f8feba-4925-7000-851b-71a7017cb0ed",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0245 - MFDs are not connected to digital telephone systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22185,7 +22185,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-81348c6e-d709-7000-f378-225997a897bb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1854 - Users authenticate to MFDs before they can print, scan or copy documents",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22211,7 +22211,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-75a5ab88-9f6f-7000-a2b2-049877452d6e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0590 - Authentication measures for MFDs are the same strength as those used for workstations on networks they are connected to",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22237,7 +22237,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-590dfced-d8c3-7000-6abd-3e352b03843a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0589 - MFDs are not used to scan or copy documents above the sensitivity or classification of networks they are connected to",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22263,7 +22263,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-221068da-453c-7000-06ee-0e766d7a641e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1855 - Use of MFDs for printing, scanning and copying purposes, including the capture of shadow copies of documents, are cen...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22289,7 +22289,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f8a52cfb-3a21-7000-f5d2-8ac1aab55d1c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1036 - MFDs are located in areas where their use can be observed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22315,7 +22315,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e2f6b600-6630-7000-c8c8-155063ff4f9d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2075 - Fax machines, and online fax services, are not used for sending or receiving fax messages",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22341,7 +22341,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ea1a7ff7-2d37-7000-b2a5-e39b7f7077f6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1297 - Legal advice is sought prior to allowing privately-owned mobile devices and desktop computers to access systems or data",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22367,7 +22367,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2d236af6-e7ab-7000-ec5e-fa93b493873e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1400 - Personnel using privately-owned mobile devices or desktop computers to access OFFICIAL: Sensitive or PROTECTED system...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22393,7 +22393,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-36eae235-5e6c-7000-7b80-b244fe0e15c1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1866 - Personnel using privately-owned mobile devices or desktop computers to access OFFICIAL: Sensitive or PROTECTED system...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22419,7 +22419,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a02e034a-b8e0-7000-e691-b5ab9801de44",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2095 - Personnel using privately-owned mobile devices or desktop computers to access OFFICIAL: Sensitive or PROTECTED system...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22445,7 +22445,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-da634d7d-f583-7000-3ffe-6b74bb308b2f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0694 - Privately-owned mobile devices and desktop computers do not access SECRET and TOP SECRET systems or data",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22474,7 +22474,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-38bd7506-f0fc-7000-7743-47def5511946",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1482 - Personnel using organisation-owned mobile devices or desktop computers to access classified systems or data have enfo...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22500,7 +22500,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f44550d7-abb9-7000-e5ae-263b058f309a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0874 - Mobile devices and desktop computers access the internet via an organisation’s internet gateway rather than via a dir...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22526,7 +22526,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-416a2916-185b-7000-a0b0-bc0fd48093d3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0705 - When accessing an organisation’s network via a VPN connection, split tunnelling is disabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22552,7 +22552,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-19bc63cd-5a4d-7000-6ab1-94148f683c0e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1533 - A mobile device management policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22578,7 +22578,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bde80b91-efbf-7000-bd5a-6d9e9814c179",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1195 - Mobile Device Management solutions that have completed a Common Criteria evaluation against the Protection Profile fo...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22604,7 +22604,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c423da09-fca1-7000-fa17-6513f6f67150",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1867 - Mobile devices that access OFFICIAL: Sensitive or PROTECTED systems or data use mobile platforms that have completed...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22630,7 +22630,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6428381e-3dd1-7000-c243-d6c14a5107ab",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0687 - Mobile devices that access SECRET or TOP SECRET systems or data use mobile platforms that have been issued an Approva...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22659,7 +22659,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b44e9aa6-6285-7000-5e20-e1a33fc98b3b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0869 - Mobile devices encrypt their internal storage and any removable media",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22685,7 +22685,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-34a4e03e-ca46-7000-649b-0094bf2a525c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1868 - SECRET and TOP SECRET mobile devices do not use removable media unless approved beforehand by ASD",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22714,7 +22714,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-37aa2808-435a-7000-522d-5b2a33e51c25",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1085 - Mobile devices encrypt all sensitive or classified data communicated over public network infrastructure",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22740,7 +22740,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6f993b86-eb7b-7000-db62-2214454add5d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1886 - Mobile devices are configured to operate in a supervised (or equivalent) mode",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22766,7 +22766,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-15eb8de5-4a31-7000-6ac7-79183d2e30c4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2096 - Mobile devices are configured to enforce separation between organisational and personal mobile applications and data",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22792,7 +22792,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-856e3550-5ec1-7000-5353-1a4e186a9eaa",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2097 - Mobile devices are configured with always on VPN functionality",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22818,7 +22818,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7b6e6e4d-8fa2-7000-27f4-70cf38886d3c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1887 - Mobile devices are configured with remote locate and wipe functionality",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22844,7 +22844,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-77acb660-8b4a-7000-da38-50cedeaf0461",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1888 - Mobile devices are configured with secure password-based lock screens",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22870,7 +22870,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ffd28b57-469a-7000-a018-8645eb064bfe",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2098 - Mobile devices are configured to prevent data transfers over Universal Serial Bus connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22896,7 +22896,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5eb4c1b3-3f0a-7000-5bc1-79c3515869e2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0863 - Mobile devices prevent personnel from installing non-approved applications once provisioned",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22922,7 +22922,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1715606c-9039-7000-3a67-46467220d73e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0864 - Mobile devices prevent personnel from disabling or modifying security functionality once provisioned",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22948,7 +22948,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a477df57-5702-7000-ad6f-60a4eb8892c8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1366 - Security updates are applied to mobile devices as soon as they become available",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -22974,7 +22974,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-be525ff1-0f90-7000-7227-80efd9e7e907",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1082 - A mobile device usage policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23000,7 +23000,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-236407a5-deab-7000-f783-1e477ef01f46",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1083 - Personnel are advised of the sensitivity or classification permitted for voice and data communications when using mob...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23026,7 +23026,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-301b9039-144b-7000-fea4-61ba8c74e1f6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1299 - Personnel are advised to take the following precautions when using mobile devices: - never leave mobile devices or re...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23052,7 +23052,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-aedb1662-6d86-7000-9eb8-9b975e659c88",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0240 - Paging, Multimedia Message Service, Short Message Service and messaging apps are not used to communicate sensitive or...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23078,7 +23078,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5a0ee669-d3d0-7000-be85-11543b638c0d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1196 - Non-classified, OFFICIAL: Sensitive and PROTECTED mobile devices are configured to remain undiscoverable to other Blu...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23104,7 +23104,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a4c283fa-ee9d-7000-3f0b-48a67fc55663",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1200 - Bluetooth pairing for non-classified, OFFICIAL: Sensitive and PROTECTED mobile devices is performed using Secure Conn...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23130,7 +23130,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b27042f3-62f8-7000-2472-72662a657372",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1198 - Bluetooth pairing for non-classified, OFFICIAL: Sensitive and PROTECTED mobile devices is performed in a manner such...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23156,7 +23156,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0e507779-c555-7000-0865-76f6c2659ba9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1199 - Bluetooth pairings for non-classified, OFFICIAL: Sensitive and PROTECTED mobile devices are removed when there is no...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23182,7 +23182,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bd01455c-5907-7000-536c-8048f52009f7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0682 - Bluetooth functionality is not enabled on SECRET and TOP SECRET mobile devices",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23211,7 +23211,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a9e89e9c-8a64-7000-76b9-9073384bd513",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2099 - Mobile devices are not connected to the infotainment systems of connected vehicles",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23237,7 +23237,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f70a15ab-0ba7-7000-1965-7408236f92c3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2100 - Sensitive or classified data is not viewed on mobile devices within or near connected vehicles",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23263,7 +23263,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4dc77736-219c-7000-ff1a-5c95e698e390",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2101 - Sensitive or classified phone calls and conversations are not conducted within or near connected vehicles",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23289,7 +23289,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a595be85-940e-7000-7d2d-6febd8a0fb31",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0866 - Sensitive or classified data is not viewed on mobile devices in public locations unless care is taken to reduce the c...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23315,7 +23315,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-22572da4-ece9-7000-7e5d-15c18c3dcb0b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1145 - Privacy filters are applied to the screens of SECRET and TOP SECRET mobile devices",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23344,7 +23344,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-99d4293d-e137-7000-216c-af0ca13f9dbc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1644 - Sensitive or classified phone calls and conversations are not conducted in public locations unless care is taken to r...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23370,7 +23370,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2eb4e3e3-d373-7000-2ecf-e0e65ef56810",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0871 - Mobile devices are kept under continual direct supervision when being actively used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23396,7 +23396,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-93d7676f-993b-7000-5f39-31ab60454177",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0870 - Mobile devices are carried or stored in a secured state when not being actively used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23422,7 +23422,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-21b4c2e4-c0a9-7000-c8ec-023220efb90c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1084 - If unable to carry or store mobile devices in a secured state, they are physically transferred in a security briefcas...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23448,7 +23448,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-41cada94-695d-7000-9403-2c267df6fed4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0701 - Mobile device emergency sanitisation processes, and supporting mobile device emergency sanitisation procedures, are d...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23474,7 +23474,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-91be983e-ac69-7000-7df9-1f33c952592f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0702 - If a cryptographic zeroise or sanitise function is provided for cryptographic keys on a SECRET or TOP SECRET mobile d...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23503,7 +23503,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3af24103-dca8-7000-110a-f16cd7e99b1b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1298 - Personnel are advised of privacy and security risks when travelling overseas with mobile devices",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23529,7 +23529,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9272f9de-1011-7000-dda5-687aa9651cb8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1554 - If travelling overseas with mobile devices to high or extreme risk countries, personnel are: - issued with newly prov...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23555,7 +23555,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5927080f-5219-7000-5ee5-5d56651e295c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1555 - Before travelling overseas with mobile devices, personnel take the following actions: - record all details of the mob...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23581,7 +23581,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3223d888-3445-7000-7efb-faca9b708fbd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1088 - Personnel report the potential compromise of mobile devices, removable media or credentials to their organisation as...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23607,7 +23607,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-baf3632e-d171-7000-8676-7af972bab735",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1300 - Upon returning from travelling overseas with mobile devices, personnel take the following actions: - sanitise and res...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23633,7 +23633,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-52c90dea-efdd-7000-015c-cd861cb170d1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1556 - If returning from travelling overseas with mobile devices to high or extreme risk countries, personnel take the follo...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23659,7 +23659,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-60ed4c11-4e28-7000-b549-5730b5f5e68d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0280 - If procuring an evaluated product, a product that has completed a PP-based evaluation, including against all applicab...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23685,7 +23685,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-da4dcc84-654d-7000-e00a-ed25e35d8395",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0285 - Evaluated products are delivered in a manner consistent with any delivery procedures defined in associated evaluation...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23711,7 +23711,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8bb278fa-a7f1-7000-1c05-db9f40a4e00d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0286 - When procuring high assurance information technology (IT) equipment, ASD is contacted for any equipment-specific deli...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23737,7 +23737,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d70afb88-7a79-7000-74e4-bd44919397f1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0289 - Evaluated products are installed, configured, administered and operated in an evaluated configuration and in accordan...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23763,7 +23763,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6f9487b1-5deb-7000-cb8d-76e6bd11adcc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0290 - High assurance IT equipment is installed, configured, administered and operated in an evaluated configuration and in...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23789,7 +23789,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3a802830-5bb6-7000-dc2d-7174cc3b5187",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1551 - An IT equipment management policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23815,7 +23815,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-382efed4-d8f2-7000-cd5a-cbf9a2c4ca6b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1913 - Approved configurations for IT equipment are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23841,7 +23841,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7d136599-670f-7000-2fd6-2bb4aa6abd27",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1858 - IT equipment is hardened using ASD and vendor hardening guidance, with the most restrictive guidance taking precedenc...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23867,7 +23867,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-324a58c4-6ce2-7000-c17e-72a7d7fde883",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0336 - A networked IT equipment register is developed, implemented, maintained and verified on a regular basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23893,7 +23893,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e88b3c64-d2d3-7000-96d9-2f733417d6fc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1869 - A non-networked IT equipment register is developed, implemented, maintained and verified on a regular basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23919,7 +23919,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6b2f3e97-2e8d-7000-0d02-c3088bc28463",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0294 - IT equipment, with the exception of high assurance IT equipment, is labelled with protective markings reflecting its...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23945,7 +23945,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ed2c7d61-b5ec-7000-6757-cad9184ef4c6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0296 - ASD’s approval is sought before applying labels to external surfaces of high assurance IT equipment",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23971,7 +23971,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3e419071-4c37-7000-261e-903b1a0e107b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0293 - IT equipment is classified based on the highest sensitivity or classification of data that it is approved for process...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -23997,7 +23997,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ebb401e5-7830-7000-726c-d77c1c8d7d1a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1599 - IT equipment is handled in a manner suitable for its sensitivity or classification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24023,7 +24023,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-104e1d0f-c6d5-7000-2697-153fe5f6c91a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1079 - ASD’s approval is sought before undertaking any maintenance or repairs to high assurance IT equipment",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24049,7 +24049,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6ff400d2-8964-7000-775a-e2158ce8c3a1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0305 - Maintenance and repairs of IT equipment is carried out on site by an appropriately cleared technician",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24075,7 +24075,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-89f0cffc-9287-7000-e3c4-751c6e74dbbc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0307 - If an appropriately cleared technician is not used to undertake maintenance or repairs of IT equipment, the IT equipm...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24101,7 +24101,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-72012388-2e2f-7000-1437-2e25fb7e90ff",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0306 - If an appropriately cleared technician is not used to undertake maintenance or repairs of IT equipment, the technicia...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24127,7 +24127,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-57ebb947-4c8b-7000-3fa6-f14092d7c2ff",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0310 - IT equipment maintained or repaired off site is done so at facilities approved for handling the sensitivity or classi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24153,7 +24153,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6a4fdfbe-1905-7000-b70c-0b67ea140b1f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1598 - Following maintenance or repair activities for IT equipment, the IT equipment is inspected to confirm it retains its...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24179,7 +24179,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d7a17193-27b2-7000-c2de-c4f3e94e2f62",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0313 - IT equipment sanitisation processes, and supporting IT equipment sanitisation procedures, are developed, implemented...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24205,7 +24205,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-10fd263e-5793-7000-0a69-00b6ea6ca221",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1741 - IT equipment destruction processes, and supporting IT equipment destruction procedures, are developed, implemented an...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24231,7 +24231,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d3ea2d05-d0cc-7000-8c7c-cafd2c86c668",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0311 - IT equipment containing media is sanitised by removing the media from the IT equipment or by sanitising the media in...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24257,7 +24257,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e3c76ddf-bf6d-7000-e8e9-81df437aa699",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1742 - IT equipment that cannot be sanitised is destroyed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24283,7 +24283,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-258d172e-3073-7000-7a5a-543c025d7f04",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1218 - IT equipment, including associated media, that is located overseas and has processed, stored or communicated AUSTEO o...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24309,7 +24309,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e02931b2-d24f-7000-fd60-a76256c8891b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0312 - IT equipment, including associated media, that is located overseas and has processed, stored or communicated AUSTEO o...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24335,7 +24335,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-92c03691-d6e1-7000-7d17-72c13d102b7a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0315 - High assurance IT equipment is destroyed prior to its disposal",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24361,7 +24361,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ebcb8710-50c1-7000-9622-1158d15dbcf3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0317 - At least three pages of random text with no blank areas are printed on each colour printer cartridge or MFD print drum",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24387,7 +24387,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-65b27602-3f73-7000-f4c4-918c57f7e6ae",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1219 - MFD print drums and image transfer rollers are inspected and destroyed if there is remnant toner which cannot be remo...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24413,7 +24413,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-073d0b4f-7015-7000-1dff-1c04afe5805d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1220 - Printer and MFD platens are inspected and destroyed if any text or images are retained on the platen",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24439,7 +24439,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e2fb5029-a1fe-7000-78f3-945775d02b73",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1221 - Printers and MFDs are checked to ensure no pages are trapped in the paper path due to a paper jam",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24465,7 +24465,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7afae5b1-549a-7000-213d-ecef73b4ea45",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0318 - When unable to sanitise printer cartridges or MFD print drums, they are destroyed as per electrostatic memory devices",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24491,7 +24491,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ef8a45b0-3d82-7000-df3c-210985b114a6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1534 - Printer ribbons in printers and MFDs are removed and destroyed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24517,7 +24517,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0a6d290c-596d-7000-c8eb-283876256b8f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1076 - Televisions and computer monitors with minor burn-in or image persistence are sanitised by displaying a solid white i...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24543,7 +24543,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c7f80198-689e-7000-5b1a-7427c198d219",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1222 - Televisions and computer monitors that cannot be sanitised are destroyed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24569,7 +24569,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fbc5b1b1-f404-7000-359c-c3322a78367a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1223 - Memory in network devices is sanitised using the following processes, in order of preference: - following device-spec...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24595,7 +24595,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b4729fa3-3dbf-7000-3f40-047ad298982c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1550 - IT equipment disposal processes, and supporting IT equipment disposal procedures, are developed, implemented and main...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24621,7 +24621,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d4737670-6536-7000-14d5-384f0cb27e52",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1217 - Labels and markings indicating the owner, sensitivity, classification or any other marking that can associate IT equi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24647,7 +24647,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-01aee1c1-7358-7000-3bfe-c6629c286ccc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0321 - When disposing of IT equipment that has been designed or modified to meet emanation security standards, ASD is contac...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24673,7 +24673,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d300fe83-7c29-7000-628d-14b4aac130a8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0316 - Following sanitisation, destruction or declassification, a formal administrative decision is made to release IT equip...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24699,7 +24699,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c1403765-4b2e-7000-748f-7635ece2eaae",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1549 - A media management policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24725,7 +24725,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7bca1e15-492a-7000-5a13-9e5489cc626e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1359 - A removable media usage policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24751,7 +24751,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-463c29a1-4c5f-7000-b33d-455a8bdeb1c5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1713 - A removable media register is developed, implemented, maintained and verified on a regular basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24777,7 +24777,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cd4dcd3f-22e7-7000-8617-9824e5689508",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0332 - Media, with the exception of internally mounted fixed media within information technology equipment, is labelled with...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24803,7 +24803,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-750051bd-fef6-7000-353a-ba980fa43b21",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0323 - Media is classified to the highest sensitivity or classification of data it stores, unless the media has been classif...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24829,7 +24829,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-aa2e20c1-54bb-7000-40e7-3ce25dd5dfae",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0337 - Media is only used with systems that are authorised to process, store or communicate its sensitivity or classification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24855,7 +24855,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d1083057-5124-7000-ed31-acfdedaca237",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0325 - Any media connected to a system with a higher sensitivity or classification than the media is reclassified to the hig...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24881,7 +24881,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-434f6449-3a8a-7000-3387-5e3260ab1180",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0330 - Before reclassifying media to a lower sensitivity or classification, the media is sanitised or destroyed, and a forma...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24907,7 +24907,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5ed7a602-bf9b-7000-9cbd-37a7e9694b20",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0831 - Media is handled in a manner suitable for its sensitivity or classification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24933,7 +24933,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-04fd5bcf-0141-7000-9da1-6a7ae490d076",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1059 - All data stored on media is encrypted",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24959,7 +24959,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-62a4f762-ab0f-7000-f63b-d8fe77f0f170",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1600 - Media is sanitised before it is used for the first time",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -24985,7 +24985,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1919bfe7-30d3-7000-972f-8269732ce631",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1642 - Media is sanitised before it is reused in a different security domain",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25011,7 +25011,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-548a6b4b-586f-7000-bbcd-999ff86e54cb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0347 - When transferring data manually between two systems belonging to different security domains, write-once media is used...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25037,7 +25037,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-554a3173-d2f0-7000-4cfd-ba5645d1e43f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0947 - When transferring data manually between two systems belonging to different security domains, rewritable media is sani...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25063,7 +25063,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9db316e2-5b78-7000-10ee-606fb7a1b573",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0348 - Media sanitisation processes, and supporting media sanitisation procedures, are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25089,7 +25089,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e34345b0-d95d-7000-db0e-9220b37abc2d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0351 - Volatile media is sanitised by removing its power for at least 10 minutes",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25115,7 +25115,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6b67cd81-6f9d-7000-9480-2f801466c41e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0352 - SECRET and TOP SECRET volatile media is sanitised by overwriting it at least once in its entirety with a random patte...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25144,7 +25144,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7c61ea65-80eb-7000-3dcb-f0c4fc76bcd6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0835 - Following sanitisation, TOP SECRET volatile media retains its classification if it stored static data for an extended...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25173,7 +25173,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cf0d5981-8ab4-7000-61c9-b3f9eb70a6aa",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0354 - Non-volatile magnetic media is sanitised by overwriting it at least once (or three times if pre-2001 or under 15 GB)...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25199,7 +25199,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fd44cc6d-b201-7000-187d-551043240aed",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1065 - The host-protected area and device configuration overlay table are reset prior to the sanitisation of non-volatile ma...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25225,7 +25225,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c2946617-c205-7000-06b2-cce295697527",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1067 - The ATA secure erase command is used, in addition to block overwriting software, to ensure the growth defects table o...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25251,7 +25251,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0540c5dc-a78e-7000-d86d-0f3b7d8bab3e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0356 - Following sanitisation, SECRET and TOP SECRET non-volatile magnetic media retains its classification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25280,7 +25280,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-37944725-2733-7000-cc12-1ec7300f63f6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0357 - Non-volatile EPROM media is sanitised by applying three times the manufacturer’s specified ultraviolet erasure time a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25306,7 +25306,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7df09bb4-5494-7000-aee3-b2931b5d674a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0836 - Non-volatile EEPROM media is sanitised by overwriting it at least once in its entirety with a random pattern followed...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25332,7 +25332,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-80401476-cf48-7000-a0f3-bd437332027f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0358 - Following sanitisation, SECRET and TOP SECRET non-volatile EPROM and EEPROM media retains its classification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25361,7 +25361,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4d1f87aa-32a1-7000-eb80-e9c675feb4a9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0359 - Non-volatile flash memory media is sanitised by overwriting it at least twice in its entirety with a random pattern f...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25387,7 +25387,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6c673076-fa49-7000-2a6b-73a99d2bc6c2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0360 - Following sanitisation, SECRET and TOP SECRET non-volatile flash memory media retains its classification",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25416,7 +25416,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e41ed904-843a-7000-9e4a-be3837331d00",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1735 - Media that cannot be successfully sanitised is destroyed prior to its disposal",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25442,7 +25442,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-32611201-b216-7000-47b5-3a8bdb18e374",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0363 - Media destruction processes, and supporting media destruction procedures, are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25468,7 +25468,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a53675cd-f6c5-7000-77d2-fd4eac5e5178",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0350 - The following media types are destroyed prior to their disposal: - microfiche and microfilm - optical discs - program...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25494,7 +25494,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-69b2c6ec-a824-7000-d625-bf0c64ec7611",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1361 - Security Construction and Equipment Committee-approved equipment or ASIO-approved equipment is used when destroying m...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25520,7 +25520,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d174e301-409d-7000-1b1c-8dcead6ccb16",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1160 - If using degaussers to destroy media, degaussers evaluated by the United States’ National Security Agency are used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25546,7 +25546,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-86b31c71-26dd-7000-82bc-b24dc0e7b665",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1517 - Equipment that is capable of reducing microform to a fine powder, with resultant particles not showing more than five...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25572,7 +25572,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6dc66c13-e24d-7000-816e-aff12006a51d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1722 - Electrostatic memory devices are destroyed using a furnace/incinerator, hammer mill, disintegrator or grinder/sander",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25598,7 +25598,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8a329e0d-62f5-7000-5c2d-93e270cae793",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1723 - Magnetic floppy disks are destroyed using a furnace/incinerator, hammer mill, disintegrator, degausser or by cutting",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25624,7 +25624,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-202bf82b-8bf5-7000-ad2b-01a330e99f9a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1724 - Magnetic hard disks are destroyed using a furnace/incinerator, hammer mill, disintegrator, grinder/sander or degausser",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25650,7 +25650,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9491340b-cd5c-7000-1ff5-3ae9584feaeb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1725 - Magnetic tapes are destroyed using a furnace/incinerator, hammer mill, disintegrator, degausser or by cutting",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25676,7 +25676,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-21e0433b-b7a9-7000-78de-39d814dafdde",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1726 - Optical disks are destroyed using a furnace/incinerator, hammer mill, disintegrator, grinder/sander or by cutting",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25702,7 +25702,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8f3eb65f-f864-7000-55f8-02f285fca1fb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1727 - Semiconductor memory is destroyed using a furnace/incinerator, hammer mill or disintegrator",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25728,7 +25728,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b086ebbd-6179-7000-bf12-d3af741ca062",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0368 - Media destroyed using a hammer mill, disintegrator, grinder/sander or by cutting results in media waste particles no...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25754,7 +25754,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-04ba3333-8820-7000-c539-fb79faff27de",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1728 - The resulting media waste particles from the destruction of SECRET media is stored and handled as OFFICIAL if less th...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25783,7 +25783,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f269c0f8-2ec9-7000-b190-980e13e46c3d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1729 - The resulting media waste particles from the destruction of TOP SECRET media is stored and handled as OFFICIAL if les...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25812,7 +25812,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3d401f32-e810-7000-0712-b8742461b5fb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0361 - Magnetic media is destroyed using a degausser with a suitable magnetic field strength and magnetic orientation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25838,7 +25838,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-dfa0cb0e-6429-7000-eee4-9f09089cf963",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0362 - Product-specific directions provided by degausser manufacturers are followed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25864,7 +25864,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d2cc8539-654e-7000-0c94-0d238317fad7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1641 - Following the use of a degausser, magnetic media is physically damaged by deforming any internal platters",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25890,7 +25890,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-add0ad91-d63c-7000-251c-98af4d6e2895",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0370 - The destruction of media is performed under the supervision of at least one cleared person",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25916,7 +25916,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3339760d-86a5-7000-c610-81aa5e41f31b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0371 - Personnel supervising the destruction of media supervise its handling to the point of destruction and ensure that the...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25942,7 +25942,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c42cd56b-aef8-7000-e6d3-5cd9f3e4e3b1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0372 - The destruction of media storing accountable material is performed under the supervision of at least two cleared pers...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25968,7 +25968,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ddc27389-d2a9-7000-e2da-3f6803e289d5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0373 - Personnel supervising the destruction of media storing accountable material supervise its handling to the point of de...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -25994,7 +25994,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8b0f0ec4-8d4a-7000-73c5-d746d8ee9da3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0839 - The destruction of media storing accountable material is not outsourced",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26020,7 +26020,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7f3fae77-ffff-7000-6fa8-3d398aaa6df6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0840 - When outsourcing the destruction of media storing non-accountable material, a National Association for Information De...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26046,7 +26046,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b1ff547a-ded2-7000-f1fb-5ae46fd2f4d1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0374 - Media disposal processes, and supporting media disposal procedures, are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26072,7 +26072,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7a4b4844-841b-7000-7168-9da4c6557f3e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0378 - Labels and markings indicating the owner, sensitivity, classification or any other marking that can associate media w...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26098,7 +26098,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7d6fe159-2212-7000-20e0-afa50d347b90",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0375 - Following sanitisation, destruction or declassification, a formal administrative decision is made to release media, o...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26124,7 +26124,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0b283e6c-23d9-7000-54c0-fc1bf1686f4d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1743 - Vendors that have demonstrated a commitment to Secure by Design and Secure by Default principles and practices, inclu...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26150,7 +26150,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4676c0b0-317c-7000-cb8c-09ca60237f90",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1407 - The latest release, or the previous release, of operating systems are used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26176,7 +26176,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-444deaa0-cfaa-7000-d280-d7db92b91a39",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1408 - Where supported, 64-bit versions of operating systems are used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26202,7 +26202,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-346967c8-b84e-7000-c100-2be126dc3d61",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1406 - SOEs are used for workstations and servers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26228,7 +26228,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-905d6f60-e5ff-7000-110c-067986cdabc7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1608 - SOEs provided by third parties are scanned for malicious code and configurations",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26254,7 +26254,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-21b5b1f1-e2dd-7000-6229-610e6404ec7a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1588 - SOEs are reviewed and updated at least annually",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26280,7 +26280,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e92e68c7-5610-7000-d643-517b3075e975",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1914 - Approved configurations for operating systems are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26306,7 +26306,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d3854e23-f5f6-7000-9e52-e502594631c4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1409 - Operating systems are hardened using ASD and vendor hardening guidance, with the most restrictive guidance taking pre...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26332,7 +26332,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4519fc7a-80b5-7000-9c3f-6010847e278b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0383 - Default user accounts or credentials for operating systems, including for any pre-configured user accounts, are chang...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26358,7 +26358,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-31f0893a-9d51-7000-0410-5af44f63c020",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0380 - Unneeded user accounts, components, services and functionality of operating systems are disabled or removed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26384,7 +26384,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-47f6afb7-a04e-7000-fd56-64137520fc33",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0341 - Automatic execution features for removable media are disabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26410,7 +26410,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6d406a24-52fc-7000-6a37-6af6dee7352a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1654 - Internet Explorer 11 is disabled or removed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26437,7 +26437,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4813a495-dda8-7000-046a-9c31acecd1c4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1655 - .NET Framework 3.5 (includes .NET 2.0 and 3.0) is disabled or removed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26463,7 +26463,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3f1aca83-35d0-7000-2dbe-a12ffdf3b229",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1492 - Operating system exploit protection functionality is enabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26489,7 +26489,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b30e1335-c8be-7000-b2aa-5394c8b07598",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1745 - Early Launch Antimalware, Secure Boot, Trusted Boot and Measured Boot functionality is enabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26515,7 +26515,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-681af0ef-82f3-7000-e65d-e304a8ac29de",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1584 - Unprivileged users are prevented from bypassing, disabling or modifying security functionality of operating systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26541,7 +26541,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8f56bc67-b928-7000-c4e8-375813ce2963",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1491 - Unprivileged users are prevented from running script execution engines, including: - Windows Script Host (cscript.exe...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26567,7 +26567,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5ff9fc8b-905d-7000-24b0-b551b16f6fe3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1592 - Unprivileged users do not have the ability to install unapproved applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26593,7 +26593,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7cd9764c-76c1-7000-4526-81da0caeaa4b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0382 - Unprivileged users do not have the ability to uninstall or disable approved applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26619,7 +26619,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6e2a6d5c-ba4a-7000-cf66-4d90e89b8d3f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0843 - Application control is implemented on workstations",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26646,7 +26646,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cc58f2cc-f498-7000-dca6-d72cfce37d41",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1490 - Application control is implemented on internet-facing servers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26673,7 +26673,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-96130026-0325-7000-ba88-90012f6a7f9b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1656 - Application control is implemented on non-internet-facing servers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26699,7 +26699,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-db66004e-25b0-7000-76e4-f5cb90d90af8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1870 - Application control is applied to user profiles and temporary folders used by operating systems, web browsers and ema...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26726,7 +26726,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2b2de4a7-9973-7000-d4a9-0cad0006228a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1871 - Application control is applied to all locations other than user profiles and temporary folders used by operating syst...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26753,7 +26753,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-dda52be6-bae9-7000-b3e9-57329ee76b28",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1657 - Application control restricts the execution of executables, libraries, scripts, installers, compiled HTML, HTML appli...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26780,7 +26780,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9c36ea8e-f415-7000-3fa7-40a246a08e9c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1658 - Application control restricts the execution of drivers to an organisation-approved set",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26806,7 +26806,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b1fe2eec-fb92-7000-f728-9c66be1f3f7d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0955 - Application control is implemented using cryptographic hash rules, publisher certificate rules or path rules",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26832,7 +26832,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-28380fb9-739c-7000-5168-fb4bedef62ee",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1471 - When implementing application control using publisher certificate rules, publisher names and product names are used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26858,7 +26858,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4c525bc2-333c-7000-e6e1-7a557d461aca",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1392 - When implementing application control using path rules, only approved users can modify approved files and write to ap...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26884,7 +26884,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f86fef8a-b73f-7000-a3e5-cfaef267e088",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1746 - When implementing application control using path rules, only approved users can change file system permissions for ap...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26910,7 +26910,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-44e35263-738e-7000-3ab6-6866957a40e4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1544 - Microsoft’s recommended application blocklist is implemented",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26937,7 +26937,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ff5f92dd-54ed-7000-1794-a316fae77261",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1659 - Microsoft’s vulnerable driver blocklist is implemented",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26963,7 +26963,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1b352357-2f3a-7000-bbaf-d724da2c9857",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1582 - Application control rulesets are validated on an annual or more frequent basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -26990,7 +26990,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a43becb3-2691-7000-b519-d96ebcec17f4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0846 - All users (with the exception of local administrator accounts and break glass accounts) cannot disable, bypass or be...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27016,7 +27016,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-20fa51ff-84fc-7000-662b-6597becfd624",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1660 - Allowed and blocked application control events are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27043,7 +27043,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-169c594a-1feb-7000-9634-ea4674809549",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1889 - Command line process creation events are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27070,7 +27070,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-eb378fc5-0cd9-7000-097b-0ac2fa896d6b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1621 - Windows PowerShell 2.0 is disabled or removed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27096,7 +27096,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-32271b06-ae22-7000-0993-706ae2d08255",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1622 - PowerShell is configured to use Constrained Language Mode",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27122,7 +27122,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a8825008-bdea-7000-45fa-970706befad3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1623 - PowerShell module logging, script block logging and transcription events are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27149,7 +27149,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2bb0b4ec-a78b-7000-1b97-303b9810e9cd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1624 - PowerShell script block logs are protected by Protected Event Logging functionality",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27175,7 +27175,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-266974ae-467d-7000-e011-38364c398c4a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1341 - A HIPS or EDR solution is implemented on workstations",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27201,7 +27201,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2e5d82d8-5d46-7000-3117-e53b60a3dfd8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1034 - A HIPS or EDR solution is implemented on critical servers and high-value servers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27227,7 +27227,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bcbd23b3-21bc-7000-dec0-57fca346565c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1416 - A software firewall is implemented on workstations and servers to restrict inbound and outbound network connections t...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27253,7 +27253,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1b155245-0159-7000-aecd-d4cb04a40026",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1417 - An antivirus application is implemented on workstations and servers with: - signature-based detection functionality e...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27279,7 +27279,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-016c37c8-8894-7000-854f-3fbf25707cce",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1418 - If there is no business requirement for reading from removable media and devices, such functionality is disabled via...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27305,7 +27305,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5f51660d-7625-7000-d0cf-2cf225b51418",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0343 - If there is no business requirement for writing to removable media and devices, such functionality is disabled via th...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27331,7 +27331,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ca19d333-79a8-7000-0030-06eb63e6a2e7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0345 - External communication interfaces that allow DMA are disabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27357,7 +27357,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ae1587f8-7edf-7000-4918-f3a70899e97b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1976 - Security-relevant events for Apple macOS operating systems are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27383,7 +27383,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-794884d3-6399-7000-3b44-3684658620dd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1977 - Security-relevant events for Linux operating systems are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27409,7 +27409,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b38adcc3-e858-7000-f39c-c03654ac5027",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0582 - Security-relevant events for Microsoft Windows operating systems are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27435,7 +27435,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-520298cb-af02-7000-b3a4-15540e630177",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0938 - Vendors that have demonstrated a commitment to Secure by Design and Secure by Default principles and practices, inclu...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27461,7 +27461,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4ff810ff-fcb9-7000-9753-29b1ef1f3da6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1467 - The latest release of office productivity suites, web browsers and their extensions, email clients, PDF applications,...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27487,7 +27487,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0d71f9f2-64c0-7000-a4a4-62650cc90c56",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1915 - Approved configurations for user applications are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27513,7 +27513,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5bfaecce-a9c5-7000-f283-807d3a1c87bf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1806 - Default user accounts or credentials for user applications, including for any pre-configured user accounts, are chang...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27539,7 +27539,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ecb2de8d-e569-7000-26f1-9e833f1b95f1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1470 - Unneeded components, services and functionality of office productivity suites, web browsers, email clients, PDF appli...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27565,7 +27565,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f202c34b-a2b6-7000-3ce9-f1904ebd639a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1235 - Add-ons, extensions and plug-ins for office productivity suites, web browsers, email clients, PDF applications and se...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27591,7 +27591,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d389889e-374d-7000-9166-5cf6995e7b87",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1667 - Microsoft Office is blocked from creating child processes",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27618,7 +27618,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6f27149d-2478-7000-b700-b0ff70b72451",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1668 - Microsoft Office is blocked from creating executable content",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27645,7 +27645,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-89b32e91-ac9a-7000-4133-1fed3a69d630",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1669 - Microsoft Office is blocked from injecting code into other processes",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27672,7 +27672,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cb6abf2f-9165-7000-f488-fd421e5ae6f0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1542 - Microsoft Office is configured to prevent activation of Object Linking and Embedding packages",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27699,7 +27699,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-31194bb9-279d-7000-b7f0-e59b3317f374",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1859 - Office productivity suites are hardened using ASD and vendor hardening guidance, with the most restrictive guidance t...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27726,7 +27726,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-76bc444f-2147-7000-709b-2cdee18ca5c5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1823 - Office productivity suite security settings cannot be changed by users",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27753,7 +27753,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-add12f8a-ab77-7000-be02-44b2cb4e8175",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1486 - Web browsers do not process Java from the internet",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27780,7 +27780,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-30597a46-cc2a-7000-2e29-eb48ca14f634",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1485 - Web browsers do not process web advertisements from the internet",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27807,7 +27807,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d4f75434-4fec-7000-1baf-3788ef16ed05",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1412 - Web browsers are hardened using ASD and vendor hardening guidance, with the most restrictive guidance taking preceden...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27834,7 +27834,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-98d1b70c-82ff-7000-0a75-65531c861ce2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1585 - Web browser security settings cannot be changed by users",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27861,7 +27861,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-96f5796d-268f-7000-1782-49db9c8f4825",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1670 - PDF applications are blocked from creating child processes",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27888,7 +27888,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-009dd44d-7803-7000-683f-bbcba6ef7a46",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1860 - PDF applications are hardened using ASD and vendor hardening guidance, with the most restrictive guidance taking prec...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27915,7 +27915,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7a551d8b-4880-7000-1930-93c018d423c8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1824 - PDF application security settings cannot be changed by users",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27942,7 +27942,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-60e8207f-2760-7000-b361-c32bd0d4e4e5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1601 - Microsoft’s attack surface reduction rules are implemented",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27968,7 +27968,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a6d3e19e-2311-7000-24d0-4b6536bd36ae",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1748 - Email client security settings cannot be changed by users",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -27994,7 +27994,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-10125ce7-8bb0-7000-4adb-9541bfc421ba",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1825 - Security product security settings cannot be changed by users",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28020,7 +28020,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-87a9dba2-d1a4-7000-7782-5c8728ca960c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1671 - Microsoft Office macros are disabled for users that do not have a demonstrated business requirement",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28047,7 +28047,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-45eda41b-e6bf-7000-bced-f4368aa2d2ba",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1488 - Microsoft Office macros in files originating from the internet are blocked",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28074,7 +28074,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4ba9e681-24d7-7000-c7c4-f264a2889405",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1672 - Microsoft Office macro antivirus scanning is enabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28101,7 +28101,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a2fd2884-6818-7000-4cc9-5faa65985985",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1673 - Microsoft Office macros are blocked from making Win32 API calls",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28128,7 +28128,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-858ca108-9547-7000-aa7f-32f0a9d38c59",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1674 - Only Microsoft Office macros running from within a sandboxed environment, a Trusted Location or that are digitally si...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28154,7 +28154,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e69f08ab-6008-7000-c6ab-1517394e2169",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1890 - Microsoft Office macros are checked to ensure they are free of malicious code before being digitally signed or placed...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28180,7 +28180,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d0a5faec-189c-7000-56a7-c335de300e56",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1487 - Only privileged users responsible for checking that Microsoft Office macros are free of malicious code can write to a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28206,7 +28206,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d09ef83c-dda9-7000-9781-25bf7ee94258",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1675 - Microsoft Office macros digitally signed by an untrusted publisher cannot be enabled via the Message Bar or Backstage...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28232,7 +28232,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-80f2f927-f2e6-7000-0c44-eca041aba0c7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1891 - Microsoft Office macros digitally signed by signatures other than V3 signatures cannot be enabled via the Message Bar...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28258,7 +28258,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-040ef8e7-54ac-7000-4b39-820bcc7fa310",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1676 - Microsoft Office’s list of trusted publishers is validated on an annual or more frequent basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28284,7 +28284,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-30704016-4200-7000-ab80-5bc3f559774c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1489 - Microsoft Office macro security settings cannot be changed by users",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28311,7 +28311,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4310b421-0030-7000-8ad8-c43c2857c755",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1826 - Vendors that have demonstrated a commitment to Secure by Design and Secure by Default principles and practices, inclu...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28337,7 +28337,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ba4a21ff-958c-7000-be8a-84a9c4dc7cae",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1483 - The latest release of internet-facing server applications are used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28363,7 +28363,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9088b35f-32da-7000-e1bc-f651cac3ae60",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1916 - Approved configurations for server applications are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28389,7 +28389,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c94cc474-09df-7000-82be-5a0b0e0cdec1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1246 - Server applications are hardened using ASD and vendor hardening guidance, with the most restrictive guidance taking p...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28415,7 +28415,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ebdf8bca-2e3b-7000-5461-547e94eb8ea1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1260 - Default user accounts or credentials for server applications, including for any pre-configured user accounts, are cha...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28441,7 +28441,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b614935c-c9ce-7000-4345-81cd2899f35d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1247 - Unneeded user accounts, components, services and functionality of server applications are disabled or removed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28467,7 +28467,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-552fe564-11e4-7000-678b-20eae7a27c09",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1245 - All temporary installation files and logs created during server application installation processes are removed after...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28493,7 +28493,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9e2a6e9f-5d15-7000-85c5-3216d13182fd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1249 - Server applications are configured to run as a separate user account with the minimum privileges needed to perform th...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28519,7 +28519,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-01707fe0-879a-7000-1270-161cc1d02732",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1250 - The user accounts under which server applications run have limited access to their underlying server’s file system",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28545,7 +28545,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1ff82cc9-2585-7000-19d6-213434efce25",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1926 - Microsoft AD DS domain controllers, Microsoft AD CS CA servers, Microsoft AD FS servers and Microsoft Entra Connect s...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28571,7 +28571,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-374d6016-1a84-7000-5336-8de3a350c50c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1927 - Access to Microsoft AD DS domain controllers, Microsoft AD CS CA servers, Microsoft AD FS servers and Microsoft Entra...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28597,7 +28597,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-eb8d397a-133a-7000-fc66-ee3f844de208",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1928 - Backups of Microsoft AD DS domain controllers, Microsoft AD CS CA servers, Microsoft AD FS servers and Microsoft Entr...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28623,7 +28623,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-acc641e8-ca57-7000-90ff-571637b2c4c7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1830 - Security-relevant events for Microsoft AD DS domain controllers, Microsoft AD CS CA servers, Microsoft AD FS servers...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28649,7 +28649,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-77b99ff6-30ce-7000-5d62-30e22d5e9dbd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1827 - Microsoft AD DS domain controllers are administered using dedicated domain administrator user accounts that are not u...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28675,7 +28675,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e026fd47-1cd7-7000-8978-8ee0c4af025b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1929 - Lightweight Directory Access Protocol signing is enabled on Microsoft AD DS domain controllers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28701,7 +28701,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2ab988b6-1599-7000-2676-4f97cec534a5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1828 - The Print Spooler service is disabled on Microsoft AD DS domain controllers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28727,7 +28727,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-002b2523-d6bc-7000-95e8-312a150aaa4a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1829 - Passwords are not stored in Group Policy Preferences",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28753,7 +28753,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d196fccf-774c-7000-d18a-13df09346cd6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1930 - Passwords are prevented from being stored in Group Policy Preferences",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28779,7 +28779,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-02b0c2af-318d-7000-e540-cecb1a285372",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1931 - SID Filtering is enabled for domain and forest trusts",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28805,7 +28805,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8ff3c933-5f86-7000-852d-797683b52e9c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1832 - Only service accounts and computer accounts are configured with Service Principal Names (SPNs)",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28831,7 +28831,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-46d83b0e-ac67-7000-90c5-98fb67ff546e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1932 - The number of service accounts configured with an SPN is minimised",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28857,7 +28857,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3f9c1169-9118-7000-4130-63d4961028e9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1933 - Service accounts configured with an SPN do not have DCSync permissions",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28883,7 +28883,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5cd2cf38-4a7a-7000-fe25-2ed751ae48a2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2010 - Service accounts configured with an SPN use the Advanced Encryption Standard for encryption",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28909,7 +28909,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1cb56ef7-d6f2-7000-3fb9-ca4a524ed9fa",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1834 - Duplicate SPNs do not exist within the domain",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28935,7 +28935,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-be974631-8322-7000-6289-8c1e653a127b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1833 - User accounts are provisioned with the minimum privileges required",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28961,7 +28961,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f60dd2b5-68cb-7000-cfcc-15dfd8963c28",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1934 - User accounts with DCSync permissions are reviewed at least annually, and those without an ongoing requirement for th...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -28987,7 +28987,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d38541e5-3222-7000-9d31-6a4cab72620d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1835 - Privileged user accounts are configured as sensitive and cannot be delegated",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29013,7 +29013,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4b9a73c5-519f-7000-384b-10a8fffa314a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1935 - Computer accounts are not configured for unconstrained delegation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29039,7 +29039,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ed816dc8-bd00-7000-70a8-7c07ebbfa6e6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1836 - User accounts require Kerberos pre-authentication",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29065,7 +29065,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c26daaf4-3de7-7000-798b-8b690f30173c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1838 - The UserPassword attribute for user accounts is not used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29091,7 +29091,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a1bbc38a-a6b8-7000-446f-d83fb84c90e2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1936 - The sIDHistory attribute for user accounts is not used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29117,7 +29117,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-391177ea-744a-7000-48ae-4714cc434852",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1937 - User accounts are checked at least weekly for the presence of the sIDHistory attribute",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29143,7 +29143,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5875a9c3-d0d7-7000-0116-9aec5e4a2f4d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1839 - Account properties accessible by unprivileged users are not used to store passwords",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29169,7 +29169,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e46b6b53-f01e-7000-3b4c-969ddddb471c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1840 - User account passwords do not use reversible encryption",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29195,7 +29195,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-77221c12-2534-7000-69ed-9854b8c8ba78",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1841 - Unprivileged user accounts cannot add machines to the domain",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29221,7 +29221,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-900de9f4-abd5-7000-db87-7f23d13ba355",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1842 - Dedicated privileged service accounts are used to add machines to the domain",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29247,7 +29247,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ee37cce7-4983-7000-2b2f-1e1aec1555e2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1843 - User accounts with unconstrained delegation are reviewed at least annually, and those without an SPN or demonstrated...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29273,7 +29273,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ee984d84-d124-7000-ff0c-b57f976bfa4a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1844 - Computer accounts that are not Microsoft AD DS domain controllers are not trusted for delegation to services",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29299,7 +29299,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3487c628-4c6d-7000-c0b2-1fe9453e2a4f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1938 - The Domain Computers security group does not have write or modify permissions to any Microsoft Active Directory objects",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29325,7 +29325,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-11cd3689-7752-7000-dda6-165f5cceccf6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1620 - Privileged user accounts are members of the Protected Users security group",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29351,7 +29351,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-09cd7454-f7f6-7000-c309-1c691f959769",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1939 - The number of user accounts that are members of the Domain Admins, Enterprise Admins or other highly-privileged secur...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29377,7 +29377,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-230a3add-a519-7000-7c5a-d349c1a8bfd7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1940 - Service accounts are not members of the Domain Admins, Enterprise Admins or other highly-privileged security groups",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29403,7 +29403,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ca0088cb-3b46-7000-35bd-064c56140a15",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1941 - Computer accounts are not members of the Domain Admins, Enterprise Admins or other highly-privileged security groups",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29429,7 +29429,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-31ccdabf-e1a7-7000-e342-fb1d74703611",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1942 - The Domain Computers security group is not a member of any privileged or highly-privileged security groups",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29455,7 +29455,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-46fb240f-6b6a-7000-0314-ec41baece06e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1845 - When a user account is disabled, it is removed from all security group memberships",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29481,7 +29481,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-524bf979-bf47-7000-5eda-02eaa9d695fb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1846 - The Pre-Windows 2000 Compatible Access security group does not contain user accounts",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29507,7 +29507,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e0d71e6c-539c-7000-9e13-c502b7376575",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1943 - Strong mapping between certificates and users is enforced",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29533,7 +29533,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ede636be-9a0b-7000-d675-e8bdd6dd026c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1944 - The EDITF_ATTRIBUTESUBJECTALTNAME2 flag is removed from Microsoft AD CS CA configurations",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29559,7 +29559,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7ac75a28-5068-7000-2b54-a540cb7b00f2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1945 - The CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT flag is removed from certificate templates",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29585,7 +29585,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c7eb518b-8840-7000-a26c-d534eb566042",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1946 - Unprivileged user accounts do not have write access to certificate templates",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29611,7 +29611,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-355a8ade-0d4c-7000-5640-d6374f6bef8e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1947 - Extended Key Usages that enable user authentication are removed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29637,7 +29637,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7a3b4b40-87a8-7000-a7b4-bc52002a9f44",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1948 - CA Certificate Manager approval is required for certificate templates that allow a Subject Alternative Name to be sup...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29663,7 +29663,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-53e923b5-0389-7000-74b9-f7b6f6be285f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1949 - Microsoft AD FS servers are administered using a dedicated service account that is not used to administer other systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29689,7 +29689,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cb4ed64e-e270-7000-438a-e901684325ec",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1950 - Soft matching between Microsoft AD DS and Microsoft Entra ID is disabled following initial synchronisation activities",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29715,7 +29715,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f8863d48-8f17-7000-d270-388dbf2033ab",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1951 - Hard match takeover is disabled for Microsoft Entra Connect servers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29741,7 +29741,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bdcf686d-408f-7000-79b2-19e1da0eb4e1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1952 - Privileged user accounts are not synchronised between Microsoft AD DS and Microsoft Entra ID",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29767,7 +29767,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c3203d9f-3f5a-7000-1e35-9a6019f6ab4f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1978 - Security-relevant events for server applications on internet-facing servers are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29793,7 +29793,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c01eba00-880e-7000-6cbc-cbd3ff43dabb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1979 - Security-relevant events for server applications on non-internet-facing servers are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29819,7 +29819,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-42624f26-6da9-7000-f4f5-9aa4f683d319",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1546 - Users are authenticated before they are granted access to a system and its resources",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29845,7 +29845,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-09ce96b6-6d74-7000-52c4-2f580b5245a3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1603 - Authentication methods susceptible to replay attacks are disabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29871,7 +29871,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b1efdfbe-0e28-7000-5688-9ca63060f604",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1055 - LAN Manager and NT LAN Manager authentication methods are disabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29897,7 +29897,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c2482318-8425-7000-dbe9-de4d3b72a7ef",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2076 - Security questions are not used for authentication purposes",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29923,7 +29923,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ec272133-01bc-7000-eb10-1e29a259ed10",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2077 - Email is not used for out-of-band authentication purposes",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29949,7 +29949,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-15112c97-7b8f-7000-8280-6d490f10c25c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1504 - Multi-factor authentication is used to authenticate users to their organisation’s online services that process, store...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -29976,7 +29976,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d36f1895-713a-7000-f949-c149fca7203a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1679 - Multi-factor authentication is used to authenticate users to third-party online services that process, store or commu...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30003,7 +30003,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c13af7ab-068d-7000-814b-f757c939fa71",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1680 - Multi-factor authentication (where available) is used to authenticate users to third-party online services that proce...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30030,7 +30030,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-50712029-daa3-7000-3de5-c626864617d9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1892 - Multi-factor authentication is used to authenticate users to their organisation’s online customer services that proce...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30057,7 +30057,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ceff6b78-a734-7000-fd52-3b36ca7d5cd2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1893 - Multi-factor authentication is used to authenticate users to third-party online customer services that process, store...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30084,7 +30084,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b13fcce9-d392-7000-1b00-f61db4b5d04d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1681 - Multi-factor authentication is used to authenticate customers to online customer services that process, store or comm...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30111,7 +30111,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1023a6b9-a95e-7000-9ef5-e8eb94e524a8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1919 - When multi-factor authentication is used to authenticate users or customers to online services or online customer ser...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30137,7 +30137,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-84b83426-30a5-7000-30a4-c748762afb83",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1173 - Multi-factor authentication is used to authenticate privileged users of systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30164,7 +30164,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c6dbfa9a-322b-7000-7d6d-16b3e1a44e46",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0974 - Multi-factor authentication is used to authenticate unprivileged users of systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30191,7 +30191,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6e4c8f4a-54ca-7000-af27-c326929e8b60",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1505 - Multi-factor authentication is used to authenticate users of data repositories",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30217,7 +30217,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c4bdfb2f-bb76-7000-be8f-76b402a37b93",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1401 - Multi-factor authentication uses either: something users have and something users know, or something users have that...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30244,7 +30244,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0ad8bfc1-e266-7000-afa8-a667ee595297",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1872 - Multi-factor authentication used for authenticating users of online services is phishing-resistant",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30271,7 +30271,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2ee7b656-864e-7000-8e4f-20b5e35e2544",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1873 - Multi-factor authentication used for authenticating customers of online customer services provides a phishing-resista...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30298,7 +30298,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-106a2f6b-842a-7000-2495-915cf53c0831",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1874 - Multi-factor authentication used for authenticating customers of online customer services is phishing-resistant",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30324,7 +30324,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-aa030ae0-bad8-7000-12cf-f81a1fe665f8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1682 - Multi-factor authentication used for authenticating users of systems is phishing-resistant",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30351,7 +30351,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-44bbe75f-fb92-7000-d254-6ed64e31b83d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1894 - Multi-factor authentication used for authenticating users of data repositories is phishing-resistant",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30377,7 +30377,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4c38e06f-213a-7000-3551-80635c671e61",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2011 - When phishing-resistant multi-factor authentication is used by user accounts, other non-phishing-resistant multi-fact...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30403,7 +30403,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f6141702-b421-7000-5ff6-3fcdaca2795e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1920 - When multi-factor authentication is used to authenticate users to online services, online customer services, systems...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30429,7 +30429,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-99213058-a0a2-7000-f190-205f5a3169dd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1683 - Successful and unsuccessful multi-factor authentication events are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30456,7 +30456,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0dbf079c-d137-7000-aced-f10f9dccf879",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0417 - When systems cannot support multi-factor authentication, single-factor authentication using passwords is implemented...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30482,7 +30482,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3a952bde-7f3f-7000-1115-c00399811e75",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1895 - Successful and unsuccessful single-factor authentication events are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30508,7 +30508,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fbcdb6ea-9e80-7000-9427-9cc1bc21ce1a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1559 - Passwords used for multi-factor authentication on non-classified, OFFICIAL: Sensitive and PROTECTED systems are a min...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30534,7 +30534,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-71dc682a-46bb-7000-c468-ed8a1768b33b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1560 - Passwords used for multi-factor authentication on SECRET systems are a minimum of 8 characters",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30563,7 +30563,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f927b763-4e13-7000-d27e-8a613d92eb9b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1561 - Passwords used for multi-factor authentication on TOP SECRET systems are a minimum of 10 characters",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30592,7 +30592,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-edf745b6-46ce-7000-423a-1ea14305d2b0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0421 - Passwords used for single-factor authentication on non-classified, OFFICIAL: Sensitive and PROTECTED systems are a mi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30618,7 +30618,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ff71fd17-0191-7000-cfc6-30f397bf858f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1557 - Passwords used for single-factor authentication on SECRET systems are a minimum of 17 characters",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30647,7 +30647,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e36b8a93-0ee9-7000-851f-85227d8abb61",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0422 - Passwords used for single-factor authentication on TOP SECRET systems are a minimum of 20 characters",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30676,7 +30676,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-39dda803-4fda-7000-e297-9a0e7536950d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1558 - Passwords using a sequence of words for single-factor authentication are not constructed using: - a list of categoris...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30705,7 +30705,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a838f838-eb96-7000-b08b-49dcbdbccf7e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2078 - Passwords appearing in lists of commonly used passwords or lists of compromised passwords are not used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30731,7 +30731,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-be384f7e-61bb-7000-5734-13ba50b0973f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2079 - Maximum length limits for passwords are not less than 64 characters",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30757,7 +30757,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b2fb3b9f-f3d8-7000-834a-c92e1e76dd16",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2080 - Password complexity requirements are not imposed for passwords",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30783,7 +30783,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9d0879eb-acc1-7000-de45-2b28c4d5d420",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2081 - All ASCII printable characters are supported for passwords",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30809,7 +30809,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a6a52d40-43a3-7000-8d34-485aec5a5d57",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1593 - Users provide sufficient evidence to verify their identity when requesting new credentials",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30835,7 +30835,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d78cb004-d4d6-7000-37d2-c26e1e1cdba5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1227 - Credentials set for user accounts are randomly generated",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30861,7 +30861,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b1376573-7f49-7000-02c7-6b98d49016bc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1594 - Credentials are provided to users via a secure communications channel or, if not possible, split into two parts with...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30887,7 +30887,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-dbb97955-38b2-7000-0f30-ddad13b9b3b1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1595 - Credentials provided to users are changed on first use",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30913,7 +30913,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-db660233-cf73-7000-e1d8-40e77de4f142",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1596 - Credentials are not reused by users across different systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30939,7 +30939,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c470f5bc-cf3a-7000-d19f-4362a64dd439",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1953 - Credentials for the built-in Administrator account in each domain are long, unique, unpredictable and managed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30965,7 +30965,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4bbe376b-fda0-7000-56c2-aad85e6deef2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1685 - Credentials for break glass accounts, local administrator accounts and service accounts are long, unique, unpredictab...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -30992,7 +30992,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-45cc13f3-f757-7000-8f12-85c8c4535a07",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1795 - Credentials for built-in Administrator accounts, break glass accounts, local administrator accounts and service accou...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31018,7 +31018,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-adaf180c-2a56-7000-e5f4-87bc7625dd96",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1954 - Credentials for built-in Administrator accounts, break glass accounts, local administrator accounts and service accou...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31044,7 +31044,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-63b967ea-445c-7000-54b9-56d398a95b03",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1619 - Service accounts are created as group Managed Service Accounts",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31070,7 +31070,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9818b1fc-44a8-7000-ce35-be3b1dac7a83",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1590 - Credentials for user accounts are changed if: - they are compromised - they are suspected of being compromised - they...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31096,7 +31096,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-96da42f2-be47-7000-1cc7-1a68ebc2a979",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1955 - Credentials for computer accounts are changed if they are compromised, they are suspected of being compromised or the...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31122,7 +31122,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b4c7ac09-e7b3-7000-63b1-2a173f3e45d9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1847 - Credentials for the Kerberos Key Distribution Center’s service account (KRBTGT) are changed twice, allowing for repli...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31148,7 +31148,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d8daf7c5-5e10-7000-e095-20d1ea0d6424",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1956 - Microsoft AD FS token-signing and encryption certificates are changed twice in quick succession if they are compromis...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31174,7 +31174,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e6489ec7-2908-7000-8024-28ef2dfefed8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1597 - Credentials are obscured as they are entered into systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31200,7 +31200,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b27ba1f1-058e-7000-a39f-14e39fdca1a8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1980 - Credential hint functionality is not used for systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31226,7 +31226,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-de48efdd-8450-7000-5c28-1ded3519f0d0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0418 - Physical credentials are kept separate from systems they are used to authenticate to, except for when performing auth...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31252,7 +31252,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1bf7d37b-4383-7000-d153-929817ae0f97",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1402 - Credentials stored on systems are protected by a password manager; a hardware security module; or by salting, hashing...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31278,7 +31278,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-27e280fe-8b83-7000-780c-551bd3e6c1d6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1957 - Private keys for Microsoft AD CS CA servers are protected by a hardware security module",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31304,7 +31304,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-65ef2e89-7f4d-7000-334a-eb6f2aba8520",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1896 - Memory integrity functionality is enabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31330,7 +31330,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-121182e4-f8cd-7000-60a4-2e3de656446b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1861 - Local Security Authority protection functionality is enabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31356,7 +31356,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2563e6b8-e17c-7000-d0ae-d10c671b5304",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1686 - Credential Guard functionality is enabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31382,7 +31382,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fbe38cce-308a-7000-1230-f06c6b20fec5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1897 - Remote Credential Guard functionality is enabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31408,7 +31408,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-205a6c52-0452-7000-099b-ec17c951e1c0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1749 - Cached credentials are limited to one previous logon",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31434,7 +31434,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5372e9e6-abe6-7000-f561-f25446bb1287",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1875 - Networks are scanned at least monthly to identify any credentials that are being stored in the clear",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31460,7 +31460,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b0e5a094-2c90-7000-743b-54733b4d4e6d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1403 - User accounts, except for break glass accounts, are locked out after a maximum of five failed logon attempts",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31486,7 +31486,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7a69c067-6823-7000-3f21-a0f70886e355",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0853 - On a daily basis, outside of business hours and after an appropriate period of inactivity, user sessions are terminat...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31512,7 +31512,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c33e5e1c-582d-7000-23a5-7e452f011cd6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0428 - Services are configured with a session lock that: - activates after a maximum of 15 minutes of user inactivity, a max...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31538,7 +31538,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9440a4fe-99fd-7000-2cbe-37e00410c704",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2012 - Systems are configured with a screen lock that: - activates after a maximum of 15 minutes of user inactivity, or when...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31564,7 +31564,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e5396f01-22bc-7000-deb9-08bdeaf9d090",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0408 - Systems have a logon banner that reminds users of their security responsibilities when accessing the system and its r...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31590,7 +31590,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-46ebea24-29f5-7000-90eb-083ca28648da",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1460 - When using a software-based isolation mechanism to share a physical server’s hardware, the isolation mechanism is fro...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31616,7 +31616,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9e32b2b6-0fcb-7000-3d12-946cd2022d31",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1604 - When using a software-based isolation mechanism to share a physical server’s hardware, the configuration of the isola...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31642,7 +31642,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-93b3c72c-0f50-7000-ea69-ff6a61f915e3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1605 - When using a software-based isolation mechanism to share a physical server’s hardware, the underlying operating syste...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31668,7 +31668,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-727c244c-b33c-7000-2a48-fcf949e99f4d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1606 - When using a software-based isolation mechanism to share a physical server’s hardware, patches, updates or vendor mit...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31694,7 +31694,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3bd5d3b0-eb9b-7000-999f-1eb11e9bc289",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1848 - When using a software-based isolation mechanism to share a physical server’s hardware, the isolation mechanism or und...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31720,7 +31720,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f8bcc221-b4e0-7000-e7b6-7fef5f0f679c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1607 - When using a software-based isolation mechanism to share a physical server’s hardware, integrity monitoring and centr...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31746,7 +31746,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-62c08098-04b1-7000-6119-f85fc3da17e0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1461 - When using a software-based isolation mechanism to share a physical server’s hardware for SECRET or TOP SECRET comput...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31775,7 +31775,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f601be0e-633a-7000-41ac-96edeb00de5f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0042 - System administration processes, and supporting system administration procedures, are developed, implemented and main...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31801,7 +31801,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7d6517d4-caeb-7000-0d56-fecc95aa3049",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1211 - System administrators perform system administration activities in accordance with the system’s change and configurati...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31827,7 +31827,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c8ef755e-77b3-7000-43f5-30aad7b8a515",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1898 - Secure Admin Workstations are used in the performance of administrative activities",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31853,7 +31853,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cf5bb720-df2b-7000-2281-9ee7c498d35d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1380 - Privileged users use separate privileged and unprivileged operating environments",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31880,7 +31880,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fd1674a7-b9eb-7000-11a2-30fb54fa9118",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1687 - Privileged operating environments are not virtualised within unprivileged operating environments",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31907,7 +31907,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2b1d3271-4467-7000-68e5-f2333a13c5fd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1688 - Unprivileged user accounts cannot logon to privileged operating environments",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31934,7 +31934,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-26cb7348-5891-7000-7810-25512ce08740",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1689 - Privileged user accounts (excluding local administrator accounts) cannot logon to unprivileged operating environments",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31961,7 +31961,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-250a8d2f-48e5-7000-de71-2a601be19b91",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1958 - User accounts with DCSync permissions cannot logon to unprivileged operating environments",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -31987,7 +31987,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d31cf5dd-d0c9-7000-a85e-f275416c65da",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1385 - Administrative infrastructure is segregated from the wider network and the internet",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32013,7 +32013,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3bc0a6e5-074c-7000-b414-0a62d08aac8f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1750 - Administrative infrastructure for critical servers, high-value servers and regular servers is segregated from each other",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32039,7 +32039,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-92f9a73a-dc94-7000-46e3-5bd93d4d9431",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1386 - Network management traffic can only originate from administrative infrastructure",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32065,7 +32065,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b8dcd3a3-9eaa-7000-f57a-5e49e167a26d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1387 - Administrative activities are conducted through jump servers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32092,7 +32092,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-52fae425-52b9-7000-a002-05c08c4b92d8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1899 - Network devices that do not belong to administrative infrastructure cannot initiate connections with administrative i...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32118,7 +32118,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1e5bcc56-f0ec-7000-5723-1dd048eae873",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1143 - Patch management processes, and supporting patch management procedures, are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32144,7 +32144,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ab3b9c5e-fee0-7000-2e46-b707e1e4400b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0298 - A centralised and managed approach that maintains the integrity of patches or updates, and confirms that they have be...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32170,7 +32170,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-961532d7-2204-7000-00be-adf654ae5257",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1493 - Software registers for workstations, servers, network devices and networked IT equipment are developed, implemented,...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32196,7 +32196,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a5b97551-d42d-7000-863c-28f2794f5e61",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1643 - Software registers contain versions and patch histories of applications, drivers, operating systems and firmware",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32222,7 +32222,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f6404d5c-9ad8-7000-c7d4-5ca81e5b776a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1807 - An automated method of asset discovery is used at least fortnightly to support the detection of assets for subsequent...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32250,7 +32250,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3bb2a629-dcc5-7000-64e3-b5976f2e4e5d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1808 - A vulnerability scanner with an up-to-date vulnerability database is used for vulnerability scanning activities",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32278,7 +32278,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f254e792-2683-7000-903b-302a15cb4825",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1698 - A vulnerability scanner is used at least daily to identify missing patches or updates for vulnerabilities in online s...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32305,7 +32305,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9b45052a-1406-7000-48b7-4ddb3d2d12e2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1699 - A vulnerability scanner is used at least weekly to identify missing patches or updates for vulnerabilities in office...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32332,7 +32332,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-430f3e1f-6eb6-7000-0f3a-ab20ac422ad9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1700 - A vulnerability scanner is used at least fortnightly to identify missing patches or updates for vulnerabilities in ap...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32359,7 +32359,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7a4bf942-426e-7000-b8f9-100a59e02970",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1701 - A vulnerability scanner is used at least daily to identify missing patches or updates for vulnerabilities in operatin...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32386,7 +32386,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-17a4b410-57b6-7000-0fb6-8c521ccf5186",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1702 - A vulnerability scanner is used at least fortnightly to identify missing patches or updates for vulnerabilities in op...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32413,7 +32413,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1ab44600-a1a3-7000-6a16-cb5517b0b8d5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1752 - A vulnerability scanner is used at least fortnightly to identify missing patches or updates for vulnerabilities in op...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32439,7 +32439,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-47f75a50-efa4-7000-a877-e1243725ff8e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1703 - A vulnerability scanner is used at least fortnightly to identify missing patches or updates for vulnerabilities in dr...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32465,7 +32465,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-68eca9b5-bf8e-7000-32af-48a45365e3a2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1900 - A vulnerability scanner is used at least fortnightly to identify missing patches or updates for vulnerabilities in fi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32491,7 +32491,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3612b8ac-4c36-7000-fb96-a60147c07960",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1921 - The likelihood of system compromise is frequently assessed when working exploits exist for unmitigated vulnerabilities",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32517,7 +32517,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-00585459-3d00-7000-0fe8-38626c8542ec",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1876 - Patches, updates or other vendor mitigations for vulnerabilities in online services are applied within 48 hours of re...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32544,7 +32544,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-dd0af57e-0093-7000-0fb6-53cd11a396ab",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1690 - Patches, updates or other vendor mitigations for vulnerabilities in online services are applied within two weeks of r...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32571,7 +32571,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a7927586-598d-7000-d864-c77e776af54d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1691 - Patches, updates or other vendor mitigations for vulnerabilities in office productivity suites, web browsers and thei...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32598,7 +32598,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-965c656b-b150-7000-0790-b5ac3a3ac4db",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1692 - Patches, updates or other vendor mitigations for vulnerabilities in office productivity suites, web browsers and thei...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32624,7 +32624,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b466c8ab-2f11-7000-e474-00cb9688f380",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1901 - Patches, updates or other vendor mitigations for vulnerabilities in office productivity suites, web browsers and thei...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32650,7 +32650,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-32d394c5-7404-7000-fb48-f455f38049b2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1693 - Patches, updates or other vendor mitigations for vulnerabilities in applications other than office productivity suite...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32677,7 +32677,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-82eba6c3-49c2-7000-7631-4647d7be16c8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1877 - Patches, updates or other vendor mitigations for vulnerabilities in operating systems of internet-facing servers and...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32704,7 +32704,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2c778ff0-72f5-7000-e5a5-ec08e8fbf6fe",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1694 - Patches, updates or other vendor mitigations for vulnerabilities in operating systems of internet-facing servers and...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32731,7 +32731,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2e7cfdf0-02d1-7000-d427-e165c938e34d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1695 - Patches, updates or other vendor mitigations for vulnerabilities in operating systems of workstations, non-internet-f...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32758,7 +32758,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6a7f0b28-d499-7000-68f1-8d5d15aa6570",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1696 - Patches, updates or other vendor mitigations for vulnerabilities in operating systems of workstations, non-internet-f...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32784,7 +32784,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-60557882-7513-7000-d07a-9e44526aeb5b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1902 - Patches, updates or other vendor mitigations for vulnerabilities in operating systems of workstations, non-internet-f...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32810,7 +32810,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c5865c79-6462-7000-78bd-a00471762f45",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1878 - Patches, updates or other vendor mitigations for vulnerabilities in operating systems of IT equipment other than work...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32836,7 +32836,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-13bfc855-6f22-7000-aee4-f4b287ab8aa7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1751 - Patches, updates or other vendor mitigations for vulnerabilities in operating systems of IT equipment other than work...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32862,7 +32862,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-41363663-dccf-7000-ca6e-02c030ffa34f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1879 - Patches, updates or other vendor mitigations for vulnerabilities in drivers are applied within 48 hours of release wh...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32888,7 +32888,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-82d8b4b6-d09d-7000-dbdb-d14e13eb4c2c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1697 - Patches, updates or other vendor mitigations for vulnerabilities in drivers are applied within one month of release w...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32914,7 +32914,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6209e1be-4632-7000-0775-1b495f496913",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1903 - Patches, updates or other vendor mitigations for vulnerabilities in firmware are applied within 48 hours of release w...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32940,7 +32940,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5c776ca0-0375-7000-5b2b-1c272bd7fcea",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1904 - Patches, updates or other vendor mitigations for vulnerabilities in firmware are applied within one month of release...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32966,7 +32966,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-666ac0b8-6ff5-7000-62b6-b98c5bc47371",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0300 - Patches, updates or other vendor mitigations for vulnerabilities in high assurance IT equipment are applied only when...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -32992,7 +32992,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a403de47-9ecf-7000-2288-a440f27768cf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1905 - Online services that are no longer supported by vendors are removed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33019,7 +33019,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2c3c2bf1-4704-7000-8d46-b9536d4ea1d3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1704 - Office productivity suites, web browsers and their extensions, email clients, PDF applications, Adobe Flash Player, a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33046,7 +33046,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9c378b58-8030-7000-c077-7fa020fb4937",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0304 - Applications other than office productivity suites, web browsers and their extensions, email clients, PDF application...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33072,7 +33072,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b9f460d9-85fe-7000-c21e-50c7bbe93511",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1501 - Operating systems that are no longer supported by vendors are replaced",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33099,7 +33099,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5028569b-4c77-7000-fb82-b6ec8c784c8e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1753 - Internet-facing network devices that are no longer supported by vendors are replaced",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33125,7 +33125,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e9d95461-be9f-7000-2a66-99136162f2ac",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1981 - Non-internet-facing network devices that are no longer supported by vendors are replaced",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33151,7 +33151,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0f3432d7-6340-7000-c5c4-0273abecd7a3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1982 - Networked IT equipment that is no longer supported by vendors is replaced",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33177,7 +33177,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ab093033-66a9-7000-7fd8-9234b9d7bff9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1809 - When applications, operating systems, network devices or networked IT equipment that are no longer supported by vendo...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33203,7 +33203,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4e70e0ca-d7bd-7000-88c0-76bf278fde4c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1510 - A digital preservation policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33229,7 +33229,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-75fcc0ab-87bd-7000-d01f-8f9290179853",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1547 - Data backup processes, and supporting data backup procedures, are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33255,7 +33255,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-887ef58b-7c7f-7000-2d2c-94b0127a232b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1548 - Data restoration processes, and supporting data restoration procedures, are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33281,7 +33281,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c1090ee4-7b04-7000-3ef8-c9cbb77a3f98",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1511 - Backups of data, applications and settings are performed and retained in accordance with business criticality and bus...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33308,7 +33308,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cb7d8c12-40a8-7000-b5d0-84bf4a92ec46",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1810 - Backups of data, applications and settings are synchronised to enable restoration to a common point in time",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33335,7 +33335,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-93167d37-5b59-7000-43a3-325e336f670d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1811 - Backups of data, applications and settings are retained in a secure and resilient manner",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33362,7 +33362,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ebf6ee57-9e78-7000-1fe4-2f1f855b5ce9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1812 - Unprivileged user accounts cannot access backups belonging to other user accounts",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33389,7 +33389,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-57524623-2b63-7000-7377-d5554a9d8fe3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1813 - Unprivileged user accounts cannot access their own backups",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33415,7 +33415,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-05d9a8f5-f312-7000-5f94-f2a8d85d0d80",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1705 - Privileged user accounts (excluding backup administrator accounts) cannot access backups belonging to other user acco...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33442,7 +33442,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-82928451-e937-7000-0c94-ea884f1cf89b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1706 - Privileged user accounts (excluding backup administrator accounts) cannot access their own backups",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33468,7 +33468,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f7f898f1-5049-7000-b759-9d99a87d87e6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1814 - Unprivileged user accounts are prevented from modifying and deleting backups",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33495,7 +33495,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8f82ea80-e0c5-7000-836f-84cfbd91f533",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1707 - Privileged user accounts (excluding backup administrator accounts) are prevented from modifying and deleting backups",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33522,7 +33522,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4985cd97-d42d-7000-e02f-17dca142996a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1708 - Backup administrator accounts are prevented from modifying and deleting backups during their retention period",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33548,7 +33548,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-967f4aac-407c-7000-65a2-e4c54a140afd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1515 - Restoration of data, applications and settings from backups to a common point in time is tested as part of disaster r...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33575,7 +33575,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-17cd4eaf-6f7d-7000-c748-65a002fe9fe5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0580 - An event logging policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33601,7 +33601,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-854210fd-3a36-7000-e855-3b7ab746bced",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1405 - A centralised event logging facility is implemented",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33627,7 +33627,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1437c89f-c71b-7000-cc1a-d27aa297d468",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1983 - Event logs sent to a centralised event logging facility are done so as soon as possible after they occur",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33653,7 +33653,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9d307cd8-75d3-7000-3e9b-02d028347982",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1984 - Event logs sent to a centralised event logging facility are encrypted in transit",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33679,7 +33679,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-be9776c7-cbf6-7000-da44-1e7f0df242cc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1985 - Event logs are protected from unauthorised access",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33705,7 +33705,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-22f11227-8c9e-7000-1a70-4a9fbaab6b92",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1815 - Event logs are protected from unauthorised modification and deletion",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33735,7 +33735,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4315f056-41d9-7000-b345-db9a8fed2e4f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0988 - An accurate and consistent time source is used for event logging",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33761,7 +33761,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7de8aae3-0c4d-7000-0c1e-b9d1f6db3ee1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0585 - For each event logged, the date and time of the event, the relevant user or process, the relevant filename, the event...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33787,7 +33787,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a37589d4-ea13-7000-985f-c0d67e4cf061",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1959 - To the extent possible, event logs are captured and stored in a consistent and structured format",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33813,7 +33813,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-92e36c13-0a10-7000-05ef-20649fc51198",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1986 - Event logs from critical servers are analysed in a timely manner to detect cyber security events",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33839,7 +33839,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7e059351-c3c9-7000-5285-9e1b5dff4f0c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1906 - Event logs from internet-facing servers are analysed in a timely manner to detect cyber security events",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33869,7 +33869,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f1b0494b-0211-7000-b68f-0fba24e84ad9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1907 - Event logs from non-internet-facing servers are analysed in a timely manner to detect cyber security events",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33895,7 +33895,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f9d55846-0fc0-7000-adf0-3da4d2f60354",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0109 - Event logs from workstations are analysed in a timely manner to detect cyber security events",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33921,7 +33921,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-72bec6c2-4f6c-7000-d768-867844a86b34",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1987 - Event logs from security products are analysed in a timely manner to detect cyber security events",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33947,7 +33947,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-782dc596-4763-7000-b529-88a19e2bb970",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1960 - Event logs from internet-facing network devices are analysed in a timely manner to detect cyber security events",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33973,7 +33973,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-02776d67-32b5-7000-08ad-8a0e57d1d050",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1961 - Event logs from non-internet-facing network devices are analysed in a timely manner to detect cyber security events",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -33999,7 +33999,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9d32c98e-31c3-7000-0c16-57b8673179bc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1228 - Cyber security events are analysed in a timely manner to identify cyber security incidents",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34029,7 +34029,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-705e91ab-e863-7000-9778-00fc2b932930",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1988 - Event logs are retained in a searchable manner for at least 12 months",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34055,7 +34055,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5247f446-6336-7000-c5c7-8dae480d63ed",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1989 - Event logs are retained as per minimum retention requirements for various classes of records as set out by the Nation...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34081,7 +34081,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f431acd8-8f6d-7000-137e-6d25b3820f0f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0400 - Development, testing, staging and production environments are segregated",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34107,7 +34107,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-913d40e6-b052-7000-d2ae-5c649ac6d06a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1419 - Development and modification of software only takes place in development environments",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34133,7 +34133,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d0288888-0779-7000-e29a-5efc416a81d4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1420 - Data from production environments is not used in non-production environments unless the non-production environment is...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34159,7 +34159,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a219968d-748f-7000-4ae6-a62cc570f498",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2023 - An authoritative source for software is established and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34185,7 +34185,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-573152eb-d238-7000-c3ec-c4b9003e8228",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2024 - The authoritative source for software is used for all software development activities",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34211,7 +34211,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4ffda3d9-8e67-7000-87f2-886b5dddc5c6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1422 - Unauthorised access to the authoritative source for software is prevented",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34237,7 +34237,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-705459a4-e139-7000-1375-2eb177eaf66c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1816 - Unauthorised modification of the authoritative source for software is prevented",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34263,7 +34263,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-149101ce-5121-7000-934e-77932b22bbe0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2025 - An issue tracking solution is used to link software development tasks to security issues and decisions, change or fea...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34289,7 +34289,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b3e029c3-86cd-7000-2c17-f155744a9b42",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2026 - All software artefacts are scanned for malicious content before being imported into the authoritative source for soft...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34315,7 +34315,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-28bc5862-6f26-7000-f914-e4101d8361ce",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2027 - All software artefacts are verified by a digital signature, or a secure hash provided over a secure channel, before b...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34341,7 +34341,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a004bec3-979a-7000-861d-3cd20a6d26b4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2028 - All software artefacts are tested to detect known weaknesses using static application security testing (SAST), dynami...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34367,7 +34367,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-25ae2d23-94e9-7000-f336-1133e685736c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2102 - Existing software artefacts in the authoritative source for software are periodically tested to detect known weakness...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34393,7 +34393,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-237f38de-e107-7000-d24f-f4e654ad429d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2029 - The authoritative source for software restricts the use and import of third-party libraries and software components t...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34419,7 +34419,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0489fa50-b681-7000-c528-deb372efdf76",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2030 - Scanning is used during commits to identify plain text or encoded secrets and keys, which are then blocked from being...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34445,7 +34445,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4e2c5088-b999-7000-3b76-dea6c935bddf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2031 - Compilers, interpreters and build tools (including pipelines) that provide security features to improve executable fi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34471,7 +34471,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c6835222-25fd-7000-3cd2-a2cc93654aa1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2032 - The build solution ensures that all automated testing is completed without warnings, alerts or errors before building...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34497,7 +34497,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e04d607d-4568-7000-cca6-1bb77a7fa3cf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2033 - All software security requirements are documented, stored securely and maintained throughout the software development...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34523,7 +34523,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-07c32b77-f9a3-7000-7482-38ffc6a9d8e1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2034 - Security design decisions are documented and reviewed throughout the software development cycle",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34549,7 +34549,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-be0487b3-c40b-7000-65c7-0722f849c808",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2035 - Security roles, responsibilities and knowledge requirements required to support the software development life cycle a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34575,7 +34575,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-de25884c-2d67-7000-b54f-c9e1301e931d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2036 - Security responsibilities for software developers are identified and documented",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34601,7 +34601,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-aeeb2258-883f-7000-9d9a-8441d73c9e98",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2037 - Software developers that lack sufficient cyber security knowledge and skills required for their projects or tasks und...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34627,7 +34627,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8c298904-a445-7000-0abc-45a805cbc973",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2038 - A software developer cyber security knowledge and skills register is implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34653,7 +34653,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3515eac2-7bed-7000-7dac-c6ec775c58bf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0401 - Secure by Design principles and practices are followed throughout the software development life cycle",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34679,7 +34679,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2b794424-8ae2-7000-fe54-d891dd419ce8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1238 - Threat modelling is used in support of the software development life cycle",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34705,7 +34705,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-90851a4a-7dbe-7000-aee9-8290fd643e78",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2039 - The software threat model is reviewed throughout the software development life cycle to ensure it reflects the as-bui...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34731,7 +34731,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9202f541-1d57-7000-23aa-7521c89e318e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2040 - Secure programming practices for the chosen programming language are used for software development",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34757,7 +34757,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8a64c2cd-1393-7000-719d-8459c2b1b214",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2041 - Memory-safe programming languages, or less preferably memory-safe programming practices, are used for software develo...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34783,7 +34783,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0ec64346-b93c-7000-96c5-b1283c4cfd79",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2042 - Secure by Default principles and practices are followed throughout the software development life cycle, including by...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34809,7 +34809,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9fd886ce-5262-7000-29fd-ec2acb4cce0f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1780 - SecDevOps practices are used for software development",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34835,7 +34835,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ef902f1c-5711-7000-218d-7d2ac71a85e2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2043 - Software is architected and structured to support readability and maintainability",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34861,7 +34861,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7b477113-08bf-7000-5f00-76dc9e76a21a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1796 - Files containing executable content are digitally signed by a certificate with a verifiable chain of trust as part of...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34887,7 +34887,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e95a1243-fb99-7000-a0cc-8e9c78fdc7c5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1797 - Installers, patches and updates are digitally signed or provided with cryptographic checksums as part of software dev...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34913,7 +34913,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9b361cc6-ea60-7000-29e6-afe13f9989cc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2044 - Software has no default credentials; however, if credentials are required, they are created on first install by the i...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34939,7 +34939,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d5c3afa5-fe31-7000-c39a-5369c4e73473",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2045 - Application backwards compatibility does not compromise any security measures or features",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34965,7 +34965,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8fb91558-f71b-7000-0fe9-77c4f8a43af2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2046 - Where software allows user impersonation, sensitive data is not logged and appropriate permissions are set",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -34991,7 +34991,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-225da973-980d-7000-9772-4f31a7114ac3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2047 - Where software allows an authentication factor to be reset, the user is notified of the reset through a secondary cha...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35017,7 +35017,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c0856e17-36f0-7000-2251-2018b2f4fd11",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2048 - Where software supports multiple user roles, non-administrative users are prevented from altering their profile permi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35043,7 +35043,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-40b58166-a63e-7000-0808-6367b1827b2a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2049 - When user permissions or credentials are changed, software forces all impacted users to re-authenticate",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35069,7 +35069,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0b60f69e-ddf4-7000-c804-fdb6a665cd3a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2050 - When digital signatures are processed by software, they are validated against a certificate trust chain and checked f...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35095,7 +35095,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c73d02f2-c954-7000-42ba-56204ceaf53c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2051 - Software generates sufficient event logs to support the detection of cyber security events",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35121,7 +35121,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d0f9c135-9b35-7000-0dae-9c8ba5f919ef",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2052 - Event logs produced by software ensure that any sensitive data is protected",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35147,7 +35147,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a1be6f0b-4f59-7000-7fd4-c8c38a38af57",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1798 - Secure configuration guidance, in the form of a hardening guide or loosening guide, is produced and made available to...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35173,7 +35173,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8a0b3986-035b-7000-3f7b-f72c2f1d19e7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2053 - End of life procedures for software, covering how to remove the software and how to archive or destroy any user accou...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35199,7 +35199,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-16a2b86f-a4cd-7000-20f1-ca4a347a5539",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2054 - If a software bill of materials is available for imported third-party software components, it is used during software...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35225,7 +35225,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-adfaa6ab-5fe3-7000-2770-878d4b7d52b3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1730 - A software bill of materials is produced and made available to consumers of software",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35251,7 +35251,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3f430fb9-61a1-7000-3afb-dbb5aba3038d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2082 - If a cryptographic bill of materials is available for imported third-party software components, it is used during sof...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35277,7 +35277,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e46848cc-22b6-7000-fbd6-36b0eb4788e1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2083 - A cryptographic bill of materials is produced and made available to consumers of software",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35303,7 +35303,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a3cfb98d-5092-7000-d556-53147425bb0c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2055 - If a software build provenance is available for imported third-party software components, it is used during software...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35329,7 +35329,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b30b8610-146d-7000-f066-8f9255705419",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2056 - A software build provenance is produced and made available to consumers of software",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35355,7 +35355,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b4fdddbc-b6ae-7000-d7cf-eb7a83da4fd4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1818 - Authentication and authorisation of clients is performed when clients call network APIs that facilitate modification...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35381,7 +35381,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-59598474-f899-7000-1b23-f0dbdd76e414",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2013 - Authentication and authorisation of clients is performed when clients call network APIs that facilitate modification...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35407,7 +35407,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5952048c-4720-7000-fb51-4e5c2cf769c4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1817 - Authentication and authorisation of clients is performed when clients call network APIs that facilitate access to dat...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35433,7 +35433,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d92ea441-6e3b-7000-126f-2ab2f39c42a5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2014 - Authentication and authorisation of clients is performed when clients call network APIs that facilitate access to dat...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35459,7 +35459,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-55ea4010-8ae4-7000-cbf4-9af085581aaa",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1910 - Network API calls that facilitate modification of data, or access to data not authorised for release into the public...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35485,7 +35485,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-50190197-33c4-7000-4330-60a2e33f69bf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2015 - Network API calls that facilitate modification of data, or access to data not authorised for release into the public...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35511,7 +35511,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-af0e6b95-248f-7000-fe53-657b3be99122",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1240 - Validation and sanitisation are performed on all input received over the internet by software",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35537,7 +35537,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8e551e76-d46c-7000-93fd-09d43e15c3bd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2016 - Validation and sanitisation are performed on all input received over a local network by software",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35563,7 +35563,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-00d2f6a3-faac-7000-fca7-a447736f9217",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2057 - All input validation rules are documented, matched in code and tested with both positive and negative unit testing or...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35589,7 +35589,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e53385a7-9f42-7000-d612-18d1f4f9bebd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2058 - Data sources and serialised data inputs are validated before being deserialised",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35615,7 +35615,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4cdf2758-ddf5-7000-cc40-e5e77943523c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2059 - File uploads or input are restricted to specific file types, with malicious content scanning occurring prior to file...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35641,7 +35641,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-98550610-7886-7000-e5e8-04f47e05e7fc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1275 - All queries to databases from software are filtered for legitimate content and correct syntax",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35667,7 +35667,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0a0ff3c1-8a5b-7000-c912-c1efa5c14fc5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1276 - Parameterised queries or stored procedures, instead of dynamically generated queries, are used by software for databa...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35693,7 +35693,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2f57a0c2-1979-7000-73c4-c5f0738e0090",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1278 - Software is designed or configured to provide as little error information as possible about the structure of databases",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35719,7 +35719,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-33d231ba-3ee4-7000-abd4-d83991257f24",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1536 - All queries to databases from software that are initiated by users, and any resulting crash or error messages, are ce...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35745,7 +35745,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7c98053c-70b9-7000-a8e9-ff8f3b258ef1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0402 - Software is comprehensively tested for vulnerabilities, using SAST, DAST and SCA prior to its initial release, any su...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35771,7 +35771,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b2b5a59c-b7e3-7000-d3b0-db61a939cc5c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2060 - Code reviews are utilised to ensure software meets Secure by Design principles and practices as well as secure progra...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35797,7 +35797,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-851ce2b2-d4b6-7000-af56-84886841687c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2061 - Software developer-supported security-focused peer reviews are conducted on all critical and security-focused softwar...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35823,7 +35823,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cce8a984-c15b-7000-b874-7b397d3081a1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2062 - Unit testing and integration testing, covering both positive and negative use cases, are used to ensure code quality...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35849,7 +35849,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f9539ad9-e58d-7000-958a-a646a965c9ea",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1616 - A vulnerability disclosure program is implemented to assist with the secure development and maintenance of products a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35875,7 +35875,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-47ae556a-38ce-7000-f026-560be72e7595",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1755 - A vulnerability disclosure policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35901,7 +35901,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-42b283ec-2dc4-7000-2c1e-c65f5c800d6b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1756 - Vulnerability disclosure processes, and supporting vulnerability disclosure procedures, are developed, implemented an...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35927,7 +35927,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-79a8f1d0-e665-7000-91e9-00ac31a3ec98",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1717 - A ‘security.txt’ file is hosted for each of an organisation’s internet-facing website domains to assist in the respon...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35953,7 +35953,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5fc17cb7-5ddc-7000-d29c-7b8567a11f12",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1908 - Vulnerabilities identified in software are publicly disclosed in a responsible and timely manner, including with Comm...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -35979,7 +35979,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-87c4e860-b696-7000-b95f-38aced8bf8c4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1754 - Vulnerabilities identified in software are resolved in a timely manner",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36005,7 +36005,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-154fbc98-24de-7000-6602-cf157cd95246",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1909 - In resolving vulnerabilities, root cause analysis is performed and, to the greatest extent possible, entire vulnerabi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36031,7 +36031,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f892861b-5c9d-7000-d105-93441660c431",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1911 - Security-relevant usage, error messages and crashes for software are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36057,7 +36057,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3fdb8467-ee5a-7000-9837-5c2bc136b52c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2084 - Artificial intelligence-specific documentation, including model and system cards (or equivalent artefacts), is used t...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36083,7 +36083,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a9d50188-019b-7000-890b-5912e888050f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2072 - Artificial intelligence models are stored in a non-executable file format that does not allow arbitrary code execution",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36109,7 +36109,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cb31242b-ff49-7000-f93d-7b4e406cab77",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2085 - The exposure of exact artificial intelligence model confidence scores in API responses or user interfaces is prevented",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36135,7 +36135,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-65378644-a2e9-7000-7e18-da356ea93c6d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2103 - Organisational data generated, collected or processed by artificial intelligence applications is not used for trainin...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36161,7 +36161,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-01c54fcd-ff86-7000-e8c8-049e2447d337",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2086 - The source and integrity of artificial intelligence models, structures and weights are verified",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36187,7 +36187,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1ca7379d-1a0f-7000-4105-ecaba962eaed",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2087 - The source and integrity of training data for artificial intelligence models is verified",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36213,7 +36213,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-475cddda-d990-7000-488c-829d63f8f136",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2088 - Data validation and verification techniques are used to ensure the reliability and accuracy of training data used by...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36239,7 +36239,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-936e9ea2-9325-7000-0bdb-2fcbdfe232cf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2089 - Artificial intelligence model performance metrics are monitored and anomalies are investigated",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36265,7 +36265,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-812c324a-20c4-7000-577c-144203019cb6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2090 - Rate limiting is applied to inference queries for artificial intelligence models",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36291,7 +36291,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-04150c52-2ad7-7000-cd8a-58171d91808f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2091 - Resource limits are enforced for artificial intelligence models",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36317,7 +36317,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fc732521-3eb2-7000-6c69-dd1ec7bf80b0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2092 - Access control policies are implemented to enforce fine-grained permissions for artificial intelligence applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36343,7 +36343,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-96362d43-e1e6-7000-3c29-072ea28e22ac",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2093 - Role-based access controls are implemented for artificial intelligence applications to restrict access to sensitive data",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36369,7 +36369,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-47a986a3-4af9-7000-9f13-5c5689313f22",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1924 - Generative artificial intelligence applications evaluate user prompts to detect and mitigate adversarial inputs or su...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36395,7 +36395,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ad5fd598-74ae-7000-45b7-0d043fc6bdae",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2094 - Content filtering is implemented by artificial intelligence applications to detect and block sensitive data exposure...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36421,7 +36421,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-39b645b1-0d6a-7000-458f-61cd2bd1f3d9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1922 - The OWASP Mobile Application Security Verification Standard is used in the development of mobile applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36447,7 +36447,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-10dfae60-d8e1-7000-77db-dd78850b110a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1239 - Robust web application frameworks are used in the development of web applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36473,7 +36473,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-65bbf31d-9dde-7000-59b1-3a6487e9b2f1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0971 - The OWASP Application Security Verification Standard is used in the development of web applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36499,7 +36499,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ccb08233-1ee5-7000-b2a4-9ddef8b870f1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1849 - The OWASP Top 10 Proactive Controls are used in the development of web applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36525,7 +36525,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d8e90ff4-7cf1-7000-6d40-586c0f2018e3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1850 - The OWASP Top 10 are mitigated in the development of web applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36551,7 +36551,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ed3a0fc6-c34d-7000-1d6f-3bdfce1c5263",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2063 - If supported, web application session cookies set the HttpOnly flag, Secure flag and the SameSite flag by default",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36577,7 +36577,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e2433dc9-b754-7000-2f96-dc27e2b7cf3e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2064 - Web application session cookies contain only digitally signed opaque bearer tokens",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36603,7 +36603,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-27275c6f-ecad-7000-34ba-8249ab9cf616",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2065 - Web application session cookies using opaque bearer tokens that are not digitally signed use non-sequential random id...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36629,7 +36629,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-faf2e1f7-934b-7000-9d67-f3c383bb15ca",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2066 - Web application sessions are centrally managed server side",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36655,7 +36655,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-118937bd-c794-7000-df7b-ba78065d2077",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2067 - Web applications that support Single Sign On equally support Single Logout",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36681,7 +36681,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a6e100df-18ad-7000-5c10-71dde38e559e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1424 - Content-Security-Policy, Hypertext Transfer Protocol Strict Transport Security and X-Frame-Options are specified by w...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36707,7 +36707,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c1af61b8-0bf2-7000-7a21-5b83a1e29b12",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1552 - All web application content is offered exclusively using HTTPS",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36733,7 +36733,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9f093dff-2075-7000-ca7c-6b458cbaa4f7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1851 - The OWASP API Security Top 10 are mitigated in the development of web APIs",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36759,7 +36759,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-992d26f3-d13c-7000-83c1-4b6eb407d53f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1241 - Output encoding is performed on all output produced by web applications",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36785,7 +36785,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-74a4c79a-c89d-7000-0c90-89896a1441e1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1269 - Database servers and web servers are functionally separated",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36811,7 +36811,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-37c57e27-dbc2-7000-5050-1b1e5fc8fe13",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1277 - Data communicated between database servers and web servers is encrypted",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36837,7 +36837,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c346fd37-d72b-7000-055f-eb836286ee82",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1270 - Database servers are placed on a different network segment to user workstations",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36863,7 +36863,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-594da8a3-2985-7000-93da-abf6b60666d5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1271 - Network access controls are implemented to restrict database server communications to strictly defined network resour...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36889,7 +36889,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-73fc1697-225d-7000-e443-597fd7d52162",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1272 - If only local access to a database is required, networking functionality of database management system applications a...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36915,7 +36915,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d26ffdb8-cac9-7000-8509-ab0882a280b4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1273 - Database servers for development, testing, staging and production environments are segregated",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36941,7 +36941,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-400379cb-1f12-7000-5f9a-72346778ad80",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1243 - A database register is developed, implemented, maintained and verified on a regular basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36967,7 +36967,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c18adfde-ad3f-7000-37f9-d6cc859a7673",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1256 - File-based access controls are applied to database files",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -36993,7 +36993,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-97981a4b-fdbc-7000-f6bd-a49cb76e77fe",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0393 - Databases and their contents are classified based on the sensitivity or classification of data that they contain",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37019,7 +37019,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d7d2f154-f7e8-7000-993e-2190a2c673a8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1255 - Database users’ ability to access, insert, modify and remove database contents is restricted based on their work duties",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37045,7 +37045,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ca17539a-9750-7000-c940-8079a1d65894",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1268 - The need-to-know principle is enforced for database contents through the application of minimum privileges, database...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37071,7 +37071,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-396f868f-a319-7000-87cf-b3374c7d7944",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1274 - Database contents from production environments are not used in non-production environments unless the non-production...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37097,7 +37097,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0d44436e-e592-7000-224a-200c5517bcec",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1537 - Security-relevant events for databases are centrally logged, including: - access or modification of particularly impo...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37123,7 +37123,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fb50a2a8-0815-7000-982d-7fad175a510b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0264 - An email usage policy is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37149,7 +37149,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6d0194b6-b954-7000-0d7d-113549972ab5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0267 - Access to non-approved webmail services is blocked",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37175,7 +37175,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-31e8454c-eb6a-7000-a5fe-8cc3c43aa21e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0270 - Protective markings are applied to emails and reflect the highest sensitivity or classification of the subject, body...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37201,7 +37201,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2361ebb0-3eee-7000-d258-0b9e8ef84bdd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0271 - Protective marking tools do not automatically insert protective markings into emails",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37227,7 +37227,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7e618c32-e6d4-7000-bdab-94df91dbe7d0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0272 - Protective marking tools do not allow users to select protective markings that a system has not been authorised to pr...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37253,7 +37253,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-932627cd-7001-7000-15f6-4b6c19c9418c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1089 - Protective marking tools do not allow users replying to or forwarding emails to select protective markings lower than...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37279,7 +37279,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fe576e81-4819-7000-40c7-911c8d0b8b7b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0565 - Email servers are configured to block, log and report emails with inappropriate protective markings",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37305,7 +37305,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4317ca9e-dc51-7000-2020-b70b09b0a0fb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1023 - The intended recipients of blocked inbound emails, and the senders of blocked outbound emails, are notified",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37331,7 +37331,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cbd6a749-ad99-7000-0534-7233c6fed8cd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0269 - Emails containing Australian Eyes Only, Australian Government Access Only or Releasable To data are not sent to email...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37357,7 +37357,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3659e31a-0e1a-7000-2f92-14853b3e7d0c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0569 - Emails are routed via centralised email gateways",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37383,7 +37383,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ba01092f-f0b2-7000-2779-9162896e5f68",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0571 - When users send or receive emails, an authenticated and encrypted channel is used to route emails via their organisat...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37409,7 +37409,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0635aa51-ca8d-7000-15a5-687a08dac0cb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0570 - Where backup or alternative email gateways are in place, they are maintained at the same standard as the primary emai...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37435,7 +37435,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ef02ee5e-9d69-7000-33c0-f2d96ef8398e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0567 - Email servers only relay emails destined for or originating from their domains (including subdomains)",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37461,7 +37461,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-66aac667-3156-7000-06cf-ef41edc7aaa6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0572 - Opportunistic TLS encryption is enabled on email servers that make incoming or outgoing email connections over public...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37487,7 +37487,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-eef536d3-8234-7000-2e3a-07fe2b0169d5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1589 - MTA-STS is enabled to prevent the unencrypted transfer of emails between email servers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37513,7 +37513,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-206be7da-04bb-7000-a334-0b287371fa39",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0574 - SPF is used to specify authorised email servers (or lack thereof) for an organisation’s domains (including subdomains)",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37539,7 +37539,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-845a98ac-67f3-7000-87f7-ed539ed987b1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1183 - A hard fail SPF record is used when specifying authorised email servers (or lack thereof) for an organisation’s domai...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37565,7 +37565,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-568cb6ab-39a3-7000-0f4d-f4c305ea6191",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1151 - SPF is used to verify the authenticity of incoming emails",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37591,7 +37591,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-038b50b0-897b-7000-2f96-95e910a64cfa",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0861 - DKIM signing is enabled on emails originating from an organisation’s domains (including subdomains)",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37617,7 +37617,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d378fbbc-0fae-7000-ec5e-508903535e08",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1026 - DKIM signatures on incoming emails are verified",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37643,7 +37643,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1c0eac69-f773-7000-e5e9-b160a6e339e5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1027 - Email distribution list applications used by external senders is configured such that it does not break the validity...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37669,7 +37669,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2aa495a0-1283-7000-7150-c95ec6f69b43",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1540 - DMARC records are configured for an organisation’s domains (including subdomains) such that emails are rejected if th...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37695,7 +37695,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5cb68ffe-004d-7000-0535-8d7a5e62188f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1799 - Incoming emails are rejected if they do not pass DMARC checks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37721,7 +37721,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-198323d7-3363-7000-9e39-605f6ff70377",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1234 - Email content filtering is implemented to filter potentially harmful content in email bodies and attachments",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37747,7 +37747,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-81c8ba6f-157b-7000-480c-2439d3c74d92",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1502 - Emails arriving via an external connection where the email source address uses an internal domain, or internal subdom...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37773,7 +37773,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fe4c0441-2654-7000-7ced-863054e72093",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1024 - Notifications of undeliverable emails are only sent to senders that can be verified via SPF or other trusted means",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37799,7 +37799,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-014ce5a0-5f15-7000-dee7-cc6d7887958a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0518 - Network documentation is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37825,7 +37825,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6125158a-0beb-7000-346b-5f4c27fbb866",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0516 - Network documentation includes high-level network diagrams showing all connections into networks and logical network...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37851,7 +37851,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-79091508-b106-7000-93e4-ddd1cafbf46f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1912 - Network documentation includes device settings for all critical servers, high-value servers, network devices and netw...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37877,7 +37877,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-376541df-60bf-7000-0ebd-c78b04155517",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1178 - Network documentation provided to a third party, or published in public tender documentation, only contains details n...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37903,7 +37903,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-37072d62-bb70-7000-fd2d-2af7c7653ce3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1181 - Networks are segregated into multiple network zones according to the criticality of servers, services and data",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37929,7 +37929,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fb2371eb-4f95-7000-a187-842533e84323",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1577 - An organisation’s networks are segregated from their service providers’ networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37955,7 +37955,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2d9a4257-e17a-7000-7f6d-68fc495b6298",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1532 - VLANs are not used to separate network traffic between an organisation’s networks and public network infrastructure",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -37981,7 +37981,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7d199824-107a-7000-797a-9c9bd52b1412",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0529 - VLANs are not used to separate network traffic between networks belonging to different security domains",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38007,7 +38007,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6be2c5c6-7b05-7000-945e-fc307c575fa4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0530 - Network devices managing VLANs are administered from the most trusted security domain",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38033,7 +38033,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4d6dcf4a-d6a6-7000-0dc7-be397b2111fc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0535 - Network devices managing VLANs belonging to different security domains do not share VLAN trunks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38059,7 +38059,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b6816b45-7161-7000-fe03-8bb0aeff40c9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1364 - Network devices managing VLANs terminate VLANs belonging to different security domains on separate physical network i...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38085,7 +38085,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-85529072-2fa9-7000-cb2f-58304ff6a4ce",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2068 - Internet connectivity for networked devices is strictly limited to those that require access",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38111,7 +38111,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4b48f307-0d67-7000-c6b9-d80275806237",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1863 - Networked management interfaces for IT equipment are not directly exposed to the internet",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38137,7 +38137,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4159bcde-3de5-7000-ac50-0c85df229875",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0385 - Servers maintain effective functional separation with other servers allowing them to operate independently",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38163,7 +38163,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6c1a46a3-14f0-7000-2ba7-356a5e50ce90",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1479 - Servers minimise communications with other servers at the network and file system level",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38189,7 +38189,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0b981512-9f6b-7000-a68b-2c2f88006518",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1781 - All data communicated over network infrastructure is encrypted",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38215,7 +38215,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-19a9b87d-a883-7000-4ce6-1b5db2a24f45",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0521 - IPv6 functionality is disabled in dual-stack network devices unless it is being used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38241,7 +38241,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-14495df2-46f9-7000-b588-391a1d455735",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1186 - IPv6 capable network security appliances are used on IPv6 and dual-stack networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38267,7 +38267,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5ca85aee-c47b-7000-7c10-86f61a1b659a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1428 - Unless explicitly required, IPv6 tunnelling is disabled on all network devices",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38293,7 +38293,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9cc53740-bcc2-7000-f71a-bc5c16244d78",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1429 - IPv6 tunnelling is blocked by network security appliances at externally-connected network boundaries",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38319,7 +38319,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-43cae9ee-c4bd-7000-5bd0-52fd09c342ce",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1430 - Dynamically assigned IPv6 addresses are configured with Dynamic Host Configuration Protocol version 6 in a stateful m...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38345,7 +38345,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c2e0ba58-f328-7000-b503-f361a9a04fff",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0520 - Network access controls are implemented on networks to prevent the connection of unauthorised network devices and net...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38371,7 +38371,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e1292f9f-e840-7000-f03b-b19307bc6b1c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1182 - Network access controls are implemented to limit the flow of network traffic within and between network segments to o...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38397,7 +38397,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fa732527-8a08-7000-b488-8675498e3e1f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1006 - Security measures are implemented to prevent unauthorised access to network management traffic",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38423,7 +38423,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-007500ac-19e8-7000-8e09-5156425713d3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1962 - SMB version 1 is not used on networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38449,7 +38449,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-01f91332-5e2d-7000-f6db-a8f3981b420c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1311 - SNMP version 1 and SNMP version 2 are not used on networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38475,7 +38475,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-eea70fd6-0c2c-7000-46fa-76132cdd2e59",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1312 - All default SNMP community strings on network devices are changed and write access is disabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38501,7 +38501,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-27b55fbe-fbb9-7000-775b-e150e5a3cf8b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1028 - A NIDS or NIPS is deployed in gateways between an organisation’s networks and other networks they do not manage",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38527,7 +38527,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b1fd6197-da15-7000-0d81-277b1e9a7226",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1030 - A NIDS or NIPS is located immediately inside the outermost firewall for gateways and configured to generate event log...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38553,7 +38553,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-88fa4a67-5aaa-7000-590e-2a02267bf4fd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1627 - Inbound network connections from anonymity networks are blocked",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38579,7 +38579,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ff486e20-8ea6-7000-6628-e95624dd9cf0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1628 - Outbound network connections to anonymity networks are blocked",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38605,7 +38605,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7b4fa134-df33-7000-c87c-c61b4376fd45",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2017 - DNS traffic is encrypted by clients and servers wherever supported",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38631,7 +38631,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ff66b99e-9356-7000-d2b3-b0bbb2a2d457",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1782 - A protective DNS service is used to block access to known malicious domain names",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38657,7 +38657,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a5c2e357-8ba4-7000-d9d3-b450b27cdc5d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1800 - Network devices are flashed with trusted firmware before they are used for the first time",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38683,7 +38683,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bc29082c-95a2-7000-bd88-37ed7800bf34",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1304 - Default user accounts or credentials for network devices, including for any pre-configured user accounts, are changed...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38709,7 +38709,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d95a4a2f-c0ce-7000-1401-1d0792d65e08",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0534 - Unused physical ports on network devices are disabled",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38735,7 +38735,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d90ac476-150e-7000-202b-f843abb678c9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1801 - Network devices are restarted on at least a monthly basis",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38761,7 +38761,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-783043f2-faf3-7000-9d2f-a52a4b06197b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1963 - Security-relevant events for internet-facing network devices are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38787,7 +38787,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5b573ceb-c20f-7000-1ac0-79edc6b2f8c3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1964 - Security-relevant events for non-internet-facing network devices are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38813,7 +38813,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7de3e0dd-3296-7000-82e8-f345e79b9fec",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1314 - All wireless devices are Wi-Fi Alliance certified",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38839,7 +38839,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f32b66af-101d-7000-e3de-438a885e1a7a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0536 - Public wireless networks provided for general public use are segregated from all other organisation networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38865,7 +38865,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6ecdfc65-0b59-7000-6f5d-e09f1c81b472",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1315 - The administrative interface on wireless access points is disabled for wireless network connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38891,7 +38891,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-54bf4c49-e57f-7000-92f4-245b5fda33b0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1710 - Settings for wireless access points are hardened",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38917,7 +38917,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1d2e4569-b160-7000-8937-71bfb0771e52",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1316 - Default SSIDs of wireless access points are changed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38943,7 +38943,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b3a19f21-7b1a-7000-0c21-4721c2aa82b1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1317 - SSIDs of non-public wireless networks are not readily associated with an organisation, the location of their premises...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38969,7 +38969,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-906da201-be21-7000-0ea6-17d6af63f88a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1318 - SSID broadcasting is not disabled on wireless access points",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -38995,7 +38995,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d826daaa-895e-7000-de34-c593e9166b24",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1320 - MAC address filtering is not used to restrict which devices can connect to wireless networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39021,7 +39021,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6cac4b02-c932-7000-e063-b6ec8766de06",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1319 - Static addressing is not used for assigning IP addresses on wireless networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39047,7 +39047,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f6b9660e-d12b-7000-86a8-89b938eac222",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1332 - WPA3-Enterprise 192-bit mode is used to protect the confidentiality and integrity of all wireless network traffic",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39073,7 +39073,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5a1ecebc-500f-7000-0c73-dba6dc7c3a7b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1321 - 802.1X authentication with EAP-TLS, using X.509 certificates, is used for mutual authentication; with all other EAP m...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39099,7 +39099,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-acbf241f-62d4-7000-2070-f72116c1efab",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1711 - User identity confidentiality is used if available with EAP-TLS implementations",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39125,7 +39125,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2cb639ac-f51e-7000-1165-ec9dc15987f0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1322 - Evaluated supplicants, authenticators, wireless access points and authentication servers are used in wireless networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39151,7 +39151,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a6ea3fb1-0113-7000-385f-f4ecf9bc3e92",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1324 - Certificates are generated using an evaluated certificate authority or hardware security module",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39177,7 +39177,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4ba0c7ac-e8a3-7000-17ad-301810d6e883",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1323 - Certificates are required for devices and users accessing wireless networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39203,7 +39203,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-05e3a9ed-4baf-7000-cd51-d778160376a8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1327 - Certificates are protected by logical and physical access controls, encryption, and user authentication",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39229,7 +39229,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-432374fd-2441-7000-3dec-d1f54bf6fd4b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1330 - The PMK caching period is not set to greater than 1440 minutes (24 hours)",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39255,7 +39255,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1d3f3f30-a131-7000-464d-31b22ea7f902",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1712 - The use of FT (802.11r) is disabled unless authenticator-to-authenticator communications are secured by an ASD-Approv...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39281,7 +39281,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6c8036a6-f25f-7000-4360-291e16fa6a38",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1454 - Communications between authenticators and a RADIUS server are encapsulated with an additional layer of encryption usi...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39307,7 +39307,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b1e532f8-e7c9-7000-ae98-b0b47c974564",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1334 - Wireless networks implement sufficient frequency separation from other wireless networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39333,7 +39333,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-914ba90a-44f5-7000-fde9-51df9c1416bf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1335 - Wireless access points enable the use of the 802.11w amendment to protect management frames",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39359,7 +39359,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ce56d71f-7a1b-7000-3124-922f0f86f5c7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1338 - Instead of deploying a small number of wireless access points that broadcast on high power, a greater number of wirel...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39385,7 +39385,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-45880cfb-29e0-7000-6cc7-dac27f0f3a13",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1013 - The effective range of wireless communications outside an organisation’s area of control is limited by implementing R...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39414,7 +39414,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c0f7bff8-fdb3-7000-829c-6f986a8d31bd",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1437 - Cloud service providers are used for hosting online services",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39440,7 +39440,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8d169df2-c272-7000-5bdc-3a5eb1acc6ff",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1579 - Cloud service providers’ ability to dynamically scale resources in response to a genuine spike in demand is discussed...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39466,7 +39466,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4801bcf9-168c-7000-648a-02b8ca911785",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1580 - Where a high availability requirement exists for online services, the services are architected to automatically trans...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39492,7 +39492,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-abcaed7c-06a2-7000-981a-0952340f784a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1581 - Continuous real-time monitoring of the capacity and availability of online services is performed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39518,7 +39518,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7c1f5ff8-89b4-7000-c155-bf7869b6443a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1438 - Where a high availability requirement exists for website hosting, CDNs that cache websites are used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39544,7 +39544,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-51d14411-f33b-7000-31dd-4d43fdbf1260",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1439 - If using CDNs, disclosing the IP addresses of web servers under an organisation’s control (referred to as origin serv...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39570,7 +39570,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5be2544c-3166-7000-644c-c5386f85443d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1431 - Denial-of-service attack mitigation strategies are discussed with cloud service providers, specifically: - their capa...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39596,7 +39596,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a1bd92fb-f5ab-7000-2aa3-d62698e95f00",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1436 - Critical online services are segregated from other online services that are more likely to be targeted as part of den...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39622,7 +39622,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6d6faaf1-acd8-7000-6fba-b0c14e56f379",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1432 - Domain names for online services are protected via registrar locking and confirming that domain registration details...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39648,7 +39648,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-da0e791c-8eae-7000-dbd9-2ec1f823ab54",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0499 - Communications security doctrine and policy produced by ASD for the management and operation of HACE is complied with",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39674,7 +39674,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-aaf3e182-af4f-7000-a76b-01e6410be40a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1802 - HACE are issued an Approval for Use by ASD and operated in accordance with the latest version of their associated Aus...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39700,7 +39700,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f4309d2a-3010-7000-4fa8-34d89ae53488",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0507 - Cryptographic key management processes, and supporting cryptographic key management procedures, are developed, implem...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39726,7 +39726,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ba1f6c49-60e6-7000-d65b-ef9b750a43bb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1080 - An ASD-Approved Cryptographic Algorithm (AACA) or high assurance cryptographic algorithm is used when encrypting media",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39752,7 +39752,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-54487c78-cf13-7000-29c0-998d8ce6ba24",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0459 - Full disk encryption, or partial encryption where access controls will only allow writing to the encrypted partition,...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39778,7 +39778,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-001cecf1-ad56-7000-fa69-9f95808fe740",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0469 - An ASD-Approved Cryptographic Protocol (AACP) or high assurance cryptographic protocol is used to protect data when c...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39804,7 +39804,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ebb1fcaf-4743-7000-b566-ab2d487e8c29",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0457 - Cryptographic equipment, applications or libraries that have completed a Common Criteria evaluation against an ASD-en...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39830,7 +39830,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c2bebb52-13e2-7000-5106-9c05d68e15b1",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0460 - HACE is used when encrypting media that contains SECRET or TOP SECRET data",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39859,7 +39859,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4647abc7-9c6a-7000-0fa1-3a5a92514350",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0465 - Cryptographic equipment, applications or libraries that have completed a Common Criteria evaluation against an ASD-en...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39885,7 +39885,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-28c56400-173c-7000-0d6b-15387237edfe",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0467 - HACE is used to protect SECRET and TOP SECRET data when communicated over insufficiently secure networks, outside of...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39914,7 +39914,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-990dc245-9f56-7000-38ce-46e957c12752",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0455 - Where practical, cryptographic equipment, applications and libraries provide a means of data recovery to allow for ci...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39940,7 +39940,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-94959955-e98f-7000-6d64-cb22faf549b4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0462 - When a user authenticates to the encryption functionality of IT equipment or media, it is treated in accordance with...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39966,7 +39966,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0f07521c-e45e-7000-30c1-54283831cc07",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0501 - Keyed cryptographic equipment is transported based on the sensitivity or classification of its keying material",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -39992,7 +39992,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cd344724-a818-7000-e7ca-53220ee9185b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0142 - The compromise or suspected compromise of cryptographic equipment or associated keying material is reported to the ch...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40018,7 +40018,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-74ff3ea1-6093-7000-5bcc-d73510d16781",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1091 - Keying material is changed when compromised or suspected of being compromised",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40044,7 +40044,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4dc9992f-aa73-7000-5deb-d342e9a777d2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0471 - Only AACAs or high assurance cryptographic algorithms are used by cryptographic equipment, applications and libraries",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40070,7 +40070,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e8ad39c7-e38a-7000-f921-38f25ca8005e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0994 - ECDH is used in preference to DH",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40096,7 +40096,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-794f62d5-022c-7000-d96b-72d772b37c78",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0472 - When using DH for agreeing on encryption session keys, a modulus of at least 2048 bits is used, preferably 3072 bits",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40122,7 +40122,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2942fe7d-e45c-7000-73d9-435b6cd0f7c8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1759 - When using DH for agreeing on encryption session keys, a modulus of at least 3072 bits is used, preferably 3072 bits",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40148,7 +40148,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-80bb6e3d-e9f1-7000-4568-f0551432538c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1629 - When using DH for agreeing on encryption session keys, a modulus and associated parameters are selected according to...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40174,7 +40174,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ee0f69c3-c848-7000-c4cc-0788695f0f25",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1446 - When using elliptic curve cryptography, a suitable curve from NIST SP 800-186 is used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40200,7 +40200,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-99184362-72ae-7000-54c2-23068980d38a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0474 - When using ECDH for agreeing on encryption session keys, a base point order and key size of at least 224 bits is used...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40226,7 +40226,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-15e41509-2b36-7000-2718-f817a889d813",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1761 - When using ECDH for agreeing on encryption session keys, NIST P-256, P-384 or P-521 curves are used, preferably the N...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40252,7 +40252,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-21904908-413d-7000-b479-d3cf43a5d518",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1762 - When using ECDH for agreeing on encryption session keys, NIST P-384 or P-521 curves are used, preferably the NIST P-3...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40278,7 +40278,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6887229c-772f-7000-add7-9c80b1795991",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0475 - When using ECDSA for digital signatures, a base point order and key size of at least 224 bits is used, preferably the...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40304,7 +40304,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3e37bb86-1ad6-7000-b467-ff7a5f779f14",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1763 - When using ECDSA for digital signatures, NIST P-256, P-384 or P-521 curves are used, preferably the NIST P-384 curve",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40330,7 +40330,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2e3ad875-1352-7000-70e0-85438e2cb748",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1764 - When using ECDSA for digital signatures, NIST P-384 or P-521 curves are used, preferably the NIST P-384 curve",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40356,7 +40356,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c4c29f3d-d844-7000-34a2-d77eebe423a5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1990 - When using ML-DSA and ML-KEM, as per FIPS 204 and FIPS 203 respectively, adherence to pre-requisite FIPS 140-3 valida...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40382,7 +40382,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8e42e2cc-bb82-7000-65b5-ffd2d7334478",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1991 - When using ML-DSA for digital signatures, ML-DSA-65 or ML-DSA-87 is used, preferably ML-DSA-87",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40408,7 +40408,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-90194059-dad6-7000-b820-f6160ff35006",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1992 - When using ML-DSA for digital signatures, the hedged variant is used whenever possible",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40434,7 +40434,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9a2839fb-6efc-7000-91a7-352acfb1192d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1993 - Pre-hashed variants of ML-DSA-65 and ML-DSA-87 are only used when the performance of default variants is unacceptable",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40460,7 +40460,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-18326cce-a4e2-7000-bfe4-b6fe9a829fe8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1994 - When the pre-hashed variants of ML-DSA-65 and ML-DSA-87 are used, at least SHA-384 and SHA-512 respectively are used...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40486,7 +40486,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1e2db4f0-8edd-7000-747f-6a619cd7cda2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1995 - When using ML-KEM for encapsulating encryption session keys (and similar keys), ML-KEM-768 or ML-KEM-1024 is used, pr...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40512,7 +40512,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-648923e6-8328-7000-0bd9-d0b30e286c6f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0476 - When using RSA for digital signatures, and transporting encryption session keys (and similar keys), a modulus of at l...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40538,7 +40538,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a806a00b-00a6-7000-db8c-ebd1f9f2606e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1765 - When using RSA for digital signatures, and transporting encryption session keys (and similar keys), a modulus of at l...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40564,7 +40564,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-06cb0680-86bf-7000-04a4-9d5dc433094c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0477 - When using RSA for digital signatures, and for transporting encryption session keys (and similar keys), a different k...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40590,7 +40590,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d1e2c1c7-69ed-7000-21b6-9ea9a76506cf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1766 - When using SHA-2 for hashing, an output size of at least 224 bits is used, preferably SHA-384 or SHA-512",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40616,7 +40616,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-fd4497e0-a2c6-7000-b93c-d7350d65e755",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1767 - When using SHA-2 for hashing, an output size of at least 256 bits is used, preferably SHA-384 or SHA-512",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40642,7 +40642,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-224f4b53-7073-7000-ed37-c9f2b178d7de",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1768 - When using SHA-2 for hashing, an output size of at least 384 bits is used, preferably SHA-384 or SHA-512",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40668,7 +40668,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9c9516f2-2960-7000-ef38-4ea8902c6ad6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1769 - When using AES for encryption, AES-128, AES-192 or AES-256 is used, preferably AES-256",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40694,7 +40694,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5a8c858a-64aa-7000-23a3-54bee4974668",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1770 - When using AES for encryption, AES-192 or AES-256 is used, preferably AES-256",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40720,7 +40720,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7aaa4775-9a8c-7000-aa66-e17f6d6ec1cc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0479 - Symmetric cryptographic algorithms are not used in Electronic Codebook Mode",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40746,7 +40746,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9ae1379c-b3ec-7000-61c7-b623d89f017f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2073 - A post-quantum cryptography transition plan is developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40772,7 +40772,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-82a23d76-d568-7000-f75f-1614396cddaf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1917 - The development and procurement of new cryptographic equipment, applications and libraries ensures support for the us...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40798,7 +40798,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-698acdda-b76d-7000-11bc-3cbee11f6680",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1996 - When a post-quantum traditional hybrid scheme is used, either the post-quantum cryptographic algorithm, the tradition...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40824,7 +40824,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3d7fd207-e80b-7000-fd68-3be81a7cc129",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0481 - Only AACPs or high assurance cryptographic protocols are used by cryptographic equipment, applications and libraries",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40850,7 +40850,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-f8a3fc72-1886-7000-c1e8-f7658f549e74",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1139 - Only the latest version of TLS is used for TLS connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40876,7 +40876,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cb0ff735-7e1b-7000-0d66-a5a0d33a8814",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1369 - AES-GCM is used for encryption of TLS connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40902,7 +40902,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-effba047-7e11-7000-3726-2454e07ab4af",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1370 - Only server-initiated secure renegotiation is used for TLS connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40928,7 +40928,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b59fba52-fcdd-7000-7c65-d4e3870b20b9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1372 - DH or ECDH is used for key establishment of TLS connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40954,7 +40954,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ecda4514-c744-7000-e5fb-b3f89b3a574c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1448 - When using DH or ECDH for key establishment of TLS connections, the ephemeral variant is used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -40980,7 +40980,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a28b9813-faae-7000-768a-c232b39c41ea",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1373 - Anonymous DH is not used for TLS connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41006,7 +41006,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4a5510f9-8685-7000-83f0-646f139f5ed7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1374 - SHA-2-based certificates are used for TLS connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41032,7 +41032,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-45e7801f-04d6-7000-6349-1314f5d71860",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1375 - SHA-2 is used for the Hash-based Message Authentication Code (HMAC) and pseudorandom function (PRF) for TLS connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41058,7 +41058,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-40b78555-66ea-7000-06bc-fec521a8370f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1553 - TLS compression is disabled for TLS connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41084,7 +41084,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bf0a4128-f1f5-7000-cfff-7fe86bd903d6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1453 - Perfect Forward Secrecy (PFS) is used for TLS connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41110,7 +41110,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4c9856e3-ebd4-7000-2b6b-42ea494caae7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1506 - The use of SSH version 1 is disabled for SSH connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41136,7 +41136,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4d153171-b9fa-7000-8944-4f4c85555af7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0484 - The SSH daemon is configured to: - only listen on the required interfaces (ListenAddress xxx.xxx.xxx.xxx) - have a su...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41162,7 +41162,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8f776cb2-ab4e-7000-2f98-35c0214b6bc6",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0485 - Public key-based authentication is used for SSH connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41188,7 +41188,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cc9da689-43e4-7000-4b99-97ffb6694cfb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1449 - SSH private keys are protected with a password or a key encryption key",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41214,7 +41214,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-51786226-6d19-7000-b36b-48f0cd5af74e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0487 - When using logins without a password for SSH connections, the following are disabled: - access from IP addresses that...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41240,7 +41240,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-847fd382-1088-7000-19d3-7a84454ab062",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0488 - If using remote access without the use of a password for SSH connections, the ‘forced command’ option is used to spec...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41266,7 +41266,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-82cfd5e6-ee0e-7000-868e-7f1d2cb8b2b0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0489 - When SSH-agent or similar key caching applications are used, it is limited to workstations and servers with screen lo...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41292,7 +41292,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b2f10d02-0b12-7000-ebe4-ea665434001e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0490 - Versions of S/MIME earlier than S/MIME version 3.0 are not used for S/MIME connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41318,7 +41318,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-db825169-c7ab-7000-1420-8b80ed6615da",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0494 - Tunnel mode is used for IPsec connections; however, if using transport mode, an IP tunnel is used",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41344,7 +41344,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-91bede62-db1e-7000-4c76-04c2e2573c21",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0496 - The ESP protocol is used for authentication and encryption of IPsec connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41370,7 +41370,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6c65ba35-0ab6-7000-309c-0d30558703e9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1233 - IKE version 2 is used for key exchange when establishing IPsec connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41396,7 +41396,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0ed75cd4-37f7-7000-4100-ee7afe95629a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1771 - AES is used for encrypting IPsec connections, preferably ENCR_AES_GCM_16",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41422,7 +41422,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c2d5c170-f113-7000-496e-8a5dc10c9564",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1772 - PRF_HMAC_SHA2_256, PRF_HMAC_SHA2_384 or PRF_HMAC_SHA2_512 is used for IPsec connections, preferably PRF_HMAC_SHA2_512",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41448,7 +41448,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b612a8b4-6f46-7000-a54d-78d5ccc7758a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0998 - AUTH_HMAC_SHA2_256_128, AUTH_HMAC_SHA2_384_192, AUTH_HMAC_SHA2_512_256 or NONE (only with AES-GCM) is used for authen...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41474,7 +41474,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1c48b3a2-2d88-7000-ac90-932b558bf84d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0999 - DH or ECDH is used for key establishment of IPsec connections, preferably 384-bit random ECP group, 3072-bit MODP Gro...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41500,7 +41500,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-94a3727c-4930-7000-2884-4fe82024c135",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0498 - A security association lifetime of less than four hours (14400 seconds) is used for IPsec connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41526,7 +41526,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-98e7bebd-aa28-7000-1868-1662971bb80c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1000 - PFS is used for IPsec connections",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41552,7 +41552,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-22ceb997-23ab-7000-29ee-c29e14b02516",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0628 - Gateways are implemented between networks belonging to different security domains",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41578,7 +41578,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-883d5af0-4137-7000-d295-74028c14f83e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0637 - Gateways implement a demilitarised zone if external parties require access to an organisation’s services",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41604,7 +41604,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2b782291-2784-7000-2657-88e655e9a899",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0631 - Gateways only allow explicitly authorised data flows",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41630,7 +41630,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8b7872ac-c526-7000-0ee8-85a07906b27a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1192 - Gateways inspect and filter data flows at the transport and above network layers",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41656,7 +41656,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-83f90917-f210-7000-51d4-1da7a0de73e0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1427 - Gateways perform ingress traffic filtering to detect and prevent IP source address spoofing",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41682,7 +41682,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-dd7596de-3c42-7000-52c1-7c13702ac5eb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1520 - System administrators for gateways undergo appropriate employment screening, and where necessary hold an appropriate...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41708,7 +41708,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ea7b469c-8e2b-7000-5275-3e7b8372a8cb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0613 - System administrators for gateways that connect to Australian Eyes Only or Releasable To networks are Australian nati...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41734,7 +41734,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-55df68d3-48ae-7000-3ea9-f39f7f6b5a89",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1773 - System administrators for gateways that connect to Australian Government Access Only networks are Australian national...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41760,7 +41760,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-de221354-99d9-7000-5b49-b2ba3e601366",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0611 - System administrators for gateways are assigned the minimum privileges required to perform their duties",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41786,7 +41786,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ea91cae5-d0d3-7000-eca2-974397686697",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0616 - Separation of duties is implemented in performing administrative activities for gateways",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41812,7 +41812,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4f40b263-3013-7000-eda4-cef3f0d7dbe8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0612 - System administrators for gateways are formally trained on the operation and management of gateways",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41838,7 +41838,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c6b4943d-731e-7000-c18f-16f22ba7dd46",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1774 - Gateways are managed via a secure path isolated from all connected networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41864,7 +41864,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-587bdc28-32d4-7000-9ea0-1b23610266a2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0629 - For gateways between networks belonging to different security domains, any shared components are managed by system ad...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41890,7 +41890,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cf159c67-bf3d-7000-310b-e29bb60f16f5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0619 - Users authenticate to other networks accessed via gateways",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41916,7 +41916,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8acfe10e-173c-7000-8a7c-d9ad78d7d60f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0622 - IT equipment authenticates to other networks accessed via gateways",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41942,7 +41942,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-76f4ee8b-d0cb-7000-9a1d-8cb5e2493ff7",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1783 - Public IP addresses controlled by, or used by, an organisation are signed by valid ROA records",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41968,7 +41968,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ba14a381-a0b3-7000-2348-72062a2af554",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2018 - Routes for RPKI-registered IP addresses that are advertised from invalid Autonomous Systems, or that are longer than...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -41994,7 +41994,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7f03f45a-0938-7000-828c-a66769e787f0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0634 - Security-relevant events for gateways are centrally logged, including: - data packets and data flows permitted throug...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42020,7 +42020,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a6b37b69-802b-7000-9151-ce654bf0ea7d",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1037 - Gateways undergo testing following configuration changes, and at regular intervals no more than six months apart, to...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42046,7 +42046,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-024e2641-a764-7000-a30d-7056e6dc8061",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0100 - Non-classified, OFFICIAL: Sensitive, PROTECTED and SECRET gateways undergo an IRAP assessment, using the latest relea...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42072,7 +42072,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-82b584f7-d6a8-7000-bd73-cb9e63bee8e9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-2019 - TOP SECRET gateways undergo a security assessment by ASD assessors (or their delegates), using the latest release of...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42101,7 +42101,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2bd46fe2-bfed-7000-5ef8-e191f541aee0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0626 - CDSs are implemented between SECRET or TOP SECRET networks and any other networks belonging to different security dom...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42130,7 +42130,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d1bb84a0-bbb2-7000-41c4-b4835d769650",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0597 - When planning, designing, implementing or introducing additional connectivity to CDSs, ASD is consulted and any direc...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42156,7 +42156,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2790abb0-f187-7000-95d5-722329ab6de8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0635 - CDSs implement isolated upward and downward network paths",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42182,7 +42182,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-64de62bd-4ebe-7000-2ebc-ecd8b90d50c9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1522 - CDSs implement independent security-enforcing functions for upward and downward network paths",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42208,7 +42208,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9c82cfa1-7364-7000-074d-48b53833fd3b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1521 - CDSs implement protocol breaks at each network layer",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42234,7 +42234,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c9414c68-a9b1-7000-00ce-a51ee0f53f74",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0670 - Security-relevant events for CDSs are centrally logged",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42260,7 +42260,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c37d0a4a-a84b-7000-dae8-1218b6fa97f0",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1523 - A sample of security-relevant events relating to data transfer policies are taken at least every three months and ass...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42286,7 +42286,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-abc83c2b-d723-7000-7d9a-04005908306c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0610 - Users are trained on the secure use of CDSs before access is granted",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42312,7 +42312,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-59fe1f32-0b74-7000-3826-bd29ace404bb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1528 - Evaluated firewalls are used between an organisation’s networks and public network infrastructure",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42338,7 +42338,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-1c97df8e-ee0e-7000-9c77-724004741b8c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0639 - Evaluated firewalls are used between networks belonging to different security domains",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42364,7 +42364,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7d507313-e400-7000-f3ef-4fbb4d410159",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1862 - If using a WAF, disclosing the IP addresses of web servers under an organisation’s control (referred to as origin ser...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42390,7 +42390,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a030f497-e0f2-7000-ab7e-be2da42c9171",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0643 - Evaluated diodes are used for controlling the data flow of unidirectional gateways between an organisation’s networks...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42416,7 +42416,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-71b0de8b-587d-7000-6f25-37f9255e51eb",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0645 - Evaluated diodes used for controlling the data flow of unidirectional gateways between SECRET or TOP SECRET networks...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42445,7 +42445,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-13856f79-e0c4-7000-0983-72a00c2c8fd8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1157 - Evaluated diodes are used for controlling the data flow of unidirectional gateways between networks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42471,7 +42471,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cb251cf1-0481-7000-fb83-ed2b60676a33",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1158 - Evaluated diodes used for controlling the data flow of unidirectional gateways between SECRET or TOP SECRET networks...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42500,7 +42500,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-45e026cd-ebd2-7000-ca5c-558c60c8fb90",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0260 - All web access, including that by internal servers, is conducted through web proxies",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42526,7 +42526,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-0806fdab-3397-7000-fb41-8e41005360da",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0261 - The following details are centrally logged for websites accessed via web proxies: - web address - date and time - use...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42552,7 +42552,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6bd750f2-0412-7000-b6b4-277b8bcf368f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0963 - Web content filtering is implemented to filter potentially harmful web-based content",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42578,7 +42578,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e4eaa1a8-ba23-7000-f522-5a5eeab4a412",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0961 - Client-side active content is restricted by web content filters to an organisation-approved list of domain names",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42604,7 +42604,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ccb8781b-4b2f-7000-385e-c18c6649d18a",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1237 - Web content filtering is applied to outbound web traffic where appropriate",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42630,7 +42630,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4675fa7b-8bdb-7000-a045-d37fe8463ee2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0263 - TLS traffic communicated through gateways is decrypted and inspected",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42656,7 +42656,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3886a3a6-4dc7-7000-ed00-c9f388931f73",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0958 - An organisation-approved list of domain names, or list of website categories, is implemented for all Hypertext Transf...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42682,7 +42682,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a5dae2d9-766b-7000-0816-67a48155c43c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1236 - Malicious domain names, dynamic domain names and domain names that can be registered anonymously for free are blocked...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42708,7 +42708,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e0da4732-4784-7000-1ab4-64a386547535",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1171 - Attempts to access websites through their IP addresses instead of their domain names are blocked by web content filters",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42734,7 +42734,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-23695a51-85cf-7000-8060-38b2b88a8c01",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0659 - Files imported or exported via gateways or CDSs undergo content filtering checks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42760,7 +42760,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2c80acd7-4a56-7000-f8c7-72946d5a8056",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0651 - Files identified by content filtering checks as malicious, or that cannot be inspected, are blocked",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42786,7 +42786,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-cfff2a86-5171-7000-ef7f-b31ee54dc77b",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0652 - Files identified by content filtering checks as suspicious are quarantined until reviewed and subsequently approved o...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42812,7 +42812,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-839fb159-866a-7000-6dd4-5400914eb95c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1524 - Content filters used by CDSs undergo rigorous security testing to ensure they perform as expected and cannot be bypassed",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42838,7 +42838,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2a67d10a-68ed-7000-f74c-15957aa259ec",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1293 - Encrypted files imported or exported via gateways or CDSs are decrypted in order to undergo content filtering checks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42864,7 +42864,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c3a00987-790b-7000-4d46-5356a8efe15f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1289 - Archive files imported or exported via gateways or CDSs are unpacked in order to undergo content filtering checks",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42890,7 +42890,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-8423d5d9-4741-7000-218b-e0a462b91785",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1290 - Archive files are unpacked in a controlled manner to ensure content filter performance or availability is not adverse...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42916,7 +42916,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-6836e761-0e11-7000-af28-55deb3a245bc",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1288 - Files imported or exported via gateways or CDSs undergo antivirus scanning using multiple different scanning engines",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42942,7 +42942,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5de9c028-c0db-7000-a39f-345fae4030b4",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1389 - Executable files imported via gateways or CDSs are automatically executed in a sandbox to detect any suspicious behav...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42968,7 +42968,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d18aec60-7864-7000-fdd9-7cdcb11f81d9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0649 - Files imported or exported via gateways or CDSs are filtered for allowed file types",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -42994,7 +42994,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a6284616-5de8-7000-5cde-506764a42890",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1284 - Files imported or exported via gateways or CDSs undergo content validation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43020,7 +43020,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9489c132-3f77-7000-dbc4-7d1eb2714798",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1965 - Files imported or exported via gateways or CDSs undergo content checking",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43046,7 +43046,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-c27489b4-3bfd-7000-4803-15d8bef69426",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1286 - Files imported or exported via gateways or CDSs undergo content conversion",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43072,7 +43072,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-d2c9a2a7-49aa-7000-628f-ab80aebfe9e8",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1287 - Files imported or exported via gateways or CDSs undergo content sanitisation",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43098,7 +43098,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-bfda8fb7-c81f-7000-0f93-89eb0c572fd9",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0677 - Files imported or exported via gateways or CDSs that have a digital signature or cryptographic checksum are validated",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43124,7 +43124,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-4978f628-34f8-7000-2f12-89373023169e",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0591 - Evaluated peripheral switches are used when sharing peripherals between systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43150,7 +43150,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a59bf2e5-688a-7000-2856-5d70c7372af3",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1457 - Evaluated peripheral switches used for sharing peripherals between SECRET and TOP SECRET systems, or between SECRET o...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43179,7 +43179,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-21cb95cc-8062-7000-1852-2edf37b504be",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1480 - Evaluated peripheral switches used for sharing peripherals between SECRET or TOP SECRET systems and any non-SECRET or...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43208,7 +43208,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-7c261467-8f9e-7000-11f6-a8e8976a42d5",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0663 - Data transfer processes, and supporting data transfer procedures, are developed, implemented and maintained",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43234,7 +43234,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-2b230ad6-d77f-7000-e511-82c48e10aa42",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1535 - Processes, and supporting procedures, are developed, implemented and maintained to prevent AUSTEO, AGAO and REL data...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43260,7 +43260,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-50d3ea42-f134-7000-d802-a8a005403d4c",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0661 - Users transferring data to and from systems are held accountable for data transfers they perform",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43286,7 +43286,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-e09b685c-a380-7000-5d51-bd1a3a87d943",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0657 - When manually importing data to systems, the data is scanned for malicious and active content",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43312,7 +43312,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-19cdee30-be80-7000-cdeb-b27c53cceac2",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1778 - When manually importing data to systems, all data that fails security checks is quarantined until reviewed and subseq...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43338,7 +43338,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-35478464-b487-7000-f4fd-87f9c0b18fcf",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0664 - Data exported from SECRET and TOP SECRET systems is reviewed and authorised by a trustworthy source beforehand",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43367,7 +43367,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-a8c000c0-66a5-7000-4448-b18ca3333c9f",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0675 - Data authorised for export from SECRET and TOP SECRET systems is digitally signed by a trustworthy source",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43396,7 +43396,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-9117016e-a027-7000-70e4-b75739d25311",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0665 - Trustworthy sources for SECRET and TOP SECRET systems are limited to people and services that have been verified and...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43425,7 +43425,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-ecb516a0-5cf4-7000-0f69-d01547a38892",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1187 - When manually exporting data from systems, the data is checked for unsuitable protective markings",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43451,7 +43451,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-07b7700f-cb3d-7000-ba81-2a593da961ac",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0669 - When manually exporting data from SECRET and TOP SECRET systems, digital signatures are validated and keyword checks...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43480,7 +43480,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-70bd5da1-8821-7000-4ec9-edc247e7e821",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1779 - When manually exporting data from systems, all data that fails security checks is quarantined until reviewed and subs...",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43506,7 +43506,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-5782e779-0251-7000-5add-57e08f0bae85",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1586 - Data transfer logs are used to record all data imports and exports from systems",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43532,7 +43532,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-3d685164-31f7-7000-48d9-dce0f4a06b56",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-1294 - Data transfer logs for systems are partially verified at least monthly",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -43558,7 +43558,7 @@ export const ISM_SOURCE_CONTROLS: readonly Omit<SourceControlEntity, "createdAt"
   {
     "id": "SRC-b08f0292-af22-7000-4ef1-f9f0ba9fd472",
     "entityType": "source-control",
-    "schemaVersion": "1.15.0",
+    "schemaVersion": "1.16.0",
     "title": "ISM-0660 - Data transfer logs for SECRET and TOP SECRET systems are fully verified at least monthly",
     "sourceProduct": "core",
     "recordStatus": "active",
@@ -59413,7 +59413,7 @@ export const PREVIOUS_ISM_SOURCE_CONTROLS = [
 ] as const satisfies readonly Pick<SourceControlEntity, "controlId" | "statement" | "provenance">[];
 
 export const PSPF_REFERENCE_DATA_REPORT = {
-  "generatedAt": "2026-08-24T00:02:12.321Z",
+  "generatedAt": "2026-09-02T21:20:31.882Z",
   "sources": [
     {
       "sourceId": "pspf-release-2025-list-requirements",

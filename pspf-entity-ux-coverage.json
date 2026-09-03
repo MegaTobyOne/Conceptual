@@ -306,6 +306,22 @@
       "nextSlice": "Use relationship manager for affected entity references where the contract permits it."
     },
     {
+      "entityType": "narrative",
+      "label": "Narrative",
+      "recordSet": "contract",
+      "mutability": "user-editable",
+      "ownerSurface": "Workshop",
+      "list": "not-applicable",
+      "detail": "not-applicable",
+      "create": "complete",
+      "edit": "complete",
+      "delete": "complete",
+      "relationships": "partial",
+      "standard": "Operator narrative is authored in place on a Reporting Workbench section and reused by other renderers; the body is sensitive and never published. Narratives have no list or detail screen by design: each record is edited on the section it annotates.",
+      "gap": "Narratives are consumed only by the Reporting Workbench; the posture brief, magazine, and master plan still ignore narrative slots, and target links are recorded as targetType/targetId rather than link records.",
+      "nextSlice": "R4 consumes narrative slots in the posture brief, magazine, and master plan and reviews whether target references should become link records."
+    },
+    {
       "entityType": "supplier",
       "label": "Supplier",
       "recordSet": "contract",

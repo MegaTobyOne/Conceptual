@@ -378,6 +378,18 @@ const coverage = [
     "e2e:v1.68",
     "e2e:v1.69",
     "e2e:v1.70"
+  ]),
+  adr("0097-v1-74-brief-once-act-often-reporting-programme.md", "automated", [
+    "check:reporting-workbench",
+    "check:essentials-surface",
+    "check:ownership-schema",
+    "check:team-report-card",
+    "check:narrative-reuse",
+    "e2e:v1.71",
+    "e2e:v1.72",
+    "e2e:v1.73",
+    "e2e:v1.74",
+    "release:readiness"
   ])
 ];
 

@@ -447,6 +447,54 @@ export function shellHtml(title: string, body: string): string {
       if (command === 'openStrategyArea') {
         vscode.postMessage({ command, strategyArea: button.getAttribute('data-strategy-area') });
       }
+      if (command === 'bulkAssignOwner') {
+        const actionIds = Array.from(document.querySelectorAll('input[data-action-id]:checked'))
+          .map((input) => input.getAttribute('data-action-id'))
+          .filter((id) => typeof id === 'string' && id.length > 0);
+        vscode.postMessage({ command, actionIds });
+      }
+      if (command === 'sweepEvidence') {
+        const tickedIds = (sweepType) => Array.from(document.querySelectorAll('input[data-sweep-type="' + sweepType + '"]:checked'))
+          .map((input) => input.getAttribute('data-sweep-id'))
+          .filter((id) => typeof id === 'string' && id.length > 0);
+        vscode.postMessage({
+          command,
+          sweepAction: button.getAttribute('data-sweep-action'),
+          evidenceIds: tickedIds('evidence'),
+          requirementIds: tickedIds('requirement')
+        });
+      }
+      if (command === 'suggestIsmMappings') {
+        vscode.postMessage({ command });
+      }
+      if (command === 'acceptSuggestions') {
+        const requirementIds = Array.from(document.querySelectorAll('input[data-suggestion-id]:checked'))
+          .map((input) => input.getAttribute('data-suggestion-id'))
+          .filter((id) => typeof id === 'string' && id.length > 0);
+        vscode.postMessage({ command, requirementIds });
+      }
+      if (command === 'closeReportingPeriod') {
+        vscode.postMessage({ command });
+      }
+      if (command === 'setScope' || command === 'copy' || command === 'createSnapshot' || command === 'openRecord') {
+        vscode.postMessage({
+          command,
+          scope: button.getAttribute('data-scope'),
+          format: button.getAttribute('data-format'),
+          team: button.getAttribute('data-team'),
+          targetType: button.getAttribute('data-target-type'),
+          targetId: button.getAttribute('data-target-id')
+        });
+      }
+      if (command === 'useGenerated' || command === 'restorePrevious') {
+        vscode.postMessage({ command, narrativeId: button.getAttribute('data-narrative-id') });
+      }
+      if (command === 'saveNarrative') {
+        const form = button.closest('form');
+        if (form) {
+          vscode.postMessage({ command, fields: pspfFormFields(form) });
+        }
+      }
       if (command === 'addStrategyChoice' || command === 'addStrategyOutcome' || command === 'addStrategyMeasure' || command === 'linkStrategyRequirement' || command === 'mapStrategyRequirementToIsm') {
         vscode.postMessage({
           command,
@@ -477,6 +525,14 @@ export function shellHtml(title: string, body: string): string {
           fields
         });
       }
+    });
+    document.addEventListener('change', (event) => {
+      const select = event.target instanceof HTMLSelectElement ? event.target : null;
+      const command = select?.getAttribute('data-command');
+      if (!select || !command || !vscode) {
+        return;
+      }
+      vscode.postMessage({ command, value: select.value });
     });
     document.addEventListener('input', (event) => {
       const input = event.target instanceof HTMLInputElement ? event.target : null;

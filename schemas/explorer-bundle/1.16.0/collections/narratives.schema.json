@@ -1,0 +1,104 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.16.0/collections/narratives.schema.json",
+    "title": "PSPF Explorer Narratives Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": [
+            "id",
+            "entityType",
+            "schemaVersion",
+            "createdAt",
+            "updatedAt",
+            "sourceProduct",
+            "recordStatus",
+            "slot",
+            "audience"
+        ],
+        "additionalProperties": false,
+        "properties": {
+            "id": {
+                "type": "string",
+                "pattern": "^NAR-"
+            },
+            "entityType": {
+                "const": "narrative"
+            },
+            "schemaVersion": {
+                "const": "1.16.0"
+            },
+            "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+            },
+            "slot": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+            },
+            "body": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+            },
+            "audience": {
+                "enum": [
+                    "executive",
+                    "internal"
+                ]
+            },
+            "basedOnSnapshotId": {
+                "type": "string",
+                "pattern": "^SNP-"
+            },
+            "targetType": {
+                "type": "string",
+                "minLength": 1
+            },
+            "targetId": {
+                "type": "string",
+                "minLength": 1
+            },
+            "supersedesId": {
+                "type": "string",
+                "pattern": "^NAR-"
+            },
+            "createdAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "sourceProduct": {
+                "enum": [
+                    "core",
+                    "workshop",
+                    "explorer"
+                ]
+            },
+            "recordStatus": {
+                "enum": [
+                    "active",
+                    "archived",
+                    "inactive",
+                    "deleted"
+                ]
+            },
+            "lifecycleStatus": {
+                "enum": [
+                    "active",
+                    "superseded",
+                    "retired"
+                ]
+            },
+            "decisionDate": {
+                "type": "string",
+                "format": "date-time"
+            }
+        }
+    }
+}
