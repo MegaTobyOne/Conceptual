@@ -390,6 +390,12 @@ const coverage = [
     "e2e:v1.73",
     "e2e:v1.74",
     "release:readiness"
+  ]),
+  // Phase 0 planning ADR: no product behaviour yet; existing risk gates prove the unchanged baseline.
+  adr("0098-workshop-risk-overhaul-contract-baseline.md", "manual", [
+    "check:risk-source-integration",
+    "check:schema-policy",
+    "check:essentials-surface"
   ])
 ];
 
