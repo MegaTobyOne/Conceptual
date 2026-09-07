@@ -2410,14 +2410,6 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     directionEncryption,
     directionReporting,
     sampleLink(
-      "LNK-00000000-0000-4000-8000-000000000813",
-      timestamp,
-      "Dormant access risk rolls up to governance evidence risk",
-      "rolls-up-to",
-      riskAccess,
-      riskGovernance
-    ),
-    sampleLink(
       "LNK-00000000-0000-4000-8000-000000000801",
       timestamp,
       "Governance requirement supported by current evidence",
@@ -2538,25 +2530,9 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
       "treated-by",
       riskAccess,
       actionAccess
-    ),
-    // ADR 0098 D3.4/D3.5/D8.3 (Phase 3A): typed `LinkEntity.application` metadata anchored to a cause.
-    sampleEntity("link", "LNK-00000000-0000-4000-8000-000000000817", timestamp, {
-      entityType: "link",
-      title: `${riskEncryption.title} mitigated by ${riskControlEncryption.title}`,
-      linkType: "mitigated-by",
-      fromId: riskEncryption.id,
-      fromType: "risk",
-      toId: riskControlEncryption.id,
-      toType: "risk-control",
-      application: {
-        role: "preventive",
-        applicability: "All managed laptop and desktop endpoints",
-        effectiveness: "partially-effective",
-        rationale:
-          "Policy enforcement is active; a small number of legacy devices remain exempted pending replacement.",
-        anchorIds: ["cause-00000000-0000-4000-8000-000000000802"]
-      }
-    })
+    )
+    // ADR 0098 D6.3 blocks publication of any `rolls-up-to`/`mitigated-by` link, so the shipped
+    // sample deliberately carries neither; both are exercised by test fixtures instead.
   ];
 
   entities.push(

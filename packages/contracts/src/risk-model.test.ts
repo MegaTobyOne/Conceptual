@@ -169,6 +169,20 @@ test("validateFramework: the seeded legacy 5x5 methodology is valid", () => {
   assert.deepEqual(validateFramework(framework), []);
 });
 
+test("validateFramework: a publication-sanitised framework shell validates instead of throwing (D2.8)", () => {
+  const {
+    methodologies: _methodologies,
+    categories: _categories,
+    appetiteRules: _appetiteRules,
+    ...shell
+  } = frameworkWith([LEGACY_5X5_METHODOLOGY]);
+  const sanitised = shell as RiskFrameworkEntity;
+  assert.deepEqual(validateFramework(sanitised), []);
+  const evaluation = evaluateRisk(sampleRisk({}), sanitised);
+  assert.equal(evaluation.state, "legacy");
+  assert.equal(resolveAppetite(sampleRisk({}), sanitised, evaluation, new Date().toISOString()).state, "not-set");
+});
+
 test("validateFramework: accepts 3x3 and 2x10 matrices with complete cells", () => {
   const framework3x3 = frameworkWith([squareMethodology("m-3x3", 3)]);
   assert.deepEqual(validateFramework(framework3x3), []);

@@ -5,6 +5,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  COLLECTION_BY_ENTITY_TYPE,
   VERSION_AXES,
   buildSampleWorkspaceEntities,
   buildHomeSampleWorkspaceEntities,
@@ -15,27 +16,6 @@ import { ISM_SOURCE_CONTROLS, PSPF_BASELINE_DOMAINS } from '@pspf/reference-data
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const dist = join(root, 'dist');
 await mkdir(dist, { recursive: true });
-
-const ENTITY_TYPE_TO_COLLECTION = {
-  domain: 'domains',
-  requirement: 'requirements',
-  evidence: 'evidence',
-  action: 'actions',
-  risk: 'risks',
-  snapshot: 'snapshots',
-  link: 'links',
-  tag: 'tags',
-  'saved-view': 'saved-views',
-  'source-control': 'source-controls',
-  'requirement-control-mapping': 'requirement-control-mappings',
-  direction: 'directions',
-  'change-record': 'change-records',
-  supplier: 'suppliers',
-  contract: 'contracts',
-  'spend-item': 'spend-items',
-  strategy: 'strategies',
-  posture: 'posture',
-};
 
 function assembleSampleBundle(rawEntities, label) {
   const now = new Date().toISOString();
@@ -52,8 +32,10 @@ function assembleSampleBundle(rawEntities, label) {
   });
   const collections = {};
   for (const entity of entities) {
-    const collection = ENTITY_TYPE_TO_COLLECTION[entity.entityType];
-    if (!collection) continue;
+    const collection = COLLECTION_BY_ENTITY_TYPE[entity.entityType];
+    if (!collection) {
+      throw new Error('no collection mapped for entity type ' + entity.entityType);
+    }
     (collections[collection] ??= []).push(entity);
   }
   const manifestCollections = Object.entries(collections).map(([name, items]) => ({

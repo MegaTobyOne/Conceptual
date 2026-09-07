@@ -13065,6 +13065,10 @@ function linkedRequirementsForAction(
     .sort(compareRequirementsForPicker);
 }
 
+// Test-only surface for scripts/check-risk-workbench.mjs, which renders the real
+// workbench markup headlessly; nothing in the extension host reads it.
+export const __riskWorkbenchTestHooks = { renderRiskWorkbench, buildUpdatedEntity };
+
 // Phase 2/3A (ADR 0098 §Workbench and Presentation): the Risk workbench dispatches on `riskView`,
 // showing the shared toolbar plus either the per-record editor (inside the usual nav sidebar) or a
 // full-width Register/Hierarchy/Matrix/Coverage/Framework surface, without adding a new panel or command.
@@ -13151,8 +13155,9 @@ function renderRiskRecordContent(risk: RiskEntity, allEntities: readonly V01Enti
     ${selectField("response", "Response", responseOptions, risk.response ?? "not-decided")}
     ${textareaField("causes", "Causes (one per line)", (risk.causes ?? []).map((cause) => cause.label).join("\n"))}
     ${textareaField("consequences", "Consequences (one per line)", (risk.consequences ?? []).map((consequence) => consequence.label).join("\n"))}
+    ${riskAssessmentSection(risk, framework)}
   `
-  )}${riskAssessmentSection(risk, framework)}${riskRelationshipsSection(risk, allEntities)}${riskExternalReferencesSection(risk, allEntities)}${riskHistorySection(risk, allEntities)}${riskSourceMetadataSection(risk)}${commercialContextSection(risk, allEntities)}`;
+  )}${riskRelationshipsSection(risk, allEntities)}${riskExternalReferencesSection(risk, allEntities)}${riskHistorySection(risk, allEntities)}${riskSourceMetadataSection(risk)}${commercialContextSection(risk, allEntities)}`;
   return editorContent;
 }
 
@@ -13548,8 +13553,16 @@ function renderRiskHierarchyContent(allEntities: readonly V01Entity[], presetId?
     (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
   );
   const forest = buildRiskHierarchyForest(risks, framework, links, new Date().toISOString());
-  const renderNode = (node: (typeof forest)[number]): string =>
-    `<li><details open><summary><button type="button" class="risk-hierarchy__title" data-command="openRecordInEditor" data-entity-type="risk" data-entity-id="${escapeHtml(node.risk.id)}">${escapeHtml(node.risk.title)}</button> <span class="muted">${escapeHtml(node.bandLabel)} \u00b7 ${escapeHtml(node.appetiteLabel)}</span></summary>${node.children.length > 0 ? `<ul>${node.children.map(renderNode).join("")}</ul>` : ""}</details></li>`;
+  // The open-record control stays outside <summary>: a button inside a disclosure
+  // summary is a nested interactive control and steals the toggle's own keyboard role.
+  const renderNode = (node: (typeof forest)[number]): string => {
+    const title = `<button type="button" class="risk-hierarchy__title" data-command="openRecordInEditor" data-entity-type="risk" data-entity-id="${escapeHtml(node.risk.id)}">${escapeHtml(node.risk.title)}</button> <span class="muted">${escapeHtml(node.bandLabel)} \u00b7 ${escapeHtml(node.appetiteLabel)}</span>`;
+    if (node.children.length === 0) {
+      return `<li><div class="risk-hierarchy__row">${title}</div></li>`;
+    }
+    const childCount = node.children.length;
+    return `<li><details open><summary>${childCount} risk${childCount === 1 ? "" : "s"} roll up to this risk</summary><div class="risk-hierarchy__row">${title}</div><ul>${node.children.map(renderNode).join("")}</ul></details></li>`;
+  };
   return `<section>
     <h1>Risk hierarchy</h1>
     <p class="muted">Primary roll-up relationships between risks. Secondary associations are not shown here.</p>
@@ -13916,10 +13929,11 @@ function riskWorkbenchStyles(): string {
     .risk-hierarchy__tree, .risk-hierarchy__tree ul { list-style: none; margin: 0; padding-left: 18px; }
     .risk-hierarchy__tree { padding-left: 0; }
     .risk-hierarchy__tree summary { cursor: pointer; padding: 4px 0; }
+    .risk-hierarchy__row { padding: 2px 0; }
     .risk-matrix th, .risk-matrix td { text-align: center; }
     .risk-matrix__cell { min-width: 64px; }
     .risk-matrix__cell strong { display: block; font-size: 16px; }
-    .risk-matrix__cell span { display: block; font-size: 11px; color: var(--muted); }
+    .risk-matrix__cell span { display: block; font-size: 11px; color: var(--text); }
     .risk-matrix__cell[data-band="low"] { background: color-mix(in srgb, var(--pspf-ok) 16%, transparent); }
     .risk-matrix__cell[data-band="medium"] { background: color-mix(in srgb, var(--pspf-warn) 16%, transparent); }
     .risk-matrix__cell[data-band="high"] { background: color-mix(in srgb, var(--pspf-danger) 18%, transparent); }

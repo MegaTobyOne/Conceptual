@@ -236,13 +236,15 @@ export function validateFramework(
     (previous?.methodologies ?? []).map((methodology) => [methodology.id, methodology])
   );
 
-  for (const methodology of framework.methodologies) {
+  // D2.8: publication strips every sensitive framework field, so an imported shell
+  // legitimately arrives with no methodologies at all.
+  for (const methodology of framework.methodologies ?? []) {
     const seenRevisionIds = new Set<string>();
     const previousRevisionsById = new Map(
       (previousMethodologies.get(methodology.id)?.revisions ?? []).map((revision) => [revision.revisionId, revision])
     );
 
-    for (const revision of methodology.revisions) {
+    for (const revision of methodology.revisions ?? []) {
       const path = `${methodology.id}.${revision.revisionId}`;
 
       if (seenRevisionIds.has(revision.revisionId)) {
@@ -344,14 +346,14 @@ export function resolveAppetite(
     return { state: "not-set" };
   }
 
-  const candidates = framework.appetiteRules.filter(
+  const candidates = (framework.appetiteRules ?? []).filter(
     (rule) =>
       rule.methodologyId === evaluation.methodologyRef!.methodologyId &&
       rule.revisionId === evaluation.methodologyRef!.revisionId
   );
 
   const rule =
-    findNearestCategoryAppetiteRule(candidates, framework.categories, risk.primaryCategoryId) ??
+    findNearestCategoryAppetiteRule(candidates, framework.categories ?? [], risk.primaryCategoryId) ??
     candidates.find((candidate) => candidate.scope.kind === "workspace");
 
   if (!rule) {
@@ -492,7 +494,7 @@ function evaluateCustomAssessment(
   if (!framework) {
     return notComparable("No risk framework is configured; a custom assessment cannot be resolved to a band.");
   }
-  const methodology = framework.methodologies.find((entry) => entry.id === assessment.methodologyId);
+  const methodology = (framework.methodologies ?? []).find((entry) => entry.id === assessment.methodologyId);
   if (!methodology) {
     return notComparable(`Methodology ${assessment.methodologyId} is not defined in the risk framework.`);
   }

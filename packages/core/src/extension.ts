@@ -114,7 +114,7 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       const bundlePath = join(result.exportDirectory, "bundle.json");
       await copyFile(bundlePath, saveUri.fsPath);
       const action = await vscode.window.showInformationMessage(
-        `PSPF JSON bundle saved to ${saveUri.fsPath}`,
+        `PSPF JSON bundle saved to ${saveUri.fsPath}. This is a publication bundle, not a backup: sensitive fields are excluded. Back up the .pspf database and config instead.`,
         "Open File"
       );
       if (action === "Open File") {

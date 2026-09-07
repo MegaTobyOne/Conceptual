@@ -80,6 +80,10 @@ export function shellHtml(title: string, body: string): string {
       --surface-strong: var(--vscode-input-background, var(--vscode-editor-background));
       --border: var(--vscode-panel-border, var(--vscode-input-border));
     }
+    /* The light product accent fails WCAG AA on dark backgrounds; use the dark variant. */
+    body.vscode-dark, body.vscode-high-contrast {
+      --workshop-blue: var(--pspf-product-workshop-dark, #62b8ae);
+    }
     body { margin: 0; color: var(--text); background: radial-gradient(circle at top left, var(--workshop-blue-soft), transparent 28rem), var(--vscode-editor-background); font-feature-settings: "ss01", "cv01"; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: var(--pad) var(--pad-lg); border-bottom: 1px solid var(--border); background: linear-gradient(135deg, var(--workshop-blue-strong) 0%, transparent 72%); }
     header strong { display: block; font-size: 20px; letter-spacing: 0.005em; }

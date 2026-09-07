@@ -101,7 +101,7 @@ export function riskCategoryOptions(
     return [];
   }
   const byParent = new Map<string | undefined, RiskCategoryNode[]>();
-  for (const category of framework.categories) {
+  for (const category of framework.categories ?? []) {
     if (!includeArchived && category.archived) {
       continue;
     }
@@ -131,14 +131,14 @@ export function riskCategoryLabel(
   if (!framework || !categoryId) {
     return undefined;
   }
-  return framework.categories.find((category) => category.id === categoryId)?.label;
+  return (framework.categories ?? []).find((category) => category.id === categoryId)?.label;
 }
 
 export function riskCategoryPath(framework: RiskFrameworkEntity | undefined, categoryId: string | undefined): string {
   if (!framework || !categoryId) {
     return "No category";
   }
-  const byId = new Map(framework.categories.map((category) => [category.id, category]));
+  const byId = new Map((framework.categories ?? []).map((category) => [category.id, category]));
   const path: string[] = [];
   const visited = new Set<string>();
   let currentId: string | undefined = categoryId;
