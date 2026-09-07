@@ -3,11 +3,11 @@
 Status: **aspirational**
 Last updated: 2026-09-07
 Planning baseline: product `1.74.0`; compatibility axes `1.16.0`.
-Next task: **Operator closure of ADR 0098 blocking decisions (D1.6/D6.5, D2.7, D3.5), then Phase 1A - shared model**. See [Phase 0 Record](#phase-0-record) and [Phase 1A Handoff](#phase-1a-handoff).
+Next task: **Phase 1B - persistence and exchange** (Phase 1A complete). See [Phase 1B Handoff](#phase-1b-handoff).
 
 ## Authority and Outcome
 
-This is the durable programme plan and session handoff, replacing the conversation's session-memory copy. The scope below is confirmed by the user; architecture below is a recommendation now resolved into [ADR 0098](../adr/0098-workshop-risk-overhaul-contract-baseline.md) (status `proposed`), not an accepted schema or implemented behaviour. No implementation phase has started. Do not infer an accepted ADR, allocated release, passing product tests or permission to publish from this document.
+This is the durable programme plan and session handoff, replacing the conversation's session-memory copy. The scope below is confirmed by the user; architecture below is a recommendation now resolved into [ADR 0098](../adr/0098-workshop-risk-overhaul-contract-baseline.md) (status `accepted`), not an implemented behaviour. No implementation phase has started. Do not infer an allocated release, passing product tests or permission to publish from this document.
 
 Follow the authority chain in [../pspf-spec-consistency-index.md](../pspf-spec-consistency-index.md) and sequencing in [../pspf-grand-plan.md](../pspf-grand-plan.md). Phase 0 must resolve architecture into an ADR before contract changes. Existing requirements remain in force until explicitly superseded.
 
@@ -127,17 +127,17 @@ Follow current VS Code theme tokens and shared compact controls, AU English, cle
 
 Use the strongest available version of the named model family. These are recommendations, not repository benchmarks or verified pricing; check current picker availability and request multipliers. Opus is recommended for cross-package/trust-boundary decisions, Sonnet for bounded implementation against settled contracts. Small/fast models such as Haiku or mini-class should not lead or solely review this programme; limit them to precisely specified mechanical follow-up with validation.
 
-| Phase                                | Dependencies                     | Lead model                                                     | Deliverable and exit gate                                                                                                                                                              | Progress                                                                   |
-| ------------------------------------ | -------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| 0: Contract and interaction baseline | None                             | Claude Opus                                                    | ADR proposal and decision closure; field/link/policy tables; compatibility and recovery strategy; baseline evidence and workbench storyboard. No production contract changes.          | Done 2026-09-07 (ADR 0098 `proposed`; 3 blocking decisions await operator) |
-| 1A: Shared model                     | Accepted Phase 0 decisions       | Claude Opus                                                    | Assessment/framework/hierarchy/control/event contracts; shared evaluator and validators; legacy adapters and focused tests. Batch schema changes in one planned compatibility release. | Blocked on ADR 0098 acceptance                                             |
-| 1B: Persistence and exchange         | 1A                               | Claude Opus                                                    | Core atomic validation/history, import protection, explicit migration, publication preflight and verified recovery. All mutation entry points covered.                                 | Not started                                                                |
-| 1C: Score consumers                  | 1A; must finish before 2         | Claude Opus                                                    | Replace or guard legacy arithmetic; no fake zero/bands/priority, NaN or hidden exclusions. Can develop alongside 1B only with non-overlapping ownership.                               | Not started                                                                |
-| 2: Record and assess                 | 1B and 1C                        | Claude Sonnet                                                  | Structured editor/register/configuration plus hierarchy and matrix; behavioural, keyboard and visual checks. Escalate contract gaps to Opus.                                           | Not started                                                                |
-| 3A: Treat, explain, escalate         | 2                                | Claude Sonnet; Opus review                                     | Shared Actions/controls/applications, bow-tie, coverage and escalation history; Opus reviews event integrity and aggregation.                                                          | Not started                                                                |
-| 3B: Source crosswalk                 | 1B and 2                         | Sonnet UI/parser orchestration; Opus mutation semantics/review | Manual references and previewed CSV/TSV import; authority separation, conflict, idempotence and rollback tests.                                                                        | Not started                                                                |
-| 4A: Present                          | 2; final integration needs 3A/3B | Claude Sonnet; Opus publication review                         | Cards, presets and safe text/image/HTML outputs; provenance and field-policy evidence.                                                                                                 | Not started                                                                |
-| 4B: Integrate and verify             | 3A, 3B and 4A                    | Claude Opus                                                    | Full operator walkthrough, accessibility/performance, redaction, compatibility and recovery evidence; truthful documentation and gate updates.                                         | Not started                                                                |
+| Phase                                | Dependencies                     | Lead model                                                     | Deliverable and exit gate                                                                                                                                                              | Progress                                                                 |
+| ------------------------------------ | -------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| 0: Contract and interaction baseline | None                             | Claude Opus                                                    | ADR proposal and decision closure; field/link/policy tables; compatibility and recovery strategy; baseline evidence and workbench storyboard. No production contract changes.          | Done 2026-09-07 (ADR 0098 accepted; all decisions closed as recommended) |
+| 1A: Shared model                     | Accepted Phase 0 decisions       | Claude Opus                                                    | Assessment/framework/hierarchy/control/event contracts; shared evaluator and validators; legacy adapters and focused tests. Batch schema changes in one planned compatibility release. | Done 2026-09-07                                                          |
+| 1B: Persistence and exchange         | 1A                               | Claude Opus                                                    | Core atomic validation/history, import protection, explicit migration, publication preflight and verified recovery. All mutation entry points covered.                                 | Not started                                                              |
+| 1C: Score consumers                  | 1A; must finish before 2         | Claude Opus                                                    | Replace or guard legacy arithmetic; no fake zero/bands/priority, NaN or hidden exclusions. Can develop alongside 1B only with non-overlapping ownership.                               | Not started                                                              |
+| 2: Record and assess                 | 1B and 1C                        | Claude Sonnet                                                  | Structured editor/register/configuration plus hierarchy and matrix; behavioural, keyboard and visual checks. Escalate contract gaps to Opus.                                           | Not started                                                              |
+| 3A: Treat, explain, escalate         | 2                                | Claude Sonnet; Opus review                                     | Shared Actions/controls/applications, bow-tie, coverage and escalation history; Opus reviews event integrity and aggregation.                                                          | Not started                                                              |
+| 3B: Source crosswalk                 | 1B and 2                         | Sonnet UI/parser orchestration; Opus mutation semantics/review | Manual references and previewed CSV/TSV import; authority separation, conflict, idempotence and rollback tests.                                                                        | Not started                                                              |
+| 4A: Present                          | 2; final integration needs 3A/3B | Claude Sonnet; Opus publication review                         | Cards, presets and safe text/image/HTML outputs; provenance and field-policy evidence.                                                                                                 | Not started                                                              |
+| 4B: Integrate and verify             | 3A, 3B and 4A                    | Claude Opus                                                    | Full operator walkthrough, accessibility/performance, redaction, compatibility and recovery evidence; truthful documentation and gate updates.                                         | Not started                                                              |
 
 No release number, ADR number or new axis is reserved here. Allocate the next appropriate values during governance work; preserve published schema directories and the three compatibility axes. Do not assume optional fields avoid schema review. Read the developer pipeline spec before release/gate-wiring changes, and obtain separate authorisation to publish.
 
@@ -204,25 +204,25 @@ Not run in Phase 0: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `release:readine
 
 ### Decisions
 
-Accepted for drafting (proposed, no further design needed): D1.1-1.5, D2.1-2.6, D2.8, D3.1-3.4, D3.6-3.8, D4.1-4.6, D5.1-5.4, D6.1-6.4, D7.1-7.3, D8.1-8.4.
+Accepted without further design: D1.1-1.5, D2.1-2.6, D2.8, D3.1-3.4, D3.6-3.8, D4.1-4.6, D5.1-5.4, D6.1-6.4, D7.1-7.3, D8.1-8.4.
 
-Blocking (operator must choose before Phase 1A):
+Formerly blocking, closed by the operator on 2026-09-07 as recommended:
 
-- **D1.6 / D6.5** — block publication of custom-basis and unassessed Risks in this programme (recommended), or fund a schema change now that makes `likelihood`/`impact` optional.
-- **D2.7** — expired appetite rule still applies and is flagged stale (recommended), or is treated as "Appetite not set".
-- **D3.5** — typed `LinkEntity.application` metadata for control applications (recommended), or a dedicated `risk-control-application` entity.
+- **D1.6 / D6.5** — publication of custom-basis and unassessed Risks is blocked at preflight in this programme; no schema change to make `likelihood`/`impact` optional.
+- **D2.7** — an expired appetite rule still applies and is flagged stale ("Appetite review overdue").
+- **D3.5** — typed `LinkEntity.application` metadata for control applications; no dedicated entity.
 
 Deferred to a later ADR: portable sensitive backup profile (D7.4); Explorer-aware publication of custom assessments.
 
 ### Files changed in Phase 0
 
-- `adr/0098-workshop-risk-overhaul-contract-baseline.md` (new, `proposed`).
+- `adr/0098-workshop-risk-overhaul-contract-baseline.md` (new; `proposed`, then `accepted` the same day after operator closure).
 - `adr/README.md` (index row), `scripts/check-adr-coverage.mjs` (manual coverage entry naming existing gates; no gate logic changed).
 - `docs/risk-overhaul-plan.md` (this record, progress table, handoff), `pspf-grand-plan.md` and `pspf-spec-consistency-index.md` (pointer to ADR 0098).
 
 ## Phase 1A Handoff
 
-Start only after the operator has closed the three blocking decisions and changed ADR 0098 status to `accepted`. Initial task for a fresh Opus session:
+ADR 0098 is accepted, so Phase 1A may start. Initial task for a fresh Opus session:
 
 > Read docs/risk-overhaul-plan.md § Phase 1A Handoff, adr/0098-workshop-risk-overhaul-contract-baseline.md and the repository instructions. Execute Phase 1A only: add the Risk overhaul contracts and the shared evaluator to `@pspf/contracts` with focused node tests, correct `pspf-entity-link-spec.md` § Risk, and declare publication policy for every new field. Do not change Core persistence, Workshop UI, published schemas, `VERSION_AXES` or `PSPF_SLICE_VERSION`. Stop after `pnpm --filter @pspf/contracts build && pnpm --filter @pspf/contracts test`, `pnpm run check:schema-policy` and `pnpm typecheck` pass, and report the Phase 1B handoff.
 
@@ -238,6 +238,53 @@ Bounded file scope:
 | `pspf-invariants.md`                                         | Add the new entity type strings, collection names and ID prefixes to N1-N3; leave E5 unchanged.                                                                                                                                                                                                                                                                                                                               |
 
 Explicit exclusions for 1A: no Core `service.ts` change (1B), no consumer rewrites (1C), no schema directory, no version or axis bump, no Workshop or Explorer change, no gate registration beyond `check:schema-policy` continuing to pass. Explorer's `riskBandOf` stays untouched. If `check:schema-coverage` or `check:explorer-publication` fail because a new entity type has no schema file, record it as the expected 1B input rather than adding a schema in 1A.
+
+## Phase 1A Record
+
+Executed 2026-09-07 with Claude (Opus-class) in a single session, immediately following Phase 0 in this repository state.
+
+### Files changed
+
+- `packages/contracts/src/risk-model.ts` (new): `RiskAssessment` union (`unassessed`/`legacy`/`custom`), `RiskFrameworkEntity`, `RiskControlEntity`, `RiskEventEntity`, `RiskControlApplication`, `RiskCauseOrConsequence`, `RiskExternalRef`, `RiskResponse`, `evaluateRisk`, `resolveAppetite`, `validateFramework` (with revision-immutability check via an optional `previous` framework), `detectRollUpCycle`, `validateRollUpEdges`, `validateControlApplicationAnchors`, `LEGACY_5X5_METHODOLOGY` encoding invariant E5 exactly. Pure, deterministic, no I/O.
+- `packages/contracts/src/risk-model.test.ts` (new, 34 tests): legacy band boundaries at scores 4/5/9/10/15/16; unassessed and not-comparable never carry a band or score; 3×3, 5×5 (seeded) and 2×10 matrices valid; missing cell, unknown band, and out-of-range level count rejected; an activated revision cannot be mutated in place but an unactivated one can, and a new revision ID beside an activated one is not a mutation; appetite nearest-category-overrides-workspace, parentId walk-up, over-appetite, D2.7 stale-but-still-applies, and "not set" with no framework/no rule; roll-up self-link and multi-hop cycle detection, plus dangling-endpoint and multiple-parent validation; control-application anchor resolution against `causes`/`consequences`.
+- `packages/contracts/src/index.ts`: added `"risk-framework"`/`"risk-control"`/`"risk-event"` to `V0_1_ENTITY_TYPES`/`V0_1_COLLECTIONS`/`COLLECTION_BY_ENTITY_TYPE`/`ID_PREFIX_BY_ENTITY_TYPE` (`RFW`/`RCT`/`RSE`) and the `V01Entity`/`EntityByCollection` unions; added `"rolls-up-to"`/`"mitigated-by"` to `LINK_TYPES`; added the ADR field table to `RiskEntity` (`reference`, `description`, `causes`, `consequences`, `primaryCategoryId`, `ownerTeam`, `reviewBy`, `assessment`, `assessmentState`, `response`, `externalRefs`; `likelihood`/`impact`/`integration` unchanged) and `linkRole?`/`application?` to `LinkEntity`; added five `OPERATOR_LINK_RULES` rows (`workshop-risk-rolls-up-to-risk`, `workshop-risk-related-to-risk`, `workshop-risk-treated-by-action`, `workshop-risk-mitigated-by-risk-control`, `workshop-action-addressed-by-risk-control`); updated the `risk`/`link` `PUBLICATION_FIELD_POLICIES` entries and added entries for the three new entities (all non-envelope fields `sensitive`; `primaryCategoryId`/`assessmentState`/`linkRole` are the only new `public` fields); re-exported `risk-model.ts`.
+- `packages/contracts/src/operator-link-rules.test.ts` and `packages/contracts/src/publication-policy.test.ts` (extended, not a new `index.test.ts`): cover the five new link rules, every new entity type having a policy, the sanitiser stripping every new sensitive Risk/Link field while keeping `assessmentState`/`primaryCategoryId`/`linkRole`, and the three new entities publishing only structural envelope fields.
+- `pspf-entity-link-spec.md` § Risk: replaced with the ADR 0098 field/enum/assessment/external-reference tables; removed `riskType`, `residualLevel`, `treatmentStatus`, `ownerPersonId`, `acceptedBy`; added a short cross-reference to the three new entities (full detail stays in ADR 0098, per the bounded scope).
+- `pspf-invariants.md`: added `risk-framework`/`risk-control`/`risk-event`, `risk-frameworks`/`risk-controls`/`risk-events`, and `RFW`/`RCT`/`RSE` to N1/N2/N3. E5 untouched.
+- **Deviation from the bounded exclusion list, disclosed here:** `packages/core/src/service.ts`, two lines only. Widening `BundleCollections`/`EntityByCollection` in contracts made Core's two exhaustive collection-literal builders — `createEmptyCollections()` and `getCollectionCounts()` — fail to compile (`error TS2739: missing ... "risk-frameworks", "risk-controls", "risk-events"`). `check:schema-policy` runs `pnpm build` for the whole workspace first, and `pnpm typecheck` builds all project references, so both stop-gate commands fail without this fix. The fix adds three `[]` entries to `createEmptyCollections()` and three `.length` entries to `getCollectionCounts()` — no write path, validation rule, migration, or import/export behaviour was touched. Reviewers should diff exactly these two literals in `service.ts` and confirm nothing else in Core changed.
+
+### Commands and results
+
+- `pnpm --filter @pspf/contracts build` — pass.
+- `pnpm --filter @pspf/contracts test` — 169/169 pass (135 pre-existing + 34 new in `risk-model.test.ts`, plus the extended assertions in `operator-link-rules.test.ts`/`publication-policy.test.ts`).
+- `pnpm run check:schema-policy` — pass (runs a full `pnpm build`, which now includes the Core fix above).
+- `pnpm typecheck` — pass (`tsc -b tsconfig.json` plus the Explorer package's own `tsc`).
+
+### Known follow-ups for later phases
+
+- The three new collections (`risk-frameworks`, `risk-controls`, `risk-events`) have no `schemas/explorer-bundle/1.16.0/collections/*.json` files and no schema-version bump yet. `check:schema-coverage` and `check:explorer-publication` were **not run** in this session (they are outside the Phase 1A stop-gate list) and are expected to fail until Phase 1B lands the schema bump named in D6.1/D6.2 — this is the expected 1B input, not a regression.
+- `pnpm lint`, `pnpm build` (full), `pnpm test` (full monorepo), and `release:readiness` were not run; only the four commands named in the Phase 1A stop condition were run, plus the targeted Core rebuild needed to diagnose the deviation above.
+- No fixtures, sample workspace data, or Core write-rule/import-plan changes exist yet for the three new entities or `assessment`/`rolls-up-to`/`mitigated-by`; `evaluateRisk`/`resolveAppetite`/`validateFramework`/`detectRollUpCycle` are not called from any product code yet.
+
+## Phase 1B Handoff
+
+Phase 1A is complete: the contracts, evaluator and docs above are in place and green against their stop gates. Initial task for a fresh Opus session:
+
+> Read docs/risk-overhaul-plan.md § Phase 1B Handoff, the Phase 1A Record immediately above it, adr/0098-workshop-risk-overhaul-contract-baseline.md and the repository instructions. Execute Phase 1B only: wire Core atomic validation and history for the Risk overhaul contracts landed in Phase 1A (write-rule validation, Core-derived `risk-event` authoring, `rolls-up-to`/`mitigated-by` cycle and cardinality checks reusing `@pspf/contracts`' `validateRollUpEdges`/`validateFramework`/`validateControlApplicationAnchors`), the explicit migration command that seeds `risk-framework` with `LEGACY_5X5_METHODOLOGY`, import protection (`buildImportPlan`/`mergeIncomingEntity` per D6.4), the new publication preflight (D6.3) that blocks `custom`/`unassessed` Risks and any `rolls-up-to`/`mitigated-by` link, the schema bump (D6.1/D6.2: new collection schemas, updated Risk/Link schemas, next `schemaVersion`/`bundleVersion`/`apiVersion`), and the cold-restore proof (D7.1). Do not touch Workshop UI, Explorer, or Phase 1C consumer rewrites. Stop after the checks named in the Phase 1B exit gate below pass, and report the Phase 1C handoff.
+
+Carried forward from Phase 1A, for Phase 1B to consume directly rather than reinvent:
+
+- `evaluateRisk(risk, framework)`, `resolveAppetite(risk, framework, evaluation, now)`, `validateFramework(framework, previous?)`, `detectRollUpCycle(edges)`, `validateRollUpEdges(edges, knownRiskIds)`, `validateControlApplicationAnchors(risk, application)`, `LEGACY_5X5_METHODOLOGY` — all in `packages/contracts/src/risk-model.ts`, re-exported from `@pspf/contracts`.
+- The five new `OPERATOR_LINK_RULES` rows and the `RiskEntity`/`LinkEntity` field additions are typed and policy-declared; Phase 1B adds the runtime write-rule enforcement and event derivation, it does not need to add new contract fields.
+- `PUBLICATION_FIELD_POLICIES` already covers every new field/entity; Phase 1B's preflight (D6.3) is a **separate, additional** block on top of the sanitiser, not a replacement for it.
+
+Known open items Phase 1B must resolve (not resolved by Phase 1A):
+
+- Schema-version target allocation (D6.1 says "not here"); `check:schema-coverage`/`check:explorer-publication` currently fail for the three new collections and must be fixed as part of this phase's own exit gate, not treated as pre-existing red.
+- `createSampleEntities`/home-user sample fixtures (D8.3) do not yet include a framework, category template, roll-up chain, shared Action, `risk-control`, or escalation event; Phase 1B likely needs at least minimal fixtures to exercise the new write/import paths in its own tests, even though the full fixture set is nominally D8.3/Phase 2 scope.
+- The Core `service.ts` deviation recorded above (two literal-completeness edits) is the only Core code that exists for the new entities; Phase 1B is expected to add real read/write/validation logic around them.
+
+Stop after: `pnpm --filter pspf-core build && pnpm --filter pspf-core test`, `pnpm --filter @pspf/contracts test`, `pnpm run check:schema-coverage`, `pnpm run check:schema-policy`, `pnpm run check:explorer-publication`, and `pnpm typecheck` all pass, plus the D7.1 cold-restore proof is executed against a fixture workspace with evidence recorded in this document.
 
 ## Session Discipline and Progress
 
@@ -255,8 +302,9 @@ Reviewer sessions inspect actual diffs and executable evidence, not just the imp
 ### Preparation Record
 
 - 2026-09-07: durable plan recorded, with confirmed scope, proposed architecture, model allocations and Phase 0 handoff; roadmap and spec index linked to it.
-- 2026-09-07: Phase 0 executed; ADR 0098 drafted as `proposed`; baseline evidence, storyboard and Phase 1A handoff recorded above. Three blocking decisions await the operator.
-- Product implementation, ADR acceptance and release allocation: not started.
+- 2026-09-07: Phase 0 executed; ADR 0098 drafted as `proposed`; baseline evidence, storyboard and Phase 1A handoff recorded above. Operator closed the three blocking decisions as recommended the same day; ADR 0098 is `accepted`.
+- 2026-09-07: Phase 1A executed; Risk overhaul contracts, shared evaluator and validators added to `@pspf/contracts` with 34 new focused tests; `pspf-entity-link-spec.md` § Risk and `pspf-invariants.md` N1-N3 corrected. One disclosed deviation: two literal-completeness edits in `packages/core/src/service.ts` (see Phase 1A Record) were required for the workspace to compile; no Core behaviour changed. `pnpm --filter @pspf/contracts build && pnpm --filter @pspf/contracts test`, `pnpm run check:schema-policy`, and `pnpm typecheck` all pass.
+- Product implementation and release allocation: not started.
 - Documentation checks are separate from the future product verification below. No product tests are claimed by this preparation record.
 
 ## Implementation and Verification Map

@@ -427,57 +427,83 @@ Urgency is displayed beside impact but does not by itself increase positive impa
 
 ### Risk
 
-Represents a risk, exposure, or issue requiring monitoring or treatment.
+Represents a risk, exposure, or issue requiring monitoring or treatment. This section reflects [ADR 0098](adr/0098-workshop-risk-overhaul-contract-baseline.md) (accepted); it supersedes the previous shape below, which was never implemented and contradicted ADR 0097 D5 (no person ownership fields).
 
 #### Fields
 
-| Field             | Type        | Notes                                              |
-| ----------------- | ----------- | -------------------------------------------------- |
-| `id`              | string      | `RSK-*`                                            |
-| `title`           | string      | short risk statement                               |
-| `description`     | string      | fuller detail                                      |
-| `riskType`        | string      | security, delivery, supplier, workforce, reporting |
-| `status`          | string      | open, accepted, treated, closed                    |
-| `likelihood`      | string      | low to extreme model                               |
-| `impact`          | string      | low to extreme model                               |
-| `residualLevel`   | string      | low to extreme model                               |
-| `treatmentStatus` | string      | not-started, in-progress, monitoring, complete     |
-| `ownerPersonId`   | string/null | risk owner                                         |
-| `ownerTeamId`     | string/null | risk owner team                                    |
-| `acceptedBy`      | string/null | approver reference                                 |
-| `reviewDueAt`     | string/null | next review                                        |
+| Field               | Type                             | Notes                                                                                                                          |
+| ------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `id`                | string                           | `RSK-*`                                                                                                                        |
+| `title`             | string                           | short risk statement                                                                                                           |
+| `reference`         | string, optional                 | operator's own register reference, distinct from `id`                                                                          |
+| `description`       | string, optional                 | fuller detail                                                                                                                  |
+| `status`            | string                           | `open`, `monitored`, `closed`                                                                                                  |
+| `primaryCategoryId` | string, optional                 | opaque `risk-framework` category node ID; at most one primary category; the category label is never published                  |
+| `ownerTeam`         | string, optional                 | team label that owns this risk; never a person (ADR 0097 D5)                                                                   |
+| `reviewBy`          | string (ISO date-time), optional | next scheduled review                                                                                                          |
+| `causes`            | `{ id, label }[]`, optional      | stable bow-tie anchors, unique within this Risk                                                                                |
+| `consequences`      | `{ id, label }[]`, optional      | stable bow-tie anchors, unique within this Risk                                                                                |
+| `likelihood`        | number (1-5)                     | legacy invariant E5 scale; unchanged and always published                                                                      |
+| `impact`            | number (1-5)                     | legacy invariant E5 scale; unchanged and always published                                                                      |
+| `assessment`        | `RiskAssessment`, optional       | discriminated union — see Risk assessment below; absent means the legacy basis applies (`likelihood`/`impact`)                 |
+| `assessmentState`   | string                           | derived by Core from `assessment` on write; read-only for clients; one of `assessed`, `unassessed`, `legacy`, `not-comparable` |
+| `response`          | string, optional                 | `reduce`, `avoid`, `share`, `accept`, `not-decided`                                                                            |
+| `externalRefs`      | array, optional                  | references to externally authoritative source-register records (see below); original scale/rating is never converted           |
+| `integration`       | object, optional                 | existing 6clicks integration metadata; unchanged                                                                               |
 
 #### Risk enums
-
-`riskType`:
-
-- `security`
-- `delivery`
-- `supplier`
-- `workforce`
-- `reporting`
-- `data`
 
 `status`:
 
 - `open`
-- `accepted`
-- `treated`
+- `monitored`
 - `closed`
 
-`likelihood`, `impact`, `residualLevel`:
+`response`:
 
-- `low`
-- `moderate`
-- `high`
-- `extreme`
+- `reduce`
+- `avoid`
+- `share`
+- `accept`
+- `not-decided`
 
-`treatmentStatus`:
+`assessmentState` (derived, never authored directly):
 
-- `not-started`
-- `in-progress`
-- `monitoring`
-- `complete`
+- `assessed` — a custom-methodology assessment resolved to a band
+- `unassessed` — no assessment recorded; never read as zero or Low
+- `legacy` — the invariant E5 5x5 scale, from either `assessment.basis === "legacy"` or the entity's own `likelihood`/`impact` when `assessment` is absent
+- `not-comparable` — a custom assessment that cannot be resolved against the configured framework
+
+#### Risk assessment
+
+`assessment` is a discriminated union on `basis`:
+
+- `{ basis: "unassessed" }` — no rating recorded.
+- `{ basis: "legacy", likelihood: 1..5, impact: 1..5, assessedAt?, rationale? }` — the invariant E5 scale.
+- `{ basis: "custom", methodologyId, revisionId, current: { likelihoodId, impactId }, inherent?, target?, assessedAt, rationale? }` — a rating against an organisation-defined matrix held on the `risk-framework` singleton.
+
+No consumer computes `likelihood x impact` directly; the shared evaluator `evaluateRisk` in `@pspf/contracts` is the single source of a Risk's assessed band. Missing or incomparable ratings are never coerced to a number or to the lowest band. Publication of a `custom`-basis or `unassessed` Risk is blocked at preflight in this programme; `likelihood`/`impact` stay required in the published schema, so a legacy-basis Risk's public projection is unchanged.
+
+#### External register references
+
+Each entry in `externalRefs[]` identifies a Risk held authoritatively in an external register (e.g. 6clicks) and is entirely `sensitive`:
+
+| Field              | Type             | Notes                                                            |
+| ------------------ | ---------------- | ---------------------------------------------------------------- |
+| `sourceRegisterId` | string           | identifies the external register, e.g. `6clicks`                 |
+| `externalId`       | string           | the record's ID in that register                                 |
+| `externalRating`   | string           | the original scale/rating, preserved as text and never converted |
+| `sourceUpdatedAt`  | string           | ISO timestamp from the source register                           |
+| `referenceUrl`     | string, optional | `https:` only, no userinfo, validated before write               |
+| `reconciledAt`     | string           | when this reference was last reconciled locally                  |
+
+#### Related new entities
+
+Three new Core-owned entity types back the Risk workbench and are documented fully in ADR 0098: `risk-framework` (`RFW`, singleton; categories, methodologies, appetite rules, source-register definitions and presentation presets), `risk-control` (`RCT`; an organisational control definition, distinct from vendored ISM source controls), and `risk-event` (`RSE`; Core-derived history including escalation). All non-envelope fields on these three entities are `sensitive`.
+
+#### Removed fields
+
+`riskType`, `residualLevel`, `treatmentStatus`, `ownerPersonId`, and `acceptedBy` from the previous version of this section were never implemented and are removed, not deprecated. `ownerPersonId`/`acceptedBy` in particular contradicted ADR 0097 D5: Risk ownership and decisions are recorded as team/governance labels, never a person reference.
 
 ### Snapshot
 

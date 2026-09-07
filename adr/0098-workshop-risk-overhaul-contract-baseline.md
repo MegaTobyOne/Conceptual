@@ -1,10 +1,10 @@
 # 0098 — Workshop Risk overhaul: contract and interaction baseline
 
-- Status: proposed
-- Date: 2026-09-07
+- Status: accepted
+- Date: 2026-09-07 (proposed and accepted the same day; the three blocking decisions were closed by the operator as recommended)
 - Related: [docs/risk-overhaul-plan.md](../docs/risk-overhaul-plan.md) (programme plan and Phase 0 evidence), ADR 0003 (link taxonomy), ADR 0005 (default-deny publication), ADR 0008 (version axes), ADR 0012 (schema publication), ADR 0034 (Explorer local Risks), ADR 0067/0068 (6clicks risk source), ADR 0080 (strategy risk priority), ADR 0091 (schema-axis bump acceptance blocker), ADR 0096 (Essentials surface budget), ADR 0097 (owner is a team label, never a person).
 
-This ADR is the Phase 0 output of the Workshop Risk overhaul. It records the decisions the programme needs before any contract change, marks which of them are **proposed** (recommended by Phase 0, awaiting operator approval) and which are **blocking** (Phase 1A cannot start until the operator chooses), and fixes the field, link and publication tables that Phase 1A will implement. Nothing in this ADR is implemented. Accepting this ADR does not allocate a release, a schema version or permission to publish.
+This ADR is the Phase 0 output of the Workshop Risk overhaul. It records the decisions the programme needs before any contract change and fixes the field, link and publication tables that Phase 1A will implement. Rows were drafted as **proposed** (recommended by Phase 0) or **blocking** (needing an operator choice); the operator accepted every recommendation, so all rows are now accepted and the original state column is retained for traceability. Nothing in this ADR is implemented. Accepting this ADR does not allocate a release, a schema version or permission to publish.
 
 ## Context
 
@@ -181,14 +181,16 @@ Positive:
 
 Negative / accepted costs:
 
-- Workspaces on custom methodologies lose master export and team-share until a later ADR (if D1.6/D6.5 resolve as recommended).
+- Workspaces on custom methodologies lose master export and team-share until a later ADR (D1.6/D6.5 resolved as recommended).
 - One more Core-owned singleton and two more collections increase schema surface; batching into one bump limits the review cost.
 - Removing the aspirational Risk section from `pspf-entity-link-spec.md` is a visible correction of previously published documentation.
 
-## Operator approvals required before Phase 1A
+## Operator approvals
 
-- D1.6 / D6.5 — block publication of custom-basis Risks in this programme (recommended), or fund a schema change that makes `likelihood`/`impact` optional now.
-- D2.7 — expired appetite rule still applies and is flagged stale (recommended), or is treated as "Appetite not set".
-- D3.5 — typed link metadata for control applications (recommended), or a dedicated `risk-control-application` entity.
+Closed 2026-09-07, each as recommended:
 
-All other rows are proposed and become accepted when this ADR's status changes to `accepted`. Until then, the status stays `proposed` and no Phase 1A code is written.
+- D1.6 / D6.5 — **accepted**: publication of custom-basis and unassessed Risks is blocked at preflight in this programme; `likelihood`/`impact` stay required in the published schema. An Explorer-aware schema change is a later ADR.
+- D2.7 — **accepted**: an expired appetite rule still applies and is reported `stale: true`; the workbench shows "Appetite review overdue".
+- D3.5 — **accepted**: typed `LinkEntity.application` metadata on `mitigated-by` links; no `risk-control-application` entity.
+
+All rows are accepted. Phase 1A may begin against the tables above.

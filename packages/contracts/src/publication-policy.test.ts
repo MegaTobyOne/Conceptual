@@ -4,6 +4,10 @@ import {
   DISALLOWED_PUBLICATION_FIELDS,
   PUBLICATION_FIELD_POLICIES,
   type LinkEntity,
+  type RiskControlEntity,
+  type RiskEntity,
+  type RiskEventEntity,
+  type RiskFrameworkEntity,
   type StrategyEntity,
   V0_1_ENTITY_TYPES,
   sanitiseEntityForPublication,
@@ -238,4 +242,156 @@ test("source-control implementation posture is internal and stripped at publicat
   const published = sanitiseEntityForPublication(sourceControl) as SourceControlEntity;
   assert.equal(published.controlId, "ISM-0843");
   assert.equal(published.implementationStatus, undefined);
+});
+
+// Phase 1A (ADR 0098): Risk overhaul publication policy.
+test("Risk overhaul entity types have declared publication policies", () => {
+  for (const entityType of ["risk-framework", "risk-control", "risk-event"] as const) {
+    assert.ok(
+      PUBLICATION_FIELD_POLICIES.some((entry) => entry.entityType === entityType),
+      `${entityType} should have a publication policy`
+    );
+  }
+});
+
+test("publication sanitiser strips every new sensitive Risk field but keeps assessmentState and primaryCategoryId", () => {
+  const risk = withEnvelope(
+    "risk",
+    {
+      entityType: "risk",
+      title: "Third-party access is not reviewed",
+      status: "open",
+      likelihood: 4,
+      impact: 4,
+      reference: "OPERATOR-REF-001",
+      description: "Internal working note that should not be published.",
+      causes: [{ id: "cause_1", label: "Weak access control" }],
+      consequences: [{ id: "cons_1", label: "Unauthorised access" }],
+      primaryCategoryId: "cat_supplier-risk",
+      ownerTeam: "Security Operations",
+      reviewBy: "2027-01-01T00:00:00.000Z",
+      assessment: { basis: "unassessed" },
+      assessmentState: "unassessed",
+      response: "reduce",
+      externalRefs: [
+        {
+          sourceRegisterId: "6clicks",
+          externalId: "EXT-1",
+          externalRating: "High",
+          sourceUpdatedAt: "2026-08-01T00:00:00.000Z",
+          reconciledAt: "2026-08-02T00:00:00.000Z"
+        }
+      ]
+    },
+    "workshop"
+  ) as RiskEntity;
+
+  const published = sanitiseEntityForPublication(risk) as RiskEntity;
+  assert.equal(published.title, "Third-party access is not reviewed");
+  assert.equal(published.likelihood, 4);
+  assert.equal(published.impact, 4);
+  assert.equal(published.primaryCategoryId, "cat_supplier-risk");
+  assert.equal(published.assessmentState, "unassessed");
+  assert.equal(published.reference, undefined);
+  assert.equal(published.description, undefined);
+  assert.equal(published.causes, undefined);
+  assert.equal(published.consequences, undefined);
+  assert.equal(published.ownerTeam, undefined);
+  assert.equal(published.reviewBy, undefined);
+  assert.equal(published.assessment, undefined);
+  assert.equal(published.response, undefined);
+  assert.equal(published.externalRefs, undefined);
+});
+
+test("publication sanitiser strips linkRole-carrying and control-application link metadata", () => {
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: "Risk relates to enterprise Risk",
+      linkType: "related-to",
+      fromId: "RSK-1",
+      fromType: "risk",
+      toId: "RSK-2",
+      toType: "risk",
+      linkRole: "secondary-enterprise-association"
+    },
+    "workshop"
+  );
+
+  const published = sanitiseEntityForPublication(link) as LinkEntity;
+  assert.equal(published.linkRole, "secondary-enterprise-association");
+
+  const mitigatedByLink = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: "Risk mitigated by Risk Control",
+      linkType: "mitigated-by",
+      fromId: "RSK-1",
+      fromType: "risk",
+      toId: "RCT-1",
+      toType: "risk-control",
+      application: {
+        role: "preventive",
+        applicability: "All privileged accounts",
+        effectiveness: "effective",
+        rationale: "Internal rationale that should not publish.",
+        anchorIds: ["cause_1"]
+      }
+    },
+    "workshop"
+  );
+
+  const publishedApplication = sanitiseEntityForPublication(mitigatedByLink) as LinkEntity;
+  assert.equal(publishedApplication.application, undefined);
+});
+
+test("Risk overhaul entities round-trip through the sanitiser with only structural fields public", () => {
+  const framework = withEnvelope(
+    "risk-framework",
+    {
+      entityType: "risk-framework",
+      title: "Workspace risk framework",
+      categories: [{ id: "cat_1", label: "Cyber", order: 1, archived: false }],
+      methodologies: [],
+      appetiteRules: [],
+      sourceRegisters: [],
+      presentationPresets: []
+    },
+    "core"
+  ) as RiskFrameworkEntity;
+  const publishedFramework = sanitiseEntityForPublication(framework) as RiskFrameworkEntity;
+  assert.equal(publishedFramework.categories, undefined);
+  assert.equal(publishedFramework.id, framework.id);
+
+  const control = withEnvelope(
+    "risk-control",
+    {
+      entityType: "risk-control",
+      title: "MFA enforcement for privileged access",
+      definition: "All privileged accounts require MFA.",
+      ownerTeam: "Identity Team",
+      state: "active"
+    },
+    "workshop"
+  ) as RiskControlEntity;
+  const publishedControl = sanitiseEntityForPublication(control) as RiskControlEntity;
+  assert.equal(publishedControl.definition, undefined);
+  assert.equal(publishedControl.title, undefined);
+
+  const event = withEnvelope(
+    "risk-event",
+    {
+      entityType: "risk-event",
+      riskId: "RSK-1",
+      kind: "escalation",
+      occurredAt: "2026-09-07T00:00:00.000Z",
+      summary: "Escalated to enterprise risk committee."
+    },
+    "core"
+  ) as RiskEventEntity;
+  const publishedEvent = sanitiseEntityForPublication(event) as RiskEventEntity;
+  assert.equal(publishedEvent.summary, undefined);
+  assert.equal(publishedEvent.riskId, undefined);
 });

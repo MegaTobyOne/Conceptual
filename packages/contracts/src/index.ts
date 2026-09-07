@@ -1,3 +1,17 @@
+// Phase 1A (ADR 0098): Risk overhaul entity/assessment types live in risk-model.ts; imported here
+// because they extend the core entity unions below, and re-exported near the end of this file.
+import type {
+  RiskAssessment,
+  RiskAssessmentState,
+  RiskCauseOrConsequence,
+  RiskControlApplication,
+  RiskControlEntity,
+  RiskEventEntity,
+  RiskExternalRef,
+  RiskFrameworkEntity,
+  RiskResponse
+} from "./risk-model.js";
+
 export const VERSION_AXES = {
   schemaVersion: "1.16.0",
   bundleVersion: "1.16.0",
@@ -139,6 +153,9 @@ export const V0_1_ENTITY_TYPES = [
   "evidence",
   "action",
   "risk",
+  "risk-framework",
+  "risk-control",
+  "risk-event",
   "snapshot",
   "link",
   "tag",
@@ -168,6 +185,9 @@ export const V0_1_COLLECTIONS = [
   "evidence",
   "actions",
   "risks",
+  "risk-frameworks",
+  "risk-controls",
+  "risk-events",
   "snapshots",
   "links",
   "tags",
@@ -208,6 +228,8 @@ export const LINK_TYPES = [
   "assigned-via",
   "blocked-by",
   "related-to",
+  "rolls-up-to",
+  "mitigated-by",
   "funds",
   "member-of",
   "holds",
@@ -387,6 +409,51 @@ export const OPERATOR_LINK_RULES = [
     toType: "contract",
     label: "Link Action to Contract",
     phrase: "related to"
+  },
+  {
+    id: "workshop-risk-rolls-up-to-risk",
+    sourceProduct: "workshop",
+    linkType: "rolls-up-to",
+    fromType: "risk",
+    toType: "risk",
+    label: "Set parent Risk",
+    phrase: "rolls up to"
+  },
+  {
+    id: "workshop-risk-related-to-risk",
+    sourceProduct: "workshop",
+    linkType: "related-to",
+    fromType: "risk",
+    toType: "risk",
+    label: "Link to enterprise Risk",
+    phrase: "related to"
+  },
+  {
+    id: "workshop-risk-treated-by-action",
+    sourceProduct: "workshop",
+    linkType: "treated-by",
+    fromType: "risk",
+    toType: "action",
+    label: "Link Action to Risk",
+    phrase: "treated by"
+  },
+  {
+    id: "workshop-risk-mitigated-by-risk-control",
+    sourceProduct: "workshop",
+    linkType: "mitigated-by",
+    fromType: "risk",
+    toType: "risk-control",
+    label: "Link Risk Control to Risk",
+    phrase: "mitigated by"
+  },
+  {
+    id: "workshop-action-addressed-by-risk-control",
+    sourceProduct: "workshop",
+    linkType: "addressed-by",
+    fromType: "action",
+    toType: "risk-control",
+    label: "Link Action to Risk Control",
+    phrase: "addressed by"
   }
 ] as const satisfies readonly OperatorLinkRule[];
 
@@ -551,6 +618,24 @@ export interface RiskEntity extends EntityEnvelope {
   readonly likelihood: number;
   readonly impact: number;
   readonly integration?: RiskIntegrationMetadata;
+  /** ADR 0098 D5.1: operator's own register reference, distinct from `id`. */
+  readonly reference?: string;
+  readonly description?: string;
+  /** ADR 0098 D3.6: stable bow-tie anchors, unique within this Risk. */
+  readonly causes?: readonly RiskCauseOrConsequence[];
+  readonly consequences?: readonly RiskCauseOrConsequence[];
+  /** ADR 0098 D2.3: opaque `risk-framework` category node ID; at most one primary category. */
+  readonly primaryCategoryId?: string;
+  /** ADR 0097 D5: team label, never a person. */
+  readonly ownerTeam?: string;
+  readonly reviewBy?: string;
+  /** ADR 0098 D1.1: absent means legacy basis using `likelihood`/`impact` (D1.2). */
+  readonly assessment?: RiskAssessment;
+  /** ADR 0098 D1.3/D5.1: derived by Core from `assessment` on write; read-only for clients. */
+  readonly assessmentState?: RiskAssessmentState;
+  readonly response?: RiskResponse;
+  /** ADR 0098 D5.4: external register cross-references; original scale/rating preserved as text. */
+  readonly externalRefs?: readonly RiskExternalRef[];
 }
 
 export interface LinkEntity extends EntityEnvelope {
@@ -562,6 +647,10 @@ export interface LinkEntity extends EntityEnvelope {
   readonly toType: V01EntityType;
   readonly evidenceNote?: string;
   readonly evidenceSection?: string;
+  /** ADR 0098 D3.2: `"secondary-enterprise-association"` on `risk -> related-to -> risk`. */
+  readonly linkRole?: string;
+  /** ADR 0098 D3.5: permitted only when `linkType === "mitigated-by"`. */
+  readonly application?: RiskControlApplication;
 }
 
 export interface SnapshotEntity extends EntityEnvelope {
@@ -1115,6 +1204,9 @@ export type V01Entity =
   | EvidenceEntity
   | ActionEntity
   | RiskEntity
+  | RiskFrameworkEntity
+  | RiskControlEntity
+  | RiskEventEntity
   | LinkEntity
   | SnapshotEntity
   | TagEntity
@@ -1141,6 +1233,9 @@ export type EntityByCollection = {
   evidence: EvidenceEntity;
   actions: ActionEntity;
   risks: RiskEntity;
+  "risk-frameworks": RiskFrameworkEntity;
+  "risk-controls": RiskControlEntity;
+  "risk-events": RiskEventEntity;
   snapshots: SnapshotEntity;
   links: LinkEntity;
   tags: TagEntity;
@@ -1273,9 +1368,62 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "recordStatus",
         "status",
         "likelihood",
-        "impact"
+        "impact",
+        "primaryCategoryId",
+        "assessmentState"
       ),
-      { field: "integration", publication: "sensitive" }
+      { field: "integration", publication: "sensitive" },
+      { field: "reference", publication: "sensitive" },
+      { field: "description", publication: "sensitive" },
+      { field: "causes", publication: "sensitive" },
+      { field: "consequences", publication: "sensitive" },
+      { field: "ownerTeam", publication: "sensitive" },
+      { field: "reviewBy", publication: "sensitive" },
+      { field: "assessment", publication: "sensitive" },
+      { field: "response", publication: "sensitive" },
+      { field: "externalRefs", publication: "sensitive" }
+    ]
+  },
+  {
+    // ADR 0098 D2.8: singleton is present so Core round-trips it; every label, rule and cell is
+    // sensitive so Explorer receives an empty shell.
+    entityType: "risk-framework",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus"),
+      { field: "title", publication: "sensitive" },
+      { field: "categories", publication: "sensitive" },
+      { field: "methodologies", publication: "sensitive" },
+      { field: "appetiteRules", publication: "sensitive" },
+      { field: "sourceRegisters", publication: "sensitive" },
+      { field: "presentationPresets", publication: "sensitive" }
+    ]
+  },
+  {
+    // ADR 0098: new entity, all non-envelope fields sensitive.
+    entityType: "risk-control",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus"),
+      { field: "title", publication: "sensitive" },
+      { field: "definition", publication: "sensitive" },
+      { field: "ownerTeam", publication: "sensitive" },
+      { field: "state", publication: "sensitive" },
+      { field: "reviewBy", publication: "sensitive" },
+      { field: "sourceControlIds", publication: "sensitive" }
+    ]
+  },
+  {
+    // ADR 0098: new entity, all non-envelope fields sensitive.
+    entityType: "risk-event",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus"),
+      { field: "title", publication: "sensitive" },
+      { field: "riskId", publication: "sensitive" },
+      { field: "kind", publication: "sensitive" },
+      { field: "occurredAt", publication: "sensitive" },
+      { field: "summary", publication: "sensitive" },
+      { field: "before", publication: "sensitive" },
+      { field: "after", publication: "sensitive" },
+      { field: "escalation", publication: "sensitive" }
     ]
   },
   {
@@ -1309,10 +1457,12 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "fromId",
         "fromType",
         "toId",
-        "toType"
+        "toType",
+        "linkRole"
       ),
       { field: "evidenceNote", publication: "sensitive" },
-      { field: "evidenceSection", publication: "sensitive" }
+      { field: "evidenceSection", publication: "sensitive" },
+      { field: "application", publication: "sensitive" }
     ]
   },
   {
@@ -1766,6 +1916,9 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   evidence: "evidence",
   action: "actions",
   risk: "risks",
+  "risk-framework": "risk-frameworks",
+  "risk-control": "risk-controls",
+  "risk-event": "risk-events",
   snapshot: "snapshots",
   link: "links",
   tag: "tags",
@@ -1793,6 +1946,9 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   evidence: "EVD",
   action: "ACT",
   risk: "RSK",
+  "risk-framework": "RFW",
+  "risk-control": "RCT",
+  "risk-event": "RSE",
   snapshot: "SNP",
   link: "LNK",
   tag: "TAG",
@@ -4113,3 +4269,5 @@ export * from "./team-report-card.js";
 // R4 (v1.74.0, ADR 0097): suggested actions and close-of-period narrative stamping.
 export * from "./suggested-actions.js";
 export * from "./reporting-period.js";
+// Phase 1A (v1.74.0, ADR 0098): Risk overhaul contracts and shared evaluator.
+export * from "./risk-model.js";
