@@ -3,16 +3,26 @@ import assert from "node:assert/strict";
 import {
   LEGACY_5X5_METHODOLOGY,
   withEnvelope,
+  type ActionEntity,
   type LinkEntity,
   type RiskCategoryNode,
+  type RiskControlApplication,
+  type RiskControlEntity,
   type RiskEntity,
   type RiskFrameworkEntity
 } from "@pspf/contracts";
 import {
   buildRiskHierarchyForest,
+  buildRiskBowTieModel,
+  buildRiskCoverageRows,
+  buildRiskControlApplications,
   buildRiskMatrixModel,
   buildRiskRegisterRows,
+  buildRiskTreatmentActions,
+  candidateActionsForTreatment,
+  candidateControlsForMitigation,
   candidateParentRisks,
+  descendantRiskIds,
   findPrimaryParentId,
   parseCategoryOutline,
   renderCategoryOutline,
@@ -41,6 +51,62 @@ function rollsUpLink(fromId: string, toId: string): LinkEntity {
       fromType: "risk",
       toId,
       toType: "risk"
+    },
+    "workshop"
+  ) as LinkEntity;
+}
+
+function action(title: string, overrides: Partial<ActionEntity> = {}): ActionEntity {
+  return withEnvelope(
+    "action",
+    { entityType: "action", title, status: "todo", ...overrides },
+    "workshop"
+  ) as ActionEntity;
+}
+
+function riskControl(title: string, overrides: Partial<RiskControlEntity> = {}): RiskControlEntity {
+  return withEnvelope(
+    "risk-control",
+    {
+      entityType: "risk-control",
+      title,
+      definition: `${title} definition`,
+      ownerTeam: "Platform Engineering",
+      state: "active",
+      ...overrides
+    },
+    "workshop"
+  ) as RiskControlEntity;
+}
+
+function treatedByLink(riskId: string, actionId: string): LinkEntity {
+  return withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${riskId} treated by ${actionId}`,
+      linkType: "treated-by",
+      fromId: riskId,
+      fromType: "risk",
+      toId: actionId,
+      toType: "action"
+    },
+    "workshop"
+  ) as LinkEntity;
+}
+
+function mitigatedByLink(riskId: string, controlId: string, application: RiskControlApplication): LinkEntity {
+  return withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${riskId} mitigated by ${controlId}`,
+      linkType: "mitigated-by",
+      fromId: riskId,
+      fromType: "risk",
+      toId: controlId,
+      toType: "risk-control",
+      application
     },
     "workshop"
   ) as LinkEntity;
@@ -171,4 +237,161 @@ test("buildRiskMatrixModel counts legacy risks into cells and discloses unassess
   assert.equal(cell.bandLabel, "Low");
   assert.equal(model.unassessedCount, 1);
   assert.equal(model.notComparableCount, 0);
+});
+
+// --- Phase 3A: treatments (risk -> treated-by -> action) --------------------------------------
+
+test("buildRiskTreatmentActions discloses the shared-Action affected-risk preview", () => {
+  const riskA = risk("RSK-A", "Risk A");
+  const riskB = risk("RSK-B", "Risk B");
+  const sharedAction = action("Shared remediation");
+  const links = [treatedByLink(riskA.id, sharedAction.id), treatedByLink(riskB.id, sharedAction.id)];
+  const rowsForA = buildRiskTreatmentActions(riskA, links, [sharedAction], [riskA, riskB]);
+  assert.equal(rowsForA.length, 1);
+  assert.equal(rowsForA[0]!.action.id, sharedAction.id);
+  assert.deepEqual(rowsForA[0]!.otherRiskTitles, ["Risk B"]);
+});
+
+test("candidateActionsForTreatment excludes already-linked and closed/cancelled actions", () => {
+  const riskA = risk("RSK-A", "Risk A");
+  const linkedAction = action("Already linked");
+  const doneAction = action("Already done", { status: "done" });
+  const cancelledAction = action("Already cancelled", { status: "cancelled" });
+  const openAction = action("Still open");
+  const links = [treatedByLink(riskA.id, linkedAction.id)];
+  const candidates = candidateActionsForTreatment(
+    riskA,
+    [linkedAction, doneAction, cancelledAction, openAction],
+    links
+  ).map((entry) => entry.title);
+  assert.deepEqual(candidates, ["Still open"]);
+});
+
+// --- Phase 3A: control applications (risk -> mitigated-by -> risk-control) ---------------------
+
+test("buildRiskControlApplications resolves anchors and flags a stale anchor as unresolved", () => {
+  const causeId = "cause_1";
+  const riskA = risk("RSK-A", "Risk A", { causes: [{ id: causeId, label: "A cause" }] });
+  const control = riskControl("Encryption policy");
+  const validApplication: RiskControlApplication = {
+    role: "preventive",
+    applicability: "All endpoints",
+    effectiveness: "partially-effective",
+    anchorIds: [causeId]
+  };
+  const staleApplication: RiskControlApplication = {
+    role: "preventive",
+    applicability: "All endpoints",
+    effectiveness: "not-assessed",
+    anchorIds: ["cause_removed"]
+  };
+  const links = [mitigatedByLink(riskA.id, control.id, validApplication)];
+  const rows = buildRiskControlApplications(riskA, links, [control]);
+  assert.equal(rows.length, 1);
+  assert.deepEqual(rows[0]!.unresolvedAnchorIds, []);
+
+  const staleLinks = [mitigatedByLink(riskA.id, control.id, staleApplication)];
+  const staleRows = buildRiskControlApplications(riskA, staleLinks, [control]);
+  assert.deepEqual(staleRows[0]!.unresolvedAnchorIds, ["cause_removed"]);
+});
+
+test("candidateControlsForMitigation excludes already-linked and retired controls", () => {
+  const riskA = risk("RSK-A", "Risk A");
+  const linkedControl = riskControl("Already linked");
+  const retiredControl = riskControl("Retired", { state: "retired" });
+  const activeControl = riskControl("Still active");
+  const links = [
+    mitigatedByLink(riskA.id, linkedControl.id, {
+      role: "preventive",
+      applicability: "All",
+      effectiveness: "not-assessed",
+      anchorIds: []
+    })
+  ];
+  const candidates = candidateControlsForMitigation(riskA, [linkedControl, retiredControl, activeControl], links).map(
+    (entry) => entry.title
+  );
+  assert.deepEqual(candidates, ["Still active"]);
+});
+
+// --- Phase 3A: bow-tie (causes / preventive controls / event / recovery controls / consequences) ---
+
+test("buildRiskBowTieModel groups controls by role under their anchored cause/consequence", () => {
+  const causeId = "cause_1";
+  const consequenceId = "cons_1";
+  const riskA = risk("RSK-A", "Risk A", {
+    causes: [{ id: causeId, label: "Phishing" }],
+    consequences: [{ id: consequenceId, label: "Data loss" }]
+  });
+  const preventiveControl = riskControl("MFA enforcement");
+  const recoveryControl = riskControl("Backup restore");
+  const links = [
+    mitigatedByLink(riskA.id, preventiveControl.id, {
+      role: "preventive",
+      applicability: "All accounts",
+      effectiveness: "effective",
+      anchorIds: [causeId]
+    }),
+    mitigatedByLink(riskA.id, recoveryControl.id, {
+      role: "recovery",
+      applicability: "All backups",
+      effectiveness: "effective",
+      anchorIds: [consequenceId]
+    })
+  ];
+  const model = buildRiskBowTieModel(riskA, links, [preventiveControl, recoveryControl]);
+  assert.equal(model.causes.length, 1);
+  assert.deepEqual(model.causes[0]!.preventiveControlTitles, ["MFA enforcement"]);
+  assert.equal(model.consequences.length, 1);
+  assert.deepEqual(model.consequences[0]!.recoveryControlTitles, ["Backup restore"]);
+  assert.equal(model.unresolvedApplicationCount, 0);
+});
+
+test("buildRiskBowTieModel discloses a visible gap when a cause has no preventive control", () => {
+  const riskA = risk("RSK-A", "Risk A", { causes: [{ id: "cause_1", label: "Unmitigated cause" }] });
+  const model = buildRiskBowTieModel(riskA, [], []);
+  assert.equal(model.causes.length, 1);
+  assert.deepEqual(model.causes[0]!.preventiveControlTitles, []);
+});
+
+// --- Phase 3A: coverage (distinct IDs, direct vs descendant, never summed/averaged bands) ------
+
+test("descendantRiskIds walks rolls-up-to children transitively and tolerates cycles", () => {
+  const parent = risk("RSK-P", "Parent");
+  const child = risk("RSK-C", "Child");
+  const grandchild = risk("RSK-G", "Grandchild");
+  const links = [rollsUpLink(child.id, parent.id), rollsUpLink(grandchild.id, child.id)];
+  const descendants = descendantRiskIds(parent.id, links);
+  assert.equal(descendants.has(child.id), true);
+  assert.equal(descendants.has(grandchild.id), true);
+
+  const cyclicLinks = [rollsUpLink(child.id, parent.id), rollsUpLink(parent.id, child.id)];
+  const cyclicDescendants = descendantRiskIds(parent.id, cyclicLinks);
+  assert.equal(cyclicDescendants.has(child.id), true);
+});
+
+test("buildRiskCoverageRows counts distinct direct vs descendant treatments/controls without double-counting", () => {
+  const parent = risk("RSK-P", "Parent");
+  const child = risk("RSK-C", "Child");
+  const sharedAction = action("Shared action");
+  const childOnlyAction = action("Child-only action");
+  const links = [
+    rollsUpLink(child.id, parent.id),
+    treatedByLink(parent.id, sharedAction.id),
+    treatedByLink(child.id, sharedAction.id),
+    treatedByLink(child.id, childOnlyAction.id)
+  ];
+  const rows = buildRiskCoverageRows([parent, child], links, undefined);
+  const parentRow = rows.find((row) => row.risk.id === parent.id)!;
+  assert.deepEqual(parentRow.directActionIds, [sharedAction.id]);
+  assert.deepEqual(
+    parentRow.descendantActionIds,
+    [childOnlyAction.id],
+    "shared action already direct is not double-counted"
+  );
+  assert.equal(parentRow.uncovered, false);
+
+  const untreated = risk("RSK-U", "Untreated");
+  const untreatedRows = buildRiskCoverageRows([untreated], [], undefined);
+  assert.equal(untreatedRows[0]!.uncovered, true);
 });

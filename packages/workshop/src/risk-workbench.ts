@@ -1,9 +1,13 @@
 import {
   evaluateRisk,
   resolveAppetite,
+  validateControlApplicationAnchors,
+  type ActionEntity,
   type LinkEntity,
   type RiskAppetiteResolution,
   type RiskCategoryNode,
+  type RiskControlApplication,
+  type RiskControlEntity,
   type RiskEntity,
   type RiskEvaluation,
   type RiskFrameworkEntity,
@@ -388,4 +392,288 @@ export function buildRiskMatrixModel(risks: readonly RiskEntity[], revision: Ris
     unassessedCount,
     notComparableCount
   };
+}
+
+// --- Phase 3A (ADR 0098 D3.7/D3.8): treatments (`risk -> treated-by -> action`) ----------------
+
+function activeLinks(links: readonly LinkEntity[]): readonly LinkEntity[] {
+  return links.filter((link) => link.recordStatus !== "deleted");
+}
+
+export interface RiskTreatmentActionRow {
+  readonly link: LinkEntity;
+  readonly action: ActionEntity;
+  /** D3.7 "affected-risk preview": titles of other risks this same Action also treats. */
+  readonly otherRiskTitles: readonly string[];
+}
+
+/** All `risk -> treated-by -> action` treatments directly on `risk`, with the shared-Action preview. */
+export function buildRiskTreatmentActions(
+  risk: RiskEntity,
+  links: readonly LinkEntity[],
+  actions: readonly ActionEntity[],
+  allRisks: readonly RiskEntity[]
+): readonly RiskTreatmentActionRow[] {
+  const actionsById = new Map(actions.map((action) => [action.id, action]));
+  const risksById = new Map(allRisks.map((candidate) => [candidate.id, candidate]));
+  const treatedByLinks = activeLinks(links).filter(
+    (link) =>
+      link.linkType === "treated-by" && link.fromType === "risk" && link.toType === "action" && link.fromId === risk.id
+  );
+  const rows: RiskTreatmentActionRow[] = [];
+  for (const link of treatedByLinks) {
+    const action = actionsById.get(link.toId);
+    if (!action) {
+      continue;
+    }
+    const otherRiskTitles = activeLinks(links)
+      .filter(
+        (candidate) =>
+          candidate.linkType === "treated-by" &&
+          candidate.toType === "action" &&
+          candidate.toId === action.id &&
+          candidate.fromType === "risk" &&
+          candidate.fromId !== risk.id
+      )
+      .map((candidate) => risksById.get(candidate.fromId)?.title ?? candidate.fromId);
+    rows.push({ link, action, otherRiskTitles });
+  }
+  return rows;
+}
+
+/** Open Actions not already linked via `treated-by` to `risk`, offered for reuse. */
+export function candidateActionsForTreatment(
+  risk: RiskEntity,
+  actions: readonly ActionEntity[],
+  links: readonly LinkEntity[]
+): readonly ActionEntity[] {
+  const linkedIds = new Set(
+    activeLinks(links)
+      .filter((link) => link.linkType === "treated-by" && link.fromType === "risk" && link.fromId === risk.id)
+      .map((link) => link.toId)
+  );
+  return actions
+    .filter(
+      (action) =>
+        action.recordStatus !== "deleted" &&
+        action.status !== "done" &&
+        action.status !== "cancelled" &&
+        !linkedIds.has(action.id)
+    )
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU"));
+}
+
+// --- Phase 3A (ADR 0098 D3.4/D3.5): control applications (`risk -> mitigated-by -> risk-control`) ----
+
+export interface RiskControlApplicationRow {
+  readonly link: LinkEntity;
+  readonly control: RiskControlEntity;
+  readonly application: RiskControlApplication;
+  /** Should always be empty for a Core-validated link; a non-empty result flags a stale anchor. */
+  readonly unresolvedAnchorIds: readonly string[];
+}
+
+/** All `risk -> mitigated-by -> risk-control` applications directly on `risk`. */
+export function buildRiskControlApplications(
+  risk: RiskEntity,
+  links: readonly LinkEntity[],
+  controls: readonly RiskControlEntity[]
+): readonly RiskControlApplicationRow[] {
+  const controlsById = new Map(controls.map((control) => [control.id, control]));
+  const rows: RiskControlApplicationRow[] = [];
+  for (const link of activeLinks(links)) {
+    if (link.linkType !== "mitigated-by" || link.fromType !== "risk" || link.fromId !== risk.id || !link.application) {
+      continue;
+    }
+    const control = controlsById.get(link.toId);
+    if (!control) {
+      continue;
+    }
+    rows.push({
+      link,
+      control,
+      application: link.application,
+      unresolvedAnchorIds: validateControlApplicationAnchors(risk, link.application)
+    });
+  }
+  return rows;
+}
+
+/** Active risk-controls not already mitigating `risk`, offered for reuse. */
+export function candidateControlsForMitigation(
+  risk: RiskEntity,
+  controls: readonly RiskControlEntity[],
+  links: readonly LinkEntity[]
+): readonly RiskControlEntity[] {
+  const linkedIds = new Set(
+    activeLinks(links)
+      .filter((link) => link.linkType === "mitigated-by" && link.fromType === "risk" && link.fromId === risk.id)
+      .map((link) => link.toId)
+  );
+  return controls
+    .filter(
+      (control) => control.recordStatus !== "deleted" && control.state !== "retired" && !linkedIds.has(control.id)
+    )
+    .sort((left, right) => left.title.localeCompare(right.title, "en-AU"));
+}
+
+// --- Phase 3A (ADR 0098 D3.6): bow-tie (causes / preventive controls / event / recovery controls / consequences) ---
+
+export interface RiskBowTieCauseRow {
+  readonly cause: RiskCauseOrConsequenceEntry;
+  readonly preventiveControlTitles: readonly string[];
+}
+
+export interface RiskBowTieConsequenceRow {
+  readonly consequence: RiskCauseOrConsequenceEntry;
+  readonly recoveryControlTitles: readonly string[];
+}
+
+export interface RiskCauseOrConsequenceEntry {
+  readonly id: string;
+  readonly label: string;
+}
+
+export interface RiskBowTieModel {
+  readonly causes: readonly RiskBowTieCauseRow[];
+  readonly consequences: readonly RiskBowTieConsequenceRow[];
+  /** Applications whose anchors no longer resolve on this risk (e.g. a cause was later removed). */
+  readonly unresolvedApplicationCount: number;
+}
+
+/** Groups this risk's `mitigated-by` control applications by cause (preventive) and consequence (recovery). */
+export function buildRiskBowTieModel(
+  risk: RiskEntity,
+  links: readonly LinkEntity[],
+  controls: readonly RiskControlEntity[]
+): RiskBowTieModel {
+  const applications = buildRiskControlApplications(risk, links, controls);
+  const preventiveByCauseId = new Map<string, string[]>();
+  const recoveryByConsequenceId = new Map<string, string[]>();
+  let unresolvedApplicationCount = 0;
+
+  for (const row of applications) {
+    if (row.unresolvedAnchorIds.length > 0) {
+      unresolvedApplicationCount += 1;
+    }
+    const isPreventive = row.application.role === "preventive" || row.application.role === "both";
+    const isRecovery = row.application.role === "recovery" || row.application.role === "both";
+    for (const anchorId of row.application.anchorIds) {
+      if (isPreventive) {
+        const list = preventiveByCauseId.get(anchorId) ?? [];
+        list.push(row.control.title);
+        preventiveByCauseId.set(anchorId, list);
+      }
+      if (isRecovery) {
+        const list = recoveryByConsequenceId.get(anchorId) ?? [];
+        list.push(row.control.title);
+        recoveryByConsequenceId.set(anchorId, list);
+      }
+    }
+  }
+
+  return {
+    causes: (risk.causes ?? []).map((cause) => ({
+      cause,
+      preventiveControlTitles: preventiveByCauseId.get(cause.id) ?? []
+    })),
+    consequences: (risk.consequences ?? []).map((consequence) => ({
+      consequence,
+      recoveryControlTitles: recoveryByConsequenceId.get(consequence.id) ?? []
+    })),
+    unresolvedApplicationCount
+  };
+}
+
+// --- Phase 3A (ADR 0098 D3.8): treatment/control coverage --------------------------------------
+
+/** Descendant risk IDs reachable by following `rolls-up-to` edges downward (children, grandchildren, ...). Cycle-tolerant. */
+export function descendantRiskIds(riskId: string, links: readonly LinkEntity[]): ReadonlySet<string> {
+  const childrenOf = new Map<string, string[]>();
+  for (const edge of riskRollUpEdgesFromLinks(links)) {
+    const siblings = childrenOf.get(edge.toId) ?? [];
+    siblings.push(edge.fromId);
+    childrenOf.set(edge.toId, siblings);
+  }
+  const result = new Set<string>();
+  const visit = (currentId: string): void => {
+    for (const childId of childrenOf.get(currentId) ?? []) {
+      if (!result.has(childId)) {
+        result.add(childId);
+        visit(childId);
+      }
+    }
+  };
+  visit(riskId);
+  return result;
+}
+
+export interface RiskCoverageRow {
+  readonly risk: RiskEntity;
+  readonly bandLabel: string;
+  /** Distinct action IDs directly treating this risk. */
+  readonly directActionIds: readonly string[];
+  /** Distinct action IDs treating a descendant risk, excluding any already counted as direct. */
+  readonly descendantActionIds: readonly string[];
+  /** Distinct control IDs directly mitigating this risk. */
+  readonly directControlIds: readonly string[];
+  /** Distinct control IDs mitigating a descendant risk, excluding any already counted as direct. */
+  readonly descendantControlIds: readonly string[];
+  readonly uncovered: boolean;
+}
+
+/**
+ * D3.8: many-to-many treatment/control coverage across risks. Counts distinct treatment/control
+ * IDs and distinguishes direct from descendant coverage; never sums or averages ordinal bands.
+ */
+export function buildRiskCoverageRows(
+  risks: readonly RiskEntity[],
+  links: readonly LinkEntity[],
+  framework: RiskFrameworkEntity | undefined
+): readonly RiskCoverageRow[] {
+  const directActionIdsByRisk = new Map<string, Set<string>>();
+  const directControlIdsByRisk = new Map<string, Set<string>>();
+  for (const link of activeLinks(links)) {
+    if (link.linkType === "treated-by" && link.fromType === "risk" && link.toType === "action") {
+      const set = directActionIdsByRisk.get(link.fromId) ?? new Set<string>();
+      set.add(link.toId);
+      directActionIdsByRisk.set(link.fromId, set);
+    }
+    if (link.linkType === "mitigated-by" && link.fromType === "risk" && link.toType === "risk-control") {
+      const set = directControlIdsByRisk.get(link.fromId) ?? new Set<string>();
+      set.add(link.toId);
+      directControlIdsByRisk.set(link.fromId, set);
+    }
+  }
+  return risks.map((risk) => {
+    const directActionIds = directActionIdsByRisk.get(risk.id) ?? new Set<string>();
+    const directControlIds = directControlIdsByRisk.get(risk.id) ?? new Set<string>();
+    const descendantActionIds = new Set<string>();
+    const descendantControlIds = new Set<string>();
+    for (const descendantId of descendantRiskIds(risk.id, links)) {
+      for (const actionId of directActionIdsByRisk.get(descendantId) ?? []) {
+        if (!directActionIds.has(actionId)) {
+          descendantActionIds.add(actionId);
+        }
+      }
+      for (const controlId of directControlIdsByRisk.get(descendantId) ?? []) {
+        if (!directControlIds.has(controlId)) {
+          descendantControlIds.add(controlId);
+        }
+      }
+    }
+    return {
+      risk,
+      bandLabel: riskBandLabel(evaluateRisk(risk, framework)),
+      directActionIds: [...directActionIds],
+      descendantActionIds: [...descendantActionIds],
+      directControlIds: [...directControlIds],
+      descendantControlIds: [...descendantControlIds],
+      uncovered:
+        directActionIds.size === 0 &&
+        directControlIds.size === 0 &&
+        descendantActionIds.size === 0 &&
+        descendantControlIds.size === 0
+    };
+  });
 }

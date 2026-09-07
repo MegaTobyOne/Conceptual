@@ -381,7 +381,12 @@ export function shellHtml(title: string, body: string): string {
         'migrateRiskFramework',
         'recordRiskEscalation',
         'saveRiskFrameworkCategories',
-        'saveRiskFrameworkAppetite'
+        'saveRiskFrameworkAppetite',
+        'linkExistingActionToRisk',
+        'createActionForRisk',
+        'createRiskControl',
+        'mitigateRiskWithControl',
+        'linkSecondaryRiskAssociation'
       ]);
       const activeForm = pspfActiveEditorForm();
       if (command && !saveCommands.has(command) && pspfIsDirtyForm(activeForm)) {
@@ -403,7 +408,7 @@ export function shellHtml(title: string, body: string): string {
       if (command === 'copyRequirementBrief') {
         vscode.postMessage({ command, requirementId: button.getAttribute('data-requirement-id') });
       }
-      if (command === 'copyEvidenceBrief' || command === 'linkEvidenceToRequirements') {
+      if (command === 'copyEvidenceBrief' || command === 'linkEvidenceToRequirements' || command === 'createActionForRisk' || command === 'createRiskControl' || command === 'linkSecondaryRiskAssociation') {
         vscode.postMessage({ command, entityId: button.getAttribute('data-entity-id') });
       }
       if (command === 'openRequirementInEditor') {
@@ -523,7 +528,7 @@ export function shellHtml(title: string, body: string): string {
       if (command === 'setRiskWorkbenchView') {
         vscode.postMessage({ command, riskView: button.getAttribute('data-risk-view') });
       }
-      if (command === 'recordRiskEscalation' || command === 'saveRiskFrameworkCategories' || command === 'saveRiskFrameworkAppetite') {
+      if (command === 'recordRiskEscalation' || command === 'saveRiskFrameworkCategories' || command === 'saveRiskFrameworkAppetite' || command === 'linkExistingActionToRisk' || command === 'mitigateRiskWithControl') {
         const form = button.closest('form');
         if (form) {
           vscode.postMessage({ command, fields: pspfFormFields(form) });

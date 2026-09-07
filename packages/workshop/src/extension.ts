@@ -179,7 +179,13 @@ import {
   type RiskEscalationState,
   type RiskEventEntity,
   type RiskFrameworkEntity,
-  type RiskResponse
+  type RiskResponse,
+  validateControlApplicationAnchors,
+  type RiskControlApplication,
+  type RiskControlApplicationRole,
+  type RiskControlEffectiveness,
+  type RiskControlEntity,
+  type RiskControlState
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import {
@@ -205,9 +211,15 @@ import { isEvidenceSweepAction, planEvidenceSweep, type EvidenceSweepAction } fr
 import { RANKER_DRAFT_CANDIDATE_LIMIT, buildRankerMappingDrafts, type RankerMappingPair } from "./ism-sweep.js";
 import { ISM_SOURCE_CONTROL_CATEGORIES, buildRequirementExplainer } from "@pspf/reference-data";
 import {
+  buildRiskBowTieModel,
+  buildRiskControlApplications,
+  buildRiskCoverageRows,
   buildRiskHierarchyForest,
   buildRiskMatrixModel,
   buildRiskRegisterRows,
+  buildRiskTreatmentActions,
+  candidateActionsForTreatment,
+  candidateControlsForMitigation,
   candidateParentRisks,
   findPrimaryParentId,
   findRollUpLink,
@@ -2601,6 +2613,271 @@ async function saveRiskFrameworkAppetiteFromFields(fields: Record<string, string
     appetiteRules: [...framework.appetiteRules, rule],
     updatedAt: new Date().toISOString()
   } satisfies RiskFrameworkEntity);
+}
+
+// --- Phase 3A (ADR 0098 D3.7/D3.4/D3.5/D3.2): treatments, controls, and secondary associations -----
+
+const riskControlStateItems: readonly { readonly label: string; readonly value: RiskControlState }[] = [
+  { label: "Proposed", value: "proposed" },
+  { label: "Active", value: "active" },
+  { label: "Retired", value: "retired" }
+];
+
+async function linkExistingActionToRiskFromFields(fields: Record<string, string>): Promise<void> {
+  const riskId = fields.riskId;
+  const actionId = fields.actionId;
+  if (!riskId || !actionId) {
+    await vscode.window.showWarningMessage("Choose an action to link before continuing.");
+    return;
+  }
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  const action = allEntities.find(
+    (entity): entity is ActionEntity => entity.entityType === "action" && entity.id === actionId
+  );
+  if (!risk || !action) {
+    return;
+  }
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${risk.title} treated by ${action.title}`,
+      linkType: "treated-by",
+      fromId: risk.id,
+      fromType: "risk",
+      toId: action.id,
+      toType: "action"
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
+  const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+  const otherRiskTitles = buildRiskTreatmentActions(risk, [...links, link], [action], risks).find(
+    (row) => row.action.id === action.id
+  )?.otherRiskTitles;
+  if (otherRiskTitles && otherRiskTitles.length > 0) {
+    await vscode.window.showInformationMessage(`${action.title} also treats: ${otherRiskTitles.join(", ")}.`);
+  }
+}
+
+async function createActionForRisk(riskId: string): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  if (!risk) {
+    return;
+  }
+  const title = await vscode.window.showInputBox({
+    title: "Create Action",
+    prompt: "Action title",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter an action title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+  const status = await vscode.window.showQuickPick(actionStatusItems, {
+    title: "Select Action Status",
+    ignoreFocusOut: true
+  });
+  if (!status) {
+    return;
+  }
+  const dueDate = await vscode.window.showInputBox({
+    title: "Create Action",
+    prompt: "Due date, for example 30 Jun 2026. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (dueDate === undefined) {
+    return;
+  }
+  const action = withEnvelope(
+    "action",
+    { entityType: "action", title: title.trim(), status: status.value, dueDate: normaliseShortAuDateTime(dueDate) },
+    "workshop"
+  );
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${risk.title} treated by ${action.title}`,
+      linkType: "treated-by",
+      fromId: risk.id,
+      fromType: "risk",
+      toId: action.id,
+      toType: "action"
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", [action, link]);
+}
+
+async function createRiskControl(): Promise<void> {
+  await ensureCoreReady();
+  const title = await vscode.window.showInputBox({
+    title: "Create Risk Control",
+    prompt: "Control title",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a control title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+  const definition = await vscode.window.showInputBox({
+    title: "Create Risk Control",
+    prompt: "Control definition",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a control definition." : undefined)
+  });
+  if (!definition) {
+    return;
+  }
+  const ownerTeam = await vscode.window.showInputBox({
+    title: "Create Risk Control",
+    prompt: "Owner team, never a person",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter an owner team." : undefined)
+  });
+  if (!ownerTeam) {
+    return;
+  }
+  const state = await vscode.window.showQuickPick(riskControlStateItems, {
+    title: "Select Control State",
+    ignoreFocusOut: true
+  });
+  if (!state) {
+    return;
+  }
+  const control = withEnvelope(
+    "risk-control",
+    {
+      entityType: "risk-control",
+      title: title.trim(),
+      definition: definition.trim(),
+      ownerTeam: ownerTeam.trim(),
+      state: state.value
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", control);
+}
+
+async function mitigateRiskWithControlFromFields(fields: Record<string, string>): Promise<void> {
+  const riskId = fields.riskId;
+  const controlId = fields.controlId;
+  const role = fields.controlRole;
+  const effectiveness = fields.controlEffectiveness;
+  const applicability = fields.controlApplicability?.trim();
+  if (
+    !riskId ||
+    !controlId ||
+    !["preventive", "recovery", "both"].includes(role ?? "") ||
+    !["not-assessed", "ineffective", "partially-effective", "effective"].includes(effectiveness ?? "") ||
+    !applicability
+  ) {
+    await vscode.window.showWarningMessage(
+      "Select a control, role, and effectiveness, and enter an applicability before saving."
+    );
+    return;
+  }
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  const control = allEntities.find(
+    (entity): entity is RiskControlEntity => entity.entityType === "risk-control" && entity.id === controlId
+  );
+  if (!risk || !control) {
+    return;
+  }
+  const anchorIds = [...(risk.causes ?? []), ...(risk.consequences ?? [])]
+    .map((anchor) => anchor.id)
+    .filter((id) => fields[`anchor_${id}`] !== undefined);
+  const application: RiskControlApplication = {
+    role: role as RiskControlApplicationRole,
+    applicability,
+    effectiveness: effectiveness as RiskControlEffectiveness,
+    rationale: trimOptional(fields.controlRationale),
+    anchorIds
+  };
+  const unresolvedAnchors = validateControlApplicationAnchors(risk, application);
+  if (unresolvedAnchors.length > 0) {
+    await vscode.window.showWarningMessage(
+      "Selected anchors could not be resolved against this risk's causes/consequences."
+    );
+    return;
+  }
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${risk.title} mitigated by ${control.title}`,
+      linkType: "mitigated-by",
+      fromId: risk.id,
+      fromType: "risk",
+      toId: control.id,
+      toType: "risk-control",
+      application
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
+}
+
+async function linkSecondaryRiskAssociation(riskId: string): Promise<void> {
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  if (!risk) {
+    return;
+  }
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+  const alreadyLinkedIds = new Set(
+    links
+      .filter(
+        (link) =>
+          link.linkType === "related-to" &&
+          link.fromType === "risk" &&
+          link.toType === "risk" &&
+          (link.fromId === risk.id || link.toId === risk.id)
+      )
+      .map((link) => (link.fromId === risk.id ? link.toId : link.fromId))
+  );
+  const candidates = risks.filter((candidate) => candidate.id !== risk.id && !alreadyLinkedIds.has(candidate.id));
+  if (candidates.length === 0) {
+    await vscode.window.showInformationMessage(
+      "No other risks are available to link as a secondary enterprise association."
+    );
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    candidates.map((candidate) => ({ label: candidate.title, detail: candidate.id, candidate })),
+    { title: "Link Secondary Enterprise Risk", placeHolder: "Select a risk to associate", ignoreFocusOut: true }
+  );
+  if (!picked) {
+    return;
+  }
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${risk.title} related to ${picked.candidate.title}`,
+      linkType: "related-to",
+      fromId: risk.id,
+      fromType: "risk",
+      toId: picked.candidate.id,
+      toType: "risk",
+      linkRole: "secondary-enterprise-association"
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
 }
 
 type RiskSourceAuthMode = "api-key-header" | "bearer-token";
@@ -10552,12 +10829,27 @@ type RequirementBrowserOptions = {
   readonly riskView?: RiskWorkbenchView;
 };
 
-/** Phase 2 (ADR 0098 §Workbench and Presentation): the Risk workbench's current presentation view. */
-export type RiskWorkbenchView = "record" | "register" | "hierarchy" | "matrix" | "framework";
+/** Phase 2/3A (ADR 0098 §Workbench and Presentation): the Risk workbench's current presentation view. */
+export type RiskWorkbenchView =
+  | "record"
+  | "register"
+  | "hierarchy"
+  | "matrix"
+  | "treatments"
+  | "bowtie"
+  | "coverage"
+  | "framework";
 
 function isRiskWorkbenchView(value: string | undefined): value is RiskWorkbenchView {
   return (
-    value === "record" || value === "register" || value === "hierarchy" || value === "matrix" || value === "framework"
+    value === "record" ||
+    value === "register" ||
+    value === "hierarchy" ||
+    value === "matrix" ||
+    value === "treatments" ||
+    value === "bowtie" ||
+    value === "coverage" ||
+    value === "framework"
   );
 }
 
@@ -10949,6 +11241,36 @@ async function openEntityEditor(
     }
     if (message.command === "saveRiskFrameworkAppetite") {
       await saveRiskFrameworkAppetiteFromFields(message.fields ?? {});
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "linkExistingActionToRisk") {
+      await linkExistingActionToRiskFromFields(message.fields ?? {});
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "createActionForRisk" && message.entityId) {
+      await createActionForRisk(message.entityId);
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "createRiskControl") {
+      await createRiskControl();
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "mitigateRiskWithControl") {
+      await mitigateRiskWithControlFromFields(message.fields ?? {});
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "linkSecondaryRiskAssociation" && message.entityId) {
+      await linkSecondaryRiskAssociation(message.entityId);
+      await refreshWorkshopSurfaces();
       await refreshEditor();
       return;
     }
@@ -12448,9 +12770,9 @@ function linkedRequirementsForAction(
     .sort(compareRequirementsForPicker);
 }
 
-// Phase 2 (ADR 0098 §Workbench and Presentation): the Risk workbench dispatches on `riskView`,
+// Phase 2/3A (ADR 0098 §Workbench and Presentation): the Risk workbench dispatches on `riskView`,
 // showing the shared toolbar plus either the per-record editor (inside the usual nav sidebar) or a
-// full-width Register/Hierarchy/Matrix/Framework surface, without adding a new panel or command.
+// full-width Register/Hierarchy/Matrix/Coverage/Framework surface, without adding a new panel or command.
 function renderRiskWorkbench(
   risk: RiskEntity,
   allEntities: readonly V01Entity[],
@@ -12467,8 +12789,19 @@ function renderRiskWorkbench(
   if (view === "matrix") {
     return `${riskWorkbenchStyles()}${toolbar}${renderRiskMatrixContent(allEntities)}`;
   }
+  if (view === "coverage") {
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskCoverageContent(allEntities)}`;
+  }
   if (view === "framework") {
     return `${riskWorkbenchStyles()}${toolbar}${renderRiskFrameworkContent(allEntities)}`;
+  }
+  if (view === "treatments") {
+    const editorContent = `${riskWorkbenchStyles()}${toolbar}${renderRiskTreatmentsContent(risk, allEntities)}`;
+    return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
+  }
+  if (view === "bowtie") {
+    const editorContent = `${riskWorkbenchStyles()}${toolbar}${renderRiskBowTieContent(risk, allEntities)}`;
+    return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
   }
   const editorContent = `${riskWorkbenchStyles()}${toolbar}${renderRiskRecordContent(risk, allEntities)}`;
   return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
@@ -12479,6 +12812,9 @@ function riskWorkbenchToolbar(view: RiskWorkbenchView): string {
     { view: "register", label: "Register" },
     { view: "hierarchy", label: "Hierarchy" },
     { view: "matrix", label: "Matrix" },
+    { view: "treatments", label: "Treatments" },
+    { view: "bowtie", label: "Bow-tie" },
+    { view: "coverage", label: "Coverage" },
     { view: "framework", label: "Framework" }
   ];
   const buttons = items
@@ -12636,6 +12972,7 @@ function riskRelationshipsSection(risk: RiskEntity, allEntities: readonly V01Ent
     </label>
     <p class="muted">${childCount} risk${childCount === 1 ? "" : "s"} roll up to this risk directly.</p>
     ${recordTable("Secondary enterprise associations", secondaryRows, ["title"])}
+    <div class="form-actions"><button type="button" data-command="linkSecondaryRiskAssociation" data-entity-id="${escapeHtml(risk.id)}">Link secondary risk</button></div>
   </section>`;
 }
 
@@ -12789,6 +13126,224 @@ function renderRiskMatrixContent(allEntities: readonly V01Entity[]): string {
 }
 
 const RISK_APPETITE_BAND_IDS = ["low", "medium", "high", "extreme"] as const;
+
+// Phase 3A (ADR 0098 D3.7/D3.4/D3.5): treatments and controls for the currently selected risk.
+function renderRiskTreatmentsContent(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const actions = allEntities.filter(
+    (entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted"
+  );
+  const controls = allEntities.filter(
+    (entity): entity is RiskControlEntity => entity.entityType === "risk-control" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+
+  const treatmentRows = buildRiskTreatmentActions(risk, links, actions, risks).map((row) => ({
+    title: row.action.title,
+    status: label(row.action.status),
+    ownerTeam: row.action.ownerTeam ?? "Not assigned",
+    dueDate: formatShortAuDateTime(row.action.dueDate) ?? "Not set",
+    otherRisks: row.otherRiskTitles.length > 0 ? row.otherRiskTitles.join("; ") : "This risk only"
+  }));
+  const actionPickerOptions = [
+    { label: "Choose an action", value: "" },
+    ...candidateActionsForTreatment(risk, actions, links).map((action) => ({ label: action.title, value: action.id }))
+  ];
+
+  const controlApplicationRows = buildRiskControlApplications(risk, links, controls).map((row) => ({
+    title: row.control.title,
+    ownerTeam: row.control.ownerTeam,
+    state: label(row.control.state),
+    role: label(row.application.role),
+    effectiveness: label(row.application.effectiveness),
+    anchors: row.application.anchorIds.length,
+    gap: row.unresolvedAnchorIds.length > 0 ? `${row.unresolvedAnchorIds.length} unresolved` : "Resolved"
+  }));
+  const controlPickerOptions = [
+    { label: "Choose a control", value: "" },
+    ...candidateControlsForMitigation(risk, controls, links).map((control) => ({
+      label: control.title,
+      value: control.id
+    }))
+  ];
+  const anchorOptions = [
+    ...(risk.causes ?? []).map((cause) => ({ id: cause.id, label: cause.label, kind: "cause" })),
+    ...(risk.consequences ?? []).map((consequence) => ({
+      id: consequence.id,
+      label: consequence.label,
+      kind: "consequence"
+    }))
+  ];
+  const allControlsRows = controls.map((control) => ({
+    title: control.title,
+    ownerTeam: control.ownerTeam,
+    state: label(control.state),
+    reviewBy: control.reviewBy ? (formatShortAuDateTime(control.reviewBy) ?? control.reviewBy) : "Not set",
+    mitigating: links.filter(
+      (link) => link.linkType === "mitigated-by" && link.toId === control.id && link.fromType === "risk"
+    ).length
+  }));
+
+  return `<section>
+    <h1>Treatments and controls: ${escapeHtml(risk.title)}</h1>
+    <p class="muted">Actions and organisational controls treating this risk. Reusing a shared Action or Control shows every other risk it also treats or mitigates.</p>
+  </section>
+  <section>
+    <h2>Treating actions</h2>
+    ${recordTable("Actions treating this risk", treatmentRows, ["title", "status", "ownerTeam", "dueDate", "otherRisks"])}
+    <form class="risk-mini-form">
+      <input type="hidden" name="riskId" value="${escapeHtml(risk.id)}">
+      ${selectField("actionId", "Link existing action", actionPickerOptions, "")}
+      <div class="form-actions">
+        <button type="button" data-command="linkExistingActionToRisk">Link selected action</button>
+        <button type="button" data-command="createActionForRisk" data-entity-id="${escapeHtml(risk.id)}">Create action</button>
+      </div>
+    </form>
+  </section>
+  <section>
+    <h2>Mitigating controls</h2>
+    ${recordTable("Controls mitigating this risk", controlApplicationRows, ["title", "ownerTeam", "state", "role", "effectiveness", "anchors", "gap"])}
+    <form class="risk-mini-form">
+      <input type="hidden" name="riskId" value="${escapeHtml(risk.id)}">
+      <div class="form-grid">
+        ${selectField("controlId", "Control", controlPickerOptions, "")}
+        ${selectField(
+          "controlRole",
+          "Role",
+          [
+            { label: "Preventive", value: "preventive" },
+            { label: "Recovery", value: "recovery" },
+            { label: "Both", value: "both" }
+          ],
+          "preventive"
+        )}
+        ${selectField(
+          "controlEffectiveness",
+          "Effectiveness",
+          [
+            { label: "Not assessed", value: "not-assessed" },
+            { label: "Ineffective", value: "ineffective" },
+            { label: "Partially effective", value: "partially-effective" },
+            { label: "Effective", value: "effective" }
+          ],
+          "not-assessed"
+        )}
+        ${inputField("controlApplicability", "Applicability", "", false, "for example, all managed endpoints")}
+        ${textareaField("controlRationale", "Rationale, optional", "")}
+        <fieldset><legend>Anchors (causes/consequences this control addresses)</legend>${
+          anchorOptions.length === 0
+            ? `<p class="muted">Add causes/consequences in Record before anchoring a control.</p>`
+            : anchorOptions
+                .map(
+                  (anchor) =>
+                    `<label class="risk-framework__band-check"><input type="checkbox" name="anchor_${escapeHtml(anchor.id)}"> ${escapeHtml(anchor.label)} (${anchor.kind})</label>`
+                )
+                .join("")
+        }</fieldset>
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="mitigateRiskWithControl">Link control to this risk</button>
+        <button type="button" data-command="createRiskControl" data-entity-id="${escapeHtml(risk.id)}">Create risk control</button>
+      </div>
+    </form>
+  </section>
+  <section>
+    <h2>All risk controls</h2>
+    <p class="muted">Organisational controls across the workspace, independent of this risk.</p>
+    ${recordTable("Risk controls register", allControlsRows, ["title", "ownerTeam", "state", "reviewBy", "mitigating"])}
+  </section>`;
+}
+
+// Phase 3A (ADR 0098 D3.6): causes/preventive controls/event/recovery controls/consequences for the selected risk.
+function renderRiskBowTieContent(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const controls = allEntities.filter(
+    (entity): entity is RiskControlEntity => entity.entityType === "risk-control" && entity.recordStatus !== "deleted"
+  );
+  const model = buildRiskBowTieModel(risk, links, controls);
+  const causeRows = model.causes.map((row) => ({
+    cause: row.cause.label,
+    preventiveControls:
+      row.preventiveControlTitles.length > 0 ? row.preventiveControlTitles.join("; ") : "No preventive control recorded"
+  }));
+  const consequenceRows = model.consequences.map((row) => ({
+    consequence: row.consequence.label,
+    recoveryControls:
+      row.recoveryControlTitles.length > 0 ? row.recoveryControlTitles.join("; ") : "No recovery control recorded"
+  }));
+  const gapCount =
+    model.causes.filter((row) => row.preventiveControlTitles.length === 0).length +
+    model.consequences.filter((row) => row.recoveryControlTitles.length === 0).length;
+  return `<section>
+    <h1>Bow-tie: ${escapeHtml(risk.title)}</h1>
+    <p class="muted">Causes and preventive controls sit before the event; consequences and recovery controls sit after it. Add causes and consequences from Record, and control applications from Treatments.</p>
+    <div class="grid">
+      ${metricCard("Causes", model.causes.length)}
+      ${metricCard("Event", risk.title)}
+      ${metricCard("Consequences", model.consequences.length)}
+    </div>
+    ${gapCount > 0 ? `<p class="muted">${gapCount} cause${gapCount === 1 ? "" : "s"} or consequence${gapCount === 1 ? "" : "s"} below have a visible gap: no control is recorded against them.</p>` : `<p class="muted">Every cause and consequence has at least one recorded control.</p>`}
+    ${model.unresolvedApplicationCount > 0 ? `<p class="muted">${model.unresolvedApplicationCount} control application${model.unresolvedApplicationCount === 1 ? "" : "s"} reference a cause or consequence that no longer exists on this risk.</p>` : ""}
+    ${recordTable("Causes \u2192 preventive controls", causeRows, ["cause", "preventiveControls"])}
+    ${recordTable("Consequences \u2192 recovery controls", consequenceRows, ["consequence", "recoveryControls"])}
+  </section>`;
+}
+
+// Phase 3A (ADR 0098 D3.8): many-to-many risk/action/control coverage, as a filterable semantic table.
+function renderRiskCoverageContent(allEntities: readonly V01Entity[]): string {
+  const framework = getActiveRiskFramework(allEntities);
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities
+    .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
+    .sort(compareWorkbenchRecords);
+  const actionsById = new Map(
+    allEntities
+      .filter((entity): entity is ActionEntity => entity.entityType === "action")
+      .map((action) => [action.id, action])
+  );
+  const controlsById = new Map(
+    allEntities
+      .filter((entity): entity is RiskControlEntity => entity.entityType === "risk-control")
+      .map((control) => [control.id, control])
+  );
+  const rows = buildRiskCoverageRows(risks, links, framework);
+  const uncoveredCount = rows.filter((row) => row.uncovered).length;
+  const titlesFor = (ids: readonly string[], byId: Map<string, { readonly title: string }>): string =>
+    ids.map((id) => byId.get(id)?.title ?? id).join("; ") || "None";
+  const tableRows = rows
+    .map((row) => {
+      const searchText = `${row.risk.title} ${row.bandLabel}`;
+      return `<tr class="risk-coverage__row" data-search="${escapeHtml(searchText)}">
+      <td><button type="button" class="risk-register__title" data-command="openRecordInEditor" data-entity-type="risk" data-entity-id="${escapeHtml(row.risk.id)}">${escapeHtml(row.risk.title)}</button></td>
+      <td>${escapeHtml(row.bandLabel)}</td>
+      <td>${row.directActionIds.length} (${escapeHtml(titlesFor(row.directActionIds, actionsById))})</td>
+      <td>${row.descendantActionIds.length} (${escapeHtml(titlesFor(row.descendantActionIds, actionsById))})</td>
+      <td>${row.directControlIds.length} (${escapeHtml(titlesFor(row.directControlIds, controlsById))})</td>
+      <td>${row.descendantControlIds.length} (${escapeHtml(titlesFor(row.descendantControlIds, controlsById))})</td>
+      <td>${row.uncovered ? "Uncovered" : "Covered"}</td>
+    </tr>`;
+    })
+    .join("");
+  return `<section>
+    <h1>Treatment and control coverage</h1>
+    <p class="muted">${rows.length} risk${rows.length === 1 ? "" : "s"} \u00b7 ${uncoveredCount} with no direct or descendant treatment or control. Counts are distinct treatment/control IDs, direct and descendant are never summed, and bands are never averaged.</p>
+    <input class="risk-register__filter" type="search" aria-label="Filter coverage" placeholder="Filter by title or band" data-filter-target=".risk-coverage__row">
+    ${
+      rows.length === 0
+        ? `<p class="muted">No risks yet.</p>`
+        : `<div class="table-wrap" tabindex="0" aria-label="Scrollable risk coverage table"><table><thead><tr><th>Risk</th><th>Band</th><th>Direct actions</th><th>Descendant actions</th><th>Direct controls</th><th>Descendant controls</th><th>Coverage</th></tr></thead><tbody>${tableRows}</tbody></table></div>`
+    }
+    <p class="muted">A graphical coverage diagram is not yet available; this filterable table is the equivalent semantic view for now (§ Workbench and Presentation).</p>
+  </section>`;
+}
 
 function renderRiskFrameworkContent(allEntities: readonly V01Entity[]): string {
   const framework = getActiveRiskFramework(allEntities);

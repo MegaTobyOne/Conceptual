@@ -76,10 +76,10 @@
       "create": "complete",
       "edit": "complete",
       "delete": "partial",
-      "relationships": "partial",
-      "standard": "Risk register/record/hierarchy/matrix workbench with structured assessment, category, primary parent, and escalation history (ADR 0098 Phase 2).",
-      "gap": "Treatment/control relationships (risk -> treated-by -> action, risk -> mitigated-by -> risk-control) and bow-tie are not yet exposed from the Risk record; secondary enterprise associations are read-only.",
-      "nextSlice": "Phase 3A: shared Action/risk-control linking, bow-tie, and coverage map from the Risk record."
+      "relationships": "complete",
+      "standard": "Risk register/record/hierarchy/matrix/treatments/bow-tie/coverage workbench with structured assessment, category, primary and secondary relationships, treatment/control linking, and escalation history (ADR 0098 Phase 2/3A).",
+      "gap": "Coverage view is a filterable semantic table rather than a graphical many-to-many diagram; custom methodology/matrix authoring remains unavailable.",
+      "nextSlice": "Phase 3B: source register crosswalk (manual references and previewed CSV/TSV import)."
     },
     {
       "entityType": "risk-framework",
@@ -101,17 +101,17 @@
       "entityType": "risk-control",
       "label": "Risk control",
       "recordSet": "contract",
-      "mutability": "generated-readonly",
-      "ownerSurface": "Not yet built",
-      "list": "missing",
-      "detail": "missing",
-      "create": "missing",
+      "mutability": "user-editable",
+      "ownerSurface": "Workshop risk workbench (Treatments view)",
+      "list": "complete",
+      "detail": "partial",
+      "create": "complete",
       "edit": "missing",
       "delete": "missing",
-      "relationships": "missing",
-      "standard": "Organisational control register with bow-tie application to Risk causes/consequences (ADR 0098 D3.4/D3.5).",
-      "gap": "No Workshop UI exists yet; deliberately deferred to Phase 3A (Treat, explain, escalate).",
-      "nextSlice": "Phase 3A: risk-control register, treatment/control linking, and bow-tie applications."
+      "relationships": "complete",
+      "standard": "Organisational control register with bow-tie application (role, effectiveness, anchors) to Risk causes/consequences (ADR 0098 D3.4/D3.5).",
+      "gap": "Controls are created via a native prompt sequence and cannot yet be edited or retired from the Workshop UI once created.",
+      "nextSlice": "Add a dedicated risk-control edit/retire flow when a later phase needs it."
     },
     {
       "entityType": "risk-event",

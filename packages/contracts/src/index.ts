@@ -2167,8 +2167,34 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     status: "open",
     likelihood: 4,
     impact: 4,
-    primaryCategoryId: riskCategoryTechnology.id
+    primaryCategoryId: riskCategoryTechnology.id,
+    // ADR 0098 D3.6/D8.3 (Phase 3A): stable bow-tie anchors exercised by the mitigated-by application below.
+    causes: [
+      {
+        id: "cause-00000000-0000-4000-8000-000000000802",
+        label: "Legacy endpoints predate mandatory disk encryption"
+      }
+    ],
+    consequences: [
+      {
+        id: "cons-00000000-0000-4000-8000-000000000802",
+        label: "Sensitive data exposed if a device is lost or stolen"
+      }
+    ]
   });
+  // ADR 0098 D3.4 (Phase 3A): an organisational control, referenced by a mitigated-by application below.
+  const riskControlEncryption: RiskControlEntity = sampleEntity(
+    "risk-control",
+    "RCT-00000000-0000-4000-8000-000000000801",
+    timestamp,
+    {
+      entityType: "risk-control",
+      title: "Full-disk encryption enforced by device policy",
+      definition: "Managed device policy enforces full-disk encryption before an endpoint may enrol in the fleet.",
+      ownerTeam: "Platform Engineering",
+      state: "active"
+    }
+  );
   const riskAccess: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000803", timestamp, {
     entityType: "risk",
     title: "Dormant access is retained",
@@ -2369,6 +2395,7 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     riskAccess,
     riskClosed,
     riskFrameworkEnterprise,
+    riskControlEncryption,
     directionEncryption,
     directionReporting,
     sampleLink(
@@ -2474,7 +2501,51 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
       "addressed-by",
       directionReporting,
       actionGovernance
-    )
+    ),
+    // ADR 0098 D3.7/D8.3 (Phase 3A): canonical `treated-by` links, including a shared Action across
+    // two risks to exercise the Treatments view's affected-risk preview.
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000814",
+      timestamp,
+      "Encryption risk treated by encryption action",
+      "treated-by",
+      riskEncryption,
+      actionEncryption
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000815",
+      timestamp,
+      "Governance risk treated by encryption action",
+      "treated-by",
+      riskGovernance,
+      actionEncryption
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000816",
+      timestamp,
+      "Access risk treated by access action",
+      "treated-by",
+      riskAccess,
+      actionAccess
+    ),
+    // ADR 0098 D3.4/D3.5/D8.3 (Phase 3A): typed `LinkEntity.application` metadata anchored to a cause.
+    sampleEntity("link", "LNK-00000000-0000-4000-8000-000000000817", timestamp, {
+      entityType: "link",
+      title: `${riskEncryption.title} mitigated by ${riskControlEncryption.title}`,
+      linkType: "mitigated-by",
+      fromId: riskEncryption.id,
+      fromType: "risk",
+      toId: riskControlEncryption.id,
+      toType: "risk-control",
+      application: {
+        role: "preventive",
+        applicability: "All managed laptop and desktop endpoints",
+        effectiveness: "partially-effective",
+        rationale:
+          "Policy enforcement is active; a small number of legacy devices remain exempted pending replacement.",
+        anchorIds: ["cause-00000000-0000-4000-8000-000000000802"]
+      }
+    })
   ];
 
   entities.push(
