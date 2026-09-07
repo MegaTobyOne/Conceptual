@@ -1005,6 +1005,12 @@ function buildSnapshotMetrics(collections: BundleCollections): NonNullable<Snaps
   const openRisks = collections.risks.filter((risk) => risk.status !== "closed");
   const openActions = collections.actions.filter((action) => !["done", "cancelled"].includes(action.status));
   const now = Date.now();
+  // Phase 1C (ADR 0098 D1.3/D1.4): evaluateRisk, never a raw likelihood x impact multiply; unassessed/not-comparable risks carry no band and are excluded rather than coerced to Low.
+  const activeFramework = collections["risk-frameworks"].find((framework) => framework.recordStatus !== "deleted");
+  const highOrExtremeRiskTotal = openRisks.filter((risk) => {
+    const band = evaluateRisk(risk, activeFramework).band;
+    return band?.id === "high" || band?.id === "extreme";
+  }).length;
   return {
     requirementTotal: collections.requirements.length,
     requirementMet,
@@ -1012,7 +1018,7 @@ function buildSnapshotMetrics(collections: BundleCollections): NonNullable<Snaps
     compliancePercentage:
       applicableRequirements.length === 0 ? 0 : Math.round((requirementMet / applicableRequirements.length) * 100),
     openRiskTotal: openRisks.length,
-    highOrExtremeRiskTotal: openRisks.filter((risk) => risk.likelihood * risk.impact >= 10).length,
+    highOrExtremeRiskTotal,
     actionTotal: collections.actions.length,
     openActionTotal: openActions.length,
     completedActionTotal: collections.actions.filter((action) => action.status === "done").length,

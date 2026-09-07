@@ -107,6 +107,7 @@ import {
   buildSampleWorkspaceEntities,
   buildHomeSampleWorkspaceEntities,
   enrichActionsWithImpact,
+  evaluateRisk,
   type EvidenceEntity,
   type EvidenceFreshness,
   type LinkEntity,
@@ -366,17 +367,28 @@ class RisksTreeProvider extends WorkshopTreeProvider {
       return [new WorkshopTreeItem("No risks yet", "Use New Risk to capture a risk", "info")];
     }
     return [...risks]
-      .sort((left, right) => right.likelihood * right.impact - left.likelihood * left.impact)
-      .map(
-        (risk) =>
-          new WorkshopEntityTreeItem(
-            risk.title,
-            `${workshopRiskSeverityLabel(risk)} · ${risk.likelihood}×${risk.impact}`,
-            "warning",
-            risk,
-            "pspfWorkshopRisk"
-          )
-      );
+      .sort((left, right) => {
+        const leftScore = evaluateRisk(left).score;
+        const rightScore = evaluateRisk(right).score;
+        if (leftScore === undefined && rightScore === undefined) {
+          return left.title.localeCompare(right.title, "en-AU");
+        }
+        if (leftScore === undefined) {
+          return 1;
+        }
+        if (rightScore === undefined) {
+          return -1;
+        }
+        return rightScore - leftScore;
+      })
+      .map((risk) => {
+        const evaluation = evaluateRisk(risk);
+        const detail =
+          evaluation.score !== undefined
+            ? `${workshopRiskSeverityLabel(evaluation)} · ${risk.likelihood}×${risk.impact}`
+            : workshopRiskSeverityLabel(evaluation);
+        return new WorkshopEntityTreeItem(risk.title, detail, "warning", risk, "pspfWorkshopRisk");
+      });
   }
 }
 
@@ -401,18 +413,13 @@ class DirectionsTreeProvider extends WorkshopTreeProvider {
   }
 }
 
-function workshopRiskSeverityLabel(risk: RiskEntity): string {
-  const score = risk.likelihood * risk.impact;
-  if (score >= 16) {
-    return "Extreme";
+// Phase 1C (ADR 0098 D1.3/D1.5): corrected to invariant E5 via evaluateRisk; unassessed/not-comparable risks are
+// never coerced to a band.
+function workshopRiskSeverityLabel(evaluation: ReturnType<typeof evaluateRisk>): string {
+  if (evaluation.band) {
+    return evaluation.band.label;
   }
-  if (score >= 10) {
-    return "High";
-  }
-  if (score >= 4) {
-    return "Medium";
-  }
-  return "Low";
+  return evaluation.state === "unassessed" ? "Unassessed" : "Not comparable";
 }
 
 const workshopTreeProviders: WorkshopTreeProvider[] = [];

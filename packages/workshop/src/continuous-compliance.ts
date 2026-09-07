@@ -8,7 +8,7 @@ import type {
   StrategicChoice,
   V01Entity
 } from "@pspf/contracts";
-import { PSPF_DOMAINS } from "@pspf/contracts";
+import { evaluateRisk, PSPF_DOMAINS } from "@pspf/contracts";
 
 /**
  * Continuous Compliance Outputs — shared taxonomy and pure model builders.
@@ -257,12 +257,13 @@ function buildGridMilestones(entities: readonly V01Entity[], now: Date, withinDa
 // ---------------------------------------------------------------------------
 
 /**
- * Fixed severity vocabulary for the Human-Centred Risk View. Severity is the
- * product of likelihood and impact (each 1-5), banded with controlled labels.
+ * Fixed severity vocabulary for the Human-Centred Risk View, corrected to invariant E5 (Phase 1C,
+ * ADR 0098 D1.5): below 5 Low, 5-9 Medium, 10-15 High, 16 or more Extreme.
  */
 export const CONTINUOUS_COMPLIANCE_RISK_SEVERITIES = [
-  { id: "high", label: "High", minScore: 15 },
-  { id: "medium", label: "Medium", minScore: 8 },
+  { id: "extreme", label: "Extreme", minScore: 16 },
+  { id: "high", label: "High", minScore: 10 },
+  { id: "medium", label: "Medium", minScore: 5 },
   { id: "low", label: "Low", minScore: 1 }
 ] as const;
 
@@ -304,6 +305,8 @@ export interface StrategyPrioritySummary {
   readonly topRisks: readonly StrategyPriorityRisk[];
   readonly linkedActionCount: number;
   readonly unresolvedRiskReferenceCount: number;
+  /** Phase 1C (ADR 0098 D1.4): linked risks excluded because they are unassessed or not comparable. */
+  readonly excludedRiskCount: number;
   readonly rationale: string;
 }
 
@@ -555,6 +558,7 @@ export function buildStrategyPrioritySummary(
   ]);
   const seenRiskIds = new Set<string>();
   const unresolvedRiskIds = new Set<string>();
+  let excludedRiskCount = 0;
   const modifier = strategyTrendModifier(choice.trend) + strategyConfidenceModifier(choice.confidence);
   const priorityRisks: StrategyPriorityRisk[] = [];
 
@@ -568,7 +572,13 @@ export function buildStrategyPrioritySummary(
       unresolvedRiskIds.add(reference.riskId);
       continue;
     }
-    const severityScore = risk.likelihood * risk.impact;
+    // Phase 1C (ADR 0098 D1.3/D1.4): evaluateRisk, never a raw likelihood x impact multiply; unassessed/
+    // not-comparable risks are excluded from priority scoring rather than coerced to a score of 0.
+    const severityScore = evaluateRisk(risk).score;
+    if (severityScore === undefined) {
+      excludedRiskCount += 1;
+      continue;
+    }
     const severity = riskSeverityForScore(severityScore);
     priorityRisks.push({
       riskId: risk.id,
@@ -592,7 +602,9 @@ export function buildStrategyPrioritySummary(
   );
   const score = sortedRisks[0]?.adjustedScore ?? 0;
   const band = strategyPriorityBandForScore(score);
-  const highRiskCount = sortedRisks.filter((risk) => risk.severityId === "high").length;
+  const highRiskCount = sortedRisks.filter(
+    (risk) => risk.severityId === "high" || risk.severityId === "extreme"
+  ).length;
   const averageAdjustedScore = sortedRisks.length
     ? Number((sortedRisks.reduce((total, risk) => total + risk.adjustedScore, 0) / sortedRisks.length).toFixed(1))
     : 0;
@@ -602,6 +614,7 @@ export function buildStrategyPrioritySummary(
     highRiskCount,
     linkedActionCount: actionIds.size,
     unresolvedRiskReferenceCount: unresolvedRiskIds.size,
+    excludedRiskCount,
     score
   });
 
@@ -615,6 +628,7 @@ export function buildStrategyPrioritySummary(
     topRisks: sortedRisks.slice(0, 3),
     linkedActionCount: actionIds.size,
     unresolvedRiskReferenceCount: unresolvedRiskIds.size,
+    excludedRiskCount,
     rationale
   };
 }
@@ -625,12 +639,18 @@ function strategyPriorityRationale(input: {
   readonly highRiskCount: number;
   readonly linkedActionCount: number;
   readonly unresolvedRiskReferenceCount: number;
+  readonly excludedRiskCount: number;
   readonly score: number;
 }): string {
+  const excludedText =
+    input.excludedRiskCount > 0
+      ? ` ${input.excludedRiskCount} linked risk${input.excludedRiskCount === 1 ? "" : "s"} excluded because no comparable assessment is recorded.`
+      : "";
   if (input.riskCount === 0) {
-    return input.unresolvedRiskReferenceCount > 0
-      ? `${input.unresolvedRiskReferenceCount} unresolved risk reference${input.unresolvedRiskReferenceCount === 1 ? "" : "s"} need repair before priority can be calculated.`
-      : "No linked risks yet. Link risks to infer strategic priority.";
+    if (input.unresolvedRiskReferenceCount > 0) {
+      return `${input.unresolvedRiskReferenceCount} unresolved risk reference${input.unresolvedRiskReferenceCount === 1 ? "" : "s"} need repair before priority can be calculated.${excludedText}`;
+    }
+    return `No linked risks yet. Link risks to infer strategic priority.${excludedText}`;
   }
   const riskText = `${input.riskCount} linked risk${input.riskCount === 1 ? "" : "s"}`;
   const highRiskText =
@@ -642,7 +662,7 @@ function strategyPriorityRationale(input: {
     input.unresolvedRiskReferenceCount > 0
       ? ` ${input.unresolvedRiskReferenceCount} unresolved risk reference${input.unresolvedRiskReferenceCount === 1 ? "" : "s"} also need repair.`
       : "";
-  return `${input.bandLabel} from ${riskText}${highRiskText}; score ${input.score}; ${actionText}.${repairText}`;
+  return `${input.bandLabel} from ${riskText}${highRiskText}; score ${input.score}; ${actionText}.${repairText}${excludedText}`;
 }
 
 // ---------------------------------------------------------------------------

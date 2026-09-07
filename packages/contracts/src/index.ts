@@ -11,6 +11,7 @@ import type {
   RiskFrameworkEntity,
   RiskResponse
 } from "./risk-model.js";
+import { evaluateRisk } from "./risk-model.js";
 
 export const VERSION_AXES = {
   schemaVersion: "1.17.0",
@@ -3889,7 +3890,7 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
   const requirements = new Map<string, V01Entity & { assessmentStatus?: string }>();
   const evidenceById = new Map<string, V01Entity & { freshness?: string }>();
   const directionsById = new Map<string, V01Entity & { responseState?: string }>();
-  const risksById = new Map<string, V01Entity & { status?: string; likelihood?: number; impact?: number }>();
+  const risksById = new Map<string, RiskEntity>();
   for (const entity of entities) {
     if (entity.entityType === "requirement") {
       requirements.set(entity.id, entity as V01Entity & { assessmentStatus?: string });
@@ -3898,7 +3899,7 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
     } else if (entity.entityType === "direction") {
       directionsById.set(entity.id, entity as V01Entity & { responseState?: string });
     } else if (entity.entityType === "risk") {
-      risksById.set(entity.id, entity as V01Entity & { status?: string; likelihood?: number; impact?: number });
+      risksById.set(entity.id, entity as RiskEntity);
     }
   }
 
@@ -3954,13 +3955,25 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
     }
     const linkedRiskIds = risksByAction.get(entity.id) ?? [];
     let riskReduction = 0;
+    let excludedRiskCount = 0;
     for (const riskId of linkedRiskIds) {
       const risk = risksById.get(riskId);
       if (risk && risk.status !== "closed") {
-        const severity = (risk.likelihood ?? 0) * (risk.impact ?? 0);
-        riskReduction += severity >= 10 ? 3 : severity >= 5 ? 2 : 1;
-        explanation.push(`Treats open risk (severity ${severity})`);
+        // Phase 1C (ADR 0098 D1.3/D1.4): evaluateRisk, never a raw likelihood x impact multiply; unassessed/
+        // not-comparable risks are excluded from the weighting rather than coerced to a severity of 0.
+        const { score } = evaluateRisk(risk);
+        if (score === undefined) {
+          excludedRiskCount += 1;
+          continue;
+        }
+        riskReduction += score >= 10 ? 3 : score >= 5 ? 2 : 1;
+        explanation.push(`Treats open risk (severity ${score})`);
       }
+    }
+    if (excludedRiskCount > 0) {
+      explanation.push(
+        `${excludedRiskCount} linked risk(s) excluded from risk-reduction weighting because no comparable assessment is recorded`
+      );
     }
     const linkedDirectionIds = directionsByAction.get(entity.id) ?? [];
     let directionUplift = 0;

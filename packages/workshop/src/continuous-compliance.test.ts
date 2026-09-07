@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildSampleWorkspaceEntities,
+  evaluateRisk,
   PSPF_DOMAINS,
   VERSION_AXES,
   type ActionEntity,
@@ -32,11 +34,15 @@ test("assurance bands follow fixed met-percentage thresholds", () => {
   assert.equal(assuranceBandForPercentage(0).id, "not-started");
 });
 
-test("risk severity uses fixed likelihood x impact bands", () => {
-  assert.equal(riskSeverityForScore(20).id, "high");
+test("risk severity uses invariant E5 bands (Phase 1C, ADR 0098 D1.5)", () => {
+  assert.equal(riskSeverityForScore(20).id, "extreme");
+  assert.equal(riskSeverityForScore(16).id, "extreme");
   assert.equal(riskSeverityForScore(15).id, "high");
-  assert.equal(riskSeverityForScore(8).id, "medium");
+  assert.equal(riskSeverityForScore(10).id, "high");
+  assert.equal(riskSeverityForScore(9).id, "medium");
+  assert.equal(riskSeverityForScore(5).id, "medium");
   assert.equal(riskSeverityForScore(4).id, "low");
+  assert.equal(riskSeverityForScore(1).id, "low");
 });
 
 test("PSPF grid view excludes not-applicable requirements from met percentage", () => {
@@ -209,6 +215,59 @@ test("strategy priority deduplicates direct risk and action references", () => {
 
   assert.equal(summary.topRisks.length, 1);
   assert.equal(summary.linkedActionCount, 1);
+});
+
+test("strategy priority excludes unassessed/not-comparable risks and discloses the excluded count (Phase 1C, ADR 0098 D1.4)", () => {
+  const scoredRisk = risk({ id: "RSK-1", title: "Scored risk", likelihood: 4, impact: 4, status: "open" });
+  const unassessedRisk: RiskEntity = {
+    ...risk({ id: "RSK-2", title: "Unassessed risk", likelihood: 1, impact: 1, status: "open" }),
+    assessment: { basis: "unassessed" }
+  };
+  const choice = strategy({
+    capabilityArea: "Identity and access",
+    executiveOwner: "Identity Team",
+    outcomeId: "OUT-1",
+    outcomeStatement: "Trusted access to critical services",
+    riskRefId: "RSK-1"
+  }).choices[0]!;
+  const choiceWithBothRisks = {
+    ...choice,
+    references: [...choice.references, { entityType: "risk", entityId: "RSK-2", role: "blocked-by" }]
+  } satisfies StrategyEntity["choices"][number];
+  const summary = buildStrategyPrioritySummary(
+    choiceWithBothRisks,
+    new Map([
+      [scoredRisk.id, scoredRisk],
+      [unassessedRisk.id, unassessedRisk]
+    ])
+  );
+
+  assert.equal(summary.topRisks.length, 1);
+  assert.equal(summary.topRisks[0]?.riskId, "RSK-1");
+  assert.equal(summary.excludedRiskCount, 1);
+  assert.match(summary.rationale, /1 linked risk excluded because no comparable assessment is recorded/);
+});
+
+test("ADR 0080: strategy-priority ordering is unchanged for existing sample data (Phase 1C fixture)", () => {
+  const entities = buildSampleWorkspaceEntities();
+  const risks = entities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+  assert.ok(risks.length > 0);
+  // Every sample Risk still has no `assessment` field, so evaluateRisk reads it as legacy basis and
+  // returns exactly the raw likelihood x impact score the pre-1C code used - ordering cannot change.
+  for (const sampleRisk of risks) {
+    assert.equal(sampleRisk.assessment, undefined);
+    assert.equal(evaluateRisk(sampleRisk).score, sampleRisk.likelihood * sampleRisk.impact);
+  }
+
+  const risksById = new Map(risks.map((sampleRisk) => [sampleRisk.id, sampleRisk]));
+  const strategies = entities.filter((entity): entity is StrategyEntity => entity.entityType === "strategy");
+  assert.ok(strategies.length > 0);
+  for (const strategyEntity of strategies) {
+    for (const choice of strategyEntity.choices) {
+      const summary = buildStrategyPrioritySummary(choice, risksById);
+      assert.equal(summary.excludedRiskCount, 0);
+    }
+  }
 });
 
 test("strategy delivery classifies blocked, candidate and completed work", () => {

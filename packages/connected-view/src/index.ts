@@ -8,6 +8,7 @@ import type {
   RequirementEntity,
   RiskEntity
 } from "@pspf/contracts";
+import { evaluateRisk } from "@pspf/contracts";
 
 /**
  * PSPF Connected View — shared renderer for Workshop (interactive panel) and
@@ -322,17 +323,22 @@ function statusBadge(status: AssessmentStatus): ConnectedViewBadge {
 }
 
 function riskBadge(risk: RiskEntity): ConnectedViewBadge {
-  const score = Math.max(1, Math.min(5, risk.likelihood)) * Math.max(1, Math.min(5, risk.impact));
   if (risk.status === "closed") {
     return { label: "Closed", tone: "neutral" };
   }
-  if (score >= 16) {
-    return { label: "High", tone: "danger" };
+  // Phase 1C (ADR 0098 D1.3/D1.4): evaluateRisk, never a raw likelihood x impact multiply; unassessed/not-comparable
+  // risks get a distinct neutral badge rather than being coerced to Low.
+  const evaluation = evaluateRisk(risk);
+  if (!evaluation.band) {
+    return { label: evaluation.state === "unassessed" ? "Unassessed" : "Not comparable", tone: "neutral" };
   }
-  if (score >= 9) {
-    return { label: "Medium", tone: "warn" };
+  if (evaluation.band.id === "extreme" || evaluation.band.id === "high") {
+    return { label: evaluation.band.label, tone: "danger" };
   }
-  return { label: "Low", tone: "info" };
+  if (evaluation.band.id === "medium") {
+    return { label: evaluation.band.label, tone: "warn" };
+  }
+  return { label: evaluation.band.label, tone: "info" };
 }
 
 function actionBadges(action: ActionEntity): readonly ConnectedViewBadge[] {
