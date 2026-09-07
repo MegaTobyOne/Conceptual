@@ -3,6 +3,7 @@
 import type {
   RiskAssessment,
   RiskAssessmentState,
+  RiskCategoryNode,
   RiskCauseOrConsequence,
   RiskControlApplication,
   RiskControlEntity,
@@ -11,7 +12,12 @@ import type {
   RiskFrameworkEntity,
   RiskResponse
 } from "./risk-model.js";
-import { evaluateRisk } from "./risk-model.js";
+import {
+  evaluateRisk,
+  LEGACY_5X5_METHODOLOGY,
+  LEGACY_METHODOLOGY_ID,
+  LEGACY_METHODOLOGY_REVISION_ID
+} from "./risk-model.js";
 
 export const VERSION_AXES = {
   schemaVersion: "1.17.0",
@@ -2103,12 +2109,65 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     likelihood: 3,
     impact: 3
   });
+  // ADR 0098 D8.3 (Phase 2): a three-level category template and a roll-up chain exercise the
+  // risk-framework/hierarchy workbench surfaces without inventing a new risk narrative.
+  const riskCategoryEnterprise: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000801",
+    label: "Enterprise",
+    order: 0,
+    archived: false
+  };
+  const riskCategoryDigital: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000802",
+    label: "Digital",
+    parentId: riskCategoryEnterprise.id,
+    order: 0,
+    archived: false
+  };
+  const riskCategoryTechnology: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000803",
+    label: "Technology",
+    parentId: riskCategoryDigital.id,
+    order: 0,
+    archived: false
+  };
+  const riskCategoryCyber: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000804",
+    label: "Cyber",
+    parentId: riskCategoryEnterprise.id,
+    order: 1,
+    archived: false
+  };
+  const riskFrameworkEnterprise: RiskFrameworkEntity = sampleEntity(
+    "risk-framework",
+    "RFW-00000000-0000-4000-8000-000000000801",
+    timestamp,
+    {
+      entityType: "risk-framework",
+      categories: [riskCategoryEnterprise, riskCategoryDigital, riskCategoryTechnology, riskCategoryCyber],
+      methodologies: [LEGACY_5X5_METHODOLOGY],
+      appetiteRules: [
+        {
+          id: "apt-00000000-0000-4000-8000-000000000801",
+          scope: { kind: "workspace" },
+          methodologyId: LEGACY_METHODOLOGY_ID,
+          revisionId: LEGACY_METHODOLOGY_REVISION_ID,
+          allowedBandIds: ["low", "medium"],
+          rationale: "Sample workspace appetite: accept low and medium risk without escalation.",
+          effectiveFrom: timestamp
+        }
+      ],
+      sourceRegisters: [],
+      presentationPresets: []
+    }
+  );
   const riskEncryption: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000802", timestamp, {
     entityType: "risk",
     title: "Encryption exception remains untreated",
     status: "open",
     likelihood: 4,
-    impact: 4
+    impact: 4,
+    primaryCategoryId: riskCategoryTechnology.id
   });
   const riskAccess: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000803", timestamp, {
     entityType: "risk",
@@ -2309,8 +2368,17 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     riskEncryption,
     riskAccess,
     riskClosed,
+    riskFrameworkEnterprise,
     directionEncryption,
     directionReporting,
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000813",
+      timestamp,
+      "Dormant access risk rolls up to governance evidence risk",
+      "rolls-up-to",
+      riskAccess,
+      riskGovernance
+    ),
     sampleLink(
       "LNK-00000000-0000-4000-8000-000000000801",
       timestamp,
@@ -2672,12 +2740,46 @@ export function buildHomeSampleWorkspaceEntities(options: SampleWorkspaceOptions
   });
 
   // Risks (3 items)
+  const homeRiskCategoryHousehold: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000741",
+    label: "Household",
+    order: 0,
+    archived: false
+  };
+  const homeRiskCategoryDevices: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000742",
+    label: "Devices",
+    parentId: homeRiskCategoryHousehold.id,
+    order: 0,
+    archived: false
+  };
+  const homeRiskCategoryOnlineSafety: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000743",
+    label: "Online safety",
+    parentId: homeRiskCategoryHousehold.id,
+    order: 1,
+    archived: false
+  };
+  const homeRiskFramework: RiskFrameworkEntity = sampleEntity(
+    "risk-framework",
+    "RFW-00000000-0000-4000-8000-000000000741",
+    timestamp,
+    {
+      entityType: "risk-framework",
+      categories: [homeRiskCategoryHousehold, homeRiskCategoryDevices, homeRiskCategoryOnlineSafety],
+      methodologies: [LEGACY_5X5_METHODOLOGY],
+      appetiteRules: [],
+      sourceRegisters: [],
+      presentationPresets: []
+    }
+  );
   const riskUnpatched: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000741", timestamp, {
     entityType: "risk",
     title: "Unpatched home devices exploited by commodity malware",
     status: "open",
     likelihood: 3,
-    impact: 3
+    impact: 3,
+    primaryCategoryId: homeRiskCategoryDevices.id
   });
   const riskBackup: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000742", timestamp, {
     entityType: "risk",
@@ -2868,6 +2970,7 @@ export function buildHomeSampleWorkspaceEntities(options: SampleWorkspaceOptions
     riskUnpatched,
     riskBackup,
     riskScam,
+    homeRiskFramework,
     // Evidence links
     sampleLink(
       "LNK-00000000-0000-4000-8000-000000000751",

@@ -373,8 +373,10 @@ test("Workshop edit buttons open list pickers before edit panels", async () => {
   assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Requirement"/);
   assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Evidence"/);
   assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Action"/);
-  assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Risk"/);
   assert.match(source, /pickEntityForEdit\([\s\S]*"Edit Direction"/);
+  // ADR 0098 D8.1 (Phase 2): Risk is a deliberate exception. `openRisksList` opens the Risk
+  // workbench directly in its Register state rather than a native quick pick.
+  assert.match(source, /openEntityEditor\(risks\[0\]!, allEntities, \{ riskView: "register" \}\)/);
   assert.doesNotMatch(source, /const initialDirection = directions\.at\(0\)/);
 });
 

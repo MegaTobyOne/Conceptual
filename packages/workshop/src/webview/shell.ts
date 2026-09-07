@@ -336,6 +336,7 @@ export function shellHtml(title: string, body: string): string {
         pendingStrategyArea: button.getAttribute('data-strategy-area'),
         pendingChoiceIndex: button.getAttribute('data-choice-index'),
         pendingOutcomeIndex: button.getAttribute('data-outcome-index'),
+        pendingRiskView: button.getAttribute('data-risk-view'),
         pendingFilterText: document.querySelector('.requirement-browser__filter') instanceof HTMLInputElement ? document.querySelector('.requirement-browser__filter').value : ''
       };
     }
@@ -373,7 +374,15 @@ export function shellHtml(title: string, body: string): string {
         return;
       }
       const command = button.getAttribute('data-command');
-      const saveCommands = new Set(['saveEntity', 'saveAndCloseEntity', 'saveAndNextEntity']);
+      const saveCommands = new Set([
+        'saveEntity',
+        'saveAndCloseEntity',
+        'saveAndNextEntity',
+        'migrateRiskFramework',
+        'recordRiskEscalation',
+        'saveRiskFrameworkCategories',
+        'saveRiskFrameworkAppetite'
+      ]);
       const activeForm = pspfActiveEditorForm();
       if (command && !saveCommands.has(command) && pspfIsDirtyForm(activeForm)) {
         vscode.postMessage(pspfPendingCommandPayload(button, command, pspfFormFields(activeForm)));
@@ -508,8 +517,17 @@ export function shellHtml(title: string, body: string): string {
       } else if (command && command.startsWith('pspf.')) {
         vscode.postMessage({ command });
       }
-      if (command === 'refresh') {
+      if (command === 'refresh' || command === 'migrateRiskFramework') {
         vscode.postMessage({ command });
+      }
+      if (command === 'setRiskWorkbenchView') {
+        vscode.postMessage({ command, riskView: button.getAttribute('data-risk-view') });
+      }
+      if (command === 'recordRiskEscalation' || command === 'saveRiskFrameworkCategories' || command === 'saveRiskFrameworkAppetite') {
+        const form = button.closest('form');
+        if (form) {
+          vscode.postMessage({ command, fields: pspfFormFields(form) });
+        }
       }
       if (command === 'saveEntity' || command === 'saveAndCloseEntity' || command === 'saveAndNextEntity') {
         const form = button.closest('form');
@@ -532,7 +550,7 @@ export function shellHtml(title: string, body: string): string {
       if (!select || !command || !vscode) {
         return;
       }
-      vscode.postMessage({ command, value: select.value });
+      vscode.postMessage({ command, value: select.value, entityId: select.getAttribute('data-entity-id') || undefined });
     });
     document.addEventListener('input', (event) => {
       const input = event.target instanceof HTMLInputElement ? event.target : null;
