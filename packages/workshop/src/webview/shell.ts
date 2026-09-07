@@ -317,6 +317,34 @@ export function shellHtml(title: string, body: string): string {
     function pspfIsDirtyForm(form) {
       return form && form.dataset.initialValue !== undefined && form.dataset.initialValue !== pspfSerialiseForm(form);
     }
+    // Phase 4A (ADR 0098 D5.2): draws only the already-allowlisted plain-text output onto a canvas
+    // for PNG copy/save — never a screenshot of the live (possibly sensitive) editor DOM.
+    function pspfDrawRiskOutputCanvas(text) {
+      const lines = String(text || '').split('\\n');
+      const lineHeight = 18;
+      const padding = 16;
+      const fontSize = 13;
+      const measuringCanvas = document.createElement('canvas');
+      const measuringCtx = measuringCanvas.getContext('2d');
+      measuringCtx.font = fontSize + 'px monospace';
+      let maxWidth = 1;
+      lines.forEach(function (line) {
+        maxWidth = Math.max(maxWidth, measuringCtx.measureText(line).width);
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(maxWidth) + padding * 2;
+      canvas.height = Math.max(1, lines.length) * lineHeight + padding * 2;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#111111';
+      ctx.font = fontSize + 'px monospace';
+      ctx.textBaseline = 'top';
+      lines.forEach(function (line, index) {
+        ctx.fillText(line, padding, padding + index * lineHeight);
+      });
+      return canvas;
+    }
     function pspfPendingCommandPayload(button, command, fields) {
       return {
         command: 'confirmDirtyNavigation',
@@ -389,7 +417,13 @@ export function shellHtml(title: string, body: string): string {
         'linkSecondaryRiskAssociation',
         'addRiskSourceRegister',
         'addRiskExternalRef',
-        'importRiskCrosswalkFromFile'
+        'importRiskCrosswalkFromFile',
+        'setRiskOutputPreset',
+        'copyRiskOutputText',
+        'copyRiskOutputMarkdown',
+        'copyRiskOutputPng',
+        'saveRiskOutputPng',
+        'saveRiskOutputPrintHtml'
       ]);
       const activeForm = pspfActiveEditorForm();
       if (command && !saveCommands.has(command) && pspfIsDirtyForm(activeForm)) {
@@ -539,6 +573,39 @@ export function shellHtml(title: string, body: string): string {
       }
       if (command === 'importRiskCrosswalkFromFile') {
         vscode.postMessage({ command });
+      }
+      if (command === 'copyRiskOutputText' || command === 'copyRiskOutputMarkdown' || command === 'saveRiskOutputPrintHtml') {
+        vscode.postMessage({ command });
+      }
+      if (command === 'saveRiskOutputPng' || command === 'copyRiskOutputPng') {
+        const textScript = document.getElementById('pspf-risk-output-text');
+        var riskOutputText = '';
+        try {
+          riskOutputText = textScript ? JSON.parse(textScript.textContent || '""') : '';
+        } catch (error) {
+          riskOutputText = '';
+        }
+        const canvas = pspfDrawRiskOutputCanvas(riskOutputText);
+        canvas.toBlob(function (blob) {
+          if (!blob) {
+            return;
+          }
+          if (command === 'copyRiskOutputPng') {
+            if (navigator.clipboard && window.ClipboardItem) {
+              navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).catch(function () {
+                vscode.postMessage({ command: 'riskOutputPngCopyFailed' });
+              });
+            } else {
+              vscode.postMessage({ command: 'riskOutputPngCopyFailed' });
+            }
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = function () {
+            vscode.postMessage({ command: 'saveRiskOutputPng', dataUrl: reader.result, riskOutputView: button.getAttribute('data-risk-output-view') });
+          };
+          reader.readAsDataURL(blob);
+        });
       }
       if (command === 'saveEntity' || command === 'saveAndCloseEntity' || command === 'saveAndNextEntity') {
         const form = button.closest('form');

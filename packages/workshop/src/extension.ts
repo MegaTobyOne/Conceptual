@@ -245,6 +245,18 @@ import {
   parseRiskCrosswalkDelimitedText,
   unmappedRequiredFields
 } from "./risk-crosswalk.js";
+import {
+  buildRiskOutputModel,
+  findRiskOutputPreset,
+  isRiskOutputView,
+  renderRiskOutputMarkdown,
+  renderRiskOutputPlainText,
+  renderRiskOutputPrintHtml,
+  resolveRiskOutputPresets,
+  type RiskOutputContext,
+  type RiskOutputModel,
+  type RiskOutputView
+} from "./risk-presentation.js";
 
 // v1.33 questionnaire surface: re-run modes include the literal
 // "Answer all questions again" so operators can refresh their full answer set
@@ -11018,6 +11030,8 @@ type SaveEntityMessage = {
   readonly evidenceReference?: string;
   readonly riskView?: string;
   readonly value?: string;
+  readonly dataUrl?: string;
+  readonly riskOutputView?: string;
 };
 
 type RequirementBrowserOptions = {
@@ -11026,9 +11040,10 @@ type RequirementBrowserOptions = {
   readonly assessmentStatus?: AssessmentStatus;
   readonly savedView?: SavedViewEntity;
   readonly riskView?: RiskWorkbenchView;
+  readonly riskOutputPresetId?: string;
 };
 
-/** Phase 2/3A (ADR 0098 §Workbench and Presentation): the Risk workbench's current presentation view. */
+/** Phase 2/3A/4A (ADR 0098 §Workbench and Presentation): the Risk workbench's current presentation view. */
 export type RiskWorkbenchView =
   | "record"
   | "register"
@@ -11037,7 +11052,8 @@ export type RiskWorkbenchView =
   | "treatments"
   | "bowtie"
   | "coverage"
-  | "framework";
+  | "framework"
+  | "cards";
 
 function isRiskWorkbenchView(value: string | undefined): value is RiskWorkbenchView {
   return (
@@ -11048,7 +11064,8 @@ function isRiskWorkbenchView(value: string | undefined): value is RiskWorkbenchV
     value === "treatments" ||
     value === "bowtie" ||
     value === "coverage" ||
-    value === "framework"
+    value === "framework" ||
+    value === "cards"
   );
 }
 
@@ -11105,6 +11122,9 @@ async function openEntityEditor(
   let requirementFilterText = options.filterText ?? options.savedView?.filters.query ?? "";
   let requirementSavedView = options.savedView;
   let riskWorkbenchView: RiskWorkbenchView = options.riskView ?? "record";
+  let riskOutputPresetIdByView: Partial<Record<RiskWorkbenchView, string>> = options.riskOutputPresetId
+    ? { [riskWorkbenchView]: options.riskOutputPresetId }
+    : {};
   let hasUnsavedEditorChanges = false;
   let unsavedEditorFields: Record<string, string> | undefined;
   const panel = vscode.window.createWebviewPanel(
@@ -11128,7 +11148,8 @@ async function openEntityEditor(
       renderEntityEditor(currentEntity, currentEntities, {
         filterText: requirementFilterText,
         savedView: requirementSavedView,
-        riskView: riskWorkbenchView
+        riskView: riskWorkbenchView,
+        riskOutputPresetId: riskOutputPresetIdByView[riskWorkbenchView]
       })
     );
     hasUnsavedEditorChanges = false;
@@ -11488,6 +11509,64 @@ async function openEntityEditor(
       await linkSecondaryRiskAssociation(message.entityId);
       await refreshWorkshopSurfaces();
       await refreshEditor();
+      return;
+    }
+    if (message.command === "setRiskOutputPreset") {
+      if (message.value) {
+        riskOutputPresetIdByView = { ...riskOutputPresetIdByView, [riskWorkbenchView]: message.value };
+      }
+      await refreshEditor();
+      return;
+    }
+    if (
+      message.command === "copyRiskOutputText" &&
+      currentEntity.entityType === "risk" &&
+      isRiskOutputView(riskWorkbenchView)
+    ) {
+      await copyRiskOutputArtefact(
+        riskWorkbenchView,
+        riskOutputPresetIdByView[riskWorkbenchView],
+        currentEntity.id,
+        "plain-text"
+      );
+      return;
+    }
+    if (
+      message.command === "copyRiskOutputMarkdown" &&
+      currentEntity.entityType === "risk" &&
+      isRiskOutputView(riskWorkbenchView)
+    ) {
+      await copyRiskOutputArtefact(
+        riskWorkbenchView,
+        riskOutputPresetIdByView[riskWorkbenchView],
+        currentEntity.id,
+        "markdown"
+      );
+      return;
+    }
+    if (
+      message.command === "saveRiskOutputPrintHtml" &&
+      currentEntity.entityType === "risk" &&
+      isRiskOutputView(riskWorkbenchView)
+    ) {
+      await saveRiskOutputPrintHtmlArtefact(
+        riskWorkbenchView,
+        riskOutputPresetIdByView[riskWorkbenchView],
+        currentEntity.id
+      );
+      return;
+    }
+    if (message.command === "saveRiskOutputPng" && typeof message.dataUrl === "string") {
+      await saveRiskOutputPngArtefact(
+        message.dataUrl,
+        isRiskOutputView(message.riskOutputView) ? message.riskOutputView : "register"
+      );
+      return;
+    }
+    if (message.command === "riskOutputPngCopyFailed") {
+      await vscode.window.showWarningMessage(
+        "Copying the risk visual as an image is not supported in this environment. Use Save PNG instead."
+      );
       return;
     }
     if (message.command === "openEvidenceReference") {
@@ -12995,18 +13074,22 @@ function renderRiskWorkbench(
   browserOptions: RequirementBrowserOptions = {}
 ): string {
   const view = browserOptions.riskView ?? "record";
+  const presetId = browserOptions.riskOutputPresetId;
   const toolbar = riskWorkbenchToolbar(view);
   if (view === "register") {
-    return `${riskWorkbenchStyles()}${toolbar}${renderRiskRegisterContent(allEntities)}`;
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskRegisterContent(allEntities, presetId)}`;
   }
   if (view === "hierarchy") {
-    return `${riskWorkbenchStyles()}${toolbar}${renderRiskHierarchyContent(allEntities)}`;
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskHierarchyContent(allEntities, presetId)}`;
   }
   if (view === "matrix") {
-    return `${riskWorkbenchStyles()}${toolbar}${renderRiskMatrixContent(allEntities)}`;
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskMatrixContent(allEntities, presetId)}`;
   }
   if (view === "coverage") {
-    return `${riskWorkbenchStyles()}${toolbar}${renderRiskCoverageContent(allEntities)}`;
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskCoverageContent(allEntities, presetId)}`;
+  }
+  if (view === "cards") {
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskCardsContent(allEntities, presetId)}`;
   }
   if (view === "framework") {
     return `${riskWorkbenchStyles()}${toolbar}${renderRiskFrameworkContent(allEntities)}`;
@@ -13016,7 +13099,7 @@ function renderRiskWorkbench(
     return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
   }
   if (view === "bowtie") {
-    const editorContent = `${riskWorkbenchStyles()}${toolbar}${renderRiskBowTieContent(risk, allEntities)}`;
+    const editorContent = `${riskWorkbenchStyles()}${toolbar}${renderRiskBowTieContent(risk, allEntities, presetId)}`;
     return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
   }
   const editorContent = `${riskWorkbenchStyles()}${toolbar}${renderRiskRecordContent(risk, allEntities)}`;
@@ -13031,6 +13114,7 @@ function riskWorkbenchToolbar(view: RiskWorkbenchView): string {
     { view: "treatments", label: "Treatments" },
     { view: "bowtie", label: "Bow-tie" },
     { view: "coverage", label: "Coverage" },
+    { view: "cards", label: "Cards" },
     { view: "framework", label: "Framework" }
   ];
   const buttons = items
@@ -13292,7 +13376,130 @@ function riskSourceMetadataSection(risk: RiskEntity): string {
   `;
 }
 
-function renderRiskRegisterContent(allEntities: readonly V01Entity[]): string {
+// Phase 4A (ADR 0098 D5.1/D5.2): shared present/copy plumbing reused by every Risk workbench view.
+
+function buildRiskOutputContext(allEntities: readonly V01Entity[]): RiskOutputContext {
+  return {
+    risks: allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk"),
+    framework: getActiveRiskFramework(allEntities),
+    links: allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link"),
+    actions: allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action"),
+    controls: allEntities.filter((entity): entity is RiskControlEntity => entity.entityType === "risk-control"),
+    riskEvents: allEntities.filter((entity): entity is RiskEventEntity => entity.entityType === "risk-event"),
+    now: new Date().toISOString()
+  };
+}
+
+function buildRiskOutputModelFor(
+  view: RiskOutputView,
+  allEntities: readonly V01Entity[],
+  presetId: string | undefined,
+  selectedRiskId?: string
+): RiskOutputModel {
+  const context = buildRiskOutputContext(allEntities);
+  const preset = findRiskOutputPreset(view, presetId, context.framework);
+  return buildRiskOutputModel(view, context, preset, { selectedRiskId });
+}
+
+/**
+ * D5.2: a preset selector plus Copy/Save entry points, appended to every Risk workbench presentation
+ * view. Every output renders from the same allowlisted model built by `buildRiskOutputModelFor`; no
+ * button here ever has access to the raw entity, only to the already-sanitised model's text.
+ */
+function riskOutputPresentationSection(
+  view: RiskOutputView,
+  allEntities: readonly V01Entity[],
+  presetId: string | undefined,
+  selectedRiskId?: string
+): string {
+  const context = buildRiskOutputContext(allEntities);
+  const presets = resolveRiskOutputPresets(view, context.framework);
+  const activePreset = findRiskOutputPreset(view, presetId, context.framework);
+  const model = buildRiskOutputModel(view, context, activePreset, { selectedRiskId });
+  const plainText = renderRiskOutputPlainText(model);
+  const markdown = renderRiskOutputMarkdown(model);
+  const presetOptions = presets
+    .map(
+      (preset) =>
+        `<option value="${escapeHtml(preset.id)}"${preset.id === activePreset.id ? " selected" : ""}>${escapeHtml(preset.label)}</option>`
+    )
+    .join("");
+  return `<section class="risk-output">
+    <h2>Present</h2>
+    <p class="muted">Classification: <strong>${escapeHtml(model.classification)}</strong>${model.excludedFieldNames.length > 0 ? ` \u00b7 ${model.excludedFieldNames.length} sensitive field(s) not opted in for this preset` : ""}</p>
+    <label>Preset
+      <select data-command="setRiskOutputPreset">
+        ${presetOptions}
+      </select>
+    </label>
+    <div class="form-actions">
+      <button type="button" data-command="copyRiskOutputText">Copy as plain text</button>
+      <button type="button" data-command="copyRiskOutputMarkdown">Copy as Markdown</button>
+      <button type="button" data-command="copyRiskOutputPng" data-risk-output-view="${escapeHtml(view)}">Copy PNG</button>
+      <button type="button" data-command="saveRiskOutputPng" data-risk-output-view="${escapeHtml(view)}">Save PNG</button>
+      <button type="button" data-command="saveRiskOutputPrintHtml">Save print HTML</button>
+    </div>
+    <script type="application/json" id="pspf-risk-output-text">${JSON.stringify(plainText)}</script>
+    <script type="application/json" id="pspf-risk-output-markdown">${JSON.stringify(markdown)}</script>
+  </section>`;
+}
+
+async function copyRiskOutputArtefact(
+  view: RiskOutputView,
+  presetId: string | undefined,
+  selectedRiskId: string | undefined,
+  format: "plain-text" | "markdown"
+): Promise<void> {
+  const allEntities = await listAllEntities();
+  const model = buildRiskOutputModelFor(view, allEntities, presetId, selectedRiskId);
+  const text = format === "markdown" ? renderRiskOutputMarkdown(model) : renderRiskOutputPlainText(model);
+  await vscode.env.clipboard.writeText(text);
+  await vscode.window.showInformationMessage(
+    `Risk ${format === "markdown" ? "Markdown" : "plain text"} copied to clipboard (${model.classification}).`
+  );
+}
+
+async function saveRiskOutputPrintHtmlArtefact(
+  view: RiskOutputView,
+  presetId: string | undefined,
+  selectedRiskId: string | undefined
+): Promise<void> {
+  const allEntities = await listAllEntities();
+  const model = buildRiskOutputModelFor(view, allEntities, presetId, selectedRiskId);
+  const html = renderRiskOutputPrintHtml(model);
+  const target = await vscode.window.showSaveDialog({
+    defaultUri: vscode.Uri.file(`risk-${view}-${PSPF_SLICE_VERSION}.html`),
+    filters: { HTML: ["html"] },
+    saveLabel: "Save"
+  });
+  if (!target) {
+    return;
+  }
+  await vscode.workspace.fs.writeFile(target, new TextEncoder().encode(html));
+  const choice = await vscode.window.showInformationMessage(
+    `Risk print HTML saved to ${target.fsPath} (${model.classification}).`,
+    "Open in browser"
+  );
+  if (choice === "Open in browser") {
+    await vscode.env.openExternal(target);
+  }
+}
+
+async function saveRiskOutputPngArtefact(dataUrl: string, view: RiskOutputView): Promise<void> {
+  const base64 = dataUrl.includes(",") ? dataUrl.slice(dataUrl.indexOf(",") + 1) : dataUrl;
+  const target = await vscode.window.showSaveDialog({
+    defaultUri: vscode.Uri.file(`risk-${view}-${PSPF_SLICE_VERSION}.png`),
+    filters: { PNG: ["png"] },
+    saveLabel: "Save"
+  });
+  if (!target) {
+    return;
+  }
+  await vscode.workspace.fs.writeFile(target, Buffer.from(base64, "base64"));
+  await vscode.window.showInformationMessage(`Risk visual saved to ${target.fsPath}.`);
+}
+
+function renderRiskRegisterContent(allEntities: readonly V01Entity[], presetId?: string): string {
   const framework = getActiveRiskFramework(allEntities);
   const links = allEntities.filter(
     (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
@@ -13328,10 +13535,11 @@ function renderRiskRegisterContent(allEntities: readonly V01Entity[]): string {
         ? `<p class="muted">No risks yet. Use New risk to capture one, or import from a source register.</p>`
         : `<div class="table-wrap" tabindex="0" aria-label="Scrollable risk register table"><table><thead><tr><th>Title</th><th>Category</th><th>Owner team</th><th>Status</th><th>Assessment</th><th>Appetite</th><th>Primary parent</th></tr></thead><tbody>${tableRows}</tbody></table></div>`
     }
-  </section>`;
+  </section>
+  ${riskOutputPresentationSection("register", allEntities, presetId)}`;
 }
 
-function renderRiskHierarchyContent(allEntities: readonly V01Entity[]): string {
+function renderRiskHierarchyContent(allEntities: readonly V01Entity[], presetId?: string): string {
   const framework = getActiveRiskFramework(allEntities);
   const links = allEntities.filter(
     (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
@@ -13346,10 +13554,11 @@ function renderRiskHierarchyContent(allEntities: readonly V01Entity[]): string {
     <h1>Risk hierarchy</h1>
     <p class="muted">Primary roll-up relationships between risks. Secondary associations are not shown here.</p>
     ${forest.length === 0 ? `<p class="muted">No risks yet.</p>` : `<ul class="risk-hierarchy__tree">${forest.map(renderNode).join("")}</ul>`}
-  </section>`;
+  </section>
+  ${riskOutputPresentationSection("hierarchy", allEntities, presetId)}`;
 }
 
-function renderRiskMatrixContent(allEntities: readonly V01Entity[]): string {
+function renderRiskMatrixContent(allEntities: readonly V01Entity[], presetId?: string): string {
   const risks = allEntities.filter(
     (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
   );
@@ -13374,7 +13583,8 @@ function renderRiskMatrixContent(allEntities: readonly V01Entity[]): string {
     <p class="muted">Legacy 5x5 methodology. Cells show the number of risks currently assessed at each likelihood/impact combination. Custom-methodology matrix authoring is not yet available.</p>
     <div class="table-wrap" tabindex="0" aria-label="Scrollable risk matrix table"><table class="risk-matrix"><thead>${headerRow}</thead><tbody>${bodyRows}</tbody></table></div>
     <p class="muted">${model.unassessedCount} unassessed and ${model.notComparableCount} not comparable, excluded from the grid above.</p>
-  </section>`;
+  </section>
+  ${riskOutputPresentationSection("matrix", allEntities, presetId)}`;
 }
 
 const RISK_APPETITE_BAND_IDS = ["low", "medium", "high", "extreme"] as const;
@@ -13511,7 +13721,7 @@ function renderRiskTreatmentsContent(risk: RiskEntity, allEntities: readonly V01
 }
 
 // Phase 3A (ADR 0098 D3.6): causes/preventive controls/event/recovery controls/consequences for the selected risk.
-function renderRiskBowTieContent(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+function renderRiskBowTieContent(risk: RiskEntity, allEntities: readonly V01Entity[], presetId?: string): string {
   const links = allEntities.filter(
     (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
   );
@@ -13544,11 +13754,12 @@ function renderRiskBowTieContent(risk: RiskEntity, allEntities: readonly V01Enti
     ${model.unresolvedApplicationCount > 0 ? `<p class="muted">${model.unresolvedApplicationCount} control application${model.unresolvedApplicationCount === 1 ? "" : "s"} reference a cause or consequence that no longer exists on this risk.</p>` : ""}
     ${recordTable("Causes \u2192 preventive controls", causeRows, ["cause", "preventiveControls"])}
     ${recordTable("Consequences \u2192 recovery controls", consequenceRows, ["consequence", "recoveryControls"])}
-  </section>`;
+  </section>
+  ${riskOutputPresentationSection("bowtie", allEntities, presetId, risk.id)}`;
 }
 
 // Phase 3A (ADR 0098 D3.8): many-to-many risk/action/control coverage, as a filterable semantic table.
-function renderRiskCoverageContent(allEntities: readonly V01Entity[]): string {
+function renderRiskCoverageContent(allEntities: readonly V01Entity[], presetId?: string): string {
   const framework = getActiveRiskFramework(allEntities);
   const links = allEntities.filter(
     (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
@@ -13594,7 +13805,30 @@ function renderRiskCoverageContent(allEntities: readonly V01Entity[]): string {
         : `<div class="table-wrap" tabindex="0" aria-label="Scrollable risk coverage table"><table><thead><tr><th>Risk</th><th>Band</th><th>Direct actions</th><th>Descendant actions</th><th>Direct controls</th><th>Descendant controls</th><th>Coverage</th></tr></thead><tbody>${tableRows}</tbody></table></div>`
     }
     <p class="muted">A graphical coverage diagram is not yet available; this filterable table is the equivalent semantic view for now (§ Workbench and Presentation).</p>
-  </section>`;
+  </section>
+  ${riskOutputPresentationSection("coverage", allEntities, presetId)}`;
+}
+
+// Phase 4A (ADR 0098 §Workbench and Presentation): executive risk cards, one card per risk, fields gated by the active preset.
+function renderRiskCardsContent(allEntities: readonly V01Entity[], presetId?: string): string {
+  const context = buildRiskOutputContext(allEntities);
+  const preset = findRiskOutputPreset("cards", presetId, context.framework);
+  const model = buildRiskOutputModel("cards", context, preset);
+  const cardsHtml = model.rows
+    .map(
+      (row) => `<article class="risk-card">
+      <h3><button type="button" class="risk-register__title" data-command="openRecordInEditor" data-entity-type="risk" data-entity-id="${escapeHtml(row.id)}">${escapeHtml(row.title)}</button></h3>
+      <p class="muted">${escapeHtml(row.status)} \u00b7 ${escapeHtml(row.methodologyBasis)} \u00b7 ${escapeHtml(row.bandLabel)}</p>
+      ${row.fields.length > 0 ? `<dl>${row.fields.map((field) => `<dt>${escapeHtml(field.label)}</dt><dd>${escapeHtml(field.value)}</dd>`).join("")}</dl>` : ""}
+    </article>`
+    )
+    .join("");
+  return `<section>
+    <h1>Executive risk cards</h1>
+    <p class="muted">${model.rows.length} card${model.rows.length === 1 ? "" : "s"} \u00b7 classification ${escapeHtml(model.classification)}. Choose a preset below to include owner, next decision, or treatment progress.</p>
+    ${model.rows.length === 0 ? `<p class="muted">No risks yet.</p>` : `<div class="risk-cards">${cardsHtml}</div>`}
+  </section>
+  ${riskOutputPresentationSection("cards", allEntities, presetId)}`;
 }
 
 /** Phase 3B (ADR 0098 D2.1/§External Registers): source-register authoring, plus the entry point into the previewed CSV/TSV crosswalk import. */
@@ -13694,6 +13928,13 @@ function riskWorkbenchStyles(): string {
     .risk-framework__band-check { display: inline-flex; align-items: center; gap: 5px; margin-right: 14px; font-size: 13px; }
     fieldset { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; }
     legend { padding: 0 4px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .risk-output { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 12px; }
+    .risk-output select { margin: 6px 0 10px; }
+    .risk-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .risk-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+    .risk-card dl { margin: 6px 0 0; font-size: 12px; }
+    .risk-card dt { color: var(--muted); }
+    .risk-card dd { margin: 0 0 6px; }
   </style>`;
 }
 
