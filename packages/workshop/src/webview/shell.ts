@@ -386,7 +386,10 @@ export function shellHtml(title: string, body: string): string {
         'createActionForRisk',
         'createRiskControl',
         'mitigateRiskWithControl',
-        'linkSecondaryRiskAssociation'
+        'linkSecondaryRiskAssociation',
+        'addRiskSourceRegister',
+        'addRiskExternalRef',
+        'importRiskCrosswalkFromFile'
       ]);
       const activeForm = pspfActiveEditorForm();
       if (command && !saveCommands.has(command) && pspfIsDirtyForm(activeForm)) {
@@ -528,11 +531,14 @@ export function shellHtml(title: string, body: string): string {
       if (command === 'setRiskWorkbenchView') {
         vscode.postMessage({ command, riskView: button.getAttribute('data-risk-view') });
       }
-      if (command === 'recordRiskEscalation' || command === 'saveRiskFrameworkCategories' || command === 'saveRiskFrameworkAppetite' || command === 'linkExistingActionToRisk' || command === 'mitigateRiskWithControl') {
+      if (command === 'recordRiskEscalation' || command === 'saveRiskFrameworkCategories' || command === 'saveRiskFrameworkAppetite' || command === 'linkExistingActionToRisk' || command === 'mitigateRiskWithControl' || command === 'addRiskSourceRegister' || command === 'addRiskExternalRef') {
         const form = button.closest('form');
         if (form) {
           vscode.postMessage({ command, fields: pspfFormFields(form) });
         }
+      }
+      if (command === 'importRiskCrosswalkFromFile') {
+        vscode.postMessage({ command });
       }
       if (command === 'saveEntity' || command === 'saveAndCloseEntity' || command === 'saveAndNextEntity') {
         const form = button.closest('form');

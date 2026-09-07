@@ -229,6 +229,9 @@ importers:
       '@pspf/webview-shell':
         specifier: workspace:*
         version: link:../webview-shell
+      csv-parse:
+        specifier: ^7.0.1
+        version: 7.0.1
 
 packages:
 

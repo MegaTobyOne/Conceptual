@@ -1,6 +1,6 @@
 import { copyFile } from "node:fs/promises";
 import { basename, join, relative } from "node:path";
-import { PSPF_SLICE_VERSION, type RiskEscalationDetail } from "@pspf/contracts";
+import { PSPF_SLICE_VERSION, type RiskCrosswalkRowInput, type RiskEscalationDetail } from "@pspf/contracts";
 import { homePanelShellHtml, metricStripHtml, pageHeaderHtml, trustChipsHtml } from "@pspf/webview-shell";
 import * as vscode from "vscode";
 import { createCoreService, releaseAllWriterLocks, type ImportMode, type ImportResult } from "./service.js";
@@ -30,7 +30,9 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     listEntities: getService().listEntities,
     migrateRiskFramework: () => getService().migrateRiskFramework(),
     recordRiskEscalation: (riskId: string, escalation: RiskEscalationDetail) =>
-      getService().recordRiskEscalation(riskId, escalation)
+      getService().recordRiskEscalation(riskId, escalation),
+    commitRiskCrosswalk: (sourceRegisterId: string, rows: readonly RiskCrosswalkRowInput[]) =>
+      getService().commitRiskCrosswalk(sourceRegisterId, rows)
   };
 
   context.subscriptions.push(
@@ -216,6 +218,11 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     vscode.commands.registerCommand(
       "pspf.core.recordRiskEscalation",
       async (riskId: string, escalation: RiskEscalationDetail) => getService().recordRiskEscalation(riskId, escalation)
+    ),
+    vscode.commands.registerCommand(
+      "pspf.core.commitRiskCrosswalk",
+      async (sourceRegisterId: string, rows: readonly RiskCrosswalkRowInput[]) =>
+        getService().commitRiskCrosswalk(sourceRegisterId, rows)
     )
   );
 

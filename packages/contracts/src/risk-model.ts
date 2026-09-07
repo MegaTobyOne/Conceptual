@@ -60,6 +60,49 @@ export interface RiskExternalRef {
   readonly reconciledAt: string;
 }
 
+/** Two refs describe the same external identity when register and external ID match (Phase 3B matching key). */
+export function sameExternalIdentity(a: RiskExternalRef, b: { sourceRegisterId: string; externalId: string }): boolean {
+  return a.sourceRegisterId === b.sourceRegisterId && a.externalId === b.externalId;
+}
+
+/**
+ * D5.4: required fields, parseable dates, and `referenceUrl` restricted to `https:` with no userinfo.
+ * Reused by Core write-rule validation (Phase 1B/3B) and the crosswalk preview builder so manual
+ * authoring and CSV/TSV import are validated identically before any write.
+ */
+export function validateRiskExternalRef(ref: RiskExternalRef): readonly string[] {
+  const issues: string[] = [];
+  if (!ref.sourceRegisterId || ref.sourceRegisterId.trim().length === 0) {
+    issues.push("sourceRegisterId is required");
+  }
+  if (!ref.externalId || ref.externalId.trim().length === 0) {
+    issues.push("externalId is required");
+  }
+  if (!ref.externalRating || ref.externalRating.trim().length === 0) {
+    issues.push("externalRating is required");
+  }
+  if (!ref.sourceUpdatedAt || Number.isNaN(Date.parse(ref.sourceUpdatedAt))) {
+    issues.push("sourceUpdatedAt must be a valid date");
+  }
+  if (!ref.reconciledAt || Number.isNaN(Date.parse(ref.reconciledAt))) {
+    issues.push("reconciledAt must be a valid date");
+  }
+  if (ref.referenceUrl !== undefined) {
+    try {
+      const url = new URL(ref.referenceUrl);
+      if (url.protocol !== "https:") {
+        issues.push("referenceUrl must use https:");
+      }
+      if (url.username.length > 0 || url.password.length > 0) {
+        issues.push("referenceUrl must not contain userinfo");
+      }
+    } catch {
+      issues.push("referenceUrl must be a valid URL");
+    }
+  }
+  return issues;
+}
+
 // --- D3.5: control application (typed LinkEntity metadata, not a dedicated entity) -----------------
 
 export type RiskControlApplicationRole = "preventive" | "recovery" | "both";

@@ -185,7 +185,14 @@ import {
   type RiskControlApplicationRole,
   type RiskControlEffectiveness,
   type RiskControlEntity,
-  type RiskControlState
+  type RiskControlState,
+  buildRiskCrosswalkPreview,
+  sameExternalIdentity,
+  validateRiskExternalRef,
+  type RiskCrosswalkPreviewRow,
+  type RiskCrosswalkRowInput,
+  type RiskExternalRef,
+  type RiskSourceRegisterDefinition
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import {
@@ -232,6 +239,12 @@ import {
   riskCategoryOptions,
   riskCategoryPath
 } from "./risk-workbench.js";
+import {
+  applyRiskCrosswalkColumnMapping,
+  detectRiskCrosswalkColumnMapping,
+  parseRiskCrosswalkDelimitedText,
+  unmappedRequiredFields
+} from "./risk-crosswalk.js";
 
 // v1.33 questionnaire surface: re-run modes include the literal
 // "Answer all questions again" so operators can refresh their full answer set
@@ -2613,6 +2626,192 @@ async function saveRiskFrameworkAppetiteFromFields(fields: Record<string, string
     appetiteRules: [...framework.appetiteRules, rule],
     updatedAt: new Date().toISOString()
   } satisfies RiskFrameworkEntity);
+}
+
+// --- Phase 3B (ADR 0098 D5.4/§External Registers): manual externalRefs authoring, source registers, and CSV/TSV crosswalk import -----
+
+async function addRiskSourceRegisterFromFields(fields: Record<string, string>): Promise<void> {
+  const label = fields.sourceRegisterLabel?.trim();
+  if (!label) {
+    await vscode.window.showWarningMessage("Enter a label before adding a source register.");
+    return;
+  }
+  const framework = await ensureRiskFramework();
+  const register: RiskSourceRegisterDefinition = { id: `reg_${randomUUID()}`, label };
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", {
+    ...framework,
+    sourceRegisters: [...framework.sourceRegisters, register],
+    updatedAt: new Date().toISOString()
+  } satisfies RiskFrameworkEntity);
+}
+
+async function addRiskExternalRefFromFields(fields: Record<string, string>): Promise<void> {
+  const riskId = fields.riskId;
+  const sourceRegisterId = fields.externalRefSourceRegisterId;
+  const externalId = fields.externalRefExternalId?.trim();
+  const externalRating = fields.externalRefExternalRating?.trim();
+  const sourceUpdatedAt = normaliseShortAuDateTime(fields.externalRefSourceUpdatedAt);
+  const referenceUrl = trimOptional(fields.externalRefReferenceUrl);
+  if (!riskId || !sourceRegisterId || !externalId || !externalRating || !sourceUpdatedAt) {
+    await vscode.window.showWarningMessage(
+      "Select a source register and enter an external ID, rating, and source updated date before saving."
+    );
+    return;
+  }
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  if (!risk) {
+    return;
+  }
+  const newRef: RiskExternalRef = {
+    sourceRegisterId,
+    externalId,
+    externalRating,
+    sourceUpdatedAt,
+    referenceUrl,
+    reconciledAt: new Date().toISOString()
+  };
+  const issues = validateRiskExternalRef(newRef);
+  if (issues.length > 0) {
+    await vscode.window.showWarningMessage(`Reference not saved: ${issues.join("; ")}`);
+    return;
+  }
+  const existingRefs = (risk.externalRefs ?? []).filter((ref) => !sameExternalIdentity(ref, newRef));
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", {
+    ...risk,
+    externalRefs: [...existingRefs, newRef],
+    updatedAt: new Date().toISOString()
+  } satisfies RiskEntity);
+}
+
+/**
+ * Previewed CSV/TSV crosswalk import (D5.4/§External Registers): file pick, source-register
+ * selection (or creation), column mapping, a preview computed against the current store, and an
+ * explicit multi-select confirmation before any write. Commit itself is delegated to Core's
+ * `commitRiskCrosswalk`, which revalidates against a fresh read of the store immediately before
+ * committing atomically (Phase 3B Core record).
+ */
+async function importRiskCrosswalkFromFile(): Promise<void> {
+  await ensureCoreReady();
+  const framework = await ensureRiskFramework();
+
+  const pickedFile = await vscode.window.showOpenDialog({
+    title: "Select a risk crosswalk CSV/TSV file",
+    canSelectFiles: true,
+    canSelectFolders: false,
+    canSelectMany: false,
+    filters: { "CSV/TSV": ["csv", "tsv", "txt"] }
+  });
+  const fileUri = pickedFile?.[0];
+  if (!fileUri) {
+    return;
+  }
+
+  let sourceRegisterId: string;
+  const registerItems = [
+    ...framework.sourceRegisters.map((register) => ({
+      label: register.label,
+      description: register.id,
+      id: register.id
+    })),
+    { label: "$(add) Add new source register\u2026", description: "", id: "__new__" }
+  ];
+  const registerChoice = await vscode.window.showQuickPick(registerItems, {
+    title: "Select the source register for this import",
+    ignoreFocusOut: true
+  });
+  if (!registerChoice) {
+    return;
+  }
+  if (registerChoice.id === "__new__") {
+    const newLabel = await vscode.window.showInputBox({
+      title: "New source register label",
+      prompt: "For example, 6clicks or Enterprise Risk Register",
+      ignoreFocusOut: true,
+      validateInput: (value) => (value.trim().length === 0 ? "Enter a label." : undefined)
+    });
+    if (!newLabel) {
+      return;
+    }
+    const register: RiskSourceRegisterDefinition = { id: `reg_${randomUUID()}`, label: newLabel.trim() };
+    await vscode.commands.executeCommand("pspf.core.upsertEntity", {
+      ...framework,
+      sourceRegisters: [...framework.sourceRegisters, register],
+      updatedAt: new Date().toISOString()
+    } satisfies RiskFrameworkEntity);
+    sourceRegisterId = register.id;
+  } else {
+    sourceRegisterId = registerChoice.id;
+  }
+
+  const bytes = await vscode.workspace.fs.readFile(fileUri);
+  const text = Buffer.from(bytes).toString("utf8");
+  const delimiter = fileUri.fsPath.toLowerCase().endsWith(".tsv") || text.split("\n")[0]?.includes("\t") ? "\t" : ",";
+  const parsed = parseRiskCrosswalkDelimitedText(text, delimiter);
+  if (parsed.rows.length === 0) {
+    await vscode.window.showWarningMessage("The selected file has no data rows.");
+    return;
+  }
+
+  let mapping = detectRiskCrosswalkColumnMapping(parsed.headers);
+  for (const field of unmappedRequiredFields(mapping)) {
+    const columnChoice = await vscode.window.showQuickPick(parsed.headers, {
+      title: `Map a column for "${field.label}"`,
+      ignoreFocusOut: true
+    });
+    if (!columnChoice) {
+      return;
+    }
+    mapping = { ...mapping, [field.key]: columnChoice };
+  }
+
+  const inputRows = applyRiskCrosswalkColumnMapping(parsed.rows, mapping);
+  const allEntities = await listAllEntities();
+  const existingRisks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+  const preview: readonly RiskCrosswalkPreviewRow[] = buildRiskCrosswalkPreview(
+    inputRows,
+    existingRisks,
+    sourceRegisterId
+  );
+  const eligible = preview.filter((row) => row.action === "create" || row.action === "update");
+  const staged = preview.filter((row) => row.action === "conflict" || row.action === "unmatched");
+  if (eligible.length === 0) {
+    await vscode.window.showInformationMessage(
+      staged.length > 0
+        ? `No rows are ready to import: ${staged.length} row(s) need manual resolution (conflict/unmatched) and were staged, not imported.`
+        : "Every row already matches the current store; nothing to import."
+    );
+    return;
+  }
+
+  const confirmationItems = eligible.map((row) => ({
+    label: row.input.title || row.input.externalId,
+    description: row.action === "create" ? "Create" : "Update",
+    detail: `External ID ${row.input.externalId} \u00b7 Rating ${row.input.externalRating}`,
+    picked: true,
+    row
+  }));
+  const selected = await vscode.window.showQuickPick(confirmationItems, {
+    title: `Confirm risk crosswalk import \u2014 ${eligible.length} row(s) ready${staged.length > 0 ? `, ${staged.length} staged (conflict/unmatched, not shown)` : ""}`,
+    canPickMany: true,
+    ignoreFocusOut: true
+  });
+  if (!selected || selected.length === 0) {
+    await vscode.window.showInformationMessage("Risk crosswalk import cancelled; nothing was written.");
+    return;
+  }
+
+  const confirmedRows: RiskCrosswalkRowInput[] = selected.map((item) => item.row.input);
+  const result = (await vscode.commands.executeCommand(
+    "pspf.core.commitRiskCrosswalk",
+    sourceRegisterId,
+    confirmedRows
+  )) as { created: number; updated: number; reused: number };
+  await vscode.window.showInformationMessage(
+    `Risk crosswalk import complete: ${result.created} created, ${result.updated} updated, ${result.reused} unchanged.${staged.length > 0 ? ` ${staged.length} row(s) staged for manual resolution.` : ""}`
+  );
 }
 
 // --- Phase 3A (ADR 0098 D3.7/D3.4/D3.5/D3.2): treatments, controls, and secondary associations -----
@@ -11244,6 +11443,23 @@ async function openEntityEditor(
       await refreshEditor();
       return;
     }
+    if (message.command === "addRiskSourceRegister") {
+      await addRiskSourceRegisterFromFields(message.fields ?? {});
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "addRiskExternalRef") {
+      await addRiskExternalRefFromFields(message.fields ?? {});
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "importRiskCrosswalkFromFile") {
+      await importRiskCrosswalkFromFile();
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
     if (message.command === "linkExistingActionToRisk") {
       await linkExistingActionToRiskFromFields(message.fields ?? {});
       await refreshWorkshopSurfaces();
@@ -12852,7 +13068,7 @@ function renderRiskRecordContent(risk: RiskEntity, allEntities: readonly V01Enti
     ${textareaField("causes", "Causes (one per line)", (risk.causes ?? []).map((cause) => cause.label).join("\n"))}
     ${textareaField("consequences", "Consequences (one per line)", (risk.consequences ?? []).map((consequence) => consequence.label).join("\n"))}
   `
-  )}${riskAssessmentSection(risk, framework)}${riskRelationshipsSection(risk, allEntities)}${riskHistorySection(risk, allEntities)}${riskSourceMetadataSection(risk)}${commercialContextSection(risk, allEntities)}`;
+  )}${riskAssessmentSection(risk, framework)}${riskRelationshipsSection(risk, allEntities)}${riskExternalReferencesSection(risk, allEntities)}${riskHistorySection(risk, allEntities)}${riskSourceMetadataSection(risk)}${commercialContextSection(risk, allEntities)}`;
   return editorContent;
 }
 
@@ -12973,6 +13189,42 @@ function riskRelationshipsSection(risk: RiskEntity, allEntities: readonly V01Ent
     <p class="muted">${childCount} risk${childCount === 1 ? "" : "s"} roll up to this risk directly.</p>
     ${recordTable("Secondary enterprise associations", secondaryRows, ["title"])}
     <div class="form-actions"><button type="button" data-command="linkSecondaryRiskAssociation" data-entity-id="${escapeHtml(risk.id)}">Link secondary risk</button></div>
+  </section>`;
+}
+
+/** Phase 3B (ADR 0098 D5.4): manual authoring of source-register cross-references. `reconciledAt` is stamped by Core, never operator-entered. */
+function riskExternalReferencesSection(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+  const framework = getActiveRiskFramework(allEntities);
+  const registers = framework?.sourceRegisters ?? [];
+  const registerLabelById = new Map(registers.map((register) => [register.id, register.label]));
+  const rows = (risk.externalRefs ?? []).map((ref) => ({
+    register: registerLabelById.get(ref.sourceRegisterId) ?? ref.sourceRegisterId,
+    externalId: ref.externalId,
+    externalRating: ref.externalRating,
+    sourceUpdated: formatShortAuDateTime(ref.sourceUpdatedAt) ?? ref.sourceUpdatedAt,
+    referenceUrl: ref.referenceUrl ?? "Not recorded",
+    reconciledAt: formatShortAuDateTime(ref.reconciledAt) ?? ref.reconciledAt
+  }));
+  const registerOptions = registers.map((register) => ({ label: register.label, value: register.id }));
+  const form =
+    registers.length > 0
+      ? `<form class="risk-mini-form">
+      <input type="hidden" name="riskId" value="${escapeHtml(risk.id)}">
+      <div class="form-grid">
+        ${selectField("externalRefSourceRegisterId", "Source register", registerOptions, registerOptions[0]?.value ?? "")}
+        ${inputField("externalRefExternalId", "External ID", "")}
+        ${inputField("externalRefExternalRating", "External rating (as recorded by the source)", "")}
+        ${inputField("externalRefSourceUpdatedAt", "Source updated", formatShortAuDateTime(new Date()) ?? "", false, "today or 30 Jun 2026")}
+        ${inputField("externalRefReferenceUrl", "Reference URL, optional (https only)", "")}
+      </div>
+      <div class="form-actions"><button type="button" data-command="addRiskExternalRef">Add reference</button></div>
+    </form>`
+      : `<p class="muted">Set up a source register in Risk workbench &gt; Framework &gt; Source registers before adding a reference.</p>`;
+  return `<section>
+    <h2>External references</h2>
+    <p class="muted">Cross-references to externally authoritative records. Source-owned rating and dates are kept separate from this Risk's own assessment and are never converted automatically.</p>
+    ${recordTable("External references", rows, ["register", "externalId", "externalRating", "sourceUpdated", "referenceUrl", "reconciledAt"])}
+    ${form}
   </section>`;
 }
 
@@ -13345,6 +13597,28 @@ function renderRiskCoverageContent(allEntities: readonly V01Entity[]): string {
   </section>`;
 }
 
+/** Phase 3B (ADR 0098 D2.1/§External Registers): source-register authoring, plus the entry point into the previewed CSV/TSV crosswalk import. */
+function riskSourceRegistersSection(framework: RiskFrameworkEntity): string {
+  const rows = framework.sourceRegisters.map((register: RiskSourceRegisterDefinition) => ({
+    id: register.id,
+    label: register.label
+  }));
+  return `<section>
+    <h2>Source registers</h2>
+    <p class="muted">Source registers identify external systems of record for manual references and the CSV/TSV crosswalk import below. Adding one never changes any Risk.</p>
+    ${recordTable("Source registers", rows, ["id", "label"])}
+    <form class="risk-mini-form">
+      <div class="form-grid">
+        ${inputField("sourceRegisterLabel", "New source register label", "", false, "for example, 6clicks or Enterprise Risk Register")}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="addRiskSourceRegister">Add source register</button>
+        <button type="button" data-command="importRiskCrosswalkFromFile">Import risks from CSV/TSV\u2026</button>
+      </div>
+    </form>
+  </section>`;
+}
+
 function renderRiskFrameworkContent(allEntities: readonly V01Entity[]): string {
   const framework = getActiveRiskFramework(allEntities);
   if (!framework) {
@@ -13373,6 +13647,7 @@ function renderRiskFrameworkContent(allEntities: readonly V01Entity[]): string {
     <h1>Risk framework</h1>
     <p class="muted">Methodologies: ${escapeHtml(framework.methodologies.map((methodology) => methodology.label).join(", ") || "None")}. Custom methodology authoring is not yet available in Workshop; Legacy 5x5 is seeded automatically.</p>
   </section>
+  ${riskSourceRegistersSection(framework)}
   <section>
     <h2>Categories</h2>
     <p class="muted">One category per line. Indent by two spaces per nesting level to set a parent. Removing a line archives that category rather than deleting it, so existing Risk assignments are preserved.</p>

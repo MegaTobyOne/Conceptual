@@ -2157,7 +2157,7 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
           effectiveFrom: timestamp
         }
       ],
-      sourceRegisters: [],
+      sourceRegisters: [{ id: "reg-00000000-0000-4000-8000-000000000801", label: "Enterprise Risk Register" }],
       presentationPresets: []
     }
   );
@@ -2179,6 +2179,17 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
       {
         id: "cons-00000000-0000-4000-8000-000000000802",
         label: "Sensitive data exposed if a device is lost or stolen"
+      }
+    ],
+    // ADR 0098 D5.4/D8.3 (Phase 3B): a crosswalk-eligible external reference for manual/CSV import tests.
+    externalRefs: [
+      {
+        sourceRegisterId: "reg-00000000-0000-4000-8000-000000000801",
+        externalId: "ERR-4021",
+        externalRating: "High",
+        sourceUpdatedAt: "2026-08-15T00:00:00.000Z",
+        referenceUrl: "https://enterprise-risk-register.example.test/records/ERR-4021",
+        reconciledAt: timestamp
       }
     ]
   });
@@ -4458,3 +4469,5 @@ export * from "./suggested-actions.js";
 export * from "./reporting-period.js";
 // Phase 1A (v1.74.0, ADR 0098): Risk overhaul contracts and shared evaluator.
 export * from "./risk-model.js";
+// Phase 3B (v1.75.0, ADR 0098): source-register crosswalk matching and preview.
+export * from "./risk-crosswalk.js";

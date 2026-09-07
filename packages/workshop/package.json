@@ -660,6 +660,7 @@
     "@pspf/connected-view": "workspace:*",
     "@pspf/contracts": "workspace:*",
     "@pspf/reference-data": "workspace:*",
-    "@pspf/webview-shell": "workspace:*"
+    "@pspf/webview-shell": "workspace:*",
+    "csv-parse": "^7.0.1"
   }
 }

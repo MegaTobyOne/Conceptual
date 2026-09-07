@@ -36,6 +36,7 @@ import {
   type RiskEventEntity,
   type RiskEscalationDetail,
   type RiskFrameworkEntity,
+  type RiskCrosswalkRowInput,
   type SnapshotEntity,
   type V01Collection,
   type V01Entity,
@@ -44,6 +45,8 @@ import {
   V0_1_COLLECTIONS,
   LEGACY_5X5_METHODOLOGY,
   appendDueDateHistory,
+  buildRiskCrosswalkPreview,
+  buildRiskCrosswalkWriteSet,
   createEntityId,
   enrichActionsWithImpact,
   evaluateRisk,
@@ -59,6 +62,7 @@ import {
   validateControlApplicationAnchors,
   validateFramework,
   validateNarrativeRules,
+  validateRiskExternalRef,
   validateRollUpEdges,
   withEnvelope
 } from "@pspf/contracts";
@@ -151,6 +155,16 @@ export interface SnapshotRecordStatus {
   readonly actions: Readonly<Record<string, string>>;
 }
 
+/** Phase 3B (ADR 0098 D5.4): counts from the freshly revalidated preview, not the operator's earlier snapshot. */
+export interface RiskCrosswalkCommitResult {
+  readonly importId?: string;
+  readonly created: number;
+  readonly updated: number;
+  readonly reused: number;
+  readonly conflicts: number;
+  readonly unmatched: number;
+}
+
 export interface SnapshotSideFileSummary {
   readonly snapshotId: string;
   readonly title: string;
@@ -188,6 +202,11 @@ export interface CoreService {
   readonly migrateRiskFramework: () => Promise<RiskFrameworkEntity>;
   /** D4.1/D4.4: Core is the only author of escalation risk-events; this is not derived from a field diff. */
   readonly recordRiskEscalation: (riskId: string, escalation: RiskEscalationDetail) => Promise<RiskEventEntity>;
+  /** Phase 3B (D5.4/D6.4): previewed CSV/TSV or manual crosswalk rows, revalidated and committed atomically. */
+  readonly commitRiskCrosswalk: (
+    sourceRegisterId: string,
+    rows: readonly RiskCrosswalkRowInput[]
+  ) => Promise<RiskCrosswalkCommitResult>;
 }
 
 export interface CoreReadApi {
@@ -208,6 +227,10 @@ export interface CoreWriteApi {
   readonly upsertEntities: (entities: readonly V01Entity[]) => Promise<readonly V01Entity[]>;
   readonly migrateRiskFramework: () => Promise<RiskFrameworkEntity>;
   readonly recordRiskEscalation: (riskId: string, escalation: RiskEscalationDetail) => Promise<RiskEventEntity>;
+  readonly commitRiskCrosswalk: (
+    sourceRegisterId: string,
+    rows: readonly RiskCrosswalkRowInput[]
+  ) => Promise<RiskCrosswalkCommitResult>;
 }
 
 export interface CoreExchangeApi {
@@ -359,7 +382,9 @@ export function createCoreWriteApi(workspaceRoot: string): CoreWriteApi {
       serialiseWorkspaceOperation(workspaceRoot, () => upsertEntities(workspaceRoot, entities)),
     migrateRiskFramework: () => serialiseWorkspaceOperation(workspaceRoot, () => migrateRiskFramework(workspaceRoot)),
     recordRiskEscalation: (riskId, escalation) =>
-      serialiseWorkspaceOperation(workspaceRoot, () => recordRiskEscalation(workspaceRoot, riskId, escalation))
+      serialiseWorkspaceOperation(workspaceRoot, () => recordRiskEscalation(workspaceRoot, riskId, escalation)),
+    commitRiskCrosswalk: (sourceRegisterId, rows) =>
+      serialiseWorkspaceOperation(workspaceRoot, () => commitRiskCrosswalk(workspaceRoot, sourceRegisterId, rows))
   };
 }
 
@@ -2479,6 +2504,34 @@ function validateRiskRules(incomingEntities: readonly V01Entity[], existingEntit
     }
   }
 
+  // Phase 3B (D5.4): every externalRef is well-formed, points at a source register the active
+  // framework actually defines (rejects a dangling reference before commit), and no two Risks claim
+  // the same external identity (the crosswalk matching key must stay unique).
+  const activeFrameworkForRisks = resolveActiveRiskFramework(incomingEntities, existingEntities);
+  const knownSourceRegisterIds = new Set(
+    (activeFrameworkForRisks?.sourceRegisters ?? []).map((register) => register.id)
+  );
+  const externalIdentityOwners = new Map<string, string>();
+  for (const risk of risks) {
+    for (const externalRef of risk.externalRefs ?? []) {
+      const refIssues = validateRiskExternalRef(externalRef);
+      if (refIssues.length > 0) {
+        throw new Error(`Risk ${risk.id} has an invalid external reference: ${refIssues.join("; ")}.`);
+      }
+      if (!knownSourceRegisterIds.has(externalRef.sourceRegisterId)) {
+        throw new Error(
+          `Risk ${risk.id} references unknown source register ${externalRef.sourceRegisterId} (dangling reference).`
+        );
+      }
+      const identityKey = `${externalRef.sourceRegisterId}:${externalRef.externalId}`;
+      const owner = externalIdentityOwners.get(identityKey);
+      if (owner && owner !== risk.id) {
+        throw new Error(`External identity ${identityKey} is claimed by more than one Risk (${owner} and ${risk.id}).`);
+      }
+      externalIdentityOwners.set(identityKey, risk.id);
+    }
+  }
+
   const knownRiskIds = new Set(risks.map((risk) => risk.id));
   const rollUpEdges = merged
     .filter(
@@ -2597,6 +2650,23 @@ function deriveRiskEvents(
           "Risk primary category changed.",
           { primaryCategoryId: previous.primaryCategoryId ?? null },
           { primaryCategoryId: entity.primaryCategoryId ?? null }
+        )
+      );
+    }
+    // Phase 3B (D4.1): "reconciled" covers both manual externalRefs edits and crosswalk-committed
+    // updates, since both flow through this same write path. A brand-new Risk emits nothing, matching
+    // reassessed/reclassified above — there is no prior externalRefs state to diff against.
+    const beforeExternalRefs = previous.externalRefs ?? [];
+    const afterExternalRefs = entity.externalRefs ?? [];
+    if (!jsonEqual(beforeExternalRefs, afterExternalRefs)) {
+      events.push(
+        buildRiskEvent(
+          entity.id,
+          "reconciled",
+          now,
+          "Risk external references changed.",
+          { externalRefs: beforeExternalRefs },
+          { externalRefs: afterExternalRefs }
         )
       );
     }
@@ -2741,6 +2811,60 @@ async function recordRiskEscalation(
   await syncWorkspaceVersionMetadata(paths);
   await recordOperation(paths, "risk-escalation", "success", event.id);
   return event;
+}
+
+/**
+ * Phase 3B (ADR 0098 D5.4/D6.4/§External Registers): revalidates the previewed rows against a fresh
+ * read of the store (never the operator's earlier preview snapshot), then writes only the resulting
+ * create/update rows atomically with a recovery checkpoint reusing the same `pre-<importId>.json` /
+ * `undoLastImport` mechanism as a bundle import. `reuse`/`conflict`/`unmatched` rows are never written,
+ * so a repeat commit of unchanged rows performs no writes, derives no events, and leaves no operation
+ * trail (idempotent). Cycle/dangling-reference and external-identity checks run inside
+ * `prepareEntitiesForWrite` -> `validateRiskRules`, the same gate every other write path uses.
+ */
+async function commitRiskCrosswalk(
+  workspaceRoot: string,
+  sourceRegisterId: string,
+  rows: readonly RiskCrosswalkRowInput[]
+): Promise<RiskCrosswalkCommitResult> {
+  const paths = await ensureInitialised(workspaceRoot, false);
+  await assertWritable(paths);
+  const stored = await readStoredEntities(paths);
+  const existingRisks = stored.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+  const now = nowIso();
+  const preview = buildRiskCrosswalkPreview(rows, existingRisks, sourceRegisterId, now);
+  const counts = {
+    created: preview.filter((row) => row.action === "create").length,
+    updated: preview.filter((row) => row.action === "update").length,
+    reused: preview.filter((row) => row.action === "reuse").length,
+    conflicts: preview.filter((row) => row.action === "conflict").length,
+    unmatched: preview.filter((row) => row.action === "unmatched").length
+  };
+  const writeSetCandidates = buildRiskCrosswalkWriteSet(preview, existingRisks, sourceRegisterId, now);
+  if (writeSetCandidates.length === 0) {
+    return counts;
+  }
+  const importId = `import-${randomUUID()}`;
+  await writeJsonDurably(join(paths.imports, `pre-${importId}.json`), {
+    generatedAt: now,
+    importId,
+    mode: "additive-merge",
+    bundlePath: `risk-crosswalk:${sourceRegisterId}`,
+    reason: "pre risk crosswalk commit rollback point",
+    entities: stored
+  });
+  const prepared = prepareEntitiesForWrite(writeSetCandidates, stored);
+  await runSql(
+    paths.db,
+    [
+      "BEGIN IMMEDIATE;",
+      ...prepared.map(upsertEntitySql),
+      operationSql("import", "success", `additive-merge:${importId}:risk-crosswalk:${sourceRegisterId}`),
+      "COMMIT;"
+    ].join("\n")
+  );
+  await syncWorkspaceVersionMetadata(paths);
+  return { ...counts, importId };
 }
 
 function assertAllAllowed<T extends string>(
