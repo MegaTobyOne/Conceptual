@@ -1,17 +1,26 @@
 # Workshop Risk Overhaul Plan
 
-Status: **aspirational**
-Last updated: 2026-09-07
+Status: **implementation complete through Phase 4A; Phase 4B verification outstanding**
+Last updated: 2026-09-08
 Planning baseline: product `1.75.0`; compatibility axes `1.17.0`.
 Next task: **Phase 4B - integrate and verify** (Phase 4A complete). See [Phase 4B Handoff](#phase-4b-handoff).
 
 ## Authority and Outcome
 
-This is the durable programme plan and session handoff, replacing the conversation's session-memory copy. The scope below is confirmed by the user; architecture below is a recommendation now resolved into [ADR 0098](../adr/0098-workshop-risk-overhaul-contract-baseline.md) (status `accepted`), not an implemented behaviour. No implementation phase has started. Do not infer an allocated release, passing product tests or permission to publish from this document.
+This is the durable programme plan and session handoff, replacing the conversation's session-memory copy. The scope below is confirmed by the user; architecture below is resolved into [ADR 0098](../adr/0098-workshop-risk-overhaul-contract-baseline.md) (status `accepted`). Phases 0 through 4A have implemented the contracts, Core boundaries, score consumers, Workshop workbench, crosswalk flow and presentation outputs described in the records below. Phase 4B is still required before claiming verification-complete or release-sequencing readiness. Do not infer a separate release allocation or permission to publish from this document.
 
 Follow the authority chain in [../pspf-spec-consistency-index.md](../pspf-spec-consistency-index.md) and sequencing in [../pspf-grand-plan.md](../pspf-grand-plan.md). Phase 0 must resolve architecture into an ADR before contract changes. Existing requirements remain in force until explicitly superseded.
 
 Replace the minimal Risk form with a coherent Workshop editing and presentation workbench. Operators should be able to explain a risk, assess it using their organisation's methodology, connect it to enterprise risk, reuse treatments and controls, record escalation decisions, and present the result without maintaining duplicate records.
+
+## Current state and latest learning
+
+- Phases 0, 1A, 1B, 1C, 2, 3A, 3B and 4A are recorded as complete. The shipped baseline is product `1.75.0` with all three compatibility axes at `1.17.0`; the Risk schema slice remains published under `schemas/explorer-bundle/1.16.0` as intended by the compatibility plan.
+- The full `pnpm run release:readiness` suite passed on 2026-09-08, including build, tests, E2E, accessibility, redaction, typecheck, lint, release-candidate checks, risk-source integration, and the Risk-specific gates. The readiness report was written to `.tmp/release-readiness/v1.75.0-readiness`.
+- The readiness run exposed and fixed a stale `check-ownership-schema` assumption: that gate must validate the historical `1.16.0` ownership schema directory while validating the current `1.17.0` axes and standard fixture. The focused gate now passes 77 assertions and Prettier/lint remain green.
+- The result is strong automated evidence, not a completed operator-verification claim. No live VS Code Extension Development Host walkthrough has yet exercised the end-to-end Risk journey, and the disclosed Phase 4A limitations remain: filtered output scope behaves like all, presentation-preset authoring is absent, external provenance is not rendered, and PNG output is a vetted monospace text render rather than a styled visual.
+
+Recommended next step: execute Phase 4B as a verification slice. Start with the live create-to-card walkthrough in the Phase 4B Handoff, then run the accessibility/performance, redaction, compatibility and recovery evidence pass. Close or explicitly re-defer each disclosed limitation, update the affected specifications and gates, and only then decide separately whether release-sequencing work is authorised.
 
 ## Confirmed Scope
 
