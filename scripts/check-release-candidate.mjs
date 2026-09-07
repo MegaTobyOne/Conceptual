@@ -79,7 +79,8 @@ const axesByMinorVersion = new Map([
   [71, "1.15.0"],
   [72, "1.16.0"],
   [73, "1.16.0"],
-  [74, "1.16.0"]
+  [74, "1.16.0"],
+  [75, "1.17.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -127,7 +128,7 @@ assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion
 
 const e2eScript =
   minorVersion >= 60
-    ? `e2e:v1.${Math.min(minorVersion, 74)}`
+    ? `e2e:v1.${Math.min(minorVersion, 75)}`
     : minorVersion >= 59
       ? "e2e:v1.59"
       : minorVersion >= 58
@@ -2344,10 +2345,13 @@ if (isV1Release && minorVersion >= 72) {
   for (const requiredText of [`PSPF_SLICE_VERSION\` are \`${expectedVersion}\``, "1.16.0", "check:ownership-schema"]) {
     assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
   }
-  assert.equal(expectedAxes, "1.16.0", "v1.72 axes should be 1.16.0");
-  assert.match(contracts, /schemaVersion: "1\.16\.0"/, "contracts VERSION_AXES.schemaVersion should be 1.16.0");
-  assert.match(contracts, /bundleVersion: "1\.16\.0"/, "contracts VERSION_AXES.bundleVersion should be 1.16.0");
-  assert.match(contracts, /apiVersion: "1\.16\.0"/, "contracts VERSION_AXES.apiVersion should be 1.16.0");
+  if (minorVersion <= 74) {
+    // ADR 0097 R2-R4 held axes at 1.16.0; a later ADR (e.g. ADR 0098 Phase 1B) may bump again.
+    assert.equal(expectedAxes, "1.16.0", "v1.72 axes should be 1.16.0");
+    assert.match(contracts, /schemaVersion: "1\.16\.0"/, "contracts VERSION_AXES.schemaVersion should be 1.16.0");
+    assert.match(contracts, /bundleVersion: "1\.16\.0"/, "contracts VERSION_AXES.bundleVersion should be 1.16.0");
+    assert.match(contracts, /apiVersion: "1\.16\.0"/, "contracts VERSION_AXES.apiVersion should be 1.16.0");
+  }
 }
 
 if (isV1Release && minorVersion >= 73) {
@@ -2390,7 +2394,9 @@ if (isV1Release && minorVersion >= 73) {
   for (const requiredText of [`PSPF_SLICE_VERSION\` are \`${expectedVersion}\``, "team report card"]) {
     assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
   }
-  assert.equal(expectedAxes, "1.16.0", "v1.73 axes should remain 1.16.0");
+  if (minorVersion <= 74) {
+    assert.equal(expectedAxes, "1.16.0", "v1.73 axes should remain 1.16.0");
+  }
 }
 
 if (isV1Release && minorVersion >= 74) {
@@ -2437,7 +2443,40 @@ if (isV1Release && minorVersion >= 74) {
     true,
     "grand plan status header should record the ADR 0097 programme as implemented with R1–R4 shipped"
   );
-  assert.equal(expectedAxes, "1.16.0", "v1.74 axes should remain 1.16.0");
+  if (minorVersion <= 74) {
+    assert.equal(expectedAxes, "1.16.0", "v1.74 axes should remain 1.16.0");
+  }
+}
+
+if (isV1Release && minorVersion >= 75) {
+  for (const requiredFile of [
+    "schemas/explorer-bundle/1.17.0/collections/risk-frameworks.schema.json",
+    "schemas/explorer-bundle/1.17.0/collections/risk-controls.schema.json",
+    "schemas/explorer-bundle/1.17.0/collections/risk-events.schema.json"
+  ]) {
+    assert.equal(existsSync(join(root, requiredFile)), true, `${requiredFile} should exist`);
+  }
+  for (const requiredScript of ["e2e:v1.75", "e2e:v1.75:run"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.75"].includes("e2e:v1.74"), true, "e2e:v1.75 should include v1.74 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.75:run"].includes("e2e:v1.74:run"),
+    true,
+    "e2e:v1.75:run should include v1.74 gates"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes(e2eScript),
+    true,
+    "release:readiness should run the latest e2e chain script"
+  );
+  for (const requiredText of [`PSPF_SLICE_VERSION\` are \`${expectedVersion}\``, "1.17.0"]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+  assert.equal(expectedAxes, "1.17.0", "v1.75 axes should be 1.17.0");
+  assert.match(contracts, /schemaVersion: "1\.17\.0"/, "contracts VERSION_AXES.schemaVersion should be 1.17.0");
+  assert.match(contracts, /bundleVersion: "1\.17\.0"/, "contracts VERSION_AXES.bundleVersion should be 1.17.0");
+  assert.match(contracts, /apiVersion: "1\.17\.0"/, "contracts VERSION_AXES.apiVersion should be 1.17.0");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

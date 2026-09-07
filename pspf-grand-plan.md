@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-09-07 (repo version 1.74.0)
+Last updated: 2026-09-07 (repo version 1.75.0)
 
 ## Purpose
 
@@ -19,6 +19,8 @@ This plan does not override the authority chain in `pspf-spec-consistency-index.
 Status: **aspirational**
 
 The user-confirmed next planning task was **Phase 0: contract and interaction baseline** for the [Workshop Risk overhaul plan](docs/risk-overhaul-plan.md). Phase 0 completed on 2026-09-07 and produced [ADR 0098](adr/0098-workshop-risk-overhaul-contract-baseline.md) with decision tables, field/link/policy tables, a compatibility and recovery strategy, baseline evidence and a bounded Phase 1A handoff. The operator closed the three blocking decisions (D1.6/D6.5 publication of custom assessments blocked at preflight, D2.7 expired appetite rules apply and are flagged stale, D3.5 typed link metadata for control applications) as recommended, and ADR 0098 is `accepted`. The next task is **Phase 1A: shared model** per the plan's handoff. Product implementation has not started; no release or compatibility-axis bump is allocated by this entry.
+
+Pointer: Phase 1A (contracts) and Phase 1B's schema baseline landed at v1.75.0, `VERSION_AXES` `1.17.0`, per ADR 0098 D6.1/D6.2 (see [docs/risk-overhaul-plan.md](docs/risk-overhaul-plan.md) for the detailed handoff record). Workshop UI implementation has not started.
 
 The programme is Workshop-only initially: editable categories and actual parent-risk relationships; organisation-defined matrices and appetite; reusable Action treatments and organisational controls; manual escalation history; manual references and previewed file crosswalk import; and hierarchy, matrix, bow-tie, coverage and executive-card views within existing surfaces. Explorer is unchanged; incompatible publication must fail clearly rather than inventing legacy scores or silently dropping data. Migration requires verified lossless recovery, not an assumption that publication JSON retains sensitive fields.
 

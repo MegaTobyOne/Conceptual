@@ -13,12 +13,12 @@ import type {
 } from "./risk-model.js";
 
 export const VERSION_AXES = {
-  schemaVersion: "1.16.0",
-  bundleVersion: "1.16.0",
-  apiVersion: "1.16.0"
+  schemaVersion: "1.17.0",
+  bundleVersion: "1.17.0",
+  apiVersion: "1.17.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.74.0" as const;
+export const PSPF_SLICE_VERSION = "1.75.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
