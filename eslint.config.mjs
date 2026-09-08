@@ -88,7 +88,8 @@ export default tseslint.config(
       "scripts/check-explorer-local-authoring.mjs",
       "scripts/check-explorer-to-workshop-import.mjs",
       "scripts/check-core-sqljs-runtime.mjs",
-      "scripts/check-accessibility.mjs"
+      "scripts/check-accessibility.mjs",
+      "scripts/check-risk-workbench.mjs"
     ],
     languageOptions: {
       globals: {
@@ -98,10 +99,22 @@ export default tseslint.config(
         requestAnimationFrame: "readonly",
         localStorage: "readonly",
         indexedDB: "readonly",
+        performance: "readonly",
         Event: "readonly",
+        FormData: "readonly",
         Node: "readonly",
         HTMLInputElement: "readonly",
         HTMLDetailsElement: "readonly"
+      }
+    }
+  },
+  {
+    // The live Extension Development Host driver talks CDP over the platform WebSocket.
+    files: ["scripts/lib/edh-risk-workbench-driver.mjs"],
+    languageOptions: {
+      globals: {
+        setTimeout: "readonly",
+        WebSocket: "readonly"
       }
     }
   },

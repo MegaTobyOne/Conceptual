@@ -32,14 +32,24 @@ import {
   type ActionStatus,
   type AssessmentStatus,
   type RiskStatus,
+  type RiskEntity,
+  type RiskEventEntity,
+  type RiskEscalationDetail,
+  type RiskFrameworkEntity,
+  type RiskCrosswalkRowInput,
   type SnapshotEntity,
   type V01Collection,
   type V01Entity,
   PSPF_DOMAINS,
   VERSION_AXES,
   V0_1_COLLECTIONS,
+  LEGACY_5X5_METHODOLOGY,
   appendDueDateHistory,
+  buildRiskCrosswalkPreview,
+  buildRiskCrosswalkWriteSet,
+  createEntityId,
   enrichActionsWithImpact,
+  evaluateRisk,
   isValidSingleGrapheme,
   hasCompatibleMajorVersion,
   isCompatibleVersionAxes,
@@ -49,7 +59,11 @@ import {
   normaliseTagLabel,
   nowIso,
   sanitiseEntityForPublication,
+  validateControlApplicationAnchors,
+  validateFramework,
   validateNarrativeRules,
+  validateRiskExternalRef,
+  validateRollUpEdges,
   withEnvelope
 } from "@pspf/contracts";
 import { ISM_SOURCE_CONTROLS } from "@pspf/ism-source-library";
@@ -141,6 +155,16 @@ export interface SnapshotRecordStatus {
   readonly actions: Readonly<Record<string, string>>;
 }
 
+/** Phase 3B (ADR 0098 D5.4): counts from the freshly revalidated preview, not the operator's earlier snapshot. */
+export interface RiskCrosswalkCommitResult {
+  readonly importId?: string;
+  readonly created: number;
+  readonly updated: number;
+  readonly reused: number;
+  readonly conflicts: number;
+  readonly unmatched: number;
+}
+
 export interface SnapshotSideFileSummary {
   readonly snapshotId: string;
   readonly title: string;
@@ -174,6 +198,15 @@ export interface CoreService {
   readonly upsertEntities: (entities: readonly V01Entity[]) => Promise<readonly V01Entity[]>;
   readonly listEntities: (entityType?: V01Entity["entityType"]) => Promise<V01Entity[]>;
   readonly listSnapshotSideFiles: () => Promise<SnapshotSideFileSummary[]>;
+  /** D7.3: idempotent; creates the singleton risk-framework seeded with LEGACY_5X5_METHODOLOGY only if none exists. */
+  readonly migrateRiskFramework: () => Promise<RiskFrameworkEntity>;
+  /** D4.1/D4.4: Core is the only author of escalation risk-events; this is not derived from a field diff. */
+  readonly recordRiskEscalation: (riskId: string, escalation: RiskEscalationDetail) => Promise<RiskEventEntity>;
+  /** Phase 3B (D5.4/D6.4): previewed CSV/TSV or manual crosswalk rows, revalidated and committed atomically. */
+  readonly commitRiskCrosswalk: (
+    sourceRegisterId: string,
+    rows: readonly RiskCrosswalkRowInput[]
+  ) => Promise<RiskCrosswalkCommitResult>;
 }
 
 export interface CoreReadApi {
@@ -192,6 +225,12 @@ export interface CoreWriteApi {
   readonly releaseWriterLock: () => Promise<void>;
   readonly upsertEntity: (entity: V01Entity) => Promise<V01Entity>;
   readonly upsertEntities: (entities: readonly V01Entity[]) => Promise<readonly V01Entity[]>;
+  readonly migrateRiskFramework: () => Promise<RiskFrameworkEntity>;
+  readonly recordRiskEscalation: (riskId: string, escalation: RiskEscalationDetail) => Promise<RiskEventEntity>;
+  readonly commitRiskCrosswalk: (
+    sourceRegisterId: string,
+    rows: readonly RiskCrosswalkRowInput[]
+  ) => Promise<RiskCrosswalkCommitResult>;
 }
 
 export interface CoreExchangeApi {
@@ -340,7 +379,12 @@ export function createCoreWriteApi(workspaceRoot: string): CoreWriteApi {
       serialiseWorkspaceOperation(workspaceRoot, () => releaseWriterLock(getWorkspacePaths(workspaceRoot))),
     upsertEntity: (entity) => serialiseWorkspaceOperation(workspaceRoot, () => upsertEntity(workspaceRoot, entity)),
     upsertEntities: (entities) =>
-      serialiseWorkspaceOperation(workspaceRoot, () => upsertEntities(workspaceRoot, entities))
+      serialiseWorkspaceOperation(workspaceRoot, () => upsertEntities(workspaceRoot, entities)),
+    migrateRiskFramework: () => serialiseWorkspaceOperation(workspaceRoot, () => migrateRiskFramework(workspaceRoot)),
+    recordRiskEscalation: (riskId, escalation) =>
+      serialiseWorkspaceOperation(workspaceRoot, () => recordRiskEscalation(workspaceRoot, riskId, escalation)),
+    commitRiskCrosswalk: (sourceRegisterId, rows) =>
+      serialiseWorkspaceOperation(workspaceRoot, () => commitRiskCrosswalk(workspaceRoot, sourceRegisterId, rows))
   };
 }
 
@@ -986,6 +1030,12 @@ function buildSnapshotMetrics(collections: BundleCollections): NonNullable<Snaps
   const openRisks = collections.risks.filter((risk) => risk.status !== "closed");
   const openActions = collections.actions.filter((action) => !["done", "cancelled"].includes(action.status));
   const now = Date.now();
+  // Phase 1C (ADR 0098 D1.3/D1.4): evaluateRisk, never a raw likelihood x impact multiply; unassessed/not-comparable risks carry no band and are excluded rather than coerced to Low.
+  const activeFramework = collections["risk-frameworks"].find((framework) => framework.recordStatus !== "deleted");
+  const highOrExtremeRiskTotal = openRisks.filter((risk) => {
+    const band = evaluateRisk(risk, activeFramework).band;
+    return band?.id === "high" || band?.id === "extreme";
+  }).length;
   return {
     requirementTotal: collections.requirements.length,
     requirementMet,
@@ -993,7 +1043,7 @@ function buildSnapshotMetrics(collections: BundleCollections): NonNullable<Snaps
     compliancePercentage:
       applicableRequirements.length === 0 ? 0 : Math.round((requirementMet / applicableRequirements.length) * 100),
     openRiskTotal: openRisks.length,
-    highOrExtremeRiskTotal: openRisks.filter((risk) => risk.likelihood * risk.impact >= 10).length,
+    highOrExtremeRiskTotal,
     actionTotal: collections.actions.length,
     openActionTotal: openActions.length,
     completedActionTotal: collections.actions.filter((action) => action.status === "done").length,
@@ -1001,11 +1051,54 @@ function buildSnapshotMetrics(collections: BundleCollections): NonNullable<Snaps
   };
 }
 
+/**
+ * D6.3: rejects the whole export/team-share operation before any file is written when the
+ * supported Explorer schema cannot represent the workspace's Risk data — any non-deleted Risk with
+ * a `custom` or `unassessed` assessment, or any `rolls-up-to`/`mitigated-by` link. Must run against
+ * raw stored entities, not the sanitised publication projection, because `assessment` is stripped
+ * before publication.
+ */
+function runRiskPublicationPreflight(entities: readonly V01Entity[]): void {
+  const blockedRiskIds = entities
+    .filter(
+      (entity): entity is RiskEntity =>
+        entity.entityType === "risk" &&
+        entity.recordStatus !== "deleted" &&
+        (entity.assessment?.basis === "custom" || entity.assessment?.basis === "unassessed")
+    )
+    .map((risk) => risk.id);
+  const blockedLinkIds = entities
+    .filter(
+      (entity): entity is LinkEntity =>
+        entity.entityType === "link" &&
+        entity.recordStatus !== "deleted" &&
+        (entity.linkType === "rolls-up-to" || entity.linkType === "mitigated-by")
+    )
+    .map((link) => link.id);
+
+  if (blockedRiskIds.length === 0 && blockedLinkIds.length === 0) {
+    return;
+  }
+
+  throw new PspfError({
+    code: "PSPF_EXPORT_POLICY_BLOCKED",
+    severity: "error",
+    category: "export",
+    message:
+      "Export blocked: the supported Explorer schema cannot represent one or more Risk records or relationships in this workspace.",
+    retryable: false,
+    recommendedAction:
+      "Give every Risk a legacy or resolved assessment and remove rolls-up-to/mitigated-by links before exporting, or wait for a later Explorer-aware release.",
+    detail: { blockedRiskIds, blockedLinkIds }
+  });
+}
+
 async function exportBundle(
   workspaceRoot: string
 ): Promise<{ exportDirectory: string; manifestPath: string; collectionCount: number }> {
   const paths = await ensureInitialised(workspaceRoot);
   await assertWritable(paths);
+  runRiskPublicationPreflight(await listEntities(workspaceRoot));
   const collections = await getBundleCollections(workspaceRoot, paths);
   const exportDirectory = join(paths.exports, `export-${new Date().toISOString().replace(/[:.]/g, "-")}`);
   const dataDirectory = join(exportDirectory, "data");
@@ -1080,6 +1173,7 @@ async function exportBundle(
 async function exportTeamShareBundle(workspaceRoot: string): Promise<{ bundlePath: string; collectionCount: number }> {
   const paths = await ensureInitialised(workspaceRoot);
   await assertWritable(paths);
+  runRiskPublicationPreflight(await listEntities(workspaceRoot));
   // Ensure the share directory exists for workspaces initialised before this feature was added.
   await mkdir(paths.share, { recursive: true });
 
@@ -1220,11 +1314,17 @@ async function buildImportPlan(
   validateTagRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   validateSavedViewRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   validateChangeRecordRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
+  validateRiskRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
   assertNarrativeRules(incomingEntities, mode === "full-replace" ? [] : existingEntities);
-  const writeSet =
+  const rawWriteSet =
     mode === "additive-merge" || mode === "plan-apply"
       ? additiveMergeWriteSet(incomingEntities, existingEntities)
       : incomingEntities;
+  // D5.1: assessmentState is Core-derived and must never be trusted from an imported bundle.
+  const activeFramework = resolveActiveRiskFramework(incomingEntities, mode === "full-replace" ? [] : existingEntities);
+  const writeSet = rawWriteSet.map((entity) =>
+    entity.entityType === "risk" ? { ...entity, assessmentState: evaluateRisk(entity, activeFramework).state } : entity
+  );
   return {
     incomingEntities,
     writeSet,
@@ -1711,6 +1811,29 @@ function mergeIncomingEntity(existing: V01Entity, incoming: V01Entity): V01Entit
       ? { ...merged, ownerTeam: existing.ownerTeam }
       : merged;
   }
+  // D6.4: a sanitised round-trip bundle omits every sensitive Risk field; a merge must not erase them.
+  if (merged.entityType === "risk" && existing.entityType === "risk") {
+    return {
+      ...merged,
+      ...(merged.reference === undefined && existing.reference !== undefined ? { reference: existing.reference } : {}),
+      ...(merged.description === undefined && existing.description !== undefined
+        ? { description: existing.description }
+        : {}),
+      ...(merged.causes === undefined && existing.causes !== undefined ? { causes: existing.causes } : {}),
+      ...(merged.consequences === undefined && existing.consequences !== undefined
+        ? { consequences: existing.consequences }
+        : {}),
+      ...(merged.ownerTeam === undefined && existing.ownerTeam !== undefined ? { ownerTeam: existing.ownerTeam } : {}),
+      ...(merged.reviewBy === undefined && existing.reviewBy !== undefined ? { reviewBy: existing.reviewBy } : {}),
+      ...(merged.assessment === undefined && existing.assessment !== undefined
+        ? { assessment: existing.assessment }
+        : {}),
+      ...(merged.response === undefined && existing.response !== undefined ? { response: existing.response } : {}),
+      ...(merged.externalRefs === undefined && existing.externalRefs !== undefined
+        ? { externalRefs: existing.externalRefs }
+        : {})
+    };
+  }
   return merged;
 }
 
@@ -1753,10 +1876,10 @@ async function upsertEntity(workspaceRoot: string, entity: V01Entity): Promise<V
   const paths = await ensureInitialised(workspaceRoot, false);
   await assertWritable(paths);
   const stored = await readStoredEntities(paths);
-  const [prepared] = prepareEntitiesForWrite([entity], stored);
-  await runSql(paths.db, upsertEntitySql(prepared!));
+  const prepared = prepareEntitiesForWrite([entity], stored);
+  await runSql(paths.db, ["BEGIN IMMEDIATE;", ...prepared.map(upsertEntitySql), "COMMIT;"].join("\n"));
   await syncWorkspaceVersionMetadata(paths);
-  return prepared!;
+  return prepared.find((candidate) => candidate.id === entity.id) ?? prepared[0]!;
 }
 
 async function upsertEntities(workspaceRoot: string, entities: readonly V01Entity[]): Promise<readonly V01Entity[]> {
@@ -1778,20 +1901,27 @@ function prepareEntitiesForWrite(entities: readonly V01Entity[], stored: readonl
   validateTagRules(entities, stored);
   validateSavedViewRules(entities, stored);
   validateChangeRecordRules(entities, stored);
+  validateRiskRules(entities, stored);
   assertNarrativeRules(entities, stored);
   const storedById = new Map(stored.map((entity) => [entity.id, entity]));
   const now = nowIso();
-  return entities.map((entity) => {
-    if (entity.entityType !== "action") {
-      return entity;
+  const activeFramework = resolveActiveRiskFramework(entities, stored);
+  const prepared = entities.map((entity) => {
+    if (entity.entityType === "action") {
+      const previous = storedById.get(entity.id);
+      return appendDueDateHistory(
+        previous?.entityType === "action" ? seedLegacyDueDateHistory(previous) : undefined,
+        entity,
+        now
+      );
     }
-    const previous = storedById.get(entity.id);
-    return appendDueDateHistory(
-      previous?.entityType === "action" ? seedLegacyDueDateHistory(previous) : undefined,
-      entity,
-      now
-    );
+    if (entity.entityType === "risk") {
+      // D5.1: assessmentState is Core-derived on write; never trust a client-supplied value.
+      return { ...entity, assessmentState: evaluateRisk(entity, activeFramework).state };
+    }
+    return entity;
   });
+  return [...prepared, ...deriveRiskEvents(prepared, stored, now)];
 }
 
 /** Actions written before 1.16.0 carry a dueDate but no history; seed it so the first change records the original date. */
@@ -1879,6 +2009,9 @@ function createEmptyCollections(): BundleCollections {
     evidence: [],
     actions: [],
     risks: [],
+    "risk-frameworks": [],
+    "risk-controls": [],
+    "risk-events": [],
     snapshots: [],
     links: [],
     tags: [],
@@ -1957,6 +2090,9 @@ function getCollectionCounts(collections: BundleCollections): Record<V01Collecti
     evidence: collections.evidence.length,
     actions: collections.actions.length,
     risks: collections.risks.length,
+    "risk-frameworks": collections["risk-frameworks"].length,
+    "risk-controls": collections["risk-controls"].length,
+    "risk-events": collections["risk-events"].length,
     snapshots: collections.snapshots.length,
     links: collections.links.length,
     tags: collections.tags.length,
@@ -2323,6 +2459,412 @@ function validateChangeRecordRules(
       throw new Error(`Invalid changes link ${entity.id}: endpoint is missing.`);
     }
   }
+}
+
+/**
+ * ADR 0098: risk-framework singleton/immutability, `rolls-up-to`/`mitigated-by` graph integrity,
+ * cause/consequence ID uniqueness, and rejection of client-authored `risk-event` entities (D4.2 —
+ * Core is the only author; a client write is only accepted when it byte-matches a stored event).
+ */
+function validateRiskRules(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): void {
+  const mergedById = new Map(existingEntities.map((entity) => [entity.id, entity]));
+  for (const entity of incomingEntities) {
+    mergedById.set(entity.id, entity);
+  }
+  const merged = [...mergedById.values()];
+
+  const frameworks = merged.filter(
+    (entity): entity is RiskFrameworkEntity =>
+      entity.entityType === "risk-framework" && entity.recordStatus !== "deleted"
+  );
+  if (frameworks.length > 1) {
+    throw new Error(
+      `Risk framework limit exceeded: only one non-deleted risk-framework record is permitted per workspace (found ${frameworks.map((framework) => framework.id).join(", ")}).`
+    );
+  }
+  for (const framework of frameworks) {
+    const previous = existingEntities.find(
+      (entity): entity is RiskFrameworkEntity => entity.entityType === "risk-framework" && entity.id === framework.id
+    );
+    const issues = validateFramework(framework, previous);
+    if (issues.length > 0) {
+      throw new Error(
+        `Invalid risk framework ${framework.id}: ${issues.map((issue) => `${issue.path} ${issue.message}`).join("; ")}`
+      );
+    }
+  }
+
+  const risks = merged.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+  for (const risk of risks) {
+    const anchorIds = [...(risk.causes ?? []), ...(risk.consequences ?? [])].map((anchor) => anchor.id);
+    if (new Set(anchorIds).size !== anchorIds.length) {
+      throw new Error(`Risk ${risk.id} has duplicate cause/consequence IDs.`);
+    }
+  }
+
+  // Phase 3B (D5.4): every externalRef is well-formed, points at a source register the active
+  // framework actually defines (rejects a dangling reference before commit), and no two Risks claim
+  // the same external identity (the crosswalk matching key must stay unique).
+  const activeFrameworkForRisks = resolveActiveRiskFramework(incomingEntities, existingEntities);
+  const knownSourceRegisterIds = new Set(
+    (activeFrameworkForRisks?.sourceRegisters ?? []).map((register) => register.id)
+  );
+  const externalIdentityOwners = new Map<string, string>();
+  for (const risk of risks) {
+    for (const externalRef of risk.externalRefs ?? []) {
+      const refIssues = validateRiskExternalRef(externalRef);
+      if (refIssues.length > 0) {
+        throw new Error(`Risk ${risk.id} has an invalid external reference: ${refIssues.join("; ")}.`);
+      }
+      if (!knownSourceRegisterIds.has(externalRef.sourceRegisterId)) {
+        throw new Error(
+          `Risk ${risk.id} references unknown source register ${externalRef.sourceRegisterId} (dangling reference).`
+        );
+      }
+      const identityKey = `${externalRef.sourceRegisterId}:${externalRef.externalId}`;
+      const owner = externalIdentityOwners.get(identityKey);
+      if (owner && owner !== risk.id) {
+        throw new Error(`External identity ${identityKey} is claimed by more than one Risk (${owner} and ${risk.id}).`);
+      }
+      externalIdentityOwners.set(identityKey, risk.id);
+    }
+  }
+
+  const knownRiskIds = new Set(risks.map((risk) => risk.id));
+  const rollUpEdges = merged
+    .filter(
+      (entity): entity is LinkEntity =>
+        entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.linkType === "rolls-up-to"
+    )
+    .map((link) => ({ fromId: link.fromId, toId: link.toId }));
+  const rollUpIssues = validateRollUpEdges(rollUpEdges, knownRiskIds);
+  if (rollUpIssues.length > 0) {
+    throw new Error(
+      `Invalid rolls-up-to link graph: ${rollUpIssues.map((issue) => `${issue.riskId}: ${issue.message}`).join("; ")}`
+    );
+  }
+
+  const risksById = new Map(risks.map((risk) => [risk.id, risk]));
+  for (const entity of merged) {
+    if (entity.entityType !== "link" || entity.recordStatus === "deleted") {
+      continue;
+    }
+    if (entity.application !== undefined && entity.linkType !== "mitigated-by") {
+      throw new Error(`Link ${entity.id} declares control-application metadata but is not a mitigated-by link.`);
+    }
+    if (entity.linkType === "mitigated-by" && entity.application !== undefined) {
+      const owningRisk = entity.fromType === "risk" ? risksById.get(entity.fromId) : undefined;
+      if (!owningRisk) {
+        throw new Error(`Link ${entity.id} mitigated-by application metadata requires a known source Risk.`);
+      }
+      const unresolvedAnchors = validateControlApplicationAnchors(owningRisk, entity.application);
+      if (unresolvedAnchors.length > 0) {
+        throw new Error(
+          `Link ${entity.id} control application references unknown anchors: ${unresolvedAnchors.join(", ")}.`
+        );
+      }
+    }
+    if (
+      entity.linkType === "related-to" &&
+      entity.fromType === "risk" &&
+      entity.toType === "risk" &&
+      entity.linkRole !== undefined &&
+      entity.linkRole !== "secondary-enterprise-association"
+    ) {
+      throw new Error(
+        `Link ${entity.id} has an unsupported linkRole for risk -> related-to -> risk: ${entity.linkRole}.`
+      );
+    }
+  }
+
+  const existingById = new Map(existingEntities.map((entity) => [entity.id, entity]));
+  for (const entity of incomingEntities) {
+    if (entity.entityType !== "risk-event") {
+      continue;
+    }
+    const previous = existingById.get(entity.id);
+    if (
+      !previous ||
+      previous.entityType !== "risk-event" ||
+      canonicalEntityJson(previous) !== canonicalEntityJson(entity)
+    ) {
+      throw new Error(`Risk event ${entity.id} is Core-derived and cannot be created or modified directly.`);
+    }
+  }
+}
+
+/** The non-deleted risk-framework in the incoming batch, falling back to the stored one. */
+function resolveActiveRiskFramework(
+  incoming: readonly V01Entity[],
+  stored: readonly V01Entity[]
+): RiskFrameworkEntity | undefined {
+  const incomingFramework = incoming.find(
+    (entity): entity is RiskFrameworkEntity =>
+      entity.entityType === "risk-framework" && entity.recordStatus !== "deleted"
+  );
+  if (incomingFramework) {
+    return incomingFramework;
+  }
+  return stored.find(
+    (entity): entity is RiskFrameworkEntity =>
+      entity.entityType === "risk-framework" && entity.recordStatus !== "deleted"
+  );
+}
+
+/**
+ * D4.1/D4.2: derives `risk-event` entities from the diff between `stored` and the prepared write
+ * batch — assessment change, `primaryCategoryId` change, and `rolls-up-to` reparenting. No-op saves
+ * (D4.3) and brand-new Risks emit nothing, because there is no prior state to diff against.
+ */
+function deriveRiskEvents(
+  candidateEntities: readonly V01Entity[],
+  stored: readonly V01Entity[],
+  now: string
+): readonly RiskEventEntity[] {
+  const storedById = new Map(stored.map((entity) => [entity.id, entity]));
+  const events: RiskEventEntity[] = [];
+
+  for (const entity of candidateEntities) {
+    if (entity.entityType !== "risk") {
+      continue;
+    }
+    const previous = storedById.get(entity.id);
+    if (!previous || previous.entityType !== "risk") {
+      continue;
+    }
+    const beforeAssessment = normaliseRiskAssessment(previous);
+    const afterAssessment = normaliseRiskAssessment(entity);
+    if (!jsonEqual(beforeAssessment, afterAssessment)) {
+      events.push(
+        buildRiskEvent(entity.id, "reassessed", now, "Risk assessment changed.", beforeAssessment, afterAssessment)
+      );
+    }
+    if (previous.primaryCategoryId !== entity.primaryCategoryId) {
+      events.push(
+        buildRiskEvent(
+          entity.id,
+          "reclassified",
+          now,
+          "Risk primary category changed.",
+          { primaryCategoryId: previous.primaryCategoryId ?? null },
+          { primaryCategoryId: entity.primaryCategoryId ?? null }
+        )
+      );
+    }
+    // Phase 3B (D4.1): "reconciled" covers both manual externalRefs edits and crosswalk-committed
+    // updates, since both flow through this same write path. A brand-new Risk emits nothing, matching
+    // reassessed/reclassified above — there is no prior externalRefs state to diff against.
+    const beforeExternalRefs = previous.externalRefs ?? [];
+    const afterExternalRefs = entity.externalRefs ?? [];
+    if (!jsonEqual(beforeExternalRefs, afterExternalRefs)) {
+      events.push(
+        buildRiskEvent(
+          entity.id,
+          "reconciled",
+          now,
+          "Risk external references changed.",
+          { externalRefs: beforeExternalRefs },
+          { externalRefs: afterExternalRefs }
+        )
+      );
+    }
+  }
+
+  const touchedRiskIds = new Set(
+    candidateEntities
+      .filter((entity): entity is LinkEntity => entity.entityType === "link" && entity.linkType === "rolls-up-to")
+      .map((link) => link.fromId)
+  );
+  if (touchedRiskIds.size > 0) {
+    const beforeByFrom = activeRollUpTargetsByFrom(stored);
+    const mergedLinksById = new Map(
+      stored.filter((entity): entity is LinkEntity => entity.entityType === "link").map((link) => [link.id, link])
+    );
+    for (const entity of candidateEntities) {
+      if (entity.entityType === "link") {
+        mergedLinksById.set(entity.id, entity);
+      }
+    }
+    const afterByFrom = activeRollUpTargetsByFrom([...mergedLinksById.values()]);
+    for (const riskId of touchedRiskIds) {
+      if (beforeByFrom.get(riskId) !== afterByFrom.get(riskId)) {
+        events.push(
+          buildRiskEvent(
+            riskId,
+            "reparented",
+            now,
+            "Risk rolls-up-to parent changed.",
+            { rollsUpToRiskId: beforeByFrom.get(riskId) ?? null },
+            { rollsUpToRiskId: afterByFrom.get(riskId) ?? null }
+          )
+        );
+      }
+    }
+  }
+
+  return events;
+}
+
+function activeRollUpTargetsByFrom(entities: readonly V01Entity[]): Map<string, string> {
+  const targets = new Map<string, string>();
+  for (const entity of entities) {
+    if (entity.entityType === "link" && entity.recordStatus !== "deleted" && entity.linkType === "rolls-up-to") {
+      targets.set(entity.fromId, entity.toId);
+    }
+  }
+  return targets;
+}
+
+/** D1.2: a Risk with no `assessment` is read as legacy basis using its own likelihood/impact. */
+function normaliseRiskAssessment(risk: RiskEntity): Record<string, unknown> {
+  return { ...(risk.assessment ?? { basis: "legacy", likelihood: risk.likelihood, impact: risk.impact }) };
+}
+
+function buildRiskEvent(
+  riskId: string,
+  kind: RiskEventEntity["kind"],
+  now: string,
+  summary: string,
+  before: Record<string, unknown>,
+  after: Record<string, unknown>
+): RiskEventEntity {
+  return {
+    id: createEntityId("risk-event"),
+    entityType: "risk-event",
+    schemaVersion: VERSION_AXES.schemaVersion,
+    createdAt: now,
+    updatedAt: now,
+    sourceProduct: "core",
+    recordStatus: "active",
+    riskId,
+    kind,
+    occurredAt: now,
+    summary,
+    before,
+    after
+  };
+}
+
+function jsonEqual(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+async function migrateRiskFramework(workspaceRoot: string): Promise<RiskFrameworkEntity> {
+  const paths = await ensureInitialised(workspaceRoot, false);
+  const stored = await readStoredEntities(paths);
+  const existingFramework = stored.find(
+    (entity): entity is RiskFrameworkEntity =>
+      entity.entityType === "risk-framework" && entity.recordStatus !== "deleted"
+  );
+  if (existingFramework) {
+    return existingFramework;
+  }
+  const now = nowIso();
+  const framework: RiskFrameworkEntity = {
+    id: createEntityId("risk-framework"),
+    entityType: "risk-framework",
+    schemaVersion: VERSION_AXES.schemaVersion,
+    createdAt: now,
+    updatedAt: now,
+    sourceProduct: "core",
+    recordStatus: "active",
+    categories: [],
+    methodologies: [LEGACY_5X5_METHODOLOGY],
+    appetiteRules: [],
+    sourceRegisters: [],
+    presentationPresets: []
+  };
+  return (await upsertEntity(workspaceRoot, framework)) as RiskFrameworkEntity;
+}
+
+/** D4.1/D4.4: escalation is operator-authored, not derived from a field diff; Core writes it directly. */
+async function recordRiskEscalation(
+  workspaceRoot: string,
+  riskId: string,
+  escalation: RiskEscalationDetail
+): Promise<RiskEventEntity> {
+  const paths = await ensureInitialised(workspaceRoot, false);
+  await assertWritable(paths);
+  const stored = await readStoredEntities(paths);
+  const risk = stored.find((entity) => entity.id === riskId && entity.entityType === "risk");
+  if (!risk) {
+    throw new Error(`Cannot record an escalation for unknown Risk ${riskId}.`);
+  }
+  const now = nowIso();
+  const event: RiskEventEntity = {
+    id: createEntityId("risk-event"),
+    entityType: "risk-event",
+    schemaVersion: VERSION_AXES.schemaVersion,
+    createdAt: now,
+    updatedAt: now,
+    sourceProduct: "core",
+    recordStatus: "active",
+    riskId,
+    kind: "escalation",
+    occurredAt: now,
+    summary: `Escalation ${escalation.state}${escalation.governanceLabel ? ` recorded for ${escalation.governanceLabel}` : ""}.`,
+    escalation
+  };
+  await runSql(paths.db, upsertEntitySql(event));
+  await syncWorkspaceVersionMetadata(paths);
+  await recordOperation(paths, "risk-escalation", "success", event.id);
+  return event;
+}
+
+/**
+ * Phase 3B (ADR 0098 D5.4/D6.4/§External Registers): revalidates the previewed rows against a fresh
+ * read of the store (never the operator's earlier preview snapshot), then writes only the resulting
+ * create/update rows atomically with a recovery checkpoint reusing the same `pre-<importId>.json` /
+ * `undoLastImport` mechanism as a bundle import. `reuse`/`conflict`/`unmatched` rows are never written,
+ * so a repeat commit of unchanged rows performs no writes, derives no events, and leaves no operation
+ * trail (idempotent). Cycle/dangling-reference and external-identity checks run inside
+ * `prepareEntitiesForWrite` -> `validateRiskRules`, the same gate every other write path uses.
+ */
+async function commitRiskCrosswalk(
+  workspaceRoot: string,
+  sourceRegisterId: string,
+  rows: readonly RiskCrosswalkRowInput[]
+): Promise<RiskCrosswalkCommitResult> {
+  const paths = await ensureInitialised(workspaceRoot, false);
+  await assertWritable(paths);
+  const stored = await readStoredEntities(paths);
+  const existingRisks = stored.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+  const now = nowIso();
+  const preview = buildRiskCrosswalkPreview(rows, existingRisks, sourceRegisterId, now);
+  const counts = {
+    created: preview.filter((row) => row.action === "create").length,
+    updated: preview.filter((row) => row.action === "update").length,
+    reused: preview.filter((row) => row.action === "reuse").length,
+    conflicts: preview.filter((row) => row.action === "conflict").length,
+    unmatched: preview.filter((row) => row.action === "unmatched").length
+  };
+  const writeSetCandidates = buildRiskCrosswalkWriteSet(preview, existingRisks, sourceRegisterId, now);
+  if (writeSetCandidates.length === 0) {
+    return counts;
+  }
+  const importId = `import-${randomUUID()}`;
+  await writeJsonDurably(join(paths.imports, `pre-${importId}.json`), {
+    generatedAt: now,
+    importId,
+    mode: "additive-merge",
+    bundlePath: `risk-crosswalk:${sourceRegisterId}`,
+    reason: "pre risk crosswalk commit rollback point",
+    entities: stored
+  });
+  const prepared = prepareEntitiesForWrite(writeSetCandidates, stored);
+  await runSql(
+    paths.db,
+    [
+      "BEGIN IMMEDIATE;",
+      ...prepared.map(upsertEntitySql),
+      operationSql("import", "success", `additive-merge:${importId}:risk-crosswalk:${sourceRegisterId}`),
+      "COMMIT;"
+    ].join("\n")
+  );
+  await syncWorkspaceVersionMetadata(paths);
+  return { ...counts, importId };
 }
 
 function assertAllAllowed<T extends string>(

@@ -1,9 +1,9 @@
 {
     "manifest": {
         "bundleType": "pspf-explorer-bundle",
-        "bundleVersion": "1.16.0",
-        "schemaVersion": "1.16.0",
-        "apiVersion": "1.16.0",
+        "bundleVersion": "1.17.0",
+        "schemaVersion": "1.17.0",
+        "apiVersion": "1.17.0",
         "generatedAt": "2026-05-10T00:00:00.000Z",
         "generator": {
             "product": "pspf-core",
@@ -118,7 +118,7 @@
             {
                 "id": "DOM-00000000-0000-7000-8000-000000000001",
                 "entityType": "domain",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "title": "Governance",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -132,7 +132,7 @@
             {
                 "id": "REQ-00000000-0000-7000-8000-000000000101",
                 "entityType": "requirement",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "title": "Governance arrangements are established",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -147,7 +147,7 @@
             {
                 "id": "ACT-00000000-0000-7000-8000-000000000301",
                 "entityType": "action",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "title": "Refresh governance committee terms of reference",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -163,7 +163,7 @@
             {
                 "id": "LNK-00000000-0000-7000-8000-000000000501",
                 "entityType": "link",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "title": "Direction reprioritised governance arrangements changes Governance arrangements are established",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -181,7 +181,7 @@
             {
                 "id": "SRC-00000000-0000-7000-8000-000000000101",
                 "entityType": "source-control",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "title": "Application control is implemented",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -216,7 +216,7 @@
             {
                 "id": "MAP-00000000-0000-7000-8000-000000000101",
                 "entityType": "requirement-control-mapping",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "title": "Governance arrangements are established mapped to ISM-1657",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -240,7 +240,7 @@
             {
                 "id": "POSTURE",
                 "entityType": "posture",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "title": "PSPF posture for standard fixture",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -264,7 +264,7 @@
             {
                 "id": "STR-00000000-0000-7000-8000-000000000601",
                 "entityType": "strategy",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "title": "Cybersecurity Strategy",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -320,7 +320,7 @@
             {
                 "id": "CHG-00000000-0000-7000-8000-000000000501",
                 "entityType": "change-record",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "title": "Direction reprioritised governance arrangements",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
@@ -338,7 +338,7 @@
             {
                 "id": "NAR-00000000-0000-7000-8000-000000000701",
                 "entityType": "narrative",
-                "schemaVersion": "1.16.0",
+                "schemaVersion": "1.17.0",
                 "createdAt": "2026-05-10T00:00:00.000Z",
                 "updatedAt": "2026-05-10T00:00:00.000Z",
                 "sourceProduct": "workshop",

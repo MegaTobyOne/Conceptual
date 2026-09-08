@@ -110,6 +110,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0095 | v1.61 import, writer-lock, and rendering hardening                                   | accepted                                                              |
 | 0096 | v1.70 Essentials programme and surface reduction                                     | accepted                                                              |
 | 0097 | v1.71–v1.74 "Brief once, act often" reporting and accountability programme           | accepted                                                              |
+| 0098 | Workshop Risk overhaul: contract and interaction baseline                            | accepted                                                              |
 
 ## Template
 

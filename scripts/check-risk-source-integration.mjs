@@ -77,7 +77,9 @@ assert.equal(
   "Workshop apply should require operator record selection"
 );
 assert.equal(
-  /allow-?list/i.test(workshopExtension),
+  // Scoped to endpoint/host allow-listing; unrelated "allowlisted" wording (for example
+  // the Risk output model) is not an integration change.
+  /allow-?list(ed)?\s+(endpoint|host|url|domain)|(endpoint|host|url|domain)\s+allow-?list/i.test(workshopExtension),
   false,
   "Workshop v1.31 should not introduce endpoint allow-listing"
 );

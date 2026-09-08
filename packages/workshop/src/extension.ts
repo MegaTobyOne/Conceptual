@@ -107,6 +107,7 @@ import {
   buildSampleWorkspaceEntities,
   buildHomeSampleWorkspaceEntities,
   enrichActionsWithImpact,
+  evaluateRisk,
   type EvidenceEntity,
   type EvidenceFreshness,
   type LinkEntity,
@@ -165,7 +166,33 @@ import {
   describeTeamVerdict,
   type TeamReportCardModel,
   type TeamReportCardRow,
-  type TeamVerdict
+  type TeamVerdict,
+  resolveAppetite,
+  isMethodologyRevisionActivated,
+  LEGACY_5X5_METHODOLOGY,
+  LEGACY_METHODOLOGY_ID,
+  LEGACY_METHODOLOGY_REVISION_ID,
+  type CustomRiskAssessment,
+  type CustomRiskAssessmentValue,
+  type RiskAssessment,
+  type RiskEscalationDetail,
+  type RiskEscalationState,
+  type RiskEventEntity,
+  type RiskFrameworkEntity,
+  type RiskResponse,
+  validateControlApplicationAnchors,
+  type RiskControlApplication,
+  type RiskControlApplicationRole,
+  type RiskControlEffectiveness,
+  type RiskControlEntity,
+  type RiskControlState,
+  buildRiskCrosswalkPreview,
+  sameExternalIdentity,
+  validateRiskExternalRef,
+  type RiskCrosswalkPreviewRow,
+  type RiskCrosswalkRowInput,
+  type RiskExternalRef,
+  type RiskSourceRegisterDefinition
 } from "@pspf/contracts";
 import { relationshipManagerHtml, type RelationshipManagerAction } from "@pspf/webview-shell";
 import {
@@ -190,6 +217,46 @@ import { openQuestionnaireHistory, runDomainDeepDive, runQuickstartQuestionnaire
 import { isEvidenceSweepAction, planEvidenceSweep, type EvidenceSweepAction } from "./evidence-sweep.js";
 import { RANKER_DRAFT_CANDIDATE_LIMIT, buildRankerMappingDrafts, type RankerMappingPair } from "./ism-sweep.js";
 import { ISM_SOURCE_CONTROL_CATEGORIES, buildRequirementExplainer } from "@pspf/reference-data";
+import {
+  buildRiskBowTieModel,
+  buildRiskControlApplications,
+  buildRiskCoverageRows,
+  buildRiskHierarchyForest,
+  buildRiskMatrixModel,
+  buildRiskRegisterRows,
+  buildRiskTreatmentActions,
+  candidateActionsForTreatment,
+  candidateControlsForMitigation,
+  candidateParentRisks,
+  findPrimaryParentId,
+  findRollUpLink,
+  getActiveRiskFramework,
+  parseCategoryOutline,
+  renderCategoryOutline,
+  riskAppetiteLabel,
+  riskBandLabel,
+  riskCategoryLabel,
+  riskCategoryOptions,
+  riskCategoryPath
+} from "./risk-workbench.js";
+import {
+  applyRiskCrosswalkColumnMapping,
+  detectRiskCrosswalkColumnMapping,
+  parseRiskCrosswalkDelimitedText,
+  unmappedRequiredFields
+} from "./risk-crosswalk.js";
+import {
+  buildRiskOutputModel,
+  findRiskOutputPreset,
+  isRiskOutputView,
+  renderRiskOutputMarkdown,
+  renderRiskOutputPlainText,
+  renderRiskOutputPrintHtml,
+  resolveRiskOutputPresets,
+  type RiskOutputContext,
+  type RiskOutputModel,
+  type RiskOutputView
+} from "./risk-presentation.js";
 
 // v1.33 questionnaire surface: re-run modes include the literal
 // "Answer all questions again" so operators can refresh their full answer set
@@ -366,17 +433,28 @@ class RisksTreeProvider extends WorkshopTreeProvider {
       return [new WorkshopTreeItem("No risks yet", "Use New Risk to capture a risk", "info")];
     }
     return [...risks]
-      .sort((left, right) => right.likelihood * right.impact - left.likelihood * left.impact)
-      .map(
-        (risk) =>
-          new WorkshopEntityTreeItem(
-            risk.title,
-            `${workshopRiskSeverityLabel(risk)} · ${risk.likelihood}×${risk.impact}`,
-            "warning",
-            risk,
-            "pspfWorkshopRisk"
-          )
-      );
+      .sort((left, right) => {
+        const leftScore = evaluateRisk(left).score;
+        const rightScore = evaluateRisk(right).score;
+        if (leftScore === undefined && rightScore === undefined) {
+          return left.title.localeCompare(right.title, "en-AU");
+        }
+        if (leftScore === undefined) {
+          return 1;
+        }
+        if (rightScore === undefined) {
+          return -1;
+        }
+        return rightScore - leftScore;
+      })
+      .map((risk) => {
+        const evaluation = evaluateRisk(risk);
+        const detail =
+          evaluation.score !== undefined
+            ? `${workshopRiskSeverityLabel(evaluation)} · ${risk.likelihood}×${risk.impact}`
+            : workshopRiskSeverityLabel(evaluation);
+        return new WorkshopEntityTreeItem(risk.title, detail, "warning", risk, "pspfWorkshopRisk");
+      });
   }
 }
 
@@ -401,18 +479,13 @@ class DirectionsTreeProvider extends WorkshopTreeProvider {
   }
 }
 
-function workshopRiskSeverityLabel(risk: RiskEntity): string {
-  const score = risk.likelihood * risk.impact;
-  if (score >= 16) {
-    return "Extreme";
+// Phase 1C (ADR 0098 D1.3/D1.5): corrected to invariant E5 via evaluateRisk; unassessed/not-comparable risks are
+// never coerced to a band.
+function workshopRiskSeverityLabel(evaluation: ReturnType<typeof evaluateRisk>): string {
+  if (evaluation.band) {
+    return evaluation.band.label;
   }
-  if (score >= 10) {
-    return "High";
-  }
-  if (score >= 4) {
-    return "Medium";
-  }
-  return "Low";
+  return evaluation.state === "unassessed" ? "Unassessed" : "Not comparable";
 }
 
 const workshopTreeProviders: WorkshopTreeProvider[] = [];
@@ -2411,6 +2484,611 @@ async function createRisk(requirementId?: string): Promise<void> {
   );
 
   await upsertEntityWithRequirementLinks(risk, links, requirements);
+}
+
+// --- Phase 2 (ADR 0098 §Workbench and Presentation): risk workbench mutation helpers ---------
+
+function parseCauseOrConsequenceList(
+  text: string | undefined,
+  existing: readonly { readonly id: string; readonly label: string }[] | undefined,
+  createId: () => string
+): { readonly id: string; readonly label: string }[] {
+  return (text ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((entryLabel, index) => {
+      const previous = existing?.[index];
+      return { id: previous && previous.label === entryLabel ? previous.id : createId(), label: entryLabel };
+    });
+}
+
+function parseAssessmentValue(value: string | undefined): CustomRiskAssessmentValue | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const [likelihoodId, impactId] = value.split("::");
+  return likelihoodId && impactId ? { likelihoodId, impactId } : undefined;
+}
+
+function buildCustomAssessmentFromFields(fields: Record<string, string>): CustomRiskAssessment | undefined {
+  const [methodologyId, revisionId] = (fields.assessmentMethodologyRevision ?? "").split("::");
+  const current = parseAssessmentValue(fields.assessmentCurrent);
+  if (!methodologyId || !revisionId || !current) {
+    return undefined;
+  }
+  return {
+    basis: "custom",
+    methodologyId,
+    revisionId,
+    current,
+    inherent: parseAssessmentValue(fields.assessmentInherent),
+    target: parseAssessmentValue(fields.assessmentTarget),
+    assessedAt: new Date().toISOString(),
+    rationale: trimOptional(fields.assessmentRationale)
+  };
+}
+
+/** D3.1: replaces `riskId`'s sole outgoing `rolls-up-to` link with one pointing at `parentId` (or removes it). */
+async function setRiskParentLink(riskId: string, parentId: string | undefined): Promise<void> {
+  const allEntities = await listAllEntities();
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+  const existing = findRollUpLink(riskId, links);
+  if (existing?.toId === parentId) {
+    return;
+  }
+  const updatedAt = new Date().toISOString();
+  const updates: LinkEntity[] = [];
+  if (existing) {
+    updates.push({ ...existing, recordStatus: "deleted", updatedAt });
+  }
+  if (parentId) {
+    const child = risks.find((risk) => risk.id === riskId);
+    const parent = risks.find((risk) => risk.id === parentId);
+    if (child && parent) {
+      updates.push(
+        withEnvelope(
+          "link",
+          {
+            entityType: "link",
+            title: `${child.title} rolls up to ${parent.title}`,
+            linkType: "rolls-up-to",
+            fromId: riskId,
+            fromType: "risk",
+            toId: parentId,
+            toType: "risk"
+          },
+          "workshop"
+        )
+      );
+    }
+  }
+  if (updates.length > 0) {
+    await vscode.commands.executeCommand("pspf.core.upsertEntities", updates);
+  }
+}
+
+async function recordRiskEscalationFromFields(fields: Record<string, string>): Promise<void> {
+  const riskId = fields.riskId;
+  const state = fields.escalationState;
+  const reason = fields.escalationReason?.trim();
+  if (!riskId || !["proposed", "accepted", "declined", "withdrawn"].includes(state ?? "") || !reason) {
+    await vscode.window.showWarningMessage("Select a valid escalation state and enter a reason before saving.");
+    return;
+  }
+  const escalation: RiskEscalationDetail = {
+    state: state as RiskEscalationState,
+    reason,
+    destinationRiskId: trimOptional(fields.escalationDestinationRiskId),
+    governanceLabel: trimOptional(fields.escalationGovernanceLabel)
+  };
+  await vscode.commands.executeCommand("pspf.core.recordRiskEscalation", riskId, escalation);
+}
+
+async function ensureRiskFramework(): Promise<RiskFrameworkEntity> {
+  const existing = getActiveRiskFramework(await listAllEntities());
+  if (existing) {
+    return existing;
+  }
+  return (await vscode.commands.executeCommand<RiskFrameworkEntity>(
+    "pspf.core.migrateRiskFramework"
+  )) as RiskFrameworkEntity;
+}
+
+async function saveRiskFrameworkCategoriesFromFields(fields: Record<string, string>): Promise<void> {
+  const framework = await ensureRiskFramework();
+  const categories = parseCategoryOutline(
+    fields.categoryOutline ?? "",
+    framework.categories,
+    () => `cat_${randomUUID()}`
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", {
+    ...framework,
+    categories,
+    updatedAt: new Date().toISOString()
+  } satisfies RiskFrameworkEntity);
+}
+
+async function saveRiskFrameworkAppetiteFromFields(fields: Record<string, string>): Promise<void> {
+  const framework = await ensureRiskFramework();
+  const allowedBandIds = RISK_APPETITE_BAND_IDS.filter((bandId) => fields[`appetiteBand_${bandId}`] !== undefined);
+  const rationale = fields.appetiteRationale?.trim();
+  if (allowedBandIds.length === 0 || !rationale) {
+    await vscode.window.showWarningMessage("Select at least one allowed band and enter a rationale before saving.");
+    return;
+  }
+  const scopeCategoryId = trimOptional(fields.appetiteCategoryId);
+  const rule = {
+    id: `apt_${randomUUID()}`,
+    scope: scopeCategoryId
+      ? ({ kind: "category", categoryId: scopeCategoryId } as const)
+      : ({ kind: "workspace" } as const),
+    methodologyId: LEGACY_METHODOLOGY_ID,
+    revisionId: LEGACY_METHODOLOGY_REVISION_ID,
+    allowedBandIds,
+    rationale,
+    effectiveFrom: normaliseShortAuDateTime(fields.appetiteEffectiveFrom) ?? new Date().toISOString(),
+    reviewBy: normaliseShortAuDateTime(fields.appetiteReviewBy)
+  };
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", {
+    ...framework,
+    appetiteRules: [...framework.appetiteRules, rule],
+    updatedAt: new Date().toISOString()
+  } satisfies RiskFrameworkEntity);
+}
+
+// --- Phase 3B (ADR 0098 D5.4/§External Registers): manual externalRefs authoring, source registers, and CSV/TSV crosswalk import -----
+
+async function addRiskSourceRegisterFromFields(fields: Record<string, string>): Promise<void> {
+  const label = fields.sourceRegisterLabel?.trim();
+  if (!label) {
+    await vscode.window.showWarningMessage("Enter a label before adding a source register.");
+    return;
+  }
+  const framework = await ensureRiskFramework();
+  const register: RiskSourceRegisterDefinition = { id: `reg_${randomUUID()}`, label };
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", {
+    ...framework,
+    sourceRegisters: [...framework.sourceRegisters, register],
+    updatedAt: new Date().toISOString()
+  } satisfies RiskFrameworkEntity);
+}
+
+async function addRiskExternalRefFromFields(fields: Record<string, string>): Promise<void> {
+  const riskId = fields.riskId;
+  const sourceRegisterId = fields.externalRefSourceRegisterId;
+  const externalId = fields.externalRefExternalId?.trim();
+  const externalRating = fields.externalRefExternalRating?.trim();
+  const sourceUpdatedAt = normaliseShortAuDateTime(fields.externalRefSourceUpdatedAt);
+  const referenceUrl = trimOptional(fields.externalRefReferenceUrl);
+  if (!riskId || !sourceRegisterId || !externalId || !externalRating || !sourceUpdatedAt) {
+    await vscode.window.showWarningMessage(
+      "Select a source register and enter an external ID, rating, and source updated date before saving."
+    );
+    return;
+  }
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  if (!risk) {
+    return;
+  }
+  const newRef: RiskExternalRef = {
+    sourceRegisterId,
+    externalId,
+    externalRating,
+    sourceUpdatedAt,
+    referenceUrl,
+    reconciledAt: new Date().toISOString()
+  };
+  const issues = validateRiskExternalRef(newRef);
+  if (issues.length > 0) {
+    await vscode.window.showWarningMessage(`Reference not saved: ${issues.join("; ")}`);
+    return;
+  }
+  const existingRefs = (risk.externalRefs ?? []).filter((ref) => !sameExternalIdentity(ref, newRef));
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", {
+    ...risk,
+    externalRefs: [...existingRefs, newRef],
+    updatedAt: new Date().toISOString()
+  } satisfies RiskEntity);
+}
+
+/**
+ * Previewed CSV/TSV crosswalk import (D5.4/§External Registers): file pick, source-register
+ * selection (or creation), column mapping, a preview computed against the current store, and an
+ * explicit multi-select confirmation before any write. Commit itself is delegated to Core's
+ * `commitRiskCrosswalk`, which revalidates against a fresh read of the store immediately before
+ * committing atomically (Phase 3B Core record).
+ */
+async function importRiskCrosswalkFromFile(): Promise<void> {
+  await ensureCoreReady();
+  const framework = await ensureRiskFramework();
+
+  const pickedFile = await vscode.window.showOpenDialog({
+    title: "Select a risk crosswalk CSV/TSV file",
+    canSelectFiles: true,
+    canSelectFolders: false,
+    canSelectMany: false,
+    filters: { "CSV/TSV": ["csv", "tsv", "txt"] }
+  });
+  const fileUri = pickedFile?.[0];
+  if (!fileUri) {
+    return;
+  }
+
+  let sourceRegisterId: string;
+  const registerItems = [
+    ...framework.sourceRegisters.map((register) => ({
+      label: register.label,
+      description: register.id,
+      id: register.id
+    })),
+    { label: "$(add) Add new source register\u2026", description: "", id: "__new__" }
+  ];
+  const registerChoice = await vscode.window.showQuickPick(registerItems, {
+    title: "Select the source register for this import",
+    ignoreFocusOut: true
+  });
+  if (!registerChoice) {
+    return;
+  }
+  if (registerChoice.id === "__new__") {
+    const newLabel = await vscode.window.showInputBox({
+      title: "New source register label",
+      prompt: "For example, 6clicks or Enterprise Risk Register",
+      ignoreFocusOut: true,
+      validateInput: (value) => (value.trim().length === 0 ? "Enter a label." : undefined)
+    });
+    if (!newLabel) {
+      return;
+    }
+    const register: RiskSourceRegisterDefinition = { id: `reg_${randomUUID()}`, label: newLabel.trim() };
+    await vscode.commands.executeCommand("pspf.core.upsertEntity", {
+      ...framework,
+      sourceRegisters: [...framework.sourceRegisters, register],
+      updatedAt: new Date().toISOString()
+    } satisfies RiskFrameworkEntity);
+    sourceRegisterId = register.id;
+  } else {
+    sourceRegisterId = registerChoice.id;
+  }
+
+  const bytes = await vscode.workspace.fs.readFile(fileUri);
+  const text = Buffer.from(bytes).toString("utf8");
+  const delimiter = fileUri.fsPath.toLowerCase().endsWith(".tsv") || text.split("\n")[0]?.includes("\t") ? "\t" : ",";
+  const parsed = parseRiskCrosswalkDelimitedText(text, delimiter);
+  if (parsed.rows.length === 0) {
+    await vscode.window.showWarningMessage("The selected file has no data rows.");
+    return;
+  }
+
+  let mapping = detectRiskCrosswalkColumnMapping(parsed.headers);
+  for (const field of unmappedRequiredFields(mapping)) {
+    const columnChoice = await vscode.window.showQuickPick(parsed.headers, {
+      title: `Map a column for "${field.label}"`,
+      ignoreFocusOut: true
+    });
+    if (!columnChoice) {
+      return;
+    }
+    mapping = { ...mapping, [field.key]: columnChoice };
+  }
+
+  const inputRows = applyRiskCrosswalkColumnMapping(parsed.rows, mapping);
+  const allEntities = await listAllEntities();
+  const existingRisks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+  const preview: readonly RiskCrosswalkPreviewRow[] = buildRiskCrosswalkPreview(
+    inputRows,
+    existingRisks,
+    sourceRegisterId
+  );
+  const eligible = preview.filter((row) => row.action === "create" || row.action === "update");
+  const staged = preview.filter((row) => row.action === "conflict" || row.action === "unmatched");
+  if (eligible.length === 0) {
+    await vscode.window.showInformationMessage(
+      staged.length > 0
+        ? `No rows are ready to import: ${staged.length} row(s) need manual resolution (conflict/unmatched) and were staged, not imported.`
+        : "Every row already matches the current store; nothing to import."
+    );
+    return;
+  }
+
+  const confirmationItems = eligible.map((row) => ({
+    label: row.input.title || row.input.externalId,
+    description: row.action === "create" ? "Create" : "Update",
+    detail: `External ID ${row.input.externalId} \u00b7 Rating ${row.input.externalRating}`,
+    picked: true,
+    row
+  }));
+  const selected = await vscode.window.showQuickPick(confirmationItems, {
+    title: `Confirm risk crosswalk import \u2014 ${eligible.length} row(s) ready${staged.length > 0 ? `, ${staged.length} staged (conflict/unmatched, not shown)` : ""}`,
+    canPickMany: true,
+    ignoreFocusOut: true
+  });
+  if (!selected || selected.length === 0) {
+    await vscode.window.showInformationMessage("Risk crosswalk import cancelled; nothing was written.");
+    return;
+  }
+
+  const confirmedRows: RiskCrosswalkRowInput[] = selected.map((item) => item.row.input);
+  const result = (await vscode.commands.executeCommand(
+    "pspf.core.commitRiskCrosswalk",
+    sourceRegisterId,
+    confirmedRows
+  )) as { created: number; updated: number; reused: number };
+  await vscode.window.showInformationMessage(
+    `Risk crosswalk import complete: ${result.created} created, ${result.updated} updated, ${result.reused} unchanged.${staged.length > 0 ? ` ${staged.length} row(s) staged for manual resolution.` : ""}`
+  );
+}
+
+// --- Phase 3A (ADR 0098 D3.7/D3.4/D3.5/D3.2): treatments, controls, and secondary associations -----
+
+const riskControlStateItems: readonly { readonly label: string; readonly value: RiskControlState }[] = [
+  { label: "Proposed", value: "proposed" },
+  { label: "Active", value: "active" },
+  { label: "Retired", value: "retired" }
+];
+
+async function linkExistingActionToRiskFromFields(fields: Record<string, string>): Promise<void> {
+  const riskId = fields.riskId;
+  const actionId = fields.actionId;
+  if (!riskId || !actionId) {
+    await vscode.window.showWarningMessage("Choose an action to link before continuing.");
+    return;
+  }
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  const action = allEntities.find(
+    (entity): entity is ActionEntity => entity.entityType === "action" && entity.id === actionId
+  );
+  if (!risk || !action) {
+    return;
+  }
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${risk.title} treated by ${action.title}`,
+      linkType: "treated-by",
+      fromId: risk.id,
+      fromType: "risk",
+      toId: action.id,
+      toType: "action"
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
+  const risks = allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk");
+  const otherRiskTitles = buildRiskTreatmentActions(risk, [...links, link], [action], risks).find(
+    (row) => row.action.id === action.id
+  )?.otherRiskTitles;
+  if (otherRiskTitles && otherRiskTitles.length > 0) {
+    await vscode.window.showInformationMessage(`${action.title} also treats: ${otherRiskTitles.join(", ")}.`);
+  }
+}
+
+async function createActionForRisk(riskId: string): Promise<void> {
+  await ensureCoreReady();
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  if (!risk) {
+    return;
+  }
+  const title = await vscode.window.showInputBox({
+    title: "Create Action",
+    prompt: "Action title",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter an action title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+  const status = await vscode.window.showQuickPick(actionStatusItems, {
+    title: "Select Action Status",
+    ignoreFocusOut: true
+  });
+  if (!status) {
+    return;
+  }
+  const dueDate = await vscode.window.showInputBox({
+    title: "Create Action",
+    prompt: "Due date, for example 30 Jun 2026. Press Enter to skip.",
+    ignoreFocusOut: true
+  });
+  if (dueDate === undefined) {
+    return;
+  }
+  const action = withEnvelope(
+    "action",
+    { entityType: "action", title: title.trim(), status: status.value, dueDate: normaliseShortAuDateTime(dueDate) },
+    "workshop"
+  );
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${risk.title} treated by ${action.title}`,
+      linkType: "treated-by",
+      fromId: risk.id,
+      fromType: "risk",
+      toId: action.id,
+      toType: "action"
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", [action, link]);
+}
+
+async function createRiskControl(): Promise<void> {
+  await ensureCoreReady();
+  const title = await vscode.window.showInputBox({
+    title: "Create Risk Control",
+    prompt: "Control title",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a control title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+  const definition = await vscode.window.showInputBox({
+    title: "Create Risk Control",
+    prompt: "Control definition",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a control definition." : undefined)
+  });
+  if (!definition) {
+    return;
+  }
+  const ownerTeam = await vscode.window.showInputBox({
+    title: "Create Risk Control",
+    prompt: "Owner team, never a person",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter an owner team." : undefined)
+  });
+  if (!ownerTeam) {
+    return;
+  }
+  const state = await vscode.window.showQuickPick(riskControlStateItems, {
+    title: "Select Control State",
+    ignoreFocusOut: true
+  });
+  if (!state) {
+    return;
+  }
+  const control = withEnvelope(
+    "risk-control",
+    {
+      entityType: "risk-control",
+      title: title.trim(),
+      definition: definition.trim(),
+      ownerTeam: ownerTeam.trim(),
+      state: state.value
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", control);
+}
+
+async function mitigateRiskWithControlFromFields(fields: Record<string, string>): Promise<void> {
+  const riskId = fields.riskId;
+  const controlId = fields.controlId;
+  const role = fields.controlRole;
+  const effectiveness = fields.controlEffectiveness;
+  const applicability = fields.controlApplicability?.trim();
+  if (
+    !riskId ||
+    !controlId ||
+    !["preventive", "recovery", "both"].includes(role ?? "") ||
+    !["not-assessed", "ineffective", "partially-effective", "effective"].includes(effectiveness ?? "") ||
+    !applicability
+  ) {
+    await vscode.window.showWarningMessage(
+      "Select a control, role, and effectiveness, and enter an applicability before saving."
+    );
+    return;
+  }
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  const control = allEntities.find(
+    (entity): entity is RiskControlEntity => entity.entityType === "risk-control" && entity.id === controlId
+  );
+  if (!risk || !control) {
+    return;
+  }
+  const anchorIds = [...(risk.causes ?? []), ...(risk.consequences ?? [])]
+    .map((anchor) => anchor.id)
+    .filter((id) => fields[`anchor_${id}`] !== undefined);
+  const application: RiskControlApplication = {
+    role: role as RiskControlApplicationRole,
+    applicability,
+    effectiveness: effectiveness as RiskControlEffectiveness,
+    rationale: trimOptional(fields.controlRationale),
+    anchorIds
+  };
+  const unresolvedAnchors = validateControlApplicationAnchors(risk, application);
+  if (unresolvedAnchors.length > 0) {
+    await vscode.window.showWarningMessage(
+      "Selected anchors could not be resolved against this risk's causes/consequences."
+    );
+    return;
+  }
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${risk.title} mitigated by ${control.title}`,
+      linkType: "mitigated-by",
+      fromId: risk.id,
+      fromType: "risk",
+      toId: control.id,
+      toType: "risk-control",
+      application
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
+}
+
+async function linkSecondaryRiskAssociation(riskId: string): Promise<void> {
+  const allEntities = await listAllEntities();
+  const risk = allEntities.find((entity): entity is RiskEntity => entity.entityType === "risk" && entity.id === riskId);
+  if (!risk) {
+    return;
+  }
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+  const alreadyLinkedIds = new Set(
+    links
+      .filter(
+        (link) =>
+          link.linkType === "related-to" &&
+          link.fromType === "risk" &&
+          link.toType === "risk" &&
+          (link.fromId === risk.id || link.toId === risk.id)
+      )
+      .map((link) => (link.fromId === risk.id ? link.toId : link.fromId))
+  );
+  const candidates = risks.filter((candidate) => candidate.id !== risk.id && !alreadyLinkedIds.has(candidate.id));
+  if (candidates.length === 0) {
+    await vscode.window.showInformationMessage(
+      "No other risks are available to link as a secondary enterprise association."
+    );
+    return;
+  }
+  const picked = await vscode.window.showQuickPick(
+    candidates.map((candidate) => ({ label: candidate.title, detail: candidate.id, candidate })),
+    { title: "Link Secondary Enterprise Risk", placeHolder: "Select a risk to associate", ignoreFocusOut: true }
+  );
+  if (!picked) {
+    return;
+  }
+  const link = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: `${risk.title} related to ${picked.candidate.title}`,
+      linkType: "related-to",
+      fromId: risk.id,
+      fromType: "risk",
+      toId: picked.candidate.id,
+      toType: "risk",
+      linkRole: "secondary-enterprise-association"
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntity", link);
 }
 
 type RiskSourceAuthMode = "api-key-header" | "bearer-token";
@@ -8551,29 +9229,21 @@ async function openActionsList(): Promise<void> {
   await openEntityEditor(picked, allEntities);
 }
 
+// Phase 2 (ADR 0098 §Workbench and Presentation, D8.1): opens the Risk workbench in its Register
+// state inside the existing Item Detail panel, rather than a native quick pick.
 async function openRisksList(): Promise<void> {
   await ensureCoreReady();
   const allEntities = await listAllEntities();
   const risks = allEntities
     .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
     .sort(compareWorkbenchRecords);
-  const picked = await pickEntityForEdit(
-    risks,
-    "Edit Risk",
-    (risk) => risk.title,
-    (risk) => label(risk.status),
-    (risk) => `Likelihood ${risk.likelihood} · impact ${risk.impact}`
-  );
-  if (!picked) {
-    if (risks.length > 0) {
-      return;
-    }
+  if (risks.length === 0) {
     await vscode.window.showInformationMessage(
       "No Risk records found. Create a Risk or load the sample workspace first."
     );
     return;
   }
-  await openEntityEditor(picked, allEntities);
+  await openEntityEditor(risks[0]!, allEntities, { riskView: "register" });
 }
 
 async function openDirectionsList(): Promise<void> {
@@ -10356,7 +11026,12 @@ type SaveEntityMessage = {
   readonly pendingStrategyArea?: string;
   readonly pendingChoiceIndex?: string;
   readonly pendingOutcomeIndex?: string;
+  readonly pendingRiskView?: string;
   readonly evidenceReference?: string;
+  readonly riskView?: string;
+  readonly value?: string;
+  readonly dataUrl?: string;
+  readonly riskOutputView?: string;
 };
 
 type RequirementBrowserOptions = {
@@ -10364,7 +11039,35 @@ type RequirementBrowserOptions = {
   readonly domainId?: string;
   readonly assessmentStatus?: AssessmentStatus;
   readonly savedView?: SavedViewEntity;
+  readonly riskView?: RiskWorkbenchView;
+  readonly riskOutputPresetId?: string;
 };
+
+/** Phase 2/3A/4A (ADR 0098 §Workbench and Presentation): the Risk workbench's current presentation view. */
+export type RiskWorkbenchView =
+  | "record"
+  | "register"
+  | "hierarchy"
+  | "matrix"
+  | "treatments"
+  | "bowtie"
+  | "coverage"
+  | "framework"
+  | "cards";
+
+function isRiskWorkbenchView(value: string | undefined): value is RiskWorkbenchView {
+  return (
+    value === "record" ||
+    value === "register" ||
+    value === "hierarchy" ||
+    value === "matrix" ||
+    value === "treatments" ||
+    value === "bowtie" ||
+    value === "coverage" ||
+    value === "framework" ||
+    value === "cards"
+  );
+}
 
 type EditableWorkshopEntity =
   | RequirementEntity
@@ -10418,6 +11121,10 @@ async function openEntityEditor(
   let currentEntities = allEntities;
   let requirementFilterText = options.filterText ?? options.savedView?.filters.query ?? "";
   let requirementSavedView = options.savedView;
+  let riskWorkbenchView: RiskWorkbenchView = options.riskView ?? "record";
+  let riskOutputPresetIdByView: Partial<Record<RiskWorkbenchView, string>> = options.riskOutputPresetId
+    ? { [riskWorkbenchView]: options.riskOutputPresetId }
+    : {};
   let hasUnsavedEditorChanges = false;
   let unsavedEditorFields: Record<string, string> | undefined;
   const panel = vscode.window.createWebviewPanel(
@@ -10440,7 +11147,9 @@ async function openEntityEditor(
       currentEntity.title ?? currentEntity.id,
       renderEntityEditor(currentEntity, currentEntities, {
         filterText: requirementFilterText,
-        savedView: requirementSavedView
+        savedView: requirementSavedView,
+        riskView: riskWorkbenchView,
+        riskOutputPresetId: riskOutputPresetIdByView[riskWorkbenchView]
       })
     );
     hasUnsavedEditorChanges = false;
@@ -10550,8 +11259,16 @@ async function openEntityEditor(
       if (target) {
         currentEntity = target;
         requirementFilterText = message.pendingFilterText ?? "";
+        if (target.entityType === "risk") {
+          riskWorkbenchView = "record";
+        }
         await refreshEditor();
       }
+      return;
+    }
+    if (command === "setRiskWorkbenchView") {
+      riskWorkbenchView = isRiskWorkbenchView(message.pendingRiskView) ? message.pendingRiskView : "record";
+      await refreshEditor();
       return;
     }
     if (command === "openEvidenceReference") {
@@ -10635,7 +11352,11 @@ async function openEntityEditor(
       }
       return;
     }
-    if (command === "refresh") {
+    if (command === "refresh" || command === "migrateRiskFramework") {
+      if (command === "migrateRiskFramework") {
+        await vscode.commands.executeCommand("pspf.core.migrateRiskFramework");
+        await refreshWorkshopSurfaces();
+      }
       await refreshEditor();
       return;
     }
@@ -10703,8 +11424,149 @@ async function openEntityEditor(
       );
       if (target) {
         currentEntity = target;
+        if (target.entityType === "risk") {
+          riskWorkbenchView = "record";
+        }
         await refreshEditor();
       }
+      return;
+    }
+    if (message.command === "setRiskWorkbenchView") {
+      riskWorkbenchView = isRiskWorkbenchView(message.riskView) ? message.riskView : "record";
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "migrateRiskFramework") {
+      await vscode.commands.executeCommand("pspf.core.migrateRiskFramework");
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "setRiskParent" && currentEntity.entityType === "risk") {
+      await setRiskParentLink(currentEntity.id, message.value || undefined);
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "recordRiskEscalation") {
+      await recordRiskEscalationFromFields(message.fields ?? {});
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "saveRiskFrameworkCategories") {
+      await saveRiskFrameworkCategoriesFromFields(message.fields ?? {});
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "saveRiskFrameworkAppetite") {
+      await saveRiskFrameworkAppetiteFromFields(message.fields ?? {});
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "addRiskSourceRegister") {
+      await addRiskSourceRegisterFromFields(message.fields ?? {});
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "addRiskExternalRef") {
+      await addRiskExternalRefFromFields(message.fields ?? {});
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "importRiskCrosswalkFromFile") {
+      await importRiskCrosswalkFromFile();
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "linkExistingActionToRisk") {
+      await linkExistingActionToRiskFromFields(message.fields ?? {});
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "createActionForRisk" && message.entityId) {
+      await createActionForRisk(message.entityId);
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "createRiskControl") {
+      await createRiskControl();
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "mitigateRiskWithControl") {
+      await mitigateRiskWithControlFromFields(message.fields ?? {});
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "linkSecondaryRiskAssociation" && message.entityId) {
+      await linkSecondaryRiskAssociation(message.entityId);
+      await refreshWorkshopSurfaces();
+      await refreshEditor();
+      return;
+    }
+    if (message.command === "setRiskOutputPreset") {
+      if (message.value) {
+        riskOutputPresetIdByView = { ...riskOutputPresetIdByView, [riskWorkbenchView]: message.value };
+      }
+      await refreshEditor();
+      return;
+    }
+    if (
+      message.command === "copyRiskOutputText" &&
+      currentEntity.entityType === "risk" &&
+      isRiskOutputView(riskWorkbenchView)
+    ) {
+      await copyRiskOutputArtefact(
+        riskWorkbenchView,
+        riskOutputPresetIdByView[riskWorkbenchView],
+        currentEntity.id,
+        "plain-text"
+      );
+      return;
+    }
+    if (
+      message.command === "copyRiskOutputMarkdown" &&
+      currentEntity.entityType === "risk" &&
+      isRiskOutputView(riskWorkbenchView)
+    ) {
+      await copyRiskOutputArtefact(
+        riskWorkbenchView,
+        riskOutputPresetIdByView[riskWorkbenchView],
+        currentEntity.id,
+        "markdown"
+      );
+      return;
+    }
+    if (
+      message.command === "saveRiskOutputPrintHtml" &&
+      currentEntity.entityType === "risk" &&
+      isRiskOutputView(riskWorkbenchView)
+    ) {
+      await saveRiskOutputPrintHtmlArtefact(
+        riskWorkbenchView,
+        riskOutputPresetIdByView[riskWorkbenchView],
+        currentEntity.id
+      );
+      return;
+    }
+    if (message.command === "saveRiskOutputPng" && typeof message.dataUrl === "string") {
+      await saveRiskOutputPngArtefact(
+        message.dataUrl,
+        isRiskOutputView(message.riskOutputView) ? message.riskOutputView : "register"
+      );
+      return;
+    }
+    if (message.command === "riskOutputPngCopyFailed") {
+      await vscode.window.showWarningMessage(
+        "Copying the risk visual as an image is not supported in this environment. Use Save PNG instead."
+      );
       return;
     }
     if (message.command === "openEvidenceReference") {
@@ -11273,7 +12135,52 @@ async function buildUpdatedEntity(
         await vscode.window.showWarningMessage("Risk likelihood and impact must be whole numbers from 1 to 5.");
         return undefined;
       }
-      return { ...entity, title, status, likelihood, impact, updatedAt };
+      // ADR 0098 D1.1/D1.2: basis "legacy" means no explicit `assessment`, using likelihood/impact directly.
+      const basis = fields.assessmentBasis ?? "legacy";
+      let assessment: RiskAssessment | undefined;
+      if (basis === "unassessed") {
+        assessment = { basis: "unassessed" };
+      } else if (basis === "custom") {
+        const custom = buildCustomAssessmentFromFields(fields);
+        if (!custom) {
+          await vscode.window.showWarningMessage(
+            "Choose a methodology revision and a current likelihood/impact before saving a custom assessment."
+          );
+          return undefined;
+        }
+        assessment = custom;
+      }
+      const response = ["reduce", "avoid", "share", "accept", "not-decided"].includes(fields.response ?? "")
+        ? (fields.response as RiskResponse)
+        : undefined;
+      const causes = parseCauseOrConsequenceList(fields.causes, entity.causes, () => `cause_${randomUUID()}`);
+      const consequences = parseCauseOrConsequenceList(
+        fields.consequences,
+        entity.consequences,
+        () => `cons_${randomUUID()}`
+      );
+      const next = {
+        ...entity,
+        title,
+        status,
+        likelihood,
+        impact,
+        reference: trimOptional(fields.reference),
+        description: trimOptional(fields.description),
+        ownerTeam: trimOptional(fields.ownerTeam),
+        reviewBy: normaliseShortAuDateTime(fields.reviewBy),
+        primaryCategoryId: trimOptional(fields.primaryCategoryId),
+        response,
+        causes: causes.length > 0 ? causes : undefined,
+        consequences: consequences.length > 0 ? consequences : undefined,
+        assessment,
+        updatedAt
+      };
+      if (!assessment) {
+        const { assessment: _removedAssessment, ...withoutAssessment } = next;
+        return withoutAssessment as RiskEntity;
+      }
+      return next as RiskEntity;
     }
     case "direction": {
       const responseState = fields.responseState;
@@ -11379,7 +12286,7 @@ function renderEntityEditor(
     case "action":
       return renderActionEditor(entity, allEntities, requirementOptions);
     case "risk":
-      return renderRiskEditor(entity, allEntities, requirementOptions);
+      return renderRiskWorkbench(entity, allEntities, requirementOptions);
     case "direction":
       return renderDirectionEditor(entity, allEntities);
     case "change-record":
@@ -11932,7 +12839,7 @@ function recordWorkbenchMeta(entity: RecordWorkbenchEntity): string {
     case "action":
       return `${label(entity.status)} · ${formatShortAuDateTime(entity.dueDate) ?? "No due date"}`;
     case "risk":
-      return `${label(entity.status)} · score ${entity.likelihood * entity.impact}`;
+      return `${label(entity.status)} · ${riskBandLabel(evaluateRisk(entity))}`;
   }
 }
 
@@ -11947,10 +12854,18 @@ function compareWorkbenchRecords(left: RecordWorkbenchEntity, right: RecordWorkb
     );
   }
   if (left.entityType === "risk" && right.entityType === "risk") {
-    return (
-      right.likelihood * right.impact - left.likelihood * left.impact ||
-      left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" })
-    );
+    const leftScore = evaluateRisk(left).score;
+    const rightScore = evaluateRisk(right).score;
+    if (leftScore === undefined && rightScore === undefined) {
+      return left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" });
+    }
+    if (leftScore === undefined) {
+      return 1;
+    }
+    if (rightScore === undefined) {
+      return -1;
+    }
+    return rightScore - leftScore || left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" });
   }
   return left.title.localeCompare(right.title, "en-AU", { sensitivity: "base" });
 }
@@ -12150,23 +13065,297 @@ function linkedRequirementsForAction(
     .sort(compareRequirementsForPicker);
 }
 
-function renderRiskEditor(
+// Test-only surface for scripts/check-risk-workbench.mjs, which renders the real
+// workbench markup headlessly; nothing in the extension host reads it.
+export const __riskWorkbenchTestHooks = { renderRiskWorkbench, buildUpdatedEntity };
+
+// Phase 2/3A (ADR 0098 §Workbench and Presentation): the Risk workbench dispatches on `riskView`,
+// showing the shared toolbar plus either the per-record editor (inside the usual nav sidebar) or a
+// full-width Register/Hierarchy/Matrix/Coverage/Framework surface, without adding a new panel or command.
+function renderRiskWorkbench(
   risk: RiskEntity,
   allEntities: readonly V01Entity[],
   browserOptions: RequirementBrowserOptions = {}
 ): string {
-  const scoreOptions = [1, 2, 3, 4, 5].map((value) => ({ label: String(value), value: String(value) }));
+  const view = browserOptions.riskView ?? "record";
+  const presetId = browserOptions.riskOutputPresetId;
+  const toolbar = riskWorkbenchToolbar(view);
+  if (view === "register") {
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskRegisterContent(allEntities, presetId)}`;
+  }
+  if (view === "hierarchy") {
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskHierarchyContent(allEntities, presetId)}`;
+  }
+  if (view === "matrix") {
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskMatrixContent(allEntities, presetId)}`;
+  }
+  if (view === "coverage") {
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskCoverageContent(allEntities, presetId)}`;
+  }
+  if (view === "cards") {
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskCardsContent(allEntities, presetId)}`;
+  }
+  if (view === "framework") {
+    return `${riskWorkbenchStyles()}${toolbar}${renderRiskFrameworkContent(allEntities)}`;
+  }
+  if (view === "treatments") {
+    const editorContent = `${riskWorkbenchStyles()}${toolbar}${renderRiskTreatmentsContent(risk, allEntities)}`;
+    return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
+  }
+  if (view === "bowtie") {
+    const editorContent = `${riskWorkbenchStyles()}${toolbar}${renderRiskBowTieContent(risk, allEntities, presetId)}`;
+    return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
+  }
+  const editorContent = `${riskWorkbenchStyles()}${toolbar}${renderRiskRecordContent(risk, allEntities)}`;
+  return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
+}
+
+function riskWorkbenchToolbar(view: RiskWorkbenchView): string {
+  const items: readonly { readonly view: RiskWorkbenchView; readonly label: string }[] = [
+    { view: "register", label: "Register" },
+    { view: "hierarchy", label: "Hierarchy" },
+    { view: "matrix", label: "Matrix" },
+    { view: "treatments", label: "Treatments" },
+    { view: "bowtie", label: "Bow-tie" },
+    { view: "coverage", label: "Coverage" },
+    { view: "cards", label: "Cards" },
+    { view: "framework", label: "Framework" }
+  ];
+  const buttons = items
+    .map(
+      (item) =>
+        `<button type="button" data-command="setRiskWorkbenchView" data-risk-view="${item.view}"${view === item.view ? ' aria-current="page"' : ""}>${escapeHtml(item.label)}</button>`
+    )
+    .join("");
+  return `<nav class="risk-workbench__toolbar" aria-label="Risk workbench views">${buttons}</nav>`;
+}
+
+function renderRiskRecordContent(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+  const framework = getActiveRiskFramework(allEntities);
+  const categoryOptions = riskCategoryOptions(framework);
+  const categorySelectOptions = [
+    { label: "No category", value: "" },
+    ...categoryOptions.map((option) => ({ label: `${"  ".repeat(option.depth)}${option.label}`, value: option.id }))
+  ];
+  const responseOptions = ["not-decided", "reduce", "avoid", "share", "accept"].map((value) => ({
+    label: label(value),
+    value
+  }));
   const editorContent = `${editorShell(
     risk,
-    "Edit Risk",
+    "Record",
     `
     ${inputField("title", "Title", risk.title, true)}
+    ${inputField("reference", "Reference", risk.reference ?? "", false, "operator's own register reference")}
+    ${textareaField("description", "Description", risk.description ?? "")}
     ${selectField("status", "Status", riskStatusItems, risk.status)}
-    ${selectField("likelihood", "Likelihood", scoreOptions, String(risk.likelihood))}
-    ${selectField("impact", "Impact", scoreOptions, String(risk.impact))}
+    ${ownerTeamField(risk.ownerTeam, allEntities)}
+    ${inputField("reviewBy", "Review by", formatShortAuDateTime(risk.reviewBy) ?? "", false, "today or 30 Jun 2027")}
+    ${selectField("primaryCategoryId", "Primary category", categorySelectOptions, risk.primaryCategoryId ?? "")}
+    ${selectField("response", "Response", responseOptions, risk.response ?? "not-decided")}
+    ${textareaField("causes", "Causes (one per line)", (risk.causes ?? []).map((cause) => cause.label).join("\n"))}
+    ${textareaField("consequences", "Consequences (one per line)", (risk.consequences ?? []).map((consequence) => consequence.label).join("\n"))}
+    ${riskAssessmentSection(risk, framework)}
   `
-  )}${riskSourceMetadataSection(risk)}${commercialContextSection(risk, allEntities)}`;
-  return recordWorkbenchShell(risk, allEntities, browserOptions, editorContent);
+  )}${riskRelationshipsSection(risk, allEntities)}${riskExternalReferencesSection(risk, allEntities)}${riskHistorySection(risk, allEntities)}${riskSourceMetadataSection(risk)}${commercialContextSection(risk, allEntities)}`;
+  return editorContent;
+}
+
+function riskAssessmentSection(risk: RiskEntity, framework: RiskFrameworkEntity | undefined): string {
+  const scoreOptions = [1, 2, 3, 4, 5].map((value) => ({ label: String(value), value: String(value) }));
+  const basis = risk.assessment?.basis ?? "legacy";
+  const basisOptions = [
+    { label: "Legacy 5x5 (likelihood x impact)", value: "legacy" },
+    { label: "Custom methodology", value: "custom" },
+    { label: "Unassessed", value: "unassessed" }
+  ];
+  const methodologyOptions = (framework?.methodologies ?? []).flatMap((methodology) => {
+    const activated =
+      [...methodology.revisions].reverse().find((revision) => isMethodologyRevisionActivated(revision)) ??
+      methodology.revisions[methodology.revisions.length - 1];
+    return activated
+      ? [
+          {
+            label: `${methodology.label} (${activated.revisionId})`,
+            value: `${methodology.id}::${activated.revisionId}`,
+            revision: activated
+          }
+        ]
+      : [];
+  });
+  const selectedCustom = risk.assessment?.basis === "custom" ? risk.assessment : undefined;
+  const selectedMethodologyValue = selectedCustom
+    ? `${selectedCustom.methodologyId}::${selectedCustom.revisionId}`
+    : (methodologyOptions[0]?.value ?? "");
+  const activeRevision = methodologyOptions.find((option) => option.value === selectedMethodologyValue)?.revision;
+  const cellOptions = activeRevision
+    ? [
+        { label: "Not set", value: "" },
+        ...activeRevision.cells.map((cell) => {
+          const likelihoodLabel =
+            activeRevision.likelihoodLevels.find((level) => level.id === cell.likelihoodId)?.label ?? cell.likelihoodId;
+          const impactLabel =
+            activeRevision.impactLevels.find((level) => level.id === cell.impactId)?.label ?? cell.impactId;
+          const bandLabel = activeRevision.bands.find((band) => band.id === cell.bandId)?.label ?? cell.bandId;
+          return {
+            label: `Likelihood ${likelihoodLabel} \u00d7 impact ${impactLabel} \u2014 ${bandLabel}`,
+            value: `${cell.likelihoodId}::${cell.impactId}`
+          };
+        })
+      ]
+    : [];
+  const valueFor = (value: { readonly likelihoodId: string; readonly impactId: string } | undefined): string =>
+    value ? `${value.likelihoodId}::${value.impactId}` : "";
+  const evaluation = evaluateRisk(risk, framework);
+  const now = new Date().toISOString();
+  const appetite = resolveAppetite(risk, framework, evaluation, now);
+  return `<section>
+    <h2>Assessment</h2>
+    <div class="grid">
+      ${metricCard("Band", riskBandLabel(evaluation))}
+      ${metricCard("Appetite", riskAppetiteLabel(appetite))}
+      ${metricCard("Category", riskCategoryPath(framework, risk.primaryCategoryId))}
+    </div>
+    <p class="muted">${escapeHtml(evaluation.explanation.join(" "))}</p>
+    ${selectField("assessmentBasis", "Assessment basis", basisOptions, basis)}
+    <p class="muted">Only the fields for the selected basis above are used when you save.</p>
+    <div class="risk-assessment__legacy">
+      ${selectField("likelihood", "Likelihood (legacy)", scoreOptions, String(risk.likelihood))}
+      ${selectField("impact", "Impact (legacy)", scoreOptions, String(risk.impact))}
+    </div>
+    ${
+      methodologyOptions.length > 0
+        ? `<div class="risk-assessment__custom">
+      ${selectField("assessmentMethodologyRevision", "Methodology (custom)", methodologyOptions, selectedMethodologyValue)}
+      ${selectField("assessmentCurrent", "Current (custom)", cellOptions, valueFor(selectedCustom?.current))}
+      ${selectField("assessmentInherent", "Inherent, optional (custom)", cellOptions, valueFor(selectedCustom?.inherent))}
+      ${selectField("assessmentTarget", "Target, optional (custom)", cellOptions, valueFor(selectedCustom?.target))}
+    </div>`
+        : `<p class="muted">No custom methodology is defined yet. Use Framework to set one up.</p>`
+    }
+    ${textareaField("assessmentRationale", "Rationale", selectedCustom?.rationale ?? (risk.assessment?.basis === "legacy" ? (risk.assessment.rationale ?? "") : ""))}
+  </section>`;
+}
+
+function riskRelationshipsSection(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+  const parentId = findPrimaryParentId(risk.id, links);
+  const candidates = candidateParentRisks(risk, risks, links);
+  const parentOptions = [
+    { label: "No parent", value: "" },
+    ...candidates.map((candidate) => ({ label: candidate.title, value: candidate.id }))
+  ];
+  const childCount = risks.filter((candidate) => findPrimaryParentId(candidate.id, links) === risk.id).length;
+  const secondaryRows = links
+    .filter(
+      (link) =>
+        link.linkType === "related-to" &&
+        link.fromType === "risk" &&
+        link.toType === "risk" &&
+        (link.fromId === risk.id || link.toId === risk.id)
+    )
+    .map((link) => {
+      const otherId = link.fromId === risk.id ? link.toId : link.fromId;
+      return { title: risks.find((candidate) => candidate.id === otherId)?.title ?? otherId };
+    });
+  return `<section>
+    <h2>Relationships</h2>
+    <label>Primary parent risk (rolls up to)
+      <select data-command="setRiskParent" data-entity-id="${escapeHtml(risk.id)}">
+        ${parentOptions
+          .map(
+            (option) =>
+              `<option value="${escapeHtml(option.value)}"${option.value === (parentId ?? "") ? " selected" : ""}>${escapeHtml(option.label)}</option>`
+          )
+          .join("")}
+      </select>
+    </label>
+    <p class="muted">${childCount} risk${childCount === 1 ? "" : "s"} roll up to this risk directly.</p>
+    ${recordTable("Secondary enterprise associations", secondaryRows, ["title"])}
+    <div class="form-actions"><button type="button" data-command="linkSecondaryRiskAssociation" data-entity-id="${escapeHtml(risk.id)}">Link secondary risk</button></div>
+  </section>`;
+}
+
+/** Phase 3B (ADR 0098 D5.4): manual authoring of source-register cross-references. `reconciledAt` is stamped by Core, never operator-entered. */
+function riskExternalReferencesSection(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+  const framework = getActiveRiskFramework(allEntities);
+  const registers = framework?.sourceRegisters ?? [];
+  const registerLabelById = new Map(registers.map((register) => [register.id, register.label]));
+  const rows = (risk.externalRefs ?? []).map((ref) => ({
+    register: registerLabelById.get(ref.sourceRegisterId) ?? ref.sourceRegisterId,
+    externalId: ref.externalId,
+    externalRating: ref.externalRating,
+    sourceUpdated: formatShortAuDateTime(ref.sourceUpdatedAt) ?? ref.sourceUpdatedAt,
+    referenceUrl: ref.referenceUrl ?? "Not recorded",
+    reconciledAt: formatShortAuDateTime(ref.reconciledAt) ?? ref.reconciledAt
+  }));
+  const registerOptions = registers.map((register) => ({ label: register.label, value: register.id }));
+  const form =
+    registers.length > 0
+      ? `<form class="risk-mini-form">
+      <input type="hidden" name="riskId" value="${escapeHtml(risk.id)}">
+      <div class="form-grid">
+        ${selectField("externalRefSourceRegisterId", "Source register", registerOptions, registerOptions[0]?.value ?? "")}
+        ${inputField("externalRefExternalId", "External ID", "")}
+        ${inputField("externalRefExternalRating", "External rating (as recorded by the source)", "")}
+        ${inputField("externalRefSourceUpdatedAt", "Source updated", formatShortAuDateTime(new Date()) ?? "", false, "today or 30 Jun 2026")}
+        ${inputField("externalRefReferenceUrl", "Reference URL, optional (https only)", "")}
+      </div>
+      <div class="form-actions"><button type="button" data-command="addRiskExternalRef">Add reference</button></div>
+    </form>`
+      : `<p class="muted">Set up a source register in Risk workbench &gt; Framework &gt; Source registers before adding a reference.</p>`;
+  return `<section>
+    <h2>External references</h2>
+    <p class="muted">Cross-references to externally authoritative records. Source-owned rating and dates are kept separate from this Risk's own assessment and are never converted automatically.</p>
+    ${recordTable("External references", rows, ["register", "externalId", "externalRating", "sourceUpdated", "referenceUrl", "reconciledAt"])}
+    ${form}
+  </section>`;
+}
+
+function riskHistorySection(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+  const events = allEntities
+    .filter(
+      (entity): entity is RiskEventEntity =>
+        entity.entityType === "risk-event" && entity.recordStatus !== "deleted" && entity.riskId === risk.id
+    )
+    .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt));
+  const rows = events.map((event) => ({
+    occurredAt: formatShortAuDateTime(event.occurredAt) ?? event.occurredAt,
+    kind: label(event.kind),
+    summary: event.summary
+  }));
+  const otherRisks = allEntities.filter(
+    (entity): entity is RiskEntity =>
+      entity.entityType === "risk" && entity.recordStatus !== "deleted" && entity.id !== risk.id
+  );
+  const destinationOptions = [
+    { label: "None", value: "" },
+    ...otherRisks.map((other) => ({ label: other.title, value: other.id }))
+  ];
+  const stateOptions = ["proposed", "accepted", "declined", "withdrawn"].map((value) => ({
+    label: label(value),
+    value
+  }));
+  return `${recordTable("History", rows, ["occurredAt", "kind", "summary"])}
+  <section>
+    <h2>Record escalation</h2>
+    <p class="muted">Escalation records a decision. It never changes this risk's category, parent, status, or assessment on its own.</p>
+    <form class="risk-mini-form">
+      <input type="hidden" name="riskId" value="${escapeHtml(risk.id)}">
+      <div class="form-grid">
+        ${selectField("escalationState", "State", stateOptions, "proposed")}
+        ${selectField("escalationDestinationRiskId", "Destination risk, optional", destinationOptions, "")}
+        ${inputField("escalationGovernanceLabel", "Governance body or team label, optional", "")}
+        ${textareaField("escalationReason", "Reason", "")}
+      </div>
+      <div class="form-actions"><button type="button" data-command="recordRiskEscalation">Record escalation</button></div>
+    </form>
+  </section>`;
 }
 
 function riskSourceMetadataSection(risk: RiskEntity): string {
@@ -12190,6 +13379,577 @@ function riskSourceMetadataSection(risk: RiskEntity): string {
       ${integration ? recordTable("Source Metadata", rows, ["source", "lastUpdated", "remoteId"]) : `<p class="muted">This Risk is not linked to an external source.</p>`}
     </section>
   `;
+}
+
+// Phase 4A (ADR 0098 D5.1/D5.2): shared present/copy plumbing reused by every Risk workbench view.
+
+function buildRiskOutputContext(allEntities: readonly V01Entity[]): RiskOutputContext {
+  return {
+    risks: allEntities.filter((entity): entity is RiskEntity => entity.entityType === "risk"),
+    framework: getActiveRiskFramework(allEntities),
+    links: allEntities.filter((entity): entity is LinkEntity => entity.entityType === "link"),
+    actions: allEntities.filter((entity): entity is ActionEntity => entity.entityType === "action"),
+    controls: allEntities.filter((entity): entity is RiskControlEntity => entity.entityType === "risk-control"),
+    riskEvents: allEntities.filter((entity): entity is RiskEventEntity => entity.entityType === "risk-event"),
+    now: new Date().toISOString()
+  };
+}
+
+function buildRiskOutputModelFor(
+  view: RiskOutputView,
+  allEntities: readonly V01Entity[],
+  presetId: string | undefined,
+  selectedRiskId?: string
+): RiskOutputModel {
+  const context = buildRiskOutputContext(allEntities);
+  const preset = findRiskOutputPreset(view, presetId, context.framework);
+  return buildRiskOutputModel(view, context, preset, { selectedRiskId });
+}
+
+/**
+ * D5.2: a preset selector plus Copy/Save entry points, appended to every Risk workbench presentation
+ * view. Every output renders from the same allowlisted model built by `buildRiskOutputModelFor`; no
+ * button here ever has access to the raw entity, only to the already-sanitised model's text.
+ */
+function riskOutputPresentationSection(
+  view: RiskOutputView,
+  allEntities: readonly V01Entity[],
+  presetId: string | undefined,
+  selectedRiskId?: string
+): string {
+  const context = buildRiskOutputContext(allEntities);
+  const presets = resolveRiskOutputPresets(view, context.framework);
+  const activePreset = findRiskOutputPreset(view, presetId, context.framework);
+  const model = buildRiskOutputModel(view, context, activePreset, { selectedRiskId });
+  const plainText = renderRiskOutputPlainText(model);
+  const markdown = renderRiskOutputMarkdown(model);
+  const presetOptions = presets
+    .map(
+      (preset) =>
+        `<option value="${escapeHtml(preset.id)}"${preset.id === activePreset.id ? " selected" : ""}>${escapeHtml(preset.label)}</option>`
+    )
+    .join("");
+  return `<section class="risk-output">
+    <h2>Present</h2>
+    <p class="muted">Classification: <strong>${escapeHtml(model.classification)}</strong>${model.excludedFieldNames.length > 0 ? ` \u00b7 ${model.excludedFieldNames.length} sensitive field(s) not opted in for this preset` : ""}</p>
+    <label>Preset
+      <select data-command="setRiskOutputPreset">
+        ${presetOptions}
+      </select>
+    </label>
+    <div class="form-actions">
+      <button type="button" data-command="copyRiskOutputText">Copy as plain text</button>
+      <button type="button" data-command="copyRiskOutputMarkdown">Copy as Markdown</button>
+      <button type="button" data-command="copyRiskOutputPng" data-risk-output-view="${escapeHtml(view)}">Copy PNG</button>
+      <button type="button" data-command="saveRiskOutputPng" data-risk-output-view="${escapeHtml(view)}">Save PNG</button>
+      <button type="button" data-command="saveRiskOutputPrintHtml">Save print HTML</button>
+    </div>
+    <script type="application/json" id="pspf-risk-output-text">${JSON.stringify(plainText)}</script>
+    <script type="application/json" id="pspf-risk-output-markdown">${JSON.stringify(markdown)}</script>
+  </section>`;
+}
+
+async function copyRiskOutputArtefact(
+  view: RiskOutputView,
+  presetId: string | undefined,
+  selectedRiskId: string | undefined,
+  format: "plain-text" | "markdown"
+): Promise<void> {
+  const allEntities = await listAllEntities();
+  const model = buildRiskOutputModelFor(view, allEntities, presetId, selectedRiskId);
+  const text = format === "markdown" ? renderRiskOutputMarkdown(model) : renderRiskOutputPlainText(model);
+  await vscode.env.clipboard.writeText(text);
+  await vscode.window.showInformationMessage(
+    `Risk ${format === "markdown" ? "Markdown" : "plain text"} copied to clipboard (${model.classification}).`
+  );
+}
+
+async function saveRiskOutputPrintHtmlArtefact(
+  view: RiskOutputView,
+  presetId: string | undefined,
+  selectedRiskId: string | undefined
+): Promise<void> {
+  const allEntities = await listAllEntities();
+  const model = buildRiskOutputModelFor(view, allEntities, presetId, selectedRiskId);
+  const html = renderRiskOutputPrintHtml(model);
+  const target = await vscode.window.showSaveDialog({
+    defaultUri: vscode.Uri.file(`risk-${view}-${PSPF_SLICE_VERSION}.html`),
+    filters: { HTML: ["html"] },
+    saveLabel: "Save"
+  });
+  if (!target) {
+    return;
+  }
+  await vscode.workspace.fs.writeFile(target, new TextEncoder().encode(html));
+  const choice = await vscode.window.showInformationMessage(
+    `Risk print HTML saved to ${target.fsPath} (${model.classification}).`,
+    "Open in browser"
+  );
+  if (choice === "Open in browser") {
+    await vscode.env.openExternal(target);
+  }
+}
+
+async function saveRiskOutputPngArtefact(dataUrl: string, view: RiskOutputView): Promise<void> {
+  const base64 = dataUrl.includes(",") ? dataUrl.slice(dataUrl.indexOf(",") + 1) : dataUrl;
+  const target = await vscode.window.showSaveDialog({
+    defaultUri: vscode.Uri.file(`risk-${view}-${PSPF_SLICE_VERSION}.png`),
+    filters: { PNG: ["png"] },
+    saveLabel: "Save"
+  });
+  if (!target) {
+    return;
+  }
+  await vscode.workspace.fs.writeFile(target, Buffer.from(base64, "base64"));
+  await vscode.window.showInformationMessage(`Risk visual saved to ${target.fsPath}.`);
+}
+
+function renderRiskRegisterContent(allEntities: readonly V01Entity[], presetId?: string): string {
+  const framework = getActiveRiskFramework(allEntities);
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities
+    .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
+    .sort(compareWorkbenchRecords);
+  const rows = buildRiskRegisterRows(risks, framework, links, new Date().toISOString());
+  const tableRows = rows
+    .map((row) => {
+      const searchText = `${row.risk.title} ${row.categoryLabel} ${row.risk.ownerTeam ?? ""} ${label(row.risk.status)} ${row.bandLabel} ${row.appetiteLabel}`;
+      return `<tr class="risk-register__row" data-search="${escapeHtml(searchText)}">
+      <td><button type="button" class="risk-register__title" data-command="openRecordInEditor" data-entity-type="risk" data-entity-id="${escapeHtml(row.risk.id)}">${escapeHtml(row.risk.title)}</button></td>
+      <td>${escapeHtml(row.categoryLabel)}</td>
+      <td>${escapeHtml(row.risk.ownerTeam ?? "Not assigned")}</td>
+      <td>${escapeHtml(label(row.risk.status))}</td>
+      <td>${escapeHtml(row.bandLabel)}</td>
+      <td>${escapeHtml(row.appetiteLabel)}</td>
+      <td>${escapeHtml(row.parentTitle ?? "No parent")}</td>
+    </tr>`;
+    })
+    .join("");
+  return `<section>
+    <h1>Risk register</h1>
+    <p class="muted">${rows.length} risk${rows.length === 1 ? "" : "s"}${framework ? "" : " \u00b7 No risk framework configured yet"}</p>
+    <div class="form-actions">
+      <button type="button" data-command="pspf.workshop.createRisk">New risk</button>
+      ${framework ? "" : `<button type="button" data-command="migrateRiskFramework">Set up risk framework</button>`}
+    </div>
+    <input class="risk-register__filter" type="search" aria-label="Filter risks" placeholder="Filter by title, category, owner, status, band" data-filter-target=".risk-register__row">
+    ${
+      rows.length === 0
+        ? `<p class="muted">No risks yet. Use New risk to capture one, or import from a source register.</p>`
+        : `<div class="table-wrap" tabindex="0" aria-label="Scrollable risk register table"><table><thead><tr><th>Title</th><th>Category</th><th>Owner team</th><th>Status</th><th>Assessment</th><th>Appetite</th><th>Primary parent</th></tr></thead><tbody>${tableRows}</tbody></table></div>`
+    }
+  </section>
+  ${riskOutputPresentationSection("register", allEntities, presetId)}`;
+}
+
+function renderRiskHierarchyContent(allEntities: readonly V01Entity[], presetId?: string): string {
+  const framework = getActiveRiskFramework(allEntities);
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+  const forest = buildRiskHierarchyForest(risks, framework, links, new Date().toISOString());
+  // The open-record control stays outside <summary>: a button inside a disclosure
+  // summary is a nested interactive control and steals the toggle's own keyboard role.
+  const renderNode = (node: (typeof forest)[number]): string => {
+    const title = `<button type="button" class="risk-hierarchy__title" data-command="openRecordInEditor" data-entity-type="risk" data-entity-id="${escapeHtml(node.risk.id)}">${escapeHtml(node.risk.title)}</button> <span class="muted">${escapeHtml(node.bandLabel)} \u00b7 ${escapeHtml(node.appetiteLabel)}</span>`;
+    if (node.children.length === 0) {
+      return `<li><div class="risk-hierarchy__row">${title}</div></li>`;
+    }
+    const childCount = node.children.length;
+    return `<li><details open><summary>${childCount} risk${childCount === 1 ? "" : "s"} roll up to this risk</summary><div class="risk-hierarchy__row">${title}</div><ul>${node.children.map(renderNode).join("")}</ul></details></li>`;
+  };
+  return `<section>
+    <h1>Risk hierarchy</h1>
+    <p class="muted">Primary roll-up relationships between risks. Secondary associations are not shown here.</p>
+    ${forest.length === 0 ? `<p class="muted">No risks yet.</p>` : `<ul class="risk-hierarchy__tree">${forest.map(renderNode).join("")}</ul>`}
+  </section>
+  ${riskOutputPresentationSection("hierarchy", allEntities, presetId)}`;
+}
+
+function renderRiskMatrixContent(allEntities: readonly V01Entity[], presetId?: string): string {
+  const risks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+  const revision = LEGACY_5X5_METHODOLOGY.revisions[0]!;
+  const model = buildRiskMatrixModel(risks, revision);
+  const cellByKey = new Map(model.cells.map((cell) => [`${cell.likelihoodId}:${cell.impactId}`, cell]));
+  const impactLevelsDescending = [...model.impactLevels].reverse();
+  const headerRow = `<tr><th scope="col">Impact \\ likelihood</th>${model.likelihoodLevels.map((level) => `<th scope="col">${escapeHtml(level.label)}</th>`).join("")}</tr>`;
+  const bodyRows = impactLevelsDescending
+    .map((impactLevel) => {
+      const cells = model.likelihoodLevels
+        .map((likelihoodLevel) => {
+          const cell = cellByKey.get(`${likelihoodLevel.id}:${impactLevel.id}`);
+          return `<td class="risk-matrix__cell" data-band="${escapeHtml(cell?.bandId ?? "")}"><strong>${cell?.count ?? 0}</strong><span>${escapeHtml(cell?.bandLabel ?? "")}</span></td>`;
+        })
+        .join("");
+      return `<tr><th scope="row">${escapeHtml(impactLevel.label)}</th>${cells}</tr>`;
+    })
+    .join("");
+  return `<section>
+    <h1>Risk matrix</h1>
+    <p class="muted">Legacy 5x5 methodology. Cells show the number of risks currently assessed at each likelihood/impact combination. Custom-methodology matrix authoring is not yet available.</p>
+    <div class="table-wrap" tabindex="0" aria-label="Scrollable risk matrix table"><table class="risk-matrix"><thead>${headerRow}</thead><tbody>${bodyRows}</tbody></table></div>
+    <p class="muted">${model.unassessedCount} unassessed and ${model.notComparableCount} not comparable, excluded from the grid above.</p>
+  </section>
+  ${riskOutputPresentationSection("matrix", allEntities, presetId)}`;
+}
+
+const RISK_APPETITE_BAND_IDS = ["low", "medium", "high", "extreme"] as const;
+
+// Phase 3A (ADR 0098 D3.7/D3.4/D3.5): treatments and controls for the currently selected risk.
+function renderRiskTreatmentsContent(risk: RiskEntity, allEntities: readonly V01Entity[]): string {
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const actions = allEntities.filter(
+    (entity): entity is ActionEntity => entity.entityType === "action" && entity.recordStatus !== "deleted"
+  );
+  const controls = allEntities.filter(
+    (entity): entity is RiskControlEntity => entity.entityType === "risk-control" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities.filter(
+    (entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted"
+  );
+
+  const treatmentRows = buildRiskTreatmentActions(risk, links, actions, risks).map((row) => ({
+    title: row.action.title,
+    status: label(row.action.status),
+    ownerTeam: row.action.ownerTeam ?? "Not assigned",
+    dueDate: formatShortAuDateTime(row.action.dueDate) ?? "Not set",
+    otherRisks: row.otherRiskTitles.length > 0 ? row.otherRiskTitles.join("; ") : "This risk only"
+  }));
+  const actionPickerOptions = [
+    { label: "Choose an action", value: "" },
+    ...candidateActionsForTreatment(risk, actions, links).map((action) => ({ label: action.title, value: action.id }))
+  ];
+
+  const controlApplicationRows = buildRiskControlApplications(risk, links, controls).map((row) => ({
+    title: row.control.title,
+    ownerTeam: row.control.ownerTeam,
+    state: label(row.control.state),
+    role: label(row.application.role),
+    effectiveness: label(row.application.effectiveness),
+    anchors: row.application.anchorIds.length,
+    gap: row.unresolvedAnchorIds.length > 0 ? `${row.unresolvedAnchorIds.length} unresolved` : "Resolved"
+  }));
+  const controlPickerOptions = [
+    { label: "Choose a control", value: "" },
+    ...candidateControlsForMitigation(risk, controls, links).map((control) => ({
+      label: control.title,
+      value: control.id
+    }))
+  ];
+  const anchorOptions = [
+    ...(risk.causes ?? []).map((cause) => ({ id: cause.id, label: cause.label, kind: "cause" })),
+    ...(risk.consequences ?? []).map((consequence) => ({
+      id: consequence.id,
+      label: consequence.label,
+      kind: "consequence"
+    }))
+  ];
+  const allControlsRows = controls.map((control) => ({
+    title: control.title,
+    ownerTeam: control.ownerTeam,
+    state: label(control.state),
+    reviewBy: control.reviewBy ? (formatShortAuDateTime(control.reviewBy) ?? control.reviewBy) : "Not set",
+    mitigating: links.filter(
+      (link) => link.linkType === "mitigated-by" && link.toId === control.id && link.fromType === "risk"
+    ).length
+  }));
+
+  return `<section>
+    <h1>Treatments and controls: ${escapeHtml(risk.title)}</h1>
+    <p class="muted">Actions and organisational controls treating this risk. Reusing a shared Action or Control shows every other risk it also treats or mitigates.</p>
+  </section>
+  <section>
+    <h2>Treating actions</h2>
+    ${recordTable("Actions treating this risk", treatmentRows, ["title", "status", "ownerTeam", "dueDate", "otherRisks"])}
+    <form class="risk-mini-form">
+      <input type="hidden" name="riskId" value="${escapeHtml(risk.id)}">
+      ${selectField("actionId", "Link existing action", actionPickerOptions, "")}
+      <div class="form-actions">
+        <button type="button" data-command="linkExistingActionToRisk">Link selected action</button>
+        <button type="button" data-command="createActionForRisk" data-entity-id="${escapeHtml(risk.id)}">Create action</button>
+      </div>
+    </form>
+  </section>
+  <section>
+    <h2>Mitigating controls</h2>
+    ${recordTable("Controls mitigating this risk", controlApplicationRows, ["title", "ownerTeam", "state", "role", "effectiveness", "anchors", "gap"])}
+    <form class="risk-mini-form">
+      <input type="hidden" name="riskId" value="${escapeHtml(risk.id)}">
+      <div class="form-grid">
+        ${selectField("controlId", "Control", controlPickerOptions, "")}
+        ${selectField(
+          "controlRole",
+          "Role",
+          [
+            { label: "Preventive", value: "preventive" },
+            { label: "Recovery", value: "recovery" },
+            { label: "Both", value: "both" }
+          ],
+          "preventive"
+        )}
+        ${selectField(
+          "controlEffectiveness",
+          "Effectiveness",
+          [
+            { label: "Not assessed", value: "not-assessed" },
+            { label: "Ineffective", value: "ineffective" },
+            { label: "Partially effective", value: "partially-effective" },
+            { label: "Effective", value: "effective" }
+          ],
+          "not-assessed"
+        )}
+        ${inputField("controlApplicability", "Applicability", "", false, "for example, all managed endpoints")}
+        ${textareaField("controlRationale", "Rationale, optional", "")}
+        <fieldset><legend>Anchors (causes/consequences this control addresses)</legend>${
+          anchorOptions.length === 0
+            ? `<p class="muted">Add causes/consequences in Record before anchoring a control.</p>`
+            : anchorOptions
+                .map(
+                  (anchor) =>
+                    `<label class="risk-framework__band-check"><input type="checkbox" name="anchor_${escapeHtml(anchor.id)}"> ${escapeHtml(anchor.label)} (${anchor.kind})</label>`
+                )
+                .join("")
+        }</fieldset>
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="mitigateRiskWithControl">Link control to this risk</button>
+        <button type="button" data-command="createRiskControl" data-entity-id="${escapeHtml(risk.id)}">Create risk control</button>
+      </div>
+    </form>
+  </section>
+  <section>
+    <h2>All risk controls</h2>
+    <p class="muted">Organisational controls across the workspace, independent of this risk.</p>
+    ${recordTable("Risk controls register", allControlsRows, ["title", "ownerTeam", "state", "reviewBy", "mitigating"])}
+  </section>`;
+}
+
+// Phase 3A (ADR 0098 D3.6): causes/preventive controls/event/recovery controls/consequences for the selected risk.
+function renderRiskBowTieContent(risk: RiskEntity, allEntities: readonly V01Entity[], presetId?: string): string {
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const controls = allEntities.filter(
+    (entity): entity is RiskControlEntity => entity.entityType === "risk-control" && entity.recordStatus !== "deleted"
+  );
+  const model = buildRiskBowTieModel(risk, links, controls);
+  const causeRows = model.causes.map((row) => ({
+    cause: row.cause.label,
+    preventiveControls:
+      row.preventiveControlTitles.length > 0 ? row.preventiveControlTitles.join("; ") : "No preventive control recorded"
+  }));
+  const consequenceRows = model.consequences.map((row) => ({
+    consequence: row.consequence.label,
+    recoveryControls:
+      row.recoveryControlTitles.length > 0 ? row.recoveryControlTitles.join("; ") : "No recovery control recorded"
+  }));
+  const gapCount =
+    model.causes.filter((row) => row.preventiveControlTitles.length === 0).length +
+    model.consequences.filter((row) => row.recoveryControlTitles.length === 0).length;
+  return `<section>
+    <h1>Bow-tie: ${escapeHtml(risk.title)}</h1>
+    <p class="muted">Causes and preventive controls sit before the event; consequences and recovery controls sit after it. Add causes and consequences from Record, and control applications from Treatments.</p>
+    <div class="grid">
+      ${metricCard("Causes", model.causes.length)}
+      ${metricCard("Event", risk.title)}
+      ${metricCard("Consequences", model.consequences.length)}
+    </div>
+    ${gapCount > 0 ? `<p class="muted">${gapCount} cause${gapCount === 1 ? "" : "s"} or consequence${gapCount === 1 ? "" : "s"} below have a visible gap: no control is recorded against them.</p>` : `<p class="muted">Every cause and consequence has at least one recorded control.</p>`}
+    ${model.unresolvedApplicationCount > 0 ? `<p class="muted">${model.unresolvedApplicationCount} control application${model.unresolvedApplicationCount === 1 ? "" : "s"} reference a cause or consequence that no longer exists on this risk.</p>` : ""}
+    ${recordTable("Causes \u2192 preventive controls", causeRows, ["cause", "preventiveControls"])}
+    ${recordTable("Consequences \u2192 recovery controls", consequenceRows, ["consequence", "recoveryControls"])}
+  </section>
+  ${riskOutputPresentationSection("bowtie", allEntities, presetId, risk.id)}`;
+}
+
+// Phase 3A (ADR 0098 D3.8): many-to-many risk/action/control coverage, as a filterable semantic table.
+function renderRiskCoverageContent(allEntities: readonly V01Entity[], presetId?: string): string {
+  const framework = getActiveRiskFramework(allEntities);
+  const links = allEntities.filter(
+    (entity): entity is LinkEntity => entity.entityType === "link" && entity.recordStatus !== "deleted"
+  );
+  const risks = allEntities
+    .filter((entity): entity is RiskEntity => entity.entityType === "risk" && entity.recordStatus !== "deleted")
+    .sort(compareWorkbenchRecords);
+  const actionsById = new Map(
+    allEntities
+      .filter((entity): entity is ActionEntity => entity.entityType === "action")
+      .map((action) => [action.id, action])
+  );
+  const controlsById = new Map(
+    allEntities
+      .filter((entity): entity is RiskControlEntity => entity.entityType === "risk-control")
+      .map((control) => [control.id, control])
+  );
+  const rows = buildRiskCoverageRows(risks, links, framework);
+  const uncoveredCount = rows.filter((row) => row.uncovered).length;
+  const titlesFor = (ids: readonly string[], byId: Map<string, { readonly title: string }>): string =>
+    ids.map((id) => byId.get(id)?.title ?? id).join("; ") || "None";
+  const tableRows = rows
+    .map((row) => {
+      const searchText = `${row.risk.title} ${row.bandLabel}`;
+      return `<tr class="risk-coverage__row" data-search="${escapeHtml(searchText)}">
+      <td><button type="button" class="risk-register__title" data-command="openRecordInEditor" data-entity-type="risk" data-entity-id="${escapeHtml(row.risk.id)}">${escapeHtml(row.risk.title)}</button></td>
+      <td>${escapeHtml(row.bandLabel)}</td>
+      <td>${row.directActionIds.length} (${escapeHtml(titlesFor(row.directActionIds, actionsById))})</td>
+      <td>${row.descendantActionIds.length} (${escapeHtml(titlesFor(row.descendantActionIds, actionsById))})</td>
+      <td>${row.directControlIds.length} (${escapeHtml(titlesFor(row.directControlIds, controlsById))})</td>
+      <td>${row.descendantControlIds.length} (${escapeHtml(titlesFor(row.descendantControlIds, controlsById))})</td>
+      <td>${row.uncovered ? "Uncovered" : "Covered"}</td>
+    </tr>`;
+    })
+    .join("");
+  return `<section>
+    <h1>Treatment and control coverage</h1>
+    <p class="muted">${rows.length} risk${rows.length === 1 ? "" : "s"} \u00b7 ${uncoveredCount} with no direct or descendant treatment or control. Counts are distinct treatment/control IDs, direct and descendant are never summed, and bands are never averaged.</p>
+    <input class="risk-register__filter" type="search" aria-label="Filter coverage" placeholder="Filter by title or band" data-filter-target=".risk-coverage__row">
+    ${
+      rows.length === 0
+        ? `<p class="muted">No risks yet.</p>`
+        : `<div class="table-wrap" tabindex="0" aria-label="Scrollable risk coverage table"><table><thead><tr><th>Risk</th><th>Band</th><th>Direct actions</th><th>Descendant actions</th><th>Direct controls</th><th>Descendant controls</th><th>Coverage</th></tr></thead><tbody>${tableRows}</tbody></table></div>`
+    }
+    <p class="muted">A graphical coverage diagram is not yet available; this filterable table is the equivalent semantic view for now (§ Workbench and Presentation).</p>
+  </section>
+  ${riskOutputPresentationSection("coverage", allEntities, presetId)}`;
+}
+
+// Phase 4A (ADR 0098 §Workbench and Presentation): executive risk cards, one card per risk, fields gated by the active preset.
+function renderRiskCardsContent(allEntities: readonly V01Entity[], presetId?: string): string {
+  const context = buildRiskOutputContext(allEntities);
+  const preset = findRiskOutputPreset("cards", presetId, context.framework);
+  const model = buildRiskOutputModel("cards", context, preset);
+  const cardsHtml = model.rows
+    .map(
+      (row) => `<article class="risk-card">
+      <h3><button type="button" class="risk-register__title" data-command="openRecordInEditor" data-entity-type="risk" data-entity-id="${escapeHtml(row.id)}">${escapeHtml(row.title)}</button></h3>
+      <p class="muted">${escapeHtml(row.status)} \u00b7 ${escapeHtml(row.methodologyBasis)} \u00b7 ${escapeHtml(row.bandLabel)}</p>
+      ${row.fields.length > 0 ? `<dl>${row.fields.map((field) => `<dt>${escapeHtml(field.label)}</dt><dd>${escapeHtml(field.value)}</dd>`).join("")}</dl>` : ""}
+    </article>`
+    )
+    .join("");
+  return `<section>
+    <h1>Executive risk cards</h1>
+    <p class="muted">${model.rows.length} card${model.rows.length === 1 ? "" : "s"} \u00b7 classification ${escapeHtml(model.classification)}. Choose a preset below to include owner, next decision, or treatment progress.</p>
+    ${model.rows.length === 0 ? `<p class="muted">No risks yet.</p>` : `<div class="risk-cards">${cardsHtml}</div>`}
+  </section>
+  ${riskOutputPresentationSection("cards", allEntities, presetId)}`;
+}
+
+/** Phase 3B (ADR 0098 D2.1/§External Registers): source-register authoring, plus the entry point into the previewed CSV/TSV crosswalk import. */
+function riskSourceRegistersSection(framework: RiskFrameworkEntity): string {
+  const rows = framework.sourceRegisters.map((register: RiskSourceRegisterDefinition) => ({
+    id: register.id,
+    label: register.label
+  }));
+  return `<section>
+    <h2>Source registers</h2>
+    <p class="muted">Source registers identify external systems of record for manual references and the CSV/TSV crosswalk import below. Adding one never changes any Risk.</p>
+    ${recordTable("Source registers", rows, ["id", "label"])}
+    <form class="risk-mini-form">
+      <div class="form-grid">
+        ${inputField("sourceRegisterLabel", "New source register label", "", false, "for example, 6clicks or Enterprise Risk Register")}
+      </div>
+      <div class="form-actions">
+        <button type="button" data-command="addRiskSourceRegister">Add source register</button>
+        <button type="button" data-command="importRiskCrosswalkFromFile">Import risks from CSV/TSV\u2026</button>
+      </div>
+    </form>
+  </section>`;
+}
+
+function renderRiskFrameworkContent(allEntities: readonly V01Entity[]): string {
+  const framework = getActiveRiskFramework(allEntities);
+  if (!framework) {
+    return `<section>
+      <h1>Risk framework</h1>
+      <p class="muted">No risk framework is set up yet. Setting one up seeds the Legacy 5x5 methodology and lets you define categories and appetite; existing Risk records are unchanged.</p>
+      <div class="form-actions"><button type="button" data-command="migrateRiskFramework">Set up risk framework</button></div>
+    </section>`;
+  }
+  const categoryOutline = renderCategoryOutline(framework.categories);
+  const categoryOptions = riskCategoryOptions(framework);
+  const appetiteScopeOptions = [
+    { label: "Whole workspace", value: "" },
+    ...categoryOptions.map((option) => ({ label: `${"  ".repeat(option.depth)}${option.label}`, value: option.id }))
+  ];
+  const appetiteRows = framework.appetiteRules.map((rule) => ({
+    scope:
+      rule.scope.kind === "workspace"
+        ? "Workspace"
+        : (riskCategoryLabel(framework, rule.scope.categoryId) ?? rule.scope.categoryId),
+    allowedBands: rule.allowedBandIds.map((bandId) => label(bandId)).join(", "),
+    rationale: rule.rationale,
+    reviewBy: rule.reviewBy ? (formatShortAuDateTime(rule.reviewBy) ?? rule.reviewBy) : "Not set"
+  }));
+  return `<section>
+    <h1>Risk framework</h1>
+    <p class="muted">Methodologies: ${escapeHtml(framework.methodologies.map((methodology) => methodology.label).join(", ") || "None")}. Custom methodology authoring is not yet available in Workshop; Legacy 5x5 is seeded automatically.</p>
+  </section>
+  ${riskSourceRegistersSection(framework)}
+  <section>
+    <h2>Categories</h2>
+    <p class="muted">One category per line. Indent by two spaces per nesting level to set a parent. Removing a line archives that category rather than deleting it, so existing Risk assignments are preserved.</p>
+    <form class="risk-mini-form">
+      <label>Category outline<textarea name="categoryOutline" rows="8">${escapeHtml(categoryOutline)}</textarea></label>
+      <div class="form-actions"><button type="button" data-command="saveRiskFrameworkCategories">Save categories</button></div>
+    </form>
+  </section>
+  <section>
+    <h2>Risk appetite</h2>
+    ${recordTable("Appetite rules", appetiteRows, ["scope", "allowedBands", "rationale", "reviewBy"])}
+    <form class="risk-mini-form">
+      <div class="form-grid">
+        ${selectField("appetiteCategoryId", "Scope", appetiteScopeOptions, "")}
+        <fieldset><legend>Allowed bands</legend>${RISK_APPETITE_BAND_IDS.map((bandId) => `<label class="risk-framework__band-check"><input type="checkbox" name="appetiteBand_${bandId}"> ${escapeHtml(label(bandId))}</label>`).join("")}</fieldset>
+        ${textareaField("appetiteRationale", "Rationale", "")}
+        ${inputField("appetiteEffectiveFrom", "Effective from", formatShortAuDateTime(new Date()) ?? "", false, "today or 1 Jul 2026")}
+        ${inputField("appetiteReviewBy", "Review by, optional", "", false, "1 Jul 2027")}
+      </div>
+      <div class="form-actions"><button type="button" data-command="saveRiskFrameworkAppetite">Add appetite rule</button></div>
+    </form>
+  </section>`;
+}
+
+function riskWorkbenchStyles(): string {
+  return `<style>
+    .risk-workbench__toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .risk-workbench__toolbar button[aria-current="page"] { border-color: var(--workshop-blue); box-shadow: inset 0 -2px 0 var(--workshop-blue); }
+    .risk-register__title, .risk-hierarchy__title { background: none; border: none; padding: 0; color: var(--vscode-textLink-foreground); cursor: pointer; text-align: left; font: inherit; }
+    .risk-register__title:hover, .risk-hierarchy__title:hover { text-decoration: underline; }
+    .risk-register__filter { box-sizing: border-box; margin: 10px 0; }
+    .risk-hierarchy__tree, .risk-hierarchy__tree ul { list-style: none; margin: 0; padding-left: 18px; }
+    .risk-hierarchy__tree { padding-left: 0; }
+    .risk-hierarchy__tree summary { cursor: pointer; padding: 4px 0; }
+    .risk-hierarchy__row { padding: 2px 0; }
+    .risk-matrix th, .risk-matrix td { text-align: center; }
+    .risk-matrix__cell { min-width: 64px; }
+    .risk-matrix__cell strong { display: block; font-size: 16px; }
+    .risk-matrix__cell span { display: block; font-size: 11px; color: var(--text); }
+    .risk-matrix__cell[data-band="low"] { background: color-mix(in srgb, var(--pspf-ok) 16%, transparent); }
+    .risk-matrix__cell[data-band="medium"] { background: color-mix(in srgb, var(--pspf-warn) 16%, transparent); }
+    .risk-matrix__cell[data-band="high"] { background: color-mix(in srgb, var(--pspf-danger) 18%, transparent); }
+    .risk-matrix__cell[data-band="extreme"] { background: color-mix(in srgb, var(--pspf-danger) 30%, transparent); }
+    .risk-mini-form { max-width: 640px; display: grid; gap: 12px; margin-top: 10px; }
+    .risk-framework__band-check { display: inline-flex; align-items: center; gap: 5px; margin-right: 14px; font-size: 13px; }
+    fieldset { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; }
+    legend { padding: 0 4px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .risk-output { margin-top: 18px; border-top: 1px solid var(--border); padding-top: 12px; }
+    .risk-output select { margin: 6px 0 10px; }
+    .risk-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .risk-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+    .risk-card dl { margin: 6px 0 0; font-size: 12px; }
+    .risk-card dt { color: var(--muted); }
+    .risk-card dd { margin: 0 0 6px; }
+  </style>`;
 }
 
 function renderDirectionEditor(direction: DirectionEntity, allEntities: readonly V01Entity[]): string {

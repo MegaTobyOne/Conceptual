@@ -12,7 +12,7 @@
     "evidence",
     "risk"
   ],
-  "version": "1.74.0",
+  "version": "1.75.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -660,6 +660,7 @@
     "@pspf/connected-view": "workspace:*",
     "@pspf/contracts": "workspace:*",
     "@pspf/reference-data": "workspace:*",
-    "@pspf/webview-shell": "workspace:*"
+    "@pspf/webview-shell": "workspace:*",
+    "csv-parse": "^7.0.1"
   }
 }

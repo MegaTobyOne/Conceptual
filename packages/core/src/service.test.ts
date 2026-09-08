@@ -1,16 +1,21 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rm, stat, utimes, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, stat, utimes, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import initSqlJs from "sql.js";
 import {
   type ActionEntity,
+  type LinkEntity,
   PSPF_DOMAINS,
   PSPF_SLICE_VERSION,
   PspfError,
   type RequirementEntity,
+  type RiskCrosswalkRowInput,
+  type RiskEntity,
+  type RiskEventEntity,
+  type RiskFrameworkEntity,
   VERSION_AXES,
   V0_1_COLLECTIONS,
   narrativeSlotFor,
@@ -869,6 +874,792 @@ test("narrative writes enforce slot, body, and supersedes rules with a structure
     true,
     "narrative body is sensitive and must be redacted from the publication bundle"
   );
+});
+
+test("migrateRiskFramework seeds the legacy 5x5 methodology once and is idempotent", async () => {
+  const workspaceRoot = await freshWorkspace("risk-migrate-framework");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const framework = await service.migrateRiskFramework();
+  assert.equal(framework.entityType, "risk-framework");
+  assert.equal(framework.methodologies.length, 1);
+  assert.equal(framework.methodologies[0]?.id, "legacy-5x5");
+
+  const again = await service.migrateRiskFramework();
+  assert.equal(again.id, framework.id);
+  assert.equal(again.updatedAt, framework.updatedAt);
+  const frameworks = (await service.listEntities("risk-framework")).filter(
+    (entity) => entity.recordStatus !== "deleted"
+  );
+  assert.equal(frameworks.length, 1);
+});
+
+test("Core rejects a second non-deleted risk-framework record and an invalid methodology revision", async () => {
+  const workspaceRoot = await freshWorkspace("risk-framework-singleton");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+  const framework = await service.migrateRiskFramework();
+
+  const secondFramework = withEnvelope(
+    "risk-framework",
+    {
+      entityType: "risk-framework",
+      categories: [],
+      methodologies: [],
+      appetiteRules: [],
+      sourceRegisters: [],
+      presentationPresets: []
+    },
+    "workshop"
+  );
+  await assert.rejects(() => service.upsertEntity(secondFramework), /only one non-deleted risk-framework/i);
+
+  const invalidRevision = {
+    ...framework,
+    methodologies: [
+      {
+        ...framework.methodologies[0]!,
+        revisions: [{ ...framework.methodologies[0]!.revisions[0]!, cells: [] }]
+      }
+    ]
+  };
+  await assert.rejects(() => service.upsertEntity(invalidRevision), /missing cell/i);
+});
+
+test("risk writes derive assessmentState and reject a client-authored risk-event", async () => {
+  const workspaceRoot = await freshWorkspace("risk-assessment-state");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const legacyRisk = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      { entityType: "risk", title: "Legacy scored risk", status: "open", likelihood: 4, impact: 4 },
+      "workshop"
+    )
+  );
+  assert.equal((legacyRisk as RiskEntity).assessmentState, "legacy");
+
+  const unassessedRisk = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      {
+        entityType: "risk",
+        title: "Unassessed risk",
+        status: "open",
+        likelihood: 1,
+        impact: 1,
+        assessment: { basis: "unassessed" }
+      },
+      "workshop"
+    )
+  );
+  assert.equal((unassessedRisk as RiskEntity).assessmentState, "unassessed");
+
+  const forgedEvent = withEnvelope(
+    "risk-event",
+    {
+      entityType: "risk-event",
+      riskId: legacyRisk.id,
+      kind: "reassessed",
+      occurredAt: "2026-09-07T00:00:00.000Z",
+      summary: "Forged event"
+    },
+    "workshop"
+  );
+  await assert.rejects(
+    () => service.upsertEntity(forgedEvent),
+    /Core-derived and cannot be created or modified directly/i
+  );
+});
+
+test("risk writes append reassessed, reclassified, and reparented events; no-op saves add none", async () => {
+  const workspaceRoot = await freshWorkspace("risk-event-derivation");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const parentA = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      { entityType: "risk", title: "Enterprise parent A", status: "open", likelihood: 3, impact: 3 },
+      "workshop"
+    )
+  );
+  const parentB = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      { entityType: "risk", title: "Enterprise parent B", status: "open", likelihood: 3, impact: 3 },
+      "workshop"
+    )
+  );
+  const child = (await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      { entityType: "risk", title: "Child risk", status: "open", likelihood: 2, impact: 2 },
+      "workshop"
+    )
+  )) as RiskEntity;
+
+  await service.upsertEntity(child);
+  assert.equal((await service.listEntities("risk-event")).length, 0, "no-op save must not emit a risk-event");
+
+  await service.upsertEntity({ ...child, likelihood: 5, impact: 5 });
+  let events = (await service.listEntities("risk-event")) as RiskEventEntity[];
+  assert.equal(events.length, 1);
+  assert.equal(events[0]?.kind, "reassessed");
+  assert.equal(events[0]?.riskId, child.id);
+
+  await service.upsertEntity({ ...child, likelihood: 5, impact: 5, primaryCategoryId: "cat_technology" });
+  events = (await service.listEntities("risk-event")) as RiskEventEntity[];
+  assert.equal(events.filter((event) => event.kind === "reclassified").length, 1);
+
+  const rollUpLink = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: "Child rolls up to Parent A",
+      linkType: "rolls-up-to",
+      fromId: child.id,
+      fromType: "risk",
+      toId: parentA.id,
+      toType: "risk"
+    },
+    "workshop"
+  );
+  await service.upsertEntity(rollUpLink);
+  events = (await service.listEntities("risk-event")) as RiskEventEntity[];
+  assert.equal(events.filter((event) => event.kind === "reparented").length, 1);
+
+  await service.upsertEntities([
+    { ...rollUpLink, recordStatus: "deleted" },
+    withEnvelope(
+      "link",
+      {
+        entityType: "link",
+        title: "Child rolls up to Parent B",
+        linkType: "rolls-up-to",
+        fromId: child.id,
+        fromType: "risk",
+        toId: parentB.id,
+        toType: "risk"
+      },
+      "workshop"
+    )
+  ]);
+  events = (await service.listEntities("risk-event")) as RiskEventEntity[];
+  assert.equal(events.filter((event) => event.kind === "reparented").length, 2);
+});
+
+test("rolls-up-to writes reject self-links, more than one parent, and cycles", async () => {
+  const workspaceRoot = await freshWorkspace("risk-rollup-validation");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const riskA = await service.upsertEntity(
+    withEnvelope("risk", { entityType: "risk", title: "Risk A", status: "open", likelihood: 1, impact: 1 }, "workshop")
+  );
+  const riskB = await service.upsertEntity(
+    withEnvelope("risk", { entityType: "risk", title: "Risk B", status: "open", likelihood: 1, impact: 1 }, "workshop")
+  );
+
+  await assert.rejects(
+    () =>
+      service.upsertEntity(
+        withEnvelope(
+          "link",
+          {
+            entityType: "link",
+            title: "Self link",
+            linkType: "rolls-up-to",
+            fromId: riskA.id,
+            fromType: "risk",
+            toId: riskA.id,
+            toType: "risk"
+          },
+          "workshop"
+        )
+      ),
+    /cannot roll up to itself/i
+  );
+
+  const firstParentLink = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: "A rolls up to B",
+      linkType: "rolls-up-to",
+      fromId: riskA.id,
+      fromType: "risk",
+      toId: riskB.id,
+      toType: "risk"
+    },
+    "workshop"
+  );
+  await service.upsertEntity(firstParentLink);
+
+  const riskC = await service.upsertEntity(
+    withEnvelope("risk", { entityType: "risk", title: "Risk C", status: "open", likelihood: 1, impact: 1 }, "workshop")
+  );
+  await assert.rejects(
+    () =>
+      service.upsertEntity(
+        withEnvelope(
+          "link",
+          {
+            entityType: "link",
+            title: "A also rolls up to C",
+            linkType: "rolls-up-to",
+            fromId: riskA.id,
+            fromType: "risk",
+            toId: riskC.id,
+            toType: "risk"
+          },
+          "workshop"
+        )
+      ),
+    /at most one rolls-up-to parent/i
+  );
+
+  await service.upsertEntity({ ...firstParentLink, recordStatus: "deleted" });
+  const bToA = withEnvelope(
+    "link",
+    {
+      entityType: "link",
+      title: "B rolls up to A",
+      linkType: "rolls-up-to",
+      fromId: riskB.id,
+      fromType: "risk",
+      toId: riskA.id,
+      toType: "risk"
+    },
+    "workshop"
+  );
+  await service.upsertEntity(bToA);
+  await assert.rejects(
+    () =>
+      service.upsertEntity(
+        withEnvelope(
+          "link",
+          {
+            entityType: "link",
+            title: "A rolls up to B again (cycle)",
+            linkType: "rolls-up-to",
+            fromId: riskA.id,
+            fromType: "risk",
+            toId: riskB.id,
+            toType: "risk"
+          },
+          "workshop"
+        )
+      ),
+    /cycle/i
+  );
+});
+
+test("mitigated-by control application anchors must resolve on the owning risk", async () => {
+  const workspaceRoot = await freshWorkspace("risk-control-application-anchors");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const risk = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      {
+        entityType: "risk",
+        title: "Risk with causes",
+        status: "open",
+        likelihood: 3,
+        impact: 3,
+        causes: [{ id: "cause_1", label: "Weak MFA" }]
+      },
+      "workshop"
+    )
+  );
+  const control = await service.upsertEntity(
+    withEnvelope(
+      "risk-control",
+      {
+        entityType: "risk-control",
+        title: "MFA enforcement",
+        definition: "Enforce MFA for privileged access.",
+        ownerTeam: "Identity",
+        state: "active"
+      },
+      "workshop"
+    )
+  );
+
+  await assert.rejects(
+    () =>
+      service.upsertEntity(
+        withEnvelope(
+          "link",
+          {
+            entityType: "link",
+            title: "Risk mitigated by MFA control",
+            linkType: "mitigated-by",
+            fromId: risk.id,
+            fromType: "risk",
+            toId: control.id,
+            toType: "risk-control",
+            application: {
+              role: "preventive",
+              applicability: "All accounts",
+              effectiveness: "effective",
+              anchorIds: ["cause_unknown"]
+            }
+          },
+          "workshop"
+        )
+      ),
+    /unknown anchors/i
+  );
+
+  const validLink = await service.upsertEntity(
+    withEnvelope(
+      "link",
+      {
+        entityType: "link",
+        title: "Risk mitigated by MFA control",
+        linkType: "mitigated-by",
+        fromId: risk.id,
+        fromType: "risk",
+        toId: control.id,
+        toType: "risk-control",
+        application: {
+          role: "preventive",
+          applicability: "All accounts",
+          effectiveness: "effective",
+          anchorIds: ["cause_1"]
+        }
+      },
+      "workshop"
+    )
+  );
+  assert.equal((validLink as LinkEntity).application?.anchorIds[0], "cause_1");
+});
+
+test("publication preflight blocks export when a Risk is unassessed and when a rolls-up-to link exists", async () => {
+  const workspaceRoot = await freshWorkspace("risk-publication-preflight");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const legacyRisk = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      { entityType: "risk", title: "Publishable legacy risk", status: "open", likelihood: 2, impact: 2 },
+      "workshop"
+    )
+  );
+  await service.exportBundle();
+
+  const unassessedRisk = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      {
+        entityType: "risk",
+        title: "Unassessed risk",
+        status: "open",
+        likelihood: 1,
+        impact: 1,
+        assessment: { basis: "unassessed" }
+      },
+      "workshop"
+    )
+  );
+  await assert.rejects(() => service.exportBundle(), /Export blocked/i);
+  await assert.rejects(() => service.exportTeamShareBundle(), /Export blocked/i);
+
+  await service.upsertEntity({ ...unassessedRisk, recordStatus: "deleted" });
+  await service.exportBundle();
+
+  const secondRisk = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      { entityType: "risk", title: "Second risk", status: "open", likelihood: 1, impact: 1 },
+      "workshop"
+    )
+  );
+  await service.upsertEntity(
+    withEnvelope(
+      "link",
+      {
+        entityType: "link",
+        title: "Second rolls up to legacy",
+        linkType: "rolls-up-to",
+        fromId: secondRisk.id,
+        fromType: "risk",
+        toId: legacyRisk.id,
+        toType: "risk"
+      },
+      "workshop"
+    )
+  );
+  await assert.rejects(() => service.exportBundle(), /Export blocked/i);
+});
+
+test("additive-merge import preserves sensitive Risk fields omitted by a sanitised bundle", async () => {
+  const workspaceRoot = await freshWorkspace("risk-additive-merge-preserve");
+  const bundlePath = join(workspaceRoot, "sanitised-risk-bundle.json");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const risk = (await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      {
+        entityType: "risk",
+        title: "Risk with sensitive local fields",
+        status: "open",
+        likelihood: 3,
+        impact: 3,
+        reference: "RISK-LOCAL-001",
+        ownerTeam: "Identity and Access",
+        description: "Local sensitive description"
+      },
+      "workshop"
+    )
+  )) as RiskEntity;
+
+  const sanitisedIncoming = {
+    id: risk.id,
+    entityType: risk.entityType,
+    schemaVersion: risk.schemaVersion,
+    title: risk.title,
+    createdAt: risk.createdAt,
+    updatedAt: "2026-09-08T00:00:00.000Z",
+    sourceProduct: risk.sourceProduct,
+    recordStatus: risk.recordStatus,
+    status: "monitored",
+    likelihood: risk.likelihood,
+    impact: risk.impact
+  };
+  await writeBundle(bundlePath, { risks: [sanitisedIncoming] });
+
+  await service.importBundle(bundlePath, "additive-merge");
+  const merged = (await service.listEntities("risk")).find((entity) => entity.id === risk.id) as
+    | { status?: string; reference?: string; ownerTeam?: string; description?: string }
+    | undefined;
+  assert.equal(merged?.status, "monitored");
+  assert.equal(merged?.reference, "RISK-LOCAL-001");
+  assert.equal(merged?.ownerTeam, "Identity and Access");
+  assert.equal(merged?.description, "Local sensitive description");
+});
+
+test("cold restore preserves risk framework, risk fields, and risk-event history (D7.1)", async () => {
+  const workspaceRoot = await freshWorkspace("risk-cold-restore-source");
+  const restoredWorkspaceRoot = await freshWorkspace("risk-cold-restore-target");
+  const service = createCoreService(workspaceRoot);
+  const paths = await service.initialiseWorkspace();
+
+  const framework = await service.migrateRiskFramework();
+  const risk = (await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      {
+        entityType: "risk",
+        title: "Cold restore risk",
+        status: "open",
+        likelihood: 3,
+        impact: 4,
+        reference: "RISK-COLD-001",
+        ownerTeam: "Identity",
+        causes: [{ id: "cause_1", label: "Weak controls" }],
+        assessment: { basis: "legacy", likelihood: 3, impact: 4, rationale: "Initial assessment" }
+      },
+      "workshop"
+    )
+  )) as RiskEntity;
+  await service.upsertEntity({
+    ...risk,
+    assessment: { basis: "legacy", likelihood: 5, impact: 5, rationale: "Reassessed" }
+  });
+  const control = await service.upsertEntity(
+    withEnvelope(
+      "risk-control",
+      {
+        entityType: "risk-control",
+        title: "Cold restore control",
+        definition: "Definition",
+        ownerTeam: "Identity",
+        state: "active"
+      },
+      "workshop"
+    )
+  );
+  const escalation = await service.recordRiskEscalation(risk.id, {
+    state: "proposed",
+    governanceLabel: "Risk Committee",
+    reason: "Needs enterprise visibility"
+  });
+
+  const beforeEntities = await service.listEntities();
+  const beforeRisk = beforeEntities.find((entity) => entity.id === risk.id) as RiskEntity;
+  await service.releaseWriterLock();
+  await rm(join(restoredWorkspaceRoot, ".pspf"), { recursive: true, force: true });
+  await cp(paths.pspf, join(restoredWorkspaceRoot, ".pspf"), { recursive: true });
+
+  const restored = createCoreService(restoredWorkspaceRoot);
+  const integrity = await restored.verifyIntegrity();
+  assert.equal(integrity.ok, true, integrity.detail);
+
+  const afterEntities = await restored.listEntities();
+  // Scope equality to the Risk-specific records this test wrote; unrelated baseline
+  // reference-data records may be re-stamped by the routine reference-data refresh on open.
+  assert.equal(afterEntities.length, beforeEntities.length);
+  const afterRisk = afterEntities.find((entity) => entity.id === risk.id) as RiskEntity;
+  assert.deepEqual(afterRisk, beforeRisk);
+  assert.equal(
+    afterEntities.some((entity) => entity.id === framework.id),
+    true
+  );
+  assert.equal(
+    afterEntities.some((entity) => entity.id === control.id),
+    true
+  );
+  const afterEscalation = afterEntities.find((entity) => entity.id === escalation.id);
+  assert.deepEqual(afterEscalation, escalation);
+  const afterFramework = afterEntities.find((entity) => entity.id === framework.id);
+  assert.deepEqual(afterFramework, framework);
+
+  await restored.upsertEntity(
+    withEnvelope(
+      "requirement",
+      {
+        entityType: "requirement",
+        title: "Restored workspace write-lock check",
+        domainId: PSPF_DOMAINS[0]!.id,
+        assessmentStatus: "in-progress"
+      },
+      "workshop"
+    )
+  );
+  await restored.releaseWriterLock();
+});
+
+async function ensureSourceRegister(
+  service: ReturnType<typeof createCoreService>,
+  registerId: string,
+  label: string
+): Promise<RiskFrameworkEntity> {
+  const framework = await service.migrateRiskFramework();
+  if (framework.sourceRegisters.some((register) => register.id === registerId)) {
+    return framework;
+  }
+  return (await service.upsertEntity({
+    ...framework,
+    sourceRegisters: [...framework.sourceRegisters, { id: registerId, label }]
+  })) as RiskFrameworkEntity;
+}
+
+test("commitRiskCrosswalk creates, then updates, then reuses (idempotent reimport, D5.4/D6.4)", async () => {
+  const workspaceRoot = await freshWorkspace("risk-crosswalk-idempotent");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+  await ensureSourceRegister(service, "reg-a", "Register A");
+
+  const row: RiskCrosswalkRowInput = {
+    rowNumber: 2,
+    title: "Vendor outage risk",
+    externalId: "EXT-1",
+    externalRating: "High",
+    sourceUpdatedAt: "2026-08-01T00:00:00.000Z",
+    referenceUrl: "https://source.example.test/risks/1"
+  };
+
+  const first = await service.commitRiskCrosswalk("reg-a", [row]);
+  assert.equal(first.created, 1);
+  assert.equal(first.updated, 0);
+  assert.ok(first.importId);
+
+  const afterFirst = await service.listEntities();
+  const created = afterFirst.find(
+    (entity): entity is RiskEntity =>
+      entity.entityType === "risk" && (entity.externalRefs ?? []).some((ref) => ref.externalId === "EXT-1")
+  );
+  assert.ok(created);
+  assert.equal(created!.title, "Vendor outage risk");
+  assert.equal(created!.assessment?.basis, "unassessed");
+  assert.equal(created!.likelihood, 1);
+  assert.equal(created!.impact, 1);
+  const entityCountAfterFirst = afterFirst.length;
+  const eventCountAfterFirst = afterFirst.filter((entity) => entity.entityType === "risk-event").length;
+  // A brand-new Risk emits no risk-event, matching reassessed/reclassified precedent (no prior state to diff).
+  assert.equal(eventCountAfterFirst, 0);
+
+  // Reimporting the identical row must change nothing at all (D5.4/D6.4 idempotency).
+  const second = await service.commitRiskCrosswalk("reg-a", [row]);
+  assert.equal(second.created, 0);
+  assert.equal(second.updated, 0);
+  assert.equal(second.reused, 1);
+  assert.equal(second.importId, undefined, "an unchanged reimport performs no write and leaves no import id");
+  const afterSecond = await service.listEntities();
+  assert.equal(afterSecond.length, entityCountAfterFirst, "second identical import writes nothing");
+  assert.equal(
+    afterSecond.filter((entity) => entity.entityType === "risk-event").length,
+    eventCountAfterFirst,
+    "second identical import derives no events"
+  );
+
+  // A genuine source-side change reconciles the existing Risk's externalRef only; local fields untouched.
+  const changedRow: RiskCrosswalkRowInput = { ...row, externalRating: "Extreme" };
+  const third = await service.commitRiskCrosswalk("reg-a", [changedRow]);
+  assert.equal(third.created, 0);
+  assert.equal(third.updated, 1);
+  assert.ok(third.importId);
+  const afterThird = await service.listEntities();
+  const updated = afterThird.find((entity) => entity.id === created!.id) as RiskEntity;
+  assert.equal(updated.title, "Vendor outage risk", "local title is unaffected by reconciliation");
+  assert.equal(updated.externalRefs?.find((ref) => ref.externalId === "EXT-1")?.externalRating, "Extreme");
+  const reconciledEvents = afterThird.filter(
+    (entity): entity is RiskEventEntity => entity.entityType === "risk-event" && entity.kind === "reconciled"
+  );
+  assert.equal(reconciledEvents.length, 1);
+  assert.equal(reconciledEvents[0]?.riskId, created!.id);
+});
+
+test("commitRiskCrosswalk rejects a dangling source-register reference and writes nothing", async () => {
+  const workspaceRoot = await freshWorkspace("risk-crosswalk-dangling-register");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+  await service.migrateRiskFramework();
+  const before = await service.listEntities();
+
+  const row: RiskCrosswalkRowInput = {
+    rowNumber: 2,
+    title: "Row against an undefined register",
+    externalId: "EXT-9",
+    externalRating: "High",
+    sourceUpdatedAt: "2026-08-01T00:00:00.000Z"
+  };
+  await assert.rejects(() => service.commitRiskCrosswalk("unknown-register", [row]), /dangling reference/i);
+
+  const after = await service.listEntities();
+  assert.equal(after.length, before.length, "a rejected commit writes nothing");
+});
+
+test("commitRiskCrosswalk rolls back every risk in the batch when one insert fails mid-transaction (atomicity)", async () => {
+  const workspaceRoot = await freshWorkspace("risk-crosswalk-atomicity");
+  const service = createCoreService(workspaceRoot);
+  const paths = await service.initialiseWorkspace();
+  await ensureSourceRegister(service, "reg-a", "Register A");
+
+  const rows: RiskCrosswalkRowInput[] = [
+    {
+      rowNumber: 2,
+      title: "Atomicity risk one",
+      externalId: "EXT-B1",
+      externalRating: "High",
+      sourceUpdatedAt: "2026-08-01T00:00:00.000Z"
+    },
+    {
+      rowNumber: 3,
+      title: "Atomicity risk two",
+      externalId: "EXT-B2",
+      externalRating: "High",
+      sourceUpdatedAt: "2026-08-01T00:00:00.000Z"
+    }
+  ];
+  const beforeEntities = await service.listEntities();
+
+  const SQL = await initSqlJs({ locateFile: () => join(process.cwd(), "dist", "sql-wasm.wasm") });
+  const database = new SQL.Database(new Uint8Array(await readFile(paths.db)));
+  database.exec(
+    `CREATE TRIGGER reject_second_crosswalk_risk BEFORE INSERT ON entities WHEN NEW.entity_type = 'risk' AND NEW.payload LIKE '%Atomicity risk two%' BEGIN SELECT RAISE(ABORT, 'forced crosswalk failure'); END;`
+  );
+  await writeFile(paths.db, Buffer.from(database.export()));
+  database.close();
+
+  await assert.rejects(() => service.commitRiskCrosswalk("reg-a", rows), /forced crosswalk failure/i);
+
+  const afterEntities = await service.listEntities();
+  assert.equal(afterEntities.length, beforeEntities.length, "no risk from the failed batch should persist");
+  assert.equal(
+    afterEntities.some(
+      (entity) => entity.entityType === "risk" && (entity as RiskEntity).title.startsWith("Atomicity risk")
+    ),
+    false,
+    "neither the risk before the trigger nor the risk that triggered it should be committed"
+  );
+  assert.equal(
+    afterEntities.some((entity) => entity.entityType === "risk-event"),
+    false
+  );
+});
+
+test("Risk write-rule validation rejects an invalid or duplicate manual externalRefs entry", async () => {
+  const workspaceRoot = await freshWorkspace("risk-external-ref-validation");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+  await ensureSourceRegister(service, "reg-a", "Register A");
+
+  const validRef = {
+    sourceRegisterId: "reg-a",
+    externalId: "EXT-1",
+    externalRating: "High",
+    sourceUpdatedAt: "2026-08-01T00:00:00.000Z",
+    referenceUrl: "https://source.example.test/risks/1",
+    reconciledAt: "2026-08-02T00:00:00.000Z"
+  };
+  const riskA = await service.upsertEntity(
+    withEnvelope(
+      "risk",
+      {
+        entityType: "risk",
+        title: "Manually reconciled risk",
+        status: "open",
+        likelihood: 3,
+        impact: 3,
+        externalRefs: [validRef]
+      },
+      "workshop"
+    )
+  );
+  assert.deepEqual((riskA as RiskEntity).externalRefs, [validRef]);
+
+  const riskWithBadUrl = withEnvelope(
+    "risk",
+    {
+      entityType: "risk",
+      title: "Bad reference URL",
+      status: "open",
+      likelihood: 3,
+      impact: 3,
+      externalRefs: [{ ...validRef, externalId: "EXT-2", referenceUrl: "http://insecure.example.test/1" }]
+    },
+    "workshop"
+  );
+  await assert.rejects(() => service.upsertEntity(riskWithBadUrl), /https:/i);
+
+  const riskWithUnknownRegister = withEnvelope(
+    "risk",
+    {
+      entityType: "risk",
+      title: "Unknown register",
+      status: "open",
+      likelihood: 3,
+      impact: 3,
+      externalRefs: [{ ...validRef, sourceRegisterId: "not-defined", externalId: "EXT-3" }]
+    },
+    "workshop"
+  );
+  await assert.rejects(() => service.upsertEntity(riskWithUnknownRegister), /dangling reference/i);
+
+  const riskWithDuplicateIdentity = withEnvelope(
+    "risk",
+    {
+      entityType: "risk",
+      title: "Duplicate identity",
+      status: "open",
+      likelihood: 3,
+      impact: 3,
+      externalRefs: [validRef]
+    },
+    "workshop"
+  );
+  await assert.rejects(() => service.upsertEntity(riskWithDuplicateIdentity), /claimed by more than one risk/i);
+  void riskA;
 });
 
 test("a same-major legacy workspace opens under the current axes and is moved forward on first write", async () => {

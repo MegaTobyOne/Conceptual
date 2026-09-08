@@ -1,6 +1,6 @@
 import { copyFile } from "node:fs/promises";
 import { basename, join, relative } from "node:path";
-import { PSPF_SLICE_VERSION } from "@pspf/contracts";
+import { PSPF_SLICE_VERSION, type RiskCrosswalkRowInput, type RiskEscalationDetail } from "@pspf/contracts";
 import { homePanelShellHtml, metricStripHtml, pageHeaderHtml, trustChipsHtml } from "@pspf/webview-shell";
 import * as vscode from "vscode";
 import { createCoreService, releaseAllWriterLocks, type ImportMode, type ImportResult } from "./service.js";
@@ -27,7 +27,12 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     recoverWriterLock: () => getService().recoverWriterLock(),
     upsertEntity: getService().upsertEntity,
     upsertEntities: getService().upsertEntities,
-    listEntities: getService().listEntities
+    listEntities: getService().listEntities,
+    migrateRiskFramework: () => getService().migrateRiskFramework(),
+    recordRiskEscalation: (riskId: string, escalation: RiskEscalationDetail) =>
+      getService().recordRiskEscalation(riskId, escalation),
+    commitRiskCrosswalk: (sourceRegisterId: string, rows: readonly RiskCrosswalkRowInput[]) =>
+      getService().commitRiskCrosswalk(sourceRegisterId, rows)
   };
 
   context.subscriptions.push(
@@ -109,7 +114,7 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
       const bundlePath = join(result.exportDirectory, "bundle.json");
       await copyFile(bundlePath, saveUri.fsPath);
       const action = await vscode.window.showInformationMessage(
-        `PSPF JSON bundle saved to ${saveUri.fsPath}`,
+        `PSPF JSON bundle saved to ${saveUri.fsPath}. This is a publication bundle, not a backup: sensitive fields are excluded. Back up the .pspf database and config instead.`,
         "Open File"
       );
       if (action === "Open File") {
@@ -208,7 +213,17 @@ export function activate(context: vscode.ExtensionContext): Record<string, unkno
     vscode.commands.registerCommand("pspf.core.upsertEntities", (entities) => getService().upsertEntities(entities)),
     vscode.commands.registerCommand("pspf.core.listEntities", (entityType) => getService().listEntities(entityType)),
     vscode.commands.registerCommand("pspf.core.listSnapshotAnchors", () => getService().listSnapshotSideFiles()),
-    vscode.commands.registerCommand("pspf.core.getWorkspacePaths", async () => getService().getWorkspacePaths())
+    vscode.commands.registerCommand("pspf.core.getWorkspacePaths", async () => getService().getWorkspacePaths()),
+    vscode.commands.registerCommand("pspf.core.migrateRiskFramework", async () => getService().migrateRiskFramework()),
+    vscode.commands.registerCommand(
+      "pspf.core.recordRiskEscalation",
+      async (riskId: string, escalation: RiskEscalationDetail) => getService().recordRiskEscalation(riskId, escalation)
+    ),
+    vscode.commands.registerCommand(
+      "pspf.core.commitRiskCrosswalk",
+      async (sourceRegisterId: string, rows: readonly RiskCrosswalkRowInput[]) =>
+        getService().commitRiskCrosswalk(sourceRegisterId, rows)
+    )
   );
 
   void initialiseOnActivation(output);

@@ -6,6 +6,7 @@ import {
   PSPF_SLICE_VERSION,
   VERSION_AXES,
   type ActionEntity,
+  evaluateRisk,
   type LinkEntity,
   type MoneyAmount,
   type RequirementEntity,
@@ -157,7 +158,8 @@ interface FundedAction {
 interface SupplierRisk {
   readonly supplier: SupplierRecord;
   readonly risk: RiskEntity;
-  readonly score: number;
+  /** Phase 1C (ADR 0098 D1.4): undefined when the risk is unassessed or not comparable, never coerced to 0. */
+  readonly score?: number;
 }
 
 interface ContractRisk {
@@ -178,6 +180,8 @@ interface CommercialCoverageDashboard {
   readonly renewals: readonly ContractRenewal[];
   readonly fundedActions: readonly FundedAction[];
   readonly supplierRisks: readonly SupplierRisk[];
+  /** Phase 1C (ADR 0098 D1.4): count of linked risks excluded from supplier-risk scoring because they are unassessed or not comparable. */
+  readonly supplierRiskUnassessedCount: number;
   readonly contractRisks: readonly ContractRisk[];
   readonly supplierManagement: readonly SupplierManagementSignal[];
   readonly contractArtefacts: readonly ContractArtefactSignal[];
@@ -2281,16 +2285,27 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
   const supplierById = new Map(store.suppliers.map((supplier) => [supplier.id, supplier]));
   const today = startOfUtcDay(new Date());
   const savingSchedule = deriveSavingSchedule(store, links);
+  // Phase 1C (ADR 0098 D1.3/D1.4): evaluateRisk, never a raw likelihood x impact multiply; unassessed/not-comparable
+  // risks are excluded from the numeric threshold rather than coerced to a score of 0.
+  let supplierRiskUnassessedCount = 0;
   const supplierRisks = links
     .filter(isSupplierRiskLink)
     .map((link) => {
       const supplier = store.suppliers.find((candidate) => candidate.id === link.fromId);
       const risk = riskById.get(link.toId);
-      const score = risk ? risk.likelihood * risk.impact : 0;
-      return supplier && risk && (risk.status === "open" || score >= 12) ? { supplier, risk, score } : undefined;
+      if (!supplier || !risk) {
+        return undefined;
+      }
+      const { score } = evaluateRisk(risk);
+      if (score === undefined) {
+        supplierRiskUnassessedCount += 1;
+      }
+      return risk.status === "open" || (score !== undefined && score >= 12) ? { supplier, risk, score } : undefined;
     })
     .filter(isDefined)
-    .sort((first, second) => second.score - first.score || first.risk.title.localeCompare(second.risk.title));
+    .sort(
+      (first, second) => (second.score ?? -1) - (first.score ?? -1) || first.risk.title.localeCompare(second.risk.title)
+    );
 
   return {
     coverage: [
@@ -2349,6 +2364,7 @@ async function deriveCoverageDashboard(store: ShopStore): Promise<CommercialCove
           first.action.title.localeCompare(second.action.title)
       ),
     supplierRisks,
+    supplierRiskUnassessedCount,
     contractRisks: deriveContractRisks(store, links, supplierRisks, supplierById, today),
     supplierManagement: deriveSupplierManagement(store),
     contractArtefacts: deriveContractArtefacts(store),
@@ -2613,7 +2629,8 @@ function lowerConfidence(first: string, second: string): string {
  */
 interface SupplierVerdict {
   readonly openRiskCount: number;
-  readonly highestRiskScore: number;
+  /** Phase 1C (ADR 0098 D1.4): undefined when no open linked risk has a comparable score. */
+  readonly highestRiskScore: number | undefined;
   readonly nearestContractExpiryDays: number | undefined;
   readonly hasAssuranceCoverage: boolean;
   readonly statement: string;
@@ -2639,7 +2656,9 @@ function buildSupplierVerdict(
     .map((link) => riskById.get(link.toId))
     .filter((risk): risk is RiskEntity => risk !== undefined && risk.status !== "closed");
   const openRiskCount = openRisks.length;
-  const highestRiskScore = openRisks.reduce((max, risk) => Math.max(max, risk.likelihood * risk.impact), 0);
+  // Phase 1C (ADR 0098 D1.3/D1.4): evaluateRisk, never a raw likelihood x impact multiply; unassessed/not-comparable risks carry no score.
+  const openRiskScores = openRisks.map((risk) => evaluateRisk(risk).score).filter(isDefined);
+  const highestRiskScore = openRiskScores.length > 0 ? Math.max(...openRiskScores) : undefined;
   const nearestContractExpiryDays = contracts
     .filter((contract) => contract.supplierId === supplier.id && contract.status === "active")
     .map((contract) => daysUntil(contract.endsAt, today))
@@ -2650,7 +2669,7 @@ function buildSupplierVerdict(
   const parts: string[] = [`${formatToken(supplier.criticality)} criticality supplier`];
   parts.push(
     openRiskCount > 0
-      ? `${openRiskCount} open risk${openRiskCount === 1 ? "" : "s"} (highest severity ${highestRiskScore})`
+      ? `${openRiskCount} open risk${openRiskCount === 1 ? "" : "s"}${highestRiskScore !== undefined ? ` (highest severity ${highestRiskScore})` : " (severity not comparable)"}`
       : "no open linked risks"
   );
   if (nearestContractExpiryDays !== undefined) {
@@ -2821,7 +2840,7 @@ function deriveContractRisks(
       const supplier = supplierById.get(contract.supplierId);
       const daysUntilEnd = daysUntil(contract.endsAt, today);
       const supplierRiskItems = supplierRisks.filter((item) => item.supplier.id === contract.supplierId);
-      const maxSupplierRisk = Math.max(...supplierRiskItems.map((item) => item.score), 0);
+      const maxSupplierRisk = Math.max(...supplierRiskItems.map((item) => item.score).filter(isDefined), 0);
       const hasRequirementLink = links.some((link) => isContractRequirementLink(link) && link.fromId === contract.id);
       const fundedSpendLinks = links.filter(
         (link) => isContractFundingLink(link) && link.fromId === contract.id
@@ -3611,7 +3630,7 @@ function renderForecastHtml(
                 <td>${escapeHtml(item.supplier.name)}</td>
                 <td>${escapeHtml(item.risk.title)}</td>
                 <td>${escapeHtml(formatToken(item.risk.status))}</td>
-                <td>${item.score}</td>
+                <td>${item.score ?? "Unassessed"}</td>
             </tr>`
           )
           .join("");
@@ -4130,7 +4149,7 @@ function renderForecastExecutiveContext(
     <article>
       <p class="eyebrow">Attention required</p>
       <strong>${watchCount}</strong>
-      <p>${escapeHtml(`${dashboard.uncontractedSpendItems.length} funding link(s), ${dashboard.renewals.length} renewal(s), ${dashboard.fundedActions.length} funded action(s), ${dashboard.supplierRisks.length} supplier risk(s), and ${dashboard.contractRisks.filter((item) => item.status !== "ok").length} contract risk signal(s) need review.`)}</p>
+      <p>${escapeHtml(`${dashboard.uncontractedSpendItems.length} funding link(s), ${dashboard.renewals.length} renewal(s), ${dashboard.fundedActions.length} funded action(s), ${dashboard.supplierRisks.length} supplier risk(s)${dashboard.supplierRiskUnassessedCount > 0 ? ` (${dashboard.supplierRiskUnassessedCount} unassessed, excluded from scoring)` : ""}, and ${dashboard.contractRisks.filter((item) => item.status !== "ok").length} contract risk signal(s) need review.`)}</p>
     </article>
     <article>
       <p class="eyebrow">Good looks like</p>

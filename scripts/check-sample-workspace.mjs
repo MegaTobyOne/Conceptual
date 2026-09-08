@@ -40,6 +40,17 @@ async function runVariant({ name, build, expected }) {
   }
 
   const sampleEntities = build({ sourceControls });
+  // ADR 0098 D6.3: a shipped sample carrying these constructs would be unexportable on first run.
+  const unpublishable = sampleEntities.filter(
+    (entity) =>
+      (entity.entityType === "link" && (entity.linkType === "rolls-up-to" || entity.linkType === "mitigated-by")) ||
+      (entity.entityType === "risk" && entity.assessment && entity.assessment.basis !== "legacy")
+  );
+  assert.deepEqual(
+    unpublishable.map((entity) => entity.id),
+    [],
+    `${name}: the shipped sample must stay exportable; publication preflight blocks these records`
+  );
   await service.upsertEntities(sampleEntities);
 
   const validation = await service.validateWorkspace();
@@ -101,7 +112,7 @@ await runVariant({
     actions: 3,
     risks: 4,
     directions: 2,
-    links: 12,
+    links: 15,
     mappings: 16
   }
 });

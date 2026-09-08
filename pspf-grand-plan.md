@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-09-03 (repo version 1.74.0)
+Last updated: 2026-09-08 (repo version 1.75.0)
 
 ## Purpose
 
@@ -13,6 +13,22 @@ This is the single forward plan for the PSPF ecosystem. It sequences two streams
 The ordering principle is deliberate: **make the documentation truthful first (F4), then close the trust boundary, then build new features on top of a boundary we trust.** New connected features (Graph, AI) must not land on an import/diagnostics layer that cannot validate or explain failures.
 
 This plan does not override the authority chain in `pspf-spec-consistency-index.md`. Every tranche below that changes architecture, schema, or invariants **starts with an ADR**; this document records the sequence and the design constraints, not the decisions themselves.
+
+## Workshop Risk overhaul
+
+Status: **implementation complete through Phase 4A; Phase 4B verification outstanding**
+
+The [Workshop Risk overhaul plan](docs/risk-overhaul-plan.md) has progressed through Phase 4A. Phase 0 completed on 2026-09-07 and produced [ADR 0098](adr/0098-workshop-risk-overhaul-contract-baseline.md) with decision tables, field/link/policy tables, a compatibility and recovery strategy, baseline evidence and a bounded Phase 1A handoff. The operator closed the three blocking decisions (D1.6/D6.5 publication of custom assessments blocked at preflight, D2.7 expired appetite rules apply and are flagged stale, D3.5 typed link metadata for control applications) as recommended, and ADR 0098 is `accepted`.
+
+Pointer: Phases 1A through 4A are recorded in the detailed plan. The schema baseline and release slice landed at v1.75.0 with `VERSION_AXES` `1.17.0`, while the ownership/narrative schema remains under `schemas/explorer-bundle/1.16.0` per ADR 0098 D6.1/D6.2. The Workshop workbench, treatments/controls, crosswalk import and presentation outputs are implemented within the unchanged 72-command / 30-panel Essentials budget.
+
+The full `pnpm run release:readiness` suite passed on 2026-09-08, including the Risk-specific gates, E2E, accessibility, redaction, typecheck, lint and release-candidate checks. One stale gate assumption was corrected during that run: `check-ownership-schema` now separates its historical `1.16.0` schema assertions from the current `1.17.0` axes and fixture assertions. This is a useful release-maintenance lesson: historical schema-slice gates must not assert that current compatibility axes remain at the slice's original version.
+
+The next bounded task is **Phase 4B: integrate and verify**, not another feature phase. The live VS Code operator walkthrough, 320/768/1440px and 200% accessibility/performance pass, and final redaction/compatibility/recovery evidence remain outstanding. Phase 4B should close or explicitly re-defer the known presentation limitations, correct any stale specifications, and report whether the programme is ready for separate release-sequencing authorisation.
+
+The programme is Workshop-only initially: editable categories and actual parent-risk relationships; organisation-defined matrices and appetite; reusable Action treatments and organisational controls; manual escalation history; manual references and previewed file crosswalk import; and hierarchy, matrix, bow-tie, coverage and executive-card views within existing surfaces. Explorer is unchanged; incompatible publication must fail clearly rather than inventing legacy scores or silently dropping data. Migration requires verified lossless recovery, not an assumption that publication JSON retains sensitive fields.
+
+Use Opus for Phase 0 and the shared model, persistence/migration and compatibility foundation; Sonnet for bounded workbench/visual implementation, with Opus reviews of reconciliation, history and publication boundaries; and Opus for final integration review. These are model-family recommendations, not pricing or benchmark claims. Existing remediation prerequisites, default-deny policy and the Essentials surface budget remain in force. Start with the plan's Phase 0 handoff, not the entire programme in one session.
 
 ## v1.61 release hardening
 

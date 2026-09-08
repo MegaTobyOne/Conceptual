@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // R2 gate (v1.72.0, ADR 0097 "Brief once, act often"): asserts the ownership-and-narrative schema
-// slice is complete without a build. Fails when the three version axes are not all 1.16.0, when the
+// slice is complete without a build. Fails when the current version axes are not all 1.17.0, when the
 // 1.16.0 schema directory is missing the narratives collection or the ownerTeam/dueDateHistory fields,
 // when the historical 1.15.0 directory has been touched, when the narrative entity or the due-date and
 // narrative primitives are absent from @pspf/contracts, when the new fields lack a `sensitive`
@@ -31,6 +31,7 @@ const read = (relativePath) => readFile(join(root, relativePath), "utf8");
 const readJson = async (relativePath) => JSON.parse(await read(relativePath));
 
 const AXIS = "1.16.0";
+const CURRENT_AXIS = "1.17.0";
 const PRIOR_AXIS = "1.15.0";
 
 // 1. Axes and schema directories.
@@ -39,8 +40,8 @@ const axesBlock = contracts.match(/export const VERSION_AXES = \{([\s\S]*?)\} as
 check(axesBlock !== null, "contracts index.ts declares VERSION_AXES");
 for (const axis of ["schemaVersion", "bundleVersion", "apiVersion"]) {
   check(
-    new RegExp(`\\b${axis}:\\s*"${AXIS.replace(/\./g, "\\.")}"`).test(axesBlock[1]),
-    `VERSION_AXES.${axis} is ${AXIS}`
+    new RegExp(`\\b${axis}:\\s*"${CURRENT_AXIS.replace(/\./g, "\\.")}"`).test(axesBlock[1]),
+    `VERSION_AXES.${axis} is ${CURRENT_AXIS}`
   );
 }
 
@@ -127,7 +128,7 @@ expectSensitive("narrative", "body");
 const fixturePath = "packages/contracts/test-fixtures/standard/bundle.json";
 const fixture = await readJson(fixturePath);
 for (const axis of ["schemaVersion", "bundleVersion", "apiVersion"]) {
-  check(fixture.manifest?.[axis] === AXIS, `${fixturePath} manifest.${axis} is ${AXIS}`);
+  check(fixture.manifest?.[axis] === CURRENT_AXIS, `${fixturePath} manifest.${axis} is ${CURRENT_AXIS}`);
 }
 check(Array.isArray(fixture.collections?.narratives), `${fixturePath} has a narratives collection`);
 check(

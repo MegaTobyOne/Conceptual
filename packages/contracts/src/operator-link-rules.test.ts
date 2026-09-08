@@ -74,3 +74,16 @@ test("operator link rules can be grouped by source product for shared UI afforda
   assert.ok(workshopRules.every((rule) => rule.sourceProduct === "workshop"));
   assert.ok(shopRules.every((rule) => rule.sourceProduct === "shop"));
 });
+
+// Phase 1A (ADR 0098): Risk overhaul operator link rules.
+test("operator link rules cover the Risk overhaul relationships", () => {
+  assert.equal(
+    OPERATOR_LINK_RULES.some((rule) => rule.id === "workshop-risk-treated-by-action"),
+    true
+  );
+  assert.equal(operatorLinkRuleFor("risk", "rolls-up-to", "risk")?.sourceProduct, "workshop");
+  assert.equal(operatorLinkRuleFor("risk", "related-to", "risk")?.sourceProduct, "workshop");
+  assert.equal(operatorLinkRuleFor("risk", "treated-by", "action")?.sourceProduct, "workshop");
+  assert.equal(operatorLinkRuleFor("risk", "mitigated-by", "risk-control")?.sourceProduct, "workshop");
+  assert.equal(operatorLinkRuleFor("action", "addressed-by", "risk-control")?.sourceProduct, "workshop");
+});

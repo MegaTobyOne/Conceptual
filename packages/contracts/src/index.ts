@@ -1,10 +1,31 @@
+// Phase 1A (ADR 0098): Risk overhaul entity/assessment types live in risk-model.ts; imported here
+// because they extend the core entity unions below, and re-exported near the end of this file.
+import type {
+  RiskAssessment,
+  RiskAssessmentState,
+  RiskCategoryNode,
+  RiskCauseOrConsequence,
+  RiskControlApplication,
+  RiskControlEntity,
+  RiskEventEntity,
+  RiskExternalRef,
+  RiskFrameworkEntity,
+  RiskResponse
+} from "./risk-model.js";
+import {
+  evaluateRisk,
+  LEGACY_5X5_METHODOLOGY,
+  LEGACY_METHODOLOGY_ID,
+  LEGACY_METHODOLOGY_REVISION_ID
+} from "./risk-model.js";
+
 export const VERSION_AXES = {
-  schemaVersion: "1.16.0",
-  bundleVersion: "1.16.0",
-  apiVersion: "1.16.0"
+  schemaVersion: "1.17.0",
+  bundleVersion: "1.17.0",
+  apiVersion: "1.17.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.74.0" as const;
+export const PSPF_SLICE_VERSION = "1.75.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -139,6 +160,9 @@ export const V0_1_ENTITY_TYPES = [
   "evidence",
   "action",
   "risk",
+  "risk-framework",
+  "risk-control",
+  "risk-event",
   "snapshot",
   "link",
   "tag",
@@ -168,6 +192,9 @@ export const V0_1_COLLECTIONS = [
   "evidence",
   "actions",
   "risks",
+  "risk-frameworks",
+  "risk-controls",
+  "risk-events",
   "snapshots",
   "links",
   "tags",
@@ -208,6 +235,8 @@ export const LINK_TYPES = [
   "assigned-via",
   "blocked-by",
   "related-to",
+  "rolls-up-to",
+  "mitigated-by",
   "funds",
   "member-of",
   "holds",
@@ -387,6 +416,51 @@ export const OPERATOR_LINK_RULES = [
     toType: "contract",
     label: "Link Action to Contract",
     phrase: "related to"
+  },
+  {
+    id: "workshop-risk-rolls-up-to-risk",
+    sourceProduct: "workshop",
+    linkType: "rolls-up-to",
+    fromType: "risk",
+    toType: "risk",
+    label: "Set parent Risk",
+    phrase: "rolls up to"
+  },
+  {
+    id: "workshop-risk-related-to-risk",
+    sourceProduct: "workshop",
+    linkType: "related-to",
+    fromType: "risk",
+    toType: "risk",
+    label: "Link to enterprise Risk",
+    phrase: "related to"
+  },
+  {
+    id: "workshop-risk-treated-by-action",
+    sourceProduct: "workshop",
+    linkType: "treated-by",
+    fromType: "risk",
+    toType: "action",
+    label: "Link Action to Risk",
+    phrase: "treated by"
+  },
+  {
+    id: "workshop-risk-mitigated-by-risk-control",
+    sourceProduct: "workshop",
+    linkType: "mitigated-by",
+    fromType: "risk",
+    toType: "risk-control",
+    label: "Link Risk Control to Risk",
+    phrase: "mitigated by"
+  },
+  {
+    id: "workshop-action-addressed-by-risk-control",
+    sourceProduct: "workshop",
+    linkType: "addressed-by",
+    fromType: "action",
+    toType: "risk-control",
+    label: "Link Action to Risk Control",
+    phrase: "addressed by"
   }
 ] as const satisfies readonly OperatorLinkRule[];
 
@@ -551,6 +625,24 @@ export interface RiskEntity extends EntityEnvelope {
   readonly likelihood: number;
   readonly impact: number;
   readonly integration?: RiskIntegrationMetadata;
+  /** ADR 0098 D5.1: operator's own register reference, distinct from `id`. */
+  readonly reference?: string;
+  readonly description?: string;
+  /** ADR 0098 D3.6: stable bow-tie anchors, unique within this Risk. */
+  readonly causes?: readonly RiskCauseOrConsequence[];
+  readonly consequences?: readonly RiskCauseOrConsequence[];
+  /** ADR 0098 D2.3: opaque `risk-framework` category node ID; at most one primary category. */
+  readonly primaryCategoryId?: string;
+  /** ADR 0097 D5: team label, never a person. */
+  readonly ownerTeam?: string;
+  readonly reviewBy?: string;
+  /** ADR 0098 D1.1: absent means legacy basis using `likelihood`/`impact` (D1.2). */
+  readonly assessment?: RiskAssessment;
+  /** ADR 0098 D1.3/D5.1: derived by Core from `assessment` on write; read-only for clients. */
+  readonly assessmentState?: RiskAssessmentState;
+  readonly response?: RiskResponse;
+  /** ADR 0098 D5.4: external register cross-references; original scale/rating preserved as text. */
+  readonly externalRefs?: readonly RiskExternalRef[];
 }
 
 export interface LinkEntity extends EntityEnvelope {
@@ -562,6 +654,10 @@ export interface LinkEntity extends EntityEnvelope {
   readonly toType: V01EntityType;
   readonly evidenceNote?: string;
   readonly evidenceSection?: string;
+  /** ADR 0098 D3.2: `"secondary-enterprise-association"` on `risk -> related-to -> risk`. */
+  readonly linkRole?: string;
+  /** ADR 0098 D3.5: permitted only when `linkType === "mitigated-by"`. */
+  readonly application?: RiskControlApplication;
 }
 
 export interface SnapshotEntity extends EntityEnvelope {
@@ -1115,6 +1211,9 @@ export type V01Entity =
   | EvidenceEntity
   | ActionEntity
   | RiskEntity
+  | RiskFrameworkEntity
+  | RiskControlEntity
+  | RiskEventEntity
   | LinkEntity
   | SnapshotEntity
   | TagEntity
@@ -1141,6 +1240,9 @@ export type EntityByCollection = {
   evidence: EvidenceEntity;
   actions: ActionEntity;
   risks: RiskEntity;
+  "risk-frameworks": RiskFrameworkEntity;
+  "risk-controls": RiskControlEntity;
+  "risk-events": RiskEventEntity;
   snapshots: SnapshotEntity;
   links: LinkEntity;
   tags: TagEntity;
@@ -1273,9 +1375,62 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "recordStatus",
         "status",
         "likelihood",
-        "impact"
+        "impact",
+        "primaryCategoryId",
+        "assessmentState"
       ),
-      { field: "integration", publication: "sensitive" }
+      { field: "integration", publication: "sensitive" },
+      { field: "reference", publication: "sensitive" },
+      { field: "description", publication: "sensitive" },
+      { field: "causes", publication: "sensitive" },
+      { field: "consequences", publication: "sensitive" },
+      { field: "ownerTeam", publication: "sensitive" },
+      { field: "reviewBy", publication: "sensitive" },
+      { field: "assessment", publication: "sensitive" },
+      { field: "response", publication: "sensitive" },
+      { field: "externalRefs", publication: "sensitive" }
+    ]
+  },
+  {
+    // ADR 0098 D2.8: singleton is present so Core round-trips it; every label, rule and cell is
+    // sensitive so Explorer receives an empty shell.
+    entityType: "risk-framework",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus"),
+      { field: "title", publication: "sensitive" },
+      { field: "categories", publication: "sensitive" },
+      { field: "methodologies", publication: "sensitive" },
+      { field: "appetiteRules", publication: "sensitive" },
+      { field: "sourceRegisters", publication: "sensitive" },
+      { field: "presentationPresets", publication: "sensitive" }
+    ]
+  },
+  {
+    // ADR 0098: new entity, all non-envelope fields sensitive.
+    entityType: "risk-control",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus"),
+      { field: "title", publication: "sensitive" },
+      { field: "definition", publication: "sensitive" },
+      { field: "ownerTeam", publication: "sensitive" },
+      { field: "state", publication: "sensitive" },
+      { field: "reviewBy", publication: "sensitive" },
+      { field: "sourceControlIds", publication: "sensitive" }
+    ]
+  },
+  {
+    // ADR 0098: new entity, all non-envelope fields sensitive.
+    entityType: "risk-event",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus"),
+      { field: "title", publication: "sensitive" },
+      { field: "riskId", publication: "sensitive" },
+      { field: "kind", publication: "sensitive" },
+      { field: "occurredAt", publication: "sensitive" },
+      { field: "summary", publication: "sensitive" },
+      { field: "before", publication: "sensitive" },
+      { field: "after", publication: "sensitive" },
+      { field: "escalation", publication: "sensitive" }
     ]
   },
   {
@@ -1309,10 +1464,12 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
         "fromId",
         "fromType",
         "toId",
-        "toType"
+        "toType",
+        "linkRole"
       ),
       { field: "evidenceNote", publication: "sensitive" },
-      { field: "evidenceSection", publication: "sensitive" }
+      { field: "evidenceSection", publication: "sensitive" },
+      { field: "application", publication: "sensitive" }
     ]
   },
   {
@@ -1766,6 +1923,9 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   evidence: "evidence",
   action: "actions",
   risk: "risks",
+  "risk-framework": "risk-frameworks",
+  "risk-control": "risk-controls",
+  "risk-event": "risk-events",
   snapshot: "snapshots",
   link: "links",
   tag: "tags",
@@ -1793,6 +1953,9 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   evidence: "EVD",
   action: "ACT",
   risk: "RSK",
+  "risk-framework": "RFW",
+  "risk-control": "RCT",
+  "risk-event": "RSE",
   snapshot: "SNP",
   link: "LNK",
   tag: "TAG",
@@ -1946,13 +2109,103 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     likelihood: 3,
     impact: 3
   });
+  // ADR 0098 D8.3 (Phase 2): a three-level category template and a roll-up chain exercise the
+  // risk-framework/hierarchy workbench surfaces without inventing a new risk narrative.
+  const riskCategoryEnterprise: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000801",
+    label: "Enterprise",
+    order: 0,
+    archived: false
+  };
+  const riskCategoryDigital: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000802",
+    label: "Digital",
+    parentId: riskCategoryEnterprise.id,
+    order: 0,
+    archived: false
+  };
+  const riskCategoryTechnology: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000803",
+    label: "Technology",
+    parentId: riskCategoryDigital.id,
+    order: 0,
+    archived: false
+  };
+  const riskCategoryCyber: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000804",
+    label: "Cyber",
+    parentId: riskCategoryEnterprise.id,
+    order: 1,
+    archived: false
+  };
+  const riskFrameworkEnterprise: RiskFrameworkEntity = sampleEntity(
+    "risk-framework",
+    "RFW-00000000-0000-4000-8000-000000000801",
+    timestamp,
+    {
+      entityType: "risk-framework",
+      categories: [riskCategoryEnterprise, riskCategoryDigital, riskCategoryTechnology, riskCategoryCyber],
+      methodologies: [LEGACY_5X5_METHODOLOGY],
+      appetiteRules: [
+        {
+          id: "apt-00000000-0000-4000-8000-000000000801",
+          scope: { kind: "workspace" },
+          methodologyId: LEGACY_METHODOLOGY_ID,
+          revisionId: LEGACY_METHODOLOGY_REVISION_ID,
+          allowedBandIds: ["low", "medium"],
+          rationale: "Sample workspace appetite: accept low and medium risk without escalation.",
+          effectiveFrom: timestamp
+        }
+      ],
+      sourceRegisters: [{ id: "reg-00000000-0000-4000-8000-000000000801", label: "Enterprise Risk Register" }],
+      presentationPresets: []
+    }
+  );
   const riskEncryption: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000802", timestamp, {
     entityType: "risk",
     title: "Encryption exception remains untreated",
     status: "open",
     likelihood: 4,
-    impact: 4
+    impact: 4,
+    primaryCategoryId: riskCategoryTechnology.id,
+    // ADR 0098 D3.6/D8.3 (Phase 3A): stable bow-tie anchors exercised by the mitigated-by application below.
+    causes: [
+      {
+        id: "cause-00000000-0000-4000-8000-000000000802",
+        label: "Legacy endpoints predate mandatory disk encryption"
+      }
+    ],
+    consequences: [
+      {
+        id: "cons-00000000-0000-4000-8000-000000000802",
+        label: "Sensitive data exposed if a device is lost or stolen"
+      }
+    ],
+    // ADR 0098 D5.4/D8.3 (Phase 3B): a crosswalk-eligible external reference for manual/CSV import tests.
+    externalRefs: [
+      {
+        sourceRegisterId: "reg-00000000-0000-4000-8000-000000000801",
+        externalId: "ERR-4021",
+        externalRating: "High",
+        sourceUpdatedAt: "2026-08-15T00:00:00.000Z",
+        referenceUrl: "https://enterprise-risk-register.example.test/records/ERR-4021",
+        reconciledAt: timestamp
+      }
+    ]
   });
+  // ADR 0098 D3.4 (Phase 3A): an organisational control, referenced by a mitigated-by application below.
+  const riskControlEncryption: RiskControlEntity = sampleEntity(
+    "risk-control",
+    "RCT-00000000-0000-4000-8000-000000000801",
+    timestamp,
+    {
+      entityType: "risk-control",
+      title: "Full-disk encryption enforced by device policy",
+      definition: "Managed device policy enforces full-disk encryption before an endpoint may enrol in the fleet.",
+      ownerTeam: "Platform Engineering",
+      state: "active"
+    }
+  );
   const riskAccess: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000803", timestamp, {
     entityType: "risk",
     title: "Dormant access is retained",
@@ -2152,6 +2405,8 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
     riskEncryption,
     riskAccess,
     riskClosed,
+    riskFrameworkEnterprise,
+    riskControlEncryption,
     directionEncryption,
     directionReporting,
     sampleLink(
@@ -2249,7 +2504,35 @@ export function buildSampleWorkspaceEntities(options: SampleWorkspaceOptions = {
       "addressed-by",
       directionReporting,
       actionGovernance
+    ),
+    // ADR 0098 D3.7/D8.3 (Phase 3A): canonical `treated-by` links, including a shared Action across
+    // two risks to exercise the Treatments view's affected-risk preview.
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000814",
+      timestamp,
+      "Encryption risk treated by encryption action",
+      "treated-by",
+      riskEncryption,
+      actionEncryption
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000815",
+      timestamp,
+      "Governance risk treated by encryption action",
+      "treated-by",
+      riskGovernance,
+      actionEncryption
+    ),
+    sampleLink(
+      "LNK-00000000-0000-4000-8000-000000000816",
+      timestamp,
+      "Access risk treated by access action",
+      "treated-by",
+      riskAccess,
+      actionAccess
     )
+    // ADR 0098 D6.3 blocks publication of any `rolls-up-to`/`mitigated-by` link, so the shipped
+    // sample deliberately carries neither; both are exercised by test fixtures instead.
   ];
 
   entities.push(
@@ -2515,12 +2798,46 @@ export function buildHomeSampleWorkspaceEntities(options: SampleWorkspaceOptions
   });
 
   // Risks (3 items)
+  const homeRiskCategoryHousehold: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000741",
+    label: "Household",
+    order: 0,
+    archived: false
+  };
+  const homeRiskCategoryDevices: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000742",
+    label: "Devices",
+    parentId: homeRiskCategoryHousehold.id,
+    order: 0,
+    archived: false
+  };
+  const homeRiskCategoryOnlineSafety: RiskCategoryNode = {
+    id: "cat-00000000-0000-4000-8000-000000000743",
+    label: "Online safety",
+    parentId: homeRiskCategoryHousehold.id,
+    order: 1,
+    archived: false
+  };
+  const homeRiskFramework: RiskFrameworkEntity = sampleEntity(
+    "risk-framework",
+    "RFW-00000000-0000-4000-8000-000000000741",
+    timestamp,
+    {
+      entityType: "risk-framework",
+      categories: [homeRiskCategoryHousehold, homeRiskCategoryDevices, homeRiskCategoryOnlineSafety],
+      methodologies: [LEGACY_5X5_METHODOLOGY],
+      appetiteRules: [],
+      sourceRegisters: [],
+      presentationPresets: []
+    }
+  );
   const riskUnpatched: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000741", timestamp, {
     entityType: "risk",
     title: "Unpatched home devices exploited by commodity malware",
     status: "open",
     likelihood: 3,
-    impact: 3
+    impact: 3,
+    primaryCategoryId: homeRiskCategoryDevices.id
   });
   const riskBackup: RiskEntity = sampleEntity("risk", "RSK-00000000-0000-4000-8000-000000000742", timestamp, {
     entityType: "risk",
@@ -2711,6 +3028,7 @@ export function buildHomeSampleWorkspaceEntities(options: SampleWorkspaceOptions
     riskUnpatched,
     riskBackup,
     riskScam,
+    homeRiskFramework,
     // Evidence links
     sampleLink(
       "LNK-00000000-0000-4000-8000-000000000751",
@@ -3733,7 +4051,7 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
   const requirements = new Map<string, V01Entity & { assessmentStatus?: string }>();
   const evidenceById = new Map<string, V01Entity & { freshness?: string }>();
   const directionsById = new Map<string, V01Entity & { responseState?: string }>();
-  const risksById = new Map<string, V01Entity & { status?: string; likelihood?: number; impact?: number }>();
+  const risksById = new Map<string, RiskEntity>();
   for (const entity of entities) {
     if (entity.entityType === "requirement") {
       requirements.set(entity.id, entity as V01Entity & { assessmentStatus?: string });
@@ -3742,7 +4060,7 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
     } else if (entity.entityType === "direction") {
       directionsById.set(entity.id, entity as V01Entity & { responseState?: string });
     } else if (entity.entityType === "risk") {
-      risksById.set(entity.id, entity as V01Entity & { status?: string; likelihood?: number; impact?: number });
+      risksById.set(entity.id, entity as RiskEntity);
     }
   }
 
@@ -3798,13 +4116,25 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
     }
     const linkedRiskIds = risksByAction.get(entity.id) ?? [];
     let riskReduction = 0;
+    let excludedRiskCount = 0;
     for (const riskId of linkedRiskIds) {
       const risk = risksById.get(riskId);
       if (risk && risk.status !== "closed") {
-        const severity = (risk.likelihood ?? 0) * (risk.impact ?? 0);
-        riskReduction += severity >= 10 ? 3 : severity >= 5 ? 2 : 1;
-        explanation.push(`Treats open risk (severity ${severity})`);
+        // Phase 1C (ADR 0098 D1.3/D1.4): evaluateRisk, never a raw likelihood x impact multiply; unassessed/
+        // not-comparable risks are excluded from the weighting rather than coerced to a severity of 0.
+        const { score } = evaluateRisk(risk);
+        if (score === undefined) {
+          excludedRiskCount += 1;
+          continue;
+        }
+        riskReduction += score >= 10 ? 3 : score >= 5 ? 2 : 1;
+        explanation.push(`Treats open risk (severity ${score})`);
       }
+    }
+    if (excludedRiskCount > 0) {
+      explanation.push(
+        `${excludedRiskCount} linked risk(s) excluded from risk-reduction weighting because no comparable assessment is recorded`
+      );
     }
     const linkedDirectionIds = directionsByAction.get(entity.id) ?? [];
     let directionUplift = 0;
@@ -4113,3 +4443,7 @@ export * from "./team-report-card.js";
 // R4 (v1.74.0, ADR 0097): suggested actions and close-of-period narrative stamping.
 export * from "./suggested-actions.js";
 export * from "./reporting-period.js";
+// Phase 1A (v1.74.0, ADR 0098): Risk overhaul contracts and shared evaluator.
+export * from "./risk-model.js";
+// Phase 3B (v1.75.0, ADR 0098): source-register crosswalk matching and preview.
+export * from "./risk-crosswalk.js";
