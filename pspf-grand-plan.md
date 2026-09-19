@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-09-08 (repo version 1.75.0)
+Last updated: 2026-09-19 (repo version 1.75.0)
 
 ## Purpose
 
@@ -16,7 +16,7 @@ This plan does not override the authority chain in `pspf-spec-consistency-index.
 
 ## Workshop Risk overhaul
 
-Status: **implementation complete through Phase 4A; Phase 4B verification outstanding**
+Status: **implementation complete through Phase 4A; Phase 4B verification explicitly deferred (2026-09-19)**
 
 The [Workshop Risk overhaul plan](docs/risk-overhaul-plan.md) has progressed through Phase 4A. Phase 0 completed on 2026-09-07 and produced [ADR 0098](adr/0098-workshop-risk-overhaul-contract-baseline.md) with decision tables, field/link/policy tables, a compatibility and recovery strategy, baseline evidence and a bounded Phase 1A handoff. The operator closed the three blocking decisions (D1.6/D6.5 publication of custom assessments blocked at preflight, D2.7 expired appetite rules apply and are flagged stale, D3.5 typed link metadata for control applications) as recommended, and ADR 0098 is `accepted`.
 
@@ -24,11 +24,69 @@ Pointer: Phases 1A through 4A are recorded in the detailed plan. The schema base
 
 The full `pnpm run release:readiness` suite passed on 2026-09-08, including the Risk-specific gates, E2E, accessibility, redaction, typecheck, lint and release-candidate checks. One stale gate assumption was corrected during that run: `check-ownership-schema` now separates its historical `1.16.0` schema assertions from the current `1.17.0` axes and fixture assertions. This is a useful release-maintenance lesson: historical schema-slice gates must not assert that current compatibility axes remain at the slice's original version.
 
-The next bounded task is **Phase 4B: integrate and verify**, not another feature phase. The live VS Code operator walkthrough, 320/768/1440px and 200% accessibility/performance pass, and final redaction/compatibility/recovery evidence remain outstanding. Phase 4B should close or explicitly re-defer the known presentation limitations, correct any stale specifications, and report whether the programme is ready for separate release-sequencing authorisation.
+**Phase 4B: integrate and verify is explicitly deferred** as of 2026-09-19 so that the Commitment-led operating model programme (next section) takes scheduling precedence. Deferral is a sequencing decision, not completion. The following remain required before the Risk overhaul can be put forward for separate release-sequencing authorisation:
+
+1. The live VS Code operator walkthrough of the Risk workbench, treatments/controls, crosswalk import and presentation outputs.
+2. The 320/768/1440 px and 200% zoom accessibility/performance pass over the touched Risk surfaces.
+3. Final redaction, compatibility and lossless-recovery evidence for the `1.17.0` schema slice.
+4. Closing or explicitly re-deferring the known presentation limitations and correcting any stale Risk specifications.
+
+The 2026-09-08 green `release:readiness` run is historical evidence of the release chain at that commit; it is not fresh Phase 4B evidence. Commitment-led slices that touch Risk contracts, the shared shell or the same panels do not satisfy Phase 4B by proximity; 4B is closed only by its own recorded walkthrough and evidence.
 
 The programme is Workshop-only initially: editable categories and actual parent-risk relationships; organisation-defined matrices and appetite; reusable Action treatments and organisational controls; manual escalation history; manual references and previewed file crosswalk import; and hierarchy, matrix, bow-tie, coverage and executive-card views within existing surfaces. Explorer is unchanged; incompatible publication must fail clearly rather than inventing legacy scores or silently dropping data. Migration requires verified lossless recovery, not an assumption that publication JSON retains sensitive fields.
 
 Use Opus for Phase 0 and the shared model, persistence/migration and compatibility foundation; Sonnet for bounded workbench/visual implementation, with Opus reviews of reconciliation, history and publication boundaries; and Opus for final integration review. These are model-family recommendations, not pricing or benchmark claims. Existing remediation prerequisites, default-deny policy and the Essentials surface budget remain in force. Start with the plan's Phase 0 handoff, not the entire programme in one session.
+
+## Commitment-led operating model — Operations and Oversight & Assurance
+
+Status: **Phase 0 in progress — decisions pending ADR 0099; no product code authorised**
+
+### Outcome
+
+The operator stops mentally combining day-to-day delivery, strategic decisions, organisational commitments, assurance and reporting. The suite offers two explicit working contexts over one connected local model: **Operations** (what changed, what was escalated or flagged, what is blocked, what delivery response is needed) and **Oversight & Assurance** (where we stand against obligations, standing expectations and agreed commitments; what supports that position; whether the response is still adequate). Strategic choices connect to agreed commitments; commitments are fulfilled by contributions from separately owned source plans (the operator's POAMs); results and evidence feed a separately recorded assessment and management review. There is no master task register, source plans are not cloned into local copies, and no new publication surface is created in P1.
+
+The programme specification is the 2026-09-19 commitment-led operating model technical specification (`.hermes/plans/2026-09-19_091633-commitment-led-operating-model-techspec.md`, status aspirational). Its repository observations were verified against `develop` on 2026-09-19. The detailed phase plan will live at `docs/commitment-operating-model-plan.md` once Phase 0 produces it; until then this section is the scheduling authority.
+
+### Decisions now in force (2026-09-19)
+
+1. **Precedence.** Risk overhaul Phase 4B is explicitly deferred (see above); this programme is the active forward slice.
+2. **P1 source integration is manual reference registration only.** The operator registers a source plan's identity (source-system key, plan key, kind, scope, accountable team/role assertion) and enters its milestones by hand as source-bound Actions. No file adapter, live connector, scheduled import or write-back ships in P1. The techspec's file-import reconciliation (its §9 and AC-18–AC-22) moves to the deferred register; its source-binding identity tuple and the separation of source claims from local authority are retained.
+3. **Phase 0 deliverables** are ADR 0099 (decision table for the techspec's O-01…O-10, REQ-to-existing-symbol mapping, exact allowed `(fromType, linkType, toType)` pairs, a declared publication policy for every proposed field, compatibility/migration decisions, and recorded before/after surface counts) plus `docs/commitment-operating-model-plan.md`. The consistency index and affected topic specs are updated in the same slice. ADR 0099 is referenced here as pending; it governs nothing until accepted.
+4. **Thin aggregates over existing records.** `StrategyEntity`/nested `StrategicChoice`, `ActionEntity` (`ownerTeam`, `planningState`, `dueDateHistory`), `RiskControlEntity`, evidence and typed links remain canonical. Only the missing local contracts are added: commitment and immutable commitment baseline, source-plan descriptor/binding, assessment revision and governance decision. No standalone `StrategyChoice` entity, no new compatibility axis, no single overloaded `status` shared by agreement lifecycle, delivery state and assessment conclusion.
+5. **Working context is a task context, not identity or permission.** Switching is explicit only (keyboard and pointer), persisted under a workspace-scoped `workspaceState` key separate from the retired lens key, never inferred from role, activity or legacy `ciso/auditor/solo` values, and grants or removes no write capability. ADR 0099 supersedes only ADR 0096's prohibition on presentation modes; retired routes and persona taxonomy stay retired, and the 72-command / 30-panel Essentials budget changes only by recorded before/after counts.
+6. **Publication.** All new commitment, source-binding, assessment, decision and rationale content is `sensitive` and stays in the local trusted workspace in P1. Explorer projection is P2 behind a field-level publication ADR and is blocked at preflight until then. Person-free team/role keys only; no `Person.name`, `Person.email`, `Assignment.personId` or Pub ingestion.
+7. **Delivery ≠ agreement ≠ assurance.** `planningState=committed` is delivery-planning intent, not an authorised organisational commitment; reported completion never auto-establishes fulfilment, effectiveness or adequacy; no completion ratio or average becomes an assurance figure.
+
+### Phases
+
+Versions are assigned at release sequencing, not here. One active vertical slice at a time; each phase closes on its named acceptance criteria with actual results.
+
+| Phase | Scope                                                                                                                                                                                                      | Exit gate                                                                                                                                                 |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | Confirm current truth, accept decisions, map contracts, define the exact P1 slice and deferred register                                                                                                    | ADR 0099 accepted; `docs/commitment-operating-model-plan.md` written; index and topic specs reconciled; `check:adr-coverage` and `check:spec-drift` green |
+| 1     | Explicit working-context presentation plus two verified semantic-debt fixes: `buildStrategyDeliverySummary` classifies by `planningState`; Explorer `share.ts` egress is sanitised or blocked at preflight | Distinct labelled contexts, legacy-lens retirement preserved, no business-record or schema mutation, `check:working-context` green                        |
+| 2     | Minimal local commitment/baseline/decision contract and protected persistence with explicit migration and verified lossless restore                                                                        | One real commitment moves draft → agreed → revised without invented history; cold restore proven; `check:commitment-model` green                          |
+| 3     | Manual source-plan registration and source-bound Actions contributing to a commitment (required / supporting / alternative)                                                                                | Two registered plans contribute to one commitment without cloning; identity tuple, stale/unknown source state and withdrawal rules tested                 |
+| 4     | Evidence-backed assessment revisions and shared deterministic roll-up builders in `@pspf/contracts`                                                                                                        | Reported versus assessed positions coexist; critical blocked contribution cannot be concealed by completed non-critical work                              |
+| 5     | Integrated Operations and Oversight & Assurance landings in Workshop and the local **OFFICIAL: Sensitive** review pack                                                                                     | Flagship fixture journey passes end to end; accessibility at 320/768/1440 px and 200%; existing requirement journey untouched                             |
+| 6     | P1 integration, recovery, operator walkthrough and release readiness                                                                                                                                       | All P1 acceptance criteria demonstrated; P2 items recorded as deferred, not passing; `release:readiness` green                                            |
+| 7     | **P2, separately gated:** safe Explorer projection                                                                                                                                                         | Field-level publication ADR accepted; all touched egress and round-trip paths tested for no sensitive pass-through                                        |
+
+### Release gates
+
+1. **Working-context gate (Phase 1):** `check:working-context` proves explicit switching, the separate preference key, legacy-lens normalisation retained, no capability or record change on switch, and the surface budget by recorded counts.
+2. **Commitment-model gate (Phase 2 onward):** `check:commitment-model` proves every new field declares a `sensitive` publication policy, immutable baseline/assessment/decision history at Core's write boundary, and the allowed link pairs.
+3. **Existing gates continue to apply:** `check:personal-data`, `check:schema-policy`, `check:schema-coverage`, `check:essentials-surface`, `check:spec-drift`, `check:adr-coverage`, `check:backup-restore`, `check:writer-lock`, and the inherited `e2e` release chain.
+
+### Explicitly deferred
+
+- File-based POAM adapter and previewed source reconciliation (techspec §9, AC-18–AC-22) — P2, after the manual-registration model is proven.
+- Explorer publication of any commitment, assessment or decision content (AC-34) — pending a field-level publication ADR.
+- Graph, Planner, ADO and Outlook connectors, native Office output and AI assistance — Tranches 3–5 below.
+- Identity, RBAC, SSO, electronic signatures and independent-assurance claims; Pub as a team or identity source.
+- Vendored framework dataset refresh (PSPF Release 2026 / current ISM editions) — a separately approved change with impact review (techspec O-09).
+
+Use Opus for Phase 0, the contract/persistence/history foundation and the publication boundary; Sonnet for bounded rendering slices; Opus reviews of reconciliation, history and publication diffs. Start from the plan's next bounded task, not the entire programme in one session.
 
 ## v1.61 release hardening
 
@@ -465,6 +523,7 @@ graph LR
 - T3 before T4: most "Office integration" value needs no network; settle templates and redaction offline before any token touches the system.
 - T5 can run in parallel with T3/T4 once T2 lands (it shares only the diagnostics and policy infrastructure).
 - T6 lands after the documentation and trust-boundary work because it composes a new local extension, the document pipeline (T3), optionally the delivery channel (T4), and introduces the first cryptography.
+- The Commitment-led operating model programme is local-only and formally independent of T2, but its Phase 1 closes the Explorer `share.ts` unsanitised-egress debt rather than waiting for T2; any P2 Explorer projection of commitment data still requires T2's closed import boundary.
 
 ## UX and polish work folded into tranches
 
