@@ -6,6 +6,7 @@ import { reduceJourneyCost, validateJourneyCost } from "./check-journey-cost.mjs
 
 const pack = JSON.parse(await readFile(new URL("../docs/ux-evidence/pack.json", import.meta.url), "utf8"));
 const baseline = JSON.parse(await readFile(new URL("../docs/ux-evidence/baseline.json", import.meta.url), "utf8"));
+const cloneFixture = (fixture) => JSON.parse(JSON.stringify(fixture));
 
 test("empty journey reduces to zero cost", () => {
   assert.deepEqual(reduceJourneyCost([]), {
@@ -46,19 +47,19 @@ test("500-item journey remains deterministic", () => {
 });
 
 test("regression fixture fails the baseline ratchet", () => {
-  const regression = structuredClone(pack);
+  const regression = cloneFixture(pack);
   regression.jobs.find((job) => job.id === "FJ1").cost.inputEvents += 1;
   assert.throws(() => validateJourneyCost(regression, baseline, "1.76.0"), /FJ1 inputEvents/);
 });
 
 test("stale-version fixture fails freshness", () => {
-  const stale = structuredClone(pack);
+  const stale = cloneFixture(pack);
   stale.productVersion = "1.74.0";
   assert.throws(() => validateJourneyCost(stale, baseline, "1.76.0"), /older than package.json/);
 });
 
 test("missing flagship record fails completeness", () => {
-  const incomplete = structuredClone(pack);
+  const incomplete = cloneFixture(pack);
   incomplete.jobs = incomplete.jobs.filter((job) => job.id !== "FJ4");
   assert.throws(() => validateJourneyCost(incomplete, baseline, "1.75.0"), /FJ4/);
 });
