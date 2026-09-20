@@ -259,7 +259,7 @@ for (const token of ['"email"', '"personId"', "decisionOwnerRef", "person.name"]
 // 9. Surface budget unchanged from R1.
 const baselinePath = "scripts/lib/essentials-surface-baseline.json";
 const baseline = await readJson(baselinePath);
-check(baseline.workshopCommands === 72, `${baselinePath} workshopCommands is 72 (found ${baseline.workshopCommands})`);
+check(baseline.workshopCommands === 73, `${baselinePath} workshopCommands is 73 (found ${baseline.workshopCommands})`);
 check(
   baseline.workshopWebviewPanels === 30,
   `${baselinePath} workshopWebviewPanels is 30 (found ${baseline.workshopWebviewPanels})`

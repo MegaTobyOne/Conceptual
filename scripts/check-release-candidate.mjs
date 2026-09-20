@@ -2297,8 +2297,8 @@ if (isV1Release && minorVersion >= 71) {
   );
   assert.equal(
     essentialsBaseline.workshopCommands,
-    72,
-    "essentials baseline should record 72 Workshop commands for R1"
+    73,
+    "essentials baseline should record 73 Workshop commands after the ADR 0099 Phase 2 command"
   );
   assert.equal(
     essentialsBaseline.workshopWebviewPanels,

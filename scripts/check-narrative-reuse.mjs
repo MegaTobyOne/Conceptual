@@ -233,7 +233,7 @@ for (const [label, source] of [
 // 6. Budget and AU English.
 const baselinePath = "scripts/lib/essentials-surface-baseline.json";
 const baseline = await readJson(baselinePath);
-check(baseline.workshopCommands === 72, `${baselinePath} workshopCommands is 72 (found ${baseline.workshopCommands})`);
+check(baseline.workshopCommands === 73, `${baselinePath} workshopCommands is 73 (found ${baseline.workshopCommands})`);
 check(
   baseline.workshopWebviewPanels === 30,
   `${baselinePath} workshopWebviewPanels is 30 (found ${baseline.workshopWebviewPanels})`

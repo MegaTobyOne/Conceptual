@@ -2,7 +2,7 @@
 
 Per ADR 0096's "Workshop subtraction" slice, Workshop's command palette is not restructured or
 hidden — every command below stays fully registered and invocable exactly as before. This
-document classifies the 72 Workshop commands into an **essentials** set (day-to-day
+document classifies the 73 Workshop commands into an **essentials** set (day-to-day
 assess-justify-act workflow: requirements, evidence, actions, risks, directions, relationships,
 posture, reporting) and a **specialist** set (dashboards, integrations, AI assistance, strategy, questionnaires,
 and reporting tools for power users). `scripts/check-workshop-essentials-commands.mjs` asserts this
@@ -47,6 +47,7 @@ adds `pspf.workshop.openReportingWorkbench` to Essentials (71 → 72 commands, 2
 - `pspf.workshop.aiDraftRequirementFromInterview`
 - `pspf.workshop.aiSuggestIsmMappings`
 - `pspf.workshop.createRoadmapInitiativePlan`
+- `pspf.workshop.createCommitment`
 - `pspf.workshop.addPlannerTask`
 - `pspf.workshop.addPlannerMilestone`
 - `pspf.workshop.openRiskSourcePanel`
