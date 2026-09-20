@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://pspf.local/schemas/explorer-bundle/1.17.0/collections/governance-decisions.schema.json",
+    "title": "PSPF Explorer Governance Decisions Collection",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": ["id", "entityType", "schemaVersion", "title", "createdAt", "updatedAt", "sourceProduct", "recordStatus", "kind", "targetType", "targetId", "targetRevision", "decision", "rationale", "authorityRoleRef", "authorityBasis", "assurance", "effectiveAt", "recordedAt"],
+        "additionalProperties": false,
+        "properties": {
+            "id": { "type": "string", "pattern": "^GDE-" },
+            "entityType": { "const": "governance-decision" },
+            "schemaVersion": { "const": "1.17.0" },
+            "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+            "kind": { "enum": ["approve", "revise", "supersede", "cancel", "reject"] },
+            "targetType": { "enum": ["commitment", "strategy-choice"] },
+            "targetId": { "type": "string", "minLength": 1 },
+            "targetRevision": { "type": "string", "minLength": 1 },
+            "decision": { "enum": ["approved", "revised", "superseded", "cancelled", "rejected"] },
+            "rationale": { "type": "string", "minLength": 1 },
+            "authorityRoleRef": { "type": "string", "minLength": 1 },
+            "authorityBasis": { "type": "string", "minLength": 1 },
+            "assurance": { "const": "operator-recorded" },
+            "effectiveAt": { "type": "string", "format": "date-time" },
+            "recordedAt": { "type": "string", "format": "date-time" },
+            "supersedesDecisionId": { "type": "string", "pattern": "^GDE-" },
+            "reviewBy": { "type": "string", "format": "date-time" },
+            "expiresAt": { "type": "string", "format": "date-time" },
+            "supportingRecordRef": { "type": "string", "minLength": 1 },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "updatedAt": { "type": "string", "format": "date-time" },
+            "sourceProduct": { "enum": ["core", "workshop", "explorer", "shop"] },
+            "recordStatus": { "enum": ["active", "archived", "inactive", "deleted"] },
+            "lifecycleStatus": { "enum": ["active", "superseded", "retired"] },
+            "decisionDate": { "type": "string", "format": "date-time" }
+        }
+    }
+}

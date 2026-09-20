@@ -1,4 +1,4 @@
-# 0099 — Commitment-led operating model: Phase 0 decision baseline
+# 0099 — Commitment-led operating model: Phase 0 decision baseline and Phase 2 contract amendment
 
 - Status: accepted
 - Date: 2026-09-20 (proposed and accepted the same day; the four blocking decisions were closed by the operator, all as recommended)
@@ -165,3 +165,90 @@ Closed 2026-09-20, each as recommended:
 - B4 — **accepted**: source-plan `kind` is a required enum from P1; no kind-specific behaviour is built until a later phase needs it.
 
 All rows are accepted. Phase 1 may begin against the tables above.
+
+## Phase 2 contract amendment — accepted 2026-09-20
+
+This amendment closes the contract-review portion of Phase 2. It authorises the
+smallest implementation slice: a local `commitment` aggregate with immutable
+baseline revisions and a dedicated `governance-decision` record. It does not
+authorise Explorer projection, source-plan reconciliation, assessment
+revisions, or UI work.
+
+### Canonical records and identity
+
+| Entity type           | Collection             | ID prefix | Phase 2 role                                                                                                    |
+| --------------------- | ---------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
+| `commitment`          | `commitments`          | `CMT`     | Accountable outcome or standing expectation with its current baseline pointer and immutable baseline revisions. |
+| `governance-decision` | `governance-decisions` | `GDE`     | Person-free, operator-recorded approval, revision, supersession, cancellation or rejection decision.            |
+
+`commitment-baseline` is not a separate entity. A baseline revision is an
+immutable nested value of `CommitmentEntity`, identified by a revision token
+and referenced by `currentBaselineRevision`. `source-plan` and
+`assessment-revision` remain deferred to Phases 3 and 4 respectively. No
+standalone Strategy Choice entity is introduced.
+
+### Field contract
+
+Every field below, including fields nested in `baselineRevisions` and
+`target`, has publication policy `sensitive`. Envelope fields retain their
+existing policy table and validation rules. No Phase 2 field is `public`.
+
+| Record                | Required fields                                                                                                                                                      | Optional fields and rules                                                                                                                                                                                                       |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `commitment`          | `title`, `intendedOutcome`, `scope`, `accountableOwnerRef`, `commitmentState`, `baselineRevisions`, `currentBaselineRevision`                                        | `driverRefs`; each choice driver contains `strategyId`, `choiceId` and a pinned `revision`. `commitmentState` is `draft`, `proposed`, `agreed`, `superseded` or `cancelled`.                                                    |
+| Baseline revision     | `revision`, `outcome`, `scope`, `accountableOwnerRef`, `target`, `acceptanceCriteria`, `approvalDecisionId`, `effectiveAt`, `recordedAt`                             | `supersedesRevision`; `target` is either a dated target with explicit timezone or a recurring target with cadence, next review time and timezone. Unknown cadence remains absent or explicitly unknown; it is never fabricated. |
+| `governance-decision` | `title`, `kind`, `targetType`, `targetId`, `targetRevision`, `decision`, `rationale`, `authorityRoleRef`, `authorityBasis`, `assurance`, `effectiveAt`, `recordedAt` | `supersedesDecisionId`, review/expiry conditions and supporting record reference. `assurance` is the literal `operator-recorded`; it is not a signature or authenticated identity.                                              |
+
+`accountableOwnerRef` and `authorityRoleRef` are person-free team/role keys.
+The agreement transition to `agreed` requires outcome, scope, accountable
+owner, target or cadence, acceptance criteria and an approval decision. An
+Action becoming `planningState=committed`, a source status, a score, or a
+reported completion cannot establish agreement.
+
+### Allowed link extension
+
+Phase 2 reuses the existing `changes` verb and adds exactly one permitted
+triple:
+
+| From                  | Link type | To           | Meaning                                                                                          |
+| --------------------- | --------- | ------------ | ------------------------------------------------------------------------------------------------ |
+| `governance-decision` | `changes` | `commitment` | Records an approval, revision, supersession, cancellation or rejection affecting the commitment. |
+
+No baseline-ownership link is needed: the commitment owns its immutable
+baseline revisions and references the approving decision by `approvalDecisionId`.
+Contribution links to Actions, controls and choices, and source bindings, are
+deferred until their owning phases define cardinality and withdrawal rules.
+Self-links, arbitrary link verbs and links from a governance decision to a
+Person or Assignment are rejected.
+
+### Persistence, migration and recovery contract
+
+1. Core remains the sole write boundary. Ordinary writes may advance the
+   commitment state or append a new baseline revision, but may not mutate,
+   reorder or remove an existing baseline revision or governance decision.
+2. An agreed-to-revised transition appends a new baseline and decision, points
+   `currentBaselineRevision` at the new revision, and preserves the original
+   baseline byte-for-byte. A correction or withdrawal is a new decision, not
+   an update or deletion of the issued record.
+3. Additive merge preserves all Phase 2 records and revisions by canonical ID;
+   collisions are rejected unless the existing Core conflict policy explicitly
+   classifies the record as unchanged. Full-replace restores the complete
+   commitment and decision collections atomically, with rollback to the
+   pre-replace snapshot on failure.
+4. Cold restore must prove that a draft commitment can be restored, moved to
+   agreed, revised, exported, and restored again without invented history,
+   lost revisions or changed decision identity.
+5. The implementation uses only `schemaVersion`, `bundleVersion` and
+   `apiVersion`. The new collections and fields land in one compatibility-axis
+   bump; the previously published schema remains immutable.
+
+### Phase 2 review result and next implementation gate
+
+The contract review and bounded implementation slice are complete and accepted
+on 2026-09-20. `@pspf/contracts` and Core register the two entity types and
+collections, focused immutable-history/restore tests pass, and
+`check:commitment-model` is green. The slice remains local-only, keeps all new
+fields `sensitive`, and adds no Workshop surface. Release sequencing must still
+assign the next compatibility-axis version and publish a new immutable schema
+slice before release readiness; this implementation does not silently change
+that decision.

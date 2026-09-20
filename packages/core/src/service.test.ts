@@ -7,6 +7,8 @@ import test from "node:test";
 import initSqlJs from "sql.js";
 import {
   type ActionEntity,
+  type CommitmentEntity,
+  type GovernanceDecisionEntity,
   type LinkEntity,
   PSPF_DOMAINS,
   PSPF_SLICE_VERSION,
@@ -832,6 +834,136 @@ test("older-schema additive imports preserve Core-owned history", async () => {
   assert.equal(result.summary.written, 1);
   assert.deepEqual(stored.dueDateHistory, moved.dueDateHistory);
   assert.equal(stored.title, "Imported older action");
+});
+
+test("commitment revisions survive Core writes and cold restore without invented history", async () => {
+  const workspaceRoot = await freshWorkspace("commitment-model-cold-restore");
+  const restoreRoot = await freshWorkspace("commitment-model-cold-restore-target");
+  const bundlePath = join(workspaceRoot, "commitment-bundle.json");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const decision = (await service.upsertEntity(
+    withEnvelope(
+      "governance-decision",
+      {
+        entityType: "governance-decision",
+        title: "Approve resilience baseline",
+        kind: "approve",
+        targetType: "commitment",
+        targetId: "CMT-00000000-0000-7000-8000-000000000001",
+        targetRevision: "baseline-1",
+        decision: "approved",
+        rationale: "Recorded during management review.",
+        authorityRoleRef: "role:security-lead",
+        authorityBasis: "Delegated review authority",
+        assurance: "operator-recorded",
+        effectiveAt: "2026-09-20T00:00:00.000Z",
+        recordedAt: "2026-09-20T00:00:00.000Z"
+      },
+      "workshop"
+    )
+  )) as GovernanceDecisionEntity;
+  const draft = (await service.upsertEntity(
+    withEnvelope(
+      "commitment",
+      {
+        entityType: "commitment",
+        title: "Service resilience",
+        intendedOutcome: "The service is resilient",
+        scope: "Core service",
+        accountableOwnerRef: "team:security",
+        commitmentState: "draft",
+        baselineRevisions: [
+          {
+            revision: "baseline-1",
+            outcome: "The service is resilient",
+            scope: "Core service",
+            accountableOwnerRef: "team:security",
+            target: { kind: "date", dueDate: "2026-12-01", timeZone: "Australia/Sydney" },
+            acceptanceCriteria: ["Recovery exercise is complete"],
+            approvalDecisionId: decision.id,
+            effectiveAt: "2026-09-20T00:00:00.000Z",
+            recordedAt: "2026-09-20T00:00:00.000Z"
+          }
+        ],
+        currentBaselineRevision: "baseline-1"
+      },
+      "workshop"
+    )
+  )) as CommitmentEntity;
+  const revised = (await service.upsertEntity({
+    ...draft,
+    commitmentState: "agreed",
+    baselineRevisions: [
+      ...draft.baselineRevisions,
+      {
+        ...draft.baselineRevisions[0]!,
+        revision: "baseline-2",
+        approvalDecisionId: decision.id,
+        supersedesRevision: "baseline-1",
+        acceptanceCriteria: ["Recovery exercise is complete", "Results are reviewed"]
+      }
+    ],
+    currentBaselineRevision: "baseline-2"
+  })) as CommitmentEntity;
+
+  assert.equal(revised.commitmentState, "agreed");
+  assert.equal(revised.baselineRevisions.length, 2);
+  assert.deepEqual(revised.baselineRevisions[0], draft.baselineRevisions[0]);
+  await assert.rejects(
+    () => service.upsertEntity({ ...revised, baselineRevisions: revised.baselineRevisions.slice(1) }),
+    /cannot remove a baseline revision/i
+  );
+  await assert.rejects(
+    () => service.upsertEntity({ ...decision, rationale: "Forged replacement" }),
+    /governance decision .* immutable/i
+  );
+
+  await writeBundle(
+    bundlePath,
+    {
+      commitments: [revised],
+      "governance-decisions": [decision],
+      posture: [
+        {
+          id: "POSTURE",
+          entityType: "posture",
+          schemaVersion: VERSION_AXES.schemaVersion,
+          title: "Commitment restore fixture",
+          createdAt: "2026-09-20T00:00:00.000Z",
+          updatedAt: "2026-09-20T00:00:00.000Z",
+          sourceProduct: "core",
+          recordStatus: "active",
+          requirementCount: 0,
+          evidenceCount: 0,
+          actionCount: 0,
+          riskCount: 0,
+          sourceControlCount: 0,
+          requirementControlMappingCount: 0,
+          changeRecordCount: 0,
+          supplierCount: 0,
+          contractCount: 0,
+          spendItemCount: 0,
+          strategyCount: 0
+        }
+      ]
+    },
+    { complete: true, mode: "local-authoring" }
+  );
+  const restored = createCoreService(restoreRoot);
+  await restored.initialiseWorkspace();
+  await restored.importBundle(bundlePath, "full-replace");
+
+  const restoredCommitment = (await restored.listEntities("commitment")).find(
+    (entity) => entity.id === revised.id
+  ) as CommitmentEntity;
+  const restoredDecision = (await restored.listEntities("governance-decision")).find(
+    (entity) => entity.id === decision.id
+  ) as GovernanceDecisionEntity;
+  assert.deepEqual(restoredCommitment.baselineRevisions, revised.baselineRevisions);
+  assert.equal(restoredCommitment.currentBaselineRevision, "baseline-2");
+  assert.equal(restoredDecision.rationale, decision.rationale);
 });
 
 test("narrative writes enforce slot, body, and supersedes rules with a structured diagnostic", async () => {

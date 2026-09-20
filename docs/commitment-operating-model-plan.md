@@ -1,6 +1,6 @@
 # Commitment-led Operating Model Plan
 
-Status: **Phase 1 complete; Phase 2 authorised for contract review**
+Status: **Phase 2 commitment contract slice implemented; remaining Phase 2 persistence/recovery scope continues**
 
 ## Authority and Outcome
 
@@ -64,6 +64,24 @@ Validation: `pnpm run check:working-context`, `pnpm run check:gate-integrity`, a
 
 Exit gate: **green**. `check:working-context` proves explicit switching, the separate preference key, legacy-lens normalisation retained, no capability or record change on switch, and the unchanged 72-command / 30-panel Essentials surface.
 
-## Phase 2 Handoff
+## Phase 2 Contract Review Closure
 
-Phase 2 is now authorised for contract review, not yet implementation. Before adding collections, amend ADR 0099 with the exact commitment, immutable baseline, assessment/decision field table, ID prefixes, allowed link pairs and migration/restore contract. Keep all new fields `sensitive`, use only the three existing compatibility axes, and prove the draft -> agreed -> revised journey plus cold restore through a focused `check:commitment-model` gate.
+The contract-review slice is complete on 2026-09-20. ADR 0099 now fixes the
+smallest Phase 2 implementation boundary: `commitment` plus
+`governance-decision`, with immutable nested baseline revisions. It also fixes
+the `CMT`/`GDE` prefixes, the single `governance-decision --changes-->
+commitment` triple, the all-`sensitive` field policy, the agreement guard and
+the additive-merge/full-replace/cold-restore invariants.
+
+The commitment contract slice is implemented: `@pspf/contracts` and Core now
+register both records, baseline revisions are append-only at the write
+boundary, governance decisions are immutable, the active bundle schemas and
+default-deny policies are present, and the cold full-replace test preserves the
+original baseline and decision. `check:commitment-model` covers the registry,
+policies, link rule, schemas and write-boundary proof.
+
+`source-plan` and `assessment-revision` remain deferred to their owning phases;
+no Explorer projection or publication field is authorised. This is not a
+release-sequencing decision: before release readiness, assign the next
+compatibility-axis version and publish a new immutable schema slice. The
+current `1.17.0` baseline remains the active development axis until then.

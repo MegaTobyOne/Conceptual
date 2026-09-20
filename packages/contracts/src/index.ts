@@ -171,6 +171,8 @@ export const V0_1_ENTITY_TYPES = [
   "requirement-control-mapping",
   "direction",
   "change-record",
+  "commitment",
+  "governance-decision",
   "supplier",
   "contract",
   "spend-item",
@@ -203,6 +205,8 @@ export const V0_1_COLLECTIONS = [
   "requirement-control-mappings",
   "directions",
   "change-records",
+  "commitments",
+  "governance-decisions",
   "suppliers",
   "contracts",
   "spend-items",
@@ -316,6 +320,15 @@ export const OPERATOR_LINK_RULES = [
     fromType: "change-record",
     toType: "requirement",
     label: "Link Change Record to Requirement",
+    phrase: "changes"
+  },
+  {
+    id: "workshop-governance-decision-changes-commitment",
+    sourceProduct: "workshop",
+    linkType: "changes",
+    fromType: "governance-decision",
+    toType: "commitment",
+    label: "Link Governance Decision to Commitment",
     phrase: "changes"
   },
   {
@@ -1051,6 +1064,78 @@ export interface ChangeRecordEntity extends EntityEnvelope {
   readonly decisionOwnerRef?: string;
 }
 
+export type CommitmentState = "draft" | "proposed" | "agreed" | "superseded" | "cancelled";
+
+export interface CommitmentDateTarget {
+  readonly kind: "date";
+  readonly dueDate: string;
+  readonly timeZone: string;
+}
+
+export interface CommitmentRecurringTarget {
+  readonly kind: "recurring";
+  readonly cadence: string;
+  readonly nextReviewAt: string;
+  readonly timeZone: string;
+}
+
+export type CommitmentTarget = CommitmentDateTarget | CommitmentRecurringTarget;
+
+export interface CommitmentDriverRef {
+  readonly strategyId: string;
+  readonly choiceId: string;
+  readonly revision: string;
+}
+
+export interface CommitmentBaselineRevision {
+  readonly revision: string;
+  readonly outcome: string;
+  readonly scope: string;
+  readonly accountableOwnerRef: string;
+  readonly target: CommitmentTarget;
+  readonly acceptanceCriteria: readonly string[];
+  readonly approvalDecisionId: string;
+  readonly effectiveAt: string;
+  readonly recordedAt: string;
+  readonly supersedesRevision?: string;
+}
+
+export interface CommitmentEntity extends EntityEnvelope {
+  readonly entityType: "commitment";
+  readonly title: string;
+  readonly intendedOutcome: string;
+  readonly scope: string;
+  readonly accountableOwnerRef: string;
+  readonly commitmentState: CommitmentState;
+  readonly baselineRevisions: readonly CommitmentBaselineRevision[];
+  readonly currentBaselineRevision?: string;
+  readonly driverRefs?: readonly CommitmentDriverRef[];
+}
+
+export type GovernanceDecisionKind = "approve" | "revise" | "supersede" | "cancel" | "reject";
+export type GovernanceDecisionTargetType = "commitment" | "strategy-choice";
+export type GovernanceDecisionOutcome = "approved" | "revised" | "superseded" | "cancelled" | "rejected";
+
+export interface GovernanceDecisionEntity extends EntityEnvelope {
+  readonly entityType: "governance-decision";
+  readonly title: string;
+  readonly kind: GovernanceDecisionKind;
+  readonly targetType: GovernanceDecisionTargetType;
+  readonly targetId: string;
+  readonly targetRevision: string;
+  readonly decision: GovernanceDecisionOutcome;
+  readonly rationale: string;
+  readonly authorityRoleRef: string;
+  readonly authorityBasis: string;
+  readonly assurance: "operator-recorded";
+  readonly effectiveAt: string;
+  readonly recordedAt: string;
+  readonly supersedesDecisionId?: string;
+  readonly reviewBy?: string;
+  readonly expiresAt?: string;
+  readonly supportingRecordRef?: string;
+}
+
 export type SupplierType = "software" | "service" | "advisory" | "managed-service" | "other";
 export type SupplierStatus = "active" | "inactive" | "proposed";
 export type SupplierCriticality = "low" | "medium" | "high" | "critical";
@@ -1222,6 +1307,8 @@ export type V01Entity =
   | RequirementControlMappingEntity
   | DirectionEntity
   | ChangeRecordEntity
+  | CommitmentEntity
+  | GovernanceDecisionEntity
   | SupplierEntity
   | ContractEntity
   | SpendItemEntity
@@ -1251,6 +1338,8 @@ export type EntityByCollection = {
   "requirement-control-mappings": RequirementControlMappingEntity;
   directions: DirectionEntity;
   "change-records": ChangeRecordEntity;
+  commitments: CommitmentEntity;
+  "governance-decisions": GovernanceDecisionEntity;
   suppliers: SupplierEntity;
   contracts: ContractEntity;
   "spend-items": SpendItemEntity;
@@ -1599,6 +1688,42 @@ export const PUBLICATION_FIELD_POLICIES: readonly EntityFieldPolicy[] = [
     ]
   },
   {
+    entityType: "commitment",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus"),
+      { field: "title", publication: "sensitive" },
+      { field: "intendedOutcome", publication: "sensitive" },
+      { field: "scope", publication: "sensitive" },
+      { field: "accountableOwnerRef", publication: "sensitive" },
+      { field: "commitmentState", publication: "sensitive" },
+      { field: "baselineRevisions", publication: "sensitive" },
+      { field: "currentBaselineRevision", publication: "sensitive" },
+      { field: "driverRefs", publication: "sensitive" }
+    ]
+  },
+  {
+    entityType: "governance-decision",
+    fields: [
+      ...publicFields("id", "entityType", "schemaVersion", "createdAt", "updatedAt", "sourceProduct", "recordStatus"),
+      { field: "title", publication: "sensitive" },
+      { field: "kind", publication: "sensitive" },
+      { field: "targetType", publication: "sensitive" },
+      { field: "targetId", publication: "sensitive" },
+      { field: "targetRevision", publication: "sensitive" },
+      { field: "decision", publication: "sensitive" },
+      { field: "rationale", publication: "sensitive" },
+      { field: "authorityRoleRef", publication: "sensitive" },
+      { field: "authorityBasis", publication: "sensitive" },
+      { field: "assurance", publication: "sensitive" },
+      { field: "effectiveAt", publication: "sensitive" },
+      { field: "recordedAt", publication: "sensitive" },
+      { field: "supersedesDecisionId", publication: "sensitive" },
+      { field: "reviewBy", publication: "sensitive" },
+      { field: "expiresAt", publication: "sensitive" },
+      { field: "supportingRecordRef", publication: "sensitive" }
+    ]
+  },
+  {
     entityType: "supplier",
     fields: [
       ...publicFields(
@@ -1934,6 +2059,8 @@ export const COLLECTION_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, V01Collec
   "requirement-control-mapping": "requirement-control-mappings",
   direction: "directions",
   "change-record": "change-records",
+  commitment: "commitments",
+  "governance-decision": "governance-decisions",
   supplier: "suppliers",
   contract: "contracts",
   "spend-item": "spend-items",
@@ -1964,6 +2091,8 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   "requirement-control-mapping": "MAP",
   direction: "DIR",
   "change-record": "CHG",
+  commitment: "CMT",
+  "governance-decision": "GDE",
   supplier: "SUP",
   contract: "CTR",
   "spend-item": "SPD",
