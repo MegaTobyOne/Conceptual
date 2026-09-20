@@ -287,11 +287,39 @@ test("strategy delivery classifies blocked, candidate and completed work", () =>
   }).choices[0]!;
   const action = actionEntity("ACT-1", "blocked");
   const candidateAction = actionEntity("ACT-2", "todo");
+  const plannedCandidate = actionEntity("ACT-3", "done", "candidate");
+  const plannedDelivery = actionEntity("ACT-4", "todo", "committed");
 
   assert.equal(buildStrategyDeliverySummary(choice, new Map([[action.id, action]])).state, "delivery-at-risk");
   assert.equal(
     buildStrategyDeliverySummary(candidate, new Map([[candidateAction.id, candidateAction]])).state,
     "candidate-work"
+  );
+  assert.equal(
+    buildStrategyDeliverySummary(
+      strategy({
+        capabilityArea: "Identity and access",
+        executiveOwner: "Identity Team",
+        outcomeId: "OUT-3",
+        outcomeStatement: "Trusted access to critical services",
+        actionRefId: plannedCandidate.id
+      }).choices[0]!,
+      new Map([[plannedCandidate.id, plannedCandidate]])
+    ).state,
+    "candidate-work"
+  );
+  assert.equal(
+    buildStrategyDeliverySummary(
+      strategy({
+        capabilityArea: "Identity and access",
+        executiveOwner: "Identity Team",
+        outcomeId: "OUT-4",
+        outcomeStatement: "Trusted access to critical services",
+        actionRefId: plannedDelivery.id
+      }).choices[0]!,
+      new Map([[plannedDelivery.id, plannedDelivery]])
+    ).state,
+    "in-delivery"
   );
   assert.equal(buildStrategyDeliverySummary(choice, new Map()).state, "no-delivery-path");
 });
@@ -392,12 +420,17 @@ function risk(input: {
   };
 }
 
-function actionEntity(id: string, status: "todo" | "blocked" | "done"): ActionEntity {
+function actionEntity(
+  id: string,
+  status: "todo" | "blocked" | "done",
+  planningState?: ActionEntity["planningState"]
+): ActionEntity {
   return {
     ...envelope(id, "action"),
     entityType: "action",
     title: `Action ${id}`,
     status,
+    planningState,
     dueDate: "2026-06-30T00:00:00.000Z"
   };
 }

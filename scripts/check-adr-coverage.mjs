@@ -397,6 +397,14 @@ const coverage = [
     "check:schema-policy",
     "check:essentials-surface",
     "e2e:v1.75"
+  ]),
+  // Phase 0 decision ADR: no product code yet. Existing gates prove the invariants Phase 1 must not regress;
+  // add check:working-context (Phase 1) and check:commitment-model (Phase 2) as those phases land.
+  adr("0099-commitment-led-operating-model-phase-0-baseline.md", "manual", [
+    "check:essentials-surface",
+    "check:personal-data",
+    "check:schema-policy",
+    "check:adr-coverage"
   ])
 ];
 
