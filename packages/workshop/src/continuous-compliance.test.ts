@@ -288,6 +288,7 @@ test("strategy delivery classifies blocked, candidate and completed work", () =>
   const action = actionEntity("ACT-1", "blocked");
   const candidateAction = actionEntity("ACT-2", "todo");
   const plannedCandidate = actionEntity("ACT-3", "done", "candidate");
+  const unplannedCompleted = actionEntity("ACT-5", "done");
   const plannedDelivery = actionEntity("ACT-4", "todo", "committed");
 
   assert.equal(buildStrategyDeliverySummary(choice, new Map([[action.id, action]])).state, "delivery-at-risk");
@@ -305,6 +306,19 @@ test("strategy delivery classifies blocked, candidate and completed work", () =>
         actionRefId: plannedCandidate.id
       }).choices[0]!,
       new Map([[plannedCandidate.id, plannedCandidate]])
+    ).state,
+    "candidate-work"
+  );
+  assert.equal(
+    buildStrategyDeliverySummary(
+      strategy({
+        capabilityArea: "Identity and access",
+        executiveOwner: "Identity Team",
+        outcomeId: "OUT-5",
+        outcomeStatement: "Trusted access to critical services",
+        actionRefId: unplannedCompleted.id
+      }).choices[0]!,
+      new Map([[unplannedCompleted.id, unplannedCompleted]])
     ).state,
     "candidate-work"
   );

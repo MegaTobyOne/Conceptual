@@ -398,9 +398,9 @@ const coverage = [
     "check:essentials-surface",
     "e2e:v1.75"
   ]),
-  // Phase 0 decision ADR: no product code yet. Existing gates prove the invariants Phase 1 must not regress;
-  // add check:working-context (Phase 1) and check:commitment-model (Phase 2) as those phases land.
-  adr("0099-commitment-led-operating-model-phase-0-baseline.md", "manual", [
+  // Phase 1 adds the explicit working-context contract and gate; Phase 2 commitment-model coverage remains deferred.
+  adr("0099-commitment-led-operating-model-phase-0-baseline.md", "automated", [
+    "check:working-context",
     "check:essentials-surface",
     "check:personal-data",
     "check:schema-policy",

@@ -153,6 +153,19 @@ test("Workshop presentation lenses are retired to one default view (ADR 0096 E6)
   assert.doesNotMatch(source, /globalState\.update\([\s\S]*presentationLens/);
 });
 
+test("Workshop Home exposes an explicit, workspace-scoped working context", async () => {
+  const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
+
+  assert.match(source, /pspf\.workshop\.workingContext/);
+  assert.match(source, /normaliseWorkingContext/);
+  assert.match(source, /data-command="workingContext"/);
+  assert.match(source, /value="operations"/);
+  assert.match(source, /value="oversight-assurance"/);
+  assert.match(source, /workspaceState\.update\(workingContextStateKey, workshopWorkingContext\)/);
+  assert.match(source, /does not change records or permissions/);
+  assert.doesNotMatch(source, /pspf\.workshop\.presentationLens.*workingContext/);
+});
+
 test("Assessment Dashboard exposes action-first Requirement queue from Domain Stats", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
 
@@ -310,7 +323,7 @@ test("Plan of Action exposes master schedule and slice controls", async () => {
 test("Workshop Home is simplified and exposes one status graphic", async () => {
   const source = await readFile(new URL("../src/extension.ts", import.meta.url), "utf8");
   const homeMatch = source.match(
-    /function renderHomeView\(model: WorkshopHomeModel, lens: PresentationLens\): string \{[\s\S]*?async function openWelcome/
+    /function renderHomeView\(model: WorkshopHomeModel, lens: PresentationLens, workingContext: WorkingContext\): string \{[\s\S]*?async function openWelcome/
   );
   assert.ok(homeMatch, "home renderer should be present");
   const homeSource = homeMatch[0];

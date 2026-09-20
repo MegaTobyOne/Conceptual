@@ -363,7 +363,7 @@ export function buildStrategyDeliverySummary(
       ? "no-delivery-path"
       : blockedActionCount > 0 || overdueActionCount > 0
         ? "delivery-at-risk"
-        : candidateActionCount > 0
+        : resolvedActions.some((action) => action.planningState !== "committed")
           ? "candidate-work"
           : completedActionCount === resolvedActions.length
             ? choice.outcomes.some((outcome) => outcome.measures.some((measure) => measure.trend === "improving"))
