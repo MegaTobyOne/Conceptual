@@ -16,7 +16,7 @@ This plan does not override the authority chain in `pspf-spec-consistency-index.
 
 ## Course correction programme (v1.76.0–v1.82.0)
 
-Status: **active — planned, no slice implemented. This programme takes scheduling precedence over every other stream.**
+Status: **active — C0 release wiring landed; the C0 ADR remains outstanding. This programme takes scheduling precedence over every other stream.**
 
 Detailed slices, testing layers, and execution guidance: [docs/course-correction-plan.md](docs/course-correction-plan.md).
 
@@ -50,7 +50,7 @@ Versions are indicative and confirmed at release sequencing. One active slice at
 
 | #   | Version | Focus                                         | Problem | Done when                                                                                                                                                                                                                                                                         |
 | --- | ------- | --------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C0  | 1.76.0  | The evidence instrument                       | V2      | Four flagship jobs (FJ1–FJ4) carry baseline interaction-cost records, cognitive-walkthrough verdicts, and readability scores; `check:journey-cost` registered and proven to fail on regression and on a stale pack                                                                |
+| C0  | 1.76.0  | The evidence instrument                       | V2      | Release wiring landed: four flagship jobs (FJ1–FJ4) carry baseline interaction-cost records, cognitive-walkthrough verdicts, and readability scores; `check:journey-cost` is registered and proven to fail on regression and on a stale pack. C0 ADR remains outstanding.         |
 | C1  | 1.77.0  | Close Risk overhaul Phase 4B                  | V1, V7  | Live operator walkthrough, 320/768/1440 px and 200% pass, and fresh redaction/compatibility/lossless-recovery evidence for the `1.17.0` slice recorded with actual results; every disclosed limitation closed or explicitly re-deferred; `release:readiness` green on a fresh run |
 | C2  | 1.78.0  | Commitment programme decision point           | V1, V4  | Phase 2 completed to its exit gate including cold restore; Phases 3–7 parked with a written reason and a named resumption gate; each parked phase states its stakeholder need or admits it has none                                                                               |
 | C3  | 1.79.0  | Reduction as a target                         | V3      | Workshop 72→62 commands and 30→26 panels, Explorer 24→20 routes, every retired view's capability given a recorded destination; `check:essentials-surface` enforces a declining schedule; at least one flagship job improves                                                       |

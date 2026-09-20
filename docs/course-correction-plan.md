@@ -1,6 +1,6 @@
 # PSPF Course Correction Plan (v1.76.0–v1.82.0)
 
-Status: **aspirational — planned programme, no slice implemented**
+Status: **active — C0 implemented; C1–C6 planned**
 
 Authority: sequencing is owned by [`pspf-grand-plan.md`](../pspf-grand-plan.md) §"Course correction programme". This document holds the detailed slices, testing approach, and execution guidance. It does not override `pspf-spec-consistency-index.md`; every slice that changes architecture, schema, or invariants opens with its own ADR.
 

@@ -405,6 +405,11 @@ const coverage = [
     "check:personal-data",
     "check:schema-policy",
     "check:adr-coverage"
+  ]),
+  adr("0100-v1-76-ux-outcome-evidence-instrument.md", "automated", [
+    "check:journey-cost",
+    "check:gate-integrity",
+    "check:adr-coverage"
   ])
 ];
 

@@ -278,6 +278,13 @@ The programme runs four slices (R1–R4), all now implemented. Each slice's gate
 2. **Scope gate**: this slice is Core/contracts schema plumbing only, carrying forward the Phase 1A contracts; it introduces no Workshop UI, Explorer UI, Core write-rule behaviour change, or new release-gate script. `packages/core/src/service.ts` validation logic and the `risk-model.ts` contracts are unchanged by this slice.
 3. **Release-chain gate**: `e2e:v1.75` inherits the complete v1.74 chain and adds `check:schema-coverage`, `check:schema-policy`, the `@pspf/contracts` tests, and the `pspf-core` tests; `release:readiness` targets `e2e:v1.75:run`.
 
+#### v1.76.0 — Course-correction C0 evidence instrument (release wiring landed; ADR pending)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.76.0`; `VERSION_AXES` remain `1.17.0`; no entity, link, bundle, API, publication-policy, or Explorer schema change is introduced.
+2. **Journey-cost gate**: `check:journey-cost` validates the four simulated-operator flagship-job records against their recorded baseline, rejects missing records and regressions, and rejects an evidence pack older than `package.json`.
+3. **Release-chain gate**: `check:gates:run` includes `check-journey-cost.mjs`; `e2e:v1.76` and `e2e:v1.76:run` inherit v1.75 and add the C0 gate and reducer tests; `release:readiness` targets `e2e:v1.76:run`.
+4. **ADR gate**: the C0 UX outcome-measurement ADR remains outstanding for the main agent; no ADR coverage entry is added until its file exists.
+
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
 1. **Explorer table layout gate**: publication smoke tests check compact labels stay single-line, title-like columns keep readable width, and dense tables use local overflow wrappers at desktop and narrow viewports.
