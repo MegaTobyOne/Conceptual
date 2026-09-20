@@ -363,13 +363,15 @@ export function buildStrategyDeliverySummary(
       ? "no-delivery-path"
       : blockedActionCount > 0 || overdueActionCount > 0
         ? "delivery-at-risk"
-        : completedActionCount === resolvedActions.length
-          ? choice.outcomes.some((outcome) => outcome.measures.some((measure) => measure.trend === "improving"))
-            ? "outcome-progressing"
-            : "delivered-verify-benefit"
-          : committedActionCount === 0
-            ? "candidate-work"
-            : "in-delivery";
+        : candidateActionCount > 0
+          ? "candidate-work"
+          : completedActionCount === resolvedActions.length
+            ? choice.outcomes.some((outcome) => outcome.measures.some((measure) => measure.trend === "improving"))
+              ? "outcome-progressing"
+              : "delivered-verify-benefit"
+            : committedActionCount === 0
+              ? "candidate-work"
+              : "in-delivery";
 
   return {
     state,
