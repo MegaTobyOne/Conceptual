@@ -100,9 +100,6 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
 
-      - name: Test
-        run: pnpm run test:run
-
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v5
@@ -119,6 +116,9 @@ jobs:
       - name: Install Playwright system deps
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
+
+      - name: Test
+        run: pnpm run test:run
 
       - name: Explorer e2e
         run: pnpm --filter pspf-explorer run test:e2e
