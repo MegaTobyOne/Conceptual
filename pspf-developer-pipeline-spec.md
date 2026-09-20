@@ -342,20 +342,14 @@ GitHub Copilot guidance emphasizes that AI-generated code should still be review
 
 ### Workflow files (single repo)
 
-All workflow files live in `.github/workflows/` at the repo root. Each is scoped by triggers and `paths:` filters so a Workshop-only PR does not run the Pub package's heavy bench job.
+All workflow files live in `.github/workflows/` at the repo root. There are four workflows; there are no per-topic gate workflows. Accessibility, schema policy, personal-data exclusion, deployment safety, AU-English lint, and the other `check-*.mjs` gates run as steps inside `ci.yml` (via `check:gates:run`) and again inside release readiness, so every PR exercises the same gate suite that guards a release.
 
-| Workflow                 | Trigger                                                                                                              | Purpose                                                                                                                                                                                                                 |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ci.yml`                 | PR, push to `develop` or `main`                                                                                      | Ubuntu lane for build, typecheck, all package tests, package-shape checks, release-candidate checks, deployment-safety checks, and lint                                                                                 |
-| `accessibility.yml`      | PR touching `packages/explorer/**`                                                                                   | `axe-core` per primary route on the standard fixture                                                                                                                                                                    |
-| `schema-publish.yml`     | PR touching `schemas/**`                                                                                             | hash-match validator vs served schema; remote `$ref` lint; per-version directory check (E23)                                                                                                                            |
-| `personal-data-gate.yml` | every PR                                                                                                             | exporter run against personal-data fixture; fail-closed assertion (N6, S7)                                                                                                                                              |
-| `deployment-safety.yml`  | every PR and release/deploy tag                                                                                      | static deployment and publication-bundle safety scan; blocks hosted sensitive/restricted fields, personal data, secrets, and workspace/runtime artefacts                                                                |
-| `au-english-lint.yml`    | every PR                                                                                                             | scan `docs/**` and extracted UI strings against the spelling allowlist                                                                                                                                                  |
-| `marketplace.yml`        | `workflow_dispatch` from `main` with `target=core\|workshop\|shop\|pub\|assurance\|both\|all` and optional `dry_run` | build once, package selected VSIX(es), show explicit dry-run state, gate on `marketplace` environment approval, publish via `vsce` when `dry_run=false`, then create per-extension tags and GitHub releases as receipts |
-| `web-release.yml`        | tag `explorer/<v>` from `main` (production) or push to `develop` (test)                                              | build static bundle, deploy to VentraIP under `production-web` or `test-web` environment                                                                                                                                |
-| `sync-develop.yml`       | push to `main`, or `workflow_dispatch`                                                                               | keep `develop` aligned with `main` after a release merge: opens or updates a `main → develop` sync pull request whenever `main` has commits not yet on `develop`                                                        |
-| `nightly-bench.yml`      | nightly                                                                                                              | full performance benchmarks against reference machine fixture                                                                                                                                                           |
+| Workflow           | Trigger                                                                                                              | Purpose                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`           | PR, push to `develop` or `main`                                                                                      | Two Ubuntu jobs. `static`: lint (AU English, ESLint, Prettier), Explorer lint, gate integrity, ADR coverage, spec drift. `build-and-test`: build, typecheck, all package tests, Explorer Playwright e2e and performance budget, operator-spine e2e (`scripts/e2e-v01.mjs`), debug-workspace validation, the full `check:gates:run` suite, and release-candidate check |
+| `marketplace.yml`  | `workflow_dispatch` from `main` with `target=core\|workshop\|shop\|pub\|assurance\|both\|all` and optional `dry_run` | build once, run release readiness, package selected VSIX(es), show explicit dry-run state, gate on `marketplace` environment approval, publish via `vsce` when `dry_run=false`, then create per-extension tags and GitHub releases as receipts                                                                                                                        |
+| `web-release.yml`  | push to `develop` (test) or `workflow_dispatch` with `target=production` from `main`                                 | build the staged static tree, run deployment-safety and personal-data gates (plus release readiness for production), then deploy to VentraIP under the `test-web` or `production-web` environment                                                                                                                                                                     |
+| `sync-develop.yml` | push to `main`, `workflow_dispatch`                                                                                  | open or refresh a `main` → `develop` sync pull request so release commits flow back to the working branch                                                                                                                                                                                                                                                             |
 
 ### Marketplace publishing
 
@@ -381,7 +375,7 @@ Shop uses the same monorepo checks as Core and Workshop, and Pub should follow t
 - PR CI for lint/build/test scoped by `paths:` filters,
 - contract check against supported Core API/schema versions,
 - `.vsix` packaging through the Marketplace workflow with receipt tags such as `shop/<version>` after successful publication,
-- Marketplace publish on approved release tag.
+- Marketplace publish on approved `marketplace` environment dispatch from `main`.
 
 If Core API compatibility changes, affected package compatibility suites should fail fast in CI instead of breaking at runtime.
 
@@ -389,19 +383,16 @@ If Core API compatibility changes, affected package compatibility suites should 
 
 ### Deployment model
 
-Explorer and the public landing page (`pspf-ecosystem.html` at site root, Explorer SPA under `/explorer`) build as a static bundle and deploy through GitHub Actions to VentraIP cPanel over SSH on port 2683. GitHub Pages is not used. Per ADR 0038, the first production host is `tobyharvey.online` and the test host is `test.tobyharvey.online`. The fallback SSH/SFTP hostname for VentraIP is `s04le.syd7.hostingplatform.net.au`. Test deploys are automatic from `develop`; production deploys require a release tag from `main` and manual approval on the `production-web` environment.
+Explorer and the public landing page (`pspf-ecosystem.html` at site root, Explorer SPA under `/explorer`) build as a static bundle and deploy through GitHub Actions to VentraIP cPanel over SSH on port 2683. GitHub Pages is not used. Per ADR 0038, the first production host is `tobyharvey.online` and the test host is `test.tobyharvey.online`. The fallback SSH/SFTP hostname for VentraIP is `s04le.syd7.hostingplatform.net.au`. Test deploys are automatic from `develop`; production deploys are dispatched manually from `main` with `target=production` and require approval on the `production-web` environment.
 
 ### Explorer workflows
 
-Explorer uses the repo-level workflows listed above. Product-specific Explorer jobs are:
+Explorer uses the repo-level workflows listed above; there are no Explorer-specific workflow files. The Explorer-relevant steps are:
 
-| Workflow                | Trigger                                                          | Purpose                                                                                    |
-| ----------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `ci.yml`                | PR, push                                                         | lint, typecheck, test, build when `packages/explorer/**` changes                           |
-| `preview.yml`           | PR                                                               | optional preview artefact or test-subdomain preview strategy                               |
-| `web-release.yml`       | push to `develop` (test) or release tag from `main` (production) | build static bundle and deploy to VentraIP test or production document root                |
-| `bundle-verify.yml`     | PR touching schema/import/export                                 | validate JSON bundle compatibility                                                         |
-| `deployment-safety.yml` | PR, push, release tag                                            | run `pnpm run check:deployment-safety` before any static deployment or Marketplace release |
+| Workflow          | Trigger                                                                              | Purpose                                                                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`          | PR, push to `develop` or `main`                                                      | Explorer lint, Vitest unit tests, Playwright e2e, performance budget, accessibility, publication, local-authoring, and import gates via `check:gates:run` |
+| `web-release.yml` | push to `develop` (test) or `workflow_dispatch` with `target=production` from `main` | build the static tree, run `check:deployment-safety:run` and `check:personal-data:run`, then deploy to the VentraIP test or production document root      |
 
 ### VentraIP deployment requirements
 
@@ -418,7 +409,7 @@ The web release workflow should:
 
 Explorer should keep deployments reversible and legible:
 
-- one test build per commit to `develop` and one production build per release tag,
+- one test build per commit to `develop` and one production build per approved production dispatch,
 - visible build artefacts,
 - version displayed in the app footer or about screen,
 - and schema/export bundle version displayed where relevant.
@@ -694,13 +685,11 @@ Create runbooks for:
 
 For v0.1 (per ADR 0014), the minimum useful CI footprint is:
 
-- `ci.yml` (lint, typecheck, unit tests, contract tests) on every PR.
-- `personal-data-gate.yml` and `au-english-lint.yml` on every PR.
-- `schema-publish.yml` on PRs that touch `schemas/**`.
-- `accessibility.yml` on PRs that touch `packages/explorer/**`.
+- `ci.yml` (lint, typecheck, unit tests, contract tests, and the full `check:gates:run` suite, which covers personal-data exclusion, AU-English lint, schema policy and coverage, accessibility, and deployment safety) on every PR.
 - `marketplace.yml` for all five extension VSIX releases and receipt tags, plus `web-release.yml` for Explorer web deploys.
+- `sync-develop.yml` to flow release commits from `main` back to `develop`.
 
-Pub and the nightly bench are added in a later slice.
+A nightly bench is deferred to a later slice.
 
 ## Specification summary
 

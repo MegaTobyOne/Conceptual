@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
-import { stat, readFile } from "node:fs/promises";
+import { readdir, stat, readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 
-const root = process.cwd();
+// Enforces the release-gate wiring and workflow timeout slice; failure means a
+// referenced command, script file, release block, or job timeout is missing.
+const root = fileURLToPath(new URL("..", import.meta.url));
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const gateScript = packageJson.scripts?.["check:gates:run"] ?? "";
 const gateFiles = [...gateScript.matchAll(/node(?:\s+--test)?\s+(scripts\/[\w.-]+\.mjs)/g)]
@@ -82,4 +85,103 @@ for (const suffix of ["", ":run"]) {
 }
 assert.deepEqual(chainFailures, [], `e2e release chain issues:\n${chainFailures.join("\n")}`);
 
-console.log(`ok gate integrity checked ${gateFiles.length} gate scripts and the e2e release chain`);
+const workflowDirectory = join(root, ".github", "workflows");
+const workflowFiles = (await readdir(workflowDirectory)).filter((file) => file.endsWith(".yml")).sort();
+const workflowCommandFailures = [];
+const workflowScriptFailures = [];
+const releaseCommandFailures = [];
+const timeoutFailures = [];
+const rootScriptNames = new Set(Object.keys(scriptEntries));
+const validateReferences = async (source, origin, commandFailures, scriptFailures) => {
+  for (const match of source.matchAll(/\bpnpm\s+run\s+([\w:.-]+)/g)) {
+    if (!rootScriptNames.has(match[1])) {
+      commandFailures.push(`${origin}: pnpm run ${match[1]} is missing from package.json scripts`);
+    }
+  }
+  for (const match of source.matchAll(/\bpnpm\s+(build|lint|test|typecheck)\b/g)) {
+    if (!rootScriptNames.has(match[1])) {
+      commandFailures.push(`${origin}: pnpm ${match[1]} is missing from package.json scripts`);
+    }
+  }
+  for (const match of source.matchAll(/\bnode\s+(scripts\/[\w.-]+\.mjs)\b/g)) {
+    try {
+      await stat(join(root, match[1]));
+    } catch {
+      scriptFailures.push(`${origin}: ${match[1]} is missing`);
+    }
+  }
+};
+
+for (const workflowFile of workflowFiles) {
+  const workflowPath = join(workflowDirectory, workflowFile);
+  const workflowText = await readFile(workflowPath, "utf8");
+  await validateReferences(
+    workflowText,
+    `.github/workflows/${workflowFile}`,
+    workflowCommandFailures,
+    workflowScriptFailures
+  );
+  const jobsText = workflowText.match(/^jobs:\s*\n([\s\S]*)$/m)?.[1] ?? "";
+  const jobs = [...`${jobsText}\n  __end__: \n`.matchAll(/^ {2}([\w-]+):\s*\n([\s\S]*?)(?=^ {2}[\w-]+:\s*$)/gm)];
+  const runsOnCount = (jobsText.match(/^\s+runs-on:/gm) ?? []).length;
+  const timeoutCount = (jobsText.match(/^\s+timeout-minutes:/gm) ?? []).length;
+  if (runsOnCount !== timeoutCount) {
+    timeoutFailures.push(
+      `.github/workflows/${workflowFile}: ${runsOnCount} runs-on entries but ${timeoutCount} timeout-minutes entries`
+    );
+  }
+  for (const [, jobName, jobText] of jobs) {
+    if (/^\s+runs-on:/m.test(jobText) && !/^\s+timeout-minutes:/m.test(jobText)) {
+      timeoutFailures.push(`.github/workflows/${workflowFile} job ${jobName} lacks timeout-minutes`);
+    }
+  }
+}
+
+const releaseGates = JSON.parse(await readFile(join(root, "release-gates.json"), "utf8"));
+for (const [releaseVersion, releaseBlocks] of Object.entries(releaseGates.releases ?? {})) {
+  for (const [index, block] of releaseBlocks.entries()) {
+    for (const command of block.commands ?? []) {
+      await validateReferences(
+        command,
+        `release-gates.json ${releaseVersion} block ${index + 1}`,
+        releaseCommandFailures,
+        releaseCommandFailures
+      );
+    }
+  }
+}
+const currentVersion = packageJson.version.match(/^(\d+)\.(\d+)/);
+const currentRelease = currentVersion ? `${currentVersion[1]}.${currentVersion[2]}` : "";
+const releaseVersionFailures = [];
+if (!currentVersion || !releaseGates.releases?.[currentRelease]) {
+  releaseVersionFailures.push(`release-gates.json is missing release block ${currentRelease}`);
+}
+if (!scriptEntries[`e2e:v${currentRelease}:run`]) {
+  releaseVersionFailures.push(`e2e:v${currentRelease}:run is missing from package.json scripts`);
+}
+
+assert.deepEqual(
+  workflowCommandFailures,
+  [],
+  `workflow pnpm references must exist:\n${workflowCommandFailures.join("\n")}`
+);
+assert.deepEqual(
+  workflowScriptFailures,
+  [],
+  `workflow script references must exist:\n${workflowScriptFailures.join("\n")}`
+);
+assert.deepEqual(
+  releaseCommandFailures,
+  [],
+  `release-gates.json references must exist:\n${releaseCommandFailures.join("\n")}`
+);
+assert.deepEqual(
+  releaseVersionFailures,
+  [],
+  `release-gates.json version wiring issues:\n${releaseVersionFailures.join("\n")}`
+);
+assert.deepEqual(timeoutFailures, [], `workflow jobs must define timeout-minutes:\n${timeoutFailures.join("\n")}`);
+
+console.log(
+  `ok gate integrity checked ${gateFiles.length} gate scripts, ${workflowFiles.length} workflows, and the e2e release chain`
+);

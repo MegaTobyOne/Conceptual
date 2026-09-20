@@ -10,7 +10,12 @@
       {
         "name": "quality gates",
         "parallel": false,
-        "commands": ["pnpm run check:gates:run", "pnpm run check:journey-cost"]
+        "commands": ["pnpm run check:gates:run"]
+      },
+      {
+        "name": "debug workspace validation",
+        "parallel": false,
+        "commands": ["pnpm run validate:debug-workspace:run"]
       },
       {
         "name": "typecheck",

@@ -42,6 +42,7 @@ jobs:
   build:
     name: Build VSIX artefacts
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     outputs:
       publish_core: ${{ steps.targets.outputs.publish_core }}
       publish_workshop: ${{ steps.targets.outputs.publish_workshop }}
@@ -245,6 +246,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_core == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
@@ -321,6 +323,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_workshop == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
@@ -397,6 +400,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_shop == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
@@ -473,6 +477,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_pub == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
@@ -549,6 +554,7 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_assurance == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}

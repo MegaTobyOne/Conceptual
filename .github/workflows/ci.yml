@@ -22,6 +22,7 @@ jobs:
   static:
     name: Static checks and governance
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -64,6 +65,7 @@ jobs:
   build-and-test:
     name: Build, test, and artefact gates
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -126,14 +128,16 @@ jobs:
       - name: Explorer performance budget
         run: pnpm --filter pspf-explorer run perf:budget
 
-      - name: Package shape
-        run: pnpm run package:check:run
+      - name: Operator spine e2e
+        run: node scripts/e2e-v01.mjs
 
-      - name: Assurance redaction
-        run: pnpm run check:assurance-redaction:run
+      - name: Debug workspace validation
+        run: pnpm run validate:debug-workspace:run
+
+      # Same gate suite release readiness runs; includes package shape,
+      # assurance redaction, and deployment safety.
+      - name: Quality gates
+        run: pnpm run check:gates:run
 
       - name: Release candidate
         run: pnpm run check:release-candidate:run
-
-      - name: Deployment safety
-        run: pnpm run check:deployment-safety:run
