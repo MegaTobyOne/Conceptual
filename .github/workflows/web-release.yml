@@ -56,6 +56,12 @@ jobs:
             exit 1
           fi
 
+      - name: Refuse production dispatch off main
+        if: inputs.target == 'production' && github.ref != 'refs/heads/main'
+        run: |
+          echo "Production web releases must be dispatched from main (got ${GITHUB_REF})." >&2
+          exit 1
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -104,10 +110,10 @@ jobs:
         run: pnpm run build:web-release
 
       - name: Deployment safety
-        run: pnpm run check:deployment-safety
+        run: pnpm run check:deployment-safety:run
 
       - name: Personal-data gate
-        run: pnpm run check:personal-data
+        run: pnpm run check:personal-data:run
 
       - name: Release readiness
         if: steps.target.outputs.target == 'production'

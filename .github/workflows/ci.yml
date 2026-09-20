@@ -19,8 +19,8 @@ env:
   NODE_VERSION: 22.15.0
 
 jobs:
-  gates:
-    name: Build and gates
+  static:
+    name: Static checks and governance
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -61,6 +61,48 @@ jobs:
       - name: Governance gates
         run: pnpm run check:gate-integrity && pnpm run check:adr-coverage && pnpm run check:spec-drift
 
+  build-and-test:
+    name: Build, test, and artefact gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm run test:run
+
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v5
@@ -78,15 +120,6 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
-      - name: Build
-        run: pnpm run build
-
-      - name: Typecheck
-        run: pnpm run typecheck
-
-      - name: Test
-        run: pnpm test
-
       - name: Explorer e2e
         run: pnpm --filter pspf-explorer run test:e2e
 
@@ -94,13 +127,13 @@ jobs:
         run: pnpm --filter pspf-explorer run perf:budget
 
       - name: Package shape
-        run: pnpm run package:check
+        run: pnpm run package:check:run
 
       - name: Assurance redaction
-        run: pnpm run check:assurance-redaction
+        run: pnpm run check:assurance-redaction:run
 
       - name: Release candidate
-        run: pnpm run check:release-candidate
+        run: pnpm run check:release-candidate:run
 
       - name: Deployment safety
-        run: pnpm run check:deployment-safety
+        run: pnpm run check:deployment-safety:run

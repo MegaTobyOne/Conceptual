@@ -7,33 +7,45 @@ import { findLatestBundle, validateExportBundle, writeValidationReport } from ".
 
 const root = process.cwd();
 const workspaceRoot = join(root, "debug-workspace");
-const service = createCoreService(workspaceRoot);
-try {
-  await service.initialiseWorkspace();
-  const validation = await service.validateWorkspace();
-  if (!validation.ok) {
-    console.error(`Debug workspace not ready: ${validation.message}`);
+const debugStorePath = join(workspaceRoot, ".pspf");
+let bundlePath;
+
+if (existsSync(debugStorePath)) {
+  const service = createCoreService(workspaceRoot);
+  try {
+    await service.initialiseWorkspace();
+    const validation = await service.validateWorkspace();
+    if (!validation.ok) {
+      console.error(`Debug workspace not ready: ${validation.message}`);
+      process.exit(1);
+    }
+    if (
+      validation.counts.domains !== 6 ||
+      validation.counts.requirements < PSPF_BASELINE_REQUIREMENTS.length ||
+      validation.counts["source-controls"] !== ISM_SOURCE_CONTROLS.length
+    ) {
+      console.error(
+        `Debug workspace baseline incomplete: domains=${validation.counts.domains} requirements=${validation.counts.requirements} source-controls=${validation.counts["source-controls"]}`
+      );
+      process.exit(1);
+    }
+    await service.exportBundle();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/writer lock|read-only/i.test(message)) {
+      throw error;
+    }
+    console.warn(`debug workspace is read-only (${message}); validating latest existing export`);
+  }
+  bundlePath = findLatestBundle(workspaceRoot);
+} else {
+  bundlePath = findLatestBundle(join(root, ".tmp", "e2e-v0.1-workspace"));
+  if (!bundlePath || !existsSync(bundlePath)) {
+    console.error("Debug workspace is absent and no e2e workspace export is available.");
     process.exit(1);
   }
-  if (
-    validation.counts.domains !== 6 ||
-    validation.counts.requirements < PSPF_BASELINE_REQUIREMENTS.length ||
-    validation.counts["source-controls"] !== ISM_SOURCE_CONTROLS.length
-  ) {
-    console.error(
-      `Debug workspace baseline incomplete: domains=${validation.counts.domains} requirements=${validation.counts.requirements} source-controls=${validation.counts["source-controls"]}`
-    );
-    process.exit(1);
-  }
-  await service.exportBundle();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  if (!/writer lock|read-only/i.test(message)) {
-    throw error;
-  }
-  console.warn(`debug workspace is read-only (${message}); validating latest existing export`);
+  console.warn(`debug workspace is absent; validating e2e fixture ${relative(root, bundlePath)}`);
 }
-const bundlePath = findLatestBundle(workspaceRoot);
 
 if (!bundlePath || !existsSync(bundlePath)) {
   console.error("No debug export found. Run the Extension Host, then PSPF: Export Master Bundle.");

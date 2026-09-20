@@ -24,7 +24,7 @@ on:
         type: boolean
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: marketplace-${{ inputs.target }}
@@ -154,10 +154,10 @@ jobs:
         run: pnpm run release:readiness
 
       - name: Package shape
-        run: pnpm run package:check
+        run: pnpm run package:check:run
 
       - name: Bundle extension runtime
-        run: pnpm run bundle:extensions
+        run: pnpm run bundle:extensions:run
 
       - name: Read package versions
         id: versions
@@ -245,6 +245,8 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_core == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
@@ -319,6 +321,8 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_workshop == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
@@ -393,6 +397,8 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_shop == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
@@ -467,6 +473,8 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_pub == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
@@ -541,6 +549,8 @@ jobs:
     needs: build
     if: needs.build.outputs.publish_assurance == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     environment: ${{ needs.build.outputs.dry_run == 'true' && 'marketplace-dry-run' || 'marketplace' }}
     steps:
       - name: Checkout
