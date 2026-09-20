@@ -74,6 +74,15 @@ Supporting operator judgements (from the same review): verdict-first screens, ne
 3. Scored heuristic pass (rubric above) over ~15 key screens; low scores × screen importance = backlog order.
 4. 2–3 external think-aloud sessions once the first polish wave lands.
 
+### Harness status (recorded 2026-09-20)
+
+Stated plainly, because the 2026-09-20 plan review found this commitment had quietly lapsed: **items 2 and 4 were never delivered.** Item 1 shipped in S0 and item 3 produced the J1–J6 scores above. Interaction-cost counts were never built, so no slice from S1 through R4 can demonstrate that it reduced operator effort. The think-aloud sessions committed here and at S2 ("Schedule the first external think-aloud sessions against this build") were never scheduled, and nothing in the repository detected their absence for fifteen releases.
+
+The consequence is that the product's own gates cannot answer whether recent work improved the experience. Course-correction slice C0 (v1.76.0) addresses this — see [course-correction-plan.md](course-correction-plan.md) §"Slice C0":
+
+- Items 2 and 3 become **`check:journey-cost`**, a ratchet over four named flagship jobs (FJ1–FJ4) with recorded interaction-cost baselines, cognitive-walkthrough verdicts, and readability scores. The gate also fails when the evidence pack's recorded product version trails `package.json`, so the pack cannot go stale silently again.
+- Item 4 remains **outstanding and is not replaced**. The C0 instrument is a deterministic, offline substitute for observed users and is explicitly weaker than them. Wherever it is reported it is labelled a substitute, never validation. If participants become available, sessions take precedence and the instrument is recalibrated against them.
+
 ## Implementation plan (proposed)
 
 Eight release slices, v1.53.0 → v1.60.0. Sequencing honours the dependency chain (J1 definition → J2 consequence → J3 blockers → J4 trajectory) and the repo rule of small vertical increments that preserve the operator spine. Only one slice (S4) touches the schema axis; everything before it is pure composition over existing data. Each slice opens with its ADR per repo governance; ADR numbers assume 0087 is next free — renumber at cut time if other work lands first.

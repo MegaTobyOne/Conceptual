@@ -208,6 +208,10 @@
         "title": "PSPF: Create Action"
       },
       {
+        "command": "pspf.workshop.createCommitment",
+        "title": "PSPF: Create Commitment"
+      },
+      {
         "command": "pspf.workshop.createRoadmapInitiativePlan",
         "title": "PSPF: Create Roadmap Initiative Plan",
         "icon": "$(lightbulb)"

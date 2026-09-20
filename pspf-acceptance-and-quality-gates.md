@@ -945,3 +945,4 @@ A release must include:
 8. Contract compatibility matrix report.
 9. Secrets rotation status and incident drill record.
 10. Performance benchmark report with threshold pass/fail outcomes.
+11. **From v1.76.0 (course-correction slice C0):** UX outcome evidence pack — interaction-cost records, cognitive-walkthrough verdicts, and readability scores for every flagship job (FJ1–FJ4), with the comparison against the recorded baseline. `check:journey-cost` fails the release if any job's cost has regressed, a cost record is missing, or the pack's recorded product version trails `package.json`. Simulated-operator evidence is reported as a substitute for observed users, never as validation. See `docs/course-correction-plan.md`.

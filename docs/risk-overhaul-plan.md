@@ -1,9 +1,11 @@
 # Workshop Risk Overhaul Plan
 
-Status: **implementation complete through Phase 4A; Phase 4B verification outstanding**
-Last updated: 2026-09-08
+Status: **implementation complete through Phase 4A; Phase 4B verification outstanding and now scheduled**
+Last updated: 2026-09-20
 Planning baseline: product `1.75.0`; compatibility axes `1.17.0`.
-Next task: **Phase 4B - integrate and verify** (Phase 4A complete). See [Phase 4B Handoff](#phase-4b-handoff).
+Next task: **Phase 4B - integrate and verify** (Phase 4A complete), scheduled as course-correction slice C1 (v1.77.0) per [../pspf-grand-plan.md](../pspf-grand-plan.md#course-correction-programme-v1760v1820) and [course-correction-plan.md](course-correction-plan.md). The 2026-09-19 deferral in favour of the Commitment-led programme is reversed. See [Phase 4B Handoff](#phase-4b-handoff).
+
+C1 adds one requirement beyond the handoff below: the Risk surfaces are measured against the C0 interaction-cost instrument. A specialist workbench is not exempt from the flagship-journey cost ratchet.
 
 ## Authority and Outcome
 

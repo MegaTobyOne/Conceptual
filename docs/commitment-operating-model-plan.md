@@ -1,6 +1,16 @@
 # Commitment-led Operating Model Plan
 
-Status: **Phase 2 commitment contract slice implemented; remaining Phase 2 persistence/recovery scope continues**
+Status: **Phase 2 commitment contract slice implemented; remaining Phase 2 persistence/recovery scope completes as course-correction slice C2 (v1.78.0), after which Phases 3–7 are parked**
+
+## Scheduling (2026-09-20)
+
+The 2026-09-20 plan review reversed this programme's precedence. Sequencing is now owned by [`../pspf-grand-plan.md`](../pspf-grand-plan.md#course-correction-programme-v1760v1820) and [`course-correction-plan.md`](course-correction-plan.md):
+
+- **Phase 2 completes in slice C2** to its recorded exit gate — protected lifecycle transitions, immutable history at Core's write boundary, explicit migration, and verified cold restore. Half-implemented persistence is a data-integrity risk and is not left open.
+- **Phases 3–7 are then parked** with a named resumption gate: they resume only if slice C6 records evidence that the working-context model earns its place, after slice C5 ships the analyst change-review and CISO accountability screens promised by ADR 0096.
+- **C2 also records traceability.** For each parked phase, the plan states which recorded stakeholder need it serves, or states explicitly that it serves an internal model-correctness need. The review found no line of this programme traceable to `docs/feedback/`; that is resolved by writing the chain down or admitting it does not yet exist.
+- **The working-context selector is frozen as-is** until C6. No further UI investment.
+- Risk overhaul Phase 4B is no longer deferred; it is slice C1 and closes first.
 
 ## Authority and Outcome
 
@@ -15,7 +25,7 @@ Outcome: the operator works in one of two explicit contexts — **Operations** (
 - Manual source-plan reference registration only in P1; no file adapter, live connector or write-back until P2.
 - All new commitment/source-binding/assessment/decision content is `sensitive` in P1.
 - Person-free accountability: team/role key references only, operator-recorded authority basis, never an authenticated signature or Pub identity.
-- No dependency on Workshop Risk overhaul Phase 4B, which remains separately and explicitly deferred.
+- Workshop Risk overhaul Phase 4B is independent of this programme and is sequenced ahead of it as course-correction slice C1.
 
 See ADR 0099 for the full decision table (D1–D10) and the four operator-approved blocking decisions (B1–B4).
 
@@ -79,6 +89,12 @@ boundary, governance decisions are immutable, the active bundle schemas and
 default-deny policies are present, and the cold full-replace test preserves the
 original baseline and decision. `check:commitment-model` covers the registry,
 policies, link rule, schemas and write-boundary proof.
+
+Workshop now exposes `PSPF: Create Commitment`, which creates a valid local
+`draft` commitment with its title, intended outcome, scope, and accountable
+owner reference. Approval decisions, baseline revision authoring, and source-plan
+contribution commands are not yet exposed; this command is an authoring entry
+point for the contract slice, not Phase 3 completion evidence.
 
 `source-plan` and `assessment-revision` remain deferred to their owning phases;
 no Explorer projection or publication field is authorised. This is not a

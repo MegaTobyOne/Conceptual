@@ -548,6 +548,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.importBackupJson", importBackupJson),
     vscode.commands.registerCommand("pspf.workshop.attachEvidence", attachEvidence),
     vscode.commands.registerCommand("pspf.workshop.createAction", createAction),
+    vscode.commands.registerCommand("pspf.workshop.createCommitment", createCommitment),
     vscode.commands.registerCommand("pspf.workshop.createRisk", createRisk),
     vscode.commands.registerCommand("pspf.workshop.openRiskSourcePanel", openRiskSourcePanel),
     vscode.commands.registerCommand("pspf.workshop.configureRiskSource", configureRiskSource),
@@ -2206,6 +2207,66 @@ async function createAction(requirementId?: string): Promise<void> {
   );
 
   await upsertEntityWithRequirementLinks(action, links, requirements);
+}
+
+async function createCommitment(): Promise<void> {
+  await ensureCoreReady();
+  const title = await vscode.window.showInputBox({
+    title: "Create Commitment",
+    prompt: "Commitment title",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a commitment title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+
+  const intendedOutcome = await vscode.window.showInputBox({
+    title: "Create Commitment",
+    prompt: "Intended outcome",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the intended outcome." : undefined)
+  });
+  if (!intendedOutcome) {
+    return;
+  }
+
+  const scope = await vscode.window.showInputBox({
+    title: "Create Commitment",
+    prompt: "Scope",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the commitment scope." : undefined)
+  });
+  if (!scope) {
+    return;
+  }
+
+  const accountableOwnerRef = await vscode.window.showInputBox({
+    title: "Create Commitment",
+    prompt: "Accountable owner reference, for example team:security",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter an accountable owner reference." : undefined)
+  });
+  if (!accountableOwnerRef) {
+    return;
+  }
+
+  const commitment = withEnvelope(
+    "commitment",
+    {
+      entityType: "commitment",
+      title: title.trim(),
+      intendedOutcome: intendedOutcome.trim(),
+      scope: scope.trim(),
+      accountableOwnerRef: accountableOwnerRef.trim(),
+      commitmentState: "draft",
+      baselineRevisions: []
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", [commitment]);
+  await vscode.window.showInformationMessage(`Created draft commitment: ${commitment.title}.`);
+  await homeViewProvider?.refresh();
 }
 
 async function createRoadmapInitiativePlan(options: { readonly openAfter?: boolean } = {}): Promise<void> {
