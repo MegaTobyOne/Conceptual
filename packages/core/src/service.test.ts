@@ -779,6 +779,61 @@ test("action writes append due-date history and seed legacy actions from their s
   assert.equal(legacyMoved.dueDateHistory?.[0]?.changedAt, legacyStored.updatedAt);
 });
 
+test("Core history write boundary preserves existing history", async () => {
+  const workspaceRoot = await freshWorkspace("history-write-boundary-immutability");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const created = (await service.upsertEntity(
+    withEnvelope(
+      "action",
+      { entityType: "action", title: "History boundary fixture", status: "todo", dueDate: "2026-10-01" },
+      "workshop"
+    )
+  )) as ActionEntity;
+  const moved = (await service.upsertEntity({ ...created, dueDate: "2026-10-15" })) as ActionEntity;
+  assert.equal(moved.dueDateHistory?.length, 2);
+
+  const ordinaryWrite = (await service.upsertEntity({
+    ...moved,
+    title: "Renamed without changing the date",
+    dueDateHistory: []
+  })) as ActionEntity;
+  assert.deepEqual(ordinaryWrite.dueDateHistory, moved.dueDateHistory);
+
+  const returnedHistory = ordinaryWrite.dueDateHistory as Array<{ dueDate?: string; changedAt: string }> | undefined;
+  returnedHistory?.pop();
+  const reread = (await service.listEntities("action")).find((entity) => entity.id === moved.id) as ActionEntity;
+  assert.equal(reread.dueDateHistory?.length, 2);
+});
+
+test("older-schema additive imports preserve Core-owned history", async () => {
+  const workspaceRoot = await freshWorkspace("history-older-schema-import");
+  const bundlePath = join(workspaceRoot, "older-schema-action-bundle.json");
+  const service = createCoreService(workspaceRoot);
+  await service.initialiseWorkspace();
+
+  const created = (await service.upsertEntity(
+    withEnvelope(
+      "action",
+      { entityType: "action", title: "Import history fixture", status: "todo", dueDate: "2026-10-01" },
+      "workshop"
+    )
+  )) as ActionEntity;
+  const moved = (await service.upsertEntity({ ...created, dueDate: "2026-10-15" })) as ActionEntity;
+  const { dueDateHistory: _omitted, ...olderSchemaAction } = moved;
+  await writeBundle(bundlePath, {
+    actions: [{ ...olderSchemaAction, schemaVersion: "1.15.0", title: "Imported older action" }]
+  });
+
+  const result = await service.importBundle(bundlePath, "additive-merge");
+  const stored = (await service.listEntities("action")).find((entity) => entity.id === moved.id) as ActionEntity;
+
+  assert.equal(result.summary.written, 1);
+  assert.deepEqual(stored.dueDateHistory, moved.dueDateHistory);
+  assert.equal(stored.title, "Imported older action");
+});
+
 test("narrative writes enforce slot, body, and supersedes rules with a structured diagnostic", async () => {
   const workspaceRoot = await freshWorkspace("narrative-write-rules");
   const service = createCoreService(workspaceRoot);

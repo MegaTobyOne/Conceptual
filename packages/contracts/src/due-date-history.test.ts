@@ -19,10 +19,12 @@ function action(overrides: Partial<ActionEntity> = {}): ActionEntity {
   };
 }
 
-test("appendDueDateHistory: unchanged due date returns the same reference", () => {
+test("appendDueDateHistory: unchanged due date preserves previous history", () => {
   const previous = action({ dueDate: "2026-10-01", dueDateHistory: [{ dueDate: "2026-10-01", changedAt: NOW }] });
   const next = action({ dueDate: "2026-10-01", title: "Renamed" });
-  assert.equal(appendDueDateHistory(previous, next, NOW), next);
+  const result = appendDueDateHistory(previous, next, NOW);
+  assert.notEqual(result, next);
+  assert.deepEqual(result.dueDateHistory, previous.dueDateHistory);
 });
 
 test("appendDueDateHistory: both undefined counts as unchanged", () => {

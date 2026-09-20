@@ -4206,7 +4206,7 @@ export function appendDueDateHistory(
 ): ActionEntity {
   const previousDueDate = previous?.dueDate;
   if (previous !== undefined && previousDueDate === next.dueDate) {
-    return next;
+    return previous.dueDateHistory === undefined ? next : { ...next, dueDateHistory: previous.dueDateHistory };
   }
   if (previous === undefined && next.dueDate === undefined) {
     return next;

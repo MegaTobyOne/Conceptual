@@ -1,6 +1,6 @@
 # Commitment-led Operating Model Plan
 
-Status: **Phase 0 complete; Phase 1 authorised, not yet implemented**
+Status: **Phase 0 complete; Phase 1 in progress**
 
 ## Authority and Outcome
 
@@ -57,6 +57,8 @@ No product code, schema, migration or UI changed in Phase 0.
 ## Phase 1 Handoff
 
 Scope: add the `"operations"` / `"oversight-assurance"` working-context type and a workspace-scoped `workspaceState` key distinct from the retired lens key; wire an explicit switch affordance into an existing Workshop panel host (no new command, at most one new panel-state per ADR 0099 D1.5); correct `buildStrategyDeliverySummary` to classify by `planningState`; add a Core write-boundary test proving existing history (e.g. `dueDateHistory`) cannot be replaced or dropped by an ordinary write or an older-schema import.
+
+Progress: **Core history sub-slice implemented 2026-09-20.** `appendDueDateHistory` now preserves stored history when the due date is unchanged, and `packages/core/src/service.test.ts` proves ordinary writes and older-schema additive imports cannot replace it or mutate persisted history through the returned object. The working-context and `planningState` slices remain.
 
 Exit gate: `check:working-context` (new gate to be written) proves explicit switching, the separate preference key, legacy-lens normalisation retained, no capability or record change on switch, and the surface budget by recorded before/after counts. Existing `continuous-compliance` tests extended for the `planningState` fixture. Existing Core history tests extended for the immutability proof.
 
