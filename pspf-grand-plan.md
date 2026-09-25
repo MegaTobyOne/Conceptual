@@ -1,7 +1,7 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-09-20 (repo version 1.75.0)
+Last updated: 2026-09-25 (reviewed against repo version 1.76.0)
 
 ## Purpose
 
@@ -14,11 +14,43 @@ The ordering principle is deliberate: **make the documentation truthful first (F
 
 This plan does not override the authority chain in `pspf-spec-consistency-index.md`. Every tranche below that changes architecture, schema, or invariants **starts with an ADR**; this document records the sequence and the design constraints, not the decisions themselves.
 
+## Risk-to-Outcome Roadmap (2026-09-25)
+
+Status: **planning update only; product gaps remain open**
+
+The operator has clarified the primary purpose: protect the enterprise from cyber and digital risks by connecting every planned Action to a known risk or issue, a measurable expected effect, and a strategic business outcome. The [Plan specification review](pspf-plan-spec.md#2026-09-25-product-review) records findings POA-01 to POA-06, current-source reproductions, a proposed daily operating loop and acceptance criteria. It is the stakeholder basis for this update, not evidence that the capabilities are delivered.
+
+The product direction is **business outcome -> risk or known issue -> treatment Action -> observed result -> reviewed risk position -> business consequence**. Compliance, control libraries, delivery progress and reporting support that chain. A severity-based Action Impact weight is not measured risk reduction; completing work is not verifying effectiveness; a manually improving trend is not proof of business benefit.
+
+### Scheduling Decisions
+
+1. **Keep C1/C2 first.** Close Risk verification and complete the unfinished commitment persistence boundary. This review does not authorise implementation, release sequencing or a new parallel programme.
+2. **C1 consumes the concrete treatment-link defect.** `treated-by` is authored by the Risk workbench but ignored by Action Impact's older `addressed-by` reader (POA-01). Verify the path through Risk, Plan, strategy and reporting, cover supported legacy cases without duplicate benefits, and record actual repair/test evidence before claiming the chain works. This is an existing-behaviour defect, not a measurement-schema expansion.
+3. **C3 reduces effort without inventing plan intent.** Preserve triage/candidate/deferred/excluded work, distinguish it from agreed delivery, and expose unscheduled or estimated dates honestly (POA-04). Consolidate routine capture/update into existing surfaces using current fields (POA-05); do not add a new dashboard or remove data to meet surface counts.
+4. **C4 makes treatment patterns useful for risk decisions.** Include the treatment mechanism, applicability, expected observable effect and a suggested verification method as guidance. Reuse existing Actions; accepting a template must not imply a confirmed issue, verified effect or automatic reduction in risk. Structured observations remain O2.
+5. **C5 explains business consequence honestly with current data.** The promised analyst and CISO tabs should distinguish delivery, reported trends, assessment change, evidence and remaining exposure by existing strategy outcome. Missing links or observations are stated as gaps, not filled by generated claims (POA-03/06). C5 does not pretend to deliver the later measurement contract.
+6. **C6 closes course correction and selects the next bounded work.** Retaining the working-context switch does not automatically resume Commitment Phases 3-7. Those phases stay parked until their specific unmet need and incremental value over the outcome loop are demonstrated. This supersedes the earlier automatic-resumption wording, not ADR 0099's accepted contracts.
+7. **O1-O3 are the next capability priority after C6**, ahead of further presentation modes, a standalone PSPF Plan, Mission Control, or connected-feature expansion. The governing ADR and migration/publication decisions are prerequisites; one vertical slice at a time. Existing security hardening prerequisites continue to apply.
+
+### Next Bounded Programme
+
+No product versions or new compatibility-axis values are allocated by this review. C0-C6 version labels remain indicative; O1-O3 start only after the C6 close-out and their own accepted design decisions. Reuse existing contracts and revise ADR 0099 only where reuse of its parked assessment/source concepts is actually justified.
+
+| Slice                                        | Operator result and scope                                                                                                                                                                                                          | Dependencies and completion evidence                                                                                                                                                                                                                                                       |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| O1: justified work with low-friction capture | From an existing risk/confirmed issue, create or reuse one Action in context, inherit an explicit outcome path and record expected effect. Incomplete intake remains visible as triage; only justified work enters the agreed Plan | C1-C6 closed; ADR defines stable issue origin, admission policy, many-to-many references and legacy repair without a duplicate register. Core/import validation plus a live RO-J1 journey prove atomic save, no self-justification, no fabricated links/dates and no loss of existing work |
+| O2: evidence-backed treatment effect         | Reuse strategy measures and risk assessment/history; add only the missing dated observations, contribution and review semantics. Completing an Action starts verification, never an automatic risk decrease                        | O1; field-level policy and compatibility/migration decisions. RO-J2 covers unknown baseline, stale/failed evidence, changed methodology, one Action treating two risks and several Actions sharing one result. Independent risk review, history preservation and cold restore demonstrated |
+| O3: business-outcome Plan and brief          | In the existing Plan/Reporting surfaces, explain what was delivered, observed, reassessed, still exposed and awaiting decision for each strategic outcome; generate once from accepted facts                                       | O2; RO-J3 and one live reporting-cycle pilot show no manual re-entry and correct recognition of limitations. Risk/appetite, delivery, expected/realised benefit and forecast costs stay separate. Approved Workshop-local copy-outs only; no new Explorer publication                      |
+
+Completion is measured by the [proposed acceptance and adoption criteria](pspf-plan-spec.md#proposed-acceptance-and-adoption-measures), not just a gate count. RO-J1 to RO-J3 are proposed additional jobs, not new implemented gates or replacements for C0's frozen FJ1-FJ4 baselines. Record interaction cost, repeated input, unresolved justification, overdue verification and whether a human can explain the evidence and limitation. Simulated checks cannot close the human walkthrough or pilot.
+
 ## Course correction programme (v1.76.0–v1.82.0)
 
-Status: **active — C0 release wiring landed; the C0 ADR remains outstanding. This programme takes scheduling precedence over every other stream.**
+Status: **active — C0 implemented with accepted ADR 0100; C1-C6 remain planned. This programme takes scheduling precedence over every other stream.**
 
 Detailed slices, testing layers, and execution guidance: [docs/course-correction-plan.md](docs/course-correction-plan.md).
+
+The 2026-09-25 risk-to-outcome review above refines C1/C3/C4/C5 acceptance and C6's next-programme decision. It does not mark any of those slices complete.
 
 ### Why
 
@@ -50,13 +82,13 @@ Versions are indicative and confirmed at release sequencing. One active slice at
 
 | #   | Version | Focus                                         | Problem | Done when                                                                                                                                                                                                                                                                         |
 | --- | ------- | --------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C0  | 1.76.0  | The evidence instrument                       | V2      | Release wiring landed: four flagship jobs (FJ1–FJ4) carry baseline interaction-cost records, cognitive-walkthrough verdicts, and readability scores; `check:journey-cost` is registered and proven to fail on regression and on a stale pack. C0 ADR remains outstanding.         |
+| C0  | 1.76.0  | The evidence instrument                       | V2      | Implemented with accepted ADR 0100: four flagship jobs (FJ1-FJ4) carry simulated baseline interaction-cost records, cognitive-walkthrough verdicts and readability scores; `check:journey-cost` rejects regression and stale packs. This is not observed-user validation.         |
 | C1  | 1.77.0  | Close Risk overhaul Phase 4B                  | V1, V7  | Live operator walkthrough, 320/768/1440 px and 200% pass, and fresh redaction/compatibility/lossless-recovery evidence for the `1.17.0` slice recorded with actual results; every disclosed limitation closed or explicitly re-deferred; `release:readiness` green on a fresh run |
 | C2  | 1.78.0  | Commitment programme decision point           | V1, V4  | Phase 2 completed to its exit gate including cold restore; Phases 3–7 parked with a written reason and a named resumption gate; each parked phase states its stakeholder need or admits it has none                                                                               |
 | C3  | 1.79.0  | Reduction as a target                         | V3      | Workshop 72→62 commands and 30→26 panels, Explorer 24→20 routes, every retired view's capability given a recorded destination; `check:essentials-surface` enforces a declining schedule; at least one flagship job improves                                                       |
 | C4  | 1.80.0  | Standard mitigation library                   | V6      | Curated ISM-aligned, attributed, publication-declared mitigation patterns with deterministic printed selection rules and `1.18.0` provenance fields, wired into existing surfaces only; FJ2 improves                                                                              |
 | C5  | 1.81.0  | Analyst change review and CISO accountability | V5, V6  | Both ship as tabs inside the existing Reporting Workbench with no new command or panel; every verdict prints its rule; FJ3 and FJ4 costs fall against the C0 baseline                                                                                                             |
-| C6  | 1.82.0  | Working-context decision and close-out        | V5, V7  | The Operations ↔ Oversight switch is retained with recorded evidence or retired under the ADR 0096 precedent; before-and-after table for v1.75.0→v1.82.0 published; deferred register reconciled                                                                                  |
+| C6  | 1.82.0  | Working-context decision and close-out        | V5, V7  | The Operations ↔ Oversight switch is retained with recorded evidence or retired under the ADR 0096 precedent; before-and-after table published; deferred register reconciled; O1-O3 entry criteria recorded and Commitment Phases 3-7 not automatically resumed                   |
 
 ### Release gates
 
@@ -111,7 +143,7 @@ Use Opus for Phase 0 and the shared model, persistence/migration and compatibili
 
 ## Commitment-led operating model — Operations and Oversight & Assurance
 
-Status: **Phase 2 contract slice implemented (2026-09-20); Phase 2 persistence/recovery completes in course-correction slice C2 (v1.78.0), after which Phases 3–7 are parked pending the C6 working-context decision**
+Status: **Phase 2 contract slice implemented (2026-09-20); Phase 2 persistence/recovery completes in C2, after which Phases 3-7 remain parked pending C6 and a separate demonstrated-need decision**
 
 ### Outcome
 
@@ -121,7 +153,7 @@ The programme specification is the 2026-09-19 commitment-led operating model tec
 
 ### Decisions now in force (2026-09-19, superseded/detailed by ADR 0099 on 2026-09-20)
 
-1. **Precedence.** Superseded 2026-09-20 by the course correction programme. Risk Phase 4B is no longer deferred (it is slice C1); this programme's Phase 2 completes as slice C2 and then parks. Half-implemented persistence is a data-integrity risk and cannot simply be abandoned, so C2 finishes Phase 2 to its exit gate and stops there. Phases 3–7 resume only if slice C6 records evidence that the working-context model earns its place after the two promised review screens ship in C5.
+1. **Precedence.** Superseded 2026-09-20 by course correction and refined 2026-09-25 by the risk-to-outcome roadmap. Risk Phase 4B is C1; this programme's Phase 2 completes as C2 and then parks. Half-implemented persistence is a data-integrity risk, so C2 finishes its exit gate. Phases 3-7 require C6 plus a separate decision demonstrating their unmet operator need and incremental value; retaining a context switch is insufficient and does not displace O1-O3.
 2. **P1 source integration is manual reference registration only.** The operator registers a source plan's identity (source-system key, plan key, kind, scope, accountable team/role assertion) and enters its milestones by hand as source-bound Actions. No file adapter, live connector, scheduled import or write-back ships in P1. The techspec's file-import reconciliation (its §9 and AC-18–AC-22) moves to the deferred register; its source-binding identity tuple and the separation of source claims from local authority are retained.
 3. **Phase 0 deliverables** are ADR 0099 (decision table for the techspec's O-01…O-10, REQ-to-existing-symbol mapping, exact allowed `(fromType, linkType, toType)` pairs, a declared publication policy for every proposed field, compatibility/migration decisions, and recorded before/after surface counts) plus `docs/commitment-operating-model-plan.md`. The consistency index and affected topic specs are updated in the same slice. **Delivered 2026-09-20**: ADR 0099 accepted (all ten decision rows plus four blocking decisions B1–B4 closed as recommended); `docs/commitment-operating-model-plan.md` written; consistency index and `check:adr-coverage` updated. Phase 1's allowed link pairs and full field-policy table are deferred to Phase 2, since Phase 1 adds no new entity, field or link (see ADR 0099 Contract mapping).
 4. **Thin aggregates over existing records.** `StrategyEntity`/nested `StrategicChoice`, `ActionEntity` (`ownerTeam`, `planningState`, `dueDateHistory`), `RiskControlEntity`, evidence and typed links remain canonical. Only the missing local contracts are added: commitment and immutable commitment baseline, source-plan descriptor/binding, assessment revision and governance decision. No standalone `StrategyChoice` entity, no new compatibility axis, no single overloaded `status` shared by agreement lifecycle, delivery state and assessment conclusion.
@@ -168,7 +200,9 @@ The v1.61 release closes the Workshop persisted-value rendering, Core full-repla
 
 ## Operational plan: compliance uplift workflow (next few days)
 
-Status: **absorbed — superseded by the v1.70 Essentials programme below, which carries this direction forward with stakeholder-feedback priorities**
+Status: **absorbed — historical input to Essentials; product framing broadened by the 2026-09-25 risk-to-outcome roadmap**
+
+The historical compliance-uplift decisions below remain supporting use cases. The active product purpose is enterprise cyber and digital risk protection with measurable business consequence, not compliance status alone.
 
 The immediate product focus is the requirement-to-action journey in Explorer/Workshop. The user feedback is clear: the tool is already effective as a review surface, but the real value is the uplift loop — turning PSPF outcomes into justifiable decisions, standard mitigation language, and a practical work plan for the next cycle.
 

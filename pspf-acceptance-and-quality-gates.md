@@ -278,12 +278,26 @@ The programme runs four slices (R1–R4), all now implemented. Each slice's gate
 2. **Scope gate**: this slice is Core/contracts schema plumbing only, carrying forward the Phase 1A contracts; it introduces no Workshop UI, Explorer UI, Core write-rule behaviour change, or new release-gate script. `packages/core/src/service.ts` validation logic and the `risk-model.ts` contracts are unchanged by this slice.
 3. **Release-chain gate**: `e2e:v1.75` inherits the complete v1.74 chain and adds `check:schema-coverage`, `check:schema-policy`, the `@pspf/contracts` tests, and the `pspf-core` tests; `release:readiness` targets `e2e:v1.75:run`.
 
-#### v1.76.0 — Course-correction C0 evidence instrument (release wiring landed; ADR pending)
+#### v1.76.0 — Course-correction C0 evidence instrument (implemented; ADR 0100 accepted)
 
 1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.76.0`; `VERSION_AXES` remain `1.17.0`; no entity, link, bundle, API, publication-policy, or Explorer schema change is introduced.
 2. **Journey-cost gate**: `check:journey-cost` validates the four simulated-operator flagship-job records against their recorded baseline, rejects missing records and regressions, and rejects an evidence pack older than `package.json`.
 3. **Release-chain gate**: `check:gates:run` includes `check-journey-cost.mjs`; `e2e:v1.76` and `e2e:v1.76:run` inherit v1.75 and add the C0 gate and reducer tests; `release:readiness` targets `e2e:v1.76:run`.
-4. **ADR gate**: the C0 UX outcome-measurement ADR remains outstanding for the main agent; no ADR coverage entry is added until its file exists.
+4. **ADR gate**: [ADR 0100](adr/0100-v1-76-ux-outcome-evidence-instrument.md) is accepted (2026-09-21) and registered as automated in `check:adr-coverage`. Simulated-operator evidence is not live operator validation or proof of enterprise risk reduction.
+
+### Risk-to-Outcome Acceptance Candidates (2026-09-25, Not Implemented Gates)
+
+The [Plan specification](pspf-plan-spec.md#proposed-acceptance-and-adoption-measures) owns the proposed traceability, measurement and adoption criteria arising from findings POA-01 to POA-06. The [grand plan](pspf-grand-plan.md#risk-to-outcome-roadmap-2026-09-25) owns their order: C1-C6 first, then O1 justified capture, O2 treatment-effect verification and O3 business-outcome briefing. No gate script, fixture, schema, version or release authorisation is introduced by this review.
+
+Future implementation evidence must demonstrate:
+
+1. Canonical Risk treatments retain their meaning across Risk, Action Impact, Plan and relevant strategy/reporting consumers; supported legacy and shared-Action cases do not disappear or double-count. C1 owns the reproduced link defect.
+2. The agreed Plan contains justified Actions with a resolvable risk/issue and business-outcome path; incomplete, deferred, excluded and unscheduled work remains visible without being presented as committed dated delivery. C3 handles truthful views with current fields; O1 owns new admission/issue-origin rules at Core and import boundaries.
+3. Delivery completion, expected effect, observed result and risk review remain distinct. Trend-only, missing/stale evidence, failed verification, incomparable methodology and unmet critical targets cannot produce a verified-benefit claim. C5 labels the current limitations; O2 supplies the measurement/review contract.
+4. RO-J1 to RO-J3 prove contextual capture, evidence-backed review and a reusable business brief with source/as-of references and no repeated entry of accepted facts. Preserve FJ1-FJ4 baseline definitions; record human comprehension and an actual reporting-cycle pilot separately from simulated checks.
+5. Existing publication, no-person, lossless recovery, accessibility and surface-budget requirements remain in force. Any additive field or egress needs its governing ADR; a local reporting view is not permission for an Explorer projection or sensitive-note export.
+
+These are acceptance candidates until their owning slices supply tests and actual results. Documentation changes, a green structural gate or an inferred impact weight do not close them.
 
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 

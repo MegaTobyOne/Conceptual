@@ -4,6 +4,14 @@ Status: **active — C0 implemented; C1–C6 planned**
 
 Authority: sequencing is owned by [`pspf-grand-plan.md`](../pspf-grand-plan.md) §"Course correction programme". This document holds the detailed slices, testing approach, and execution guidance. It does not override `pspf-spec-consistency-index.md`; every slice that changes architecture, schema, or invariants opens with its own ADR.
 
+## Risk-to-Outcome Review Update (2026-09-25)
+
+The operator's primary job is to connect known risks/issues to Actions, measurable effects and strategic business outcomes. [Findings POA-01 to POA-06](../pspf-plan-spec.md#2026-09-25-product-review) distinguish the existing connected records from the missing end-to-end outcome loop. The [grand-plan update](../pspf-grand-plan.md#risk-to-outcome-roadmap-2026-09-25) is the sequencing authority.
+
+C1/C2 still close verification debt first. C1 now includes the reproduced treatment-link mismatch; C3 makes capture and plan intent clearer; C4 supplies treatment and verification guidance; C5 tells an honest business-consequence story using existing data. None of these refinements delivers a structured observation/benefit model by assertion. O1-O3 are the next bounded capability priority after C6; the standalone Plan product and automatic restart of Commitment Phases 3-7 are not the next step.
+
+FJ1-FJ4 remain stable baseline jobs. The proposed RO-J1 capture, RO-J2 verify and RO-J3 business-brief journeys in the Plan specification add correctness and friction criteria for the new work; they are not yet implemented instruments or passing gates.
+
 ## Why this programme exists
 
 The 2026-09-20 plan review compared `pspf-grand-plan.md` against the shipped state at v1.75.0 and found the ecosystem structurally sound but **unable to demonstrate that recent work improved the operator's experience**. The findings below are the programme's remit. Each is stated as an observation with its evidence, not as blame.
@@ -96,6 +104,7 @@ This is the older debt and is one phase from complete. It closes first. Scope is
 4. Every disclosed limitation in each phase's "Known follow-ups" either closed, or explicitly re-deferred with a stated reason. Silent dropping is a gate failure.
 5. Correction of any Risk specification the walkthrough proves stale.
 6. **New:** the Risk surfaces are measured against the C0 instrument. A specialist workbench is not exempt from the cost ratchet.
+7. **POA-01 repair evidence:** an Action created from Risk through `treated-by` must retain its treatment context in Action Impact, Plan classification and relevant strategy/reporting views. The 2026-09-25 source probe returned zero risk weighting and "No linked ... risks" for that canonical link. Add focused canonical/supported-legacy, shared-Action and duplicate-link regressions; preserve unknown/custom assessment semantics. This repairs existing behaviour and does not add a treatment-effect schema.
 
 ### Done when
 
@@ -159,6 +168,7 @@ Adversarial history fixtures: out-of-order transitions, a transition attempted a
 2. **Consolidation before deletion.** Prefer folding a specialist panel into an existing workbench tab over removing the capability. The 47 specialist Workshop commands are assessed in this order: fold into an existing workbench, demote out of the palette behind a workbench entry point, retire the view.
 3. **`check:essentials-surface` declining mode.** Fails on growth, and fails when a scheduled target for the current version is missed.
 4. **Cost re-measurement.** FJ1–FJ4 re-measured; the slice must show a reduction in at least one job's cost or a walkthrough verdict improvement, otherwise the retirement selection was wrong.
+5. **Honest Plan and contextual capture (POA-04/05).** Use existing `planningState`, ownership and dates to distinguish agreed delivery from candidate/deferred/excluded/unscheduled work. Keep all work reachable with counts and repair paths; do not turn missing dates into an apparent commitment. Consolidate routine creation/update in the existing Item Detail/Plan surfaces, retaining context and input on failure. No new measure or issue contract belongs in C3.
 
 ### Done when
 
@@ -187,6 +197,7 @@ This is the missing middle of the product's own stated operating cycle — asses
 3. **Schema bump to axes `1.18.0`** for mitigation provenance on the action record: which pattern an action derived from, whether it was tailored, and the recorded rationale for tailoring. All new fields `sensitive`.
 4. **Wiring into existing surfaces only** — the requirement detail Act section and the Readiness tab's existing draft-and-confirm accept flow. Zero new commands or panels; this slice lands inside the C3-reduced budget.
 5. **Deterministic selection.** Pattern suggestions derive from the requirement's control family and current assessment state by a printed rule. No AI, no ranking by opaque score.
+6. **Risk-to-outcome guidance.** Each pattern states its treatment mechanism, applicability, expected observable effect and suggested verification method. Offer reuse from the existing Risk treatment surface as well as the Requirement flow. No-match cases allow explicit manual tailoring; no template silently creates a risk, confirms an issue or claims an achieved benefit. Guidance is not a recorded observation; O2 owns that contract.
 
 ### Done when
 
@@ -214,6 +225,7 @@ ADR 0096 retired the three presentation lenses on the explicit promise that anal
 2. **CISO accountability view** — trend, gaps, owners, and whether closure is actually happening, composed from the existing team report card, `ownerTeam`, `dueDateHistory`, and closure-velocity primitives. Every verdict prints its rule.
 3. **Both as tabs in the existing Reporting Workbench.** No new command, no new panel, no budget exchange.
 4. **Cost re-measurement against FJ3 and FJ4.** These screens exist to reduce the effort of exactly those jobs; if the numbers do not move, the design is wrong and is reworked before the slice closes.
+5. **Business consequence without invented evidence (POA-03/06).** Use existing strategy outcomes/references to show delivery, reported measure trends, risk assessment context, evidence limitations and the next decision. Clearly label Action Impact as a planning signal and trend-only progress as reported, not verified. Missing outcome links, baselines or observations remain visible; do not infer historical risk movement from snapshot status counts. This is an honest interim view, not O2/O3 completion.
 
 ### Done when
 
@@ -236,9 +248,10 @@ Fixtures with no prior snapshot, a pre-1.71 counts-only snapshot, and a period w
 ### Deliverables
 
 1. **Re-test the Operations ↔ Oversight & Assurance switch** against the C0 instrument and the C5 screens. The question is narrow and answerable: with both review screens shipped, does the switch reduce cost or improve a walkthrough verdict on any flagship job?
-2. **ADR amendment recording the outcome.** Either the switch earns its place with recorded evidence and Commitment Phases 3–7 resume, or it is retired under the ADR 0096 precedent with deterministic one-time preference migration and no dead setting left behind. Both outcomes are acceptable; an unrecorded outcome is not.
+2. **ADR amendment recording the outcome.** Either the switch earns its place with recorded evidence or it is retired under the ADR 0096 precedent with deterministic one-time preference migration and no dead setting left behind. Retaining it does not automatically resume Commitment Phases 3-7: each resumed phase needs a separate unmet-need/value decision after C6. Both switch outcomes are acceptable; an unrecorded outcome is not.
 3. **Programme close-out.** Re-measure all flagship jobs; publish the before-and-after table from v1.75.0 to v1.82.0; update the deferred register with what this programme closed and what it did not.
 4. **Next-programme gate.** No new programme opens until this close-out records that verification debt is zero and the C3 schedule is on track.
+5. **Risk-to-outcome handoff.** Record which POA findings C1-C5 actually closed, keep the rest open, and prepare O1's ADR/admission/issue-origin decisions followed by O2 measurement and O3 business briefing. Do not claim that surface reduction, a trend flag or a working-context switch delivered the full outcome loop. Versions are assigned later; no second active programme is opened by this review.
 
 ### Done when
 
@@ -290,7 +303,7 @@ These are model-family and delegation recommendations, not pricing or benchmark 
 
 - Tranches 3–6 (Office outputs, Graph connectivity, AI assistance, assurance signing). Tranche 2 hardening remains partial — atomic stale-lock takeover, `deactivate()` lock release, Force Unlock UI, honest DB snapshots, full-replace undo, and broad command-level diagnostics conversion — so the plan's own prerequisite is unmet.
 - Future Mission Control canvas. Unapproved, and would invert the subtraction discipline C3 establishes.
-- Commitment Phases 3–7 and any Explorer projection of commitment, assessment, or decision content. Parked in C2, decided in C6.
+- Commitment Phases 3-7 and any Explorer projection of commitment, assessment, or decision content. Parked in C2; C6 reviews them, but resumption additionally requires a specific unmet-need/value decision. O1-O3 are the next capability priority; accepting the selector does not restart the whole programme.
 - Pub workforce Phase 3 extensions and Pub as a team or identity source. Pub stays frozen.
 - Explorer publication of Shop supplier and commercial data. Still requires its own field-level publication ADR.
 - Full rollout of the S0–S7 judgement primitives to every screen. C3's reduction and C5's screens cover the highest-traffic remainder; the rest stays in `docs/ux-improvement-ideas.md`.

@@ -1,16 +1,22 @@
 # Commitment-led Operating Model Plan
 
-Status: **Phase 2 commitment contract slice implemented; remaining Phase 2 persistence/recovery scope completes as course-correction slice C2 (v1.78.0), after which Phases 3–7 are parked**
+Status: **Phase 2 commitment contract slice implemented; remaining persistence/recovery scope completes in C2, after which Phases 3-7 remain parked pending C6 and a separate demonstrated-need decision**
 
 ## Scheduling (2026-09-20)
 
 The 2026-09-20 plan review reversed this programme's precedence. Sequencing is now owned by [`../pspf-grand-plan.md`](../pspf-grand-plan.md#course-correction-programme-v1760v1820) and [`course-correction-plan.md`](course-correction-plan.md):
 
 - **Phase 2 completes in slice C2** to its recorded exit gate — protected lifecycle transitions, immutable history at Core's write boundary, explicit migration, and verified cold restore. Half-implemented persistence is a data-integrity risk and is not left open.
-- **Phases 3–7 are then parked** with a named resumption gate: they resume only if slice C6 records evidence that the working-context model earns its place, after slice C5 ships the analyst change-review and CISO accountability screens promised by ADR 0096.
+- **Phases 3-7 are then parked** with a named resumption gate, refined 2026-09-25: C6 must close after C5, and each resumed phase needs a separate decision naming its unmet operator need and incremental value over the risk-to-outcome loop. Retaining the working-context selector is insufficient and does not automatically resume the programme.
 - **C2 also records traceability.** For each parked phase, the plan states which recorded stakeholder need it serves, or states explicitly that it serves an internal model-correctness need. The review found no line of this programme traceable to `docs/feedback/`; that is resolved by writing the chain down or admitting it does not yet exist.
 - **The working-context selector is frozen as-is** until C6. No further UI investment.
 - Risk overhaul Phase 4B is no longer deferred; it is slice C1 and closes first.
+
+### 2026-09-25 Stakeholder and Scheduling Update
+
+The operator has now explicitly asked for known risk/issue -> Action -> measurable effect -> business outcome traceability and less repeated capture/reporting work. This provides a stakeholder basis for that outcome, but does not establish that every commitment/source-binding aggregate or the two working contexts are necessary to achieve it. The [Plan review](../pspf-plan-spec.md#2026-09-25-product-review) records the evidence and the [grand plan](../pspf-grand-plan.md#risk-to-outcome-roadmap-2026-09-25) prioritises O1-O3 after C6.
+
+C2 still finishes the existing persistence/recovery contract; no data-integrity work is abandoned. Subsequent assessment/source-plan concepts may be reused by O1/O2 only through an explicit ADR and a demonstrated need, without duplicate Actions, issue registers or measurements. An operator must not need to register a source plan or create a formal commitment merely to justify a local treatment and verify its effect. Person-free accountability, sensitive publication policy, immutable history and the distinction between delivery intent and an agreed commitment remain unchanged.
 
 ## Authority and Outcome
 

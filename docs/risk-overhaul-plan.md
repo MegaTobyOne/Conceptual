@@ -1,11 +1,19 @@
 # Workshop Risk Overhaul Plan
 
 Status: **implementation complete through Phase 4A; Phase 4B verification outstanding and now scheduled**
-Last updated: 2026-09-20
-Planning baseline: product `1.75.0`; compatibility axes `1.17.0`.
+Last updated: 2026-09-25
+Programme baseline: product `1.75.0`; compatibility axes `1.17.0`. Risk-to-outcome review performed against repository `1.76.0`.
 Next task: **Phase 4B - integrate and verify** (Phase 4A complete), scheduled as course-correction slice C1 (v1.77.0) per [../pspf-grand-plan.md](../pspf-grand-plan.md#course-correction-programme-v1760v1820) and [course-correction-plan.md](course-correction-plan.md). The 2026-09-19 deferral in favour of the Commitment-led programme is reversed. See [Phase 4B Handoff](#phase-4b-handoff).
 
-C1 adds one requirement beyond the handoff below: the Risk surfaces are measured against the C0 interaction-cost instrument. A specialist workbench is not exempt from the flagship-journey cost ratchet.
+C1 additionally measures the Risk surfaces against the C0 interaction-cost instrument and consumes the 2026-09-25 treatment-link finding below. A specialist workbench is not exempt from the flagship-journey cost ratchet.
+
+## Risk-to-Outcome Review Follow-up (2026-09-25)
+
+[POA-01 in the Plan specification](../pspf-plan-spec.md#2026-09-25-product-review) is an open, reproduced integration defect for Phase 4B/C1: the workbench creates `risk -> treated-by -> action`, but `enrichActionsWithImpact` reads the older `addressed-by` path. A source-level in-memory probe with one open legacy risk at severity 16 returned risk weighting 3 for `addressed-by` and 0 plus "No linked ... risks" for `treated-by`. Plan workstream inference consumes that weighting.
+
+C1 must demonstrate consistent treatment visibility and meaning through the Risk record, Plan of Action and relevant strategy/reporting consumers, including one shared Action, supported legacy links, duplicate links and unknown/custom assessments. Preserve ADR 0098's canonical semantics and do not silently rewrite legacy relationships or count one result several times. Record the repair and actual regression results here; this documentation review has not fixed it or completed a live walkthrough.
+
+The wider requested loop is risk/known issue -> Action -> observed effect -> reassessed risk -> business outcome. Existing control-effectiveness judgements and current/target assessments are useful foundations, not a measured treatment-effect history. New issue/admission/observation contracts belong to O1/O2 after course correction, per the [grand plan](../pspf-grand-plan.md#risk-to-outcome-roadmap-2026-09-25); they do not enlarge Phase 4B into a new feature programme.
 
 ## Authority and Outcome
 
@@ -633,6 +641,7 @@ Phase 4A is complete: the allowlisted `RiskOutputModel`, workspace-policy-declar
 
 Carried forward from every prior phase, for Phase 4B to consume directly rather than reinvent:
 
+- The 2026-09-25 POA-01 treatment-link defect above is additional verification input. A create-to-card walkthrough alone does not close it; follow the same Action into Plan and its reporting/strategy consumers and record regression evidence.
 - Every phase's own "Known follow-ups" section (Phase 2 through Phase 4A above) is the authoritative list of disclosed gaps; Phase 4B's job is to either close them, explicitly re-defer them with a reason, or discover they are no longer applicable — not to silently drop them.
 - `pspf-entity-link-spec.md` § Risk was corrected once in Phase 1A; verify it still matches the shipped shape after Phases 1B-4A's additions (`externalRefs`, `risk-control`, `risk-event`, `rolls-up-to`/`mitigated-by`, `RiskOutputModel`) before treating it as truthful.
 - No release number, schema/version axis, or ADR number is reserved by this phase; `pspf-acceptance-and-quality-gates.md`'s existing v1.75.0 section (added by the Phase 1B Slice Mechanic work) is the nearest existing gate table to extend, not replace.
