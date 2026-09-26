@@ -2,7 +2,7 @@
   "name": "pspf-assurance",
   "icon": "resources/icon.png",
   "displayName": "PSPF Assurance",
-  "description": "PSPF assessment, penetration testing, assurance finding, verification, and publication-readiness surface.",
+  "description": "Local assessment and penetration-testing workbenches, finding queues and verification/retest tracking for PSPF assurance.",
   "keywords": [
     "PSPF",
     "assurance",

@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "icon": "resources/icon.png",
   "displayName": "PSPF Workshop",
-  "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
+  "description": "Evidence-backed requirements, cyber risks, treatment actions, team accountability and reporting in a local PSPF workspace.",
   "keywords": [
     "PSPF",
     "ISM",

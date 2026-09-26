@@ -4,6 +4,14 @@ Status: **S0–S7 implemented (v1.53.0–v1.60.0, ADRs 0087–0094; see `pspf-gr
 
 ## Framing
 
+### Current Design Remit (2026-09-26)
+
+The product owner reports that capture, updating and reporting are all draining and that losing place creates cognitive shock. Substantial visual/interface redesign and extension consolidation are now in the design discussion. See the [decision register](decision-register.md), [workbench design brief](../pspf-design-spec.md#clean-start-workbench-design-brief) and [phased plan](course-correction-plan.md#clean-start-workbench-design-plan).
+
+The priorities are contextual capture, an obvious starting point, preserved task/filter/selection/scroll/focus, recoverable local drafts with explicit Save, honest progress, useful mitigation starting points and reporting reuse. Compare workbench-first and outcome-first concepts on the same complete jobs, including interruption, failed Save and restart.
+
+There are no active users, so legacy migration and retention are not required for the proposed fresh baseline. Start with product-owner walkthroughs and label that evidence honestly. The single-extension target, full continuity contract and visual redesign are not implemented. The earlier J1-J6 scores below describe their recorded slices, not validation of this new experience.
+
 The ecosystem's UX gates measure completeness and consistency. This document tracks the next level: **judgement support** — whether each screen helps an operator compose a defensible answer to the questions they are actually asked. The core finding of the v1.52.0 review: _the data and derivations mostly exist; the judgement is never composed and stated._ Screens present ingredients; operators do the cooking.
 
 ## The judgement set

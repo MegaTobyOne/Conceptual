@@ -3,7 +3,7 @@
   "version": "1.76.0",
   "private": true,
   "type": "module",
-  "description": "PSPF Explorer — friendly web surface for publication-mode review and browser-local authoring, with Core exchange round-trip (ADR 0084).",
+  "description": "Browser-based PSPF assurance review and local authoring, with explicit master-bundle exchange and no live Core connection.",
   "engines": {
     "node": ">=22.15.0"
   },

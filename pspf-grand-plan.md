@@ -1,18 +1,52 @@
 # PSPF Grand Plan
 
-Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-09-25 (reviewed against repo version 1.76.0)
+Status: **active — planning authority for product design, remediation and connected-capability programmes**
+Last updated: 2026-09-26 (reviewed against repo version 1.76.0)
 
 ## Purpose
 
-This is the single forward plan for the PSPF ecosystem. It sequences two streams of work:
+This is the single forward plan for the PSPF ecosystem. It coordinates these workstreams:
 
 1. **Remediation** of the findings from the June 2026 ecosystem architecture/UX review (findings F1–F7; see `/memories` note `ecosystem-review-2026-06` and the tranche descriptions below, which are self-contained).
 2. **New capability programmes**: Microsoft 365 / Graph integration, AI assistance with a mandatory kill switch, the PSPF Assurance extension, and a secure assurance-publishing step.
+3. **Clean-start workbench design**: a coherent cyber risk, assurance and work-planning experience, with substantial interface and visual redesign and modular extension consolidation under consideration. This stream currently authorises design and documentation, not implementation.
 
 The ordering principle is deliberate: **make the documentation truthful first (F4), then close the trust boundary, then build new features on top of a boundary we trust.** New connected features (Graph, AI) must not land on an import/diagnostics layer that cannot validate or explain failures.
 
 This plan does not override the authority chain in `pspf-spec-consistency-index.md`. Every tranche below that changes architecture, schema, or invariants **starts with an ADR**; this document records the sequence and the design constraints, not the decisions themselves.
+
+## Clean-Start Workbench Design (2026-09-26)
+
+Status: **design and planning only; no product changes implemented**
+
+The product owner reports that capture, updating and reporting are all draining, and that losing working context causes cognitive shock. The [decision register](docs/decision-register.md) records the agreed design remit. The [design specification](pspf-design-spec.md#clean-start-workbench-design-brief) owns the experience; the [detailed plan](docs/course-correction-plan.md#clean-start-workbench-design-plan) owns the design phases and proposed pilot.
+
+### Agreed Design Premises
+
+1. **Design the whole journey.** Reconsider navigation, layout, visual hierarchy, density, controls and transitions together. Contextual capture, preserving place, meaningful progress, useful mitigation guidance and reporting reuse are one experience, not unrelated dashboards.
+2. **Preserve working memory.** Recover workspace-local drafts after closing or restarting, with explicit Save for authoritative records. Keep filters, selection, scroll, focus and return paths stable. Draft persistence is not record autosave, plan admission, risk acceptance or publication.
+3. **Use a fresh baseline.** There are no active users. Legacy retention, migration, old-install coexistence and preference/command compatibility are not required design deliverables. This is not permission to delete current data or to weaken future atomicity, privacy, history or recovery.
+4. **Evaluate one modular extension.** One coherent workbench, potentially delivered as one installed VS Code extension including Shop, Assurance and organisational functions, is the preferred candidate. Retain useful internal module boundaries and engines; do not concatenate five interfaces or rewrite every engine. Packaging and activation need an accepted ADR before implementation.
+5. **Reconsider desktop/browser responsibilities.** Do not assume the desktop must be complex or the browser permanently limited. Explorer currently supports publication review and local authoring. Define future jobs and data boundaries explicitly; no live Core bridge, capability retirement or new publication is approved here.
+6. **Prove usefulness honestly.** Compare workbench-first and outcome-first concepts using the same representative jobs, including interruption and failure. Begin with product-owner walkthroughs; there is no active-user cohort and simulated checks are not user validation.
+
+### Relationship To Existing Work
+
+Design work can proceed now. C1/C2 remain the current implementation prerequisites; C3-C6 and O1-O3 remain the recorded implementation sequence until an explicitly accepted replacement maps their required behaviours to the selected design. Do not silently mark those slices complete or bypass security work.
+
+The design decision point must identify what is reused, repaired, replaced or no longer required. Legacy-migration effort is excluded from the proposed fresh baseline; obsolete UI or commitment work need not be carried merely to support compatibility. Current recovery and compatibility gates still apply to the current product until their governing contracts are explicitly superseded. No version, schema, release gate or shipping date is allocated by this design update.
+
+The target still separates **delivery -> observed effect -> reviewed risk -> business consequence**. The existing treatment-link, planning-intent and measurement gaps below remain open. A coherent interface must not hide them behind more confident wording.
+
+### Website, Brand And Community Extension
+
+The product owner has also opened redesign of the ecosystem website and public product story. The [website decisions](docs/decision-register.md#website-brand-and-community-design-2026-09-26), [design brief](pspf-design-spec.md#website-brand-and-community-design-brief) and [web design sequence](docs/course-correction-plan.md#website-brand-and-community-design-work) record this as part of the current design exercise, not another implementation programme.
+
+Atlas remains a related but separate product and repository at `https://home.tobyharvey.online`; it is not a module or parent application. Explorer remains useful and should be retained as a clear hands-on entry point. Its browser-local authoring and publication boundaries do not change merely because the website or extension packaging changes.
+
+Compare a product home with a product-and-practice home: clear purpose, a safe synthetic Explorer example, practical guides, transparent progress and an operated feedback/contribution route. Recommend one product identity across website, Explorer, workbench, docs and public outputs, with task-appropriate layouts and theme/accessibility behaviour. Atlas retains its own identity. A distinctive product name is an option to evaluate, not an agreed rename.
+
+Start community design with useful content and maintainable participation, not a forum or account platform. Repository visibility, feedback venue, private security reporting, moderation, attribution and sample-data isolation need explicit decisions. No accounts, uploads, analytics, public community service, domain change or Atlas integration is authorised. This follow-up updates planning docs only; the ecosystem page and application remain unchanged. Implementation, publication and deployment need separate approval and any applicable existing prerequisites.
 
 ## Risk-to-Outcome Roadmap (2026-09-25)
 

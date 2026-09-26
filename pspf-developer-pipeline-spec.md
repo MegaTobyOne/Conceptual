@@ -2,14 +2,20 @@
 
 Status: **partial**
 
+## Clean-Start Packaging Review (2026-09-26)
+
+The [workbench design brief](pspf-design-spec.md#clean-start-workbench-design-brief) evaluates one installed extension with modular Core, Workshop, Assurance, commercial and organisational capabilities. This is a design candidate, not a changed release topology: five VSIX packages and the separate Explorer deployment remain current.
+
+There are no active users, so the proposed fresh baseline does not require old-install coexistence, legacy-data conversion or preference/command migration. A later accepted packaging decision must still define module activation, the authoritative writer, runtime assets, offline behaviour, privacy, tests and release ownership. Update obsolete package-count gates deliberately after that decision; do not delete safety checks to obtain a passing run. No package identity, version, dependency, workflow or release changes are made by this documentation update.
+
 ## Overview
 
 This specification defines the development model, repository strategy, CI/CD pipelines, release approach, maintenance process, and agent opportunities for the PSPF ecosystem. It is written to support a local-first VS Code extension platform, a standalone Explorer web application published to VentraIP cPanel (see ADR 0038), and an ongoing maintenance model that uses GitHub Copilot as a core development aid rather than as an autonomous authority.
 
 The delivery model needs to support four realities at once:
 
-- Each PSPF product (Core, Workshop, Shop, Pub) ships as its **own** signed VSIX from a **single GitHub repository** (ADR 0007 + ADR 0013).
-- All four extensions share a common platform contract (schema, SDK, API discipline) published as in-repo workspace packages.
+- Each PSPF extension (Core, Workshop, Assurance, Shop, Pub) ships as its **own** VSIX from a **single GitHub repository** (ADR 0007 + ADR 0013 + ADR 0078).
+- All five extensions share a common platform contract (schema, SDK, API discipline) published as in-repo workspace packages.
 - Explorer is a static web application and deploys cleanly to VentraIP cPanel through GitHub Actions over SSH.
 - AI assistance is useful across coding, review, migration, and documentation, but must remain bounded by tests, contracts, and explicit human approval.
 

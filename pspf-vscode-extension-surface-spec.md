@@ -2,6 +2,14 @@
 
 Status: **implemented**
 
+## Packaging And Interface Review (2026-09-26)
+
+Current packaging remains five separate extensions: Core, Workshop, Assurance, Shop and Pub. The [clean-start design brief](pspf-design-spec.md#clean-start-workbench-design-brief) evaluates a single coherent workbench, potentially one installed extension with independently testable internal modules. The [decision register](docs/decision-register.md) records this as a candidate, not an accepted replacement for ADR 0007/0078.
+
+The target design is not required to retain old navigation, commands or installation identities: there are no active users and no legacy migration/retention requirement. Implementation still needs explicit activation, writer ownership, module/API, privacy and packaging decisions. Preserving internal discipline does not require exposing product boundaries as everyday navigation, and separate extensions are not a security sandbox.
+
+No manifest contribution, extension ID, API, command or package count changes in this documentation update. The [grand plan](pspf-grand-plan.md#clean-start-workbench-design-2026-09-26) controls when an approved replacement can be implemented.
+
 ## Overview
 
 This specification defines the Visual Studio Code extension surface for the PSPF platform products, with emphasis on **PSPF Core** and **PSPF Workshop**, and supporting patterns for Shop, Pub, and Assurance. It covers extension manifests, contribution points, commands, views, menus, settings, status bar items, walkthroughs, activation events, and the division between Tree Views and Webviews.

@@ -4,7 +4,15 @@ Status: **aspirational**
 
 Existing Workshop planning features implement parts of this direction; the proposed risk-to-outcome improvements and a separate PSPF Plan product are not implemented.
 
-Last reviewed: 2026-09-25 against repository v1.76.0. The [grand plan](pspf-grand-plan.md) owns development sequencing; accepted ADRs and canonical contracts take precedence over the planning proposals below.
+Last reviewed: 2026-09-26 against repository v1.76.0. The [grand plan](pspf-grand-plan.md) owns development sequencing; accepted ADRs and canonical contracts take precedence over the planning proposals below.
+
+## Clean-Start Workbench Context (2026-09-26)
+
+The product owner has opened substantial workflow, visual and interface redesign, including a single modular extension as the preferred candidate to evaluate. The [decision register](docs/decision-register.md), [design brief](pspf-design-spec.md#clean-start-workbench-design-brief) and [design phases](docs/course-correction-plan.md#clean-start-workbench-design-plan) broaden this Plan discussion into a coherent capture, update, interruption-recovery and reporting journey.
+
+There are no active users. Legacy retention, data migration, old preference transfer and command compatibility are not required for the proposed fresh baseline; this does not permit deleting current data or weakening future recovery. Recoverable local drafts with explicit Save are an agreed design requirement, not implemented functionality. Drafts, delivery completion, treatment verification and risk acceptance remain different claims.
+
+The risk-to-outcome requirements below remain useful design inputs, including reuse of existing strategy measures and evidence. Neither a separate Plan application nor consolidation of the current extensions is implemented or finally selected. The design decision point must reconcile the current C1-C6/O1-O3 sequence explicitly; the existing sequence and publication rules continue until superseded.
 
 ## Purpose
 

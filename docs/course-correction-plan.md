@@ -1,8 +1,85 @@
 # PSPF Course Correction Plan (v1.76.0–v1.82.0)
 
-Status: **active — C0 implemented; C1–C6 planned**
+Status: **active — C0 implemented; C1–C6 planned; clean-start workbench design recorded 2026-09-26**
 
 Authority: sequencing is owned by [`pspf-grand-plan.md`](../pspf-grand-plan.md) §"Course correction programme". This document holds the detailed slices, testing approach, and execution guidance. It does not override `pspf-spec-consistency-index.md`; every slice that changes architecture, schema, or invariants opens with its own ADR.
+
+## Clean-Start Workbench Design Plan
+
+Status: **planning only; no redesign, draft recovery or extension consolidation implemented**
+
+The [2026-09-26 decisions](decision-register.md) broaden the design remit from incremental panel improvements to one coherent cyber workbench. The [design brief](../pspf-design-spec.md#clean-start-workbench-design-brief) owns the target experience. This section is a design plan, not another authorised implementation programme or a claim that C1-C6 have closed.
+
+### Scope And Decisions
+
+- Include contextual capture, an obvious starting point, preservation of place, meaningful progress, mitigation starting points and reporting as a by-product of saved work.
+- Include substantial visual and interface redesign: navigation, hierarchy, typography, density, controls, related-item inspection and transitions.
+- Compare one modular installed extension with one workbench over separate extensions; the single-extension option is the preferred candidate. Include commercial, assurance and organisational context without flattening their data policies.
+- Reconsider desktop/browser jobs and data authority; preserve current Explorer publication and local-authoring facts until a later decision changes them.
+- Recover local drafts across closing/restarting, with explicit Save for canonical records. View state, draft state and saved records have different lifecycles and privacy responsibilities.
+- Start fresh: no active users, legacy retention, data conversion, old-install coexistence or preference/command compatibility work is required. Future saved work still needs safe failure, privacy and recovery. No existing files or data may be deleted merely because this plan exists.
+
+### Representative Jobs
+
+These are proposed design journeys, not new registered gates or replacements for FJ1-FJ4 or RO-J1 to RO-J3.
+
+| Job                           | Start and intended result                                                                                         | Required difficult case                                                                                                                                  |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Capture justified work        | From a risk or known issue, create or reuse an owned Action with its known context retained and a clear next step | Missing owner, unknown date or incomplete justification stays visibly in triage; no invented issue or commitment                                         |
+| Update without losing place   | Inspect evidence and a supplier/contract dependency, update work, leave and return to the same task               | Failed Save, related-item navigation, panel close, restart, changed source record and deleted target preserve input or offer an explicit recovery choice |
+| Explain the business position | Produce a scoped brief from accepted facts: delivery, evidence, remaining exposure and decision needed            | Completed work with failed, stale or absent verification must not become a claim of reduced risk                                                         |
+
+### Phases And Exit Evidence
+
+| Phase                            | Work                                                                                                                                                               | Exit evidence and dependency                                                                                                                                                                |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Define jobs and baseline      | Walk the three jobs with the product owner using representative records; record repeated input, navigation and lost-place points                                   | Agreed answered states and adverse cases; label product-owner evidence separately from simulated checks and future target-user research                                                     |
+| 2. Compare interface concepts    | Design workbench-first and outcome-first layouts for the same jobs, including empty, populated, editing, failed Save, recovered draft and narrow-screen states     | Selected primary layout and visual direction; depends on Phase 1, not on preserving old screens or product navigation                                                                       |
+| 3. Decide state and architecture | Define continuity, draft/save/conflict semantics, module boundaries, packaging and desktop/browser responsibilities; map retained engines and gaps                 | Accepted design/ADR decisions and an explicit revised implementation sequence; may develop alongside Phase 2 but closes after concept selection                                             |
+| 4. Prove one complete journey    | After implementation approval, pilot contextual Action capture, evidence/commercial inspection, interruption, restart, recovery, atomic Save, return and reporting | Observed owner walkthrough plus focused behaviour, privacy and recovery evidence; depends on Phases 2/3 and accepted prerequisites; no mocked measurement presented as delivered capability |
+| 5. Complete the workbench        | Integrate the remaining workflows in bounded increments; add guidance and the missing justified-origin/effect-review contracts through their approved sequence     | Every intended capability has a verified home; remove superseded UI rather than maintaining a permanent parallel legacy experience                                                          |
+| 6. Validate the fresh baseline   | Verify clean installation, module activation, one writer, offline use, current-baseline exchange, new-work recovery, accessibility and performance                 | Fresh readiness evidence and truthful descriptions; separate release authorisation, with no version or date allocated here                                                                  |
+
+### Continuity And Saving Acceptance
+
+1. Retain the workspace/dataset, worklist, filter/sort/page, selection, subview, expanded sections, scroll anchor, focus and return path. Responsive layout changes and ordinary refresh must not silently reset them.
+2. Persist drafts locally and acknowledge recovery only after persistence succeeds. Save changes authoritative records; Discard removes the draft. Failed validation keeps input and position, with no half-created Action/link pair.
+3. Detect a changed base record before applying a recovered draft. Do not overwrite a newer record or silently substitute a deleted target. Retrying a failed Save must not duplicate work.
+4. Keep sensitive draft bodies and search context out of generic preferences, notifications, logs, snapshots and publication. Choose storage and cleanup rules in the design decision; do not treat extension packaging as a security sandbox.
+5. Do not reorder the active worklist under the operator. If a saved item leaves the active filter, explain the change and provide a predictable next/return action.
+6. Distinguish delivery, verification, risk review and business consequence. An Action marked done, a current document or an improving trend is not a verified treatment effect.
+
+### Roadmap Reconciliation
+
+Current C1/C2 prerequisites and the following C3-C6/O1-O3 sequence remain in force until an accepted design decision explicitly replaces them. Phase 3 must map each required security, integrity, outcome and usability behaviour to its destination, or record why a previously planned feature is no longer required. Do not complete obsolete work solely for legacy migration, or waive future protection because there are no active users.
+
+Record actual before/after job evidence, not only surface counts. Preserve the existing flagship-job meanings and add the interruption/recovery cases. Validate empty/typical/500-record fixtures, keyboard use, 320/768/1440 px, 200% zoom, light/dark/high contrast and reduced motion. Tests, product-owner walkthroughs and later target-user research are separate evidence sources.
+
+## Website, Brand And Community Design Work
+
+Status: **discussion and planning only; part of the clean-start design, not a website implementation or community launch**
+
+The [website decisions](decision-register.md#website-brand-and-community-design-2026-09-26) and [public-site brief](../pspf-design-spec.md#website-brand-and-community-design-brief) extend Phases 1-3 above. Atlas remains a separate product/repository at `https://home.tobyharvey.online`; Explorer remains a useful feature and a prominent proposed entry point. This follow-up changes planning documents only, not the ecosystem HTML, package descriptions, application code or deployment.
+
+### Web Design Sequence
+
+1. **Audience and site roles:** map the visitor jobs of understanding the product, trying Explorer, learning one workflow and finding a safe participation route. Define the main site, Explorer and Atlas relationship without assuming a shared application, account or data store. Keep technical package details secondary but discoverable.
+2. **Positioning and identity:** compare the current PSPF-led name with a distinctive independent product name plus a cyber risk/assurance descriptor. Explore a shared visual language for site, Explorer, workbench, docs and public outputs, with task-appropriate density and host themes. Record naming checks and an explicit selection; no rename or theme has been chosen yet.
+3. **Site concepts and content:** compare a focused product home with a product-and-practice home using the same visitor jobs. Draft homepage, guide/example and Project/participation wireframes with actual product imagery or clearly labelled concepts. Separate current capability from planned work and explain the independent-project and local-data boundaries.
+4. **Explorer example design:** specify one synthetic scenario, source attribution and the transition from the site into Explorer. Prove that a future sample-launch/reset flow cannot inspect, replace or publish the visitor's existing browser-local work. A seeded example is not assumed to be implemented just because Explorer exists.
+5. **Participation model:** choose an accessible feedback venue, maintainer/moderation responsibility, content/licence review, privacy guidance and private vulnerability-reporting route. Do not assume the implementation repository is public or create a forum, account service, uploads or analytics by default. Define the smallest maintained set of guides, examples, roadmap and release notes.
+6. **Review and implementation handoff:** walk the concepts with the product owner, recording that there is no active-user cohort. Confirm purpose/limit comprehension, Explorer discoverability, the separate Atlas destination, safe participation and cross-surface consistency. Produce an approved content map, brand specification and bounded future website task; implementation and deployment require separate approval.
+
+Audience work precedes concept selection; identity, content and participation design may develop together. Final handoff depends on their explicit decisions, not on completing extension consolidation first. Any proposed Explorer behaviour, data-boundary change, new service or revised product packaging retains its own architecture/security prerequisites. No new domain, version, release date or gate is allocated here.
+
+### Web Acceptance Evidence
+
+- A new visitor can explain the product's job, current limits and independent status, and find a useful Explorer or local-workbench entry without learning five package names.
+- Atlas is recognisably a separate related product/repository; the `home.` link is not mistaken for this product's Home.
+- The same status, evidence and progress language is used across the site, Explorer and workbench, without forcing identical layouts or overriding VS Code accessibility preferences.
+- Synthetic examples, screenshots and roadmap items have accurate current/planned labels and approved attribution. A demo neither touches existing local records nor implies verified risk reduction.
+- Feedback and security-reporting destinations actually exist and have an owner before they are advertised. No public channel invites organisational bundles, personal data or findings.
+- The selected future page design passes mobile/desktop, keyboard, contrast, motion and link checks. Product-owner and simulated evidence are labelled honestly; neither establishes community adoption or user satisfaction.
 
 ## Risk-to-Outcome Review Update (2026-09-25)
 

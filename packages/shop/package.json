@@ -2,7 +2,7 @@
   "name": "pspf-shop",
   "icon": "resources/icon.png",
   "displayName": "PSPF Shop",
-  "description": "PSPF commercial planning surface for suppliers, contracts, spend items, forecast review, and planned savings reporting.",
+  "description": "Local supplier, contract and spend planning linked to cyber risks, treatment actions and assurance requirements.",
   "keywords": [
     "PSPF",
     "procurement",

@@ -1,5 +1,18 @@
 # CISO Feedback
 
+## Product-Owner Design Discussion (2026-09-26)
+
+- Capture, keeping work current and turning it into a management conversation are all draining.
+- Context and meaningful progress are priorities. Losing place has been an unstated deficiency and a source of cognitive shock.
+- Substantial workflow, visual and interface redesign is welcome, not only incremental styling changes.
+- Recover unfinished drafts across closing and restarting, while requiring explicit Save to change authoritative records.
+- Consider bringing Shop and other functions into a coherent Core/Workshop experience, potentially a single modular extension. Reconsider desktop/browser responsibilities rather than assuming the current detailed/simple split is best.
+- There are no active users. Legacy migration and retention are not essential; this is not permission to delete current data or lose future work.
+
+These are product-owner statements, not findings from an active-user study. The [decision register](../decision-register.md) records the agreed scope and open decisions; the [design brief](../../pspf-design-spec.md#clean-start-workbench-design-brief) and [plan](../course-correction-plan.md#clean-start-workbench-design-plan) turn them into proposed journeys and acceptance criteria. No implementation was requested in this discussion.
+
+## Earlier Feedback
+
 ## Overall impression
 
 The required information appears to be recorded, but the interface makes it difficult to use that information for executive oversight. I need a focused view rather than having to work through a broad feature set.

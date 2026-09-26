@@ -2,7 +2,7 @@
   "name": "pspf-core",
   "displayName": "PSPF Core",
   "icon": "resources/icon.png",
-  "description": "Local PSPF system of record, workspace bootstrap, validation, snapshots, and export operations.",
+  "description": "Local-first workspace storage, validation, snapshots and controlled exchange for PSPF cyber risk and assurance work.",
   "keywords": [
     "PSPF",
     "ISM",

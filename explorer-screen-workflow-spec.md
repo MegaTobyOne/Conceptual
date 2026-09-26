@@ -2,6 +2,14 @@
 
 Status: **implemented** (superseded in part by ADR 0084 — since v1.48.0 the Explorer is the unified Lit/Vite app in `packages/explorer` with routed views, relationship map, analytics, and Core exchange; the plain-DOM screen inventory below describes the retired static app and is retained for behavioural rules E1–E29 and historical context)
 
+## Workbench Design Direction (2026-09-26)
+
+The [clean-start workbench brief](pspf-design-spec.md#clean-start-workbench-design-brief) reopens desktop/browser responsibilities and the visual/interface design. It does not assume that desktop must be complex or browser permanently limited. Compare their actual jobs, continuity and progress semantics before selecting the future scope.
+
+Explorer currently supports publication review and browser-local authoring with explicit master-bundle exchange. It is not a live Core client. No browser capability is retired, no sensitive field becomes publishable and no shared authoritative store or connector is introduced by this design discussion.
+
+There are no active users, so migration and legacy retention are not required for the proposed fresh baseline. Recoverable drafts with explicit Save are an agreed target requirement, not a claim about current browser behaviour. The [decision register](docs/decision-register.md) and [design plan](docs/course-correction-plan.md#clean-start-workbench-design-plan) record the choices still to be made; current publication and storage contracts remain in force until explicitly replaced.
+
 ## Purpose
 
 This specification defines the screen model, information architecture, navigation, and user workflows for **PSPF Explorer**, the static web app that operates in two modes simultaneously (see ADR 0004):

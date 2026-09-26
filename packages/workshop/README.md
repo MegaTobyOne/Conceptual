@@ -1,8 +1,8 @@
 # PSPF Workshop
 
-Local-first tooling for Australian Government PSPF assurance work. Core, Workshop, Shop, Pub, and Explorer share one schema and one local store so that authoring, commercial planning, people context, and publication stay aligned.
+Local-first authoring and review for cyber risks, requirements, evidence, treatment work and reporting, with Australian PSPF and ISM context. Workshop uses Core's workspace record; Pub and Explorer retain their separate local data boundaries.
 
-> **Accent:** Workshop blue · Authoring surface
+> **Role:** Evidence-backed authoring and review
 
 ## What this extension does
 
@@ -16,6 +16,12 @@ PSPF Workshop is the day-to-day **authoring surface** inside VS Code. It opens s
 - Strategy priority inference (risk → priority → choice): strategic choices that link risks show a derived priority band (Critical, High, Medium, Low, or none) from linked risk severity, adjusted by the choice's trend and confidence, with the top blocking risks and repair cues for unresolved links.
 - Plan of Action can optionally show local Pub team-wide dates when a Pub team item is marked for planning, helping operators spot conflicts with action and reminder dates.
 - Copyable posture brief for handing to reviewers.
+
+## Design Direction (Not Implemented)
+
+The [clean-start workbench brief](../../pspf-design-spec.md#clean-start-workbench-design-brief) proposes contextual capture, a persistent worklist, related-item inspection, recovered local drafts with explicit Save, meaningful progress and reporting reuse. Substantial visual/interface redesign and a single modular extension are under evaluation; current screens and packaging remain in place.
+
+Completed Actions and priority scores do not prove reduced risk. The [risk-to-outcome review](../../pspf-plan-spec.md#2026-09-25-product-review) records the outstanding treatment-link, planning-intent and effectiveness-measurement gaps. There are no active users, so the proposed fresh baseline does not require legacy migration or retention.
 
 ## How it fits
 

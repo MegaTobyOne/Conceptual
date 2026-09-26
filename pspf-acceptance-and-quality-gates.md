@@ -8,6 +8,21 @@ This specification defines measurable acceptance criteria and release gates for 
 
 v0.1 is the **thin slice** defined in [adr/0014-v0-1-thin-slice.md](adr/0014-v0-1-thin-slice.md). v1 remains the eventual target with the full surface in this document.
 
+## Clean-Start Workbench Acceptance Candidates (2026-09-26)
+
+These are design acceptance requirements from the [decision register](docs/decision-register.md) and [workbench design plan](docs/course-correction-plan.md#clean-start-workbench-design-plan), not implemented gates or evidence that the redesign has shipped. The [grand plan](pspf-grand-plan.md#clean-start-workbench-design-2026-09-26) controls implementation approval and any supersession of existing gates.
+
+1. **Continuity:** related inspection, Back, Save, failed Save, ordinary refresh, close/reopen and restart preserve the task, filters, selection, subview, scroll/focus and unfinished text. Responsive layout changes do not lose that state. Deleted targets and changed source records produce an explicit recovery choice.
+2. **Draft/save separation:** workspace-local draft persistence is acknowledged only after it succeeds. Explicit Save commits authoritative records; rejected writes keep input, and Action/link creation is atomic. Drafts never count as planned work, verified outcomes or reporting facts; retries do not duplicate records.
+3. **Privacy:** sensitive drafts, search context and restricted personal information do not leak into generic preferences, logs, notifications, snapshots or publication. A unified interface or extension does not widen publication eligibility.
+4. **Honest progress:** completed work, observed effect, reviewed risk and business consequence remain distinct. Missing, stale, failed or incomparable evidence cannot become a verified-benefit claim; missing dates cannot become an apparent delivery commitment.
+5. **Journey benefit:** compare workbench-first and outcome-first concepts on the same capture, interrupted-update and business-brief jobs. Record repeated input, navigation, reorientation, correctness and perceived effort alongside existing FJ1-FJ4 meanings and the proposed RO journeys.
+6. **Accessible visual system:** test empty/typical/500-record cases at 320/768/1440 px and 200% zoom, with keyboard, light/dark/high contrast and reduced motion. Text, table columns, focus and selected context remain stable; touched surfaces have no serious or critical accessibility findings.
+7. **Fresh-baseline readiness:** no active users means legacy retention, data conversion, old-install coexistence and old preference/command migration are not required. The new baseline still needs clean installation, one authoritative writer, offline use, future-data recovery and its approved exchange contract. No data deletion is authorised by this scope decision.
+8. **Evidence labels:** product-owner walkthroughs, simulated checks and later target-user research are separate evidence sources. There is no active-user cohort; do not claim automated checks or a visual concept establish user satisfaction.
+
+No product version, schema, gate script, release authorisation or compatibility exception is introduced here. Current gates continue to apply until their owners explicitly adopt a replacement baseline.
+
 ## v0.1 acceptance criteria (thin slice)
 
 These are the only acceptance criteria for v0.1. Anything in the v1 sections below that is not also listed here is **deferred to v0.2+**.
