@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { VERSION_AXES, type ActionEntity, type LinkEntity } from "@pspf/contracts";
+import {
+  VERSION_AXES,
+  enrichActionsWithImpact,
+  type ActionEntity,
+  type LinkEntity,
+  type RiskEntity
+} from "@pspf/contracts";
 import {
   buildPlanOfActionBoardModel,
   fitPlanOfActionLabel,
@@ -194,3 +200,36 @@ function linkEntity(input: Pick<LinkEntity, "id" | "fromId" | "fromType" | "toId
     linkType: "associated-with"
   } satisfies LinkEntity;
 }
+
+test("Plan classifies canonical Risk treatment links from enriched Action impact", () => {
+  const action = actionEntity({ title: "Treat the material risk", dueDate: "2026-06-30T00:00:00.000Z" });
+  const risk = {
+    id: "RSK-TREATMENT-1",
+    entityType: "risk",
+    schemaVersion: VERSION_AXES.schemaVersion,
+    title: "Material risk",
+    createdAt: "2026-05-20T00:00:00.000Z",
+    updatedAt: "2026-05-20T00:00:00.000Z",
+    sourceProduct: "workshop",
+    recordStatus: "active",
+    status: "open",
+    likelihood: 4,
+    impact: 4
+  } satisfies RiskEntity;
+  const treatmentLink = {
+    ...linkEntity({
+      id: "LNK-RISK-TREATMENT-1",
+      fromId: risk.id,
+      fromType: "risk",
+      toId: action.id,
+      toType: "action"
+    }),
+    linkType: "treated-by"
+  } satisfies LinkEntity;
+  const entities = enrichActionsWithImpact([action, risk, treatmentLink]);
+  const model = buildPlanOfActionBoardModel(entities, { now: new Date("2026-05-20T00:00:00.000Z") });
+  const riskPhase = model.phases.find((phase) => phase.id === "reduce-risk");
+
+  assert.equal(riskPhase?.tasks[0]?.title, action.title);
+  assert.equal(riskPhase?.tasks[0]?.phaseSource, "inferred");
+});

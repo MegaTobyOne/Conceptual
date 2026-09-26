@@ -10,7 +10,7 @@
 //   3. register and matrix render inside the D8.4 budgets at 500 risks.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { AxeBuilder } from "@axe-core/playwright";
 import { chromium } from "playwright";
@@ -20,6 +20,8 @@ import { shellHtml } from "../packages/workshop/dist/webview/shell.js";
 const root = process.cwd();
 const harnessPath = join(root, ".tmp", "workshop-render-harness.mjs");
 const reportDirectory = join(root, ".tmp", "accessibility");
+const screenshotDirectory = join(reportDirectory, "risk-workbench");
+const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 
 const build = spawnSync(
   "npx",
@@ -221,7 +223,7 @@ const editedFields = {
 };
 
 const browser = await chromium.launch({ headless: true });
-const results = { axe: [], layout: [], performance: [], formContract: undefined };
+const results = { axe: [], layout: [], performance: [], screenshots: [], formContract: undefined };
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
@@ -365,6 +367,11 @@ try {
           `${view}/${theme.name}/${layout.name} renders ${measured.hiddenFocusable} zero-size focusable controls`
         );
         results.layout.push({ view, theme: theme.name, layout: layout.name, ...measured });
+        await mkdir(screenshotDirectory, { recursive: true });
+        const screenshotName = `${view}-${theme.name}-${layout.name.replace(/[^a-z0-9-]/gi, "-")}.png`;
+        const screenshotPath = join(screenshotDirectory, screenshotName);
+        await page.screenshot({ path: screenshotPath, fullPage: true });
+        results.screenshots.push(screenshotPath);
       }
     }
   }
@@ -405,7 +412,8 @@ await mkdir(reportDirectory, { recursive: true });
 const reportPath = join(reportDirectory, "risk-workbench-report.json");
 await writeFile(
   reportPath,
-  `${JSON.stringify({ generatedAt: new Date().toISOString(), ...results }, null, 2)}\n`,
+  `${JSON.stringify({ generatedAt: new Date().toISOString(), productVersion: packageJson.version, views: VIEWS, ...results }, null, 2)}\n`,
   "utf8"
 );
+console.log(`screenshot pack: ${screenshotDirectory} (${results.screenshots.length} images)`);
 console.log(`report: ${reportPath}`);

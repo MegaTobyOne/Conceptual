@@ -4210,8 +4210,15 @@ export function enrichActionsWithImpact(entities: readonly V01Entity[]): V01Enti
     if (link.linkType === "supported-by" && link.fromType === "requirement" && link.toType === "evidence") {
       evidenceByRequirement.set(link.fromId, [...(evidenceByRequirement.get(link.fromId) ?? []), link.toId]);
     }
-    if (link.linkType === "addressed-by" && link.fromType === "risk" && link.toType === "action") {
-      risksByAction.set(link.toId, [...(risksByAction.get(link.toId) ?? []), link.fromId]);
+    if (
+      (link.linkType === "addressed-by" || link.linkType === "treated-by") &&
+      link.fromType === "risk" &&
+      link.toType === "action"
+    ) {
+      const linkedRiskIds = risksByAction.get(link.toId) ?? [];
+      if (!linkedRiskIds.includes(link.fromId)) {
+        risksByAction.set(link.toId, [...linkedRiskIds, link.fromId]);
+      }
     }
     if (link.linkType === "addressed-by" && link.fromType === "direction" && link.toType === "action") {
       directionsByAction.set(link.toId, [...(directionsByAction.get(link.toId) ?? []), link.fromId]);

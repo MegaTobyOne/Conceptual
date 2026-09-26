@@ -1,0 +1,81 @@
+{
+  "productVersion": "1.76.0",
+  "walkthrough": {
+    "status": "pending",
+    "recordedAt": null,
+    "touchedSurfaces": [
+      "risk-record",
+      "risk-register",
+      "risk-treatments",
+      "risk-controls",
+      "risk-crosswalk-import",
+      "risk-hierarchy",
+      "risk-matrix",
+      "risk-bowtie",
+      "risk-coverage",
+      "risk-executive-cards",
+      "risk-output",
+      "plan-of-action",
+      "strategy-reporting"
+    ],
+    "steps": [
+      { "id": "create-risk", "status": "pending", "result": "" },
+      { "id": "classify-risk", "status": "pending", "result": "" },
+      { "id": "assess-current-target-appetite", "status": "pending", "result": "" },
+      { "id": "reuse-action-across-two-risks", "status": "pending", "result": "" },
+      { "id": "add-control-and-evidence", "status": "pending", "result": "" },
+      { "id": "inspect-five-visuals", "status": "pending", "result": "" },
+      { "id": "record-escalation", "status": "pending", "result": "" },
+      { "id": "produce-risk-card", "status": "pending", "result": "" },
+      { "id": "trace-treatment-through-plan-and-reporting", "status": "pending", "result": "" }
+    ]
+  },
+  "redaction": {
+    "status": "pass",
+    "recordedAt": "2026-09-26",
+    "gates": ["check:personal-data:run", "pspf-workshop test (hostile Risk presentation fixture)"]
+  },
+  "compatibility": {
+    "status": "pass",
+    "recordedAt": "2026-09-26",
+    "gates": [
+      "check:schema-policy",
+      "check:schema-coverage",
+      "pspf-core test (Risk preflight and additive-merge preservation)"
+    ]
+  },
+  "recovery": {
+    "status": "pass",
+    "recordedAt": "2026-09-26",
+    "gates": [
+      "backup-restore-dry-run",
+      "pspf-core test (cold restore preserves Risk framework, fields, and event history)"
+    ]
+  },
+  "treatmentLinkRegression": {
+    "status": "pass",
+    "tests": ["packages/contracts/src/action-impact.test.ts", "packages/workshop/src/plan-of-action-board.test.ts"]
+  },
+  "limitations": [
+    {
+      "id": "styled-png",
+      "disposition": "re-deferred",
+      "reason": "The existing plain-text PNG is disclosed and safe; a styled chart renderer is a separate presentation enhancement."
+    },
+    {
+      "id": "preset-authoring",
+      "disposition": "re-deferred",
+      "reason": "Workspace preset authoring is a separate policy-editing workflow and is not required to verify existing preset rendering."
+    },
+    {
+      "id": "filtered-output-scope",
+      "disposition": "re-deferred",
+      "reason": "The output builder has no live register-filter state; adding it requires a separate state and output-scope contract. The current limitation is disclosed in the output label."
+    },
+    {
+      "id": "external-provenance-output",
+      "disposition": "re-deferred",
+      "reason": "External source provenance rendering was explicitly deferred in Phase 3B and needs a separate allowlist and publication review."
+    }
+  ]
+}
