@@ -1,8 +1,9 @@
 {
   "productVersion": "1.76.0",
   "walkthrough": {
-    "status": "pending",
-    "recordedAt": null,
+    "status": "complete",
+    "recordedAt": "2026-10-05",
+    "operatorSummary": "The operator reports that the Risk walkthrough behaved as expected, with no critical issues encountered.",
     "touchedSurfaces": [
       "risk-record",
       "risk-register",
@@ -19,16 +20,57 @@
       "strategy-reporting"
     ],
     "steps": [
-      { "id": "create-risk", "status": "pending", "result": "" },
-      { "id": "classify-risk", "status": "pending", "result": "" },
-      { "id": "assess-current-target-appetite", "status": "pending", "result": "" },
-      { "id": "reuse-action-across-two-risks", "status": "pending", "result": "" },
-      { "id": "add-control-and-evidence", "status": "pending", "result": "" },
-      { "id": "inspect-five-visuals", "status": "pending", "result": "" },
-      { "id": "record-escalation", "status": "pending", "result": "" },
-      { "id": "produce-risk-card", "status": "pending", "result": "" },
-      { "id": "trace-treatment-through-plan-and-reporting", "status": "pending", "result": "" }
+      {
+        "id": "create-risk",
+        "status": "pass",
+        "result": "Operator reports Risk creation behaved as expected; no critical issue encountered."
+      },
+      {
+        "id": "classify-risk",
+        "status": "pass",
+        "result": "Operator reports Risk classification behaved as expected; no critical issue encountered."
+      },
+      {
+        "id": "assess-current-target-appetite",
+        "status": "pass",
+        "result": "Operator reports current/target assessment and appetite behaviour worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "reuse-action-across-two-risks",
+        "status": "pass",
+        "result": "Operator reports reusing an Action across Risks worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "add-control-and-evidence",
+        "status": "pass",
+        "result": "Operator reports adding a control and evidence worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "inspect-five-visuals",
+        "status": "pass",
+        "result": "Operator reports the Risk visuals behaved as expected; no critical issue encountered."
+      },
+      {
+        "id": "record-escalation",
+        "status": "pass",
+        "result": "Operator reports recording escalation worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "produce-risk-card",
+        "status": "pass",
+        "result": "Operator reports producing the Risk card worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "trace-treatment-through-plan-and-reporting",
+        "status": "pass",
+        "result": "Operator reports tracing treatment through Plan and reporting worked as expected; no critical issue encountered."
+      }
     ]
+  },
+  "manualVisualPerformanceReview": {
+    "status": "deferred",
+    "recordedAt": "2026-10-05",
+    "reason": "The operator did not perform the separate manual accessibility and performance review; it is deferred to a later review. The automated browser evidence below remains separately recorded and is not represented as a manual review."
   },
   "redaction": {
     "status": "pass",

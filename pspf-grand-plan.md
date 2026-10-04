@@ -80,7 +80,7 @@ Completion is measured by the [proposed acceptance and adoption criteria](pspf-p
 
 ## Course correction programme (v1.76.0–v1.82.0)
 
-Status: **active — C0 implemented with accepted ADR 0100; C1-C6 remain planned. This programme takes scheduling precedence over every other stream.**
+Status: **active — C0 and C1 complete; C2 is next. C3-C6 remain planned. This programme takes scheduling precedence over every other stream.**
 
 Detailed slices, testing layers, and execution guidance: [docs/course-correction-plan.md](docs/course-correction-plan.md).
 
@@ -122,7 +122,11 @@ Versions are indicative and confirmed at release sequencing. One active slice at
 | C3  | 1.79.0  | Reduction as a target                         | V3      | Workshop 72→62 commands and 30→26 panels, Explorer 24→20 routes, every retired view's capability given a recorded destination; `check:essentials-surface` enforces a declining schedule; at least one flagship job improves                                                       |
 | C4  | 1.80.0  | Standard mitigation library                   | V6      | Curated ISM-aligned, attributed, publication-declared mitigation patterns with deterministic printed selection rules and `1.18.0` provenance fields, wired into existing surfaces only; FJ2 improves                                                                              |
 | C5  | 1.81.0  | Analyst change review and CISO accountability | V5, V6  | Both ship as tabs inside the existing Reporting Workbench with no new command or panel; every verdict prints its rule; FJ3 and FJ4 costs fall against the C0 baseline                                                                                                             |
-| C6  | 1.82.0  | Working-context decision and close-out        | V5, V7  | The Operations ↔ Oversight switch is retained with recorded evidence or retired under the ADR 0096 precedent; before-and-after table published; deferred register reconciled; O1-O3 entry criteria recorded and Commitment Phases 3-7 not automatically resumed                   |
+| C6  | 1.82.0  | Working-context decision and close-out        | V5, V7  | The Operations ↔ Oversight switch is retained with recorded evidence or retired under the ADR 0096 precedent; before-and-after table published; deferred register reconciled; O1-O3 entry criteria recorded and Commitment Phases 3–7 not automatically resumed                   |
+
+### C1 Close-out (2026-10-05)
+
+C1 is complete. The operator reports that the Risk walkthrough behaved as expected, with no critical issues encountered. The current-version automated Risk verification passed: 45 accessibility combinations had zero serious/critical findings, 108 layout combinations had no overflow or hidden controls, and the 504-Risk register and matrix rendered in 13.4 ms and 1.5 ms respectively. Fresh release readiness passed all 17 checks. Redaction, compatibility, recovery and treatment-link evidence is recorded in the C1 evidence pack. The separate manual accessibility/performance review was not performed and is explicitly deferred to a later review; this does not replace or invalidate the automated evidence. C1 completion is not release-sequencing or publication approval.
 
 ### Release gates
 
