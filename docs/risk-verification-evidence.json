@@ -1,0 +1,123 @@
+{
+  "productVersion": "1.76.0",
+  "walkthrough": {
+    "status": "complete",
+    "recordedAt": "2026-10-05",
+    "operatorSummary": "The operator reports that the Risk walkthrough behaved as expected, with no critical issues encountered.",
+    "touchedSurfaces": [
+      "risk-record",
+      "risk-register",
+      "risk-treatments",
+      "risk-controls",
+      "risk-crosswalk-import",
+      "risk-hierarchy",
+      "risk-matrix",
+      "risk-bowtie",
+      "risk-coverage",
+      "risk-executive-cards",
+      "risk-output",
+      "plan-of-action",
+      "strategy-reporting"
+    ],
+    "steps": [
+      {
+        "id": "create-risk",
+        "status": "pass",
+        "result": "Operator reports Risk creation behaved as expected; no critical issue encountered."
+      },
+      {
+        "id": "classify-risk",
+        "status": "pass",
+        "result": "Operator reports Risk classification behaved as expected; no critical issue encountered."
+      },
+      {
+        "id": "assess-current-target-appetite",
+        "status": "pass",
+        "result": "Operator reports current/target assessment and appetite behaviour worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "reuse-action-across-two-risks",
+        "status": "pass",
+        "result": "Operator reports reusing an Action across Risks worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "add-control-and-evidence",
+        "status": "pass",
+        "result": "Operator reports adding a control and evidence worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "inspect-five-visuals",
+        "status": "pass",
+        "result": "Operator reports the Risk visuals behaved as expected; no critical issue encountered."
+      },
+      {
+        "id": "record-escalation",
+        "status": "pass",
+        "result": "Operator reports recording escalation worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "produce-risk-card",
+        "status": "pass",
+        "result": "Operator reports producing the Risk card worked as expected; no critical issue encountered."
+      },
+      {
+        "id": "trace-treatment-through-plan-and-reporting",
+        "status": "pass",
+        "result": "Operator reports tracing treatment through Plan and reporting worked as expected; no critical issue encountered."
+      }
+    ]
+  },
+  "manualVisualPerformanceReview": {
+    "status": "deferred",
+    "recordedAt": "2026-10-05",
+    "reason": "The operator did not perform the separate manual accessibility and performance review; it is deferred to a later review. The automated browser evidence below remains separately recorded and is not represented as a manual review."
+  },
+  "redaction": {
+    "status": "pass",
+    "recordedAt": "2026-09-26",
+    "gates": ["check:personal-data:run", "pspf-workshop test (hostile Risk presentation fixture)"]
+  },
+  "compatibility": {
+    "status": "pass",
+    "recordedAt": "2026-09-26",
+    "gates": [
+      "check:schema-policy",
+      "check:schema-coverage",
+      "pspf-core test (Risk preflight and additive-merge preservation)"
+    ]
+  },
+  "recovery": {
+    "status": "pass",
+    "recordedAt": "2026-09-26",
+    "gates": [
+      "backup-restore-dry-run",
+      "pspf-core test (cold restore preserves Risk framework, fields, and event history)"
+    ]
+  },
+  "treatmentLinkRegression": {
+    "status": "pass",
+    "tests": ["packages/contracts/src/action-impact.test.ts", "packages/workshop/src/plan-of-action-board.test.ts"]
+  },
+  "limitations": [
+    {
+      "id": "styled-png",
+      "disposition": "re-deferred",
+      "reason": "The existing plain-text PNG is disclosed and safe; a styled chart renderer is a separate presentation enhancement."
+    },
+    {
+      "id": "preset-authoring",
+      "disposition": "re-deferred",
+      "reason": "Workspace preset authoring is a separate policy-editing workflow and is not required to verify existing preset rendering."
+    },
+    {
+      "id": "filtered-output-scope",
+      "disposition": "re-deferred",
+      "reason": "The output builder has no live register-filter state; adding it requires a separate state and output-scope contract. The current limitation is disclosed in the output label."
+    },
+    {
+      "id": "external-provenance-output",
+      "disposition": "re-deferred",
+      "reason": "External source provenance rendering was explicitly deferred in Phase 3B and needs a separate allowlist and publication review."
+    }
+  ]
+}

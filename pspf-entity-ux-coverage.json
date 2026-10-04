@@ -370,6 +370,38 @@
       "nextSlice": "R4 consumes narrative slots in the posture brief, magazine, and master plan and reviews whether target references should become link records."
     },
     {
+      "entityType": "commitment",
+      "label": "Commitment",
+      "recordSet": "contract",
+      "mutability": "user-editable",
+      "ownerSurface": "Workshop",
+      "list": "partial",
+      "detail": "partial",
+      "create": "complete",
+      "edit": "missing",
+      "delete": "missing",
+      "relationships": "partial",
+      "standard": "Local commitment authoring should show the agreement state, current baseline, accountable team or role, and linked governance decisions without publishing sensitive content.",
+      "gap": "Phase 2 currently exposes draft commitment creation only; list/detail, baseline revision, agreement, revision, and retirement workflows are not yet exposed.",
+      "nextSlice": "C2: complete protected commitment persistence, lifecycle transitions, immutable baseline history, and cold-restore evidence before adding more authoring UI."
+    },
+    {
+      "entityType": "governance-decision",
+      "label": "Governance Decision",
+      "recordSet": "contract",
+      "mutability": "operator-recorded",
+      "ownerSurface": "Core / Workshop",
+      "list": "missing",
+      "detail": "missing",
+      "create": "missing",
+      "edit": "missing",
+      "delete": "not-applicable",
+      "relationships": "partial",
+      "standard": "Immutable, operator-recorded decisions should explain the authority basis, target commitment revision, rationale, and supersession chain while remaining local and sensitive.",
+      "gap": "The contract and commitment link rule exist, but no Workshop decision authoring, list, detail, or review surface exists yet.",
+      "nextSlice": "C2: prove immutable decision history and cold restore at the Core write boundary before exposing a decision workflow."
+    },
+    {
       "entityType": "supplier",
       "label": "Supplier",
       "recordSet": "contract",

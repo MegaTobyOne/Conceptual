@@ -1,8 +1,8 @@
 # PSPF Core
 
-Local-first tooling for Australian Government PSPF assurance work. Core, Workshop, Shop, Pub, and Explorer share one schema and one local store so that authoring, commercial planning, people context, and publication stay aligned.
+Local-first storage, validation and exchange for cyber risk, assurance and work planning with PSPF and ISM context. Core is the workspace system of record; Pub has its own local people store and Explorer has separate browser-local data.
 
-> **Accent:** Core teal · System of record
+> **Role:** Local system of record
 
 ## What this extension does
 
@@ -18,11 +18,16 @@ PSPF Core is the local **system of record**. It runs entirely inside VS Code, ho
 Core is the foundation for the rest of the PSPF ecosystem.
 
 - **Workshop** is the authoring surface and depends on Core.
+- **Assurance** provides assessment, finding and verification/retest workbenches and depends on Core.
 - **Shop** is the commercial planning surface and depends on Core.
 - **Pub** is the local-only people, role, assignment, and relationship context surface and depends on Core.
-- **Explorer** is a static web viewer that opens the JSON bundle Core produces.
+- **Explorer** supports publication review and browser-local authoring with explicit master-bundle exchange; it is not a live Core client.
 
-Install Core first, then add Workshop, Shop, and Pub as needed.
+Install Core first, then add Workshop, Assurance, Shop and Pub as needed. A publication bundle is not a lossless backup: sensitive fields are excluded.
+
+## Design Direction (Not Implemented)
+
+The [clean-start workbench brief](../../pspf-design-spec.md#clean-start-workbench-design-brief) evaluates one modular extension while retaining useful Core write, validation and recovery mechanisms. Current packaging and storage remain unchanged. There are no active users, so legacy migration and retention are not required for the proposed fresh baseline; safe handling of future work remains essential.
 
 ## Key commands
 
@@ -37,7 +42,5 @@ Install Core first, then add Workshop, Shop, and Pub as needed.
 - Repository: <https://github.com/MegaTobyOne/Conceptual>
 - Ecosystem overview: <https://tobyharvey.online>
 - Explorer (publication view): <https://tobyharvey.online/explorer/>
-
-This is an independent project. Not affiliated with the Department of Home Affairs, the Attorney-General's Department, or any other Australian Government entity. Do not enter information classified above OFFICIAL: Sensitive.
 
 This is an independent project. Not affiliated with the Department of Home Affairs, the Attorney-General's Department, or any other Australian Government entity. Do not enter information classified above OFFICIAL: Sensitive.

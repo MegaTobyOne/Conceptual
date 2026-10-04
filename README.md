@@ -2,14 +2,17 @@
 
 Status: **active**
 
-Local-first tooling for Australian Government PSPF assurance work.
+Local-first cyber risk, assurance and work planning with Australian PSPF and ISM context.
 
-The repository currently targets the PSPF v1.62.0 release with Core, Workshop, Assurance, Shop, Pub, and Explorer. Studio System provides compact, responsive navigation, tables, status chips, and product/domain wayfinding across the ecosystem. The active compatibility axes are `schemaVersion`, `bundleVersion`, and `apiVersion` `1.15.0`.
+The repository baseline is v1.76.0: five separately packaged VS Code extensions (Core, Workshop, Assurance, Shop and Pub) plus the Explorer web app. The active compatibility axes are `schemaVersion`, `bundleVersion` and `apiVersion` `1.17.0`. A clean-start workbench redesign is being planned; it is not implemented or a new release.
+
+The tools connect risks, requirements, evidence, Actions, ownership and reporting. They support the work that protects an organisation; they do not replace technical controls, monitoring, incident response or effectiveness testing. Completed work and compliance percentages are not proof of reduced risk.
 
 ## Products
 
 - Core stores the workspace system of record in `.pspf/core/pspf-core.db`.
 - Workshop is the operator authoring and review surface.
+- Assurance provides local assessment, finding and verification/retest workbenches.
 - Shop is the commercial planning surface for suppliers, contracts, spend items, and explainable forecasts.
 - Pub is the local-first organisation, learning, skills, development, succession, rotation, and stakeholder relationship surface.
 - Explorer opens published master bundles and supports browser-local review/authoring round trips.
@@ -31,24 +34,26 @@ npx pnpm@10.10.0 test
 npx pnpm@10.10.0 release:readiness
 ```
 
-`release:readiness` runs the active gate chain and writes `.tmp/release-readiness/v1.62.0-readiness-report.md`.
+`release:readiness` runs the active gate chain and writes a versioned report under `.tmp/release-readiness/`.
 
 v1.61.3 removes the external writer-lock dependency and timestamp heartbeat. Core writer ownership now uses built-in Node filesystem/process APIs only, requires no WSL or shell, tolerates external timestamp changes, and preserves atomic single-writer plus live-owner exclusion. `check:release-hardening` and package-shape validation keep this behaviour in the inherited release chain; compatibility axes remain `1.15.0` (ADR 0095).
 
 ## Current Product Direction
 
-The next few days are focused on the Explorer and Workshop requirement-to-action journey. The product direction is to treat Explorer as a compliance uplift tool that helps teams turn assessment outcomes into clear decisions, consistent mitigation language, and an actionable work plan rather than just a passive record of status.
+The 2026-09-26 design discussion calls for one coherent workbench: capture work in context, preserve the user's place through investigation and interruption, distinguish delivery from verified effectiveness, and reuse accepted facts in management reporting. Substantial workflow, interface and visual redesign is in scope for design and planning.
 
-Key decisions recorded for the next slice:
+Agreed requirements and open choices:
 
-- Explorer is positioned as a compliance uplift tool, with the language split across a few variants such as assurance uplift, remediation workflow, and control improvement work-planning surface.
-- Standardised mitigation guidance is in scope and should be built as a reusable library keyed to control families and requirement types.
-- Assisted action generation is the preferred model: unresolved or risk-managed items propose draft actions, which users can accept, edit, or reject before they become tracked work.
-- The ambition is to simplify after proving the pattern, not to over-automate the workflow up front.
+- Recover workspace-local drafts after closing or restarting; explicit Save changes authoritative records. This full continuity workflow is not yet implemented.
+- Compare workbench-first and outcome-first concepts on the same capture, interrupted-update and business-brief jobs.
+- Evaluate one installed extension with modular Core, Workshop, Assurance, commercial and organisational capabilities. Current packaging remains five extensions.
+- Reconsider desktop/browser responsibilities rather than assuming desktop must be complex or browser limited. Explorer still supports publication review and browser-local authoring.
+- There are no active users, so legacy retention and migration are not required for the proposed fresh baseline. Future work still needs privacy, atomic saves and recovery; no current data deletion is authorised.
+- Reuse useful engines and reporting models; fix known treatment-link, planning-intent and measurement gaps before relying on them. Standard mitigation guidance and the complete risk-to-outcome loop remain planned.
 
-See [docs/decision-register.md](docs/decision-register.md) and [pspf-grand-plan.md](pspf-grand-plan.md) for the operating plan and decision log.
+See the [decision register](docs/decision-register.md), [design brief](pspf-design-spec.md#clean-start-workbench-design-brief), [phased design plan](docs/course-correction-plan.md#clean-start-workbench-design-plan) and [grand plan](pspf-grand-plan.md#clean-start-workbench-design-2026-09-26). Design does not close existing verification debt or authorise implementation, schema changes, new publication or release.
 
-## Current Workshop Slice
+## Earlier Workshop Slices
 
 Workshop is the main operator surface for evidence-backed assessment work and the critical decision point in the compliance uplift workflow. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
 
@@ -78,7 +83,7 @@ Recent Workshop additions include:
 - ISM controls: direct control-to-evidence/action/risk links, internal implementation posture, control-side Requirement mapping, dedicated ISM control saved views, public-safe ISM posture brief rollups, and Explorer read-only obligation navigation.
 - ISM Review Workbench: operators can triage unmapped, not-assessed, drift-review, needs-direct-work, and risk-without-action source controls without adding schema-bearing state.
 
-## Current UX Judgement-Support Slice
+## Implemented Judgement Support
 
 v1.53.0–v1.60.0 (ADRs 0087–0094) deliver a judgement-support review pass across Workshop and Explorer, following a UX review that found the ecosystem's data mostly existed but was never composed into a stated answer. Each release added one shared, tested primitive to `@pspf/contracts` and wired it into the highest-traffic surfaces:
 

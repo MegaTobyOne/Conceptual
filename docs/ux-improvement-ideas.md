@@ -4,6 +4,14 @@ Status: **S0–S7 implemented (v1.53.0–v1.60.0, ADRs 0087–0094; see `pspf-gr
 
 ## Framing
 
+### Current Design Remit (2026-09-26)
+
+The product owner reports that capture, updating and reporting are all draining and that losing place creates cognitive shock. Substantial visual/interface redesign and extension consolidation are now in the design discussion. See the [decision register](decision-register.md), [workbench design brief](../pspf-design-spec.md#clean-start-workbench-design-brief) and [phased plan](course-correction-plan.md#clean-start-workbench-design-plan).
+
+The priorities are contextual capture, an obvious starting point, preserved task/filter/selection/scroll/focus, recoverable local drafts with explicit Save, honest progress, useful mitigation starting points and reporting reuse. Compare workbench-first and outcome-first concepts on the same complete jobs, including interruption, failed Save and restart.
+
+There are no active users, so legacy migration and retention are not required for the proposed fresh baseline. Start with product-owner walkthroughs and label that evidence honestly. The single-extension target, full continuity contract and visual redesign are not implemented. The earlier J1-J6 scores below describe their recorded slices, not validation of this new experience.
+
 The ecosystem's UX gates measure completeness and consistency. This document tracks the next level: **judgement support** — whether each screen helps an operator compose a defensible answer to the questions they are actually asked. The core finding of the v1.52.0 review: _the data and derivations mostly exist; the judgement is never composed and stated._ Screens present ingredients; operators do the cooking.
 
 ## The judgement set
@@ -73,6 +81,15 @@ Supporting operator judgements (from the same review): verdict-first screens, ne
 2. Interaction-cost counts for two flagship jobs, trended per release like the perf budget.
 3. Scored heuristic pass (rubric above) over ~15 key screens; low scores × screen importance = backlog order.
 4. 2–3 external think-aloud sessions once the first polish wave lands.
+
+### Harness status (recorded 2026-09-20)
+
+Stated plainly, because the 2026-09-20 plan review found this commitment had quietly lapsed: **items 2 and 4 were never delivered.** Item 1 shipped in S0 and item 3 produced the J1–J6 scores above. Interaction-cost counts were never built, so no slice from S1 through R4 can demonstrate that it reduced operator effort. The think-aloud sessions committed here and at S2 ("Schedule the first external think-aloud sessions against this build") were never scheduled, and nothing in the repository detected their absence for fifteen releases.
+
+The consequence is that the product's own gates cannot answer whether recent work improved the experience. Course-correction slice C0 (v1.76.0) addresses this — see [course-correction-plan.md](course-correction-plan.md) §"Slice C0":
+
+- Items 2 and 3 become **`check:journey-cost`**, a ratchet over four named flagship jobs (FJ1–FJ4) with recorded interaction-cost baselines, cognitive-walkthrough verdicts, and readability scores. The gate also fails when the evidence pack's recorded product version trails `package.json`, so the pack cannot go stale silently again.
+- Item 4 remains **outstanding and is not replaced**. The C0 instrument is a deterministic, offline substitute for observed users and is explicitly weaker than them. Wherever it is reported it is labelled a substitute, never validation. If participants become available, sessions take precedence and the instrument is recalibrated against them.
 
 ## Implementation plan (proposed)
 

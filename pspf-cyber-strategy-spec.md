@@ -2,6 +2,16 @@
 
 Status: **implemented**
 
+## Implementation and Planning Boundary (2026-09-25)
+
+The implemented foundation is one canonical strategy with nested choices, outcomes, measures and explicit references to Requirements, Risks, Actions and Directions. [StrategyMeasure](packages/contracts/src/index.ts#L1219) has optional text baseline/current/target values, a unit, trend and confidence. These are useful planning inputs, not a dated, evidence-backed history of treatment effectiveness.
+
+The [risk-to-outcome product review](pspf-plan-spec.md#2026-09-25-product-review) refines the desired operating model: strategy names the business or mission consequence being protected; each planned Action traces through a known risk/issue to that outcome; observation and risk review establish what changed. PSPF and Essential Eight posture remain supporting measures, not the definition of business success.
+
+The current `buildStrategyDeliverySummary` distinguishes delivery intent and completion, but can return `outcome-progressing` when completed committed work has an operator-entered improving measure trend. It does not verify a baseline, observation, evidence or causal contribution. Treat this as a reported signal, not proof of benefit. The proposed O1-O3 slices in the [grand plan](pspf-grand-plan.md#risk-to-outcome-roadmap-2026-09-25) add the missing admission, observation and explanation loop after course correction; this review changes no contract or publication policy.
+
+The conceptual fields and minimum-build discussion later in this document are not evidence that every suggested capability is implemented. Canonical contracts and accepted ADRs remain authoritative; reuse existing outcomes/measures before introducing another model.
+
 ## Overview
 
 This specification describes a lightweight product design for creating, maintaining and sharing a cybersecurity strategy in a form that is distinct from operational plans, but still traceable to execution and reporting.[cite:1][cite:2] The design is intended for Australian Government or PSPF-aligned contexts where strategy needs to express risk posture, target state, priorities, measures and assurance, while remaining usable inside an application.[cite:1][cite:4]
@@ -134,7 +144,7 @@ The relationship should be many-to-many. A single strategic choice may need seve
 
 Strategy should make priority explicit rather than leaving it implied. The model derives the priority of each strategic choice from the risks it links, so that risk drives priority and priority drives the choices leadership attends to first.
 
-For each strategic choice, the inference reads the risks referenced by the choice and by its outcomes, ignoring deleted or unresolved references but counting them as repair cues. Each linked risk contributes a severity score of `likelihood × impact`. That score is adjusted by two choice-level signals:
+For each strategic choice, the inference reads the risks referenced by the choice and by its outcomes, ignoring deleted or unresolved references but counting them as repair cues. Each comparable linked risk contributes the score returned by `evaluateRisk`; legacy assessments use `likelihood × impact`, while unassessed and not-comparable risks are excluded from scoring and disclosed rather than treated as zero or low risk. That planning score is adjusted by two choice-level signals:
 
 - **Trend**: deteriorating `+5`, steady `+2`, unknown `+1`, improving `+0`.
 - **Confidence**: low `+3`, medium `+1`, high `+0`.

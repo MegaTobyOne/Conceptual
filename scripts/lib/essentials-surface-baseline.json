@@ -1,9 +1,9 @@
 {
-  "recordedAtVersion": "1.71.0",
-  "recordedAtAdr": "adr/0097-v1-74-brief-once-act-often-reporting-programme.md",
-  "rebaselineReason": "ADR 0097 R1 Reporting Workbench: +1 Workshop command (pspf.workshop.openReportingWorkbench) and +1 webview panel on the v1.69.0 ADR 0096 baseline (71/29).",
+  "recordedAtVersion": "1.75.0",
+  "recordedAtAdr": "adr/0099-commitment-led-operating-model-phase-0-baseline.md",
+  "rebaselineReason": "ADR 0099 Phase 2 commitment contract slice: +1 Workshop command (pspf.workshop.createCommitment) for local draft commitment authoring on the v1.71.0 baseline.",
   "explorerRoutes": 24,
   "explorerNavItems": 18,
-  "workshopCommands": 72,
+  "workshopCommands": 73,
   "workshopWebviewPanels": 30
 }

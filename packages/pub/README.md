@@ -1,8 +1,8 @@
 # PSPF Pub
 
-Local-first tooling for Australian Government PSPF assurance work. Pub keeps restricted workforce planning in its own workspace-local store while the PSPF products stay aligned around assurance work.
+Local-first organisation, workforce and stakeholder context for cyber risk and assurance work. Pub keeps its records in its own workspace-local store, separate from Core's database and Explorer's browser data.
 
-> **Accent:** Pub red · Local-only people context
+> **Role:** Local-only organisation and workforce context
 
 ## What this extension does
 
@@ -25,9 +25,15 @@ Pub requires **PSPF Core**.
 
 - Install **PSPF Core** first.
 - Open a PSPF workspace and run `PSPF: Open Pub`.
-- Workshop and Shop reference People and Teams as context; Pub remains the authoring and review surface for the people layer.
+- Pub remains the local authoring and review surface for organisation records; it is not an automatic identity or accountability source for the wider suite.
 - Explorer never receives Pub data.
 - Workshop can read only the local Pub team-date items that are explicitly marked for the Plan of Action, so operators can see possible date conflicts beside action and reminder dates.
+
+## Design Direction (Not Implemented)
+
+The [clean-start workbench brief](../../pspf-design-spec.md#clean-start-workbench-design-brief) includes organisational context in the single-modular-extension discussion. One interface must not imply one unrestricted store: people-data handling, module responsibilities and publication exclusions remain explicit design decisions. Current Pub storage and packaging are unchanged, and no Pub data becomes publishable to Explorer.
+
+There are no active users, so legacy migration and retention are not required for the proposed fresh baseline. Future unfinished work should be recoverable as local drafts with explicit Save; that full workbench continuity contract is not yet implemented.
 
 ## Current boundaries
 

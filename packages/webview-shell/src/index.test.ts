@@ -6,12 +6,14 @@ import {
   bannerHtml,
   commandButtonAcknowledgementScript,
   cspNonce,
+  DEFAULT_WORKING_CONTEXT,
   disclosureHtml,
   escapeHtml,
   escapeHtmlAttribute,
   escapeHtmlText,
   homePanelShellHtml,
   metricStripHtml,
+  normaliseWorkingContext,
   normalisePresentationLens,
   pageHeaderHtml,
   pill,
@@ -20,7 +22,8 @@ import {
   traceChainHtml,
   trustChipsHtml,
   tokensCss,
-  versionPill
+  versionPill,
+  workingContextLabel
 } from "./index.js";
 
 test("shared HTML encoding tolerates malformed persisted values", () => {
@@ -331,4 +334,13 @@ test("cspNonce returns a base64url-safe string of expected length", () => {
   assert.match(a, /^[A-Za-z0-9_-]+$/);
   // 16 bytes => 22 base64url chars (no padding)
   assert.equal(a.length, 22);
+});
+
+test("working context defaults safely and exposes the two explicit contexts", () => {
+  assert.equal(DEFAULT_WORKING_CONTEXT, "operations");
+  assert.equal(normaliseWorkingContext(undefined), "operations");
+  assert.equal(normaliseWorkingContext("ciso"), "operations");
+  assert.equal(normaliseWorkingContext("oversight-assurance"), "oversight-assurance");
+  assert.equal(workingContextLabel("operations"), "Operations");
+  assert.equal(workingContextLabel("oversight-assurance"), "Oversight & Assurance");
 });

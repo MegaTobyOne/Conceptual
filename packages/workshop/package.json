@@ -2,7 +2,7 @@
   "name": "pspf-workshop",
   "icon": "resources/icon.png",
   "displayName": "PSPF Workshop",
-  "description": "PSPF authoring surface for requirements, evidence, actions, risks, and posture brief preparation.",
+  "description": "Evidence-backed requirements, cyber risks, treatment actions, team accountability and reporting in a local PSPF workspace.",
   "keywords": [
     "PSPF",
     "ISM",
@@ -12,7 +12,7 @@
     "evidence",
     "risk"
   ],
-  "version": "1.75.0",
+  "version": "1.76.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -206,6 +206,10 @@
       {
         "command": "pspf.workshop.createAction",
         "title": "PSPF: Create Action"
+      },
+      {
+        "command": "pspf.workshop.createCommitment",
+        "title": "PSPF: Create Commitment"
       },
       {
         "command": "pspf.workshop.createRoadmapInitiativePlan",

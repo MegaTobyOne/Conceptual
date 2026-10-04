@@ -65,3 +65,10 @@ test("UX coverage rejects partial or missing states without an explicit gap", as
 
   assert.throws(() => validateUxCoverageMatrix(matrix), /strategy should describe gaps/);
 });
+
+test("UX coverage accepts operator-recorded immutable decisions", async () => {
+  const matrix = await loadMatrix();
+
+  assert.equal(record(matrix, "governance-decision").mutability, "operator-recorded");
+  assert.equal(validateUxCoverageMatrix(matrix).contractTypeCount, V0_1_ENTITY_TYPES.length);
+});

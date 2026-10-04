@@ -1901,6 +1901,7 @@ function prepareEntitiesForWrite(entities: readonly V01Entity[], stored: readonl
   validateTagRules(entities, stored);
   validateSavedViewRules(entities, stored);
   validateChangeRecordRules(entities, stored);
+  validateCommitmentRules(entities, stored);
   validateRiskRules(entities, stored);
   assertNarrativeRules(entities, stored);
   const storedById = new Map(stored.map((entity) => [entity.id, entity]));
@@ -1954,6 +1955,28 @@ function validateEntityWriteRules(entities: readonly V01Entity[]): void {
   for (const entity of entities) {
     if (entity.entityType === "requirement" && (typeof entity.title !== "string" || entity.title.trim().length === 0)) {
       throw new Error(`Requirement ${entity.id} title must be a non-empty string.`);
+    }
+  }
+}
+
+function validateCommitmentRules(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): void {
+  const existingById = new Map(existingEntities.map((entity) => [entity.id, entity]));
+  for (const entity of incomingEntities) {
+    const existing = existingById.get(entity.id);
+    if (entity.entityType === "commitment" && existing?.entityType === "commitment") {
+      if (entity.baselineRevisions.length < existing.baselineRevisions.length) {
+        throw new Error(`Commitment ${entity.id} cannot remove a baseline revision.`);
+      }
+      for (const [index, priorRevision] of existing.baselineRevisions.entries()) {
+        if (JSON.stringify(entity.baselineRevisions[index]) !== JSON.stringify(priorRevision)) {
+          throw new Error(`Commitment ${entity.id} cannot rewrite an existing baseline revision.`);
+        }
+      }
+    }
+    if (entity.entityType === "governance-decision" && existing?.entityType === "governance-decision") {
+      if (canonicalEntityJson(entity) !== canonicalEntityJson(existing)) {
+        throw new Error(`Governance decision ${entity.id} is immutable; record a superseding decision instead.`);
+      }
     }
   }
 }
@@ -2020,6 +2043,8 @@ function createEmptyCollections(): BundleCollections {
     "requirement-control-mappings": [],
     directions: [],
     "change-records": [],
+    commitments: [],
+    "governance-decisions": [],
     suppliers: [],
     contracts: [],
     "spend-items": [],
@@ -2101,6 +2126,8 @@ function getCollectionCounts(collections: BundleCollections): Record<V01Collecti
     "requirement-control-mappings": collections["requirement-control-mappings"].length,
     directions: collections.directions.length,
     "change-records": collections["change-records"].length,
+    commitments: collections.commitments.length,
+    "governance-decisions": collections["governance-decisions"].length,
     suppliers: collections.suppliers.length,
     contracts: collections.contracts.length,
     "spend-items": collections["spend-items"].length,

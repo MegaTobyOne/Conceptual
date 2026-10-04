@@ -1,15 +1,128 @@
 # PSPF Design Specification
 
-Status: **partial — v1.50 dark-first redesign in implementation under ADR 0086**
-Last updated: 2026-08-02
+Status: **partial — current interface reference plus a clean-start workbench design brief; redesign not implemented**
+Last reviewed: 2026-09-26 against repository v1.76.0
 
 ## Overview
 
-This specification defines the visual language, interface behaviour, information hierarchy, and user-facing content strategy for the PSPF product ecosystem. It covers the four VS Code extensions (PSPF Core, PSPF Workshop, PSPF Shop, PSPF Pub) published independently to the Marketplace, and the standalone Explorer web application. See ADR 0001 and ADR 0007.
+This specification defines the visual language, interface behaviour, information hierarchy, and user-facing content strategy for the PSPF product ecosystem. The current implementation has five separately packaged VS Code extensions (Core, Workshop, Assurance, Shop and Pub) and the Explorer web application. See ADR 0001, ADR 0007 and ADR 0078. The proposed workbench below does not change that packaging or the current data boundaries.
 
 The design direction should take inspiration from the strongest parts of Perplexity’s interaction model: low-friction entry, clean hierarchy, strong whitespace, progressive disclosure, and visible trust cues such as traceability and citations. Commentary on Perplexity’s UX repeatedly highlights its clarity, low distraction, efficient information seeking, and strong chunking of information into manageable units, which is highly relevant to a PSPF workflow product where confidence and scanability matter more than visual drama.
 
 The desired tone is **calm, precise, confident, and non-bureaucratic**. The interface should feel serious enough for assurance work but not heavy or institutional. It should reduce cognitive load, help users move from question to evidence to action, and make trust visible through structure rather than through dense compliance language.
+
+## Clean-Start Workbench Design Brief
+
+Status: **proposed experience; agreed design requirements, not implemented behaviour**
+
+The [decision register](docs/decision-register.md) records the product owner's feedback: capture, updating and reporting are all draining, and loss of working place causes cognitive shock. The [grand plan](pspf-grand-plan.md#clean-start-workbench-design-2026-09-26) owns sequencing; the [design phases](docs/course-correction-plan.md#clean-start-workbench-design-plan) define the work and evidence required before implementation.
+
+### Design Position
+
+Design one coherent cyber workbench around the manager's work, not the boundaries of the current extensions. One modular installed extension is the preferred architecture to evaluate, not an accepted packaging change. Shop, Assurance and organisational functions should provide context and specialist depth without requiring repeated navigation between products. Retain useful engines and explicit privacy boundaries; do not reproduce five Home screens inside a new container.
+
+There are no active users. The design can use a fresh installation and workspace baseline without legacy retention, conversion, compatibility shims or old preference transfer. This does not authorise data deletion or relax safe handling of future work. Existing screen shapes, command names and numerical surface counts need not determine the new concept; changing their implemented contracts still requires the governing decision and gate updates.
+
+### Compare Two Concepts
+
+| Concept         | Primary structure                                                                                           | Question to test                                                                                                            |
+| --------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Workbench-first | Stable worklist beside the selected record, a compact context header and an optional related-item inspector | Can the manager capture and update work, investigate evidence and recover from interruption without reconstructing context? |
+| Outcome-first   | A scoped business outcome or critical-service view joining its risks, work, evidence and decisions          | Does this improve management review without making routine work harder or forcing artificial single-outcome links?          |
+
+Use the same representative jobs and records for both. Select one primary structure, not two parallel applications or another mandatory persona switch. Keep domain and record browsing discoverable. Neither concept creates a second task, risk or outcome register.
+
+### Interaction Contract
+
+- **Start:** resume the current working set and expose a short, explainable list of work needing attention. Team/outcome scope is selected explicitly, not inferred from identity.
+- **Understand:** show the current risk/issue or outcome, recorded position, accountable team, evidence basis and next decision together.
+- **Investigate:** open evidence, supplier, contract, funding or role context alongside the task. Related inspection preserves the original record; deeper navigation has an explicit return path. Avoid nested drawers and automatic tab proliferation.
+- **Act:** capture or reuse an Action in context. Retain known relationships and reveal specialist fields progressively. Missing dates or justification remain visible; do not invent them to complete a form.
+- **Pause:** recover local drafts across closing and restarting. Preserve filters, selection, subview, scroll, focus and unfinished text. Explicit Save changes authoritative records; saved, unsaved, recovered and failed states are distinct.
+- **Review:** show delivery, verification and risk review separately. Investigation or sustainment may reduce uncertainty or maintain a control without reducing the assessed risk.
+- **Explain:** reuse accepted operational facts in the brief and review view; distinguish those facts from operator interpretation and expose missing or stale evidence.
+
+View/navigation state, recoverable drafts and canonical records are separate responsibilities. Choose workspace/dataset-scoped persistence and conflict handling in the architecture decision. Drafts must not become report facts or appear in snapshots, publication, logs or notifications. A failed Save retains input; a changed base record or deleted target requires an explicit recovery choice.
+
+### Visual Direction
+
+Use a calm operational interface with purposeful readable typography, clear hierarchy, compact but uncramped spacing, stable table columns and semantic status colours paired with text or icons. Use familiar icon controls with tooltips, detail on demand and restrained charts that answer a question. Avoid decorative cyber graphics, card-within-card composition, oversized dashboards and motion that moves the user's work.
+
+Treat light and dark as deliberately designed equivalents; extension surfaces continue to respect the VS Code theme and high contrast. Choose the browser default during design, not by assuming dark is better. Assets must work offline. Narrow layouts may collapse panes, but must preserve the same task and return semantics; keyboard focus, 200% zoom and reduced motion are part of the initial design.
+
+Do not assume desktop means complicated and browser means limited. Define their actual jobs and data access explicitly. Explorer currently supports publication review and browser-local authoring, not a live Core connection. A shared visual language does not grant a new publication permission or merge those authorities.
+
+### Evidence And Status
+
+Begin with product-owner walkthroughs because there is no active-user cohort. Measure repeated input, task switches, reorientation, failed-save recovery, comprehension and perceived effort; do not claim simulated checks establish satisfaction. Test complete journeys and adverse states, not only overview screenshots. The [quality gates](pspf-acceptance-and-quality-gates.md) record the proposed acceptance criteria separately from implemented checks.
+
+The reference sections after the design briefs document existing conventions and earlier rationale. They are inputs to the comparison, not a requirement to preserve every existing surface. The new workbench, full continuity contract and recovered-draft workflow are not yet implemented.
+
+## Website, Brand And Community Design Brief
+
+Status: **discussion and planning only; no website redesign, rebrand or community service implemented**
+
+The [website decisions](docs/decision-register.md#website-brand-and-community-design-2026-09-26) extend the workbench discussion to the public web presence. The current [ecosystem page](pspf-ecosystem.html) is largely a product catalogue and architecture explanation. The proposed role is a welcoming product-and-practice home: help a visitor understand the value, try a safe example, learn a workflow and participate in improving the product. It remains an independent project, not an official PSPF service or a claim that technical protection is provided by the website.
+
+### Product And Site Boundaries
+
+- The main product website explains the cyber risk and assurance workbench, provides learning material and routes visitors to the appropriate usable experience. Internal package names need not be the primary navigation.
+- Explorer remains a useful browser capability and a prominent hands-on entry point. Retain its current publication review and browser-local authoring facts; a public example is a proposed onboarding experience, not a live Core connection or a new publication profile.
+- Atlas remains a separate product and repository at `https://home.tobyharvey.online`. Use an explicit "Related project: Atlas" link in an About or footer area; do not label it as this product's Home, a workbench module or a shared account/data service.
+- The current product site at `https://tobyharvey.online/`, Explorer at `/explorer/` and Atlas at the `home.` subdomain are planning reference points, not a domain or routing change. No Atlas repository work is in scope.
+
+### Audience And Public Story
+
+Lead with the jobs of a cyber security manager and the practitioners who support them: understand exposure, organise justified work, review evidence and explain the remaining decision. Offer depth for assessors and contributors without making a new visitor learn the package architecture first. PSPF, ISM and Essential Eight provide relevant Australian context, not an implication of government endorsement or automatic compliance.
+
+The candidate narrative is **understand the risk, act with context, verify the result, explain the position**. Use it as organising language, not as a claim that the unfinished verification loop is delivered. Separate current capability, a clearly labelled design concept and a planned feature wherever examples or screenshots appear. There are no active users: do not invent testimonials, community membership, adoption statistics or demonstrated risk-reduction results.
+
+### Proposed Homepage And Navigation
+
+1. **Identity and purpose:** a clear product name or literal category, a short statement of who it serves, and an inspectable screenshot or short workflow capture using synthetic records. Do not lead with an inventory of extensions or an abstract cyber illustration.
+2. **Try it:** make Explorer easy to find. Evaluate a primary "Explore an example" action alongside "Use locally" for the workbench. The example needs an explicit sample label and must not overwrite existing browser-local work. Keep a direct route for returning Explorer users.
+3. **See one useful journey:** show a risk or known issue, its Action, evidence and management decision with real limitations. A current-capability example must not show proposed draft recovery or treatment-effect verification as already working.
+4. **Learn:** short task guides and worked examples for capture, evidence review, prioritisation, reporting and recovery, with official references and source dates. Explain the local/public data boundary plainly.
+5. **Follow and participate:** an honest roadmap, dated release notes, known limitations and a maintained feedback/contribution route. Make documentation corrections, accessibility feedback and synthetic scenarios legitimate contributions alongside code.
+6. **Project and trust:** independent-project notice, privacy/data handling, licence and attribution, support status, private security reporting and the clearly separate Atlas link. Keep architecture, package details and full installation instructions accessible as supporting material.
+
+Start with a small information architecture such as Product, Explorer, Guides and Project, with participation under Project until there is enough maintained content to justify a separate area. These are conceptual destinations, not new routes being implemented. A practical landing page and a useful Explorer entry can coexist; the website must not become another work-management application.
+
+### Consistent Identity, Adapted Surfaces
+
+Recommend one product brand across the website, Explorer, the workbench, documentation, extension identity assets and generated public material. Share the name/mark, plain-language voice, typography principles, colour roles, icon family, spacing scale, status vocabulary and focus/accessibility conventions. Counts, uncertainty, evidence and progress should mean the same thing in each surface.
+
+Consistency does not mean identical layouts. The public site can be more explanatory and editorial; the workbench should be compact and work-focused; Explorer should make review and local work approachable. Respect VS Code themes and high contrast rather than imposing the website's palette. Treat browser light and dark as designed equivalents, and make a default-theme decision through comparison rather than assuming dark is preferable. Functional colours remain semantic, not decorative product branding.
+
+Use purposeful readable type, neutral structural surfaces, restrained accents, actual product imagery and simple diagrams where relationships need explanation. Avoid a separate colour identity for every internal module, decorative card-heavy composition, oversized operational headings and motion that disrupts orientation. Assets used in the offline tools must be bundled locally. Atlas keeps its own product identity; a restrained shared authorship treatment is optional, not a requirement to share theme or code.
+
+### Naming Decision
+
+Compare retaining the current PSPF-led name with a distinctive independent product name and a clear cyber risk/assurance descriptor. The latter may better reflect the broader job and distinguish the tool from the government framework, but it is a recommendation to test, not an agreed rename. Framework names remain accurate in supported-context descriptions, documentation and references.
+
+Before selecting a name, test comprehension and official-affiliation confusion, consider spelling/pronunciation and search discoverability, and check naming/domain availability and rights. No name, logo, colour palette, font, domain, package ID or redirect has been selected by this brief. Atlas is not a proposed umbrella brand or fallback name.
+
+### A Community-Friendly Starting Point
+
+Begin by publishing useful material and making participation understandable, not by launching an empty forum. Candidate initial content is one clearly synthetic Explorer scenario, several task guides, a transparent roadmap/changelog and a simple route for questions, defects and suggestions. Describe the project as inviting participation rather than claiming an established community.
+
+Choose the feedback venue based on what can actually be maintained: an accessible issue/discussion channel or another explicit contact route. Do not assume the implementation repository is public or direct visitors to inaccessible links. A separate public feedback/docs repository is an option, not an approved repository creation or visibility change. Repository publication, an account system, forums, chat, newsletters and analytics are separate decisions, not prerequisites for a useful website.
+
+Set a named moderation/maintenance responsibility, realistic response expectations and a respectful contribution policy before inviting submissions. Examples, guides and suggested mitigation patterns need source attribution, licence review and publication-safe content review. Do not accept real organisational bundles, personal data, assessment notes or findings through public feedback. An invitation to contribute is not permission to publish sensitive material.
+
+The current [security policy](SECURITY.md) does not provide a private vulnerability-reporting route or supported-version commitments. Establish an appropriate private reporting path before launching a public contribution/support invitation; do not describe a not-yet-operated channel as available or promise a service level.
+
+### Safe Explorer Examples And Privacy
+
+A proposed sample experience must be explicitly synthetic, isolated from the visitor's existing Explorer records and removable/resettable without deleting their work. The public website must not inspect or transmit browser-local assessment data, even where the website and Explorer share an origin. Define and test sample isolation before implementing a launch link that seeds data.
+
+Use approved public reference material and synthetic workflow records; do not repurpose live organisation exports or merely obscure their names. No community upload service, automatic publishing, tracking or account requirement is implied. Explain where local data lives and what an export does. Give examples and documentation separate current/planned labels, and never portray a prioritisation score or completed Action as measured risk reduction.
+
+### Design Deliverables And Acceptance
+
+The [web-presence design work](docs/course-correction-plan.md#website-brand-and-community-design-work) will compare a focused product home with a product-and-practice home using the same visitor jobs. Deliver an audience/content map, naming/identity options, homepage and guide wireframes, the Explorer example boundary, a maintained participation model and a small cross-surface brand specification.
+
+Test whether a visitor can explain the product's purpose and current limits, find Explorer, distinguish Atlas, find a useful guide and identify a safe feedback path. Review keyboard navigation, mobile reading, contrast, motion and consistent status meaning. With no active-user cohort, use product-owner walkthroughs first and record that limitation; later recruit target participants. No website HTML, application code, package descriptions, domains, public services or deployment change is authorised by this planning update.
 
 ## Australian context
 
@@ -38,15 +151,16 @@ The design system should optimise for five outcomes:
 
 ### Product family
 
-The ecosystem has four visible product surfaces plus one internal platform role:
+The current ecosystem has five user-facing product surfaces plus Core's platform role:
 
-| Product  | Role                                       | Primary interaction style                           |
-| -------- | ------------------------------------------ | --------------------------------------------------- |
-| Core     | Shared platform administration             | compact admin and integrity views                   |
-| Workshop | Deep editing, analysis, and assurance      | dense working views, diagnostics, structured detail |
-| Shop     | Supplier, contract, and spend workflows    | operational list-detail workflows                   |
-| Pub      | People, role, and assignment workflows     | operational list-detail workflows                   |
-| Explorer | Public-facing or broadly shareable web app | narrative dashboards, summaries, and drill-in       |
+| Product   | Role                                      | Primary interaction style                               |
+| --------- | ----------------------------------------- | ------------------------------------------------------- |
+| Core      | Shared platform administration            | compact admin and integrity views                       |
+| Workshop  | Deep editing, analysis, and assurance     | dense working views, diagnostics, structured detail     |
+| Assurance | Assessment and finding review             | evidence, response and retest workbenches               |
+| Shop      | Supplier, contract, and spend workflows   | operational list-detail workflows                       |
+| Pub       | People, role, and assignment workflows    | operational list-detail workflows                       |
+| Explorer  | Publication review and browser-local work | summaries, local authoring and explicit bundle exchange |
 
 Core, Workshop, Shop and Pub should feel like the same product family because they share entity model, command palette conventions, and visual language. Each ships as its own VS Code extension with its own Activity Bar entry. Explorer should feel recognisably related, but lighter, more presentation-ready, and more narrative in its framing.
 
@@ -76,15 +190,9 @@ Product identity is carried by the masthead or page-header rule, active navigati
 
 Every product accent requires a light-surface and dark-surface value. Accent is structural only. Success, warning, danger, classification, finding severity, risk, action status, and compliance posture retain their independent semantic tokens and must include text or icon meaning.
 
-### Presentation lenses
+### Working Context And Earlier Lenses
 
-CISO, Auditor, and Solo IT are presentation lenses, not personas stored as records and not security roles.
-
-- **CISO** places decisions, trajectory, readiness, and material exposure first.
-- **Auditor** places provenance, evidence currency, traceability, cost, and cashflow first.
-- **Solo IT** places one next action, plain language, essential fields, and guided progress first.
-
-A lens may change ordering, wording, density, and the initial open or closed state of disclosure sections. It must never change permissions, record availability, calculations, commands, exports, bundles, redaction, or publication behaviour. All capabilities remain discoverable through labelled disclosure and native commands.
+The CISO, Auditor and Solo IT presentation lenses were retired by ADR 0096. ADR 0099 introduced an explicit Operations / Oversight & Assurance working-context preference; its value remains subject to the C6 decision. Neither a presentation preference nor the proposed task context is an identity, permission or governance decision. The new design need not retain a mode switch simply because it exists: its usefulness must be demonstrated without changing data access or publication rules.
 
 ## Visual direction
 

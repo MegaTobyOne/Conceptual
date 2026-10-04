@@ -2,9 +2,66 @@
 
 Status: active
 
-This register captures the working product decisions for the next compliance-uplift slice. It is intentionally short, practical, and focused on the immediate workflow we need to test over the next few days.
+Last reviewed: 2026-09-26 against repository v1.76.0.
 
-## Current decisions
+This register records product decisions, not delivery claims. The [grand plan](../pspf-grand-plan.md) owns implementation sequencing; accepted ADRs still govern the current architecture. The [design specification](../pspf-design-spec.md) and [course-correction plan](course-correction-plan.md) carry the detailed design work.
+
+## Current Decisions: Context-Preserving Workbench
+
+The product owner reports that capture, updating and reporting are all draining. Losing the selected record, working context or unfinished input causes cognitive shock. Substantial workflow, interface and visual redesign is in scope for design and planning now.
+
+| Decision                | Position as of 2026-09-26                                                                                                                                                                                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product purpose         | Help a cyber security manager protect the organisation by connecting business outcomes, risks or known issues, treatment work, evidence and reviewed decisions. Compliance and reporting support that purpose.                                                                                |
+| Design scope            | Reconsider navigation, layout, visual hierarchy, density, controls and transitions alongside the workflow. Compare a persistent workbench-first concept with an outcome-first concept using the same jobs.                                                                                    |
+| Continuity              | Preserve the task, filters, selection, scroll, focus, related-item return path and unfinished input. Make interruption and recovery explicit acceptance journeys.                                                                                                                             |
+| Saving                  | Recover local drafts across closing and restarting; an explicit Save changes authoritative records. Draft recovery is not record autosave, plan admission, risk acceptance or publication.                                                                                                    |
+| Fresh baseline          | There are no active users. Legacy-data retention, old-install coexistence, preference transfer and migration are not required design work. This does not authorise deleting current data or removing protection for future work.                                                              |
+| Extension consolidation | One coherent workbench, potentially delivered as one modular VS Code extension, is the preferred candidate to evaluate. Include Shop, Assurance and organisational capabilities; do not simply combine five existing Home screens. The packaging decision is not yet accepted or implemented. |
+| Engine reuse            | Retain useful Core write, validation, risk, evidence and reporting mechanisms; fix known meaning gaps before relying on them. Internal module and privacy boundaries remain valuable even if packaging changes.                                                                               |
+| Desktop and browser     | Reconsider their jobs rather than assuming desktop must be complex and browser limited. Explorer currently supports publication review and browser-local authoring; no capability retirement, live Core bridge or new publication permission is decided here.                                 |
+| Progress                | Keep delivery, observed effectiveness, reviewed risk and business consequence separate. Completed Actions, current documents and priority weights do not prove risk reduction.                                                                                                                |
+| Evidence of usefulness  | Start with product-owner walkthroughs on representative records, including interruption, failed Save and restart. Label these separately from simulated checks and future target-user research.                                                                                               |
+
+### Design Decisions Still Open
+
+- Select the primary interface concept and the precise desktop/browser scope.
+- Confirm one installed extension versus one visible workbench over separate extensions, including the internal module and activation boundaries.
+- Decide the workspace-local draft store, conflict handling and cleanup/recovery policy; sensitive drafts must not leak through generic preferences, logs, snapshots or publication.
+- Define the missing justified-work and treatment-effect contracts by reusing existing records before adding any new ones.
+- Reconcile later roadmap work with the selected design, explicitly superseding obsolete requirements rather than completing them solely for legacy compatibility.
+
+### Scope Of This Decision
+
+The immediate authorisation is documentation, detailed design and planning only. Five separately packaged extensions and the existing Explorer remain the current implementation. No code, package identity, version, schema, storage, gate, release or data-deletion change is authorised. Current C1/C2 prerequisites remain in force until the grand plan and governing ADRs explicitly adopt a revised implementation sequence.
+
+Local-first operation, Workspace Trust, default-deny publication, restricted-person exclusion, atomic saves and recoverable failure remain requirements for the new baseline. Fewer installations or screens are not evidence of usability or stronger security by themselves.
+
+## Website, Brand And Community Design (2026-09-26)
+
+This extends the design discussion to the ecosystem website and public product story. It records scope and recommendations, not a website implementation, rename or community launch. The [website and brand brief](../pspf-design-spec.md#website-brand-and-community-design-brief) owns the proposed experience; the [design plan](course-correction-plan.md) owns the next steps.
+
+### Confirmed Boundaries
+
+- Atlas remains a related but separate product in a separate repository at `https://home.tobyharvey.online`. It is not a PSPF module or the parent application. No Atlas changes or shared account/data architecture are in scope.
+- Explorer remains a useful capability to retain in the design. Its current publication-review and browser-local-authoring roles should inform a clear hands-on entry point, not be hidden by a packaging discussion. Its exact future scope remains a design decision.
+- Discuss the new product description, community-friendly web presence and consistent brand/theme now; update planning documents only. Do not change the ecosystem HTML, application code, package metadata, domains or deployments in this follow-up.
+
+### Recommended Direction For Review
+
+- Evolve the ecosystem page from a catalogue of extensions into a product-and-practice home: understand the purpose, try a clearly labelled synthetic example in Explorer, learn a workflow, follow progress and give feedback. Keep architecture and package details available as secondary material.
+- Use one product identity across the website, Explorer, workbench, documentation and generated public material, while adapting density and controls to each task. Consistency means shared terminology, visual tokens, status meaning and interaction expectations, not identical page layouts or forcing a theme over VS Code preferences.
+- Keep Atlas's own name and identity, with an explicitly labelled related-project link rather than ambiguous "home" navigation. Shared authorship may be acknowledged without implying one product or repository.
+- Consider a distinctive product name with PSPF/ISM described as supported context; retain the current name as an option. No new name, logo, domain or package identity has been chosen, and the independent-project notice remains essential.
+- Begin community participation with useful guides, synthetic examples, an honest roadmap/changelog and a maintained feedback/contribution path. Do not imply an active community or public repository access that does not exist.
+
+### Website Decisions Still Open
+
+Select the public name and visual direction; confirm the primary audience and homepage entry actions; choose the scope of a synthetic Explorer example; and decide which feedback/contribution channels can be operated safely. A public forum, account system, uploads, analytics, mailing list, repository visibility change or cross-product integration is not authorised. Decide channel ownership, moderation, privacy, source attribution and private vulnerability reporting before any community service is launched.
+
+## Earlier Compliance-Uplift Decisions
+
+The following records preserve the earlier discussion. Their framing, sequence and next-slice wording are historical; they do not narrow the current design remit or claim delivery of the standard mitigation library.
 
 ### 1. Product framing
 

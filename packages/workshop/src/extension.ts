@@ -34,10 +34,13 @@ import {
 import {
   disclosureHtml,
   normalisePresentationLens,
+  normaliseWorkingContext,
   pageHeaderHtml,
   pill as shellPill,
   trustChipsHtml,
-  type PresentationLens
+  type PresentationLens,
+  type WorkingContext,
+  workingContextLabel
 } from "@pspf/webview-shell";
 import { escapeHtml, homeButton, homeShellHtml, metricCardHtml as metricCard, shellHtml } from "./webview/shell.js";
 import { collectOwnerTeams } from "./owner-team.js";
@@ -288,6 +291,8 @@ let workshopContext: vscode.ExtensionContext | undefined;
 let homeViewProvider: WorkshopHomeViewProvider | undefined;
 const workshopLensStateKey = "pspf.workshop.presentationLens";
 let workshopPresentationLens: PresentationLens = "ciso";
+const workingContextStateKey = "pspf.workshop.workingContext";
+let workshopWorkingContext: WorkingContext = "operations";
 type ConfigInspection<T> = {
   readonly globalValue?: T;
   readonly workspaceValue?: T;
@@ -504,6 +509,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // preference migrates once, deterministically, to the default, and the old key is cleared.
   workshopPresentationLens = normalisePresentationLens(context.workspaceState.get<string>(workshopLensStateKey));
   void context.workspaceState.update(workshopLensStateKey, undefined);
+  workshopWorkingContext = normaliseWorkingContext(context.workspaceState.get<string>(workingContextStateKey));
   homeViewProvider = new WorkshopHomeViewProvider();
   const statusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 90);
   statusItem.text = `$(shield) PSPF v${PSPF_SLICE_VERSION}`;
@@ -542,6 +548,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("pspf.workshop.importBackupJson", importBackupJson),
     vscode.commands.registerCommand("pspf.workshop.attachEvidence", attachEvidence),
     vscode.commands.registerCommand("pspf.workshop.createAction", createAction),
+    vscode.commands.registerCommand("pspf.workshop.createCommitment", createCommitment),
     vscode.commands.registerCommand("pspf.workshop.createRisk", createRisk),
     vscode.commands.registerCommand("pspf.workshop.openRiskSourcePanel", openRiskSourcePanel),
     vscode.commands.registerCommand("pspf.workshop.configureRiskSource", configureRiskSource),
@@ -936,7 +943,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
       `<section><p class="muted">Loading PSPF Workshop Home...</p></section>`
     );
     webviewView.webview.onDidReceiveMessage((message: { readonly command?: string; readonly value?: unknown }) => {
-      void this.handleMessage(message.command).catch(async (error: unknown) => {
+      void this.handleMessage(message.command, message.value).catch(async (error: unknown) => {
         const detail = error instanceof Error ? error.message : String(error);
         await vscode.window.showErrorMessage(`PSPF Workshop action failed: ${detail}`);
         await this.refresh();
@@ -955,7 +962,7 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
 
     try {
       const model = await buildHomeModel();
-      this.view.webview.html = renderHomeView(model, workshopPresentationLens);
+      this.view.webview.html = renderHomeView(model, workshopPresentationLens, workshopWorkingContext);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.view.webview.html = homeShellHtml(
@@ -971,8 +978,15 @@ class WorkshopHomeViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async handleMessage(command: string | undefined): Promise<void> {
+  private async handleMessage(command: string | undefined, value?: unknown): Promise<void> {
     if (!command) {
+      return;
+    }
+
+    if (command === "workingContext") {
+      workshopWorkingContext = normaliseWorkingContext(value);
+      await workshopContext?.workspaceState.update(workingContextStateKey, workshopWorkingContext);
+      await this.refresh();
       return;
     }
 
@@ -1378,7 +1392,7 @@ async function continueNextTask(): Promise<void> {
   await openAssessmentDashboard();
 }
 
-function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens): string {
+function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens, workingContext: WorkingContext): string {
   const hasPendingTriage =
     model.missingEvidence + model.evidenceReview + model.urgentActions + model.directionsNeedingResponse > 0;
   const hasNoCoreRecords =
@@ -1418,6 +1432,16 @@ function renderHomeView(model: WorkshopHomeModel, lens: PresentationLens): strin
       .workshop-status-donut__legend i[data-status="not-applicable"] { background: #64748b; }
     </style>
     <div class="workshop-home" data-lens="${lens}">
+    <section class="working-context" data-working-context="${workingContext}">
+      <p class="eyebrow">Working context</p>
+      <label>View the work through
+        <select data-command="workingContext" aria-label="Working context">
+          <option value="operations"${workingContext === "operations" ? " selected" : ""}>Operations</option>
+          <option value="oversight-assurance"${workingContext === "oversight-assurance" ? " selected" : ""}>Oversight &amp; Assurance</option>
+        </select>
+      </label>
+      <p class="muted">${workingContextLabel(workingContext)} changes the landing emphasis only. It does not change records or permissions.</p>
+    </section>
     <section class="hero-section lens-hero">
       <p class="eyebrow">System of record</p>
       <h2>PSPF Workshop</h2>
@@ -2183,6 +2207,66 @@ async function createAction(requirementId?: string): Promise<void> {
   );
 
   await upsertEntityWithRequirementLinks(action, links, requirements);
+}
+
+async function createCommitment(): Promise<void> {
+  await ensureCoreReady();
+  const title = await vscode.window.showInputBox({
+    title: "Create Commitment",
+    prompt: "Commitment title",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter a commitment title." : undefined)
+  });
+  if (!title) {
+    return;
+  }
+
+  const intendedOutcome = await vscode.window.showInputBox({
+    title: "Create Commitment",
+    prompt: "Intended outcome",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the intended outcome." : undefined)
+  });
+  if (!intendedOutcome) {
+    return;
+  }
+
+  const scope = await vscode.window.showInputBox({
+    title: "Create Commitment",
+    prompt: "Scope",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter the commitment scope." : undefined)
+  });
+  if (!scope) {
+    return;
+  }
+
+  const accountableOwnerRef = await vscode.window.showInputBox({
+    title: "Create Commitment",
+    prompt: "Accountable owner reference, for example team:security",
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim().length === 0 ? "Enter an accountable owner reference." : undefined)
+  });
+  if (!accountableOwnerRef) {
+    return;
+  }
+
+  const commitment = withEnvelope(
+    "commitment",
+    {
+      entityType: "commitment",
+      title: title.trim(),
+      intendedOutcome: intendedOutcome.trim(),
+      scope: scope.trim(),
+      accountableOwnerRef: accountableOwnerRef.trim(),
+      commitmentState: "draft",
+      baselineRevisions: []
+    },
+    "workshop"
+  );
+  await vscode.commands.executeCommand("pspf.core.upsertEntities", [commitment]);
+  await vscode.window.showInformationMessage(`Created draft commitment: ${commitment.title}.`);
+  await homeViewProvider?.refresh();
 }
 
 async function createRoadmapInitiativePlan(options: { readonly openAfter?: boolean } = {}): Promise<void> {

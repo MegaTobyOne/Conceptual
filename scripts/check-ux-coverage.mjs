@@ -10,6 +10,7 @@ const validMutability = new Set([
   "user-editable",
   "baseline-readonly",
   "generated-readonly",
+  "operator-recorded",
   "reference-readonly",
   "local-only"
 ]);

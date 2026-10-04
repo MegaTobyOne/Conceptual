@@ -11,6 +11,10 @@ const SKIP_DIRECTORIES = new Set([
   "dist",
   "coverage",
   "debug-workspace",
+  ".tmp",
+  ".pspf",
+  "test-results",
+  "generated",
   "schemas",
   "test-fixtures"
 ]);
@@ -137,9 +141,31 @@ function stripCodeAndLinks(text) {
 
 function extractHumanStrings(text) {
   const extracted = [];
-  const literalPattern = /(["'`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
-  for (const match of text.matchAll(literalPattern)) {
-    const raw = match[2] ?? "";
+  for (let index = 0; index < text.length; index += 1) {
+    const quote = text[index];
+    if (quote !== '"' && quote !== "'" && quote !== "`") {
+      continue;
+    }
+
+    let end = index + 1;
+    let escaped = false;
+    for (; end < text.length; end += 1) {
+      const character = text[end];
+      if (escaped) {
+        escaped = false;
+      } else if (character === "\\") {
+        escaped = true;
+      } else if (character === quote) {
+        break;
+      }
+    }
+
+    if (end >= text.length) {
+      index = text.length;
+      break;
+    }
+
+    const raw = text.slice(index + 1, end);
     const normalised = raw
       .replace(/\$\{[^}]+\}/g, " ")
       .replace(/\$\([^)]+\)/g, " ")
@@ -150,9 +176,11 @@ function extractHumanStrings(text) {
       continue;
     }
     if (!looksLikeHumanString(normalised)) {
+      index = end;
       continue;
     }
     extracted.push(normalised);
+    index = end;
   }
   return extracted.join("\n");
 }

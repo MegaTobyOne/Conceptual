@@ -2,7 +2,7 @@
   "name": "pspf-pub",
   "icon": "resources/icon.png",
   "displayName": "PSPF Pub",
-  "description": "PSPF people, role, team, assignment, and stakeholder relationship surface.",
+  "description": "Local organisation, workforce and stakeholder context for PSPF cyber risk and assurance work; personal records stay local.",
   "keywords": [
     "PSPF",
     "people",
@@ -11,7 +11,7 @@
     "accountability",
     "stakeholders"
   ],
-  "version": "1.75.0",
+  "version": "1.76.0",
   "private": true,
   "type": "module",
   "license": "MIT",

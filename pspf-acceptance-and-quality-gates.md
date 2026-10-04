@@ -8,6 +8,21 @@ This specification defines measurable acceptance criteria and release gates for 
 
 v0.1 is the **thin slice** defined in [adr/0014-v0-1-thin-slice.md](adr/0014-v0-1-thin-slice.md). v1 remains the eventual target with the full surface in this document.
 
+## Clean-Start Workbench Acceptance Candidates (2026-09-26)
+
+These are design acceptance requirements from the [decision register](docs/decision-register.md) and [workbench design plan](docs/course-correction-plan.md#clean-start-workbench-design-plan), not implemented gates or evidence that the redesign has shipped. The [grand plan](pspf-grand-plan.md#clean-start-workbench-design-2026-09-26) controls implementation approval and any supersession of existing gates.
+
+1. **Continuity:** related inspection, Back, Save, failed Save, ordinary refresh, close/reopen and restart preserve the task, filters, selection, subview, scroll/focus and unfinished text. Responsive layout changes do not lose that state. Deleted targets and changed source records produce an explicit recovery choice.
+2. **Draft/save separation:** workspace-local draft persistence is acknowledged only after it succeeds. Explicit Save commits authoritative records; rejected writes keep input, and Action/link creation is atomic. Drafts never count as planned work, verified outcomes or reporting facts; retries do not duplicate records.
+3. **Privacy:** sensitive drafts, search context and restricted personal information do not leak into generic preferences, logs, notifications, snapshots or publication. A unified interface or extension does not widen publication eligibility.
+4. **Honest progress:** completed work, observed effect, reviewed risk and business consequence remain distinct. Missing, stale, failed or incomparable evidence cannot become a verified-benefit claim; missing dates cannot become an apparent delivery commitment.
+5. **Journey benefit:** compare workbench-first and outcome-first concepts on the same capture, interrupted-update and business-brief jobs. Record repeated input, navigation, reorientation, correctness and perceived effort alongside existing FJ1-FJ4 meanings and the proposed RO journeys.
+6. **Accessible visual system:** test empty/typical/500-record cases at 320/768/1440 px and 200% zoom, with keyboard, light/dark/high contrast and reduced motion. Text, table columns, focus and selected context remain stable; touched surfaces have no serious or critical accessibility findings.
+7. **Fresh-baseline readiness:** no active users means legacy retention, data conversion, old-install coexistence and old preference/command migration are not required. The new baseline still needs clean installation, one authoritative writer, offline use, future-data recovery and its approved exchange contract. No data deletion is authorised by this scope decision.
+8. **Evidence labels:** product-owner walkthroughs, simulated checks and later target-user research are separate evidence sources. There is no active-user cohort; do not claim automated checks or a visual concept establish user satisfaction.
+
+No product version, schema, gate script, release authorisation or compatibility exception is introduced here. Current gates continue to apply until their owners explicitly adopt a replacement baseline.
+
 ## v0.1 acceptance criteria (thin slice)
 
 These are the only acceptance criteria for v0.1. Anything in the v1 sections below that is not also listed here is **deferred to v0.2+**.
@@ -277,6 +292,27 @@ The programme runs four slices (R1–R4), all now implemented. Each slice's gate
 1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.75.0`; `VERSION_AXES` (`schemaVersion`, `bundleVersion`, `apiVersion`) move together from `1.16.0` to `1.17.0` per [ADR 0098](adr/0098-workshop-risk-overhaul-contract-baseline.md) D6.1/D6.2; `schemas/explorer-bundle/1.17.0/` mirrors `1.16.0/` plus additive public fields on `risks.schema.json` (`primaryCategoryId`, `assessmentState`) and `links.schema.json` (`linkRole`), and the new `risk-frameworks.schema.json`, `risk-controls.schema.json`, and `risk-events.schema.json` collection schemas; the standard fixture bundle, generated reference data, and `check:schema-coverage`/`check:schema-policy` all pass against the new directory.
 2. **Scope gate**: this slice is Core/contracts schema plumbing only, carrying forward the Phase 1A contracts; it introduces no Workshop UI, Explorer UI, Core write-rule behaviour change, or new release-gate script. `packages/core/src/service.ts` validation logic and the `risk-model.ts` contracts are unchanged by this slice.
 3. **Release-chain gate**: `e2e:v1.75` inherits the complete v1.74 chain and adds `check:schema-coverage`, `check:schema-policy`, the `@pspf/contracts` tests, and the `pspf-core` tests; `release:readiness` targets `e2e:v1.75:run`.
+
+#### v1.76.0 — Course-correction C0 evidence instrument (implemented; ADR 0100 accepted)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.76.0`; `VERSION_AXES` remain `1.17.0`; no entity, link, bundle, API, publication-policy, or Explorer schema change is introduced.
+2. **Journey-cost gate**: `check:journey-cost` validates the four simulated-operator flagship-job records against their recorded baseline, rejects missing records and regressions, and rejects an evidence pack older than `package.json`.
+3. **Release-chain gate**: `check:gates:run` includes `check-journey-cost.mjs`; `e2e:v1.76` and `e2e:v1.76:run` inherit v1.75 and add the C0 gate and reducer tests; `release:readiness` targets `e2e:v1.76:run`.
+4. **ADR gate**: [ADR 0100](adr/0100-v1-76-ux-outcome-evidence-instrument.md) is accepted (2026-09-21) and registered as automated in `check:adr-coverage`. Simulated-operator evidence is not live operator validation or proof of enterprise risk reduction.
+
+### Risk-to-Outcome Acceptance Candidates (2026-09-25, Not Implemented Gates)
+
+The [Plan specification](pspf-plan-spec.md#proposed-acceptance-and-adoption-measures) owns the proposed traceability, measurement and adoption criteria arising from findings POA-01 to POA-06. The [grand plan](pspf-grand-plan.md#risk-to-outcome-roadmap-2026-09-25) owns their order: C1-C6 first, then O1 justified capture, O2 treatment-effect verification and O3 business-outcome briefing. No gate script, fixture, schema, version or release authorisation is introduced by this review.
+
+Future implementation evidence must demonstrate:
+
+1. Canonical Risk treatments retain their meaning across Risk, Action Impact, Plan and relevant strategy/reporting consumers; supported legacy and shared-Action cases do not disappear or double-count. C1 owns the reproduced link defect.
+2. The agreed Plan contains justified Actions with a resolvable risk/issue and business-outcome path; incomplete, deferred, excluded and unscheduled work remains visible without being presented as committed dated delivery. C3 handles truthful views with current fields; O1 owns new admission/issue-origin rules at Core and import boundaries.
+3. Delivery completion, expected effect, observed result and risk review remain distinct. Trend-only, missing/stale evidence, failed verification, incomparable methodology and unmet critical targets cannot produce a verified-benefit claim. C5 labels the current limitations; O2 supplies the measurement/review contract.
+4. RO-J1 to RO-J3 prove contextual capture, evidence-backed review and a reusable business brief with source/as-of references and no repeated entry of accepted facts. Preserve FJ1-FJ4 baseline definitions; record human comprehension and an actual reporting-cycle pilot separately from simulated checks.
+5. Existing publication, no-person, lossless recovery, accessibility and surface-budget requirements remain in force. Any additive field or egress needs its governing ADR; a local reporting view is not permission for an Explorer projection or sensitive-note export.
+
+These are acceptance candidates until their owning slices supply tests and actual results. Documentation changes, a green structural gate or an inferred impact weight do not close them.
 
 ### v0.4 candidate gates (readiness and UI resilience, per ADR 0021)
 
@@ -945,3 +981,4 @@ A release must include:
 8. Contract compatibility matrix report.
 9. Secrets rotation status and incident drill record.
 10. Performance benchmark report with threshold pass/fail outcomes.
+11. **From v1.76.0 (course-correction slice C0):** UX outcome evidence pack — interaction-cost records, cognitive-walkthrough verdicts, and readability scores for every flagship job (FJ1–FJ4), with the comparison against the recorded baseline. `check:journey-cost` fails the release if any job's cost has regressed, a cost record is missing, or the pack's recorded product version trails `package.json`. Simulated-operator evidence is reported as a substitute for observed users, never as validation. See `docs/course-correction-plan.md`.

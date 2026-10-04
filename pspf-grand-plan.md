@@ -1,22 +1,164 @@
 # PSPF Grand Plan
 
-Status: **active — planning authority for remediation and the connected-capability programmes**
-Last updated: 2026-09-08 (repo version 1.75.0)
+Status: **active — planning authority for product design, remediation and connected-capability programmes**
+Last updated: 2026-09-26 (reviewed against repo version 1.76.0)
 
 ## Purpose
 
-This is the single forward plan for the PSPF ecosystem. It sequences two streams of work:
+This is the single forward plan for the PSPF ecosystem. It coordinates these workstreams:
 
 1. **Remediation** of the findings from the June 2026 ecosystem architecture/UX review (findings F1–F7; see `/memories` note `ecosystem-review-2026-06` and the tranche descriptions below, which are self-contained).
 2. **New capability programmes**: Microsoft 365 / Graph integration, AI assistance with a mandatory kill switch, the PSPF Assurance extension, and a secure assurance-publishing step.
+3. **Clean-start workbench design**: a coherent cyber risk, assurance and work-planning experience, with substantial interface and visual redesign and modular extension consolidation under consideration. This stream currently authorises design and documentation, not implementation.
 
 The ordering principle is deliberate: **make the documentation truthful first (F4), then close the trust boundary, then build new features on top of a boundary we trust.** New connected features (Graph, AI) must not land on an import/diagnostics layer that cannot validate or explain failures.
 
 This plan does not override the authority chain in `pspf-spec-consistency-index.md`. Every tranche below that changes architecture, schema, or invariants **starts with an ADR**; this document records the sequence and the design constraints, not the decisions themselves.
 
+## Clean-Start Workbench Design (2026-09-26)
+
+Status: **design and planning only; no product changes implemented**
+
+The product owner reports that capture, updating and reporting are all draining, and that losing working context causes cognitive shock. The [decision register](docs/decision-register.md) records the agreed design remit. The [design specification](pspf-design-spec.md#clean-start-workbench-design-brief) owns the experience; the [detailed plan](docs/course-correction-plan.md#clean-start-workbench-design-plan) owns the design phases and proposed pilot.
+
+### Agreed Design Premises
+
+1. **Design the whole journey.** Reconsider navigation, layout, visual hierarchy, density, controls and transitions together. Contextual capture, preserving place, meaningful progress, useful mitigation guidance and reporting reuse are one experience, not unrelated dashboards.
+2. **Preserve working memory.** Recover workspace-local drafts after closing or restarting, with explicit Save for authoritative records. Keep filters, selection, scroll, focus and return paths stable. Draft persistence is not record autosave, plan admission, risk acceptance or publication.
+3. **Use a fresh baseline.** There are no active users. Legacy retention, migration, old-install coexistence and preference/command compatibility are not required design deliverables. This is not permission to delete current data or to weaken future atomicity, privacy, history or recovery.
+4. **Evaluate one modular extension.** One coherent workbench, potentially delivered as one installed VS Code extension including Shop, Assurance and organisational functions, is the preferred candidate. Retain useful internal module boundaries and engines; do not concatenate five interfaces or rewrite every engine. Packaging and activation need an accepted ADR before implementation.
+5. **Reconsider desktop/browser responsibilities.** Do not assume the desktop must be complex or the browser permanently limited. Explorer currently supports publication review and local authoring. Define future jobs and data boundaries explicitly; no live Core bridge, capability retirement or new publication is approved here.
+6. **Prove usefulness honestly.** Compare workbench-first and outcome-first concepts using the same representative jobs, including interruption and failure. Begin with product-owner walkthroughs; there is no active-user cohort and simulated checks are not user validation.
+
+### Relationship To Existing Work
+
+Design work can proceed now. C1/C2 remain the current implementation prerequisites; C3-C6 and O1-O3 remain the recorded implementation sequence until an explicitly accepted replacement maps their required behaviours to the selected design. Do not silently mark those slices complete or bypass security work.
+
+The design decision point must identify what is reused, repaired, replaced or no longer required. Legacy-migration effort is excluded from the proposed fresh baseline; obsolete UI or commitment work need not be carried merely to support compatibility. Current recovery and compatibility gates still apply to the current product until their governing contracts are explicitly superseded. No version, schema, release gate or shipping date is allocated by this design update.
+
+The target still separates **delivery -> observed effect -> reviewed risk -> business consequence**. The existing treatment-link, planning-intent and measurement gaps below remain open. A coherent interface must not hide them behind more confident wording.
+
+### Website, Brand And Community Extension
+
+The product owner has also opened redesign of the ecosystem website and public product story. The [website decisions](docs/decision-register.md#website-brand-and-community-design-2026-09-26), [design brief](pspf-design-spec.md#website-brand-and-community-design-brief) and [web design sequence](docs/course-correction-plan.md#website-brand-and-community-design-work) record this as part of the current design exercise, not another implementation programme.
+
+Atlas remains a related but separate product and repository at `https://home.tobyharvey.online`; it is not a module or parent application. Explorer remains useful and should be retained as a clear hands-on entry point. Its browser-local authoring and publication boundaries do not change merely because the website or extension packaging changes.
+
+Compare a product home with a product-and-practice home: clear purpose, a safe synthetic Explorer example, practical guides, transparent progress and an operated feedback/contribution route. Recommend one product identity across website, Explorer, workbench, docs and public outputs, with task-appropriate layouts and theme/accessibility behaviour. Atlas retains its own identity. A distinctive product name is an option to evaluate, not an agreed rename.
+
+Start community design with useful content and maintainable participation, not a forum or account platform. Repository visibility, feedback venue, private security reporting, moderation, attribution and sample-data isolation need explicit decisions. No accounts, uploads, analytics, public community service, domain change or Atlas integration is authorised. This follow-up updates planning docs only; the ecosystem page and application remain unchanged. Implementation, publication and deployment need separate approval and any applicable existing prerequisites.
+
+## Risk-to-Outcome Roadmap (2026-09-25)
+
+Status: **planning update only; product gaps remain open**
+
+The operator has clarified the primary purpose: protect the enterprise from cyber and digital risks by connecting every planned Action to a known risk or issue, a measurable expected effect, and a strategic business outcome. The [Plan specification review](pspf-plan-spec.md#2026-09-25-product-review) records findings POA-01 to POA-06, current-source reproductions, a proposed daily operating loop and acceptance criteria. It is the stakeholder basis for this update, not evidence that the capabilities are delivered.
+
+The product direction is **business outcome -> risk or known issue -> treatment Action -> observed result -> reviewed risk position -> business consequence**. Compliance, control libraries, delivery progress and reporting support that chain. A severity-based Action Impact weight is not measured risk reduction; completing work is not verifying effectiveness; a manually improving trend is not proof of business benefit.
+
+### Scheduling Decisions
+
+1. **Keep C1/C2 first.** Close Risk verification and complete the unfinished commitment persistence boundary. This review does not authorise implementation, release sequencing or a new parallel programme.
+2. **C1 consumes the concrete treatment-link defect.** `treated-by` is authored by the Risk workbench but ignored by Action Impact's older `addressed-by` reader (POA-01). Verify the path through Risk, Plan, strategy and reporting, cover supported legacy cases without duplicate benefits, and record actual repair/test evidence before claiming the chain works. This is an existing-behaviour defect, not a measurement-schema expansion.
+3. **C3 reduces effort without inventing plan intent.** Preserve triage/candidate/deferred/excluded work, distinguish it from agreed delivery, and expose unscheduled or estimated dates honestly (POA-04). Consolidate routine capture/update into existing surfaces using current fields (POA-05); do not add a new dashboard or remove data to meet surface counts.
+4. **C4 makes treatment patterns useful for risk decisions.** Include the treatment mechanism, applicability, expected observable effect and a suggested verification method as guidance. Reuse existing Actions; accepting a template must not imply a confirmed issue, verified effect or automatic reduction in risk. Structured observations remain O2.
+5. **C5 explains business consequence honestly with current data.** The promised analyst and CISO tabs should distinguish delivery, reported trends, assessment change, evidence and remaining exposure by existing strategy outcome. Missing links or observations are stated as gaps, not filled by generated claims (POA-03/06). C5 does not pretend to deliver the later measurement contract.
+6. **C6 closes course correction and selects the next bounded work.** Retaining the working-context switch does not automatically resume Commitment Phases 3-7. Those phases stay parked until their specific unmet need and incremental value over the outcome loop are demonstrated. This supersedes the earlier automatic-resumption wording, not ADR 0099's accepted contracts.
+7. **O1-O3 are the next capability priority after C6**, ahead of further presentation modes, a standalone PSPF Plan, Mission Control, or connected-feature expansion. The governing ADR and migration/publication decisions are prerequisites; one vertical slice at a time. Existing security hardening prerequisites continue to apply.
+
+### Next Bounded Programme
+
+No product versions or new compatibility-axis values are allocated by this review. C0-C6 version labels remain indicative; O1-O3 start only after the C6 close-out and their own accepted design decisions. Reuse existing contracts and revise ADR 0099 only where reuse of its parked assessment/source concepts is actually justified.
+
+| Slice                                        | Operator result and scope                                                                                                                                                                                                          | Dependencies and completion evidence                                                                                                                                                                                                                                                       |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| O1: justified work with low-friction capture | From an existing risk/confirmed issue, create or reuse one Action in context, inherit an explicit outcome path and record expected effect. Incomplete intake remains visible as triage; only justified work enters the agreed Plan | C1-C6 closed; ADR defines stable issue origin, admission policy, many-to-many references and legacy repair without a duplicate register. Core/import validation plus a live RO-J1 journey prove atomic save, no self-justification, no fabricated links/dates and no loss of existing work |
+| O2: evidence-backed treatment effect         | Reuse strategy measures and risk assessment/history; add only the missing dated observations, contribution and review semantics. Completing an Action starts verification, never an automatic risk decrease                        | O1; field-level policy and compatibility/migration decisions. RO-J2 covers unknown baseline, stale/failed evidence, changed methodology, one Action treating two risks and several Actions sharing one result. Independent risk review, history preservation and cold restore demonstrated |
+| O3: business-outcome Plan and brief          | In the existing Plan/Reporting surfaces, explain what was delivered, observed, reassessed, still exposed and awaiting decision for each strategic outcome; generate once from accepted facts                                       | O2; RO-J3 and one live reporting-cycle pilot show no manual re-entry and correct recognition of limitations. Risk/appetite, delivery, expected/realised benefit and forecast costs stay separate. Approved Workshop-local copy-outs only; no new Explorer publication                      |
+
+Completion is measured by the [proposed acceptance and adoption criteria](pspf-plan-spec.md#proposed-acceptance-and-adoption-measures), not just a gate count. RO-J1 to RO-J3 are proposed additional jobs, not new implemented gates or replacements for C0's frozen FJ1-FJ4 baselines. Record interaction cost, repeated input, unresolved justification, overdue verification and whether a human can explain the evidence and limitation. Simulated checks cannot close the human walkthrough or pilot.
+
+## Course correction programme (v1.76.0–v1.82.0)
+
+Status: **active — C0 and C1 complete; C2 is next. C3-C6 remain planned. This programme takes scheduling precedence over every other stream.**
+
+Detailed slices, testing layers, and execution guidance: [docs/course-correction-plan.md](docs/course-correction-plan.md).
+
+The 2026-09-25 risk-to-outcome review above refines C1/C3/C4/C5 acceptance and C6's next-programme decision. It does not mark any of those slices complete.
+
+### Why
+
+The 2026-09-20 plan review compared this document against the shipped state at v1.75.0. The ecosystem is structurally sound and the v1.62–v1.74 work was effective and traceable to recorded stakeholder feedback. But the review could not demonstrate from the repository that recent work improved the operator's experience, and it found the plan drifting away from the evidence chain that made E1–E8 and R1–R4 good.
+
+| ID  | Finding                                                                                                                                                                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V1  | **Verification debt is structural.** Risk Phase 4B and Commitment Phases 3–7 are both open; neither programme has had a live operator walkthrough. The pattern is to ship contract plus gate and defer the phase that asks whether a person benefits.   |
+| V2  | **No outcome instrument exists.** Gates prove structure, determinism, redaction, and accessibility rule compliance. None measures whether an operator reaches a defensible answer with less effort.                                                     |
+| V3  | **The surface freeze preserved the surface.** E6/E7 retired three routes and three panels (~7%); R1 re-based the budget upward. 47 of 72 Workshop commands are specialist and remain in the palette.                                                    |
+| V4  | **The active programme has weak feedback traceability.** The commitment/baseline/source-binding model improves the ontology; no line of it traces to a recorded stakeholder request.                                                                    |
+| V5  | **A retired affordance is returning without retesting the evidence that retired it.** ADR 0096 D1 retired presentation lenses as "itself a superfluous control"; ADR 0099 D5 supersedes that one programme later with the same user-visible affordance. |
+| V6  | **The highest-traceability unshipped requests are still deferred** — the standard mitigation library, the analyst change-review screen, and the CISO accountability view. The latter two were the stated replacement for the retired lenses.            |
+| V7  | **Work in progress exceeds the plan's own rule.** "One active vertical slice at a time" holds inside a programme, but two programmes are open and mutually blocking; roughly 52 items sit deferred, about two-thirds user-facing.                       |
+
+### Decisions now in force (2026-09-20)
+
+1. **Precedence.** This programme supersedes the 2026-09-19 decision that gave the Commitment-led programme precedence. Risk Phase 4B is no longer deferred; it is slice C1.
+2. **Debt before value.** C1 and C2 close verification debt. No new capability slice starts until both are recorded complete or explicitly parked with a reason.
+3. **The instrument ships first.** C0 delivers a deterministic, offline substitute for the never-run think-aloud sessions, so every later UX claim carries a recorded before-and-after number. It is labelled a substitute for observed users, never as validation.
+4. **Recorded flagship-journey cost is a ratchet.** No slice may increase it. `check:journey-cost` enforces this.
+5. **Surface budget becomes a declining target from C3**, not a ceiling. Growth requires an ADR naming what is retired in exchange. Retirement stays view-level: no record, entity, field, command API, export, or datum is removed.
+6. **The lens-retirement bargain is honoured before the working-context switch is extended.** C5 ships the two promised review screens; C6 then decides the switch on evidence.
+7. **What works is protected.** Deterministic narrative with printed rules, counts and denominators over scores, default-deny publication, person-free accountability, and honest degradation are constraints on every slice, not subjects of it.
+
+### Slices
+
+Versions are indicative and confirmed at release sequencing. One active slice at a time.
+
+| #   | Version | Focus                                         | Problem | Done when                                                                                                                                                                                                                                                                         |
+| --- | ------- | --------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C0  | 1.76.0  | The evidence instrument                       | V2      | Implemented with accepted ADR 0100: four flagship jobs (FJ1-FJ4) carry simulated baseline interaction-cost records, cognitive-walkthrough verdicts and readability scores; `check:journey-cost` rejects regression and stale packs. This is not observed-user validation.         |
+| C1  | 1.77.0  | Close Risk overhaul Phase 4B                  | V1, V7  | Live operator walkthrough, 320/768/1440 px and 200% pass, and fresh redaction/compatibility/lossless-recovery evidence for the `1.17.0` slice recorded with actual results; every disclosed limitation closed or explicitly re-deferred; `release:readiness` green on a fresh run |
+| C2  | 1.78.0  | Commitment programme decision point           | V1, V4  | Phase 2 completed to its exit gate including cold restore; Phases 3–7 parked with a written reason and a named resumption gate; each parked phase states its stakeholder need or admits it has none                                                                               |
+| C3  | 1.79.0  | Reduction as a target                         | V3      | Workshop 72→62 commands and 30→26 panels, Explorer 24→20 routes, every retired view's capability given a recorded destination; `check:essentials-surface` enforces a declining schedule; at least one flagship job improves                                                       |
+| C4  | 1.80.0  | Standard mitigation library                   | V6      | Curated ISM-aligned, attributed, publication-declared mitigation patterns with deterministic printed selection rules and `1.18.0` provenance fields, wired into existing surfaces only; FJ2 improves                                                                              |
+| C5  | 1.81.0  | Analyst change review and CISO accountability | V5, V6  | Both ship as tabs inside the existing Reporting Workbench with no new command or panel; every verdict prints its rule; FJ3 and FJ4 costs fall against the C0 baseline                                                                                                             |
+| C6  | 1.82.0  | Working-context decision and close-out        | V5, V7  | The Operations ↔ Oversight switch is retained with recorded evidence or retired under the ADR 0096 precedent; before-and-after table published; deferred register reconciled; O1-O3 entry criteria recorded and Commitment Phases 3–7 not automatically resumed                   |
+
+### C1 Close-out (2026-10-05)
+
+C1 is complete. The operator reports that the Risk walkthrough behaved as expected, with no critical issues encountered. The current-version automated Risk verification passed: 45 accessibility combinations had zero serious/critical findings, 108 layout combinations had no overflow or hidden controls, and the 504-Risk register and matrix rendered in 13.4 ms and 1.5 ms respectively. Fresh release readiness passed all 17 checks. Redaction, compatibility, recovery and treatment-link evidence is recorded in the C1 evidence pack. The separate manual accessibility/performance review was not performed and is explicitly deferred to a later review; this does not replace or invalidate the automated evidence. C1 completion is not release-sequencing or publication approval.
+
+### Release gates
+
+1. **Outcome gate (C0 onward):** `check:journey-cost` fails on any flagship-job cost regression, a missing cost record, or an evidence pack whose recorded product version trails `package.json`.
+2. **Risk verification gate (C1):** `check:risk-verification` proves the walkthrough, accessibility, redaction, compatibility, and recovery evidence exists, covers every touched surface, and is current.
+3. **Commitment model gate (C2):** `check:commitment-model` green including protected lifecycle transitions and cold restore.
+4. **Declining surface gate (C3 onward):** `check:essentials-surface` fails on growth and on a missed scheduled target for the current version.
+5. **Mitigation gate (C4):** `check:mitigation-library` proves coverage, attribution, publication declaration, printed selection rules, and that tailoring preserves the control rationale.
+6. **Review screens gate (C5):** `check:review-screens` proves composition from existing primitives, printed rules, no person data, and Workshop-local **OFFICIAL: Sensitive** copy-outs.
+7. **Existing gates continue to apply**, including `check:personal-data`, `check:schema-policy`, `check:spec-drift`, `check:adr-coverage`, `check:backup-restore`, `check:writer-lock`, and the chained `e2e:v1.76` … `e2e:v1.82` release chain.
+
+### Model and agent approach
+
+Model-family and delegation recommendations, not pricing or benchmark claims. Full table in the detailed plan.
+
+- **Opus** for ADRs, schema and publication boundaries, persistence and history immutability, instrument design, retirement selection, judgement composition, and every park or close-out decision.
+- **Sonnet** for gate scripts, Playwright emitters, rendering slices, content drafting under review, and slice mechanics, once the contract is fixed.
+- **Agents:** `PSPF Contracts Author` for primitives and fields; `PSPF Gate Writer` for `check-*.mjs`; `PSPF Reference Data Curator` for C4 content and attribution; `PSPF Slice Mechanic` for version, chain, coverage, and index mechanics; `PSPF Reviewer` for scope drift, redaction, AU English, and publication; `Explore` for reconnaissance; `PSPF Release Deploy` for readiness and packaging.
+- **The reviewer is never the author.** `PSPF Reviewer` runs against a diff it did not produce, and the C0 cognitive walkthrough is not executed by whoever built the screen.
+- **The live operator walkthroughs in C1 and C2 are human activities.** An agent may prepare the script and record results; it may not be the operator.
+
+### Explicitly deferred
+
+- Tranches 3–6 (Office outputs, Graph, AI, assurance signing). Tranche 2 hardening is still partial, so the plan's own prerequisite is unmet.
+- Future Mission Control canvas — unapproved, and would invert the subtraction discipline C3 establishes.
+- Commitment Phases 3–7 and any Explorer projection of commitment, assessment, or decision content — parked in C2, decided in C6.
+- Pub workforce extensions and Pub as a team or identity source; Explorer publication of Shop commercial data; full rollout of the S0–S7 judgement primitives to every screen.
+- Observed-user research remains the goal. C0's instrument is an explicit substitute; if participants become available, sessions take precedence and the instrument is recalibrated against them.
+
 ## Workshop Risk overhaul
 
-Status: **implementation complete through Phase 4A; Phase 4B verification outstanding**
+Status: **implementation complete through Phase 4A; Phase 4B verification scheduled as course-correction slice C1 (v1.77.0)**
 
 The [Workshop Risk overhaul plan](docs/risk-overhaul-plan.md) has progressed through Phase 4A. Phase 0 completed on 2026-09-07 and produced [ADR 0098](adr/0098-workshop-risk-overhaul-contract-baseline.md) with decision tables, field/link/policy tables, a compatibility and recovery strategy, baseline evidence and a bounded Phase 1A handoff. The operator closed the three blocking decisions (D1.6/D6.5 publication of custom assessments blocked at preflight, D2.7 expired appetite rules apply and are flagged stale, D3.5 typed link metadata for control applications) as recommended, and ADR 0098 is `accepted`.
 
@@ -24,11 +166,69 @@ Pointer: Phases 1A through 4A are recorded in the detailed plan. The schema base
 
 The full `pnpm run release:readiness` suite passed on 2026-09-08, including the Risk-specific gates, E2E, accessibility, redaction, typecheck, lint and release-candidate checks. One stale gate assumption was corrected during that run: `check-ownership-schema` now separates its historical `1.16.0` schema assertions from the current `1.17.0` axes and fixture assertions. This is a useful release-maintenance lesson: historical schema-slice gates must not assert that current compatibility axes remain at the slice's original version.
 
-The next bounded task is **Phase 4B: integrate and verify**, not another feature phase. The live VS Code operator walkthrough, 320/768/1440px and 200% accessibility/performance pass, and final redaction/compatibility/recovery evidence remain outstanding. Phase 4B should close or explicitly re-defer the known presentation limitations, correct any stale specifications, and report whether the programme is ready for separate release-sequencing authorisation.
+**Phase 4B: integrate and verify is scheduled as course-correction slice C1 (v1.77.0)**, reversing the 2026-09-19 deferral. The 2026-09-20 plan review found that deferring the only phase which asks whether a person benefits is the ecosystem's dominant verification-debt pattern, and that this is the older of the two open debts and the closer to done. The following remain required before the Risk overhaul can be put forward for separate release-sequencing authorisation:
+
+1. The live VS Code operator walkthrough of the Risk workbench, treatments/controls, crosswalk import and presentation outputs.
+2. The 320/768/1440 px and 200% zoom accessibility/performance pass over the touched Risk surfaces.
+3. Final redaction, compatibility and lossless-recovery evidence for the `1.17.0` schema slice.
+4. Closing or explicitly re-deferring the known presentation limitations and correcting any stale Risk specifications.
+
+The 2026-09-08 green `release:readiness` run is historical evidence of the release chain at that commit; it is not fresh Phase 4B evidence. Commitment-led slices that touch Risk contracts, the shared shell or the same panels do not satisfy Phase 4B by proximity; 4B is closed only by its own recorded walkthrough and evidence. C1 additionally measures the Risk surfaces against the C0 interaction-cost instrument: a specialist workbench is not exempt from the cost ratchet.
 
 The programme is Workshop-only initially: editable categories and actual parent-risk relationships; organisation-defined matrices and appetite; reusable Action treatments and organisational controls; manual escalation history; manual references and previewed file crosswalk import; and hierarchy, matrix, bow-tie, coverage and executive-card views within existing surfaces. Explorer is unchanged; incompatible publication must fail clearly rather than inventing legacy scores or silently dropping data. Migration requires verified lossless recovery, not an assumption that publication JSON retains sensitive fields.
 
 Use Opus for Phase 0 and the shared model, persistence/migration and compatibility foundation; Sonnet for bounded workbench/visual implementation, with Opus reviews of reconciliation, history and publication boundaries; and Opus for final integration review. These are model-family recommendations, not pricing or benchmark claims. Existing remediation prerequisites, default-deny policy and the Essentials surface budget remain in force. Start with the plan's Phase 0 handoff, not the entire programme in one session.
+
+## Commitment-led operating model — Operations and Oversight & Assurance
+
+Status: **Phase 2 contract slice implemented (2026-09-20); Phase 2 persistence/recovery completes in C2, after which Phases 3-7 remain parked pending C6 and a separate demonstrated-need decision**
+
+### Outcome
+
+The operator stops mentally combining day-to-day delivery, strategic decisions, organisational commitments, assurance and reporting. The suite offers two explicit working contexts over one connected local model: **Operations** (what changed, what was escalated or flagged, what is blocked, what delivery response is needed) and **Oversight & Assurance** (where we stand against obligations, standing expectations and agreed commitments; what supports that position; whether the response is still adequate). Strategic choices connect to agreed commitments; commitments are fulfilled by contributions from separately owned source plans (the operator's POAMs); results and evidence feed a separately recorded assessment and management review. There is no master task register, source plans are not cloned into local copies, and no new publication surface is created in P1.
+
+The programme specification is the 2026-09-19 commitment-led operating model technical specification (`.hermes/plans/2026-09-19_091633-commitment-led-operating-model-techspec.md`, status aspirational). Its repository observations were verified against `develop` on 2026-09-19. [ADR 0099](adr/0099-commitment-led-operating-model-phase-0-baseline.md) is the accepted Phase 0 decision record; the detailed phase plan is [docs/commitment-operating-model-plan.md](docs/commitment-operating-model-plan.md). Phase 1 (explicit working-context presentation plus the `planningState`/history semantic-debt fixes) is complete with `check:working-context` green; Phase 2's contract slice is implemented, including a Workshop command for creating draft commitments. Protected lifecycle transitions, recovery evidence, and release sequencing remain outstanding before Phase 3.
+
+### Decisions now in force (2026-09-19, superseded/detailed by ADR 0099 on 2026-09-20)
+
+1. **Precedence.** Superseded 2026-09-20 by course correction and refined 2026-09-25 by the risk-to-outcome roadmap. Risk Phase 4B is C1; this programme's Phase 2 completes as C2 and then parks. Half-implemented persistence is a data-integrity risk, so C2 finishes its exit gate. Phases 3-7 require C6 plus a separate decision demonstrating their unmet operator need and incremental value; retaining a context switch is insufficient and does not displace O1-O3.
+2. **P1 source integration is manual reference registration only.** The operator registers a source plan's identity (source-system key, plan key, kind, scope, accountable team/role assertion) and enters its milestones by hand as source-bound Actions. No file adapter, live connector, scheduled import or write-back ships in P1. The techspec's file-import reconciliation (its §9 and AC-18–AC-22) moves to the deferred register; its source-binding identity tuple and the separation of source claims from local authority are retained.
+3. **Phase 0 deliverables** are ADR 0099 (decision table for the techspec's O-01…O-10, REQ-to-existing-symbol mapping, exact allowed `(fromType, linkType, toType)` pairs, a declared publication policy for every proposed field, compatibility/migration decisions, and recorded before/after surface counts) plus `docs/commitment-operating-model-plan.md`. The consistency index and affected topic specs are updated in the same slice. **Delivered 2026-09-20**: ADR 0099 accepted (all ten decision rows plus four blocking decisions B1–B4 closed as recommended); `docs/commitment-operating-model-plan.md` written; consistency index and `check:adr-coverage` updated. Phase 1's allowed link pairs and full field-policy table are deferred to Phase 2, since Phase 1 adds no new entity, field or link (see ADR 0099 Contract mapping).
+4. **Thin aggregates over existing records.** `StrategyEntity`/nested `StrategicChoice`, `ActionEntity` (`ownerTeam`, `planningState`, `dueDateHistory`), `RiskControlEntity`, evidence and typed links remain canonical. Only the missing local contracts are added: commitment and immutable commitment baseline, source-plan descriptor/binding, assessment revision and governance decision. No standalone `StrategyChoice` entity, no new compatibility axis, no single overloaded `status` shared by agreement lifecycle, delivery state and assessment conclusion.
+5. **Working context is a task context, not identity or permission.** Switching is explicit only (keyboard and pointer), persisted under a workspace-scoped `workspaceState` key separate from the retired lens key, never inferred from role, activity or legacy `ciso/auditor/solo` values, and grants or removes no write capability. ADR 0099 supersedes only ADR 0096's prohibition on presentation modes; retired routes and persona taxonomy stay retired, and the 72-command / 30-panel Essentials budget changes only by recorded before/after counts.
+6. **Publication.** All new commitment, source-binding, assessment, decision and rationale content is `sensitive` and stays in the local trusted workspace in P1. Explorer projection is P2 behind a field-level publication ADR and is blocked at preflight until then. Person-free team/role keys only; no `Person.name`, `Person.email`, `Assignment.personId` or Pub ingestion.
+7. **Delivery ≠ agreement ≠ assurance.** `planningState=committed` is delivery-planning intent, not an authorised organisational commitment; reported completion never auto-establishes fulfilment, effectiveness or adequacy; no completion ratio or average becomes an assurance figure.
+
+### Phases
+
+Versions are assigned at release sequencing, not here. One active vertical slice at a time; each phase closes on its named acceptance criteria with actual results.
+
+| Phase | Scope                                                                                                                                                                                                      | Exit gate                                                                                                                                                 |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | Confirm current truth, accept decisions, map contracts, define the exact P1 slice and deferred register                                                                                                    | ADR 0099 accepted; `docs/commitment-operating-model-plan.md` written; index and topic specs reconciled; `check:adr-coverage` and `check:spec-drift` green |
+| 1     | Explicit working-context presentation plus two verified semantic-debt fixes: `buildStrategyDeliverySummary` classifies by `planningState`; Explorer `share.ts` egress is sanitised or blocked at preflight | Distinct labelled contexts, legacy-lens retirement preserved, no business-record or schema mutation, `check:working-context` green                        |
+| 2     | Minimal local commitment/baseline/decision contract and protected persistence with explicit migration and verified lossless restore                                                                        | One real commitment moves draft → agreed → revised without invented history; cold restore proven; `check:commitment-model` green                          |
+| 3     | Manual source-plan registration and source-bound Actions contributing to a commitment (required / supporting / alternative)                                                                                | Two registered plans contribute to one commitment without cloning; identity tuple, stale/unknown source state and withdrawal rules tested                 |
+| 4     | Evidence-backed assessment revisions and shared deterministic roll-up builders in `@pspf/contracts`                                                                                                        | Reported versus assessed positions coexist; critical blocked contribution cannot be concealed by completed non-critical work                              |
+| 5     | Integrated Operations and Oversight & Assurance landings in Workshop and the local **OFFICIAL: Sensitive** review pack                                                                                     | Flagship fixture journey passes end to end; accessibility at 320/768/1440 px and 200%; existing requirement journey untouched                             |
+| 6     | P1 integration, recovery, operator walkthrough and release readiness                                                                                                                                       | All P1 acceptance criteria demonstrated; P2 items recorded as deferred, not passing; `release:readiness` green                                            |
+| 7     | **P2, separately gated:** safe Explorer projection                                                                                                                                                         | Field-level publication ADR accepted; all touched egress and round-trip paths tested for no sensitive pass-through                                        |
+
+### Release gates
+
+1. **Working-context gate (Phase 1):** `check:working-context` proves explicit switching, the separate preference key, legacy-lens normalisation retained, no capability or record change on switch, and the surface budget by recorded counts.
+2. **Commitment-model gate (Phase 2 onward):** `check:commitment-model` proves every new field declares a `sensitive` publication policy, immutable baseline/assessment/decision history at Core's write boundary, and the allowed link pairs.
+3. **Existing gates continue to apply:** `check:personal-data`, `check:schema-policy`, `check:schema-coverage`, `check:essentials-surface`, `check:spec-drift`, `check:adr-coverage`, `check:backup-restore`, `check:writer-lock`, and the inherited `e2e` release chain.
+
+### Explicitly deferred
+
+- File-based POAM adapter and previewed source reconciliation (techspec §9, AC-18–AC-22) — P2, after the manual-registration model is proven.
+- Explorer publication of any commitment, assessment or decision content (AC-34) — pending a field-level publication ADR.
+- Graph, Planner, ADO and Outlook connectors, native Office output and AI assistance — Tranches 3–5 below.
+- Identity, RBAC, SSO, electronic signatures and independent-assurance claims; Pub as a team or identity source.
+- Vendored framework dataset refresh (PSPF Release 2026 / current ISM editions) — a separately approved change with impact review (techspec O-09).
+
+Use Opus for Phase 0, the contract/persistence/history foundation and the publication boundary; Sonnet for bounded rendering slices; Opus reviews of reconciliation, history and publication diffs. Start from the plan's next bounded task, not the entire programme in one session.
 
 ## v1.61 release hardening
 
@@ -38,7 +238,9 @@ The v1.61 release closes the Workshop persisted-value rendering, Core full-repla
 
 ## Operational plan: compliance uplift workflow (next few days)
 
-Status: **absorbed — superseded by the v1.70 Essentials programme below, which carries this direction forward with stakeholder-feedback priorities**
+Status: **absorbed — historical input to Essentials; product framing broadened by the 2026-09-25 risk-to-outcome roadmap**
+
+The historical compliance-uplift decisions below remain supporting use cases. The active product purpose is enterprise cyber and digital risk protection with measurable business consequence, not compliance status alone.
 
 The immediate product focus is the requirement-to-action journey in Explorer/Workshop. The user feedback is clear: the tool is already effective as a review surface, but the real value is the uplift loop — turning PSPF outcomes into justifiable decisions, standard mitigation language, and a practical work plan for the next cycle.
 
@@ -465,6 +667,7 @@ graph LR
 - T3 before T4: most "Office integration" value needs no network; settle templates and redaction offline before any token touches the system.
 - T5 can run in parallel with T3/T4 once T2 lands (it shares only the diagnostics and policy infrastructure).
 - T6 lands after the documentation and trust-boundary work because it composes a new local extension, the document pipeline (T3), optionally the delivery channel (T4), and introduces the first cryptography.
+- The Commitment-led operating model programme is local-only and formally independent of T2, but its Phase 1 closes the Explorer `share.ts` unsanitised-egress debt rather than waiting for T2; any P2 Explorer projection of commitment data still requires T2's closed import boundary.
 
 ## UX and polish work folded into tranches
 

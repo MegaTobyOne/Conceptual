@@ -1,8 +1,8 @@
 # PSPF Shop
 
-Local-first tooling for Australian Government PSPF assurance work. Core, Workshop, Shop, Pub, and Explorer share one schema and one local store so that authoring, commercial planning, people context, and publication stay aligned.
+Local-first supplier, contract and spend planning connected to cyber risk, assurance requirements and treatment Actions. Commercial records are Core-backed; forecasts support decisions rather than establish realised savings or measured risk reduction.
 
-> **Accent:** Shop amber · Commercial planning
+> **Role:** Commercial planning and dependency context
 
 ## What this extension does
 
@@ -17,13 +17,19 @@ PSPF Shop is the **commercial planning surface** for suppliers, contracts, spend
 
 Shop reads and writes commercial records through Core. The local JSON file is a compatibility import source, not the active system of record.
 
+## Design Direction (Not Implemented)
+
+The [clean-start workbench brief](../../pspf-design-spec.md#clean-start-workbench-design-brief) evaluates bringing commercial functions into one coherent, potentially single-extension experience. Supplier, contract and funding context should be available alongside the active risk or Action without losing the user's place. Current Shop packaging and storage are unchanged; there is no new Explorer publication permission.
+
+There are no active users, so legacy migration and retention are not required for the proposed fresh baseline. The existing compatibility import remains current functionality, not a requirement to reproduce it in the new design.
+
 ## How it fits
 
 Shop requires **PSPF Core**.
 
 - Install **PSPF Core** first.
 - Workshop surfaces Shop's commercial context next to Requirements, Actions, and Risks.
-- Explorer renders the same commercial linkage in the published bundle.
+- Explorer publication of Shop commercial data remains deferred pending a dedicated publication-policy decision.
 
 ## Key commands
 

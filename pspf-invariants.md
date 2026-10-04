@@ -14,7 +14,7 @@ A CI job (`invariants` check) should validate this document against every spec, 
 
 ### N1 — Entity type strings
 
-Entity type identifiers are **lower-case singular** wherever they appear as data values: `requirement`, `evidence`, `action`, `risk`, `risk-framework`, `risk-control`, `risk-event`, `snapshot`, `report-pack`, `domain`, `supplier`, `contract`, `spend-item`, `person`, `role`, `team`, `assignment`, `notification-rule`, `link`, `tag`, `source-control`, `requirement-control-mapping`, `direction`, `change-record`, `compliance-entry`, `compliance-event`, `work-log-entry`, `saved-view`, `posture`, `relationship`, `narrative`.
+Entity type identifiers are **lower-case singular** wherever they appear as data values: `requirement`, `evidence`, `action`, `risk`, `risk-framework`, `risk-control`, `risk-event`, `snapshot`, `report-pack`, `domain`, `supplier`, `contract`, `spend-item`, `person`, `role`, `team`, `assignment`, `notification-rule`, `link`, `tag`, `source-control`, `requirement-control-mapping`, `direction`, `change-record`, `commitment`, `governance-decision`, `compliance-entry`, `compliance-event`, `work-log-entry`, `saved-view`, `posture`, `relationship`, `narrative`.
 
 ### N2 — Collection names
 
@@ -27,7 +27,7 @@ Collection identifiers in JSON bundles are the **lower-case plural** of the enti
 
 ID prefixes are **upper-case three-letter** codes:
 
-`REQ`, `EVD`, `ACT`, `RSK`, `RFW` (Risk framework), `RCT` (Risk control), `RSE` (Risk event), `SNP`, `RPT`, `DOM`, `SUP`, `CTR`, `SPD`, `PER`, `ROL`, `TEM`, `ASM`, `NTF`, `LNK`, `TAG`, `SRC` (Source control), `MAP` (Requirement-control mapping), `DIR` (Direction), `CHG` (Change record), `CMP` (Compliance entry), `CME` (Compliance event), `WLE` (Work-log entry), `SVW` (Saved view), `REL` (Relationship), `NAR` (Narrative). The Posture singleton uses the literal id `POSTURE`.
+`REQ`, `EVD`, `ACT`, `RSK`, `RFW` (Risk framework), `RCT` (Risk control), `RSE` (Risk event), `SNP`, `RPT`, `DOM`, `SUP`, `CTR`, `SPD`, `PER`, `ROL`, `TEM`, `ASM`, `NTF`, `LNK`, `TAG`, `SRC` (Source control), `MAP` (Requirement-control mapping), `DIR` (Direction), `CHG` (Change record), `CMT` (Commitment), `GDE` (Governance decision), `CMP` (Compliance entry), `CME` (Compliance event), `WLE` (Work-log entry), `SVW` (Saved view), `REL` (Relationship), `NAR` (Narrative). The Posture singleton uses the literal id `POSTURE`.
 
 ### N4 — ID format
 

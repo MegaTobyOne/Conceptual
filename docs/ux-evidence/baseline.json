@@ -1,0 +1,9 @@
+{
+  "contractVersion": 1,
+  "jobs": [
+    { "id": "FJ1", "cost": { "routeChanges": 2, "surfacesOpened": 3, "inputEvents": 1, "answerStep": 5 } },
+    { "id": "FJ2", "cost": { "routeChanges": 3, "surfacesOpened": 4, "inputEvents": 4, "answerStep": 8 } },
+    { "id": "FJ3", "cost": { "routeChanges": 2, "surfacesOpened": 3, "inputEvents": 2, "answerStep": 6 } },
+    { "id": "FJ4", "cost": { "routeChanges": 3, "surfacesOpened": 4, "inputEvents": 2, "answerStep": 7 } }
+  ]
+}

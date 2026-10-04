@@ -350,8 +350,8 @@ export function buildStrategyDeliverySummary(
   const resolvedActions = linkedActions.filter(
     (action): action is ActionEntity => action !== undefined && action.recordStatus !== "deleted"
   );
-  const candidateActionCount = resolvedActions.filter((action) => action.status === "todo").length;
-  const committedActionCount = resolvedActions.filter((action) => action.status !== "todo").length;
+  const candidateActionCount = resolvedActions.filter((action) => action.planningState === "candidate").length;
+  const committedActionCount = resolvedActions.filter((action) => action.planningState === "committed").length;
   const activeActionCount = resolvedActions.filter((action) => !["done", "cancelled"].includes(action.status)).length;
   const blockedActionCount = resolvedActions.filter(
     (action) => action.status === "blocked" || action.impact?.urgency === "blocked"
@@ -363,13 +363,15 @@ export function buildStrategyDeliverySummary(
       ? "no-delivery-path"
       : blockedActionCount > 0 || overdueActionCount > 0
         ? "delivery-at-risk"
-        : completedActionCount === resolvedActions.length
-          ? choice.outcomes.some((outcome) => outcome.measures.some((measure) => measure.trend === "improving"))
-            ? "outcome-progressing"
-            : "delivered-verify-benefit"
-          : committedActionCount === 0
-            ? "candidate-work"
-            : "in-delivery";
+        : resolvedActions.some((action) => action.planningState !== "committed")
+          ? "candidate-work"
+          : completedActionCount === resolvedActions.length
+            ? choice.outcomes.some((outcome) => outcome.measures.some((measure) => measure.trend === "improving"))
+              ? "outcome-progressing"
+              : "delivered-verify-benefit"
+            : committedActionCount === 0
+              ? "candidate-work"
+              : "in-delivery";
 
   return {
     state,

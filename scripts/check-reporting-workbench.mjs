@@ -129,17 +129,17 @@ check(
   "Core extension.ts registers pspf.core.listSnapshotAnchors"
 );
 
-// 6. Surface budget recorded against ADR 0097.
+// 6. Surface budget recorded against the current approved baseline ADR.
 const baselinePath = "scripts/lib/essentials-surface-baseline.json";
 const baseline = JSON.parse(await readFile(join(root, baselinePath), "utf8"));
-check(baseline.workshopCommands === 72, `${baselinePath} workshopCommands is 72 (found ${baseline.workshopCommands})`);
+check(baseline.workshopCommands === 73, `${baselinePath} workshopCommands is 73 (found ${baseline.workshopCommands})`);
 check(
   baseline.workshopWebviewPanels === 30,
   `${baselinePath} workshopWebviewPanels is 30 (found ${baseline.workshopWebviewPanels})`
 );
 check(
-  typeof baseline.recordedAtAdr === "string" && /^adr\/0097-.*\.md$/.test(baseline.recordedAtAdr),
-  `${baselinePath} recordedAtAdr points at the ADR 0097 file (found ${baseline.recordedAtAdr})`
+  typeof baseline.recordedAtAdr === "string" && /^adr\/0099-.*\.md$/.test(baseline.recordedAtAdr),
+  `${baselinePath} recordedAtAdr points at the current baseline ADR 0099 file (found ${baseline.recordedAtAdr})`
 );
 check(await exists(baseline.recordedAtAdr), `${baseline.recordedAtAdr} exists`);
 const essentialsCommandsDoc = await readFile(join(root, "docs/workshop-essentials-commands.md"), "utf8");

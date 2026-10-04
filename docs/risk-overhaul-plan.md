@@ -1,13 +1,23 @@
 # Workshop Risk Overhaul Plan
 
-Status: **implementation complete through Phase 4A; Phase 4B verification outstanding**
-Last updated: 2026-09-08
-Planning baseline: product `1.75.0`; compatibility axes `1.17.0`.
-Next task: **Phase 4B - integrate and verify** (Phase 4A complete). See [Phase 4B Handoff](#phase-4b-handoff).
+Status: **C1 verification and fresh release readiness complete; manual accessibility/performance review deferred**
+Last updated: 2026-10-05
+Programme baseline: product `1.75.0`; compatibility axes `1.17.0`. Risk-to-outcome review performed against repository `1.76.0`.
+Next task: **C2 commitment programme decision point**, per the [grand plan](../pspf-grand-plan.md#course-correction-programme-v1760v1820). Release sequencing remains a separate decision. The manual accessibility/performance review is deferred to a later review. See [C1 Close-out](#c1-close-out-2026-10-05).
+
+C1 additionally measures the Risk surfaces against the C0 interaction-cost instrument and consumes the 2026-09-25 treatment-link finding below. A specialist workbench is not exempt from the flagship-journey cost ratchet.
+
+## Risk-to-Outcome Review Follow-up (2026-09-25)
+
+[POA-01 in the Plan specification](../pspf-plan-spec.md#2026-09-25-product-review) was a reproduced integration defect for Phase 4B/C1: the workbench creates `risk -> treated-by -> action`, but `enrichActionsWithImpact` read only the older `addressed-by` path. It is fixed in C1: the shared builder now accepts canonical `treated-by` and supported legacy `addressed-by` links, and counts each distinct Risk once per Action. Regression tests cover one Action treating two Risks, duplicate canonical/legacy links, and an unassessed Risk remaining excluded from numeric weighting. The Plan-of-Action integration test proves the canonical link reaches Reduce Risk workstream classification. No stored relationships are rewritten.
+
+The operator reports that the live C1 walkthrough, including the Plan and reporting path, behaved as expected with no critical issues. Strategy delivery remains based on delivery state and urgency; it does not infer risk reduction from a treatment link. The walkthrough and automated regression results are recorded below.
+
+The wider requested loop is risk/known issue -> Action -> observed effect -> reassessed risk -> business outcome. Existing control-effectiveness judgements and current/target assessments are useful foundations, not a measured treatment-effect history. New issue/admission/observation contracts belong to O1/O2 after course correction, per the [grand plan](../pspf-grand-plan.md#risk-to-outcome-roadmap-2026-09-25); they do not enlarge Phase 4B into a new feature programme.
 
 ## Authority and Outcome
 
-This is the durable programme plan and session handoff, replacing the conversation's session-memory copy. The scope below is confirmed by the user; architecture below is resolved into [ADR 0098](../adr/0098-workshop-risk-overhaul-contract-baseline.md) (status `accepted`). Phases 0 through 4A have implemented the contracts, Core boundaries, score consumers, Workshop workbench, crosswalk flow and presentation outputs described in the records below. Phase 4B is still required before claiming verification-complete or release-sequencing readiness. Do not infer a separate release allocation or permission to publish from this document.
+This is the durable programme plan and session handoff, replacing the conversation's session-memory copy. The scope below is confirmed by the user; architecture below is resolved into [ADR 0098](../adr/0098-workshop-risk-overhaul-contract-baseline.md) (status `accepted`). Phases 0 through 4A implemented the contracts, Core boundaries, score consumers, Workshop workbench, crosswalk flow and presentation outputs described in the records below. C1 closes Phase 4B verification; fresh release readiness passed. The separate manual accessibility/performance review remains deferred. Do not infer a separate release allocation or permission to publish from this document.
 
 Follow the authority chain in [../pspf-spec-consistency-index.md](../pspf-spec-consistency-index.md) and sequencing in [../pspf-grand-plan.md](../pspf-grand-plan.md). Phase 0 must resolve architecture into an ADR before contract changes. Existing requirements remain in force until explicitly superseded.
 
@@ -15,12 +25,12 @@ Replace the minimal Risk form with a coherent Workshop editing and presentation 
 
 ## Current state and latest learning
 
-- Phases 0, 1A, 1B, 1C, 2, 3A, 3B and 4A are recorded as complete. The shipped baseline is product `1.75.0` with all three compatibility axes at `1.17.0`; the Risk schema slice remains published under `schemas/explorer-bundle/1.16.0` as intended by the compatibility plan.
+- Phases 0, 1A, 1B, 1C, 2, 3A, 3B and 4A, plus C1 verification, are recorded as complete. The shipped baseline is product `1.75.0` with all three compatibility axes at `1.17.0`; the Risk schema slice remains published under `schemas/explorer-bundle/1.16.0` as intended by the compatibility plan.
 - The full `pnpm run release:readiness` suite passed on 2026-09-08, including build, tests, E2E, accessibility, redaction, typecheck, lint, release-candidate checks, risk-source integration, and the Risk-specific gates. The readiness report was written to `.tmp/release-readiness/v1.75.0-readiness`.
 - The readiness run exposed and fixed a stale `check-ownership-schema` assumption: that gate must validate the historical `1.16.0` ownership schema directory while validating the current `1.17.0` axes and standard fixture. The focused gate now passes 77 assertions and Prettier/lint remain green.
-- The result is strong automated evidence, not a completed operator-verification claim. No live VS Code Extension Development Host walkthrough has yet exercised the end-to-end Risk journey, and the disclosed Phase 4A limitations remain: filtered output scope behaves like all, presentation-preset authoring is absent, external provenance is not rendered, and PNG output is a vetted monospace text render rather than a styled visual.
+- The recorded C1 close-out adds operator walkthrough evidence to the automated results. The disclosed Phase 4A limitations remain explicitly re-deferred: filtered output scope behaves like all, presentation-preset authoring is absent, external provenance is not rendered, and PNG output is a vetted monospace text render rather than a styled visual.
 
-Recommended next step: execute Phase 4B as a verification slice. Start with the live create-to-card walkthrough in the Phase 4B Handoff, then run the accessibility/performance, redaction, compatibility and recovery evidence pass. Close or explicitly re-defer each disclosed limitation, update the affected specifications and gates, and only then decide separately whether release-sequencing work is authorised.
+The operator walkthrough, focused C1 verification gate and fresh release readiness are complete. Automated accessibility/performance, redaction, compatibility and recovery evidence is recorded below. The separate manual accessibility/performance review is deferred; each disclosed product limitation has an explicit disposition. Release sequencing is a separate decision.
 
 ## Confirmed Scope
 
@@ -616,12 +626,12 @@ Not run in this phase (outside its own stop-gate list): full `pnpm build`/`pnpm 
 
 ### Known follow-ups for Phase 4B and later
 
-- Live VS Code behavioural/keyboard/visual/accessibility verification has still not been run against any Risk workbench surface across Phases 2, 3A, 3B, or 4A.
-- PNG output is a plain monospace text render, not a styled chart/diagram image; a richer visual PNG (matrix grid, bow-tie diagram) is a disclosed future enhancement, not a defect against this phase's literal task wording.
-- `RiskFrameworkEntity.presentationPresets[]` has a read/fallback path only; there is no authoring UI to declare a new named preset.
-- `RiskOutputScope`'s `"filtered"` value is not yet distinguished from `"all"` — the live register search text is not plumbed into the output builder.
-- `externalRefs`/source-register provenance (Phase 3B) is still not rendered in any output; deferred, as flagged in the Phase 3B Record.
-- Phase 4B's full operator walkthrough, accessibility/performance pass, redaction/compatibility/recovery evidence, and truthful documentation/gate updates remain entirely outstanding, as does any release-number or ADR-number allocation.
+- The live VS Code operator walkthrough is still outstanding. Automated checks do not substitute for it.
+- PNG output remains a plain monospace text render; a styled chart/diagram renderer is explicitly re-deferred as a separate presentation enhancement.
+- `RiskFrameworkEntity.presentationPresets[]` remains read/fallback only; preset authoring is explicitly re-deferred as a separate workspace-policy editing workflow.
+- `RiskOutputScope`'s `"filtered"` value remains indistinguishable from `"all"`; this is explicitly re-deferred until register-filter state has an approved output-scope contract. The limitation remains disclosed in the output label.
+- `externalRefs`/source-register provenance remains absent from outputs, explicitly re-deferred from Phase 3B pending a separate allowlist and publication review.
+- Fresh accessibility/performance, redaction, schema compatibility, and cold-restore evidence is recorded below. No release number, ADR number, or new compatibility axis has been allocated.
 
 ## Phase 4B Handoff
 
@@ -631,11 +641,31 @@ Phase 4A is complete: the allowlisted `RiskOutputModel`, workspace-policy-declar
 
 Carried forward from every prior phase, for Phase 4B to consume directly rather than reinvent:
 
+- The 2026-09-25 POA-01 treatment-link defect above is additional verification input. A create-to-card walkthrough alone does not close it; follow the same Action into Plan and its reporting/strategy consumers and record regression evidence.
 - Every phase's own "Known follow-ups" section (Phase 2 through Phase 4A above) is the authoritative list of disclosed gaps; Phase 4B's job is to either close them, explicitly re-defer them with a reason, or discover they are no longer applicable — not to silently drop them.
 - `pspf-entity-link-spec.md` § Risk was corrected once in Phase 1A; verify it still matches the shipped shape after Phases 1B-4A's additions (`externalRefs`, `risk-control`, `risk-event`, `rolls-up-to`/`mitigated-by`, `RiskOutputModel`) before treating it as truthful.
 - No release number, schema/version axis, or ADR number is reserved by this phase; `pspf-acceptance-and-quality-gates.md`'s existing v1.75.0 section (added by the Phase 1B Slice Mechanic work) is the nearest existing gate table to extend, not replace.
 
 Stop after: the full live-walkthrough, accessibility/performance, and redaction/compatibility/recovery evidence named above is recorded in this document, every relevant gate passes, and the next bounded task (a further Phase 4B follow-up, or a statement that the programme is verification-complete pending separate release authorisation) is reported.
+
+### C1 Execution Record (2026-09-26)
+
+The current product version is `1.76.0` with compatibility axes `1.17.0`. No release version, ADR number, or compatibility-axis change is allocated by this verification work.
+
+- POA-01 is fixed in `enrichActionsWithImpact`: canonical `treated-by` and supported legacy `addressed-by` links are consumed, duplicate links to the same Risk count once, distinct Risks remain additive, and `evaluateRisk` continues to exclude unassessed/non-comparable Risks. Contracts and Plan-of-Action regressions pass.
+- `pnpm --filter @pspf/contracts test`: 185 passed.
+- `pnpm --filter pspf-core test`: 42 passed, including Risk publication preflight, additive-merge preservation, crosswalk atomicity, and cold restore of framework, Risk fields, and event history.
+- `pnpm --filter pspf-workshop test`: 148 passed, including the hostile Risk presentation fixture.
+- `pnpm run check:risk-workbench`: passed; 45 accessibility combinations had zero serious/critical findings, 108 layout combinations had no overflow or zero-size controls, and 108 screenshots were captured. At 504 Risks, register rendering was 13.4 ms against 250 ms and matrix rendering was 1.5 ms against 150 ms.
+- `check:personal-data:run`, `check:schema-policy`, `check:schema-coverage`, and `backup-restore-dry-run`: passed.
+- `node scripts/check-gate-integrity.mjs`: passed; the C1 verification gate is registered in `check:gates:run`.
+- The new `check-risk-verification` unit tests pass. The evidence gate correctly fails against the current register because the live operator walkthrough is pending. Automated browser checks do not substitute for that walkthrough.
+
+As recorded on 2026-09-26, the evidence gate then correctly failed because the live walkthrough was pending. That historical status is superseded by the C1 close-out below.
+
+### C1 Close-out (2026-10-05)
+
+The operator reports that the Risk walkthrough behaved as expected, with no critical issues encountered; all nine journey steps are marked passed in [the evidence pack](risk-verification-evidence.json). The separate manual accessibility/performance review was not performed and is deferred to a later review. Automated verification passed: 45 accessibility combinations had zero serious/critical findings; 108 layout combinations across the nine Risk views, three themes and required viewport sizes/zoom had no overflow or hidden controls; at 504 Risks, register rendering was 13.4 ms and matrix rendering 1.5 ms. Existing redaction, compatibility, recovery, treatment-link and limitation-disposition evidence was retained. Fresh `release:readiness` passed all 17 checks; this is not release-sequencing or publication approval.
 
 ## Session Discipline and Progress
 

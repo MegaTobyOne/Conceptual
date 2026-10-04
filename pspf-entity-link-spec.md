@@ -1025,16 +1025,19 @@ In v1.7 this is the only permitted `(fromType, toType)` pair for `tagged-with`. 
 
 #### Change Records
 
-| fromType      | linkType | toType      | Meaning                                                       |
-| ------------- | -------- | ----------- | ------------------------------------------------------------- |
-| change-record | changes  | requirement | change explains why a requirement changed                     |
-| change-record | changes  | action      | change explains why an action changed                         |
-| change-record | changes  | risk        | change explains why a risk changed                            |
-| change-record | changes  | direction   | change explains why a Direction response or treatment changed |
-| change-record | changes  | tag         | change explains why a tag is relevant                         |
-| change-record | changes  | saved-view  | change explains why a saved view matters                      |
+| fromType            | linkType | toType      | Meaning                                                        |
+| ------------------- | -------- | ----------- | -------------------------------------------------------------- |
+| change-record       | changes  | requirement | change explains why a requirement changed                      |
+| change-record       | changes  | action      | change explains why an action changed                          |
+| change-record       | changes  | risk        | change explains why a risk changed                             |
+| change-record       | changes  | direction   | change explains why a Direction response or treatment changed  |
+| change-record       | changes  | tag         | change explains why a tag is relevant                          |
+| change-record       | changes  | saved-view  | change explains why a saved view matters                       |
+| governance-decision | changes  | commitment  | governance decision changes a commitment baseline or lifecycle |
 
-In v1.10 these are the only permitted `(fromType, toType)` pairs for `changes`. Tombstoned endpoints may remain linked so historical explanations survive erasure or archive workflows.
+In v1.10 these were the permitted `(fromType, toType)` pairs for `changes`.
+The Phase 2 commitment slice adds the governance-decision to commitment pair.
+Tombstoned endpoints may remain linked so historical explanations survive erasure or archive workflows.
 
 ## Link rules
 

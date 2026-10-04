@@ -11,12 +11,12 @@
     <title>PSPF Ecosystem</title>
     <meta
       name="description"
-      content="A streamlined guide to the PSPF local-first tool ecosystem: Core, Workshop, Assurance, Shop, Pub, and Explorer for Australian Government assurance workflows."
+      content="Local-first cyber risk, assurance and work planning with PSPF and ISM context. Explore the current tools and the proposed context-preserving workbench."
     />
     <meta property="og:title" content="PSPF Ecosystem" />
     <meta
       property="og:description"
-      content="Core, Workshop, Assurance, Shop, Pub, and Explorer for local-first PSPF assurance workflows. Independent project."
+      content="Current PSPF cyber risk and assurance tools, plus a clean-start workbench design direction. The redesign is planned, not implemented. Independent project."
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -1089,6 +1089,7 @@
           <a href="https://home.tobyharvey.online" target="_blank" rel="noopener noreferrer">Atlas (home)</a>
           <a href="#products">Products</a>
           <a href="#workflow">Workflow</a>
+          <a href="#design-direction">Design</a>
           <a href="#strategy-priority">Strategy</a>
           <a href="#how-it-works">How it works</a>
           <a href="#links">Links</a>
@@ -1122,20 +1123,22 @@
       <section class="hero" id="top">
         <div class="wrap hero-grid">
           <div class="hero-copy">
-            <span class="eyebrow">Australian PSPF assurance tooling</span>
-            <h1>Local records. Shareable assurance.</h1>
+            <span class="eyebrow">Local-first tools with Australian PSPF and ISM context</span>
+            <h1>PSPF cyber risk and assurance</h1>
             <p class="hero-lede">
-              A local-first compliance uplift tool for PSPF assessment work: author in VS Code, decide the current
-              position, connect strategic choices to delivery actions, then review exposure and forward work in a
-              shareable browser-based Explorer view.
+              Connect risks, evidence, treatment work and accountability so a cyber security manager can decide what
+              needs attention, follow through and explain the remaining exposure.
             </p>
             <p>
-              Core is the trusted workspace record. Workshop is the operator decision surface. Assurance tracks
-              assessments, findings, verification queues, and publication readiness. Shop links commercial planning to
-              assurance. Pub keeps people and stakeholder context local. Explorer is the compliance uplift and
-              forward-planning view: it supports defensible status decisions, evidence, mitigation suggestions, and a
-              practical route from assessment outcome to the next work plan. Strategy delivery cues, closed-work
-              history, evidence strength and temporal change help teams decide what needs attention next.
+              The current ecosystem has five VS Code extensions and the Explorer web app. Core holds the workspace
+              record; Workshop supports authoring and reporting; Assurance tracks assessments and findings; Shop
+              supplies commercial context; Pub keeps organisation records local. Explorer supports publication review
+              and browser-local authoring through explicit bundle exchange.
+            </p>
+            <p>
+              These tools support the work that protects an organisation. They do not replace technical controls,
+              monitoring or security testing, and completing an Action does not prove that risk has fallen. A coherent,
+              context-preserving workbench is now being designed; the redesign is not implemented.
             </p>
             <div class="hero-actions">
               <a
@@ -1170,13 +1173,12 @@
                 >Pub records (people, teams, assignments) stay local and are not published to Explorer bundles.</span
               >
             </div>
-            <div class="signal-row" aria-label="Current release signals">
+            <div class="signal-row" aria-label="Current repository baseline">
               <div class="signal">
-                <strong>1.60.0</strong
-                ><span>UX judgement-support: basis, consequence, blockers, trajectory, change, supplier verdict</span>
+                <strong>1.76.0</strong><span>repository baseline; workbench redesign planned</span>
               </div>
-              <div class="signal"><strong>1.15.0</strong><span>schema / bundle / API axes</span></div>
-              <div class="signal"><strong>6</strong><span>active product surfaces</span></div>
+              <div class="signal"><strong>1.17.0</strong><span>schema / bundle / API axes</span></div>
+              <div class="signal"><strong>5 + 1</strong><span>separate extensions and a web app</span></div>
               <div class="signal"><strong>0</strong><span>cloud database dependency</span></div>
             </div>
           </div>
@@ -1195,14 +1197,14 @@
                 <strong>Assurance + Shop + Pub</strong><span>Assessment, commercial, and people context</span>
               </div>
               <span class="map-arrow" aria-hidden="true">→</span>
-              <div class="map-node is-share"><strong>Explorer</strong><span>Portable review bundle</span></div>
+              <div class="map-node is-share"><strong>Explorer</strong><span>Publication-safe exchange only</span></div>
             </div>
             <div class="map-strip" aria-label="Key outputs">
               <span class="map-pill">Posture brief</span>
               <span class="map-pill">Master JSON</span>
               <span class="map-pill">Connected View</span>
               <span class="map-pill">Saved views</span>
-              <span class="map-pill">Backup JSON</span>
+              <span class="map-pill">Local backup</span>
             </div>
           </div>
         </div>
@@ -1211,10 +1213,10 @@
       <section id="products">
         <div class="wrap">
           <div class="section-head">
-            <h2>Products</h2>
+            <h2>Current products</h2>
             <p>
-              Each surface has a distinct job. Version 1.51 keeps the system local-first, uses the master JSON bundle as
-              the exchange boundary, and makes the route from assessment to strategic delivery easier to inspect.
+              These remain separately packaged today. A single modular extension is under design review, not available
+              as a replacement installation. Local records and publication-safe master bundles remain distinct.
             </p>
           </div>
           <div class="product-grid">
@@ -1228,8 +1230,8 @@
               </div>
               <div>
                 <p>
-                  Local system of record, SQLite workspace, snapshots, validation, import/export, writer lock, and
-                  backup-oriented master JSON.
+                  Local SQLite system of record, validation, snapshots, controlled import/export and writer ownership.
+                  The publication bundle excludes sensitive fields and is not a lossless backup.
                 </p>
                 <div class="meta">
                   <span>VS Code extension</span><code>tobyharvey.pspf-core</code><span>local-only</span>
@@ -1253,8 +1255,8 @@
               </div>
               <div>
                 <p>
-                  Day-to-day authoring for Requirements, Evidence, Actions, Risks, Directions, ISM mappings, tags, saved
-                  views, and posture briefs.
+                  Day-to-day requirements, evidence, cyber risks and treatment Actions, with team accountability,
+                  planning, strategy context and reusable reporting.
                 </p>
                 <div class="meta">
                   <span>VS Code extension</span><code>tobyharvey.pspf-workshop</code><span>depends on Core</span>
@@ -1278,8 +1280,8 @@
               </div>
               <div>
                 <p>
-                  Dedicated assurance surface for assessments, penetration testing workbench, finding queues,
-                  verification status, and publication-readiness checks.
+                  Local assessment and penetration-testing workbenches, finding queues and verification/retest tracking.
+                  Secure assurance publication remains separately planned.
                 </p>
                 <div class="meta">
                   <span>VS Code extension</span><code>tobyharvey.pspf-assurance</code><span>depends on Core</span>
@@ -1303,10 +1305,9 @@
               </div>
               <div>
                 <p>
-                  Compliance uplift and forward-planning view for reviewers: posture, records, local changes, saved
-                  views, Plan Lens, Connected View, exposure and copyable brief output. Explorer helps teams turn
-                  assessment results into defensible decisions, mitigation paths, and the next cycle of work rather than
-                  simply publishing a static status snapshot.
+                  Browser-based publication review and local authoring, with posture, records, relationships, saved
+                  views and copyable briefs. Work moves through explicit master-bundle exchange, not a live Core
+                  connection. Desktop and browser responsibilities are part of the new design review.
                 </p>
                 <div class="meta">
                   <span>browser view</span><span>reads JSON bundle</span><span>no server store</span>
@@ -1380,8 +1381,8 @@
           <div class="section-head">
             <h2>Workflow</h2>
             <p>
-              The useful path is deliberately short: capture, validate, share, and recover. Every step keeps the
-              authoritative policy source separate from local assessment data.
+              Current tools support assessment, linked work and reporting. The complete connection from delivered work
+              to observed treatment effect and reviewed business risk is still being developed.
             </p>
           </div>
           <div class="workflow">
@@ -1397,20 +1398,68 @@
               <span class="step-num">Step 2</span>
               <h3>Decide and mitigate</h3>
               <p>
-                Capture the current status, evidence, rationale, and standard mitigation options for each requirement or
-                control. Link the resulting Actions to the Strategy Choice they deliver, keeping each decision
-                defensible and ready to plan.
+                Record the assessment, evidence and rationale, then link Actions and controls to the work they support.
+                Existing suggestions help identify requirement gaps without open work; the curated standard mitigation
+                library remains planned.
               </p>
             </article>
             <article class="step">
               <span class="step-num">Step 3</span>
-              <h3>Review and plan in Explorer</h3>
+              <h3>Review and explain</h3>
               <p>
-                Open the bundle in Explorer for posture, records, Connected View, saved views, local changes, exposure,
-                trends and a forward work-plan view. Closed Actions remain auditable without crowding the active plan.
+                Use saved records and evidence to prepare a scoped brief, or review an eligible bundle in Explorer. Keep
+                delivery progress, verification results and the remaining risk separate; missing evidence is a gap, not
+                a successful outcome.
               </p>
             </article>
           </div>
+        </div>
+      </section>
+
+      <section id="design-direction">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Design direction</h2>
+            <p>
+              Planning only, recorded 26 September 2026. The goal is one coherent workbench for capture, investigation,
+              follow-through and reporting, with substantial interface and visual redesign.
+            </p>
+          </div>
+          <div class="workflow">
+            <article class="step">
+              <span class="step-num">Continuity</span>
+              <h3>Keep your place</h3>
+              <p>
+                The target is a stable worklist, contextual editing and related-item inspection that preserves filters,
+                selection, scroll and focus. Recover local drafts after closing or restarting; explicit Save changes
+                authoritative records. This full workflow is not yet implemented.
+              </p>
+            </article>
+            <article class="step">
+              <span class="step-num">Progress</span>
+              <h3>Know what changed</h3>
+              <p>
+                Distinguish work delivered, effectiveness checked and risk reviewed. Reuse accepted facts in management
+                reporting, keep uncertainty visible and provide useful mitigation starting points without automating
+                professional judgement.
+              </p>
+            </article>
+            <article class="step">
+              <span class="step-num">Structure</span>
+              <h3>One coherent workbench</h3>
+              <p>
+                Compare workbench-first and outcome-first layouts, and evaluate one modular extension bringing together
+                Core, Workshop, Assurance, commercial and organisational functions. Desktop/browser scope and final
+                packaging remain open decisions.
+              </p>
+            </article>
+          </div>
+          <p>
+            There are no active users, so the proposed design can start with a fresh workspace without legacy retention
+            or migration. That does not authorise deleting current data or weakening future privacy and recovery.
+            Product-owner walkthroughs will test complete journeys, including interruption and failed Save; they are not
+            a claim of active-user validation. No code, packaging or publication change is announced here.
+          </p>
         </div>
       </section>
 
@@ -1419,9 +1468,9 @@
           <div class="section-head">
             <h2>Strategy: risk → priority → choice</h2>
             <p>
-              The Workshop Cyber Strategy Map turns linked risk into explicit priority. Each strategic choice derives a
-              priority band from the risks it links — so leadership sees which choices matter most, and why, without any
-              extra data entry or cloud service.
+              The Workshop Cyber Strategy Map uses linked risk to help explain planning priorities. These are decision
+              aids, not measured reductions in exposure. Known treatment-link and effectiveness-measurement gaps remain
+              open in the wider risk-to-outcome workflow.
             </p>
           </div>
           <figure class="diagram" aria-labelledby="diagram-priority-title">
@@ -1499,9 +1548,9 @@
           <div class="section-head">
             <h2>How it works</h2>
             <p>
-              The ecosystem is a small set of canonical entities that flow through a single local workspace and exit
-              through one validated JSON bundle. These diagrams show the lifecycle, the entity model, and what crosses
-              the publication boundary into Explorer.
+              Core-backed records, Pub's private local store and Explorer's browser data have different boundaries.
+              These diagrams summarise relationships and exchange; a connection does not grant permission to publish the
+              linked data. Master-bundle exchange is not a lossless workspace backup.
             </p>
           </div>
 
@@ -1511,15 +1560,16 @@
               <figcaption class="diagram-head">
                 <h3 id="diagram-flow-title">Data flow lifecycle</h3>
                 <p>
-                  Official sources stay separate from your assessment data. A single SQLite workspace is the system of
-                  record; one master JSON bundle is the only exchange artefact.
+                  Official sources stay separate from assessment data. Workshop, Assurance and Shop use Core's SQLite
+                  record. Pub has a separate local store; only opted-in team dates supply Workshop planning context.
+                  Explorer receives an eligible master bundle, not the private workspace.
                 </p>
               </figcaption>
               <svg
                 class="diagram-svg"
                 viewBox="0 0 1100 360"
                 role="img"
-                aria-label="Data flow from official sources, through the local Core SQLite workspace authored by Workshop, Assurance, Shop, and Pub, validated and snapshotted, then exported as a master JSON bundle that Explorer reads in the browser."
+                aria-label="Official sources inform Core-backed Workshop, Assurance and Shop records. Pub keeps a separate local store with limited planning context. Validated publication-safe records travel in a master bundle to Explorer; bundle import is not a lossless backup restore."
               >
                 <defs>
                   <marker
@@ -1579,7 +1629,7 @@
 
                 <rect class="d-pub" x="600" y="240" width="170" height="48" rx="8" />
                 <text class="d-title" x="618" y="265">Pub</text>
-                <text class="d-sub" x="618" y="282">people · roles · assignments</text>
+                <text class="d-sub" x="618" y="282">separate local people store</text>
 
                 <!-- Validate + snapshot stage -->
                 <rect class="d-bg-soft" x="340" y="248" width="220" height="62" rx="8" />
@@ -1624,9 +1674,9 @@
                 <path class="d-edge strong" d="M560,278 C700,278 720,170 850,170" marker-end="url(#d-arrow)" />
                 <path class="d-edge strong" d="M955,220 L955,248" marker-end="url(#d-arrow)" />
 
-                <!-- Backup loop -->
+                <!-- Reviewed bundle import -->
                 <path class="d-edge dashed" d="M850,200 C760,330 500,340 450,310" marker-end="url(#d-arrow)" />
-                <text class="d-edge-label" x="610" y="338">backup restore (validated review path)</text>
+                <text class="d-edge-label" x="610" y="338">reviewed bundle import (not a backup)</text>
               </svg>
               <div class="diagram-legend" aria-hidden="true">
                 <span class="swatch"><span class="dot d-source-dot"></span> Authoritative sources</span>
@@ -1794,31 +1844,31 @@
               <figcaption class="diagram-head">
                 <h3 id="diagram-boundary-title">Publication boundary</h3>
                 <p>
-                  Every field declares a publication policy. Anything personal or restricted stays local; only labelled
-                  references and assurance-relevant context cross to Explorer.
+                  Every field needs a publication policy. Restricted personal data never crosses this boundary;
+                  sensitive fields are excluded by default. Being linked to a requirement does not make data public.
                 </p>
               </figcaption>
               <div class="boundary-grid">
                 <div class="boundary-card is-keep">
                   <h4>Crosses to Explorer</h4>
                   <ul>
-                    <li>Domain, Requirement, Evidence summaries, Action status, Risk and Direction records</li>
+                    <li>Eligible public fields in Domain, Requirement, Evidence, Action, Risk and Direction records</li>
                     <li>ISM mappings and Essential Eight references</li>
-                    <li>Supplier and contract identifiers used as assurance context</li>
-                    <li>Assessment and verification status suitable for publication review</li>
-                    <li>Tags, saved views, and link relationships</li>
-                    <li>Posture brief content (already redacted)</li>
+                    <li>Only the fields allowed by the active publication profile</li>
+                    <li>Compatible risk assessments; unsupported assessments fail publication preflight</li>
+                    <li>Eligible tags, saved views and link relationships</li>
+                    <li>Public snapshot summaries and redacted posture brief content</li>
                   </ul>
                 </div>
                 <div class="boundary-card is-redact">
-                  <h4>Stays local (never exported)</h4>
+                  <h4>Not in Explorer bundles</h4>
                   <ul>
                     <li>Person names, emails, and any personal contact data</li>
                     <li>Assignment records (<code>ASM-*</code>) and team membership</li>
                     <li>Restricted-field values and non-public free text</li>
                     <li>Raw penetration testing notes, exploit detail, and internal verification working material</li>
-                    <li>Internal-only notes flagged as sensitive</li>
-                    <li>Workspace SQLite file and snapshot history</li>
+                    <li>Non-public notes and Shop commercial data without an approved publication policy</li>
+                    <li>Workspace database and private snapshot side files</li>
                   </ul>
                 </div>
               </div>

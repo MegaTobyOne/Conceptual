@@ -23,6 +23,8 @@ export type {
 } from "./page-primitives.js";
 export { DEFAULT_PRESENTATION_LENS, normalisePresentationLens } from "./presentation-lens.js";
 export type { PresentationLens } from "./presentation-lens.js";
+export { DEFAULT_WORKING_CONTEXT, normaliseWorkingContext, workingContextLabel } from "./working-context.js";
+export type { WorkingContext } from "./working-context.js";
 export { relationshipManagerHtml } from "./relationships.js";
 export type { RelationshipManagerAction, RelationshipManagerOptions } from "./relationships.js";
 export { homePanelShellHtml, homeMetricCard, homeActionButton, homeSection, homePostureHeader } from "./home-panel.js";

@@ -2,6 +2,14 @@
 
 Status: **implemented**
 
+## Workbench Design Direction (2026-09-26)
+
+The [clean-start design brief](pspf-design-spec.md#clean-start-workbench-design-brief) proposes a coherent task-centred interface over useful existing engines, with one modular extension under evaluation. It is not implemented. The current screens and commands below remain the current workflow contract; they do not constrain the proposed layout to the existing product split or multi-step prompts.
+
+The target journey is contextual capture, related evidence/commercial inspection, interruption, draft recovery, explicit Save, return to the same working place and reporting from saved facts. Preserve filters, selection, scroll, focus and unfinished input; distinguish view state, drafts and authoritative records. Delivery completion must remain separate from verified effect and risk review.
+
+There are no active users and no legacy migration or retention requirement for the proposed fresh baseline. Future writes still require validation, atomicity, privacy and recovery. The [decision register](docs/decision-register.md), [design phases](docs/course-correction-plan.md#clean-start-workbench-design-plan) and [grand plan](pspf-grand-plan.md#clean-start-workbench-design-2026-09-26) define the outstanding decisions and prerequisites; no code or data boundary changes follow from this note.
+
 ## Overview
 
 This specification defines the screen model and principal user workflows for **PSPF Core** and **PSPF Workshop** inside Visual Studio Code. It assumes the extension surface model already defined elsewhere: Core is compact and administrative, while Workshop is the primary operational environment for authoring, evidence linkage, action tracking, and reporting preparation. VS Code UX guidance recommends using Tree Views for displaying data, keeping the number of views low, and limiting custom Webview Views to situations where they add real value.
