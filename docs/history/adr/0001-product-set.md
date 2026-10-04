@@ -1,9 +1,5 @@
 # 0001 — Product set and naming
 
-Status: **reference**
-
-This decision was superseded by ADR 0102 and archived at [docs/history/adr/0001-product-set.md](../docs/history/adr/0001-product-set.md).# 0001 — Product set and naming
-
 - Status: superseded by ADR 0102
 - Date: 2026-05-09
 - Superseded by: 0102 (product set and host)

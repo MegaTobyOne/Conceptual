@@ -5,8 +5,8 @@ This repository implements the PSPF product ecosystem at v1.76.0: five VS Code e
 ## Current Direction (2026-10-05)
 
 - The product is being reframed around the manager's three jobs — J1 capture from conversation, J2 answer ad hoc requests fast, J3 run the team — and towards one browser single-page application that replaces the five VS Code extensions. Read `adr/0101-product-reframe-managers-three-jobs.md`, `adr/0102-browser-first-workbench-supersedes-extensions.md` and `pspf-grand-plan.md` §"Product reframe and browser-first direction (2026-10-05)" before any product, roadmap or architecture work.
-- Both ADRs are **proposed**. Until accepted, the five extensions and the dual-mode Explorer remain the shipped product, every current gate applies, and nothing is deleted, frozen or re-versioned.
-- C2–C6, O1–O3, the clean-start workbench design phases and the website/brand brief are **paused** (reason "superseded design centre"; resumption gate "accepted ADR 0102"). Do not advance them. C0 and C1 are complete.
+- Both ADRs were **accepted 2026-10-05**. The five extensions and dual-mode Explorer remain the shipped product until staged retirement completes; no extension is frozen or deleted ahead of ADR 0102 D8.
+- C2–C6, O1–O3, the clean-start workbench design phases and the website/brand brief are **paused** (reason "superseded design centre"); do not resume a slice until its remaining behaviours have a destination or are recorded as no longer required. C0 and C1 are complete.
 - Do not start new extension features, new Workshop commands, new Explorer entity routes or new surface-budget work. Favour documentation, discovery (friction log, Rung 0 Copilot trial) and preparation for the first SPA slice (Inbox, Ask, publish-to-folder).
 - Tenant AI is in scope on the ADR 0101 D4 ladder; public models via personal keys remain out of scope. Every AI output is draft-and-confirm with recorded provenance.
 - Team sharing is a requirement under the reframe; redaction applies at the team boundary. The invariants below still govern anything that leaves that boundary.
@@ -19,7 +19,7 @@ This repository implements the PSPF product ecosystem at v1.76.0: five VS Code e
 - Read `pspf-acceptance-and-quality-gates.md` before claiming a slice is done.
 - Read `pspf-developer-pipeline-spec.md` before branch, promotion, release, CI, GitHub Actions, Marketplace, or web deployment work.
 - Read `pspf-security-redaction-controls.md` and `adr/0005-redaction-default-deny.md` before changing exported, published, AI, Graph, Office, assurance, or externally visible data.
-- The docs have not yet been mechanically moved into `docs/`; current authoritative specs still live at the repo root and `adr/`.
+- Superseded host-specific records are archived under `docs/history/`; retained authoritative contracts remain at the repo root and `adr/`.
 
 ## Current Workspace
 
@@ -56,11 +56,11 @@ This repository implements the PSPF product ecosystem at v1.76.0: five VS Code e
 - `pspf-entity-link-spec.md` for canonical entity, ID, and link rules.
 - `pspf-explorer-json-bundle-schema-spec.md`, `adr/0009-explorer-single-master-bundle.md`, and `adr/0012-explorer-schema-publication.md` for the master export bundle and schema contract.
 - `pspf-error-and-diagnostics-model.md` for the intended structured diagnostics model. Treat it as aspirational until Tranche 2 of `pspf-grand-plan.md` implements it.
-- `pspf-core-workshop-screen-workflow-spec.md`, `explorer-screen-workflow-spec.md`, and `pspf-vscode-extension-surface-spec.md` for product surfaces and workflows.
+- `docs/history/README.md` for legacy extension and dual-mode Explorer records; ADR 0102 governs the browser-first product surface.
 
 ## Implementation Rules
 
-- Preserve the local-first contract for the shipped extensions: the five VS Code extensions must remain fully usable with no network access while they remain the shipped product. Under the reframe (ADR 0101/0102, proposed) the future browser workbench keeps browser-local storage and file-based exchange; publish-to-folder is its only integration, and Microsoft 365 or AI capability beyond that follows the ADR 0101 D4 ladder with organisational approval.
+- Preserve the local-first contract for the shipped extensions: the five VS Code extensions must remain fully usable with no network access while they remain the shipped product. Under the accepted reframe (ADR 0101/0102) the future browser workbench keeps browser-local storage and file-based exchange; publish-to-folder is its only integration, and Microsoft 365 or AI capability beyond that follows the ADR 0101 D4 ladder with organisational approval.
 - Do not start Graph, AI, Office-output, or assurance-publishing implementation before the relevant ADRs are accepted.
 - Use AU English in user-facing copy. Code identifiers and JSON keys may use ecosystem-standard US English where appropriate.
 - Treat all data as sensitive by default. Every schema field must declare `publication`; missing policy is a failure.

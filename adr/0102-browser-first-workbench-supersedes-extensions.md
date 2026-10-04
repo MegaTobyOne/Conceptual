@@ -1,6 +1,6 @@
 # 0102 — Browser-first workbench supersedes the VS Code extensions
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-10-05
 - Would supersede on acceptance: ADR 0001 (product set), ADR 0007 (extension packaging and trust registry), ADR 0013 §Repos as it applies to extension packages, ADR 0015 (Item Detail WebviewPanel), ADR 0078 (Assurance extension boundary), ADR 0084 §"dual surface" (Explorer becomes the only surface), ADR 0096/0097 surface budgets
 - Depends on: ADR 0101

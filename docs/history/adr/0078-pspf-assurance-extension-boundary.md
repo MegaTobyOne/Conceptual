@@ -1,8 +1,4 @@
-# 0078 — PSPF Assurance extension boundary
-
-Status: **reference**
-
-This extension-boundary decision was superseded by ADR 0102 and archived at [docs/history/adr/0078-pspf-assurance-extension-boundary.md](../docs/history/adr/0078-pspf-assurance-extension-boundary.md).# 0078 - PSPF Assurance extension boundary
+# 0078 - PSPF Assurance extension boundary
 
 - Status: superseded by ADR 0102
 - Date: 2026-06-18

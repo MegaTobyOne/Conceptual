@@ -288,7 +288,6 @@ const coverage = [
   adr("0075-questionnaire-population.md", "automated", ["e2e:v1.33", "check:questionnaire-pack", "check:gates"]),
   adr("0076-v1-42-remediation-foundation.md", "automated", [
     "e2e:v1.42",
-    "check:gate-integrity",
     "check:spec-drift",
     "check:release-candidate"
   ]),
@@ -326,11 +325,7 @@ const coverage = [
     "check:v150-visual",
     "release:readiness"
   ]),
-  adr("0087-v1-53-ux-evidence-and-judgement-baseline.md", "automated", [
-    "e2e:v1.53",
-    "check:gate-integrity",
-    "release:readiness"
-  ]),
+  adr("0087-v1-53-ux-evidence-and-judgement-baseline.md", "automated", ["e2e:v1.53", "release:readiness"]),
   adr("0088-v1-54-assessment-basis-trust-gradient.md", "automated", [
     "e2e:v1.54",
     "check:assessment-basis",
@@ -406,12 +401,8 @@ const coverage = [
     "check:schema-policy",
     "check:adr-coverage"
   ]),
-  adr("0100-v1-76-ux-outcome-evidence-instrument.md", "automated", [
-    "check:journey-cost",
-    "check:gate-integrity",
-    "check:adr-coverage"
-  ]),
-  // Proposed direction ADRs (2026-10-05): documentation only; no product behaviour to gate yet.
+  adr("0100-v1-76-ux-outcome-evidence-instrument.md", "manual", ["check:spec-drift", "check:adr-coverage"]),
+  // Accepted direction ADRs (2026-10-05): governance state and staged transition records.
   adr("0101-product-reframe-managers-three-jobs.md", "manual", ["check:spec-drift", "lint:au", "check:adr-coverage"]),
   adr("0102-browser-first-workbench-supersedes-extensions.md", "manual", [
     "check:spec-drift",

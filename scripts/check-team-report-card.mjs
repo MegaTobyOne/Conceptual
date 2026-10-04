@@ -6,8 +6,7 @@
 // drops narrative overrides, the team report card, or renders it outside the Domain packs -> Readiness
 // slot; when narrative selection stops honouring recordStatus and supersedesId; when Workshop loses
 // the narrative editing, teams tab, or copy wiring; when the narrative UX coverage regresses; when the
-// two new source files reference restricted person/summary/effort fields or US spellings; or when the
-// surface budget drifts from 72/30.
+// two new source files reference restricted person/summary/effort fields or US spellings.
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -268,13 +267,6 @@ check(narrativeCoverage.create === "complete", `${coveragePath} narrative.create
 check(narrativeCoverage.edit === "complete", `${coveragePath} narrative.edit is "complete"`);
 
 // 8. Budget and AU English.
-const baselinePath = "scripts/lib/essentials-surface-baseline.json";
-const baseline = await readJson(baselinePath);
-check(baseline.workshopCommands === 73, `${baselinePath} workshopCommands is 73 (found ${baseline.workshopCommands})`);
-check(
-  baseline.workshopWebviewPanels === 30,
-  `${baselinePath} workshopWebviewPanels is 30 (found ${baseline.workshopWebviewPanels})`
-);
 for (const [label, source] of [
   ["team-report-card.ts", card],
   ["reporting-narrative.ts", narrativeHelper]

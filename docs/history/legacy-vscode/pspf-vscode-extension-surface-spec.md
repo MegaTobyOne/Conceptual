@@ -1,18 +1,14 @@
-# Legacy VS Code Extension Surface Specification
-
-Status: **reference**
-
-The five-extension surface is superseded by ADR 0102 and remains documented for staged-retirement support. See the [archived specification](docs/history/legacy-vscode/pspf-vscode-extension-surface-spec.md).# PSPF VS Code Extension Surface Specification
+# PSPF VS Code Extension Surface Specification
 
 Status: **implemented**
 
 ## Packaging And Interface Review (2026-09-26)
 
-Current packaging remains five separate extensions: Core, Workshop, Assurance, Shop and Pub. The [clean-start design brief](pspf-design-spec.md#clean-start-workbench-design-brief) evaluates a single coherent workbench, potentially one installed extension with independently testable internal modules. The [decision register](docs/decision-register.md) records this as a candidate, not an accepted replacement for ADR 0007/0078.
+Current packaging remains five separate extensions: Core, Workshop, Assurance, Shop and Pub. The [clean-start design brief](../../../pspf-design-spec.md#clean-start-workbench-design-brief) evaluates a single coherent workbench, potentially one installed extension with independently testable internal modules. The [decision register](../../decision-register.md) records this as a candidate, not an accepted replacement for ADR 0007/0078.
 
 The target design is not required to retain old navigation, commands or installation identities: there are no active users and no legacy migration/retention requirement. Implementation still needs explicit activation, writer ownership, module/API, privacy and packaging decisions. Preserving internal discipline does not require exposing product boundaries as everyday navigation, and separate extensions are not a security sandbox.
 
-No manifest contribution, extension ID, API, command or package count changes in this documentation update. The [grand plan](pspf-grand-plan.md#clean-start-workbench-design-2026-09-26) controls when an approved replacement can be implemented.
+No manifest contribution, extension ID, API, command or package count changes in this documentation update. The [grand plan](../../../pspf-grand-plan.md#clean-start-workbench-design-2026-09-26) controls when an approved replacement can be implemented.
 
 ## Overview
 
@@ -244,7 +240,7 @@ Commands are a core extension mechanism in VS Code and should map to meaningful 
 
 ### Core commands
 
-> **v0.1 implementation note.** v0.1 ships a subset of the command set below. The unified `pspf.core.openHealth` view is deferred to v0.2 — its information is surfaced through `pspf.core.validateWorkspace`, `pspf.core.verifyIntegrity`, and `pspf.core.showWriterLock` in v0.1 (see [pspf-development-readiness-review.md](pspf-development-readiness-review.md) § Remaining readiness risks). `pspf.core.exportExplorerBundle` is renamed to `pspf.core.exportBundle` per ADR 0009 (single master bundle); both rows below are retained for spec continuity but the implementation uses the master-bundle name. `pspf.core.runMigration`, `pspf.core.openLogs`, and `pspf.core.rebuildIndexes` are v0.2+.
+> **v0.1 implementation note.** v0.1 ships a subset of the command set below. The unified `pspf.core.openHealth` view is deferred to v0.2 — its information is surfaced through `pspf.core.validateWorkspace`, `pspf.core.verifyIntegrity`, and `pspf.core.showWriterLock` in v0.1 (see [pspf-development-readiness-review.md](../../../pspf-development-readiness-review.md) § Remaining readiness risks). `pspf.core.exportExplorerBundle` is renamed to `pspf.core.exportBundle` per ADR 0009 (single master bundle); both rows below are retained for spec continuity but the implementation uses the master-bundle name. `pspf.core.runMigration`, `pspf.core.openLogs`, and `pspf.core.rebuildIndexes` are v0.2+.
 
 | Command ID                                                                   | Title                           | Placement                   |
 | ---------------------------------------------------------------------------- | ------------------------------- | --------------------------- |

@@ -1,8 +1,4 @@
-# Legacy Core API Contract Specification
-
-Status: **reference**
-
-The Core command API is not carried into the browser-first product. This specification remains available for staged-retirement support in [docs/history/legacy-vscode/pspf-core-api-contract-spec.md](docs/history/legacy-vscode/pspf-core-api-contract-spec.md).# PSPF Core API v1 Contract Specification
+# PSPF Core API v1 Contract Specification
 
 Status: **implemented**
 

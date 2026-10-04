@@ -1,6 +1,6 @@
 # 0097 — v1.71–v1.74 "Brief once, act often" reporting and accountability programme
 
-- Status: accepted
+- Status: accepted; surface-budget provisions superseded by ADR 0102
 - Date: 2026-09-02
 
 ## Context

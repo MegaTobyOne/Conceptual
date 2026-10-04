@@ -1,8 +1,10 @@
 # PSPF Course Correction Plan (v1.76.0–v1.82.0)
 
-Status: **C0 and C1 complete; C2–C6, the clean-start design plan and the website/brand work paused 2026-10-05 — reason "superseded design centre", resumption gate "accepted ADR 0102" (see [ADR 0101](../adr/0101-product-reframe-managers-three-jobs.md) D5 and the [grand plan](../pspf-grand-plan.md#product-reframe-and-browser-first-direction-2026-10-05))**
+Status: **C0 and C1 complete; C2–C6, the clean-start design plan and the website/brand work paused 2026-10-05 — reason "superseded design centre", resumption requires a behaviour-disposition map after ADR 0102 acceptance (see [ADR 0101](../adr/0101-product-reframe-managers-three-jobs.md) D5 and the [grand plan](../pspf-grand-plan.md#product-reframe-and-browser-first-direction-2026-10-05))**
 
 Authority: sequencing is owned by [`pspf-grand-plan.md`](../pspf-grand-plan.md) §"Product reframe and browser-first direction (2026-10-05)". This document holds the detailed slices, testing approach, and execution guidance for the paused programme and remains the record of what each slice required, so that ADR 0102 can map each requirement to a destination or record that it is no longer needed. It does not override `pspf-spec-consistency-index.md`.
+
+ADR 0101 D7 and accepted ADR 0102 supersede the journey-cost ratchet, declining surface-count schedule, and cross-gate meta-checks below. C0 evidence remains historical; C2–C6 stay paused pending disposition mapping.
 
 ## Clean-Start Workbench Design Plan
 
@@ -119,8 +121,8 @@ This programme is a correction, not a repudiation. The following are deliberate 
 1. **One programme open at a time.** Until C2 closes, no new programme opens and no deferred-register item is promoted.
 2. **Nothing new starts while verification debt is open.** C1 and C2 are debt closure. C3 onward are new value.
 3. **The instrument comes first.** C0 ships before any slice that claims a UX improvement, so every later claim has a recorded before-and-after number.
-4. **No slice may increase a recorded flagship-journey cost.** The C0 baseline is a ratchet enforced by `check:journey-cost`.
-5. **Surface budget is a declining target from C3, not a ceiling.** Growth requires an ADR that names what is retired in exchange.
+4. **Historical C0 journey-cost ratchet.** `check:journey-cost` was retired on 2026-10-05 under ADR 0101 D7; its evidence pack remains historical only.
+5. **Historical C3 surface-count schedule.** Surface-count budgets were retired on 2026-10-05 under ADR 0101 D7; no declining count target remains active.
 6. **Retirement stays view-level.** No record, entity, field, command API, export, or datum is removed, per the ADR 0096 precedent.
 7. **Evidence substitutes are labelled as substitutes.** Simulated-operator evidence is recorded as weaker than observed-user evidence and never described as validation.
 
@@ -155,7 +157,7 @@ The external think-aloud sessions committed at S2 (`docs/ux-improvement-ideas.md
 
 ### Done when
 
-The four jobs have recorded baseline cost records, walkthrough verdicts, and readability scores at v1.76.0; `check:journey-cost` is registered in `check:gates:run` and `release-gates.json`; `e2e:v1.76` chains from `e2e:v1.75`; and `docs/ux-improvement-ideas.md` states plainly that the S2 think-aloud commitment was not met and what now substitutes for it.
+C0 recorded the four baseline cost records, walkthrough verdicts, and readability scores at v1.76.0. `check:journey-cost` was registered at the time and retired on 2026-10-05; the evidence remains historical, and `docs/ux-improvement-ideas.md` records that the S2 think-aloud commitment was not met.
 
 ### Testing
 
@@ -249,7 +251,7 @@ Adversarial history fixtures: out-of-order transitions, a transition attempted a
 
 ### Done when
 
-The v1.79.0 targets are met; every retired view has a recorded destination for its capability; no gate detects record, field, API, or export loss; `check:journey-cost` shows no regression and at least one improvement.
+The v1.79.0 targets are met; every retired view has a recorded destination for its capability; no gate detects record, field, API, or export loss; the historical C0 comparison shows no regression and at least one improvement; the journey-cost gate is retired.
 
 ### Testing
 

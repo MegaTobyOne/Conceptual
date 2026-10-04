@@ -7,8 +7,7 @@
 // SUGGESTED_DUE_DAYS, stampNarrativesWithSnapshot) are missing, not re-exported, or untested; when
 // Workshop loses the accept-suggestions draft-and-confirm flow, close-reporting-period stamping, the
 // evidence/ISM sweeps, or their webview handlers; when narratives stop reaching the share artefacts;
-// when any new source file references restricted person fields or US spellings; or when the surface
-// budget drifts from 72/30.
+// when any new source file references restricted person fields or US spellings.
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -29,7 +28,6 @@ const exists = async (relativePath) => {
   }
 };
 const read = (relativePath) => readFile(join(root, relativePath), "utf8");
-const readJson = async (relativePath) => JSON.parse(await read(relativePath));
 const functionBody = (source, name) => {
   const start = source.search(new RegExp(`^(?:export )?(?:async )?function ${name}\\(`, "m"));
   assert.ok(start !== -1, `source defines function ${name}`);
@@ -231,13 +229,6 @@ for (const [label, source] of [
 }
 
 // 6. Budget and AU English.
-const baselinePath = "scripts/lib/essentials-surface-baseline.json";
-const baseline = await readJson(baselinePath);
-check(baseline.workshopCommands === 73, `${baselinePath} workshopCommands is 73 (found ${baseline.workshopCommands})`);
-check(
-  baseline.workshopWebviewPanels === 30,
-  `${baselinePath} workshopWebviewPanels is 30 (found ${baseline.workshopWebviewPanels})`
-);
 for (const [label, source] of [
   ["suggested-actions.ts", suggested],
   ["reporting-period.ts", period],

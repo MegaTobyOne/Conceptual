@@ -1,9 +1,5 @@
 # 0007 — Extension packaging and trust registry
 
-Status: **reference**
-
-Extension packaging and trusted-caller policy were superseded by ADR 0102. The full decision is archived at [docs/history/adr/0007-extension-packaging.md](../docs/history/adr/0007-extension-packaging.md); monorepo source layout remains governed by ADR 0013.# 0007 — Extension packaging and trust registry
-
 - Status: superseded by ADR 0102 (extension packaging and trust registry; source layout remains governed by ADR 0013)
 - Date: 2026-05-09
 - Superseded by: 0013 (source layout only), 0078 (packaging count only)

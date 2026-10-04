@@ -7,7 +7,7 @@
 // publication policy, when the standard fixture does not exercise the new shape, when Core stops
 // appending due-date history / enforcing narrative rules / moving legacy axes forward, when Workshop
 // drops the owner-team editing and bulk-assign wiring, when the reporting pack loses its ownership
-// readiness codes, when the named tests are missing, or when the surface budget drifts from 72/30.
+// readiness codes, when the named tests are missing, when the named tests are missing.
 import assert from "node:assert/strict";
 import { access, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -257,14 +257,6 @@ for (const token of ['"email"', '"personId"', "decisionOwnerRef", "person.name"]
 }
 
 // 9. Surface budget unchanged from R1.
-const baselinePath = "scripts/lib/essentials-surface-baseline.json";
-const baseline = await readJson(baselinePath);
-check(baseline.workshopCommands === 73, `${baselinePath} workshopCommands is 73 (found ${baseline.workshopCommands})`);
-check(
-  baseline.workshopWebviewPanels === 30,
-  `${baselinePath} workshopWebviewPanels is 30 (found ${baseline.workshopWebviewPanels})`
-);
-
 console.log(`ok check-ownership-schema: ${passed.length} assertions passed`);
 for (const message of passed) {
   console.log(`  - ${message}`);

@@ -3,7 +3,7 @@
 // wired end to end without a build. Fails when the reporting-pack primitive is missing or not
 // re-exported, when the executive brief section order drifts, when the named behavioural tests are
 // absent, when the Workshop/Core hosts stop calling the primitive or registering their commands,
-// when the surface budget or its ADR reference is wrong, or when reporting-pack.ts references
+// or when reporting-pack.ts references
 // restricted person/summary/effort fields or US spellings.
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
@@ -130,18 +130,6 @@ check(
 );
 
 // 6. Surface budget recorded against the current approved baseline ADR.
-const baselinePath = "scripts/lib/essentials-surface-baseline.json";
-const baseline = JSON.parse(await readFile(join(root, baselinePath), "utf8"));
-check(baseline.workshopCommands === 73, `${baselinePath} workshopCommands is 73 (found ${baseline.workshopCommands})`);
-check(
-  baseline.workshopWebviewPanels === 30,
-  `${baselinePath} workshopWebviewPanels is 30 (found ${baseline.workshopWebviewPanels})`
-);
-check(
-  typeof baseline.recordedAtAdr === "string" && /^adr\/0099-.*\.md$/.test(baseline.recordedAtAdr),
-  `${baselinePath} recordedAtAdr points at the current baseline ADR 0099 file (found ${baseline.recordedAtAdr})`
-);
-check(await exists(baseline.recordedAtAdr), `${baseline.recordedAtAdr} exists`);
 const essentialsCommandsDoc = await readFile(join(root, "docs/workshop-essentials-commands.md"), "utf8");
 check(
   /^- `pspf\.workshop\.openReportingWorkbench`/m.test(essentialsCommandsDoc),

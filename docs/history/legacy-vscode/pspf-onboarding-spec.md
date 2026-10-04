@@ -1,8 +1,4 @@
-# Legacy Onboarding Specification
-
-Status: **reference**
-
-This specification describes VS Code extension onboarding and remains available for staged-retirement support. See the [archived specification](docs/history/legacy-vscode/pspf-onboarding-spec.md).# PSPF Onboarding Specification
+# PSPF Onboarding Specification
 
 Status: **implemented**
 
@@ -10,17 +6,17 @@ Status: **implemented**
 
 This specification pins the end-to-end first-run experience across every install permutation. It exists because the existing specs each describe their half — Core's bootstrap, Workshop's activation, Explorer's first load — but no single spec walks the user from "I have nothing installed" to "I have a master bundle published".
 
-Onboarding is a v0.1 acceptance criterion (see [adr/0014-v0-1-thin-slice.md](adr/0014-v0-1-thin-slice.md)): a new operator must be able to complete the spine without reading the docs.
+Onboarding is a v0.1 acceptance criterion (see [adr/0014-v0-1-thin-slice.md](../../../adr/0014-v0-1-thin-slice.md)): a new operator must be able to complete the spine without reading the docs.
 
 ## Personas
 
 1. **Australian Government assurance practitioner** (primary). Works in VS Code, on macOS or Windows. Wants to assess against PSPF and Essential Eight, attach evidence, share a brief.
 2. **Reviewer / executive** (secondary). Receives an Explorer bundle (a folder, a zip, or a same-origin URL). Does not run VS Code.
-3. **Developer / integrator** (tertiary). Maintains or extends the platform. Out of scope for this spec; covered by [pspf-developer-pipeline-spec.md](pspf-developer-pipeline-spec.md).
+3. **Developer / integrator** (tertiary). Maintains or extends the platform. Out of scope for this spec; covered by [pspf-developer-pipeline-spec.md](../../../pspf-developer-pipeline-spec.md).
 
 ## Install permutations and behaviour
 
-> **v0.1 implementation note.** v0.1 does not ship a unified Core Health view; the "First-run target" entries below that reference it are surfaced through the discrete commands `PSPF: Validate Workspace`, `PSPF: Verify Integrity`, and `PSPF: Show Writer Lock`. The unified view arrives in v0.2 (see [pspf-development-readiness-review.md](pspf-development-readiness-review.md) § Remaining readiness risks).
+> **v0.1 implementation note.** v0.1 does not ship a unified Core Health view; the "First-run target" entries below that reference it are surfaced through the discrete commands `PSPF: Validate Workspace`, `PSPF: Verify Integrity`, and `PSPF: Show Writer Lock`. The unified view arrives in v0.2 (see [pspf-development-readiness-review.md](../../../pspf-development-readiness-review.md) § Remaining readiness risks).
 
 | Order | What the user installs              | What VS Code prompts                             | First-run target                           |
 | ----- | ----------------------------------- | ------------------------------------------------ | ------------------------------------------ |
@@ -50,14 +46,14 @@ To avoid broad activation:
 6. Core runs the bootstrap workflow (C1):
    1. Confirms Workspace Trust.
    2. Acquires the writer lock at `.pspf/core/locks/writer.lock`.
-   3. Creates the `.pspf/` layout (see [pspf-core-architecture-spec.md](pspf-core-architecture-spec.md) § Workspace bootstrap).
+   3. Creates the `.pspf/` layout (see [pspf-core-architecture-spec.md](./pspf-core-architecture-spec.md) § Workspace bootstrap).
    4. Initialises the bundled SQLite database engine and writes the Core database file.
    5. Writes `workspace.json`, `products.json`, `policies.json` defaults.
    6. Records the active `schemaVersion`, `bundleVersion`, `apiVersion`.
 7. Core opens the **Health** view in the sidebar with a welcome state: trust confirmed, layout created, no data yet, one prominent next action — **"Create your first Requirement in Workshop"**.
 8. The Workshop Activity Bar entry now shows requirement/evidence/action/risk views in their empty state. Each empty state has a single primary action (`Create Requirement`, `Add Evidence`, etc.).
 9. User invokes `PSPF Workshop: Create Requirement` (multi-step Quick Pick: Domain → title → initial assessment status → confirm).
-10. Workshop opens the **Item Detail** WebviewPanel (per [adr/0015-item-detail-webview-panel.md](adr/0015-item-detail-webview-panel.md)) for the new Requirement.
+10. Workshop opens the **Item Detail** WebviewPanel (per [adr/0015-item-detail-webview-panel.md](../adr/0015-item-detail-webview-panel.md)) for the new Requirement.
 11. User attaches Evidence (URL or note), saves.
 12. User runs `PSPF Core: Create Snapshot` from the Command Palette (Quick Pick: type → title → confirm).
 13. User runs `PSPF Core: Export Explorer Bundle`. Run Detail panel shows output path, manifest version, and checksum.
@@ -79,11 +75,11 @@ For initial assurance-user testing, v0.8 adds a shorter sample-driven path witho
 
 The same sample path is enforced by `pnpm run check:sample-workspace`.
 
-> **Questionnaire-driven population (v0.8 sibling).** Between steps 3 and 4 the operator may instead — or in addition — run `PSPF: Run Quickstart Questionnaire` to populate the workspace from real-world yes/no/partial/unknown/N-A answers. See [pspf-questionnaire-spec.md](pspf-questionnaire-spec.md) and [adr/0075-questionnaire-population.md](adr/0075-questionnaire-population.md). The remainder of the path (Integrity Scan, Export, Explorer) is unchanged. The questionnaire is re-runnable as a posture refresh.
+> **Questionnaire-driven population (v0.8 sibling).** Between steps 3 and 4 the operator may instead — or in addition — run `PSPF: Run Quickstart Questionnaire` to populate the workspace from real-world yes/no/partial/unknown/N-A answers. See [pspf-questionnaire-spec.md](../../../pspf-questionnaire-spec.md) and [adr/0075-questionnaire-population.md](../../../adr/0075-questionnaire-population.md). The remainder of the path (Integrity Scan, Export, Explorer) is unchanged. The questionnaire is re-runnable as a posture refresh.
 
 ## v1.0 release test path
 
-v1.0 uses [validation-scenario-1-operator-workflow.md](validation-scenario-1-operator-workflow.md) as the manual assurance-user validation script. Automated readiness uses:
+v1.0 uses [validation-scenario-1-operator-workflow.md](../../../validation-scenario-1-operator-workflow.md) as the manual assurance-user validation script. Automated readiness uses:
 
 ```sh
 npx pnpm@10.10.0 run release:readiness

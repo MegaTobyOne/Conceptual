@@ -1,6 +1,6 @@
 # 0101 — Product reframe: the manager's three jobs
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-10-05
 - Supersedes: the "solo offline assurance practitioner" framing in ADR 0001 and ADR 0014 as the design centre (those ADRs remain the record of what was built)
 
