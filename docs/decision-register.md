@@ -2,11 +2,44 @@
 
 Status: active
 
-Last reviewed: 2026-09-26 against repository v1.76.0.
+Last reviewed: 2026-10-05 against repository v1.76.0.
 
 This register records product decisions, not delivery claims. The [grand plan](../pspf-grand-plan.md) owns implementation sequencing; accepted ADRs still govern the current architecture. The [design specification](../pspf-design-spec.md) and [course-correction plan](course-correction-plan.md) carry the detailed design work.
 
-## Current Decisions: Context-Preserving Workbench
+## Product Reframe And Browser-First Direction (2026-10-05)
+
+The product owner reports that the product works but has not made anything at work easier. The working day is meetings and email that drive action through conversation, ad hoc urgent requests for information, briefs and reports, and managing a team of security professionals, across Microsoft 365, a GRC platform, a SIEM and other tooling. Real work data can in principle be held on a work machine with appropriate controls. The owner is prepared to be radical but not rash. Governing records: [ADR 0101](../adr/0101-product-reframe-managers-three-jobs.md) and [ADR 0102](../adr/0102-browser-first-workbench-supersedes-extensions.md), both **proposed**; sequencing in the [grand plan](../pspf-grand-plan.md#product-reframe-and-browser-first-direction-2026-10-05).
+
+| Decision               | Position as of 2026-10-05                                                                                                                                                                                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Design centre          | Three jobs: J1 capture from conversation, J2 answer ad hoc requests fast, J3 run the team. The solo offline compliance-authoring framing is superseded as a goal; nothing built under it is deleted by this decision.                                                                 |
+| Host                   | One browser single-page application replaces the five VS Code extensions as the only product surface. Navigation by job: Inbox, Ask, Work, Team, Publish. VS Code is not the design centre.                                                                                           |
+| Extension fate         | Freeze at 1.76.0; build the SPA to the original spine plus Inbox and Ask; use only the SPA for a fortnight on the real register; then deprecate Marketplace listings and move packages to `packages/legacy/`. Nothing deleted before the last step.                                   |
+| What carries forward   | `@pspf/contracts`, `@pspf/reference-data`, `@pspf/ism-source-library`, `@pspf/brief-renderer`, the master bundle format, IDs, link taxonomy and `publication` declarations. Writer lock, trusted-caller policy, Core command API and `.pspf/` layout do not.                          |
+| Team sharing           | A requirement, not a threat. People, ownership and load are visible inside the team boundary; redaction applies to everything that leaves it. Pub's local-only rule is replaced.                                                                                                      |
+| Tenant AI              | In scope on a ladder: Rung 0 publish to a SharePoint-synced folder so Microsoft 365 Copilot grounds on it (no integration code); Rung 1 declarative agent; Rung 2 Azure OpenAI in tenant. Public models via personal keys stay out. Human acceptance of every AI output.              |
+| Capture model          | Copilot extracts where it runs (Teams recap, Outlook summary, or an app-supplied prompt template); the app parses deterministically into typed drafts with source excerpt and deep link; the operator accepts, merges, retypes or discards. An `AiDraft` provenance shape is defined. |
+| Paused programmes      | C2–C6, O1–O3, the six-phase clean-start design and the website/brand brief are parked with reason "superseded design centre" and resumption gate "accepted ADR 0102". C0 and C1 remain complete.                                                                                      |
+| Governance diet        | Superseded specs and ADRs move to `docs/history/` on acceptance; redaction, build, test and accessibility gates stay; surface-budget, journey-cost and meta-gates retire with the surface they measure.                                                                               |
+| Atlas                  | Separate product and repository; adopted as architectural reference (single SPA, one store, small engine modules). Code is not shared until the work-side model stabilises after the first slice.                                                                                     |
+| Stack                  | Open between the current Explorer stack (Vite, Lit, IndexedDB) and the Atlas stack (React, Mantine, Dexie); decided in P2 by which reaches a working Inbox sooner.                                                                                                                    |
+| Discovery before build | A two-week work-friction log and a Rung 0 Copilot trial precede any code. These produce the real artefact list and tell us what deployment the organisation would permit.                                                                                                             |
+
+### Decisions Still Open
+
+- Hosting the organisation will accept for the SPA.
+- Whether Assurance and Shop jobs appear in the friction log.
+- Stack choice (P2).
+- Parser stability against Copilot recap shapes and finder-match thresholds (P2).
+- Whether and when to pursue tenant AI beyond Rung 0.
+
+### Scope Of This Decision
+
+Documentation only. No code, package identity, version, schema, storage, gate, release, deployment or data-deletion change is authorised. Until ADR 0102 is accepted, the five extensions and the dual-mode Explorer remain the shipped product and every current gate applies.
+
+## Earlier Decisions: Context-Preserving Workbench (2026-09-26, paused)
+
+Paused 2026-10-05 under ADR 0101 D5. Premises on whole-journey design, working memory, fresh baseline and honest proof carry into ADR 0102; the one-modular-VS-Code-extension candidate is rejected there.
 
 The product owner reports that capture, updating and reporting are all draining. Losing the selected record, working context or unfinished input causes cognitive shock. Substantial workflow, interface and visual redesign is in scope for design and planning now.
 
@@ -37,8 +70,9 @@ The immediate authorisation is documentation, detailed design and planning only.
 
 Local-first operation, Workspace Trust, default-deny publication, restricted-person exclusion, atomic saves and recoverable failure remain requirements for the new baseline. Fewer installations or screens are not evidence of usability or stronger security by themselves.
 
-## Website, Brand And Community Design (2026-09-26)
+## Website, Brand And Community Design (2026-09-26, paused)
 
+Paused 2026-10-05 under ADR 0101 D5; resumes only after an accepted ADR 0102 settles the product surface.
 This extends the design discussion to the ecosystem website and public product story. It records scope and recommendations, not a website implementation, rename or community launch. The [website and brand brief](../pspf-design-spec.md#website-brand-and-community-design-brief) owns the proposed experience; the [design plan](course-correction-plan.md) owns the next steps.
 
 ### Confirmed Boundaries

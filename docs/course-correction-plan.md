@@ -1,8 +1,8 @@
 # PSPF Course Correction Plan (v1.76.0–v1.82.0)
 
-Status: **active — C0 implemented; C1–C6 planned; clean-start workbench design recorded 2026-09-26**
+Status: **C0 and C1 complete; C2–C6, the clean-start design plan and the website/brand work paused 2026-10-05 — reason "superseded design centre", resumption gate "accepted ADR 0102" (see [ADR 0101](../adr/0101-product-reframe-managers-three-jobs.md) D5 and the [grand plan](../pspf-grand-plan.md#product-reframe-and-browser-first-direction-2026-10-05))**
 
-Authority: sequencing is owned by [`pspf-grand-plan.md`](../pspf-grand-plan.md) §"Course correction programme". This document holds the detailed slices, testing approach, and execution guidance. It does not override `pspf-spec-consistency-index.md`; every slice that changes architecture, schema, or invariants opens with its own ADR.
+Authority: sequencing is owned by [`pspf-grand-plan.md`](../pspf-grand-plan.md) §"Product reframe and browser-first direction (2026-10-05)". This document holds the detailed slices, testing approach, and execution guidance for the paused programme and remains the record of what each slice required, so that ADR 0102 can map each requirement to a destination or record that it is no longer needed. It does not override `pspf-spec-consistency-index.md`.
 
 ## Clean-Start Workbench Design Plan
 

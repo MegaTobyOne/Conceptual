@@ -410,6 +410,13 @@ const coverage = [
     "check:journey-cost",
     "check:gate-integrity",
     "check:adr-coverage"
+  ]),
+  // Proposed direction ADRs (2026-10-05): documentation only; no product behaviour to gate yet.
+  adr("0101-product-reframe-managers-three-jobs.md", "manual", ["check:spec-drift", "lint:au", "check:adr-coverage"]),
+  adr("0102-browser-first-workbench-supersedes-extensions.md", "manual", [
+    "check:spec-drift",
+    "lint:au",
+    "check:adr-coverage"
   ])
 ];
 

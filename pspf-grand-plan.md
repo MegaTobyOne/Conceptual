@@ -1,23 +1,64 @@
 # PSPF Grand Plan
 
 Status: **active — planning authority for product design, remediation and connected-capability programmes**
-Last updated: 2026-09-26 (reviewed against repo version 1.76.0)
+Last updated: 2026-10-05 (reviewed against repo version 1.76.0)
 
 ## Purpose
 
 This is the single forward plan for the PSPF ecosystem. It coordinates these workstreams:
 
-1. **Remediation** of the findings from the June 2026 ecosystem architecture/UX review (findings F1–F7; see `/memories` note `ecosystem-review-2026-06` and the tranche descriptions below, which are self-contained).
-2. **New capability programmes**: Microsoft 365 / Graph integration, AI assistance with a mandatory kill switch, the PSPF Assurance extension, and a secure assurance-publishing step.
-3. **Clean-start workbench design**: a coherent cyber risk, assurance and work-planning experience, with substantial interface and visual redesign and modular extension consolidation under consideration. This stream currently authorises design and documentation, not implementation.
+1. **Product reframe and browser-first direction (2026-10-05)**: the active forward direction, recorded in the section below and in proposed ADRs 0101 and 0102. It pauses streams 2–4 pending acceptance.
+2. **Remediation** of the findings from the June 2026 ecosystem architecture/UX review (findings F1–F7; see `/memories` note `ecosystem-review-2026-06` and the tranche descriptions below, which are self-contained). _Paused 2026-10-05._
+3. **New capability programmes**: Microsoft 365 / Graph integration, AI assistance with a mandatory kill switch, the PSPF Assurance extension, and a secure assurance-publishing step. _Paused 2026-10-05; Microsoft 365 and AI are re-scoped by ADR 0101 D4._
+4. **Clean-start workbench design**: a coherent cyber risk, assurance and work-planning experience, with substantial interface and visual redesign and modular extension consolidation under consideration. _Paused 2026-10-05; its premises are carried into ADR 0102 where still applicable._
 
 The ordering principle is deliberate: **make the documentation truthful first (F4), then close the trust boundary, then build new features on top of a boundary we trust.** New connected features (Graph, AI) must not land on an import/diagnostics layer that cannot validate or explain failures.
 
 This plan does not override the authority chain in `pspf-spec-consistency-index.md`. Every tranche below that changes architecture, schema, or invariants **starts with an ADR**; this document records the sequence and the design constraints, not the decisions themselves.
 
+## Product reframe and browser-first direction (2026-10-05)
+
+Status: **proposed direction; documentation only. No code, package, version, schema, gate, release or data change is made by this section.**
+
+Governing records: [ADR 0101](adr/0101-product-reframe-managers-three-jobs.md) (the manager's three jobs; pause of C2–C6, O1–O3, the clean-start design phases and the website/brand brief) and [ADR 0102](adr/0102-browser-first-workbench-supersedes-extensions.md) (one browser single-page application replaces the five VS Code extensions). The [decision register](docs/decision-register.md#product-reframe-and-browser-first-direction-2026-10-05) records the product-owner positions. Both ADRs are **proposed**; until accepted, the five extensions and the dual-mode Explorer remain the shipped product and every current gate applies.
+
+### Why
+
+The 2026-10-05 review set the shipped product beside the product owner's actual working day. The product serves a solo assurance practitioner authoring structured compliance records offline in VS Code. The owner's job is conversation-driven (meetings and email), interrupt-driven (ad hoc requests for information, briefs and reports) and team-focused (managing security professionals), across Microsoft 365, a GRC platform, a SIEM and other tooling. The repository already records that the product has not made that work easier; the organisational response had been further programmes rather than a changed design centre. Atlas, a sibling product, demonstrates the same risk–action–evidence–verification model in one single-page application at roughly a tenth of the surface.
+
+### Direction
+
+1. **Three jobs are the design centre**: J1 capture from conversation, J2 answer ad hoc requests fast, J3 run the team (ADR 0101 D1).
+2. **One browser workbench, navigated by job**: Inbox, Ask, Work, Team, Publish; three-pane layout; place and drafts preserved across restart (ADR 0102 D2–D3).
+3. **Publish-to-folder is the integration.** Artefacts written into a OneDrive-synced SharePoint folder are grounded by Microsoft 365 Copilot with no integration code — tenant-AI Rung 0. Rungs 1 (declarative agent) and 2 (Azure OpenAI in tenant) follow only with organisational approval (ADR 0101 D4, ADR 0102 D4–D5).
+4. **Team sharing is a requirement.** Pub's local-only rule becomes team-visible with redaction at the team boundary (ADR 0101 D2, ADR 0102 D6).
+5. **Model carried, host retired.** Contracts, reference data, ISM library, brief renderer and the master bundle carry forward; writer lock, trusted-caller policy, command API and `.pspf/` layout do not. Extensions are frozen at 1.76.0 and retired in four steps, nothing deleted before step four (ADR 0102 D7–D8).
+6. **Governance diet.** Superseded specs and ADRs move to `docs/history/` on acceptance; redaction, build, test and accessibility gates stay; surface-budget, journey-cost and meta-gates retire with the surface they measure (ADR 0101 D7).
+
+### Discovery sequence (replaces C2–C6 and O1–O3 while paused)
+
+| Step | Work                                                                                                                                                                                                                                                                                                            | Exit evidence                                                                                                                                                                        |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| P0   | Record the reframe (this section, ADRs 0101/0102, decision register, course-correction plan, agent instructions). Park paused streams with reason and resumption gate.                                                                                                                                          | Documents merged; spec-drift, AU-English and ADR-coverage gates green. **Done 2026-10-05.**                                                                                          |
+| P1   | Two-week work-friction log at the owner's workplace: each request, brief or action-from-meeting with source systems, time, output shape and recipient. Run the Rung 0 trial in parallel: publish current exports to a SharePoint folder and ask Copilot.                                                        | A ranked list of real artefacts and sources; a note of what Copilot answered correctly from the published briefs; a note of what deployment the organisation would plausibly permit. |
+| P2   | Timeboxed architecture decision: confirm or amend ADR 0102 against the P1 log; choose the stack (Explorer's Vite/Lit/IndexedDB or Atlas's React/Mantine/Dexie) by which reaches a working Inbox sooner; prove parser stability and finder-match usefulness against real pastes and the current register export. | ADR 0102 accepted or amended; stack chosen; parser and match thresholds recorded.                                                                                                    |
+| P3   | First vertical slice: Inbox and Ask, with publish-to-folder. One slice ADR allocates version and any axis change.                                                                                                                                                                                               | Owner uses only the SPA for a fortnight against the real register; friction log repeated; J1/J2 effort compared with P1 baseline.                                                    |
+| P4   | Governance diet and extension retirement steps (i)–(iv) of ADR 0102 D8.                                                                                                                                                                                                                                         | Marketplace listings deprecated; packages under `packages/legacy/`; history archive in place; remaining gates listed in `pspf-acceptance-and-quality-gates.md`.                      |
+
+### Parked streams and resumption gate
+
+C2–C6 (`docs/course-correction-plan.md`), O1–O3 (above), the six-phase clean-start design and the website/brand brief are parked with the written reason **superseded design centre**. Their single resumption gate is an accepted ADR 0102 that maps each required behaviour to a destination in the new direction or records that it is no longer required. C0 and C1 remain complete; their evidence remains valid. ADR 0099's Commitment Phases 3–7 remain parked as before and are not resumed by this section.
+
+### Open questions for P1/P2
+
+- Hosting the organisation will accept: SharePoint page, internal static host, or a local build opened from disk for the trial.
+- Whether Assurance (assessments, pentest findings) and Shop (suppliers, spend) jobs appear in the friction log; they return as Work lenses only if they do.
+- Atlas: products stay separate; a shared engine package is reconsidered only after P3 stabilises the work-side model.
+- Tenant AI beyond Rung 0 depends on Copilot licensing, the agency's position for the data's classification and an organisation-sanctioned development tenant.
+
 ## Clean-Start Workbench Design (2026-09-26)
 
-Status: **design and planning only; no product changes implemented**
+Status: **paused 2026-10-05 — superseded design centre; see ADR 0101 D5. Premises 1, 2, 3 and 6 carry into ADR 0102; premise 4 (one modular VS Code extension) is rejected by ADR 0102; premise 5 is decided by ADR 0102 in favour of the browser.**
 
 The product owner reports that capture, updating and reporting are all draining, and that losing working context causes cognitive shock. The [decision register](docs/decision-register.md) records the agreed design remit. The [design specification](pspf-design-spec.md#clean-start-workbench-design-brief) owns the experience; the [detailed plan](docs/course-correction-plan.md#clean-start-workbench-design-plan) owns the design phases and proposed pilot.
 
@@ -50,7 +91,7 @@ Start community design with useful content and maintainable participation, not a
 
 ## Risk-to-Outcome Roadmap (2026-09-25)
 
-Status: **planning update only; product gaps remain open**
+Status: **O1–O3 paused 2026-10-05 — superseded design centre; see ADR 0101 D5. Findings POA-01 to POA-06 remain open and are re-tested against J1–J3 in ADR 0102.**
 
 The operator has clarified the primary purpose: protect the enterprise from cyber and digital risks by connecting every planned Action to a known risk or issue, a measurable expected effect, and a strategic business outcome. The [Plan specification review](pspf-plan-spec.md#2026-09-25-product-review) records findings POA-01 to POA-06, current-source reproductions, a proposed daily operating loop and acceptance criteria. It is the stakeholder basis for this update, not evidence that the capabilities are delivered.
 
@@ -80,7 +121,7 @@ Completion is measured by the [proposed acceptance and adoption criteria](pspf-p
 
 ## Course correction programme (v1.76.0–v1.82.0)
 
-Status: **active — C0 and C1 complete; C2 is next. C3-C6 remain planned. This programme takes scheduling precedence over every other stream.**
+Status: **C0 and C1 complete; C2–C6 paused 2026-10-05 with reason "superseded design centre" and resumption gate "accepted ADR 0102" (ADR 0101 D5). Scheduling precedence passes to the reframe section above.**
 
 Detailed slices, testing layers, and execution guidance: [docs/course-correction-plan.md](docs/course-correction-plan.md).
 

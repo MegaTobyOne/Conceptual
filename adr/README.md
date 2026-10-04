@@ -111,6 +111,10 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0096 | v1.70 Essentials programme and surface reduction                                     | accepted                                                              |
 | 0097 | v1.71–v1.74 "Brief once, act often" reporting and accountability programme           | accepted                                                              |
 | 0098 | Workshop Risk overhaul: contract and interaction baseline                            | accepted                                                              |
+| 0099 | Commitment-led operating model: Phase 0 baseline                                     | accepted                                                              |
+| 0100 | v1.76 UX outcome evidence instrument                                                 | accepted                                                              |
+| 0101 | Product reframe: the manager's three jobs                                            | proposed                                                              |
+| 0102 | Browser-first workbench supersedes the VS Code extensions                            | proposed                                                              |
 
 ## Template
 
