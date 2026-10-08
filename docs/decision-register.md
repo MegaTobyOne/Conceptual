@@ -2,7 +2,7 @@
 
 Status: active
 
-Last reviewed: 2026-10-05 against repository v1.76.0.
+Last reviewed: 2026-10-08 (matter-and-dossier design option; repository v1.76.0).
 
 This register records product decisions, not delivery claims. The [grand plan](../pspf-grand-plan.md) owns implementation sequencing; accepted ADRs still govern the current architecture. The [design specification](../pspf-design-spec.md) and [course-correction plan](course-correction-plan.md) carry the detailed design work.
 
@@ -25,8 +25,109 @@ The product owner reports that the product works but has not made anything at wo
 | Stack                  | Open between the current Explorer stack (Vite, Lit, IndexedDB) and the Atlas stack (React, Mantine, Dexie); decided in P2 by which reaches a working Inbox sooner.                                                                                                                    |
 | Discovery before build | A two-week work-friction log and a Rung 0 Copilot trial precede any code. These produce the real artefact list and tell us what deployment the organisation would permit.                                                                                                             |
 
+### Personal Supplement: First-Trial Scope (2026-10-05)
+
+Following the [work-friction examples and purpose clarification](work-friction-log.md), the product owner resolves the immediate operating model as follows:
+
+- **Authority:** the workbench is the owner's personal supplement, not an authoritative organisational register, approval system or replacement for existing records. Saving a workbench record preserves the owner's account; it does not create an organisational decision or another person's commitment.
+- **Understanding:** shared understanding may not be recorded. Confirmation can be sought and captured when available, but it is not a prerequisite for retaining a useful personal account. Keep recollection, interpretation, proposed work and evidenced agreement distinct; missing confirmation remains unknown.
+- **Participation:** the owner is the operator for now. Other people's updates continue through email, Teams and existing channels; the owner captures or links relevant updates. No colleague login, direct editing, collaborative store or automatic channel ingestion is required for the first trial.
+- **Success:** the immediate test is the owner's situational awareness and ability to evidence their work: recover what was requested, what they advised or delivered, what changed, what is waiting and what outcome is known, with sources and limitations, at acceptable maintenance effort. Team adoption or cultural change is not a first-trial exit criterion.
+
+Design consequence: favour capture, contextual links, a personal follow-up view, dated history and source-backed answers. Confirmation is optional evidence, not a compulsory workflow. A future Team view can initially support the owner's view of team dependencies without requiring team participation. Organisation-approved storage, publication controls and review of sensitive outputs still apply; "personal" does not mean permission to store workplace data on a personal machine.
+
+This narrows the first trial, not the accepted long-term direction: team sharing remains a requirement under ADR 0101, while collaborative updates are not required now. It does not amend the staged retirement, publish-to-folder scope or discovery prerequisites in ADR 0102 and the grand plan, and allocates no implementation, version or schema change.
+
+### Friction-Led Design Decisions (2026-10-06)
+
+Following [FL-006 to FL-008, the owner's synthesis and the Copilot recovery observation](work-friction-log.md#owner-observation-copilot-over-existing-mail-does-not-recover-the-trail), the product owner agrees the following positions. They refine ADR 0102 D2 and are to be carried into the P2 confirmation or amendment of ADR 0102 and the P3 slice ADR; they allocate no version, schema or implementation now.
+
+| Decision            | Position as of 2026-10-06                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spine record        | The first slice centres on a request trail: the ask, owner, outstanding question and its decision owner, decision, status, outcome and reason for delay. Each element carries its source or is explicitly unknown. Actions, decisions and advice link to the trail rather than standing alone. Existing `commitment` and `governance-decision` contracts are candidates for reuse before adding new types. |
+| Draft types         | Add Advice (or Recommendation) and an open question awaiting a named decision owner. Decision is reserved for an evidenced decision. Advice is never presented as approval in any view or published artefact.                                                                                                                                                                                              |
+| Status semantics    | The owner's involvement and the outcome are tracked separately. "Unknown" and "no response recorded" are explicit values. There is no single completion status; a Completed mail folder or submitted paper is not an outcome.                                                                                                                                                                              |
+| External references | Decisions, status and outcomes held in ADO, Planner, the GRC platform or SharePoint are recorded as pointers to the authoritative record, not copies. The reference field defaults to `sensitive`; its schema and publication policy are set in the slice ADR.                                                                                                                                             |
+| People outside team | Owners, nominees and decision owners outside the team are recorded as roles or organisational units by default; names are optional, stay inside the team boundary and are never published.                                                                                                                                                                                                                 |
+| Measure             | The seven information types (ask, proposed action, owner, decision, status, outcome, reason for delay) are the recovery measure: lookup time and answering source for each, taken on FL-006 and FL-007 in P1 and repeated at P3 exit. This replaces the general J1/J2 effort comparison.                                                                                                                   |
+| Capture selectivity | Capture is chosen per thread; threads that already carry their own trail (FL-008) need no capture. No bulk mailbox or channel ingestion.                                                                                                                                                                                                                                                                   |
+| AI inference        | Copilot output that infers rather than cites remains a labelled inference with provenance; it never fills an unknown or becomes a sourced fact without the owner's acceptance against a source.                                                                                                                                                                                                            |
+
+### First-Slice Anchor: Trail-First, Register As Reference (2026-10-06)
+
+The product owner chooses option C. Context supplied: the owner maintains a PSPF register and makes most changes personally; the product gives the owner an independent view, so PSPF remains important. Almost every ad hoc question needs more detail than a simple lookup, and very few requests are simple or predictable. Snapshots and bundles are currently used only by the owner. Starting fresh with no imports is acceptable.
+
+- **First-slice proof:** P3 is proven on request trails captured from now on. The trail store starts empty; no existing records are migrated into it.
+- **Register's role in P3:** reference, not authoring. Trails link to requirements and risks, and Ask draws on posture and requirement detail when composing an answer. How the register is made available without a migration (for example, reading the owner's current master bundle export as a read-only source) is settled in P2.
+- **Ask's emphasis:** because requests are rarely simple or repeatable, Ask's value is assembling trail, posture and requirement context quickly into a brief the owner edits, not replaying a saved answer. Saving the question and answer remains useful as a record of what was said, not as the primary speed mechanism.
+- **Register authoring:** continues in the frozen extensions during P3. ADR 0102 D8(ii) spine parity remains the retirement prerequisite, because the owner still performs this job; D8(iii) "use only the SPA for a fortnight" applies once authoring parity exists. Whether the register is then migrated or re-authored is decided at that point.
+- **Snapshots and bundles:** single-user artefacts for now; no compatibility work for other consumers is required in P3, and publication controls still apply to anything leaving the owner's workspace.
+
+### Design Option: Matter Dossiers And Audience Profiles (2026-10-08)
+
+Status: **recorded for design evaluation, not accepted architecture or implementation scope**. The owner supports exploring a linked dossier for each matter, with role and committee views, change flags and follow-through. This develops the trail-first option above against the [prioritised qualitative examples](work-friction-log.md#qualitative-discovery-round-closure), particularly FL-009 and FL-002. It does not replace the P1-P3 prerequisites or authorise a build.
+
+#### Model And Reuse
+
+The principle is **one matter, shared facts, different audience questions**. A matter can span several requests and meetings; one source record can support several matters without being copied.
+
+| Concept          | Proposed responsibility                                                                                                                                                                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Matter           | A small durable record identifying the concern or question, scope, intended outcome, personal follow-up state and links. It is not another risk, action or authoritative approval register.                                                              |
+| Dossier          | A derived view assembling the matter's linked records, chronology, current position and uncertainties. It is not a separate store of those facts.                                                                                                        |
+| Audience profile | The questions, relevant detail, explanation and readiness checks appropriate to a role or committee. It changes presentation, not facts, access permissions or decision authority.                                                                       |
+| Issued brief     | A reviewed, dated edition for an audience and occasion, with source references and available revision identifiers. Preserve what was actually submitted rather than regenerating it from later facts. A meeting pack may contain several dossier briefs. |
+
+The implemented [canonical types](../packages/contracts/src/index.ts) have no first-class matter or request trail. Commitments describe intended or agreed work; governance decisions currently target commitments and strategy choices; change records describe changes. None alone represents a matter awaiting investigation, ownership or a decision. Reuse existing entities and links first; a minimal Matter contract is a candidate, not an allocated entity type, ID prefix or schema change. Pub's [role records](../packages/pub/src/store.ts) and the narrative audience/revision model are useful inputs, but do not implement these profiles or authorise bringing personal data into dossiers or briefs.
+
+#### Candidate Audience Profiles
+
+These are the owner's proposed information needs, not verified committee mandates. Confirm committee purposes and decision rights against their terms of reference; unknown authority remains unknown. Profiles are explicitly selected, reusable views rather than separate applications or independently maintained accounts.
+
+| Profile  | Questions and emphasis                                                                                           |
+| -------- | ---------------------------------------------------------------------------------------------------------------- |
+| CISO     | Exposure, evidence, assurance basis, freshness, limitations, unverified claims and escalation needs.             |
+| Ops      | Next instructions and steps, prerequisites, dependencies, expected result, completion evidence and help route.   |
+| Advisory | Applicable PSPF/ISM provisions and versions, interpretation, advice, scope, conditions and limitations.          |
+| DIDC     | Risk oversight, enterprise-risk relationships, treatment, escalation and decisions within the committee's remit. |
+| DDWG     | Delivery status, planned versus completed work, dependencies, delivery risks and resource decisions.             |
+| Board    | Material decisions already made or now required, options, consequences, rationale and remaining uncertainty.     |
+
+All profiles retain relevant contradictory evidence and distinguish advice, agreement, approval, delivery and observed outcome. The owner's involvement and the wider outcome remain separate. A person can use several profiles without changing their access rights. The first trial remains owner-operated; profiles require neither colleague accounts nor committee adoption.
+
+#### Working Experience And Follow-Through
+
+- **Selective capture and contextual work:** capture or link only what improves recovery. Keep a persistent matter list, working document and optional evidence inspector, with recoverable drafts and explicit record Save. Today, Matters and Briefs, with global Capture and Ask, is a navigation candidate to compare with ADR 0102's five places, not an adopted replacement.
+- **Source-backed answers:** assemble editable answers from the dossier and read-only register context. Show sources, dates, contradictions and missing facts; help formulate an exact follow-up question where the answer is unknown. Any AI output remains draft-and-confirm with provenance, never evidence by itself.
+- **Prepare for the occasion:** distinguish information, discussion and decision items. Apply the audience's checks for the precise ask, decision-maker, options, consultation, evidence and unresolved assumptions. Missing information is visible but does not prevent personal capture or become an invented fact.
+- **Issue from shared facts:** prepare the audience brief and, where useful, a technical annex from the same accepted account. Review the output and apply publication controls before issue. The retained issued edition is an intentional historical record, not a competing source of current status; it must not silently change when the live dossier changes. Issued artefacts and their history remain subject to existing redaction and erasure controls.
+- **Follow through after the meeting:** link the authoritative disposition and resulting work, or record that no decision or outcome is known. More information requested, deferred, decided and no decision recorded are distinct. Submission, attendance, silence and completion of the owner's part do not establish approval or success.
+- **Make obstacles actionable:** expose the exact unanswered question or prerequisite, who can resolve it if known, what can proceed meanwhile, the next follow-up or checkpoint, and the evidence needed to establish resolution. Reuse linked questions, actions and dependencies before introducing another record type. Do not infer delay reasons or turn the view into individual performance scoring.
+- **Show meaningful change:** distinguish changes since the operator's last review from changes since the last issued brief. Identify affected asks, evidence, advice, ownership, decisions and next steps, and flag dependent narrative for review. Show the last checked date for external references; a pointer alone does not detect remote changes. Preserve earlier accounts and corrections.
+- **Support delivery and handover:** reuse the dossier's evidence, recommendations, intended outcomes, next steps, expected results, help routes and checkpoints in delivery or handover briefs, including unresolved questions. This preserves the positive practice in the friction log without requiring another reporting routine.
+
+#### Next Design Check
+
+Use one explicitly synthetic matter across CISO, Ops and a committee profile, before and after a meeting that asks for more information rather than deciding. Show that linked facts remain coherent, the issued brief stays unchanged, the new request and next step are recoverable, and unknowns remain visible. Compare the seven information types and total capture, maintenance, retrieval and briefing effort with the current workflow and a simple document-and-list alternative. Retain FL-008 as the no-extra-capture comparison. No real workplace artefacts will be requested or placed in this repository; synthetic walkthroughs do not complete P1 or demonstrate adoption.
+
+Before implementation, P2 must settle whether to adopt the option, its minimum Matter and profile model, its relationship to existing contracts, and any amendment to ADR 0102 or the P3 slice. Publication, history/erasure and recoverable storage need explicit design; selecting an audience never authorises additional disclosure. No compatibility axis, release version, new extension feature or paused programme is allocated or resumed here.
+
+#### VS Code Rationale And Possible Companion
+
+**Owner clarification (2026-10-08):** the original reason for choosing VS Code was its suitability for heavy text work and showing more information than a webpage. The owner no longer sees that distinction as a reason to retain the host. Rich editing, dense layouts, split views, keyboard navigation, search and recovery are capabilities to prove in the browser workbench, not reasons by themselves to maintain a second interface. A browser application need not inherit the layout constraints of a conventional website.
+
+The recommendation to evaluate is **browser workbench for everyday use; an optional technical companion only if an in-editor job justifies it**. The owner has not selected or authorised a companion.
+
+- **During transition:** the shipped extensions continue register authoring and their existing offline workflows until ADR 0102's parity, owner trial and retirement conditions are met. This preserves current work; it does not establish a long-term need for the host, accelerate deletion or restart extension feature development.
+- **Potential later contribution:** a technical user could propose versioned repository/file references and reviewed validation results for a matter, validate exchange artefacts with shared contracts, or open the related browser dossier while working with code, Git diffs or language tooling. Evaluate ordinary file workflows or a small CLI first. Text volume and screen density alone do not justify an extension, and merely wrapping the browser adds no demonstrated value.
+- **Boundary:** no second matter store, duplicate committee screens or separate business rules. Browser-local IndexedDB is not a shared database that an extension can simply edit. Any exchange, stable links or host bridge needs a separately approved contract, provenance, conflict handling and publication/security controls. Nothing uploads automatically or gains access through a role profile.
+- **Decision gate:** retaining a supported companion beyond the planned retirement requires an explicit amendment to ADR 0102, an evidenced technical-user job and a maintenance case. Technical validation remains distinct from management approval or assurance. A companion must not be necessary to capture, answer, brief or follow through in the browser.
+
 ### Decisions Still Open
 
+- Whether to adopt the matter-and-dossier option, the minimum model and audience profiles, and the resulting ADR 0102/P3 scope amendments (P2).
+- Whether a later optional VS Code companion has a demonstrated job and maintenance case; no retention or extension implementation is approved.
+- How P3 reads the PSPF register as a read-only reference without a migration (P2).
 - Hosting the organisation will accept for the SPA.
 - Whether Assurance and Shop jobs appear in the friction log.
 - Stack choice (P2).
