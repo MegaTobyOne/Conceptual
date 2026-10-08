@@ -1,12 +1,12 @@
 # P2 Matter-Dossier Evaluation
 
-Status: **synthetic design probe implemented; P2 incomplete**
+Status: **synthetic design probe implemented; design recommendations accepted 2026-10-08; P2 incomplete**
 Date: 2026-10-08
 Repository baseline: 1.76.0
 
 ## Scope And Hypothesis
 
-This is the bounded next checkpoint under the [grand plan](../pspf-grand-plan.md#matter-and-dossier-design-option-2026-10-08), not a new product release candidate. The [matter-and-dossier option](decision-register.md#design-option-matter-dossiers-and-audience-profiles-2026-10-08) remains unaccepted. No product version, compatibility axis, entity, publication policy, browser route or extension capability changes.
+This is the bounded checkpoint under the [grand plan](../pspf-grand-plan.md#matter-and-dossier-design-option-2026-10-08), not a new product release candidate. The owner accepted all matter-centred first-slice recommendations on 2026-10-08, recorded in the [decision register](decision-register.md#accepted-recommendations-2026-10-08) and [ADR 0102 amendment](../adr/0102-browser-first-workbench-supersedes-extensions.md#accepted-amendment-matter-centred-first-slice-2026-10-08). This accepts design direction, not evidence of reduced effort or implementation. No product version, compatibility axis, entity, field publication policy, browser route or extension capability changes.
 
 Hypothesis: a reference-only projection over one source set can support CISO, Ops and a candidate DIDC view without duplicating current facts, converting advice into approval, hiding uncertainty or rewriting an issued account. A committee request for more information must remain distinct from a treatment decision and a verified outcome. Changes since the last review and the last issued edition must use separate baselines.
 
@@ -21,6 +21,8 @@ npx pnpm@10.10.0 run evaluate:p2-matter
 ```
 
 The command runs the focused Node tests, then generates `.tmp/p2-matter-dossier/report.md` and `.tmp/p2-matter-dossier/report.json`. Inputs are fixed synthetic scenarios; the runner rejects arguments and does not read workplace files, standard input or remote sources. Reports can be regenerated deterministically and are not immutable production records.
+
+The fixed probe reports retain their pre-acceptance OPEN labels; they do not track subsequent governance decisions. The current design acceptance is recorded in ADR 0102, not inferred from or revoked by rerunning the probe. Detailed contracts and validation evidence still remain open.
 
 Implementation: [evaluator](../scripts/lib/p2-matter-dossier.mjs), [tests](../scripts/p2-matter-dossier.test.mjs), [report runner](../scripts/evaluate-p2-matter-dossier.mjs). The command is optional evaluation tooling, not a registered release gate.
 
@@ -61,14 +63,14 @@ Use the same synthetic source contents, dates and before/after updates for all t
 3. Recover each of the seven types. Record lookup time, answering source and revision, whether the answer is known or unknown, and whether contradictory evidence remains discoverable. Wrong answers are not successful fast retrievals.
 4. Check that the submitted account remains unchanged; explain both change baselines and the next actionable follow-up without claiming treatment approval.
 5. Repeat the FL-008-style thread check without requiring additional capture. Record any imposed work rather than assuming the fixture's zero additional capture operations proves a saving.
-6. Record order, prior familiarity, interruptions and limitations. Decide whether the dossier adds enough value over the simpler alternative, or revise/reject it. No effort threshold or measured saving has been established.
+6. Record order, prior familiarity, interruptions and limitations. Test whether the adopted design adds enough value over the simpler alternative and revise it if the comparison does not support it. No effort threshold or measured saving has been established.
 
 This protocol is not yet performed. Synthetic findings do not complete P1's workplace baseline, the Rung 0 trial, deployment permission or adoption evidence. Do not bring real workplace artefacts into this repository.
 
 ## Handoff Before A Product Candidate
 
-P2 still needs owner evaluation and an explicit adopt, amend or reject decision. Settle the minimum Matter/profile contracts and reuse boundaries, publication and history/erasure policy, recoverable storage, read-only register-reference mechanism, stack choice, parser stability and finder-match thresholds. Browser editing, density, keyboard operation and context recovery remain unproved.
+The owner has adopted the thin Matter model, three initial profiles, actual issued editions, separated involvement/outcome, validated read-only bundle reference, Vite/Lit/IndexedDB starting stack, first-slice recovery and conservative parsing/matching. The bounded first workflow and Markdown output are accepted design scope. P2 still needs the owner comparison, field-level contracts and reuse boundaries, publication/history/erasure and recoverable storage design, detailed reference refresh rules, parser stability and finder-match thresholds. Browser editing, density, keyboard operation and context recovery remain unproved.
 
-Confirm or amend ADR 0102 and agree the P3 slice before product implementation. A later accepted slice must allocate its release version and any axis changes, and resolve the browser release model without bumping the five frozen extensions merely to satisfy current version alignment. Register authoring remains in those extensions during P3; their retirement prerequisites are unchanged.
+ADR 0102 now records the accepted amendment. Before product implementation, a separate accepted P3 slice ADR must finalise its contracts, allocate its release version and any axis changes, and resolve the browser release model without bumping the five frozen extensions merely to satisfy current version alignment. Register authoring remains in those extensions during P3; their retirement prerequisites are unchanged.
 
 Fresh repository readiness checks verify regression safety of the 1.76.0 baseline. They do not turn this probe into a shipped SPA, approve P3, satisfy manual accessibility checks or authorise publication or deployment. No branch, commit, promotion, release tag or deployment is part of this checkpoint.

@@ -2,13 +2,15 @@
 
 Status: active
 
-Last reviewed: 2026-10-08 (matter-and-dossier design option; repository v1.76.0).
+Last reviewed: 2026-10-08 (all matter-centred first-slice recommendations accepted; repository v1.76.0).
 
 This register records product decisions, not delivery claims. The [grand plan](../pspf-grand-plan.md) owns implementation sequencing; accepted ADRs still govern the current architecture. The [design specification](../pspf-design-spec.md) and [course-correction plan](course-correction-plan.md) carry the detailed design work.
 
 ## Product Reframe And Browser-First Direction (2026-10-05)
 
 The product owner reports that the product works but has not made anything at work easier. The working day is meetings and email that drive action through conversation, ad hoc urgent requests for information, briefs and reports, and managing a team of security professionals, across Microsoft 365, a GRC platform, a SIEM and other tooling. Real work data can in principle be held on a work machine with appropriate controls. The owner is prepared to be radical but not rash. Governing records: [ADR 0101](../adr/0101-product-reframe-managers-three-jobs.md) and [ADR 0102](../adr/0102-browser-first-workbench-supersedes-extensions.md), accepted 2026-10-05; sequencing in the [grand plan](../pspf-grand-plan.md#product-reframe-and-browser-first-direction-2026-10-05).
+
+The following table is the dated 2026-10-05 baseline. The [accepted 2026-10-08 recommendations](#accepted-recommendations-2026-10-08) amend the first-slice model, stack, reference approach and output scope; unverified discovery evidence is not completed by that acceptance.
 
 | Decision               | Position as of 2026-10-05                                                                                                                                                                                                                                                             |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -58,31 +60,48 @@ Following [FL-006 to FL-008, the owner's synthesis and the Copilot recovery obse
 The product owner chooses option C. Context supplied: the owner maintains a PSPF register and makes most changes personally; the product gives the owner an independent view, so PSPF remains important. Almost every ad hoc question needs more detail than a simple lookup, and very few requests are simple or predictable. Snapshots and bundles are currently used only by the owner. Starting fresh with no imports is acceptable.
 
 - **First-slice proof:** P3 is proven on request trails captured from now on. The trail store starts empty; no existing records are migrated into it.
-- **Register's role in P3:** reference, not authoring. Trails link to requirements and risks, and Ask draws on posture and requirement detail when composing an answer. How the register is made available without a migration (for example, reading the owner's current master bundle export as a read-only source) is settled in P2.
+- **Register's role in P3:** reference, not authoring. Trails link to requirements and risks, and Ask draws on posture and requirement detail when composing an answer. The owner accepted a validated master-bundle export as the read-only source on 2026-10-08; detailed refresh and historical-reference rules remain to be finalised in P2.
 - **Ask's emphasis:** because requests are rarely simple or repeatable, Ask's value is assembling trail, posture and requirement context quickly into a brief the owner edits, not replaying a saved answer. Saving the question and answer remains useful as a record of what was said, not as the primary speed mechanism.
 - **Register authoring:** continues in the frozen extensions during P3. ADR 0102 D8(ii) spine parity remains the retirement prerequisite, because the owner still performs this job; D8(iii) "use only the SPA for a fortnight" applies once authoring parity exists. Whether the register is then migrated or re-authored is decided at that point.
 - **Snapshots and bundles:** single-user artefacts for now; no compatibility work for other consumers is required in P3, and publication controls still apply to anything leaving the owner's workspace.
 
 ### Design Option: Matter Dossiers And Audience Profiles (2026-10-08)
 
-Status: **recorded for design evaluation, not accepted architecture or implementation scope**. The owner supports exploring a linked dossier for each matter, with role and committee views, change flags and follow-through. This develops the trail-first option above against the [prioritised qualitative examples](work-friction-log.md#qualitative-discovery-round-closure), particularly FL-009 and FL-002. It does not replace the P1-P3 prerequisites or authorise a build.
+Status: **accepted design direction and bounded first-slice scope, 2026-10-08; implementation entry conditions remain open**. After reviewing the recommendations, the owner agreed with all of them and requested that they be recorded in the plan and ADRs. The [dated ADR 0102 amendment](../adr/0102-browser-first-workbench-supersedes-extensions.md#accepted-amendment-matter-centred-first-slice-2026-10-08) governs this acceptance. It develops the trail-first option against FL-009 and FL-002 without claiming that P1/P2 validation or a release is complete.
+
+#### Accepted Recommendations (2026-10-08)
+
+1. **Organise by thin Matter:** concern, scope, intended outcome, personal follow-up state and references. Assemble dossiers from shared linked facts, not duplicate risks, actions or authoritative approvals. Keep selective/no-extra-capture practice.
+2. **Start with three profiles:** CISO, Ops and one committee profile, with shared contradictions and unknowns. Profiles change questions and emphasis, not permissions or committee authority. DIDC is the initial synthetic example; verify its real remit. Defer a general-purpose profile designer.
+3. **Preserve actual issued editions:** reviewed text including edits, audience, occasion, issue date and source revisions. Corrections create a new edition; separate review/issue change baselines flag narrative. Redaction and erasure requirements remain.
+4. **Separate involvement from disposition and outcome:** submitted is not approved; more information requested is not a treatment decision. Keep unknown ownership, outcome and delay reasons visible. Personal capture does not require others' confirmation or create organisational authority.
+5. **Read a validated master-bundle export as register reference:** record version/date, link records and refresh explicitly without rewriting history. No migration, live Core bridge or second editable register; register authoring remains in frozen extensions.
+6. **Select Vite/Lit/IndexedDB as the starting stack:** reuse browser foundations and shared packages, not old entity-first navigation. Reconsider a React/Mantine rewrite only with a demonstrated advantage in reaching usable capture. Comparative speed is unmeasured; Atlas remains separate.
+7. **Require recovery in the first slice:** persisted drafts separate from explicit Save, restored selection/context/unfinished text, validated backup/restore and safe interrupted/failed saves. Browser-local storage is not a backup or workplace approval.
+8. **Use conservative parsing and matching:** small explicit input format, unsupported text retained as a note, preserved provenance, exact IDs before fuzzy titles, and confirmed changes/merges. Parser/matching thresholds still require examples and evidence before UI commitment.
+
+The accepted first workflow is **capture -> matter link -> sourced answer -> reviewed brief edition -> response -> next step**, including the three profiles, read-only register context, recovery/backup and controlled Markdown publish-to-folder. Word, CSV and the wider publishing suite are deferred, not removed. Record Save is separate from explicit reviewed issue/publication; default-deny controls apply to copy/export and profiles cannot grant disclosure.
+
+Defer collaborative editing, Graph, in-app AI, a VS Code companion, broad committee tooling and Shop/Assurance expansion. Retain long-term team sharing, the tenant-AI approval ladder and extension retirement prerequisites. No paused programme resumes. Before allocating a release, approve the detailed slice contracts and resolve browser release sequencing independently of frozen extension versions. This is owner acceptance of design, not evidence of usefulness, workplace permission or implementation.
 
 #### Model And Reuse
 
 The principle is **one matter, shared facts, different audience questions**. A matter can span several requests and meetings; one source record can support several matters without being copied.
 
-| Concept          | Proposed responsibility                                                                                                                                                                                                                                  |
+| Concept          | Accepted design responsibility                                                                                                                                                                                                                           |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Matter           | A small durable record identifying the concern or question, scope, intended outcome, personal follow-up state and links. It is not another risk, action or authoritative approval register.                                                              |
 | Dossier          | A derived view assembling the matter's linked records, chronology, current position and uncertainties. It is not a separate store of those facts.                                                                                                        |
 | Audience profile | The questions, relevant detail, explanation and readiness checks appropriate to a role or committee. It changes presentation, not facts, access permissions or decision authority.                                                                       |
 | Issued brief     | A reviewed, dated edition for an audience and occasion, with source references and available revision identifiers. Preserve what was actually submitted rather than regenerating it from later facts. A meeting pack may contain several dossier briefs. |
 
-The implemented [canonical types](../packages/contracts/src/index.ts) have no first-class matter or request trail. Commitments describe intended or agreed work; governance decisions currently target commitments and strategy choices; change records describe changes. None alone represents a matter awaiting investigation, ownership or a decision. Reuse existing entities and links first; a minimal Matter contract is a candidate, not an allocated entity type, ID prefix or schema change. Pub's [role records](../packages/pub/src/store.ts) and the narrative audience/revision model are useful inputs, but do not implement these profiles or authorise bringing personal data into dossiers or briefs.
+The implemented [canonical types](../packages/contracts/src/index.ts) have no first-class matter or request trail. Commitments describe intended or agreed work; governance decisions currently target commitments and strategy choices; change records describe changes. None alone represents a matter awaiting investigation, ownership or a decision. A thin Matter is now the accepted organising unit, but reuse boundaries and its field-level contract still need design; no entity type, ID prefix or schema change is allocated here. Pub's [role records](../packages/pub/src/store.ts) and the narrative audience/revision model are useful inputs, but do not implement these profiles or authorise bringing personal data into dossiers or briefs.
 
 #### Candidate Audience Profiles
 
 These are the owner's proposed information needs, not verified committee mandates. Confirm committee purposes and decision rights against their terms of reference; unknown authority remains unknown. Profiles are explicitly selected, reusable views rather than separate applications or independently maintained accounts.
+
+Only CISO, Ops and one committee profile are in the accepted first-slice design. DIDC is the initial synthetic example; Advisory, DDWG and Board remain possible later catalogue entries, not additional first-slice features.
 
 | Profile  | Questions and emphasis                                                                                           |
 | -------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -110,15 +129,15 @@ All profiles retain relevant contradictory evidence and distinguish advice, agre
 
 Use one explicitly synthetic matter across CISO, Ops and a committee profile, before and after a meeting that asks for more information rather than deciding. Show that linked facts remain coherent, the issued brief stays unchanged, the new request and next step are recoverable, and unknowns remain visible. Compare the seven information types and total capture, maintenance, retrieval and briefing effort with the current workflow and a simple document-and-list alternative. Retain FL-008 as the no-extra-capture comparison. No real workplace artefacts will be requested or placed in this repository; synthetic walkthroughs do not complete P1 or demonstrate adoption.
 
-The [P2 evaluation checkpoint](p2-matter-dossier-evaluation.md) provides an executable synthetic probe and the pending owner comparison protocol. Automated structural checks are evidence for evaluation, not acceptance of the model, production publication/history controls or a new product release. The stack, parser/finder, register-reference and architecture decisions below remain open.
+The [P2 evaluation checkpoint](p2-matter-dossier-evaluation.md) provides an executable synthetic probe and the pending owner comparison protocol. The owner accepted the model and recommendations separately from the automated evidence; the comparison remains unperformed. The starting stack and read-only source approach are selected, while detailed contracts, parser/finder thresholds, refresh/recovery behaviour and publication/history controls remain open.
 
-Before implementation, P2 must settle whether to adopt the option, its minimum Matter and profile model, its relationship to existing contracts, and any amendment to ADR 0102 or the P3 slice. Publication, history/erasure and recoverable storage need explicit design; selecting an audience never authorises additional disclosure. No compatibility axis, release version, new extension feature or paused programme is allocated or resumed here.
+Before implementation, P2 must finalise the minimum field-level Matter/profile contracts and reuse boundaries, publication, history/erasure, source refresh rules and recoverable storage; perform the owner comparison and prove parser/finder usefulness. ADR 0102 is amended; a separate accepted P3 slice ADR must allocate release version and any axis changes and resolve the browser release model. Selecting an audience never authorises additional disclosure. No compatibility axis, release version, new extension feature or paused programme is allocated or resumed here.
 
 #### VS Code Rationale And Possible Companion
 
 **Owner clarification (2026-10-08):** the original reason for choosing VS Code was its suitability for heavy text work and showing more information than a webpage. The owner no longer sees that distinction as a reason to retain the host. Rich editing, dense layouts, split views, keyboard navigation, search and recovery are capabilities to prove in the browser workbench, not reasons by themselves to maintain a second interface. A browser application need not inherit the layout constraints of a conventional website.
 
-The recommendation to evaluate is **browser workbench for everyday use; an optional technical companion only if an in-editor job justifies it**. The owner has not selected or authorised a companion.
+The accepted direction is **browser workbench for everyday use; defer a technical companion unless an in-editor job justifies reconsideration**. No companion is authorised and the extension retirement conditions remain unchanged.
 
 - **During transition:** the shipped extensions continue register authoring and their existing offline workflows until ADR 0102's parity, owner trial and retirement conditions are met. This preserves current work; it does not establish a long-term need for the host, accelerate deletion or restart extension feature development.
 - **Potential later contribution:** a technical user could propose versioned repository/file references and reviewed validation results for a matter, validate exchange artefacts with shared contracts, or open the related browser dossier while working with code, Git diffs or language tooling. Evaluate ordinary file workflows or a small CLI first. Text volume and screen density alone do not justify an extension, and merely wrapping the browser adds no demonstrated value.
@@ -127,18 +146,19 @@ The recommendation to evaluate is **browser workbench for everyday use; an optio
 
 ### Decisions Still Open
 
-- Whether to adopt the matter-and-dossier option, the minimum model and audience profiles, and the resulting ADR 0102/P3 scope amendments (P2).
-- Whether a later optional VS Code companion has a demonstrated job and maintenance case; no retention or extension implementation is approved.
-- How P3 reads the PSPF register as a read-only reference without a migration (P2).
+- Field-level Matter/profile contracts and reuse, publication/history/erasure and recoverable storage design (P2).
+- Detailed refresh and historical-reference rules for the selected validated read-only master-bundle source (P2).
+- Owner comparison against the document-and-list alternative, browser editing/density/keyboard/recovery evidence and measured workplace baseline.
 - Hosting the organisation will accept for the SPA.
-- Whether Assurance and Shop jobs appear in the friction log.
-- Stack choice (P2).
-- Parser stability against Copilot recap shapes and finder-match thresholds (P2).
-- Whether and when to pursue tenant AI beyond Rung 0.
+- Parser stability for the small supported capture format and finder-match thresholds (P2).
+- Accepted P3 slice contracts, release version/axis allocation and browser release sequencing independent of frozen extension versions.
+- Rung 0 results and permission for any later tenant-AI rung; none is inferred from accepting the workbench design.
+
+Companion, collaborative editing, broad committee tooling and Shop/Assurance expansion are deferred, not immediate P2 decisions. They return only with an evidenced need and applicable approval; long-term team sharing remains required.
 
 ### Scope Of This Decision
 
-The accepted direction authorises the staged browser-first transition and governance diet; it does not claim implementation or authorise out-of-sequence code, package, version, schema, release, deployment or data-deletion changes. The five extensions and dual-mode Explorer remain the shipped product until the staged retirement steps are complete.
+The accepted direction and 2026-10-08 amendment authorise the staged browser-first design and bounded matter-centred first workflow. They do not claim implementation or authorise out-of-sequence code, package, version, schema, release, deployment or data-deletion changes. The five extensions and dual-mode Explorer remain the shipped product until the staged retirement steps are complete.
 
 ## Earlier Decisions: Context-Preserving Workbench (2026-09-26, paused)
 

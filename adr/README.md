@@ -114,7 +114,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0099 | Commitment-led operating model: Phase 0 baseline                                     | accepted                                                                                             |
 | 0100 | v1.76 UX outcome evidence instrument                                                 | accepted; journey-cost release ratchet retired by ADR 0101 D7                                        |
 | 0101 | Product reframe: the manager's three jobs                                            | accepted                                                                                             |
-| 0102 | Browser-first workbench supersedes the VS Code extensions                            | accepted                                                                                             |
+| 0102 | Browser-first workbench supersedes the VS Code extensions                            | accepted; matter-centred first-slice amendment accepted 2026-10-08                                   |
 
 ## Template
 

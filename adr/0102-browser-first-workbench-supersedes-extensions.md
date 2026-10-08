@@ -2,7 +2,8 @@
 
 - Status: accepted
 - Date: 2026-10-05
-- Would supersede on acceptance: ADR 0001 (product set), ADR 0007 (extension packaging and trust registry), ADR 0013 §Repos as it applies to extension packages, ADR 0015 (Item Detail WebviewPanel), ADR 0078 (Assurance extension boundary), ADR 0084 §"dual surface" (Explorer becomes the only surface), ADR 0096/0097 surface budgets
+- Amended: 2026-10-08 (owner acceptance of the matter-centred first-slice recommendations)
+- Supersedes: ADR 0001 (product set), ADR 0007 (extension packaging and trust registry), ADR 0013 §Repos as it applies to extension packages, ADR 0015 (Item Detail WebviewPanel), ADR 0078 (Assurance extension boundary), ADR 0084 §"dual surface" (Explorer becomes the only surface), ADR 0096/0097 surface budgets
 - Depends on: ADR 0101
 
 ## Context
@@ -22,6 +23,8 @@ The existing Explorer already has browser-local authoring, an IndexedDB store, m
 
 ## Decision
 
+The numbered decisions record the 2026-10-05 baseline. Read them with the [accepted 2026-10-08 amendment](#accepted-amendment-matter-centred-first-slice-2026-10-08), which refines D2-D5 and D7, selects the starting stack in D9 and narrows the first-slice scope in D10. The amendment does not change D8's extension retirement conditions.
+
 1. **The product becomes one browser single-page application.** It is the only product surface. It runs with no backend; persistence is browser-local (IndexedDB), and exchange is by file.
 2. **Navigation is by job, not by entity.** Five places: **Inbox** (paste or drop a recap, email or note; deterministic parser produces typed drafts — Action, Request, Decision, Risk, Note — each carrying its source excerpt and conversation deep link; drafts are accepted, merged into an existing record suggested by the finder, retyped or discarded; nothing is written without a click), **Ask** (search across requirements, risks, actions, suppliers and people; answer cards with status, owner, last change, open work and evidence freshness; copy as brief paragraph; compose several cards into a templated brief; save the question and answer as a Request so repeat asks are a lookup), **Work** (one worklist with lenses — mine, team, overdue, blocked, by requirement, by risk, recently changed — beside a single record layout with explicit Save; Requirements become a lens and link target rather than a destination), **Team** (open, overdue, blocked and stale work per person; meeting preparation card per attendee set; load and staleness computed, not entered), **Publish** (posture brief, weekly delta from the last two snapshots, action register, team digest, request-ledger extract; preview, redaction summary and a one-time-chosen target folder). Settings, backup, restore, integrity and help sit behind one menu.
 3. **Layout is one three-pane workbench**: a one-line context header whose search box is Ask, a dense keyboard-navigable worklist, the record, and a collapsible inspector for related items, provenance and history. Route, selection, scroll position and unfinished drafts survive tab close, restart and crash; the app reopens where the operator was. Drafts autosave; records save explicitly.
@@ -33,7 +36,39 @@ The existing Explorer already has browser-local authoring, an IndexedDB store, m
 9. **Technology choice is open between the current Explorer stack (Vite, Lit, IndexedDB) and the Atlas stack (React, Mantine, Dexie).** The deciding question is which reaches a working Inbox sooner; Atlas's engine-module pattern (freshness, posture, brief, timeline) is the reference either way. Atlas itself remains a separate product and repository; code is not shared until the work-side model has stabilised through the first slice.
 10. **First slice is Inbox and Ask**, proven with real pastes against the owner's current register export before UI is built: parser stability against Copilot recap shapes, and whether finder match suggestions produce more useful merges than noise.
 
-This ADR is proposed. Until accepted, the five extensions and the dual-mode Explorer remain the shipped product and all current gates apply. On acceptance it allocates no version, schema or date; those follow in the slice ADR.
+This ADR was accepted on 2026-10-05 and amended on 2026-10-08. The five extensions and dual-mode Explorer remain the shipped product until staged retirement completes. This architecture decision allocates no release version, compatibility-axis value, schema or shipping date; those follow in the slice ADR.
+
+## Accepted Amendment: Matter-Centred First Slice (2026-10-08)
+
+The product owner accepts all recommendations from the matter-dossier decision review: a matter-centred personal workbench, shared facts and reusable briefs, built on the existing browser foundations. This is acceptance of design direction and bounded first-slice scope, not implementation, measured usefulness, P1/P2 completion or release approval. The [decision register](../docs/decision-register.md#accepted-recommendations-2026-10-08) records the acceptance; the [grand plan](../pspf-grand-plan.md#matter-and-dossier-design-option-2026-10-08) owns the remaining sequence.
+
+### Model And Meaning
+
+1. **Adopt a thin Matter as the organising unit.** Its minimum responsibility is the concern or question, scope, intended outcome, personal follow-up state and references. A matter connects requests, advice, evidence, meetings and resulting work; it is not another risk, action or authoritative approval register. The dossier is a derived projection of linked shared records, not a separately maintained store. Capture remains selective: a thread that already contains its own trail does not need a matter.
+2. **Start with CISO, Ops and one committee profile.** Profiles supply questions, emphasis and readiness checks over the same source-backed account. They retain relevant contradictions and unknowns and grant no access permissions or decision authority. DIDC is the initial synthetic committee example; its real remit must be verified. A general-purpose profile designer and the wider profile catalogue are deferred.
+3. **Retain actual issued editions.** Preserve the reviewed text including operator edits, audience, occasion, issue date and source revisions. Later live changes never regenerate the submitted account. Corrections create a new edition, and changes since last review and last issue use separate baselines to flag dependent narrative. Editions remain subject to redaction and erasure requirements; immutable business history is not permission to retain prohibited data.
+4. **Separate involvement, disposition and outcome.** Paper preparation can be complete while the matter remains unresolved. More information requested, deferred, decided and no decision recorded are distinct dispositions. Advice is not approval, and delivery is not observed effectiveness. Unknown ownership, outcome or delay reason remains visible with its source or limitation. Confirmation is useful evidence, not a prerequisite for personal capture.
+
+### Reference, Stack And Recovery
+
+1. **Read the PSPF register from a validated master-bundle export.** Treat it as a read-only reference with its version and date recorded. Link matters to register records and refresh explicitly without silently rewriting historical references. P3 starts with an empty matter/trail store; this is not register migration or a second editable register. Authoring continues in the frozen extensions. No live Core bridge is introduced, and master-bundle exchange remains canonical.
+2. **Select Vite/Lit/IndexedDB as the first-slice starting stack.** Reuse Explorer's browser foundations and shared packages, not its old entity-first navigation. Atlas stays separate. Reopening the choice for a React/Mantine rewrite requires a demonstrated advantage in reaching a usable capture workflow; no comparative speed or usability claim has been established. Final navigation labels remain a browser-walkthrough question rather than an accepted replacement of the five job places.
+3. **Require recovery in the first slice.** Persist drafts separately from explicitly saved records; restore selection, working context and unfinished text after restart. Include validated backup and restore, and prove interrupted/failed saves do not lose prior records. Browser-local storage can be cleared and is neither a backup nor workplace deployment approval. Storage transactions, revision retention and erasure mechanics remain design details to settle before implementation.
+4. **Parse conservatively and suggest, never silently merge.** Support a small explicit capture format; preserve unsupported text as a note rather than guessing. Retain source excerpts and provenance. Prefer exact identifiers before fuzzy titles, present matches as suggestions, and require confirmation for record changes or merges. Record parser and matching thresholds against examples before committing to the UI; any AI inference stays labelled draft-and-confirm.
+
+### Bounded First Workflow And Publication
+
+The first product slice is **capture -> link to a matter -> assemble a sourced answer -> review and issue a brief -> record the response -> recover the next step**. It includes the three initial profiles, read-only register context, draft/context recovery, backup/restore and controlled publish-to-folder. It does not attempt the complete Team surface or register-authoring parity.
+
+Start with one useful publication format, Markdown, rather than the entire D4 output suite. Word, CSV and the broader artefact catalogue remain later work, not cancelled requirements. Local record Save is not publishing: issue/publication is an explicit reviewed operation with preview and existing default-deny controls at every copy/export boundary. Audience selection cannot authorise disclosure; new fields default to sensitive and restricted personal fields remain excluded. The detailed field policies and history/erasure design must be approved before implementation. The Rung 0 trial and workplace storage/deployment permission remain unverified.
+
+Collaborative editing, Graph, in-app AI, a VS Code companion, broad committee tooling and Shop/Assurance expansion are deferred. Long-term team sharing remains a requirement; tenant AI beyond Rung 0 stays on ADR 0101's approval ladder. No paused programme resumes through this amendment.
+
+### Remaining Entry Conditions
+
+Perform the short owner comparison in the [P2 evaluation protocol](../docs/p2-matter-dossier-evaluation.md#owner-comparison-protocol), retaining the document-and-list alternative and the no-extra-capture case. Agreement with the model is not evidence that this comparison occurred or that the workbench saves effort. Workplace baseline, Rung 0 results, deployment permission, browser keyboard/density/recovery checks and parser/finder usefulness remain outstanding.
+
+Before product implementation, finalise the Matter/profile contracts and reuse boundaries, reference refresh/history rules, field-level publication policy, recoverable storage and erasure mechanics. A separate accepted P3 slice ADR must allocate the release version and any compatibility-axis changes, and resolve browser release sequencing without bumping the five frozen extensions to satisfy today's all-package alignment. This documentation amendment changes no code, schema, package version, compatibility axis, gate, deployed surface or data.
 
 ## Consequences
 
