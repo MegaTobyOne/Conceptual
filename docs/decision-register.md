@@ -110,6 +110,8 @@ All profiles retain relevant contradictory evidence and distinguish advice, agre
 
 Use one explicitly synthetic matter across CISO, Ops and a committee profile, before and after a meeting that asks for more information rather than deciding. Show that linked facts remain coherent, the issued brief stays unchanged, the new request and next step are recoverable, and unknowns remain visible. Compare the seven information types and total capture, maintenance, retrieval and briefing effort with the current workflow and a simple document-and-list alternative. Retain FL-008 as the no-extra-capture comparison. No real workplace artefacts will be requested or placed in this repository; synthetic walkthroughs do not complete P1 or demonstrate adoption.
 
+The [P2 evaluation checkpoint](p2-matter-dossier-evaluation.md) provides an executable synthetic probe and the pending owner comparison protocol. Automated structural checks are evidence for evaluation, not acceptance of the model, production publication/history controls or a new product release. The stack, parser/finder, register-reference and architecture decisions below remain open.
+
 Before implementation, P2 must settle whether to adopt the option, its minimum Matter and profile model, its relationship to existing contracts, and any amendment to ADR 0102 or the P3 slice. Publication, history/erasure and recoverable storage need explicit design; selecting an audience never authorises additional disclosure. No compatibility axis, release version, new extension feature or paused programme is allocated or resumed here.
 
 #### VS Code Rationale And Possible Companion

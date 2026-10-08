@@ -75,6 +75,7 @@
     "check:writer-lock": "pnpm build && node scripts/check-writer-lock.mjs",
     "debug:reset": "node scripts/reset-debug-workspace.mjs",
     "doctor": "node scripts/doctor.mjs",
+    "evaluate:p2-matter": "node --test scripts/p2-matter-dossier.test.mjs && node scripts/evaluate-p2-matter-dossier.mjs",
     "icons:generate": "node scripts/generate-extension-icons.mjs",
     "e2e:v0.1": "pnpm run e2e:v0.3",
     "e2e:v0.2": "pnpm run e2e:v0.3",
