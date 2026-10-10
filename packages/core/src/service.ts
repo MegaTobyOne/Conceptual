@@ -62,6 +62,7 @@ import {
   validateControlApplicationAnchors,
   validateFramework,
   validateNarrativeRules,
+  validateRegisterWriteRules,
   validateRiskExternalRef,
   validateRollUpEdges,
   withEnvelope
@@ -1952,11 +1953,8 @@ function assertNarrativeRules(incomingEntities: readonly V01Entity[], existingEn
 }
 
 function validateEntityWriteRules(entities: readonly V01Entity[]): void {
-  for (const entity of entities) {
-    if (entity.entityType === "requirement" && (typeof entity.title !== "string" || entity.title.trim().length === 0)) {
-      throw new Error(`Requirement ${entity.id} title must be a non-empty string.`);
-    }
-  }
+  const violation = validateRegisterWriteRules(entities)[0];
+  if (violation) throw new Error(violation);
 }
 
 function validateCommitmentRules(incomingEntities: readonly V01Entity[], existingEntities: readonly V01Entity[]): void {

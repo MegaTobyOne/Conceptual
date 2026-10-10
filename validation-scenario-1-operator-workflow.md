@@ -1,6 +1,31 @@
-# Validation Scenario 1: v1.52.0 Studio System and Unified Explorer Workflow
+# Validation Scenario 1: v1.78.0 Workbench and Retained Extension Workflow
 
 Status: **reference**
+
+## Workbench Register Acceptance (v1.78.0, ADR 0104)
+
+Automated checkpoint, 2026-10-11. These are synthetic Playwright and unit checks, not a product-owner walkthrough or workplace trial.
+
+| Check                     | Result                                                                                                                                                                  | Evidence                                                                        |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Lossless SQLite migration | PASS: all 29 canonical entity types and sensitive fixture fields are field-exact in the import file and browser store                                                   | `scripts/check-register-migration.mjs`; browser independence gate               |
+| Register authoring        | PASS: requirement assessment and evidence links; action and due-date change; linked risk and escalation; direction response; ISM mapping review; narrative supersession | `scripts/check-workbench-accessibility.mjs`                                     |
+| Recovery                  | PASS: unfinished narrative survives reload; full register, typed links and change history restore exactly into a second browser context                                 | Browser independence gate; workbench store tests                                |
+| Publishing                | PASS: known structured names and emails excluded from edition text, headers and filename; sensitive backup retains the full register and is labelled                    | `check:personal-data`; workbench domain and store tests                         |
+| Accessibility             | PASS: all seven editors at 320/768/1440 px and 200%; zero serious/critical axe findings; whole-record keyboard activation and second-tab read-only state                | `.tmp/accessibility/workbench-accessibility-report.json`; screenshots beside it |
+| Volume                    | PASS: 504-risk fixture inside the 5,000 ms load budget; exact measured duration is in the browser report                                                                | Browser independence gate                                                       |
+| Narrative history         | PASS: saved supersessions feed newly composed matter briefs; issued editions stay immutable and later revisions are flagged                                             | Workbench store tests                                                           |
+
+The full `pnpm run release:readiness` run passed on 2026-10-11: **20/20 gates** in `.tmp/release-readiness/v1.78.0-readiness-report.md`, with the full log in `.tmp/release-readiness/v1.78.0-validation.log`. Automated evidence does not authorise a real-data cutover or production release.
+
+Remaining owner steps:
+
+1. Complete a keyboard and 200% walkthrough of the ported parity set and record any missing behaviour.
+2. Store Core, Shop and Pub backups in the organisation-approved location; migrate the real SQLite register and record the cutover date.
+3. Record the keep/adjust/stop criterion and run the held fortnight independence cycle under ADR 0102 D8(iii), including capture, asks and recovery drills.
+4. Confirm workplace storage permission and operator review of arbitrary free-text names before publishing. Folder-handle persistence and threshold tuning remain deferred as recorded in the grand plan.
+
+The legacy workflow below is retained for frozen-extension regression reference. Master-bundle export, snapshot, reporting packs and team sharing are not part of W1, and the extensions are not republished or retired by this slice.
 
 ## Purpose
 
@@ -72,8 +97,8 @@ curl -I https://test.tobyharvey.online/
 If `dig` returns no address or `curl` reports `Could not resolve host`, create or repair the `test.tobyharvey.online` subdomain/DNS record in VentraIP before rerunning the workflow. If DNS resolves but LiteSpeed returns `404`, check that the VentraIP/cPanel subdomain document root still matches the `test-web` `VENTRAIP_DOCROOT`; subdomain recreation can reset that mapping outside Git. The expected test document root is `/home/tobyharv/public_html/test` and the expected test app directory is `/home/tobyharv/apps/pspf-web-test`.
 
 1. Launch `Run PSPF Core + Workshop`.
-2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.77.0`, `Schema 1.17.0`, and `API 1.17.0`.
-3. Confirm the VS Code status bar shows `PSPF v1.77.0` and its tooltip includes `Schema 1.17.0`, `Bundle 1.17.0`, and `API 1.17.0`.
+2. Open the PSPF Workshop Activity Bar item and confirm `Workshop Home` appears with `PSPF v1.78.0`, `Schema 1.17.0`, and `API 1.17.0`.
+3. Confirm the VS Code status bar shows `PSPF v1.78.0` and its tooltip includes `Schema 1.17.0`, `Bundle 1.17.0`, and `API 1.17.0`.
 4. From `Workshop Home`, click `Load sample`.
 5. Click `Open dashboard` and do a quick visual check: workspace ready state, Direction chips, N/A-aware completion/evidence metrics, `Action Impact — Top 5`, latest activity, portal groups, actionable decision-loop cards, and no obvious cramped columns or wrapping regressions. Open `Plan of Action` and confirm the graphical plan shows Action date spans, status filters, a visible Today marker, and any Pub team dates marked for planning. Open `Essential Eight` and confirm the strategy tracker and uplift plan are populated from linked Requirements, Evidence, Risks, and Actions. Then open `Strategy Map` and confirm the Cyber Strategy Map shows three strategic choices, outcome summaries, grouped posture measures, labelled trend pills without arrow glyphs, confidence labels, and linked Requirements, Risks, Actions, and Directions.
 6. Click `Review evidence` and confirm the queue opens with missing/freshness/unlinked evidence groups and `Urgent Actions (Blocked or Overdue)`.

@@ -1,8 +1,18 @@
 import { sha256Hex } from "./hash.ts";
-import type { Draft, Edition, Matter, RegisterSnapshot, Tombstone, TrailItem } from "./types.ts";
+import type { LinkEntity } from "@pspf/contracts";
+import type {
+  Draft,
+  Edition,
+  Matter,
+  RegisterChange,
+  RegisterEntity,
+  RegisterSnapshot,
+  Tombstone,
+  TrailItem
+} from "./types.ts";
 
 /** Store-internal migration counter (ADR 0103 §1), not a compatibility axis. */
-export const STORE_VERSION = 1;
+export const STORE_VERSION = 2;
 export const BACKUP_TYPE = "pspf-workbench-backup";
 export const BACKUP_REMINDER_DAYS = 7;
 
@@ -13,11 +23,15 @@ export interface BackupData {
   drafts: Draft[];
   snapshots: RegisterSnapshot[];
   tombstones: Tombstone[];
+  entities: RegisterEntity[];
+  links: LinkEntity[];
+  changeLog: RegisterChange[];
 }
 
 export class BackupError extends Error {}
 
-const STORE_NAMES = ["matters", "trail", "editions", "drafts", "snapshots", "tombstones"] as const;
+const V1_STORE_NAMES = ["matters", "trail", "editions", "drafts", "snapshots", "tombstones"] as const;
+const STORE_NAMES = [...V1_STORE_NAMES, "entities", "links", "changeLog"] as const;
 
 export async function createBackup(
   data: BackupData,
@@ -27,6 +41,7 @@ export async function createBackup(
   const payload = JSON.stringify(data);
   const envelope = {
     type: BACKUP_TYPE,
+    classification: "OFFICIAL: Sensitive",
     storeVersion: STORE_VERSION,
     appVersion,
     createdAt: now,
@@ -60,22 +75,28 @@ export async function parseBackup(text: string): Promise<ParsedBackup> {
   if (!env || typeof env !== "object" || env.type !== BACKUP_TYPE) {
     throw new BackupError("This is not a PSPF Workbench backup.");
   }
-  if (env.storeVersion !== STORE_VERSION) {
+  if (typeof env.storeVersion !== "number" || env.storeVersion < 1 || env.storeVersion > STORE_VERSION) {
     throw new BackupError(`Unsupported backup store version ${String(env.storeVersion)}.`);
   }
   const data = env.data as Record<string, unknown> | undefined;
-  if (!data || STORE_NAMES.some((name) => !Array.isArray(data[name]))) {
+  const names = env.storeVersion === 1 ? V1_STORE_NAMES : STORE_NAMES;
+  if (!data || names.some((name) => !Array.isArray(data[name]))) {
     throw new BackupError("The backup is missing one or more stores.");
   }
   if ((await sha256Hex(JSON.stringify(data))) !== env.checksum) {
     throw new BackupError("The backup checksum does not match; the file may be damaged or edited.");
   }
-  const typed = data as unknown as BackupData;
+  const typed = (env.storeVersion === 1
+    ? { ...data, entities: [], links: [], changeLog: [] }
+    : data) as unknown as BackupData;
   const counts = Object.fromEntries(STORE_NAMES.map((n) => [n, typed[n].length])) as BackupSummary["counts"];
   const stamps = [
     ...typed.matters.map((m) => m.updatedAt),
     ...typed.trail.map((t) => t.recordedAt),
-    ...typed.editions.map((e) => e.issuedAt)
+    ...typed.editions.map((e) => e.issuedAt),
+    ...typed.entities.map((e) => e.updatedAt),
+    ...typed.links.map((e) => e.updatedAt),
+    ...typed.changeLog.map((e) => e.recordedAt)
   ].sort();
   const summary: BackupSummary = {
     createdAt: String(env.createdAt),

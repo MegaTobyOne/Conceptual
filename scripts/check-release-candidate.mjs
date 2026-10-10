@@ -82,7 +82,8 @@ const axesByMinorVersion = new Map([
   [74, "1.16.0"],
   [75, "1.17.0"],
   [76, "1.17.0"],
-  [77, "1.17.0"]
+  [77, "1.17.0"],
+  [78, "1.17.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -131,7 +132,7 @@ assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion
 
 const e2eScript =
   minorVersion >= 60
-    ? `e2e:v1.${Math.min(minorVersion, 77)}`
+    ? `e2e:v1.${Math.min(minorVersion, 78)}`
     : minorVersion >= 59
       ? "e2e:v1.59"
       : minorVersion >= 58
@@ -2482,7 +2483,7 @@ if (isV1Release && minorVersion >= 75) {
   assert.match(contracts, /apiVersion: "1\.17\.0"/, "contracts VERSION_AXES.apiVersion should be 1.17.0");
 }
 
-if (isV1Release && minorVersion >= 77) {
+if (isV1Release && minorVersion === 77) {
   for (const requiredScript of ["e2e:v1.77", "e2e:v1.77:run", "check:workbench"]) {
     assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
   }
@@ -2511,6 +2512,48 @@ if (isV1Release && minorVersion >= 77) {
     assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
   }
   assert.equal(expectedAxes, "1.17.0", "v1.77 axes should remain 1.17.0");
+}
+
+if (isV1Release && minorVersion === 78) {
+  for (const requiredScript of [
+    "e2e:v1.78",
+    "e2e:v1.78:run",
+    "check:workbench",
+    "check:register-migration",
+    "check:workbench-accessibility"
+  ]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.78"].includes("e2e:v1.77"), true, "e2e:v1.78 should include v1.77 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.78:run"].includes("e2e:v1.77:run"),
+    true,
+    "e2e:v1.78:run should include v1.77 gates"
+  );
+  assert.equal(
+    packageJson.scripts["e2e:v1.78:run"].includes("check-register-migration.mjs"),
+    true,
+    "e2e:v1.78:run should prove migration fidelity"
+  );
+  assert.equal(
+    packageJson.scripts["e2e:v1.78:run"].includes("check-workbench-accessibility.mjs"),
+    true,
+    "e2e:v1.78:run should run workbench accessibility checks"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes("e2e:v1.78:run"),
+    true,
+    "release:readiness should target e2e:v1.78:run"
+  );
+  assert.equal(
+    existsSync(join(root, "adr/0104-workbench-register-prototype-extension-independence.md")),
+    true,
+    "ADR 0104 should exist"
+  );
+  for (const requiredText of ["#### v1.78.0", "check:register-migration", "all 29 entity types"]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+  assert.equal(expectedAxes, "1.17.0", "v1.78 axes should remain 1.17.0");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

@@ -1,8 +1,15 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { Store } from "./data/store.ts";
+import "./register-view.ts";
 import { backupIsDue, createBackup, parseBackup, type ParsedBackup } from "./domain/backup.ts";
-import { composeBrief, editionFileName, editionMarkdown, redactForPublish } from "./domain/brief.ts";
+import {
+  composeBrief,
+  editionFileName,
+  editionMarkdown,
+  redactEditionForPublish,
+  redactForPublish
+} from "./domain/brief.ts";
 import { PROFILES, buildDossier, profileAnswers, type Dossier } from "./domain/dossier.ts";
 import { newId } from "./domain/ids.ts";
 import { suggestMatches } from "./domain/matching.ts";
@@ -15,11 +22,13 @@ import {
   type FollowUpState,
   type Matter,
   type ProfileId,
+  type Provenance,
+  type RegisterEntity,
   type RegisterSnapshot,
   type TrailItem
 } from "./domain/types.ts";
 
-type Route = "capture" | "dossier" | "brief";
+type Route = "capture" | "dossier" | "register" | "brief";
 
 const CTX = "ctx";
 const CAPTURE = "capture";
@@ -43,6 +52,18 @@ function pickFile(accept: string): Promise<string | undefined> {
     input.addEventListener("cancel", () => resolve(undefined));
     input.click();
   });
+}
+
+function liveRegisterTitle(record: RegisterEntity): string {
+  const value = record as RegisterEntity & { title?: string; controlId?: string; slot?: string };
+  return value.title ?? value.controlId ?? value.slot ?? record.id;
+}
+
+function liveReferenceStatus(ref: Matter["refs"][number], records: RegisterEntity[]): string {
+  if (ref.kind === "external") return "external";
+  const record = records.find((item) => item.id === ref.targetId);
+  if (!record) return "missing";
+  return liveRegisterTitle(record) === ref.label ? "current" : "changed";
 }
 
 @customElement("pspf-workbench")
@@ -73,6 +94,9 @@ export class Workbench extends LitElement {
       grid-template-columns: 280px 1fr;
       min-height: calc(100vh - 50px);
     }
+    main.register-page {
+      grid-template-columns: minmax(0, 1fr);
+    }
     nav.list {
       border-right: 1px solid #263040;
       padding: 8px;
@@ -81,6 +105,10 @@ export class Workbench extends LitElement {
     section.work {
       padding: 16px;
       max-width: 900px;
+    }
+    section.work.register-work {
+      max-width: none;
+      padding: 8px;
     }
     button {
       background: #1b2735;
@@ -176,7 +204,9 @@ export class Workbench extends LitElement {
   @state() private trail: TrailItem[] = [];
   @state() private editions: Edition[] = [];
   @state() private snapshot?: RegisterSnapshot | undefined;
+  @state() private registerItems: RegisterEntity[] = [];
   @state() private captureText = "";
+  @state() private captureProvenance: Provenance = "parsed";
   @state() private drafts: CaptureDraft[] = [];
   @state() private profile: ProfileId = "ciso";
   @state() private briefText = "";
@@ -190,21 +220,115 @@ export class Workbench extends LitElement {
   @state() private backupDue = false;
   @state() private pendingRestore?: ParsedBackup | undefined;
   @state() private ready = false;
+  @state() private writerMode: "loading" | "writer" | "readonly" = "loading";
+  @state() private storagePersistence: "pending" | "granted" | "denied" | "unsupported" = "pending";
+  private releaseWriter?: () => void;
+  private readonly pageHideHandler = () => {
+    void this.flushTransientDrafts();
+  };
+  private readonly visibilityHandler = () => {
+    if (document.visibilityState === "hidden") void this.flushTransientDrafts();
+  };
 
   override async connectedCallback(): Promise<void> {
     super.connectedCallback();
     try {
       this.store = await Store.open();
       await this.restore();
-      this.ready = true;
+      window.addEventListener("pagehide", this.pageHideHandler);
+      document.addEventListener("visibilitychange", this.visibilityHandler);
+      void this.coordinateWriter();
+      void this.requestPersistentStorage();
     } catch (e) {
       this.error = `Browser storage is unavailable: ${(e as Error).message}`;
     }
   }
 
+  override disconnectedCallback(): void {
+    window.removeEventListener("pagehide", this.pageHideHandler);
+    document.removeEventListener("visibilitychange", this.visibilityHandler);
+    this.releaseWriter?.();
+    this.store?.close();
+    super.disconnectedCallback();
+  }
+
+  private async coordinateWriter(): Promise<void> {
+    if (!navigator.locks) {
+      this.writerMode = "readonly";
+      this.ready = true;
+      return;
+    }
+    try {
+      await navigator.locks.request("pspf-workbench-writer", { mode: "exclusive", ifAvailable: true }, async (lock) => {
+        if (!lock) {
+          this.writerMode = "readonly";
+          this.ready = true;
+          return;
+        }
+        this.writerMode = "writer";
+        this.ready = true;
+        await new Promise<void>((resolve) => {
+          this.releaseWriter = resolve;
+        });
+      });
+    } catch (error) {
+      this.writerMode = "readonly";
+      this.error = `Single-writer protection is unavailable: ${(error as Error).message}`;
+      this.ready = true;
+    }
+  }
+
+  private async requestPersistentStorage(): Promise<void> {
+    const storage = navigator.storage;
+    if (!storage?.persist) {
+      this.storagePersistence = "unsupported";
+      return;
+    }
+    try {
+      const persisted = await storage.persisted();
+      this.storagePersistence = persisted || (await storage.persist()) ? "granted" : "denied";
+    } catch {
+      this.storagePersistence = "denied";
+    }
+  }
+
+  private async flushTransientDrafts(): Promise<void> {
+    if (!this.store || this.writerMode !== "writer") return;
+    const now = new Date().toISOString();
+    const writes = [
+      this.store.saveDraft({
+        id: CAPTURE,
+        kind: "capture" as const,
+        text: this.captureText,
+        context: { route: "capture" },
+        updatedAt: now
+      }),
+      this.store.saveDraft({
+        id: CTX,
+        kind: "matter" as const,
+        text: "",
+        context: { route: this.route, ...(this.selected ? { selection: this.selected } : {}) },
+        updatedAt: now
+      })
+    ];
+    if (this.selected) {
+      writes.push(
+        this.store.saveDraft({
+          id: `brief:${this.selected}`,
+          kind: "brief",
+          text: this.briefText,
+          context: { route: "brief", selection: this.selected },
+          updatedAt: now
+        })
+      );
+    }
+    await Promise.allSettled(writes);
+  }
+
   private async restore(): Promise<void> {
     const s = this.store!;
     this.matters = await s.listMatters();
+    this.registerItems = await s.listRegisterEntities();
     this.snapshot = await s.latestSnapshot();
     for (const snap of await s.listSnapshots()) this.checkedSnapshots.set(snap.id, snap);
     this.backupDue = backupIsDue(await s.getMeta(LAST_BACKUP));
@@ -217,6 +341,7 @@ export class Workbench extends LitElement {
   }
 
   private async persistContext(): Promise<void> {
+    if (this.writerMode !== "writer") return;
     await this.store!.saveDraft({
       id: CTX,
       kind: "matter",
@@ -246,12 +371,16 @@ export class Workbench extends LitElement {
 
   private get dossier(): Dossier | undefined {
     const m = this.matter;
-    return m ? buildDossier(m, this.trail, this.editions) : undefined;
+    return m ? buildDossier(m, this.trail, this.editions, this.registerItems) : undefined;
   }
 
   private async guard(action: () => Promise<void>): Promise<void> {
     this.error = "";
     this.notice = "";
+    if (this.writerMode !== "writer") {
+      this.error = "This tab is read-only because another tab holds the workbench writer lock.";
+      return;
+    }
     try {
       await action();
     } catch (e) {
@@ -311,6 +440,7 @@ export class Workbench extends LitElement {
 
   private onCaptureInput(e: Event): void {
     this.captureText = (e.target as HTMLTextAreaElement).value;
+    if (this.writerMode !== "writer") return;
     void this.store!.saveDraft({
       id: CAPTURE,
       kind: "capture",
@@ -336,8 +466,10 @@ export class Workbench extends LitElement {
           state: d.state,
           ...(d.disposition ? { disposition: d.disposition } : {}),
           value: d.value,
+          ...(d.type === "owner" ? { role: d.value } : {}),
+          ...(d.personName ? { personName: d.personName } : {}),
           source: d.source,
-          provenance: "parsed",
+          provenance: this.captureProvenance,
           recordedAt: new Date().toISOString()
         }
       ]);
@@ -349,9 +481,19 @@ export class Workbench extends LitElement {
   private suggestionsFor(d: CaptureDraft) {
     const candidates = [
       ...this.matters.map((m) => ({ id: m.id, title: m.title })),
+      ...this.registerItems
+        .filter(
+          (record) =>
+            record.entityType === "requirement" || record.entityType === "risk" || record.entityType === "action"
+        )
+        .map((record) => ({ id: record.id, title: liveRegisterTitle(record) })),
       ...(this.snapshot?.items ?? []).map((i) => ({ id: i.id, title: i.title }))
     ];
     return suggestMatches(d.value, candidates);
+  }
+
+  private async refreshLiveRegister(): Promise<void> {
+    this.registerItems = await this.store!.listRegisterEntities();
   }
 
   private linkRef(item: RegisterSnapshot["items"][number]): Promise<void> {
@@ -372,6 +514,29 @@ export class Workbench extends LitElement {
     });
   }
 
+  private linkLiveReference(id: string): Promise<void> {
+    return this.guard(async () => {
+      const matter = this.matter;
+      const item = this.registerItems.find(
+        (record) =>
+          record.id === id &&
+          (record.entityType === "requirement" ||
+            record.entityType === "risk" ||
+            record.entityType === "action" ||
+            record.entityType === "narrative")
+      );
+      if (!matter || !item || matter.refs.some((ref) => ref.targetId === item.id)) return;
+      const kind = `register-${item.entityType}` as Matter["refs"][number]["kind"];
+      await this.updateMatter({
+        refs: [
+          ...matter.refs,
+          { kind, targetId: item.id, label: liveRegisterTitle(item), lastCheckedAt: new Date().toISOString() }
+        ]
+      });
+      this.refQuery = "";
+    });
+  }
+
   // Register, backup, publish
 
   private importRegister(): Promise<void> {
@@ -389,10 +554,15 @@ export class Workbench extends LitElement {
   private backup(): Promise<void> {
     return this.guard(async () => {
       const text = await createBackup(await this.store!.exportAll(), __APP_VERSION__);
-      download(`pspf-workbench-backup-${new Date().toISOString().slice(0, 10)}.json`, text, "application/json");
+      download(
+        `pspf-workbench-backup-OFFICIAL-Sensitive-${new Date().toISOString().slice(0, 10)}.json`,
+        text,
+        "application/json"
+      );
       await this.store!.setMeta(LAST_BACKUP, new Date().toISOString());
       this.backupDue = false;
-      this.notice = "Backup downloaded. Keep it somewhere approved for this data.";
+      this.notice =
+        "Full-register backup downloaded, including sensitive fields. Store it only in an approved location.";
     });
   }
 
@@ -417,7 +587,7 @@ export class Workbench extends LitElement {
 
   private onBriefInput(e: Event): void {
     this.briefText = (e.target as HTMLTextAreaElement).value;
-    if (!this.selected) return;
+    if (!this.selected || this.writerMode !== "writer") return;
     void this.store!.saveDraft({
       id: `brief:${this.selected}`,
       kind: "brief",
@@ -433,10 +603,11 @@ export class Workbench extends LitElement {
   }
 
   private get redaction() {
-    return redactForPublish(
-      this.briefText,
-      this.people.split(",").map((n) => n)
-    );
+    return redactForPublish(this.briefText, this.publicationNames);
+  }
+
+  private get publicationNames(): string[] {
+    return [...this.people.split(","), ...this.trail.flatMap((item) => (item.personName ? [item.personName] : []))];
   }
 
   private issue(): Promise<void> {
@@ -445,18 +616,23 @@ export class Workbench extends LitElement {
       if (!m) return;
       if (!this.audience.trim() || !this.occasion.trim())
         throw new Error("Enter an audience and an occasion before issuing.");
-      const r = this.redaction;
-      const edition: Edition = {
-        id: newId("edition"),
-        matterId: m.id,
-        profile: this.profile,
-        audience: this.audience.trim(),
-        occasion: this.occasion.trim(),
-        issuedAt: new Date().toISOString(),
-        text: r.text,
-        sourceRevisions: this.trail.map((t) => t.id),
-        redactionSummary: r.summary
-      };
+      const edition = redactEditionForPublish(
+        {
+          id: newId("edition"),
+          matterId: m.id,
+          profile: this.profile,
+          audience: this.audience.trim(),
+          occasion: this.occasion.trim(),
+          issuedAt: new Date().toISOString(),
+          text: this.briefText,
+          sourceRevisions: [
+            ...this.trail.map((t) => t.id),
+            ...(this.dossier?.narratives.map((record) => record.id) ?? [])
+          ],
+          redactionSummary: []
+        },
+        this.publicationNames
+      );
       await this.store!.issueEdition(edition);
       await this.store!.deleteDraft(`brief:${m.id}`);
       this.editions = await this.store!.listEditions(m.id);
@@ -499,10 +675,12 @@ export class Workbench extends LitElement {
   override render() {
     return html` <header>
         <h1>PSPF Workbench</h1>
-        <button @click=${() => this.newMatter()}>New matter</button>
-        <button @click=${() => this.importRegister()}>Import register reference</button>
-        <button @click=${() => this.backup()}>Back up</button>
-        <button @click=${() => this.chooseRestore()}>Restore</button>
+        <button ?disabled=${this.writerMode !== "writer"} @click=${() => this.newMatter()}>New matter</button>
+        <button ?disabled=${this.writerMode !== "writer"} @click=${() => this.importRegister()}>
+          Import reference
+        </button>
+        <button ?disabled=${this.writerMode !== "writer"} @click=${() => this.backup()}>Back up</button>
+        <button ?disabled=${this.writerMode !== "writer"} @click=${() => this.chooseRestore()}>Restore</button>
         <span class="muted"
           >${this.snapshot
             ? `Register: ${this.snapshot.items.length} items, ${this.snapshot.importedAt.slice(0, 10)}`
@@ -511,9 +689,17 @@ export class Workbench extends LitElement {
         ${this.backupDue
           ? html`<span class="banner" role="status">No recent backup. Browser storage can be cleared.</span>`
           : nothing}
+        ${this.writerMode === "readonly"
+          ? html`<span class="banner" role="status">Another tab holds the writer lock. This tab is read-only.</span>`
+          : nothing}
+        ${this.storagePersistence === "granted"
+          ? html`<span class="muted" role="status">Persistent browser storage granted.</span>`
+          : this.storagePersistence === "denied" || this.storagePersistence === "unsupported"
+            ? html`<span class="banner" role="status">Browser storage may be cleared. Keep an approved backup.</span>`
+            : nothing}
       </header>
-      <main>
-        <nav class="list" aria-label="Matters" @keydown=${this.onListKey}>
+      <main class=${this.route === "register" ? "register-page" : ""}>
+        <nav class="list" aria-label="Matters" ?hidden=${this.route === "register"} @keydown=${this.onListKey}>
           ${this.matters.length === 0 ? html`<p class="muted">No matters yet.</p>` : nothing}
           ${this.matters.map(
             (m) =>
@@ -526,12 +712,12 @@ export class Workbench extends LitElement {
               </button>`
           )}
         </nav>
-        <section class="work">
+        <section class="work ${this.route === "register" ? "register-work" : ""}">
           ${this.error ? html`<div class="error" role="alert">${this.error}</div>` : nothing}
           ${this.notice ? html`<div class="card" role="status">${this.notice}</div>` : nothing}
           ${this.pendingRestore ? this.renderRestore() : nothing}
           <div class="row" role="group" aria-label="View">
-            ${(["capture", "dossier", "brief"] as Route[]).map(
+            ${(["capture", "dossier", "register", "brief"] as Route[]).map(
               (r) =>
                 html` <button aria-pressed=${this.route === r ? "true" : "false"} @click=${() => this.go(r)}>
                   ${r[0]!.toUpperCase() + r.slice(1)}
@@ -544,7 +730,13 @@ export class Workbench extends LitElement {
               ? this.renderCapture()
               : this.route === "dossier"
                 ? this.renderDossier()
-                : this.renderBrief()}
+                : this.route === "register"
+                  ? html`<pspf-register-view
+                      .store=${this.store}
+                      .writable=${this.writerMode === "writer"}
+                      @register-changed=${() => this.refreshLiveRegister()}
+                    ></pspf-register-view>`
+                  : this.renderBrief()}
         </section>
       </main>`;
   }
@@ -555,12 +747,15 @@ export class Workbench extends LitElement {
       <strong>Replace current data with this backup?</strong>
       <p>
         Created ${summary.createdAt}. ${summary.counts.matters} matters, ${summary.counts.trail} trail items,
-        ${summary.counts.editions} editions. Newest update: ${summary.newestUpdate ?? "none"}.
+        ${summary.counts.editions} editions, ${summary.counts.entities} entities, ${summary.counts.links} links, and
+        ${summary.counts.changeLog} change entries. Newest update: ${summary.newestUpdate ?? "none"}.
       </p>
       <p class="muted">
-        Current contents are kept unless the restore completes. The backup may contain data you have since erased.
+        This full-register backup contains sensitive fields. Its change history begins in the workbench and does not
+        include earlier Core or Git history. Current contents are kept unless restore completes; this backup may contain
+        data you have since erased.
       </p>
-      <button @click=${() => this.confirmRestore()}>Replace</button>
+      <button ?disabled=${this.writerMode !== "writer"} @click=${() => this.confirmRestore()}>Replace</button>
       <button
         @click=${() => {
           this.pendingRestore = undefined;
@@ -575,6 +770,19 @@ export class Workbench extends LitElement {
     return html` <label for="cap">Paste a recap, email or note in the capture format</label>
       <textarea id="cap" .value=${this.captureText} @input=${this.onCaptureInput}></textarea>
       <div class="row">
+        <label
+          >Capture source<select
+            .value=${this.captureProvenance}
+            ?disabled=${this.writerMode !== "writer"}
+            @change=${(event: Event) => {
+              this.captureProvenance = (event.target as HTMLSelectElement).value as Provenance;
+            }}
+          >
+            <option value="typed">Typed by operator</option>
+            <option value="parsed">Pasted source text</option>
+            <option value="ai-draft">Pasted from Copilot</option>
+          </select></label
+        >
         <button @click=${() => this.parse()}>Parse into drafts</button>
         <button @click=${() => navigator.clipboard?.writeText(COPILOT_PROMPT_TEMPLATE)}>Copy Copilot prompt</button>
         <span class="muted"
@@ -596,7 +804,9 @@ export class Workbench extends LitElement {
                 html`<div class="muted">Possible match (${s.basis}): ${s.candidate.title} (${s.candidate.id})</div>`
             )}
             <div class="row">
-              <button @click=${() => this.accept(i)}>Accept into matter</button>
+              <button ?disabled=${!this.selected || this.writerMode !== "writer"} @click=${() => this.accept(i)}>
+                Accept into matter
+              </button>
               <button
                 @click=${() => {
                   this.drafts = this.drafts.filter((_, j) => j !== i);
@@ -677,15 +887,17 @@ export class Workbench extends LitElement {
               (r) =>
                 html`<li>
                   ${r.label} (${r.targetId}):
-                  ${referenceStatus(
-                    r,
-                    this.snapshot,
-                    r.snapshotId ? this.checkedSnapshots.get(r.snapshotId) : undefined
-                  )}
+                  ${this.registerItems.length > 0
+                    ? liveReferenceStatus(r, this.registerItems)
+                    : referenceStatus(
+                        r,
+                        this.snapshot,
+                        r.snapshotId ? this.checkedSnapshots.get(r.snapshotId) : undefined
+                      )}
                 </li>`
             )}
           </ul>`}
-      ${this.snapshot
+      ${this.registerItems.length > 0 || this.snapshot
         ? html` <label for="ref">Link a register item (ID or words from the title)</label>
             <input
               id="ref"
@@ -696,15 +908,35 @@ export class Workbench extends LitElement {
               }}
             />
             ${this.refQuery
-              ? suggestMatches(this.refQuery, this.snapshot.items).map(
-                  (s) =>
-                    html`<div>
-                      <button @click=${() => this.linkRef(s.candidate as RegisterSnapshot["items"][number])}>
-                        Link
-                      </button>
-                      ${s.candidate.title} <span class="muted">(${s.candidate.id}, ${s.basis})</span>
-                    </div>`
-                )
+              ? this.registerItems.length > 0
+                ? suggestMatches(
+                    this.refQuery,
+                    this.registerItems
+                      .filter(
+                        (record) =>
+                          record.entityType === "requirement" ||
+                          record.entityType === "risk" ||
+                          record.entityType === "action" ||
+                          record.entityType === "narrative"
+                      )
+                      .map((record) => ({ id: record.id, title: liveRegisterTitle(record) }))
+                  ).map(
+                    (suggestion) =>
+                      html`<div>
+                        <button @click=${() => this.linkLiveReference(suggestion.candidate.id)}>Link</button>
+                        ${suggestion.candidate.title}
+                        <span class="muted">(${suggestion.candidate.id}, ${suggestion.basis})</span>
+                      </div>`
+                  )
+                : suggestMatches(this.refQuery, this.snapshot?.items ?? []).map(
+                    (s) =>
+                      html`<div>
+                        <button @click=${() => this.linkRef(s.candidate as RegisterSnapshot["items"][number])}>
+                          Link
+                        </button>
+                        ${s.candidate.title} <span class="muted">(${s.candidate.id}, ${s.basis})</span>
+                      </div>`
+                  )
               : nothing}`
         : nothing}
       <h3>Issued editions</h3>

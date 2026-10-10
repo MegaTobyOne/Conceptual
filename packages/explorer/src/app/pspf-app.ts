@@ -161,6 +161,24 @@ export class PspfApp extends LitElement {
         border-radius: var(--radius-sm);
       }
 
+      .workbench-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding: var(--space-2) var(--space-4);
+        border-bottom: 1px solid var(--pspf-border);
+        background: var(--pspf-surface-strong);
+        color: var(--pspf-text);
+        font-size: var(--text-sm);
+      }
+
+      .workbench-banner a {
+        color: var(--pspf-accent);
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
       nav {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -463,6 +481,13 @@ export class PspfApp extends LitElement {
           <span class="tlp" aria-label="Traffic Light Protocol marking">TLP:AMBER+STRICT</span>
         </div>
       </header>
+      <div class="workbench-banner" role="status">
+        <span
+          >Register authoring is in PSPF Workbench. Explorer remains available for publication
+          review.</span
+        >
+        <a href="/workbench/">Open Workbench</a>
+      </div>
       <nav class="primary" aria-label="Primary">
         ${this.navigationGroups().map(
           (group) => html`

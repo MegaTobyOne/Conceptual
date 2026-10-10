@@ -415,8 +415,10 @@ const coverage = [
     "lint:au",
     "check:adr-coverage"
   ]),
-  // Accepted slice ADR (2026-10-10): v1.78.0 allocated; switch to "automated" with check:register-migration when W1 lands.
-  adr("0104-workbench-register-prototype-extension-independence.md", "manual", [
+  adr("0104-workbench-register-prototype-extension-independence.md", "automated", [
+    "check:workbench",
+    "check:register-migration",
+    "check:workbench-accessibility",
     "check:spec-drift",
     "lint:au",
     "check:adr-coverage"

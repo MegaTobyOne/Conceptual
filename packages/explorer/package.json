@@ -1,6 +1,6 @@
 {
   "name": "pspf-explorer",
-  "version": "1.77.0",
+  "version": "1.78.0",
   "private": true,
   "type": "module",
   "description": "Browser-based PSPF assurance review and local authoring, with explicit master-bundle exchange and no live Core connection.",

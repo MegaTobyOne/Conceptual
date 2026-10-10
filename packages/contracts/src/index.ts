@@ -25,7 +25,7 @@ export const VERSION_AXES = {
   apiVersion: "1.17.0"
 } as const;
 
-export const PSPF_SLICE_VERSION = "1.77.0" as const;
+export const PSPF_SLICE_VERSION = "1.78.0" as const;
 
 export type VersionAxes = typeof VERSION_AXES;
 
@@ -2105,6 +2105,51 @@ export const ID_PREFIX_BY_ENTITY_TYPE: Readonly<Record<V01EntityType, string>> =
   narrative: "NAR",
   posture: "POSTURE"
 };
+
+export const WORKBENCH_ID_PREFIXES = {
+  matter: "MTR",
+  trail: "TRL",
+  edition: "EDN",
+  draft: "DRF",
+  snapshot: "WBS"
+} as const;
+
+export function validateRegisterEntityEnvelope(value: unknown): readonly string[] {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return ["Entity must be an object."];
+  }
+  const entity = value as Record<string, unknown>;
+  const violations: string[] = [];
+  const entityType = entity.entityType;
+  if (typeof entityType !== "string" || !V0_1_ENTITY_TYPES.includes(entityType as V01EntityType)) {
+    violations.push("entityType must be a registered canonical entity type.");
+  } else {
+    const prefix = ID_PREFIX_BY_ENTITY_TYPE[entityType as V01EntityType];
+    const validId =
+      entityType === "posture"
+        ? entity.id === "POSTURE"
+        : typeof entity.id === "string" && entity.id.startsWith(`${prefix}-`);
+    if (!validId) violations.push(`id must use the registered ${prefix} prefix.`);
+  }
+  for (const field of ["id", "schemaVersion", "createdAt", "updatedAt"] as const) {
+    if (typeof entity[field] !== "string" || entity[field].trim().length === 0) {
+      violations.push(`${field} must be a non-empty string.`);
+    }
+  }
+  if (!hasCompatibleMajorVersion(String(entity.schemaVersion ?? ""), VERSION_AXES.schemaVersion)) {
+    violations.push(`schemaVersion must be compatible with ${VERSION_AXES.schemaVersion}.`);
+  }
+  if (!["core", "workshop", "explorer", "shop"].includes(String(entity.sourceProduct))) {
+    violations.push("sourceProduct must be a registered product.");
+  }
+  if (!["active", "archived", "inactive", "deleted"].includes(String(entity.recordStatus))) {
+    violations.push("recordStatus must be a registered status.");
+  }
+  if (entity.title !== undefined && typeof entity.title !== "string") {
+    violations.push("title must be a string when present.");
+  }
+  return violations;
+}
 
 export function createEntityId(
   entityType: Exclude<V01EntityType, "posture">,
@@ -4322,6 +4367,39 @@ function publicFields(...fields: readonly string[]): readonly FieldPolicy[] {
 
 export function assertNever(value: never): never {
   throw new Error(`Unexpected value: ${String(value)}`);
+}
+
+export function validateRegisterWriteRules(entities: readonly V01Entity[]): readonly string[] {
+  return entities.flatMap((entity) =>
+    entity.entityType === "requirement" && (typeof entity.title !== "string" || entity.title.trim().length === 0)
+      ? [`Requirement ${entity.id} title must be a non-empty string.`]
+      : []
+  );
+}
+
+export function validateRegisterLinkPairs(
+  incomingEntities: readonly V01Entity[],
+  existingEntities: readonly V01Entity[]
+): readonly string[] {
+  const entitiesById = new Map<string, V01Entity>(existingEntities.map((entity) => [entity.id, entity]));
+  for (const entity of incomingEntities) entitiesById.set(entity.id, entity);
+  const violations: string[] = [];
+  for (const entity of incomingEntities) {
+    if (entity.entityType !== "link") continue;
+    const from = entitiesById.get(entity.fromId);
+    const to = entitiesById.get(entity.toId);
+    if (!from) violations.push(`Link ${entity.id} references missing fromId ${entity.fromId}.`);
+    else if (from.entityType !== entity.fromType) {
+      violations.push(
+        `Link ${entity.id} fromType ${entity.fromType} does not match ${entity.fromId} (${from.entityType}).`
+      );
+    }
+    if (!to) violations.push(`Link ${entity.id} references missing toId ${entity.toId}.`);
+    else if (to.entityType !== entity.toType) {
+      violations.push(`Link ${entity.id} toType ${entity.toType} does not match ${entity.toId} (${to.entityType}).`);
+    }
+  }
+  return violations.sort((left, right) => left.localeCompare(right, "en-AU", { sensitivity: "base" }));
 }
 
 // --------------------------------------------------------------------------

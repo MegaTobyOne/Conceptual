@@ -1,14 +1,10 @@
 // Workbench-local records (ADR 0103 §3). Not canonical entities and never part of the master bundle.
+import { WORKBENCH_ID_PREFIXES } from "@pspf/contracts";
+import type { LinkEntity, V01Entity } from "@pspf/contracts";
 
 export type Publication = "public" | "sensitive" | "restricted";
 
-export const ID_PREFIXES = {
-  matter: "MTR",
-  trail: "TRL",
-  edition: "EDN",
-  draft: "DRF",
-  snapshot: "SNP"
-} as const;
+export const ID_PREFIXES = WORKBENCH_ID_PREFIXES;
 
 export const TRAIL_TYPES = [
   "ask",
@@ -39,7 +35,7 @@ export type ProfileId = (typeof PROFILE_IDS)[number];
 export type Provenance = "typed" | "parsed" | "ai-draft";
 
 export interface Reference {
-  kind: "register-requirement" | "register-risk" | "register-action" | "external";
+  kind: "register-requirement" | "register-risk" | "register-action" | "register-narrative" | "external";
   targetId: string;
   label: string;
   /** Snapshot the target was last checked against; absent for external pointers. */
@@ -83,6 +79,8 @@ export interface TrailItem {
   /** Set only on `decision` items that record an evidenced disposition. */
   disposition?: Disposition;
   value: string;
+  role?: string;
+  personName?: string;
   source?: Source;
   provenance: Provenance;
   recordedAt: string;
@@ -104,7 +102,7 @@ export interface Edition {
 
 export interface Draft {
   id: string;
-  kind: "capture" | "brief" | "matter";
+  kind: "capture" | "brief" | "matter" | "register";
   text: string;
   context: { route: string; selection?: string; scroll?: number };
   updatedAt: string;
@@ -128,6 +126,16 @@ export interface RegisterSnapshot {
 export interface Tombstone {
   id: string;
   erasedAt: string;
+}
+
+export type RegisterEntity = Exclude<V01Entity, LinkEntity>;
+
+export interface RegisterChange {
+  id: string;
+  entityId: string;
+  fieldSet: string[];
+  previousRevisionHash: string;
+  recordedAt: string;
 }
 
 /** Every field is sensitive unless listed here (ADR 0005 default-deny). */

@@ -1,4 +1,6 @@
 import type { Edition, Matter, ProfileId, TrailItem, TrailType } from "./types.ts";
+import type { NarrativeEntity } from "@pspf/contracts";
+import type { RegisterEntity } from "./types.ts";
 
 /** The seven information types that measure recovery (decision register, 2026-10-06). */
 export const RECOVERY_TYPES = [
@@ -70,6 +72,7 @@ export interface Dossier {
   warnings: string[];
   sinceReview: TrailItem[];
   sinceIssue: TrailItem[];
+  narratives: NarrativeEntity[];
   latestEdition?: Edition;
 }
 
@@ -83,7 +86,12 @@ function latest(items: TrailItem[]): TrailItem | undefined {
 }
 
 /** Derived view over stored records; nothing here is persisted. */
-export function buildDossier(matter: Matter, trail: TrailItem[], editions: Edition[]): Dossier {
+export function buildDossier(
+  matter: Matter,
+  trail: TrailItem[],
+  editions: Edition[],
+  register: RegisterEntity[] = []
+): Dossier {
   const mine = currentItems(trail.filter((t) => t.matterId === matter.id));
   const positions: Position[] = RECOVERY_TYPES.map((type) => {
     const item = latest(mine.filter((t) => t.type === type));
@@ -113,8 +121,34 @@ export function buildDossier(matter: Matter, trail: TrailItem[], editions: Editi
     openQuestions: mine.filter((t) => t.type === "open-question"),
     warnings,
     sinceReview: after(matter.lastReviewedAt),
-    sinceIssue: after(latestEdition?.issuedAt)
+    sinceIssue: after(latestEdition?.issuedAt),
+    narratives: matter.refs
+      .filter((ref) => ref.kind === "register-narrative")
+      .flatMap((ref) => {
+        let current = register.find(
+          (record): record is NarrativeEntity => record.entityType === "narrative" && record.id === ref.targetId
+        );
+        const visited = new Set<string>();
+        while (current && !visited.has(current.id)) {
+          visited.add(current.id);
+          const successor = register
+            .filter(
+              (record): record is NarrativeEntity =>
+                record.entityType === "narrative" &&
+                record.recordStatus !== "deleted" &&
+                record.supersedesId === current?.id
+            )
+            .sort((left, right) => left.updatedAt.localeCompare(right.updatedAt))
+            .at(-1);
+          if (!successor) break;
+          current = successor;
+        }
+        return current && current.recordStatus !== "deleted" ? [current] : [];
+      })
   };
+  if (latestEdition && dossier.narratives.some((record) => record.updatedAt > latestEdition.issuedAt)) {
+    warnings.push("An attached narrative changed since the last issued edition.");
+  }
   if (latestEdition) dossier.latestEdition = latestEdition;
   return dossier;
 }

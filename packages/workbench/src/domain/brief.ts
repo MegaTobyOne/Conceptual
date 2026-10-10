@@ -21,6 +21,9 @@ export function composeBrief(dossier: Dossier, profileId: ProfileId): string {
   if (dossier.warnings.length > 0) {
     lines.push("## Limitations", ...dossier.warnings.map((w) => `- ${w}`), "");
   }
+  for (const narrative of dossier.narratives) {
+    lines.push("## Operator narrative", narrative.body, `Source: ${narrative.id} (${narrative.updatedAt})`, "");
+  }
   lines.push(`## Next step`, dossier.matter.nextStep || "Unknown", "");
   return lines.join("\n");
 }
@@ -68,6 +71,19 @@ export function editionMarkdown(edition: Edition): string {
       ? ["", "---", "Redactions applied before issue:", ...edition.redactionSummary.map((s) => `- ${s}`)]
       : [];
   return [...header, edition.text.trimEnd(), ...footer, ""].join("\n");
+}
+
+export function redactEditionForPublish(edition: Edition, peopleNames: string[]): Edition {
+  const text = redactForPublish(edition.text, peopleNames);
+  const audience = redactForPublish(edition.audience, peopleNames);
+  const occasion = redactForPublish(edition.occasion, peopleNames);
+  return {
+    ...edition,
+    text: text.text,
+    audience: audience.text,
+    occasion: occasion.text,
+    redactionSummary: [...edition.redactionSummary, ...text.summary, ...audience.summary, ...occasion.summary]
+  };
 }
 
 export function editionFileName(edition: Edition): string {

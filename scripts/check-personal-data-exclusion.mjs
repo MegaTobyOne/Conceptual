@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { execFileSync } from "node:child_process";
 import { DISALLOWED_PUBLICATION_FIELDS } from "../packages/contracts/dist/index.js";
 
 const root = process.cwd();
@@ -38,6 +39,21 @@ if (failures.length > 0) {
 }
 
 console.log("ok personal-data exclusion passed for published fixtures and debug exports");
+
+execFileSync(
+  "pnpm",
+  [
+    "--filter",
+    "pspf-workbench",
+    "test",
+    "src/domain/domain.test.ts",
+    "src/data/store.test.ts",
+    "-t",
+    "redact|structured person|backup"
+  ],
+  { cwd: root, stdio: "inherit" }
+);
+console.log("ok workbench edition redaction and sensitive backup recovery fixtures");
 
 function findJsonFiles(directory) {
   const results = [];

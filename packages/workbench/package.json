@@ -1,6 +1,6 @@
 {
   "name": "pspf-workbench",
-  "version": "1.77.0",
+  "version": "1.78.0",
   "private": true,
   "type": "module",
   "description": "Browser workbench: capture, matter dossiers, issued editions and recovery, with browser-local storage and file exchange (ADR 0102, ADR 0103).",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@pspf/contracts": "workspace:*",
+    "@pspf/ism-source-library": "workspace:*",
     "idb": "8.0.3",
     "lit": "3.3.2"
   },

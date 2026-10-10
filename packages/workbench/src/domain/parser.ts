@@ -4,6 +4,7 @@ export interface CaptureDraft {
   type: TrailType;
   state: TrailState;
   value: string;
+  personName?: string;
   disposition?: Disposition;
   source: Source;
   warnings: string[];
@@ -23,7 +24,7 @@ const LABEL_TYPES: Record<string, TrailType> = {
 };
 
 const LABEL_PATTERN = /^([A-Za-z]+):\s?(.*)$/;
-const MODIFIERS = new Set(["source", "link", "disposition"]);
+const MODIFIERS = new Set(["source", "link", "disposition", "name"]);
 
 function stateOf(value: string): TrailState {
   const normalised = value.trim().toLowerCase();
@@ -41,6 +42,7 @@ interface Block {
   source?: string;
   link?: string;
   disposition?: string;
+  personName?: string;
 }
 
 /**
@@ -64,6 +66,7 @@ export function parseCapture(input: string, sourceLabel = "Pasted capture"): Cap
       current.raw.push(line);
       if (label === "source") current.source = rest.trim();
       else if (label === "link") current.link = rest.trim();
+      else if (label === "name") current.personName = rest.trim();
       else current.disposition = rest.trim().toLowerCase();
     } else if (line.trim() === "") {
       current = undefined;
@@ -90,6 +93,9 @@ export function parseCapture(input: string, sourceLabel = "Pasted capture"): Cap
       warnings.push("Disposition applies to Decision items only and was not applied.");
       disposition = undefined;
     }
+    if (block.personName && block.type !== "owner") {
+      warnings.push("Name applies to Owner items only and was not retained.");
+    }
     if (value === "") warnings.push("Item has no text.");
     if (block.type === "decision" && !block.source) {
       warnings.push("A decision needs a source; add a Source: line before accepting it.");
@@ -103,6 +109,7 @@ export function parseCapture(input: string, sourceLabel = "Pasted capture"): Cap
       source,
       warnings
     };
+    if (block.personName && block.type === "owner") draft.personName = block.personName;
     if (disposition) draft.disposition = disposition;
     return draft;
   });
