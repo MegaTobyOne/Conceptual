@@ -415,7 +415,7 @@ const coverage = [
     "lint:au",
     "check:adr-coverage"
   ]),
-  // Proposed slice ADR (2026-10-10): planning record only until accepted.
+  // Accepted slice ADR (2026-10-10): v1.78.0 allocated; switch to "automated" with check:register-migration when W1 lands.
   adr("0104-workbench-register-prototype-extension-independence.md", "manual", [
     "check:spec-drift",
     "lint:au",

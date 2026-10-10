@@ -374,6 +374,12 @@ FL-008 remains a positive comparison case, and the evidence-led work-plan observ
 - This closure does not claim completion of the grand plan's P1 exit evidence. A measured two-week baseline, ranked inventory of real artefact and source types, Rung 0 answer-quality evidence and plausible deployment permission remain unverified or outstanding.
 - The next design activity may use the five prioritised episodes to propose boundaries, synthetic examples and candidate acceptance tests for the owner's review. No architecture, integration, publication permission or implementation scope is accepted by this closure alone.
 
+## Owner Feedback: Lists Behave Differently Across The Solution
+
+Recorded: 2026-10-10. Source: product owner, after exercising the v1.77.0 workbench and the Explorer. Not a workplace episode; a usability observation about the product itself.
+
+Different areas feel and behave differently. In the requirements list only the ID is clickable; risks and actions have an Open button instead; the workbench matter list opens on the whole item. The owner asks for one behaviour: in any suitable list, clicking the item opens its details. Recorded as decision W-D20 in the [decision register](decision-register.md#owner-feedback-interaction-consistency-2026-10-10) and as a W1 acceptance item in the grand plan. Further inconsistencies found during the independence cycle go in the trial entries below under "Friction or defect".
+
 ## Workbench Trial Entries (From 2026-10-10)
 
 The v1.77.0 workbench first slice ([ADR 0103](../adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md)) is in the repository. Its owner trial is defined as [W0 in the grand plan](../pspf-grand-plan.md#w0-owner-trial-protocol-on-hold-becomes-the-d8iii-independence-cycle). On 2026-10-10 the owner performed the recovery drills against the deployed build: backup, restore and the other mechanics worked as intended. The fortnight of real use is **on hold** until the register prototype (proposed ADR 0104) removes the need for the extensions; it then runs over one tool as the ADR 0102 D8(iii) independence cycle. Entries made during that run are numbered **FL-010** onwards and follow the format below so that they can be compared with the P1 owner synthesis. Content stays anonymised and synthetic in wording; no workplace artefacts, names, risk IDs or minutes are placed here.

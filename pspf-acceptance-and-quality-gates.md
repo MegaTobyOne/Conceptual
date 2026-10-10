@@ -308,6 +308,16 @@ The programme runs four slices (R1–R4), all now implemented. Each slice's gate
 4. **Release-chain gate**: `e2e:v1.77` and `e2e:v1.77:run` inherit v1.76 and add the workbench typecheck, lint and tests (including the FL-009 synthetic acceptance test) and `check:workbench`; `release:readiness` targets `e2e:v1.77:run`.
 5. **ADR record**: [ADR 0103](adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md) accepted 2026-10-10. Rung 0 results, workplace storage permission, measured baseline and browser keyboard/density checks remain unverified.
 
+#### v1.78.0 — Workbench register prototype: extension independence (planned; ADR 0104 accepted, not implemented)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` move to `1.78.0`; `VERSION_AXES` remain `1.17.0`. The register store holds schema `1.17.0` entity shapes browser-locally; no master bundle, Explorer schema or API change is introduced. The IndexedDB database moves to version 2 and the backup envelope to `storeVersion` 2 under a forward-only migration policy (restore upgrades 1, refuses newer).
+2. **Migration fidelity gate**: `check:register-migration` migrates a fixture SQLite database through `scripts/migrate-core-register.mjs` and proves every record of all 29 entity types is field-identical in the register import file, including `sensitive` fields; the script reports every envelope or rule violation per record and coerces nothing.
+3. **Rule extraction gate**: Core write rules used by the workbench (entity envelope, link pairs, narrative rules, due-date history) live in `@pspf/contracts` with their existing tests and remain called by `packages/core`, which is otherwise unchanged.
+4. **Independence gate**: the synthetic extension-independence test in ADR 0104 §6.1 passes: requirement assessment, evidence, action with due-date change, risk with escalation, direction, ISM mapping and narrative supersede, then backup and restore into a second profile with exact counts and chains.
+5. **Publication and recovery gates**: `check:personal-data` fixtures cover workbench editions and backups; backups are the lossless recovery artefact and say so; master bundle export is deferred and no new egress is added. A workbench accessibility gate passes at 320/768/1440 px and 200%.
+6. **Release-chain gate**: `e2e:v1.78` inherits v1.77 and adds the register-store tests, `check:register-migration` and the accessibility gate; `release:readiness` targets `e2e:v1.78:run`.
+7. **Frozen extensions**: versions advance for alignment only; the Marketplace workflow continues to refuse publication.
+
 ### Governance Diet (Accepted 2026-10-05)
 
 Retired from active release wiring: surface-count budgets, the simulated journey-cost ratchet, and cross-gate meta-checks. Retained: redaction, build, test, accessibility, schema-policy and substantive feature-behaviour gates. The shipped VS Code product remains supported during the staged transition; its functional retired-view and navigation checks are not count budgets.

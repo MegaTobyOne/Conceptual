@@ -41,6 +41,7 @@ Use the same representative jobs and records for both. Select one primary struct
 - **Pause:** recover local drafts across closing and restarting. Preserve filters, selection, subview, scroll, focus and unfinished text. Explicit Save changes authoritative records; saved, unsaved, recovered and failed states are distinct.
 - **Review:** show delivery, verification and risk review separately. Investigation or sustainment may reduce uncertainty or maintain a control without reducing the assessed risk.
 - **Explain:** reuse accepted operational facts in the brief and review view; distinguish those facts from operator interpretation and expose missing or stale evidence.
+- **Lists (owner rule, 2026-10-10):** in any list of records the whole item is the activation target and opens the detail; keyboard focus lands on the item, Enter or Space opens it, and no list relies on an ID-only link or a separate Open button as the sole route. Secondary actions sit beside the item, not in place of opening it. One pattern across every surface.
 
 View/navigation state, recoverable drafts and canonical records are separate responsibilities. Choose workspace/dataset-scoped persistence and conflict handling in the architecture decision. Drafts must not become report facts or appear in snapshots, publication, logs or notifications. A failed Save retains input; a changed base record or deleted target requires an explicit recovery choice.
 
