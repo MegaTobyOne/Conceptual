@@ -88,3 +88,17 @@ FL-009 synthetic acceptance test: capture a risk topic discussed at a committee,
 - **Independent workbench version line.** Cleaner against the freeze, but the owner chose to remain aligned at 1.77.0.
 - **Add Matter and Trail to the master bundle now.** Rejected: forces schema work and publication policy for entities that may change after the first trial.
 - **Reuse `CommitmentEntity` or `GovernanceDecisionEntity` for trail items.** Rejected for this slice: commitments describe agreed work and governance decisions target commitments, so neither can represent an unanswered question or an unknown state. Reuse remains available for linking to existing records.
+
+## Implementation notes and open items (2026-10-10)
+
+Recorded at acceptance so the next slice ADR inherits them explicitly. None changes the decisions above.
+
+1. **§3 prefix registration not done.** `MTR`, `TRL`, `EDN`, `DRF` and the snapshot prefix `SNP` are defined in `packages/workbench/src/domain/types.ts` only; registration in `@pspf/contracts` is carried as grand-plan decision W-D9.
+2. **§6.3 thresholds untuned.** The starting values (Jaccard 0.6, two shared tokens, three suggestions) ship unchanged; the re-tuning against FL-009 synthetic examples was not performed before acceptance. Tuned values and their corpus are to be recorded here as a dated addendum (W-D10).
+3. **Owner comparison unrecorded.** The P2 comparison was reported performed; results are to be entered in `docs/p2-matter-dossier-evaluation.md`.
+4. **§3 provenance.** The parser records every item as `parsed`; no control sets `ai-draft`. Carried as W-D1.
+5. **§5.1 page-hide save.** Drafts save on input; no `pagehide`/`visibilitychange` handler is present. Verify or add in W1.
+6. **§7 name redaction.** Publish removes email addresses and operator-listed names only; structured role/person fields are proposed under W-D6.
+7. **Not in scope here but observed:** no accessibility gate covers `/workbench/`; the publish folder is re-chosen on every issue; two tabs share the database without coordination (W-D7); store migration policy is undefined (W-D8).
+
+The W0 owner trial protocol, candidate W1–W4 slices and risks W-R1 to W-R15 are in `pspf-grand-plan.md` §"Next build phases after the first workbench slice (2026-10-10)".

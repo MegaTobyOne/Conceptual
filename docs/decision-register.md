@@ -2,7 +2,7 @@
 
 Status: active
 
-Last reviewed: 2026-10-08 (all matter-centred first-slice recommendations accepted; repository v1.76.0).
+Last reviewed: 2026-10-10 (ADR 0103 accepted; v1.77.0 workbench first slice implemented; next-phase decisions W-D1 to W-D12 opened; repository v1.77.0).
 
 This register records product decisions, not delivery claims. The [grand plan](../pspf-grand-plan.md) owns implementation sequencing; accepted ADRs still govern the current architecture. The [design specification](../pspf-design-spec.md) and [course-correction plan](course-correction-plan.md) carry the detailed design work.
 
@@ -12,20 +12,20 @@ The product owner reports that the product works but has not made anything at wo
 
 The following table is the dated 2026-10-05 baseline. The [accepted 2026-10-08 recommendations](#accepted-recommendations-2026-10-08) amend the first-slice model, stack, reference approach and output scope; unverified discovery evidence is not completed by that acceptance.
 
-| Decision               | Position as of 2026-10-05                                                                                                                                                                                                                                                             |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Design centre          | Three jobs: J1 capture from conversation, J2 answer ad hoc requests fast, J3 run the team. The solo offline compliance-authoring framing is superseded as a goal; nothing built under it is deleted by this decision.                                                                 |
-| Host                   | One browser single-page application replaces the five VS Code extensions as the only product surface. Navigation by job: Inbox, Ask, Work, Team, Publish. VS Code is not the design centre.                                                                                           |
-| Extension fate         | Freeze at 1.76.0; build the SPA to the original spine plus Inbox and Ask; use only the SPA for a fortnight on the real register; then deprecate Marketplace listings and move packages to `packages/legacy/`. Nothing deleted before the last step.                                   |
-| What carries forward   | `@pspf/contracts`, `@pspf/reference-data`, `@pspf/ism-source-library`, `@pspf/brief-renderer`, the master bundle format, IDs, link taxonomy and `publication` declarations. Writer lock, trusted-caller policy, Core command API and `.pspf/` layout do not.                          |
-| Team sharing           | A requirement, not a threat. People, ownership and load are visible inside the team boundary; redaction applies to everything that leaves it. Pub's local-only rule is replaced.                                                                                                      |
-| Tenant AI              | In scope on a ladder: Rung 0 publish to a SharePoint-synced folder so Microsoft 365 Copilot grounds on it (no integration code); Rung 1 declarative agent; Rung 2 Azure OpenAI in tenant. Public models via personal keys stay out. Human acceptance of every AI output.              |
-| Capture model          | Copilot extracts where it runs (Teams recap, Outlook summary, or an app-supplied prompt template); the app parses deterministically into typed drafts with source excerpt and deep link; the operator accepts, merges, retypes or discards. An `AiDraft` provenance shape is defined. |
-| Paused programmes      | C2–C6, O1–O3, the six-phase clean-start design and the website/brand brief are parked with reason "superseded design centre" and require a behaviour-disposition map before resumption. C0 and C1 remain complete.                                                                    |
-| Governance diet        | Completed 2026-10-05: superseded records were archived under `docs/history/`; redaction, build, test and accessibility gates remain; surface-count budgets, the journey-cost ratchet and gate-integrity meta-gate were retired.                                                       |
-| Atlas                  | Separate product and repository; adopted as architectural reference (single SPA, one store, small engine modules). Code is not shared until the work-side model stabilises after the first slice.                                                                                     |
-| Stack                  | Open between the current Explorer stack (Vite, Lit, IndexedDB) and the Atlas stack (React, Mantine, Dexie); decided in P2 by which reaches a working Inbox sooner.                                                                                                                    |
-| Discovery before build | A two-week work-friction log and a Rung 0 Copilot trial precede any code. These produce the real artefact list and tell us what deployment the organisation would permit.                                                                                                             |
+| Decision               | Position as of 2026-10-05                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Design centre          | Three jobs: J1 capture from conversation, J2 answer ad hoc requests fast, J3 run the team. The solo offline compliance-authoring framing is superseded as a goal; nothing built under it is deleted by this decision.                                                                                                                                                               |
+| Host                   | One browser single-page application replaces the five VS Code extensions as the only product surface. Navigation by job: Inbox, Ask, Work, Team, Publish. VS Code is not the design centre.                                                                                                                                                                                         |
+| Extension fate         | Freeze: no features and no Marketplace publication after 1.76.0; package versions advance only for alignment (D8(i) as amended 2026-10-10). Build the SPA to the original spine plus capture and answers; use only the SPA for a fortnight on the real register; then deprecate Marketplace listings and move packages to `packages/legacy/`. Nothing deleted before the last step. |
+| What carries forward   | `@pspf/contracts`, `@pspf/reference-data`, `@pspf/ism-source-library`, `@pspf/brief-renderer`, the master bundle format, IDs, link taxonomy and `publication` declarations. Writer lock, trusted-caller policy, Core command API and `.pspf/` layout do not.                                                                                                                        |
+| Team sharing           | A requirement, not a threat. People, ownership and load are visible inside the team boundary; redaction applies to everything that leaves it. Pub's local-only rule is replaced.                                                                                                                                                                                                    |
+| Tenant AI              | In scope on a ladder: Rung 0 publish to a SharePoint-synced folder so Microsoft 365 Copilot grounds on it (no integration code); Rung 1 declarative agent; Rung 2 Azure OpenAI in tenant. Public models via personal keys stay out. Human acceptance of every AI output.                                                                                                            |
+| Capture model          | Copilot extracts where it runs (Teams recap, Outlook summary, or an app-supplied prompt template); the app parses deterministically into typed drafts with source excerpt and deep link; the operator accepts, merges, retypes or discards. An `AiDraft` provenance shape is defined.                                                                                               |
+| Paused programmes      | C2–C6, O1–O3, the six-phase clean-start design and the website/brand brief are parked with reason "superseded design centre" and require a behaviour-disposition map before resumption. C0 and C1 remain complete.                                                                                                                                                                  |
+| Governance diet        | Completed 2026-10-05: superseded records were archived under `docs/history/`; redaction, build, test and accessibility gates remain; surface-count budgets, the journey-cost ratchet and gate-integrity meta-gate were retired.                                                                                                                                                     |
+| Atlas                  | Separate product and repository; adopted as architectural reference (single SPA, one store, small engine modules). Code is not shared until the work-side model stabilises after the first slice.                                                                                                                                                                                   |
+| Stack                  | Open between the current Explorer stack (Vite, Lit, IndexedDB) and the Atlas stack (React, Mantine, Dexie); decided in P2 by which reaches a working Inbox sooner.                                                                                                                                                                                                                  |
+| Discovery before build | A two-week work-friction log and a Rung 0 Copilot trial precede any code. These produce the real artefact list and tell us what deployment the organisation would permit.                                                                                                                                                                                                           |
 
 ### Personal Supplement: First-Trial Scope (2026-10-05)
 
@@ -82,7 +82,7 @@ Status: **accepted design direction and bounded first-slice scope, 2026-10-08; i
 
 The accepted first workflow is **capture -> matter link -> sourced answer -> reviewed brief edition -> response -> next step**, including the three profiles, read-only register context, recovery/backup and controlled Markdown publish-to-folder. Word, CSV and the wider publishing suite are deferred, not removed. Record Save is separate from explicit reviewed issue/publication; default-deny controls apply to copy/export and profiles cannot grant disclosure.
 
-Defer collaborative editing, Graph, in-app AI, a VS Code companion, broad committee tooling and Shop/Assurance expansion. Retain long-term team sharing, the tenant-AI approval ladder and extension retirement prerequisites. No paused programme resumes. Before allocating a release, approve the detailed slice contracts and resolve browser release sequencing independently of frozen extension versions. This is owner acceptance of design, not evidence of usefulness, workplace permission or implementation.
+Defer collaborative editing, Graph, in-app AI, a VS Code companion, broad committee tooling and Shop/Assurance expansion. Retain long-term team sharing, the tenant-AI approval ladder and extension retirement prerequisites. No paused programme resumes. The detailed slice contracts and release model were subsequently settled by ADR 0103. This is owner acceptance of design, not evidence of usefulness or workplace permission.
 
 #### Model And Reuse
 
@@ -129,9 +129,9 @@ All profiles retain relevant contradictory evidence and distinguish advice, agre
 
 Use one explicitly synthetic matter across CISO, Ops and a committee profile, before and after a meeting that asks for more information rather than deciding. Show that linked facts remain coherent, the issued brief stays unchanged, the new request and next step are recoverable, and unknowns remain visible. Compare the seven information types and total capture, maintenance, retrieval and briefing effort with the current workflow and a simple document-and-list alternative. Retain FL-008 as the no-extra-capture comparison. No real workplace artefacts will be requested or placed in this repository; synthetic walkthroughs do not complete P1 or demonstrate adoption.
 
-The [P2 evaluation checkpoint](p2-matter-dossier-evaluation.md) provides an executable synthetic probe and the pending owner comparison protocol. The owner accepted the model and recommendations separately from the automated evidence; the comparison remains unperformed. The starting stack and read-only source approach are selected, while detailed contracts, parser/finder thresholds, refresh/recovery behaviour and publication/history controls remain open.
+The [P2 evaluation checkpoint](p2-matter-dossier-evaluation.md) provides an executable synthetic probe and the owner comparison protocol. The owner accepted the model and recommendations separately from the automated evidence and reported the comparison performed on 2026-10-10; its results are not recorded. The detailed contracts, starting parser/finder thresholds, refresh/recovery behaviour and publication/history controls were then fixed by ADR 0103.
 
-Before implementation, P2 must finalise the minimum field-level Matter/profile contracts and reuse boundaries, publication, history/erasure, source refresh rules and recoverable storage; perform the owner comparison and prove parser/finder usefulness. ADR 0102 is amended; a separate accepted P3 slice ADR must allocate release version and any axis changes and resolve the browser release model. Selecting an audience never authorises additional disclosure. No compatibility axis, release version, new extension feature or paused programme is allocated or resumed here.
+ADR 0103 (accepted 2026-10-10) is the P3 slice ADR this paragraph anticipated: it allocates v1.77.0 with no axis change and resolves the browser release model through the D8(i) freeze amendment. Selecting an audience never authorises additional disclosure. No paused programme is resumed.
 
 #### VS Code Rationale And Possible Companion
 
@@ -148,23 +148,45 @@ The accepted direction is **browser workbench for everyday use; defer a technica
 
 #### Owner Decisions (2026-10-10)
 
-The owner chose the P2 closeout plus a minimal deployable workbench shell as the next release candidate (v1.77.0), driven by the FL-009 scenario. Decisions: keep the repository version-aligned at 1.77.0 but do not republish the frozen extensions (the extensions are being moved away from); stay on the current static host with browser-local, user-profile storage, confirmed acceptable for the trial; run the owner comparison while [ADR 0103](../adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md) is drafted. ADR 0103 is proposed, and its field contracts, refresh, recovery and threshold values are accepted only after the comparison. ADR 0102 D8(i) wording is amended accordingly. No code is released by this record.
+The owner chose the P2 closeout plus a minimal deployable workbench shell as the next release candidate (v1.77.0), driven by the FL-009 scenario. Decisions: keep the repository version-aligned at 1.77.0 but do not republish the frozen extensions (the extensions are being moved away from); stay on the current static host with browser-local, user-profile storage, confirmed acceptable for the trial; run the owner comparison while [ADR 0103](../adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md) is drafted. ADR 0102 D8(i) wording is amended accordingly.
+
+**Outcome:** ADR 0103 was accepted on 2026-10-10 after the owner reported the comparison performed; the comparison results were not recorded in the repository. The slice is implemented in `packages/workbench` and gated by `check:workbench` and `e2e:v1.77`. The [grand plan](../pspf-grand-plan.md#next-build-phases-after-the-first-workbench-slice-2026-10-10) records what was delivered, the gaps against ADR 0103, the owner trial protocol (W0) and the candidate slices W1–W4. Acceptance of ADR 0103 is not evidence that the workbench saves effort; that is what the trial measures.
+
+#### Decisions Required For The Next Build Phases (2026-10-10)
+
+Proposed by the plan review; positions are **open** until the owner records one here. Recommended positions are the reviewer's, not decisions.
+
+| ID    | Decision                               | Recommended position                                                                                                                            | Owner position | Needed by               |
+| ----- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ----------------------- |
+| W-D1  | AI provenance at capture               | Operator control per paste records `ai-draft`; provenance is never inferred from text                                                           | Open           | W1                      |
+| W-D2  | Persistent storage request             | Request `navigator.storage.persist()`, show the result and remind if denied                                                                     | Open           | W1                      |
+| W-D3  | Backup encryption                      | Defer until the trial shows where backups go; if added, symmetric only (AES-256-GCM, memory-hard KDF); no classical asymmetric primitive        | Open           | W1 ADR                  |
+| W-D4  | Hosting beyond the owner's trial       | Decide with the organisation after W0; no colleague uses the trial build                                                                        | Open           | Before any sharing      |
+| W-D5  | Explorer's future                      | Evaluate folding Explorer local authoring into the workbench, leaving Explorer as publication review, in the W4 ADR; no change before the trial | Open           | W4 ADR                  |
+| W-D6  | People in trail text                   | Structured role field with optional in-boundary name, never emitted; replaces list-based name redaction                                         | Open           | W1 or W3                |
+| W-D7  | Multi-tab policy                       | Single active writer via Web Locks with a visible read-only state in other tabs                                                                 | Open           | W1                      |
+| W-D8  | Store migration policy                 | Forward-only upgrades; restore upgrades older `storeVersion` and refuses newer; never a silent downgrade                                        | Open           | Before any field change |
+| W-D9  | Prefix registration                    | Register `MTR`, `TRL`, `EDN`, `DRF`, `SNP` in `@pspf/contracts` as workbench-local, non-bundle types                                            | Open           | W1                      |
+| W-D10 | Threshold tuning evidence              | Committed synthetic FL-009 corpus with expected matches and a test; tuned values recorded in an ADR 0103 addendum                               | Open           | W1                      |
+| W-D11 | Trial keep/adjust/stop criterion       | Owner states it before W0 starts, in terms of seven-type recovery and acceptable maintenance effort; no numeric threshold is invented           | Open           | Before W0               |
+| W-D12 | Navigation labels for the second slice | Decide from the W0 walkthrough between the current Capture / Matters / Brief and ADR 0102's five places                                         | Open           | W2 ADR                  |
 
 #### Still Open
 
-- Field-level Matter/profile contracts and reuse, publication/history/erasure and recoverable storage design (P2).
-- Detailed refresh and historical-reference rules for the selected validated read-only master-bundle source (P2).
-- Owner comparison against the document-and-list alternative, browser editing/density/keyboard/recovery evidence and measured workplace baseline.
-- Hosting the organisation will accept for the SPA.
-- Parser stability for the small supported capture format and finder-match thresholds (P2).
-- Accepted P3 slice contracts, release version/axis allocation and browser release sequencing independent of frozen extension versions.
-- Rung 0 results and permission for any later tenant-AI rung; none is inferred from accepting the workbench design.
+- W0 owner trial: not started; its exit evidence (friction-log entries, seven-type comparison, Rung 0 note, keep/adjust/stop judgement) is the entry condition for W1.
+- P2 owner comparison results: reported performed, not recorded. Record the outcome in the [P2 evaluation](p2-matter-dossier-evaluation.md) before the W1 ADR.
+- Measured workplace baseline and ranked artefact inventory from P1: never taken; the trial comparison is qualitative against the owner synthesis.
+- Browser editing, density, keyboard and recovery evidence for `/workbench/`: no automated accessibility coverage yet; owner walkthrough during W0.
+- Rung 0 results and permission for any later tenant-AI rung; none is inferred from accepting the workbench.
+- Hosting the organisation will accept for real work data beyond the trial (W-D4).
 
-Companion, collaborative editing, broad committee tooling and Shop/Assurance expansion are deferred, not immediate P2 decisions. They return only with an evidenced need and applicable approval; long-term team sharing remains required.
+Settled since 2026-10-08 by ADR 0103: field-level Matter/trail/edition/draft contracts, refresh and erasure rules, recoverable storage, starting parser/finder thresholds, the v1.77.0 release model and the D8(i) freeze wording.
+
+Companion, collaborative editing, broad committee tooling and Shop/Assurance expansion are deferred, not immediate decisions. They return only with an evidenced need and applicable approval; long-term team sharing remains required.
 
 ### Scope Of This Decision
 
-The accepted direction and 2026-10-08 amendment authorise the staged browser-first design and bounded matter-centred first workflow. They do not claim implementation or authorise out-of-sequence code, package, version, schema, release, deployment or data-deletion changes. The five extensions and dual-mode Explorer remain the shipped product until the staged retirement steps are complete.
+The accepted direction, the 2026-10-08 amendment and ADR 0103 authorise the staged browser-first design and the implemented v1.77.0 matter-centred first slice. They do not claim measured usefulness or authorise out-of-sequence package, schema, release, deployment or data-deletion changes. The five frozen extensions and the Explorer remain in service until the staged retirement steps are complete.
 
 ## Earlier Decisions: Context-Preserving Workbench (2026-09-26, paused)
 

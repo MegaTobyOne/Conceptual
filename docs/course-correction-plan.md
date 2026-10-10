@@ -1,6 +1,6 @@
 # PSPF Course Correction Plan (v1.76.0–v1.82.0)
 
-Status: **C0 and C1 complete; C2–C6, the clean-start design plan and the website/brand work paused 2026-10-05 — reason "superseded design centre", resumption requires a behaviour-disposition map after ADR 0102 acceptance (see [ADR 0101](../adr/0101-product-reframe-managers-three-jobs.md) D5 and the [grand plan](../pspf-grand-plan.md#product-reframe-and-browser-first-direction-2026-10-05))**
+Status: **C0 and C1 complete; C2–C6, the clean-start design plan and the website/brand work paused 2026-10-05 — reason "superseded design centre", resumption requires a behaviour-disposition map after ADR 0102 acceptance (see [ADR 0101](../adr/0101-product-reframe-managers-three-jobs.md) D5 and the [grand plan](../pspf-grand-plan.md#product-reframe-and-browser-first-direction-2026-10-05)). The version range in the title is historical: C1 closed without a dedicated release and v1.77.0 was allocated by ADR 0103 to the browser workbench; C2–C6 hold no version.**
 
 Authority: sequencing is owned by [`pspf-grand-plan.md`](../pspf-grand-plan.md) §"Product reframe and browser-first direction (2026-10-05)". This document holds the detailed slices, testing approach, and execution guidance for the paused programme and remains the record of what each slice required, so that ADR 0102 can map each requirement to a destination or record that it is no longer needed. It does not override `pspf-spec-consistency-index.md`.
 

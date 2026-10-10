@@ -1,8 +1,8 @@
 # P2 Matter-Dossier Evaluation
 
-Status: **synthetic design probe implemented; design recommendations accepted 2026-10-08; P2 incomplete**
-Date: 2026-10-08
-Repository baseline: 1.76.0
+Status: **synthetic design probe implemented; design recommendations accepted 2026-10-08; owner comparison reported performed 2026-10-10 but results not recorded; superseded as an entry condition by accepted ADR 0103**
+Date: 2026-10-08 (status updated 2026-10-10)
+Repository baseline: 1.76.0 when written; 1.77.0 at the status update
 
 ## Scope And Hypothesis
 
@@ -65,9 +65,19 @@ Use the same synthetic source contents, dates and before/after updates for all t
 5. Repeat the FL-008-style thread check without requiring additional capture. Record any imposed work rather than assuming the fixture's zero additional capture operations proves a saving.
 6. Record order, prior familiarity, interruptions and limitations. Test whether the adopted design adds enough value over the simpler alternative and revise it if the comparison does not support it. No effort threshold or measured saving has been established.
 
-This protocol is not yet performed. Synthetic findings do not complete P1's workplace baseline, the Rung 0 trial, deployment permission or adoption evidence. Do not bring real workplace artefacts into this repository.
+This protocol was reported performed by the owner on 2026-10-10 while ADR 0103 was drafted; the measurements, order, interruptions and the judgement against the document-and-list alternative were not recorded here. Until they are, the comparison counts as owner assent, not as measured evidence (grand-plan risk W-R1). Record them in the table below before the W1 slice ADR; if they cannot be reconstructed, say so and rely on the W0 trial instead.
+
+| Alternative       | Setup and capture effort | Maintenance and revised briefing | Seven-type recovery (known/unknown, source) | Imposed work on the FL-008 thread | Notes |
+| ----------------- | ------------------------ | -------------------------------- | ------------------------------------------- | --------------------------------- | ----- |
+| Current workflow  | Not recorded             | Not recorded                     | Not recorded                                | Not recorded                      |       |
+| Document and list | Not recorded             | Not recorded                     | Not recorded                                | Not recorded                      |       |
+| Candidate dossier | Not recorded             | Not recorded                     | Not recorded                                | Not recorded                      |       |
+
+Synthetic findings do not complete P1's workplace baseline, the Rung 0 trial, deployment permission or adoption evidence. Do not bring real workplace artefacts into this repository.
 
 ## Handoff Before A Product Candidate
+
+Superseded on 2026-10-10: [ADR 0103](../adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md) is the accepted slice ADR this section asked for, and `packages/workbench` implements the v1.77.0 first slice. The paragraphs below are retained as the record of what the handoff required.
 
 The owner has adopted the thin Matter model, three initial profiles, actual issued editions, separated involvement/outcome, validated read-only bundle reference, Vite/Lit/IndexedDB starting stack, first-slice recovery and conservative parsing/matching. The bounded first workflow and Markdown output are accepted design scope. P2 still needs the owner comparison, field-level contracts and reuse boundaries, publication/history/erasure and recoverable storage design, detailed reference refresh rules, parser stability and finder-match thresholds. Browser editing, density, keyboard operation and context recovery remain unproved.
 

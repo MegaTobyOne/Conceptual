@@ -373,3 +373,29 @@ FL-008 remains a positive comparison case, and the evidence-led work-plan observ
 - The passing test and app boundaries are not yet defined. They will be developed collaboratively from the prioritised scenarios; their absence does not prevent closing this qualitative round.
 - This closure does not claim completion of the grand plan's P1 exit evidence. A measured two-week baseline, ranked inventory of real artefact and source types, Rung 0 answer-quality evidence and plausible deployment permission remain unverified or outstanding.
 - The next design activity may use the five prioritised episodes to propose boundaries, synthetic examples and candidate acceptance tests for the owner's review. No architecture, integration, publication permission or implementation scope is accepted by this closure alone.
+
+## Workbench Trial Entries (From 2026-10-10)
+
+The v1.77.0 workbench first slice ([ADR 0103](../adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md)) is in the repository. Its owner trial is defined as [W0 in the grand plan](../pspf-grand-plan.md#w0-owner-trial-protocol); the trial has not started. Entries made during the trial are numbered **FL-010** onwards and follow the format below so that they can be compared with the P1 owner synthesis. Content stays anonymised and synthetic in wording; no workplace artefacts, names, risk IDs or minutes are placed here.
+
+### Entry Format
+
+| Field               | Record                                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Trigger             | Meeting, email thread, chat, verbal request or scheduled follow-up.                                                              |
+| Capture attempted   | Yes or no, and why not if no (thread already carries its trail, not worth it, workbench unavailable, forgot).                    |
+| Parser result       | Items produced by type; how many accepted, retyped, merged or discarded; any text kept as a note because the format did not fit. |
+| Match suggestions   | Whether a suggested matter or register record was right, wrong or absent; whether an exact ID was available.                     |
+| Register references | Which snapshot the references were checked against and whether any showed changed or missing.                                    |
+| Brief or answer     | Whether a dossier, profile view or issued edition was used to answer or brief; profile used; whether redaction removed anything. |
+| Recovery            | Any tab close, restart or interruption and whether the draft and place came back.                                                |
+| Effort              | The owner's estimate of time spent in the workbench and time saved or added, with the comparison the owner has in mind.          |
+| Friction or defect  | Anything that blocked, confused or slowed the work; reference a repository issue if one is raised.                               |
+
+### Trial Summary (To Be Completed At W0 Exit)
+
+- Seven-type recovery check for three trial matters: lookup time and answering source per type, set beside the P1 owner synthesis ratings.
+- Recovery drills performed (draft return after tab close, backup restore into a second profile, erasure tombstone visible) with results.
+- Rung 0 note: editions published to the synced folder, questions asked of Copilot, and which answers were correct, inferred or missing.
+- Defect and friction list.
+- Owner's keep/adjust/stop judgement against the criterion recorded under W-D11, with the document-and-list alternative stated.
