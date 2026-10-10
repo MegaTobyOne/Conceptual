@@ -59,6 +59,9 @@ jobs:
       - name: Explorer lint
         run: pnpm --filter pspf-explorer run lint
 
+      - name: Workbench lint
+        run: pnpm --filter pspf-workbench run lint
+
       - name: Governance gates
         run: pnpm run check:gate-integrity && pnpm run check:adr-coverage && pnpm run check:spec-drift
 

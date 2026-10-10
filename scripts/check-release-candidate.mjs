@@ -81,7 +81,8 @@ const axesByMinorVersion = new Map([
   [73, "1.16.0"],
   [74, "1.16.0"],
   [75, "1.17.0"],
-  [76, "1.17.0"]
+  [76, "1.17.0"],
+  [77, "1.17.0"]
 ]);
 const expectedAxes = axesByMinorVersion.get(minorVersion) ?? "1.3.0";
 const isV1Release = majorVersion === 1;
@@ -109,6 +110,7 @@ const packagePaths = [
   "packages/reference-data/package.json",
   "packages/shop/package.json",
   "packages/webview-shell/package.json",
+  "packages/workbench/package.json",
   "packages/workshop/package.json"
 ];
 
@@ -129,7 +131,7 @@ assert.match(contracts, new RegExp(`apiVersion: "${expectedAxes}"`), `apiVersion
 
 const e2eScript =
   minorVersion >= 60
-    ? `e2e:v1.${Math.min(minorVersion, 76)}`
+    ? `e2e:v1.${Math.min(minorVersion, 77)}`
     : minorVersion >= 59
       ? "e2e:v1.59"
       : minorVersion >= 58
@@ -2478,6 +2480,37 @@ if (isV1Release && minorVersion >= 75) {
   assert.match(contracts, /schemaVersion: "1\.17\.0"/, "contracts VERSION_AXES.schemaVersion should be 1.17.0");
   assert.match(contracts, /bundleVersion: "1\.17\.0"/, "contracts VERSION_AXES.bundleVersion should be 1.17.0");
   assert.match(contracts, /apiVersion: "1\.17\.0"/, "contracts VERSION_AXES.apiVersion should be 1.17.0");
+}
+
+if (isV1Release && minorVersion >= 77) {
+  for (const requiredScript of ["e2e:v1.77", "e2e:v1.77:run", "check:workbench"]) {
+    assert.equal(typeof packageJson.scripts[requiredScript], "string", `root package should define ${requiredScript}`);
+  }
+  assert.equal(packageJson.scripts["e2e:v1.77"].includes("e2e:v1.76"), true, "e2e:v1.77 should include v1.76 gates");
+  assert.equal(
+    packageJson.scripts["e2e:v1.77:run"].includes("e2e:v1.76:run"),
+    true,
+    "e2e:v1.77:run should include v1.76 gates"
+  );
+  assert.equal(
+    packageJson.scripts["e2e:v1.77:run"].includes("check-workbench.mjs"),
+    true,
+    "e2e:v1.77:run should run the workbench wiring gate"
+  );
+  assert.equal(
+    packageJson.scripts["release:readiness"].includes("e2e:v1.77:run"),
+    true,
+    "release:readiness should target e2e:v1.77:run"
+  );
+  assert.equal(
+    existsSync(join(root, "adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md")),
+    true,
+    "ADR 0103 should exist"
+  );
+  for (const requiredText of ["#### v1.77.0", "pspf-workbench", "not republished"]) {
+    assert.equal(acceptanceGates.includes(requiredText), true, `acceptance gates should mention ${requiredText}`);
+  }
+  assert.equal(expectedAxes, "1.17.0", "v1.77 axes should remain 1.17.0");
 }
 
 console.log(`ok v${expectedVersion} release-candidate scope, versions, scripts, and deferrals are consistent`);

@@ -4,7 +4,7 @@ Status: **active**
 
 Local-first cyber risk, assurance and work planning with Australian PSPF and ISM context.
 
-The repository baseline is v1.76.0: five separately packaged VS Code extensions (Core, Workshop, Assurance, Shop and Pub) plus the Explorer web app. The active compatibility axes are `schemaVersion`, `bundleVersion` and `apiVersion` `1.17.0`. A clean-start workbench redesign is being planned; it is not implemented or a new release.
+The repository baseline is v1.77.0: five frozen, unpublished VS Code extensions (Core, Workshop, Assurance, Shop and Pub), the Explorer web app and the new browser workbench first slice at `/workbench/` (ADR 0103). The active compatibility axes are `schemaVersion`, `bundleVersion` and `apiVersion` `1.17.0`. A clean-start workbench redesign is being planned; it is not implemented or a new release.
 
 The tools connect risks, requirements, evidence, Actions, ownership and reporting. They support the work that protects an organisation; they do not replace technical controls, monitoring, incident response or effectiveness testing. Completed work and compliance percentages are not proof of reduced risk.
 

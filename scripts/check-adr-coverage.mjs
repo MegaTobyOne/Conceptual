@@ -408,6 +408,12 @@ const coverage = [
     "check:spec-drift",
     "lint:au",
     "check:adr-coverage"
+  ]),
+  adr("0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md", "automated", [
+    "check:workbench",
+    "check:spec-drift",
+    "lint:au",
+    "check:adr-coverage"
   ])
 ];
 

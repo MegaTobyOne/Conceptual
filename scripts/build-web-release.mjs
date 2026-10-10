@@ -5,10 +5,12 @@ import { join } from "node:path";
 const root = process.cwd();
 const outputRoot = join(root, ".tmp", "web-release");
 const explorerDist = join(root, "packages", "explorer", "dist");
+const workbenchDist = join(root, "packages", "workbench", "dist");
 const schemaRoot = join(root, "schemas", "explorer-bundle");
 
 await assertReadable(join(root, "pspf-ecosystem.html"));
 await assertReadable(join(explorerDist, "index.html"));
+await assertReadable(join(workbenchDist, "index.html"));
 await assertDirectory(schemaRoot);
 
 await rm(outputRoot, { recursive: true, force: true });
@@ -18,6 +20,7 @@ const ecosystemHtml = await readFile(join(root, "pspf-ecosystem.html"), "utf8");
 await writeFile(join(outputRoot, "index.html"), ecosystemHtml, "utf8");
 await writeFile(join(outputRoot, "pspf-ecosystem.html"), ecosystemHtml, "utf8");
 await cp(explorerDist, join(outputRoot, "explorer"), { recursive: true });
+await cp(workbenchDist, join(outputRoot, "workbench"), { recursive: true });
 await cp(schemaRoot, join(outputRoot, "schemas", "explorer-bundle"), { recursive: true });
 
 // Guard rail (ADR 0084, Phase E cutover complete): the staged /explorer must be
@@ -26,6 +29,14 @@ const stagedIndex = await readFile(join(outputRoot, "explorer", "index.html"), "
 assert.equal(stagedIndex.includes("<pspf-app>"), true, "staged Explorer must be the unified Lit app (ADR 0084)");
 assert.equal(stagedIndex.includes('lang="en-AU"'), true, "staged Explorer must declare AU-English locale");
 await assertDirectory(join(outputRoot, "explorer", "assets"));
+
+const stagedWorkbench = await readFile(join(outputRoot, "workbench", "index.html"), "utf8");
+assert.equal(
+  stagedWorkbench.includes("<pspf-workbench>"),
+  true,
+  "staged workbench must mount <pspf-workbench> (ADR 0103)"
+);
+await assertDirectory(join(outputRoot, "workbench", "assets"));
 await assertReadable(join(outputRoot, "explorer", "sample-bundle-enterprise.json"));
 await assertReadable(join(outputRoot, "explorer", "sample-bundle-home.json"));
 await assertReadable(join(outputRoot, "explorer", "sample-bundle.json"));
@@ -43,13 +54,14 @@ await writeFile(
     "<IfModule mod_rewrite.c>",
     "  RewriteEngine On",
     "  RewriteRule ^explorer$ /explorer/ [R=302,L]",
+    "  RewriteRule ^workbench$ /workbench/ [R=302,L]",
     "</IfModule>",
     ""
   ].join("\n"),
   "utf8"
 );
 
-console.log("ok web release staged at .tmp/web-release with root page, /explorer, and schemas");
+console.log("ok web release staged at .tmp/web-release with root page, /explorer, /workbench, and schemas");
 
 async function assertReadable(path) {
   try {

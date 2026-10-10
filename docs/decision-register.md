@@ -146,6 +146,12 @@ The accepted direction is **browser workbench for everyday use; defer a technica
 
 ### Decisions Still Open
 
+#### Owner Decisions (2026-10-10)
+
+The owner chose the P2 closeout plus a minimal deployable workbench shell as the next release candidate (v1.77.0), driven by the FL-009 scenario. Decisions: keep the repository version-aligned at 1.77.0 but do not republish the frozen extensions (the extensions are being moved away from); stay on the current static host with browser-local, user-profile storage, confirmed acceptable for the trial; run the owner comparison while [ADR 0103](../adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md) is drafted. ADR 0103 is proposed, and its field contracts, refresh, recovery and threshold values are accepted only after the comparison. ADR 0102 D8(i) wording is amended accordingly. No code is released by this record.
+
+#### Still Open
+
 - Field-level Matter/profile contracts and reuse, publication/history/erasure and recoverable storage design (P2).
 - Detailed refresh and historical-reference rules for the selected validated read-only master-bundle source (P2).
 - Owner comparison against the document-and-list alternative, browser editing/density/keyboard/recovery evidence and measured workplace baseline.

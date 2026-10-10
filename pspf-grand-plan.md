@@ -90,6 +90,8 @@ C2–C6 (`docs/course-correction-plan.md`), O1–O3 (above), the six-phase clean
 
 ### Open questions for P1/P2
 
+- 2026-10-10: the P3 slice is drafted as [ADR 0103](adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md) (proposed; v1.77.0 aligned, frozen extensions not republished, `/workbench/` on the current host). Acceptance waits on the owner comparison.
+
 - Hosting the organisation will accept: SharePoint page, internal static host, or a local build opened from disk for the trial.
 - Whether Assurance (assessments, pentest findings) and Shop (suppliers, spend) jobs appear in the friction log; they return as Work lenses only if they do.
 - Atlas: products stay separate; a shared engine package is reconsidered only after P3 stabilises the work-side model.

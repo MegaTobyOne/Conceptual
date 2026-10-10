@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Date: 2026-10-05
-- Amended: 2026-10-08 (owner acceptance of the matter-centred first-slice recommendations)
+- Amended: 2026-10-08 (owner acceptance of the matter-centred first-slice recommendations); 2026-10-10 (D8(i) freeze wording, see below)
 - Supersedes: ADR 0001 (product set), ADR 0007 (extension packaging and trust registry), ADR 0013 §Repos as it applies to extension packages, ADR 0015 (Item Detail WebviewPanel), ADR 0078 (Assurance extension boundary), ADR 0084 §"dual surface" (Explorer becomes the only surface), ADR 0096/0097 surface budgets
 - Depends on: ADR 0101
 
@@ -69,6 +69,10 @@ Collaborative editing, Graph, in-app AI, a VS Code companion, broad committee to
 Perform the short owner comparison in the [P2 evaluation protocol](../docs/p2-matter-dossier-evaluation.md#owner-comparison-protocol), retaining the document-and-list alternative and the no-extra-capture case. Agreement with the model is not evidence that this comparison occurred or that the workbench saves effort. Workplace baseline, Rung 0 results, deployment permission, browser keyboard/density/recovery checks and parser/finder usefulness remain outstanding.
 
 Before product implementation, finalise the Matter/profile contracts and reuse boundaries, reference refresh/history rules, field-level publication policy, recoverable storage and erasure mechanics. A separate accepted P3 slice ADR must allocate the release version and any compatibility-axis changes, and resolve browser release sequencing without bumping the five frozen extensions to satisfy today's all-package alignment. This documentation amendment changes no code, schema, package version, compatibility axis, gate, deployed surface or data.
+
+## Amendment: Freeze Wording For D8(i) (2026-10-10)
+
+The owner chose to keep the repository version-aligned at 1.77.0 for the first workbench slice ([ADR 0103](0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md)) and not to republish the extensions. D8(i) is read as: the five extensions receive no features and are **not published to the Marketplace** after 1.76.0; their package versions may advance only to satisfy the all-package alignment check. This supersedes the earlier remaining-condition wording that asked for release sequencing without bumping the frozen extensions. D8(ii) to D8(iv) are unchanged.
 
 ## Consequences
 

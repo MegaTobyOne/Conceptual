@@ -12,7 +12,11 @@ const publicationRoots = [
   join(root, "debug-workspace/.pspf/exchange/exports"),
   join(root, ".tmp/e2e-v0.1-workspace/.pspf/exchange/exports")
 ];
-const staticRoots = [join(root, "packages/explorer/dist"), join(root, ".tmp/web-release")];
+const staticRoots = [
+  join(root, "packages/explorer/dist"),
+  join(root, "packages/workbench/dist"),
+  join(root, ".tmp/web-release")
+];
 const webReleaseWorkflow = readFileSync(join(root, ".github/workflows/web-release.yml"), "utf8");
 const ventraipDeployAction = readFileSync(join(root, ".github/actions/ventraip-deploy/action.yml"), "utf8");
 const forbiddenStaticFilePatterns = [

@@ -300,6 +300,14 @@ The programme runs four slices (R1–R4), all now implemented. Each slice's gate
 3. **Release-chain gate**: `e2e:v1.76` and `e2e:v1.76:run` inherit v1.75; their journey-cost script and reducer-test steps were retired on 2026-10-05. `release:readiness` continues to target `e2e:v1.76:run`.
 4. **ADR record**: [ADR 0100](adr/0100-v1-76-ux-outcome-evidence-instrument.md) remains accepted (2026-09-21) as the record of the C0 evidence instrument; its former automated ratchet is no longer a release gate.
 
+#### v1.77.0 — Browser workbench first slice (implemented; ADR 0103 accepted)
+
+1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.77.0`, including the new `pspf-workbench` package; `VERSION_AXES` remain `1.17.0`. The workbench store is browser-local and workbench records are not part of the master bundle, so no entity, link, bundle, API, publication-policy or Explorer schema change is introduced.
+2. **Frozen extensions**: the five extensions advance in version only to satisfy alignment and are not republished; the Marketplace workflow refuses non-dry-run publication (ADR 0102 D8(i) amendment of 2026-10-10).
+3. **Workbench wiring gate**: `check:workbench` proves the workbench mounts, declares AU-English and a self-only CSP, makes no network calls, uses its own `pspf-workbench.v1` database, and is staged under `/workbench/` by the web release.
+4. **Release-chain gate**: `e2e:v1.77` and `e2e:v1.77:run` inherit v1.76 and add the workbench typecheck, lint and tests (including the FL-009 synthetic acceptance test) and `check:workbench`; `release:readiness` targets `e2e:v1.77:run`.
+5. **ADR record**: [ADR 0103](adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md) accepted 2026-10-10. Rung 0 results, workplace storage permission, measured baseline and browser keyboard/density checks remain unverified.
+
 ### Governance Diet (Accepted 2026-10-05)
 
 Retired from active release wiring: surface-count budgets, the simulated journey-cost ratchet, and cross-gate meta-checks. Retained: redaction, build, test, accessibility, schema-policy and substantive feature-behaviour gates. The shipped VS Code product remains supported during the staged transition; its functional retired-view and navigation checks are not count budgets.
