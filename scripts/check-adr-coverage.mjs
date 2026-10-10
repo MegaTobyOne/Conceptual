@@ -414,6 +414,12 @@ const coverage = [
     "check:spec-drift",
     "lint:au",
     "check:adr-coverage"
+  ]),
+  // Proposed slice ADR (2026-10-10): planning record only until accepted.
+  adr("0104-workbench-register-prototype-extension-independence.md", "manual", [
+    "check:spec-drift",
+    "lint:au",
+    "check:adr-coverage"
   ])
 ];
 

@@ -137,6 +137,7 @@ To test or restore the JSON backup:
 Notes:
 
 - The master JSON bundle is a validated restore artefact, not a replacement for low-level database backups.
+- The export passes every entity through `sanitiseEntityForPublication`, so only fields declared `public` are written. Fields declared `sensitive` (for example `ownerTeam`, `dueDateHistory`, `acceptanceDefinition`, narrative bodies) are **not** in this backup. Use Method B–D for a complete copy; proposed ADR 0104 relies on this for migration into the browser workbench.
 - Import must continue to use Core validation and plan/apply review; do not bypass the import review by copying JSON records directly into the database.
 - Treat exported JSON as OFFICIAL: Sensitive unless a separate publication review has confirmed a lower marking.
 

@@ -116,6 +116,7 @@ This directory holds ADRs for the PSPF ecosystem. ADRs are short, dated, numbere
 | 0101 | Product reframe: the manager's three jobs                                            | accepted                                                                                                    |
 | 0102 | Browser-first workbench supersedes the VS Code extensions                            | accepted; matter-centred first-slice amendment accepted 2026-10-08; D8(i) freeze wording amended 2026-10-10 |
 | 0103 | v1.77 workbench first slice: matter capture, dossier and recovery                    | accepted 2026-10-10                                                                                         |
+| 0104 | Workbench register prototype: extension independence                                 | proposed 2026-10-10                                                                                         |
 
 ## Template
 
