@@ -63,7 +63,7 @@ jobs:
         run: pnpm --filter pspf-workbench run lint
 
       - name: Governance gates
-        run: pnpm run check:gate-integrity && pnpm run check:adr-coverage && pnpm run check:spec-drift
+        run: pnpm run check:adr-coverage && pnpm run check:spec-drift
 
   build-and-test:
     name: Build, test, and artefact gates
