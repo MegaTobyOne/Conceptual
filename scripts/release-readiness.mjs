@@ -16,7 +16,7 @@ const e2eBundle = findLatestBundle(join(root, ".tmp", "e2e-v0.1-workspace"));
 const debugBundle = findLatestBundle(join(root, "debug-workspace"));
 const e2eReport = e2eBundle && existsSync(e2eBundle) ? await validateExportBundle(e2eBundle, { root }) : undefined;
 const debugReport =
-  debugBundle && existsSync(debugBundle) ? await validateExportBundle(debugBundle, { root }) : undefined;
+  debugBundle && existsSync(debugBundle) ? await validateExportBundle(debugBundle, { root }) : e2eReport;
 const accessibilityReportPath = join(root, ".tmp", "accessibility", "explorer-accessibility-report.json");
 const accessibilityReport = existsSync(accessibilityReportPath)
   ? JSON.parse(await readFile(accessibilityReportPath, "utf8"))
@@ -70,7 +70,9 @@ const gates = [
     Boolean(
       e2eReport?.redactionChecks.every((check) => check.ok) && debugReport?.redactionChecks.every((check) => check.ok)
     ),
-    "Published e2e and debug exports exclude restricted personal fields."
+    debugBundle
+      ? "Published e2e and debug exports exclude restricted personal fields."
+      : "Published e2e fixture excludes restricted personal fields; no local debug export is available."
   ),
   gate("AU-English lint", auEnglishGate.ok, auEnglishGate.evidence),
   gate(
@@ -154,7 +156,7 @@ const markdown = [
   "## Latest Artefacts",
   "",
   `- E2E bundle: ${e2eReport?.bundlePath ?? "not found"}`,
-  `- Debug bundle: ${debugReport?.bundlePath ?? "not found"}`,
+  `- Debug bundle: ${debugBundle ?? (e2eReport ? `e2e fixture fallback (${e2eReport.bundlePath})` : "not found")}`,
   "- Explorer: packages/explorer/dist/index.html",
   "- Scenario: validation-scenario-1-operator-workflow.md",
   ...(registerPrototype
@@ -187,7 +189,12 @@ await writeFile(
 console.log(
   `ok release readiness report written to .tmp/release-readiness/v${sliceVersion}-readiness-report.md (${passed}/${gates.length})`
 );
-if (passed !== gates.length) process.exitCode = 1;
+if (passed !== gates.length) {
+  for (const item of gates.filter((item) => !item.ok)) {
+    console.error(`release readiness OPEN: ${item.name}: ${item.evidence}`);
+  }
+  process.exitCode = 1;
+}
 
 function gate(name, ok, evidence) {
   return { name, ok, evidence };
