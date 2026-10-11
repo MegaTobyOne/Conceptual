@@ -4,18 +4,21 @@ Status: **active**
 
 Local-first cyber risk, assurance and work planning with Australian PSPF and ISM context.
 
-The repository baseline is v1.77.0: five frozen, unpublished VS Code extensions (Core, Workshop, Assurance, Shop and Pub), the Explorer web app and the new browser workbench first slice at `/workbench/` (ADR 0103). The active compatibility axes are `schemaVersion`, `bundleVersion` and `apiVersion` `1.17.0`. A clean-start workbench redesign is being planned; it is not implemented or a new release.
+The repository baseline is v1.78.0. The product direction is one browser workbench organised around the manager's three jobs: capture from conversation, answer ad hoc requests, and run the team (ADRs 0101 and 0102). The five VS Code extensions and Explorer remain the shipped surfaces during staged transition; the extensions are frozen and will not receive features or be republished. The active compatibility axes are `schemaVersion`, `bundleVersion` and `apiVersion` `1.17.0`.
 
 The tools connect risks, requirements, evidence, Actions, ownership and reporting. They support the work that protects an organisation; they do not replace technical controls, monitoring, incident response or effectiveness testing. Completed work and compliance percentages are not proof of reduced risk.
 
-## Products
+## Current Direction
 
-- Core stores the workspace system of record in `.pspf/core/pspf-core.db`.
-- Workshop is the operator authoring and review surface.
-- Assurance provides local assessment, finding and verification/retest workbenches.
-- Shop is the commercial planning surface for suppliers, contracts, spend items, and explainable forecasts.
-- Pub is the local-first organisation, learning, skills, development, succession, rotation, and stakeholder relationship surface.
-- Explorer opens published master bundles and supports browser-local review/authoring round trips.
+The browser workbench at `/workbench/` now contains the matter-centred capture and brief workflow plus the accepted register-authoring parity prototype (v1.78.0, ADRs 0103 and 0104). It is browser-local, with explicit Save, recovery and backup/restore. Master-bundle export/import, Explorer round-trip, reporting packs and team sharing remain deferred; a publication bundle is not a lossless backup.
+
+Automated release readiness passed 20/20 gates, and the owner-approved parity map satisfies ADR 0102 D8(ii). The next phase, W2, is held pending the owner walkthrough, source database preservation, Shop/Pub exports, real-register migration review and cutover controls. W2 then tests the workbench as the sole authoring surface for a fortnight. The owner must record a keep judgement and required exports must be complete before extension retirement can proceed. No extension has been retired, and automated gates do not establish workplace usefulness or production deployment.
+
+The long-term direction includes team sharing with redaction at the team boundary. Publish-to-folder is the only integration in the current direction; further tenant AI follows the approval ladder in ADR 0101. No Graph integration or public-model personal-key feature is in scope.
+
+## Shipped Surfaces During Transition
+
+Core, Workshop, Assurance, Shop and Pub remain available as the existing VS Code extension suite; they are frozen and remain installed/readable during the transition. Explorer remains the separate browser publication-review and local-authoring surface until its staged retirement condition. The W1 workbench does not carry every extension capability: in particular, Shop and Pub records require approved exports before cutover, and deferred publication/reporting capabilities are tracked in ADR 0104 and the grand plan.
 
 ## Setup
 
@@ -53,7 +56,7 @@ Agreed requirements and open choices:
 
 See the [decision register](docs/decision-register.md), [design brief](pspf-design-spec.md#clean-start-workbench-design-brief), [phased design plan](docs/course-correction-plan.md#clean-start-workbench-design-plan) and [grand plan](pspf-grand-plan.md#clean-start-workbench-design-2026-09-26). Design does not close existing verification debt or authorise implementation, schema changes, new publication or release.
 
-## Earlier Workshop Slices
+## Historical Extension Capabilities
 
 Workshop is the main operator surface for evidence-backed assessment work and the critical decision point in the compliance uplift workflow. Requirements, Evidence, Actions, and Risks use a consistent list-on-left/edit-panel-on-right workbench so operators can move through records without losing edit context.
 
@@ -72,7 +75,7 @@ Earlier v1.42 remediation additions include:
 
 Still deferred after v1.43: Pub data is still never published to Explorer bundles; Pub team dates remain local planning context only; there is no automatic conflict resolution, calendar integration, notification engine, Pub delete/archive workflow beyond role archive, roster/performance-management workflow, or post-quantum encrypted master-bundle envelope. Post-quantum protection is a deferred decision item and must preserve the existing single master JSON bundle contract when revisited.
 
-Recent Workshop additions include:
+Previously shipped Workshop capabilities include:
 
 - Digital CISO Magazine: a generated `OFFICIAL: Sensitive` issue for share-ready CISO communication.
 - CISO Master Plan: an active roadmap view derived from Strategy, Plan of Action, Risks, Evidence, Shop dependencies, and step-built initiative plans.
@@ -83,7 +86,7 @@ Recent Workshop additions include:
 - ISM controls: direct control-to-evidence/action/risk links, internal implementation posture, control-side Requirement mapping, dedicated ISM control saved views, public-safe ISM posture brief rollups, and Explorer read-only obligation navigation.
 - ISM Review Workbench: operators can triage unmapped, not-assessed, drift-review, needs-direct-work, and risk-without-action source controls without adding schema-bearing state.
 
-## Implemented Judgement Support
+## Historical Judgement-Support Releases
 
 v1.53.0–v1.60.0 (ADRs 0087–0094) deliver a judgement-support review pass across Workshop and Explorer, following a UX review that found the ecosystem's data mostly existed but was never composed into a stated answer. Each release added one shared, tested primitive to `@pspf/contracts` and wired it into the highest-traffic surfaces:
 
@@ -96,7 +99,7 @@ v1.53.0–v1.60.0 (ADRs 0087–0094) deliver a judgement-support review pass acr
 
 The full judgement set, scoring, and backlog live in [docs/ux-improvement-ideas.md](docs/ux-improvement-ideas.md).
 
-## Manual Validation
+## Legacy Extension Validation
 
 Use the VS Code launch configurations for Core, Workshop, Shop, and the combined debug workspace. The main manual scenario is [validation-scenario-1-operator-workflow.md](validation-scenario-1-operator-workflow.md).
 
@@ -104,19 +107,22 @@ Open Explorer from [packages/explorer/dist/index.html](packages/explorer/dist/in
 
 ## Governing Docs
 
+- Product direction and active sequence: [grand plan](pspf-grand-plan.md#product-reframe-and-browser-first-direction-2026-10-05)
+- Owner trial and cutover evidence: [W2 execution plan](validation-scenario-1-operator-workflow.md#w2-execution-plan-owner-independence-cycle)
+- Product decisions: [ADR 0101](adr/0101-product-reframe-managers-three-jobs.md), [ADR 0102](adr/0102-browser-first-workbench-supersedes-extensions.md), [ADR 0103](adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md), [ADR 0104](adr/0104-workbench-register-prototype-extension-independence.md)
 - Scope and release gates: [pspf-acceptance-and-quality-gates.md](pspf-acceptance-and-quality-gates.md)
 - Spec ownership: [pspf-spec-consistency-index.md](pspf-spec-consistency-index.md)
 - Pipeline and release flow: [pspf-developer-pipeline-spec.md](pspf-developer-pipeline-spec.md)
 - ADR index: [adr/README.md](adr/README.md)
 
-## Current Shop Slice
+## Frozen Shop Surface
 
 Shop authoring is Core-backed and can link suppliers, contracts, and spend items to assurance Requirements, Actions, and Risks. The Shop Forecast view now includes a commercial coverage dashboard for unlinked records, near-term contract review, funded Actions, and supplier Risk links. Existing local Shop JSON can be imported explicitly; procurement import, finance reconciliation, and approvals remain deferred.
 
-## Current Pub Slice
+## Frozen Pub Surface
 
 Pub is now a Marketplace-ready local-only people and relationship surface. It provides the Activity Bar entry, Home view, Organisation Chart, Teams, People, Roles, Assignments, and Relationship Log views. v1.41 adds team-card Organisation Chart backs for accountable Requirements/controls and local team-wide news/date items that can optionally appear on the Workshop Plan of Action. Pub data still stays out of Explorer publication bundles.
 
-## Current UX Consistency Slice
+## Historical UX Consistency Slice
 
 v1.29 adds the ecosystem UX coverage matrix and starts the shared relationship-manager foundation. Operator-editable relationship rules are now centralised in contracts and consumed by Shop and Workshop; Shop tree selection opens detail-first panels; Pub local records now have explicit list/detail/edit coverage decisions and local-only CRUD proof points.

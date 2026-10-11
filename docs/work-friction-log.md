@@ -392,7 +392,7 @@ The v1.77.0 matter-centred workbench ([ADR 0103](../adr/0103-v1-77-workbench-fir
 | Capture attempted   | Yes or no, and why not if no (thread already carries its trail, not worth it, workbench unavailable, forgot).                    |
 | Parser result       | Items produced by type; how many accepted, retyped, merged or discarded; any text kept as a note because the format did not fit. |
 | Match suggestions   | Whether a suggested matter or register record was right, wrong or absent; whether an exact ID was available.                     |
-| Register references | Which snapshot the references were checked against and whether any showed changed or missing.                                    |
+| Register references | Live register context used; for imported/external references, snapshot/version/date and any changed or missing status.           |
 | Brief or answer     | Whether a dossier, profile view or issued edition was used to answer or brief; profile used; whether redaction removed anything. |
 | Recovery            | Any tab close, restart or interruption and whether the draft and place came back.                                                |
 | Effort              | The owner's estimate of time spent in the workbench and time saved or added, with the comparison the owner has in mind.          |

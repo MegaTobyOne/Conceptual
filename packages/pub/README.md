@@ -29,11 +29,9 @@ Pub requires **PSPF Core**.
 - Explorer never receives Pub data.
 - Workshop can read only the local Pub team-date items that are explicitly marked for the Plan of Action, so operators can see possible date conflicts beside action and reminder dates.
 
-## Design Direction (Not Implemented)
+## Transition Status (11 October 2026)
 
-The [clean-start workbench brief](../../pspf-design-spec.md#clean-start-workbench-design-brief) includes organisational context in the single-modular-extension discussion. One interface must not imply one unrestricted store: people-data handling, module responsibilities and publication exclusions remain explicit design decisions. Current Pub storage and packaging are unchanged, and no Pub data becomes publishable to Explorer.
-
-There are no active users, so legacy migration and retention are not required for the proposed fresh baseline. Future unfinished work should be recoverable as local drafts with explicit Save; that full workbench continuity contract is not yet implemented.
+Pub is a frozen extension: it receives no new features and will not be republished. People, roles, assignments and other Pub records are not part of the v1.78.0 workbench parity set. Before any owner cutover, the Pub JSON store must be exported to the approved backup location; Pub data does not become publishable by this transition. The extension remains installed and readable during W2. See [ADR 0102](../../adr/0102-browser-first-workbench-supersedes-extensions.md), [ADR 0104](../../adr/0104-workbench-register-prototype-extension-independence.md) and the [W2 execution plan](../../validation-scenario-1-operator-workflow.md#w2-execution-plan-owner-independence-cycle).
 
 ## Current boundaries
 

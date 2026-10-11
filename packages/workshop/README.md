@@ -17,11 +17,11 @@ PSPF Workshop is the day-to-day **authoring surface** inside VS Code. It opens s
 - Plan of Action can optionally show local Pub team-wide dates when a Pub team item is marked for planning, helping operators spot conflicts with action and reminder dates.
 - Copyable posture brief for handing to reviewers.
 
-## Design Direction (Not Implemented)
+## Transition Status (11 October 2026)
 
-The [clean-start workbench brief](../../pspf-design-spec.md#clean-start-workbench-design-brief) proposes contextual capture, a persistent worklist, related-item inspection, recovered local drafts with explicit Save, meaningful progress and reporting reuse. Substantial visual/interface redesign and a single modular extension are under evaluation; current screens and packaging remain in place.
+Workshop is a frozen extension: it receives no new features and will not be republished. The v1.78.0 browser workbench implements the owner-marked register-authoring parity alongside matter capture and briefs; automated release readiness passed 20/20 gates. The owner walkthrough, real-register migration review and W2 fortnight remain outstanding, so no authoring cutover or extension retirement has occurred. See [ADR 0102](../../adr/0102-browser-first-workbench-supersedes-extensions.md), [ADR 0104](../../adr/0104-workbench-register-prototype-extension-independence.md) and the [W2 execution plan](../../validation-scenario-1-operator-workflow.md#w2-execution-plan-owner-independence-cycle).
 
-Completed Actions and priority scores do not prove reduced risk. The [risk-to-outcome review](../../pspf-plan-spec.md#2026-09-25-product-review) records the outstanding treatment-link, planning-intent and effectiveness-measurement gaps. There are no active users, so the proposed fresh baseline does not require legacy migration or retention.
+Completed Actions and priority scores do not prove reduced risk. The [risk-to-outcome review](../../pspf-plan-spec.md#2026-09-25-product-review) records the outstanding treatment-link, planning-intent and effectiveness-measurement gaps.
 
 ## How it fits
 

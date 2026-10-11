@@ -17,11 +17,9 @@ PSPF Shop is the **commercial planning surface** for suppliers, contracts, spend
 
 Shop reads and writes commercial records through Core. The local JSON file is a compatibility import source, not the active system of record.
 
-## Design Direction (Not Implemented)
+## Transition Status (11 October 2026)
 
-The [clean-start workbench brief](../../pspf-design-spec.md#clean-start-workbench-design-brief) evaluates bringing commercial functions into one coherent, potentially single-extension experience. Supplier, contract and funding context should be available alongside the active risk or Action without losing the user's place. Current Shop packaging and storage are unchanged; there is no new Explorer publication permission.
-
-There are no active users, so legacy migration and retention are not required for the proposed fresh baseline. The existing compatibility import remains current functionality, not a requirement to reproduce it in the new design.
+Shop is a frozen extension: it receives no new features and will not be republished. Supplier, contract and spend records are not part of the v1.78.0 workbench parity set. Before any owner cutover, the Shop JSON store must be exported to the approved backup location; no Shop records are silently discarded or made publishable. The extension remains installed and readable during W2. See [ADR 0104](../../adr/0104-workbench-register-prototype-extension-independence.md) and the [W2 execution plan](../../validation-scenario-1-operator-workflow.md#w2-execution-plan-owner-independence-cycle).
 
 ## How it fits
 
