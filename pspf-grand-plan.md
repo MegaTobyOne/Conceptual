@@ -143,6 +143,8 @@ ADR 0103 follow-through status after W1:
 
 The trial is a human activity; agents may prepare the recording template and summarise anonymised notes but are not the operator.
 
+The [W2 execution plan](validation-scenario-1-operator-workflow.md#w2-execution-plan-owner-independence-cycle), prepared 2026-10-11, sequences technical readiness, owner walkthrough, trial controls, source preservation, migration rehearsal, cutover, the fortnight and exit review. It records failure handling and assumption checks without closing owner gates, allocating a release or authorising W3.
+
 1. **Duration and scope.** A fortnight of real use for capture, follow-up, ad hoc asks and authoring within the owner-marked parity set. The workbench is authoritative after cutover; extensions remain installed/readable but are not an alternate write path.
 2. **Before starting.** Complete the W1 keyboard/200% owner walkthrough; preserve and verify an untouched copy of the source SQLite database; take a workbench backup and identify its approved storage location; export Shop/Pub stores under W-D19; review and resolve the real migration report; record the cutover date under W-D18 and the keep/adjust/stop criterion under W-D11.
 3. **Record per episode** in the [work-friction log](docs/work-friction-log.md#workbench-trial-entries-from-2026-10-10): the trigger (meeting, email, request), whether capture was attempted, which items the parser produced and how many were accepted, retyped, merged or discarded, whether a match suggestion was right, which live register references were used, and the elapsed effort as the owner's estimate. Anonymised; no workplace artefacts in the repository.

@@ -25,9 +25,9 @@ Core is the foundation for the rest of the PSPF ecosystem.
 
 Install Core first, then add Workshop, Assurance, Shop and Pub as needed. A publication bundle is not a lossless backup: sensitive fields are excluded.
 
-## Design Direction (Not Implemented)
+## Transition Status (11 October 2026)
 
-The [clean-start workbench brief](../../pspf-design-spec.md#clean-start-workbench-design-brief) evaluates one modular extension while retaining useful Core write, validation and recovery mechanisms. Current packaging and storage remain unchanged. There are no active users, so legacy migration and retention are not required for the proposed fresh baseline; safe handling of future work remains essential.
+Core is a frozen extension: it receives no new features and will not be republished. The v1.78.0 browser workbench has an accepted register-authoring parity set, but the owner's real-register migration and cutover have not happened. W2 is held pending the owner walkthrough, preservation of the source SQLite database, migration review and recovery checks. The SQLite database remains the complete source for the owner's register; a publication bundle is lossy and is not a substitute backup. See [ADR 0104](../../adr/0104-workbench-register-prototype-extension-independence.md) and the [W2 execution plan](../../validation-scenario-1-operator-workflow.md#w2-execution-plan-owner-independence-cycle).
 
 ## Key commands
 
