@@ -1,13 +1,13 @@
 # PSPF Repository Instructions
 
-This repository implements the PSPF product ecosystem at v1.77.0: five frozen VS Code extensions, a unified Explorer web app, the browser workbench, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
+This repository implements the PSPF product ecosystem at v1.78.0: five frozen VS Code extensions, a unified Explorer web app, the browser workbench, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
 
-## Current Direction (2026-10-05)
+## Current Direction (2026-10-11)
 
 - The product is being reframed around the manager's three jobs — J1 capture from conversation, J2 answer ad hoc requests fast, J3 run the team — and towards one browser single-page application that replaces the five VS Code extensions. Read `adr/0101-product-reframe-managers-three-jobs.md`, `adr/0102-browser-first-workbench-supersedes-extensions.md` and `pspf-grand-plan.md` §"Product reframe and browser-first direction (2026-10-05)" before any product, roadmap or architecture work.
 - Both ADRs were **accepted 2026-10-05**. The five extensions and dual-mode Explorer remain the shipped product until staged retirement completes; no extension is frozen or deleted ahead of ADR 0102 D8.
 - C2–C6, O1–O3, the clean-start workbench design phases and the website/brand brief are **paused** (reason "superseded design centre"); do not resume a slice until its remaining behaviours have a destination or are recorded as no longer required. C0 and C1 are complete.
-- Do not start new extension features, new Workshop commands, new Explorer entity routes or new surface-budget work. The first browser slice (`packages/workbench`, ADR 0103, v1.77.0) is implemented. The next slice is the register prototype under accepted ADR 0104 (v1.78.0, extension independence: workbench register store, lossless migration from the Core SQLite file, authoring for the owner-marked parity set; export, snapshot and briefs deferred). Follow the W1a–W1e increments in `pspf-grand-plan.md` §"Next build phases after the first workbench slice (2026-10-10)" and the parity map there; the owner trial is held until the prototype exists.
+- Do not start new extension features, new Workshop commands, new Explorer entity routes or new surface-budget work. The browser first slice (ADR 0103, v1.77.0) and register prototype (accepted ADR 0104, v1.78.0) are implemented; automated release readiness passed 20/20 gates. ADR 0102 D8(ii) now accepts the ADR 0104 owner-marked parity; deferred W4+ capabilities are not retirement prerequisites. The next phase is the held W2 owner independence cycle, pending walkthrough, real-register migration review, cutover and trial controls. D8(iv) retirement follows only if W2 yields a keep judgement and required exports are complete. Follow the active sequence in `pspf-grand-plan.md`.
 - Tenant AI is in scope on the ADR 0101 D4 ladder; public models via personal keys remain out of scope. Every AI output is draft-and-confirm with recorded provenance.
 - Team sharing is a requirement under the reframe; redaction applies at the team boundary. The invariants below still govern anything that leaves that boundary.
 
@@ -24,7 +24,7 @@ This repository implements the PSPF product ecosystem at v1.77.0: five frozen VS
 ## Current Workspace
 
 - Package manager: pnpm workspaces, pinned by `packageManager` in `package.json`.
-- Current repo version: `1.77.0`; all workspace packages are expected to remain version-aligned. The extensions are frozen and not republished (ADR 0102 D8(i) amendment); `packages/workbench` (`pspf-workbench`) is the first browser-first slice per ADR 0103.
+- Current repo version: `1.78.0`; all workspace packages are expected to remain version-aligned. The extensions are frozen and not republished (ADR 0102 D8(i) amendment); `packages/workbench` (`pspf-workbench`) is the browser-first workbench and register authoring surface under ADRs 0103/0104.
 - Shipped VS Code extensions:
   - `packages/core` (`pspf-core`) — local system of record, workspace bootstrap, validation, snapshots, import/export, and Core command API.
   - `packages/assurance` (`pspf-assurance`) — assurance evidence and pentest-workbench surface.

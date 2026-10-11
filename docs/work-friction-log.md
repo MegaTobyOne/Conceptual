@@ -382,7 +382,7 @@ Different areas feel and behave differently. In the requirements list only the I
 
 ## Workbench Trial Entries (From 2026-10-10)
 
-The v1.77.0 workbench first slice ([ADR 0103](../adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md)) is in the repository. Its owner trial is defined as [W0 in the grand plan](../pspf-grand-plan.md#w0-owner-trial-protocol-on-hold-becomes-the-d8iii-independence-cycle). On 2026-10-10 the owner performed the recovery drills against the deployed build: backup, restore and the other mechanics worked as intended. The fortnight of real use is **on hold** until the register prototype (proposed ADR 0104) removes the need for the extensions; it then runs over one tool as the ADR 0102 D8(iii) independence cycle. Entries made during that run are numbered **FL-010** onwards and follow the format below so that they can be compared with the P1 owner synthesis. Content stays anonymised and synthetic in wording; no workplace artefacts, names, risk IDs or minutes are placed here.
+The v1.77.0 matter-centred workbench ([ADR 0103](../adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md)) and the v1.78.0 register prototype ([ADR 0104](../adr/0104-workbench-register-prototype-extension-independence.md)) are implemented; W1 automated release readiness passed 20/20 gates. On 2026-10-10 the owner performed the recovery drills against v1.77.0: backup, restore and related mechanics worked as intended. The fortnight of real use remains **on hold** pending the W1 owner walkthrough, real-register migration review, recorded cutover and other W2 prerequisites in the [grand plan](../pspf-grand-plan.md#w0-owner-trial-protocol-on-hold-becomes-the-d8iii-independence-cycle). It will run as the ADR 0102 D8(iii) independence cycle on the workbench only for authoring within the owner-marked parity set. Entries made during that run are numbered **FL-010** onwards. They provide new prospective evidence; they do not reconstruct the missing P1 measured baseline or unrecorded P2 comparison. Content stays anonymised; no workplace artefacts, names, risk IDs or minutes are placed here.
 
 ### Entry Format
 
@@ -402,7 +402,7 @@ The v1.77.0 workbench first slice ([ADR 0103](../adr/0103-v1-77-workbench-first-
 
 - Recovery drills: **performed 2026-10-10 on v1.77.0** — backup, restore and related mechanics worked. To be repeated once on the register prototype (draft return after tab close, backup restore into a second profile, erasure tombstone visible, register counts matching after restore).
 - Seven-type recovery check for three trial matters: lookup time and answering source per type, set beside the P1 owner synthesis ratings.
-- Independence check: one real reporting cycle (assess, evidence, action, risk, snapshot, close period, brief, export) completed without opening VS Code for authoring.
+- Independence check: one real authoring cycle covering the parity-set capabilities completed in the workbench without using the extensions for authoring. Snapshot, Close-period, brief/reporting-pack and master-bundle export are deferred by ADR 0104 and are not W2 acceptance requirements; record any real need for them as friction rather than simulating completion.
 - Rung 0 note: editions published to the synced folder, questions asked of Copilot, and which answers were correct, inferred or missing.
 - Defect and friction list.
 - Owner's keep/adjust/stop judgement against the criterion recorded under W-D11, with the document-and-list alternative stated.

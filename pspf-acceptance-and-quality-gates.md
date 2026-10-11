@@ -308,7 +308,7 @@ The programme runs four slices (R1–R4), all now implemented. Each slice's gate
 4. **Release-chain gate**: `e2e:v1.77` and `e2e:v1.77:run` inherit v1.76 and add the workbench typecheck, lint and tests (including the FL-009 synthetic acceptance test) and `check:workbench`; `release:readiness` targets `e2e:v1.77:run`.
 5. **ADR record**: [ADR 0103](adr/0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md) accepted 2026-10-10. Rung 0 results, workplace storage permission, measured baseline and browser keyboard/density checks remain unverified.
 
-#### v1.78.0 — Workbench register prototype: extension independence (implemented release candidate; ADR 0104 accepted)
+#### v1.78.0 — Workbench register prototype: extension independence (automated release readiness passed; owner cycle pending; ADR 0104 accepted)
 
 1. **Version and compatibility gate**: all package versions and `PSPF_SLICE_VERSION` are `1.78.0`; `VERSION_AXES` remain `1.17.0`. The register store holds schema `1.17.0` entity shapes browser-locally; no master bundle, Explorer schema or API change is introduced. The IndexedDB database moves to version 2 and the backup envelope to `storeVersion` 2 under a forward-only migration policy (restore upgrades 1, refuses newer).
 2. **Migration fidelity gate**: `check:register-migration` migrates a fixture SQLite database through `scripts/migrate-core-register.mjs` and proves every record of all 29 entity types is field-identical in the register import file, including `sensitive` fields; the script reports every envelope or rule violation per record and coerces nothing.
@@ -317,6 +317,8 @@ The programme runs four slices (R1–R4), all now implemented. Each slice's gate
 5. **Publication and recovery gates**: `check:personal-data` fixtures cover workbench editions and backups; backups are the lossless recovery artefact and say so; master bundle export is deferred and no new egress is added. A workbench accessibility gate passes at 320/768/1440 px and 200%.
 6. **Release-chain gate**: `e2e:v1.78` inherits v1.77 and adds the register-store tests, `check:register-migration` and the accessibility gate; `release:readiness` targets `e2e:v1.78:run`.
 7. **Frozen extensions**: versions advance for alignment only; the Marketplace workflow continues to refuse publication.
+
+Automated release readiness passed 20/20 gates on 2026-10-11. This satisfies D8(ii) under the accepted 2026-10-11 ADR 0102 amendment, which recognises ADR 0104's owner-marked parity and keeps its W4+ deferrals outside the pre-retirement scope. It is not the owner transition acceptance: the keyboard/200% walkthrough, real-register migration review, cutover, W2 fortnight cycle and keep/adjust/stop judgement remain outstanding. D8(iv) retirement may proceed only after W2 records a keep result and required data exports are complete. These are owner/governance criteria, not claims made by the automated gate run.
 
 ### Governance Diet (Accepted 2026-10-05)
 

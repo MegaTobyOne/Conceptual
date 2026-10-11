@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Date: 2026-10-05
-- Amended: 2026-10-08 (owner acceptance of the matter-centred first-slice recommendations); 2026-10-10 (D8(i) freeze wording, see below)
+- Amended: 2026-10-08 (owner acceptance of the matter-centred first-slice recommendations); 2026-10-10 (D8(i) freeze wording); 2026-10-11 (D8(ii) parity scope, see below)
 - Supersedes: ADR 0001 (product set), ADR 0007 (extension packaging and trust registry), ADR 0013 §Repos as it applies to extension packages, ADR 0015 (Item Detail WebviewPanel), ADR 0078 (Assurance extension boundary), ADR 0084 §"dual surface" (Explorer becomes the only surface), ADR 0096/0097 surface budgets
 - Depends on: ADR 0101
 
@@ -73,6 +73,16 @@ Before product implementation, finalise the Matter/profile contracts and reuse b
 ## Amendment: Freeze Wording For D8(i) (2026-10-10)
 
 The owner chose to keep the repository version-aligned at 1.77.0 for the first workbench slice ([ADR 0103](0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md)) and not to republish the extensions. D8(i) is read as: the five extensions receive no features and are **not published to the Marketplace** after 1.76.0; their package versions may advance only to satisfy the all-package alignment check. This supersedes the earlier remaining-condition wording that asked for release sequencing without bumping the frozen extensions. D8(ii) to D8(iv) are unchanged.
+
+## Accepted Amendment: D8(ii) Parity For Staged Retirement (2026-10-11)
+
+The product owner accepts the owner-marked capability set in [ADR 0104](0104-workbench-register-prototype-extension-independence.md) and its parity map as satisfying D8(ii)'s build-completion requirement. For staged retirement, D8(ii) means that the workbench implements the selected register-authoring parity alongside the matter-centred capture and brief workflow; it does not require every capability named in the original operator-spine wording.
+
+Accordingly, snapshots and Close period, standard master-bundle import/export and Explorer round-trip, reporting packs, and team sharing remain deferred under ADR 0104 and are not prerequisites to D8(iii) or D8(iv). This records an accepted scope trade-off; it does not claim those capabilities have been delivered or remove them from future consideration.
+
+W1 (v1.78.0) implements the accepted parity and passed automated release readiness (20/20 gates) on 2026-10-11. That evidence satisfies D8(ii), but does not establish workplace usefulness or complete the owner transition. D8(iii) remains required: the owner must review the real-register migration, record the cutover, and use the workbench as the sole authoring surface for the accepted parity set for a fortnight. D8(iv) may proceed only after that cycle's keep/adjust/stop judgement supports retirement and required data exports are complete. The owner walkthrough remains a W2 preflight; no extensions are republished or deleted by this amendment.
+
+This amendment changes the D8(ii) scope only. It does not change D8(i), waive D8(iii), authorise immediate package or route removal, or change any version, compatibility axis, schema, publication policy, or deployed surface.
 
 ## Consequences
 
