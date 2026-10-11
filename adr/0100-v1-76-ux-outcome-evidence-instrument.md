@@ -1,6 +1,6 @@
 # 0100 — v1.76 UX outcome evidence instrument
 
-- Status: accepted
+- Status: accepted; journey-cost release ratchet retired by ADR 0101 D7
 - Date: 2026-09-21
 
 ## Context

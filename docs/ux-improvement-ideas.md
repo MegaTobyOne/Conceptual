@@ -70,6 +70,7 @@ Supporting operator judgements (from the same review): verdict-first screens, ne
 
 ### Cross-cutting polish (from v1.52.0 review)
 
+- **Whole-item activation in lists (owner feedback 2026-10-10, decision W-D20):** Explorer requirements list links only the ID; risks and actions use an Open/Close button; the workbench matter list opens on the whole item. One rule everywhere: click the item to open details. Adopted by the register prototype from W1c; Explorer lists are not reworked before their routes retire.
 - Deduplicate palette titles across core/workshop ("PSPF: Import Master Bundle", "PSPF: Export Team Share Bundle").
 - Marketplace icons for all five extensions (categories done; icons still missing).
 - Empty / single-item / 500-item state audit per key screen; watch pill wrapping and table column collapse.

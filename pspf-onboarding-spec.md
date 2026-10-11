@@ -1,4 +1,8 @@
-# PSPF Onboarding Specification
+# Legacy Onboarding Specification
+
+Status: **reference**
+
+This specification describes VS Code extension onboarding and remains available for staged-retirement support. See the [archived specification](docs/history/legacy-vscode/pspf-onboarding-spec.md).# PSPF Onboarding Specification
 
 Status: **implemented**
 

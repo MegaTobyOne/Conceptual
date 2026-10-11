@@ -89,6 +89,7 @@ export default tseslint.config(
       "scripts/check-explorer-to-workshop-import.mjs",
       "scripts/check-core-sqljs-runtime.mjs",
       "scripts/check-accessibility.mjs",
+      "scripts/check-workbench-accessibility.mjs",
       "scripts/check-risk-workbench.mjs"
     ],
     languageOptions: {

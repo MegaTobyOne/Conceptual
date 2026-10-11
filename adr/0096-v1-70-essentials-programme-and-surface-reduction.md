@@ -1,6 +1,6 @@
 # 0096 — v1.70 Essentials programme and surface reduction
 
-- Status: accepted
+- Status: accepted; surface-budget provisions superseded by ADR 0102
 - Date: 2026-09-01
 
 ## Context

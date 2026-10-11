@@ -9,6 +9,7 @@ const reportDirectory = join(root, ".tmp", "release-readiness");
 await mkdir(reportDirectory, { recursive: true });
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const sliceVersion = packageJson.version;
+const registerPrototype = Number(sliceVersion.split(".")[1]) >= 78;
 const manualValidationCleanToDate = sliceVersion === "1.0.1";
 
 const e2eBundle = findLatestBundle(join(root, ".tmp", "e2e-v0.1-workspace"));
@@ -19,6 +20,10 @@ const debugReport =
 const accessibilityReportPath = join(root, ".tmp", "accessibility", "explorer-accessibility-report.json");
 const accessibilityReport = existsSync(accessibilityReportPath)
   ? JSON.parse(await readFile(accessibilityReportPath, "utf8"))
+  : undefined;
+const workbenchReportPath = join(root, ".tmp", "accessibility", "workbench-accessibility-report.json");
+const workbenchReport = existsSync(workbenchReportPath)
+  ? JSON.parse(await readFile(workbenchReportPath, "utf8"))
   : undefined;
 const briefReportPath = join(root, ".tmp", "brief-redaction", "posture-brief-redaction-report.json");
 const briefReport = existsSync(briefReportPath) ? JSON.parse(await readFile(briefReportPath, "utf8")) : undefined;
@@ -107,6 +112,24 @@ const gates = [
   gate("Master-bundle import", Boolean(e2eReport?.ok), "e2e:v0.1 validates full-replace import into a fresh workspace.")
 ];
 
+if (registerPrototype) {
+  const migrationGate = runGate("Register migration", ["scripts/check-register-migration.mjs"]);
+  const privacyGate = runGate("Workbench publication and recovery", ["scripts/check-personal-data-exclusion.mjs"]);
+  gates.push(
+    gate("Register migration fidelity", migrationGate.ok, migrationGate.evidence),
+    gate("Workbench publication and recovery", privacyGate.ok, privacyGate.evidence),
+    gate(
+      "Workbench independence and accessibility",
+      workbenchReport?.productVersion === sliceVersion &&
+        workbenchReport?.seriousOrCriticalCount === 0 &&
+        workbenchReport?.results?.length === 28 &&
+        Boolean(workbenchReport?.independence) &&
+        workbenchReport?.volume?.loadMs < workbenchReport?.volume?.budgetMs,
+      "All 29 types migrated exactly; authoring, drafts and histories restored into a second profile; seven editors at 320/768/1440 px and 200%; 504-risk budget passed."
+    )
+  );
+}
+
 const passed = gates.filter((item) => item.ok).length;
 const markdown = [
   `# PSPF v${sliceVersion} Release Readiness`,
@@ -134,6 +157,12 @@ const markdown = [
   `- Debug bundle: ${debugReport?.bundlePath ?? "not found"}`,
   "- Explorer: packages/explorer/dist/index.html",
   "- Scenario: validation-scenario-1-operator-workflow.md",
+  ...(registerPrototype
+    ? [
+        "- Workbench: packages/workbench/dist/index.html",
+        "- Workbench independence and accessibility: .tmp/accessibility/workbench-accessibility-report.json"
+      ]
+    : []),
   "- Explorer publication smoke: .tmp/explorer-publication/explorer-publication-report.json",
   "- Explorer Local Changes smoke: .tmp/explorer-local-authoring/explorer-local-authoring-report.json",
   "- Explorer-to-Workshop import smoke: .tmp/explorer-to-workshop-import/explorer-to-workshop-import-report.json",
@@ -143,7 +172,9 @@ const markdown = [
   passed === gates.length && manualValidationCleanToDate
     ? "Continue recording operator findings against Scenario 1; next feature work is Explorer local-authoring phase 1 under ADR 0030."
     : passed === gates.length
-      ? `Manual operator validation using Scenario 1, including the v${sliceVersion} Explorer Local Changes path.`
+      ? registerPrototype
+        ? "Owner cutover and independence cycle under ADR 0104 / ADR 0102 D8(iii): approved backups, cutover date and fortnight trial remain outstanding. No production deployment or extension retirement is claimed."
+        : `Manual operator validation using Scenario 1, including the v${sliceVersion} Explorer Local Changes path.`
       : "Resolve any OPEN gates above before manual operator validation."
 ].join("\n");
 
@@ -156,6 +187,7 @@ await writeFile(
 console.log(
   `ok release readiness report written to .tmp/release-readiness/v${sliceVersion}-readiness-report.md (${passed}/${gates.length})`
 );
+if (passed !== gates.length) process.exitCode = 1;
 
 function gate(name, ok, evidence) {
   return { name, ok, evidence };

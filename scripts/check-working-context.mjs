@@ -3,9 +3,8 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const root = process.cwd();
-const read = (relativePath) => readFile(join(root, relativePath), "utf8");
 const countMatches = (text, pattern) => (text.match(pattern) ?? []).length;
-
+const read = (relativePath) => readFile(join(root, relativePath), "utf8");
 const contextSource = await read("packages/webview-shell/src/working-context.ts");
 assert.match(contextSource, /export type WorkingContext = "operations" \| "oversight-assurance";/);
 assert.match(contextSource, /DEFAULT_WORKING_CONTEXT: WorkingContext = "operations"/);
@@ -50,22 +49,7 @@ assert.doesNotMatch(
   "switching context must not invoke records, capabilities, or business commands"
 );
 
-const baseline = JSON.parse(await read("scripts/lib/essentials-surface-baseline.json"));
 const packageJson = JSON.parse(await read("package.json"));
-const workshopPackage = JSON.parse(await read("packages/workshop/package.json"));
-const panelCount = countMatches(extensionSource, /createWebviewPanel\(/g);
-assert.ok(
-  panelCount <= baseline.workshopWebviewPanels,
-  `Workshop panels ${panelCount} exceed ${baseline.workshopWebviewPanels}`
-);
-const commandCount = workshopPackage.contributes?.commands?.length ?? 0;
-assert.ok(
-  commandCount <= baseline.workshopCommands,
-  `Workshop commands ${commandCount} exceed ${baseline.workshopCommands}`
-);
 assert.match(packageJson.scripts?.["check:working-context"] ?? "", /check-working-context\.mjs/);
 
-console.log(
-  `ok working context: explicit contexts, separate workspace key, safe switch branch, ` +
-    `and Essentials surface ${commandCount}/${baseline.workshopCommands} commands, ${panelCount}/${baseline.workshopWebviewPanels} panels`
-);
+console.log("ok working context: explicit contexts, separate workspace key and safe switch branch");

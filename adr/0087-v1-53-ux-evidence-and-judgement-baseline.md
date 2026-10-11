@@ -1,6 +1,6 @@
 # 0087 — v1.53 UX evidence pack and judgement baseline
 
-- Status: accepted
+- Status: accepted; gate-integrity meta-check retired by ADR 0101 D7
 - Date: 2026-08-24
 
 ## Context

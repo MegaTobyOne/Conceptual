@@ -1,6 +1,10 @@
 # 0015 — Item Detail surface is a WebviewPanel
 
-- Status: accepted
+Status: **reference**
+
+This host-specific decision was superseded by ADR 0102 and archived at [docs/history/adr/0015-item-detail-webview-panel.md](../docs/history/adr/0015-item-detail-webview-panel.md).# 0015 — Item Detail surface is a WebviewPanel
+
+- Status: superseded by ADR 0102
 - Date: 2026-05-10
 
 ## Context

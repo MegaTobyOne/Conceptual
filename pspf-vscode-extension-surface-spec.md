@@ -1,4 +1,8 @@
-# PSPF VS Code Extension Surface Specification
+# Legacy VS Code Extension Surface Specification
+
+Status: **reference**
+
+The five-extension surface is superseded by ADR 0102 and remains documented for staged-retirement support. See the [archived specification](docs/history/legacy-vscode/pspf-vscode-extension-surface-spec.md).# PSPF VS Code Extension Surface Specification
 
 Status: **implemented**
 

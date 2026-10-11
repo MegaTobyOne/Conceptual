@@ -1,0 +1,103 @@
+# 0102 — Browser-first workbench supersedes the VS Code extensions
+
+- Status: accepted
+- Date: 2026-10-05
+- Amended: 2026-10-08 (owner acceptance of the matter-centred first-slice recommendations); 2026-10-10 (D8(i) freeze wording); 2026-10-11 (D8(ii) parity scope, see below)
+- Supersedes: ADR 0001 (product set), ADR 0007 (extension packaging and trust registry), ADR 0013 §Repos as it applies to extension packages, ADR 0015 (Item Detail WebviewPanel), ADR 0078 (Assurance extension boundary), ADR 0084 §"dual surface" (Explorer becomes the only surface), ADR 0096/0097 surface budgets
+- Depends on: ADR 0101
+
+## Context
+
+ADR 0101 reframes the product around three jobs: capture from conversation (J1), answer ad hoc requests fast (J2) and run the team (J3). The 2026-10-05 review assessed four candidate hosts against those jobs plus three deployment criteria — runs on a managed work machine, shareable with a team, and register reachable by tenant AI (Microsoft 365 Copilot) with no integration code:
+
+| Candidate                                                 | J1  | J2  | J3  | Work machine                           | Team sharing             | Copilot can ground on it          |
+| --------------------------------------------------------- | --- | --- | --- | -------------------------------------- | ------------------------ | --------------------------------- |
+| (a) One modular VS Code extension                         | –   | ◐   | –   | Needs VS Code and extension approval   | Bundle export only       | No; data stays in `.pspf/`        |
+| (b) Browser SPA, evolved from Explorer local authoring    | ●   | ●   | ◐   | A URL or a local build opened in a tab | Publish to synced folder | Yes, via SharePoint-synced folder |
+| (c) Work edition on the Atlas codebase                    | ●   | ●   | ◐   | As (b)                                 | As (b)                   | As (b)                            |
+| (d) Microsoft 365-hosted team view (Teams tab/SharePoint) | ●   | ●   | ●   | Needs tenant app approval              | Native                   | Yes                               |
+
+Candidate (a) tidies the wrong host: capture happens one tab away from Teams and Outlook, not inside an editor. Candidate (d) scores highest but depends on the owner's organisation approving a tenant app before anything can be tried. Candidate (c) would import the sprawl problem into a consumer product that promises no accounts and no sync, and Atlas is at version 0.0.0. Candidate (b) can be trialled on a work machine today, publishes into the folder Copilot already indexes, and is the same static build that a Teams tab or Outlook task pane later points at, so it is also the path to (d).
+
+The existing Explorer already has browser-local authoring, an IndexedDB store, master-bundle import and export, the shared requirement finder and the brief renderer. The missing pieces are the capture surface, the answer surface, the team surface and a publish-to-folder action.
+
+## Decision
+
+The numbered decisions record the 2026-10-05 baseline. Read them with the [accepted 2026-10-08 amendment](#accepted-amendment-matter-centred-first-slice-2026-10-08), which refines D2-D5 and D7, selects the starting stack in D9 and narrows the first-slice scope in D10. The amendment does not change D8's extension retirement conditions.
+
+1. **The product becomes one browser single-page application.** It is the only product surface. It runs with no backend; persistence is browser-local (IndexedDB), and exchange is by file.
+2. **Navigation is by job, not by entity.** Five places: **Inbox** (paste or drop a recap, email or note; deterministic parser produces typed drafts — Action, Request, Decision, Risk, Note — each carrying its source excerpt and conversation deep link; drafts are accepted, merged into an existing record suggested by the finder, retyped or discarded; nothing is written without a click), **Ask** (search across requirements, risks, actions, suppliers and people; answer cards with status, owner, last change, open work and evidence freshness; copy as brief paragraph; compose several cards into a templated brief; save the question and answer as a Request so repeat asks are a lookup), **Work** (one worklist with lenses — mine, team, overdue, blocked, by requirement, by risk, recently changed — beside a single record layout with explicit Save; Requirements become a lens and link target rather than a destination), **Team** (open, overdue, blocked and stale work per person; meeting preparation card per attendee set; load and staleness computed, not entered), **Publish** (posture brief, weekly delta from the last two snapshots, action register, team digest, request-ledger extract; preview, redaction summary and a one-time-chosen target folder). Settings, backup, restore, integrity and help sit behind one menu.
+3. **Layout is one three-pane workbench**: a one-line context header whose search box is Ask, a dense keyboard-navigable worklist, the record, and a collapsible inspector for related items, provenance and history. Route, selection, scroll position and unfinished drafts survive tab close, restart and crash; the app reopens where the operator was. Drafts autosave; records save explicitly.
+4. **Publish-to-folder is the integration.** Using the File System Access API the app writes Markdown, Word and CSV artefacts into a folder the operator chose once — in practice the OneDrive-synced copy of a SharePoint library. Saving is publishing; Microsoft 365 Copilot grounds on the result with no Graph calls, app registration or tenant approval (ADR 0101 Rung 0). The same build is later packaged as a Teams tab or Outlook add-in task pane by manifest only.
+5. **Capture inverts where AI sits.** Microsoft 365 Copilot does the extraction where it already runs (meeting recap action items and decisions, Outlook thread summary, or a copyable prompt template supplied by the Inbox that yields a known table shape). The app's parser is deterministic. An `AiDraft` provenance shape — source excerpt, generated-by, accepted-by, accepted-at — is defined so that a regex, a declarative agent or an in-tenant model produce indistinguishable drafts.
+6. **Pub flips from local-only to team-visible.** People, ownership, load and blockers are shown inside the app. The existing `publication` declarations and redaction rules apply at every copy and publish step; names are withheld or replaced by roles according to the artefact's target. `Person.name`, `Person.email` and `Assignment.personId` remain excluded from anything leaving the team boundary.
+7. **The model carries forward; the host does not.** `@pspf/contracts` (entities, IDs, link taxonomy, finder, publication policy), `@pspf/reference-data`, `@pspf/ism-source-library` and `@pspf/brief-renderer` are retained unchanged in meaning. The master bundle remains the exchange format and the one-way migration path for the owner's existing register. Writer lock, trusted-caller policy, Core command API, command palette contributions and the `.pspf/` workspace layout have no caller in the new surface and are not carried.
+8. **Retirement of the five extensions proceeds in four steps and nothing is deleted before step four**: (i) freeze `pspf-core`, `pspf-workshop`, `pspf-assurance`, `pspf-shop` and `pspf-pub` at 1.76.0 with CI reduced to build-still-passes; (ii) build the SPA until it covers the original operator spine (author, snapshot, export, brief) plus Inbox and Ask; (iii) import the owner's real register and use only the SPA for a fortnight; (iv) mark the Marketplace listings deprecated with a pointer to the SPA, move the extension packages under `packages/legacy/`, and remove them in a later release. Assurance and Shop capability return only as Work lenses if the friction log shows the owner performs those jobs.
+9. **Technology choice is open between the current Explorer stack (Vite, Lit, IndexedDB) and the Atlas stack (React, Mantine, Dexie).** The deciding question is which reaches a working Inbox sooner; Atlas's engine-module pattern (freshness, posture, brief, timeline) is the reference either way. Atlas itself remains a separate product and repository; code is not shared until the work-side model has stabilised through the first slice.
+10. **First slice is Inbox and Ask**, proven with real pastes against the owner's current register export before UI is built: parser stability against Copilot recap shapes, and whether finder match suggestions produce more useful merges than noise.
+
+This ADR was accepted on 2026-10-05 and amended on 2026-10-08. The five extensions and dual-mode Explorer remain the shipped product until staged retirement completes. This architecture decision allocates no release version, compatibility-axis value, schema or shipping date; those follow in the slice ADR.
+
+## Accepted Amendment: Matter-Centred First Slice (2026-10-08)
+
+The product owner accepts all recommendations from the matter-dossier decision review: a matter-centred personal workbench, shared facts and reusable briefs, built on the existing browser foundations. This is acceptance of design direction and bounded first-slice scope, not implementation, measured usefulness, P1/P2 completion or release approval. The [decision register](../docs/decision-register.md#accepted-recommendations-2026-10-08) records the acceptance; the [grand plan](../pspf-grand-plan.md#matter-and-dossier-design-option-2026-10-08) owns the remaining sequence.
+
+### Model And Meaning
+
+1. **Adopt a thin Matter as the organising unit.** Its minimum responsibility is the concern or question, scope, intended outcome, personal follow-up state and references. A matter connects requests, advice, evidence, meetings and resulting work; it is not another risk, action or authoritative approval register. The dossier is a derived projection of linked shared records, not a separately maintained store. Capture remains selective: a thread that already contains its own trail does not need a matter.
+2. **Start with CISO, Ops and one committee profile.** Profiles supply questions, emphasis and readiness checks over the same source-backed account. They retain relevant contradictions and unknowns and grant no access permissions or decision authority. DIDC is the initial synthetic committee example; its real remit must be verified. A general-purpose profile designer and the wider profile catalogue are deferred.
+3. **Retain actual issued editions.** Preserve the reviewed text including operator edits, audience, occasion, issue date and source revisions. Later live changes never regenerate the submitted account. Corrections create a new edition, and changes since last review and last issue use separate baselines to flag dependent narrative. Editions remain subject to redaction and erasure requirements; immutable business history is not permission to retain prohibited data.
+4. **Separate involvement, disposition and outcome.** Paper preparation can be complete while the matter remains unresolved. More information requested, deferred, decided and no decision recorded are distinct dispositions. Advice is not approval, and delivery is not observed effectiveness. Unknown ownership, outcome or delay reason remains visible with its source or limitation. Confirmation is useful evidence, not a prerequisite for personal capture.
+
+### Reference, Stack And Recovery
+
+1. **Read the PSPF register from a validated master-bundle export.** Treat it as a read-only reference with its version and date recorded. Link matters to register records and refresh explicitly without silently rewriting historical references. P3 starts with an empty matter/trail store; this is not register migration or a second editable register. Authoring continues in the frozen extensions. No live Core bridge is introduced, and master-bundle exchange remains canonical.
+2. **Select Vite/Lit/IndexedDB as the first-slice starting stack.** Reuse Explorer's browser foundations and shared packages, not its old entity-first navigation. Atlas stays separate. Reopening the choice for a React/Mantine rewrite requires a demonstrated advantage in reaching a usable capture workflow; no comparative speed or usability claim has been established. Final navigation labels remain a browser-walkthrough question rather than an accepted replacement of the five job places.
+3. **Require recovery in the first slice.** Persist drafts separately from explicitly saved records; restore selection, working context and unfinished text after restart. Include validated backup and restore, and prove interrupted/failed saves do not lose prior records. Browser-local storage can be cleared and is neither a backup nor workplace deployment approval. Storage transactions, revision retention and erasure mechanics remain design details to settle before implementation.
+4. **Parse conservatively and suggest, never silently merge.** Support a small explicit capture format; preserve unsupported text as a note rather than guessing. Retain source excerpts and provenance. Prefer exact identifiers before fuzzy titles, present matches as suggestions, and require confirmation for record changes or merges. Record parser and matching thresholds against examples before committing to the UI; any AI inference stays labelled draft-and-confirm.
+
+### Bounded First Workflow And Publication
+
+The first product slice is **capture -> link to a matter -> assemble a sourced answer -> review and issue a brief -> record the response -> recover the next step**. It includes the three initial profiles, read-only register context, draft/context recovery, backup/restore and controlled publish-to-folder. It does not attempt the complete Team surface or register-authoring parity.
+
+Start with one useful publication format, Markdown, rather than the entire D4 output suite. Word, CSV and the broader artefact catalogue remain later work, not cancelled requirements. Local record Save is not publishing: issue/publication is an explicit reviewed operation with preview and existing default-deny controls at every copy/export boundary. Audience selection cannot authorise disclosure; new fields default to sensitive and restricted personal fields remain excluded. The detailed field policies and history/erasure design must be approved before implementation. The Rung 0 trial and workplace storage/deployment permission remain unverified.
+
+Collaborative editing, Graph, in-app AI, a VS Code companion, broad committee tooling and Shop/Assurance expansion are deferred. Long-term team sharing remains a requirement; tenant AI beyond Rung 0 stays on ADR 0101's approval ladder. No paused programme resumes through this amendment.
+
+### Remaining Entry Conditions
+
+Perform the short owner comparison in the [P2 evaluation protocol](../docs/p2-matter-dossier-evaluation.md#owner-comparison-protocol), retaining the document-and-list alternative and the no-extra-capture case. Agreement with the model is not evidence that this comparison occurred or that the workbench saves effort. Workplace baseline, Rung 0 results, deployment permission, browser keyboard/density/recovery checks and parser/finder usefulness remain outstanding.
+
+Before product implementation, finalise the Matter/profile contracts and reuse boundaries, reference refresh/history rules, field-level publication policy, recoverable storage and erasure mechanics. A separate accepted P3 slice ADR must allocate the release version and any compatibility-axis changes, and resolve browser release sequencing without bumping the five frozen extensions to satisfy today's all-package alignment. This documentation amendment changes no code, schema, package version, compatibility axis, gate, deployed surface or data.
+
+## Amendment: Freeze Wording For D8(i) (2026-10-10)
+
+The owner chose to keep the repository version-aligned at 1.77.0 for the first workbench slice ([ADR 0103](0103-v1-77-workbench-first-slice-matter-capture-and-recovery.md)) and not to republish the extensions. D8(i) is read as: the five extensions receive no features and are **not published to the Marketplace** after 1.76.0; their package versions may advance only to satisfy the all-package alignment check. This supersedes the earlier remaining-condition wording that asked for release sequencing without bumping the frozen extensions. D8(ii) to D8(iv) are unchanged.
+
+## Accepted Amendment: D8(ii) Parity For Staged Retirement (2026-10-11)
+
+The product owner accepts the owner-marked capability set in [ADR 0104](0104-workbench-register-prototype-extension-independence.md) and its parity map as satisfying D8(ii)'s build-completion requirement. For staged retirement, D8(ii) means that the workbench implements the selected register-authoring parity alongside the matter-centred capture and brief workflow; it does not require every capability named in the original operator-spine wording.
+
+Accordingly, snapshots and Close period, standard master-bundle import/export and Explorer round-trip, reporting packs, and team sharing remain deferred under ADR 0104 and are not prerequisites to D8(iii) or D8(iv). This records an accepted scope trade-off; it does not claim those capabilities have been delivered or remove them from future consideration.
+
+W1 (v1.78.0) implements the accepted parity and passed automated release readiness (20/20 gates) on 2026-10-11. That evidence satisfies D8(ii), but does not establish workplace usefulness or complete the owner transition. D8(iii) remains required: the owner must review the real-register migration, record the cutover, and use the workbench as the sole authoring surface for the accepted parity set for a fortnight. D8(iv) may proceed only after that cycle's keep/adjust/stop judgement supports retirement and required data exports are complete. The owner walkthrough remains a W2 preflight; no extensions are republished or deleted by this amendment.
+
+This amendment changes the D8(ii) scope only. It does not change D8(i), waive D8(iii), authorise immediate package or route removal, or change any version, compatibility axis, schema, publication policy, or deployed surface.
+
+## Consequences
+
+- One surface, one store, one deployment artefact; the duplicate command titles, duplicated pentest workbench and version-locked five-package release train disappear.
+- Capture becomes confirm-rather-than-type and carries provenance for free, which applies the product's evidence philosophy to actions and decisions.
+- The Marketplace distribution channel is lost; the SPA needs a hosting location the owner's organisation accepts, or a local build opened from disk for the trial.
+- IndexedDB in a managed browser can be cleared by policy or profile reset. Publish-to-folder on change plus a scheduled backup export are the mitigation, as in Atlas.
+- A diffable Git workspace is lost; the synced folder and backup export are the practical equivalent.
+- Tenant AI beyond Rung 0 requires per-user Copilot licensing, the agency's position on Copilot for the data's classification, admin publishing of any agent and an organisation-sanctioned development tenant. None of these blocks Rung 0.
+- The surface budgets of ADR 0096/0097 and the journey-cost ratchet of ADR 0100 measure a surface that will no longer exist; they retire with the extensions rather than being re-based.
+
+## Alternatives considered
+
+- **One modular VS Code extension (candidate a).** Rejected: it keeps the register out of reach of Teams, Outlook and Copilot, and still requires the owner to leave the conversation to capture.
+- **Build on the Atlas codebase now (candidate c).** Rejected for the first slice: Atlas is pre-1.0 with a no-accounts, no-sync promise that conflicts with J3, and merging would blur two products the owner has chosen to keep distinct. Adopt its patterns; revisit a shared engine later.
+- **Microsoft 365-hosted team view first (candidate d).** Deferred rather than rejected: it is the destination the SPA is designed to be wrapped into, but it cannot be trialled without tenant approval.
+- **Keep Explorer dual-mode and add the extensions' features to it incrementally.** Rejected: it preserves entity-first navigation and a budget-constrained surface; the job-first reorganisation is the point.
+- **Add a backend for team sharing.** Rejected for now: a synced folder gives sharing and Copilot grounding with no service to host, secure or accredit.

@@ -1,21 +1,30 @@
 # PSPF Repository Instructions
 
-This repository implements the PSPF product ecosystem at v1.74.0: five VS Code extensions, a unified Explorer web app, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
+This repository implements the PSPF product ecosystem at v1.78.0: five frozen VS Code extensions, a unified Explorer web app, the browser workbench, shared packages, schemas, release tooling, and governing specifications. Keep agent guidance concise and link to the specs rather than repeating them.
+
+## Current Direction (2026-10-11)
+
+- The product is being reframed around the manager's three jobs — J1 capture from conversation, J2 answer ad hoc requests fast, J3 run the team — and towards one browser single-page application that replaces the five VS Code extensions. Read `adr/0101-product-reframe-managers-three-jobs.md`, `adr/0102-browser-first-workbench-supersedes-extensions.md` and `pspf-grand-plan.md` §"Product reframe and browser-first direction (2026-10-05)" before any product, roadmap or architecture work.
+- Both ADRs were **accepted 2026-10-05**. The five extensions and dual-mode Explorer remain the shipped product until staged retirement completes; no extension is frozen or deleted ahead of ADR 0102 D8.
+- C2–C6, O1–O3, the clean-start workbench design phases and the website/brand brief are **paused** (reason "superseded design centre"); do not resume a slice until its remaining behaviours have a destination or are recorded as no longer required. C0 and C1 are complete.
+- Do not start new extension features, new Workshop commands, new Explorer entity routes or new surface-budget work. The browser first slice (ADR 0103, v1.77.0) and register prototype (accepted ADR 0104, v1.78.0) are implemented; automated release readiness passed 20/20 gates. ADR 0102 D8(ii) now accepts the ADR 0104 owner-marked parity; deferred W4+ capabilities are not retirement prerequisites. The next phase is the held W2 owner independence cycle, pending walkthrough, real-register migration review, cutover and trial controls. D8(iv) retirement follows only if W2 yields a keep judgement and required exports are complete. Follow the active sequence in `pspf-grand-plan.md`.
+- Tenant AI is in scope on the ADR 0101 D4 ladder; public models via personal keys remain out of scope. Every AI output is draft-and-confirm with recorded provenance.
+- Team sharing is a requirement under the reframe; redaction applies at the team boundary. The invariants below still govern anything that leaves that boundary.
 
 ## First Checks
 
 - For routine code changes, start with `docs/AGENT_ORIENTATION.md` to identify the smallest owning file, test, and spec before loading larger root specifications.
-- Read `pspf-grand-plan.md` before roadmap, remediation, Graph, AI, assurance-publishing, CI, diagnostics, or release-sequencing work. It is the active forward plan and deliberately fixes documentation truthfulness first.
+- Read `pspf-grand-plan.md` before roadmap, remediation, Graph, AI, assurance-publishing, CI, diagnostics, or release-sequencing work. It is the active forward plan; its first section records the 2026-10-05 reframe and the paused streams.
 - Use `pspf-spec-consistency-index.md` to find the owner spec for a topic before changing architecture, schema, API, workflow, publication policy, or pipeline behaviour.
 - Read `pspf-acceptance-and-quality-gates.md` before claiming a slice is done.
 - Read `pspf-developer-pipeline-spec.md` before branch, promotion, release, CI, GitHub Actions, Marketplace, or web deployment work.
 - Read `pspf-security-redaction-controls.md` and `adr/0005-redaction-default-deny.md` before changing exported, published, AI, Graph, Office, assurance, or externally visible data.
-- The docs have not yet been mechanically moved into `docs/`; current authoritative specs still live at the repo root and `adr/`.
+- Superseded host-specific records are archived under `docs/history/`; retained authoritative contracts remain at the repo root and `adr/`.
 
 ## Current Workspace
 
 - Package manager: pnpm workspaces, pinned by `packageManager` in `package.json`.
-- Current repo version: `1.74.0`; all workspace packages are expected to remain version-aligned.
+- Current repo version: `1.78.0`; all workspace packages are expected to remain version-aligned. The extensions are frozen and not republished (ADR 0102 D8(i) amendment); `packages/workbench` (`pspf-workbench`) is the browser-first workbench and register authoring surface under ADRs 0103/0104.
 - Shipped VS Code extensions:
   - `packages/core` (`pspf-core`) — local system of record, workspace bootstrap, validation, snapshots, import/export, and Core command API.
   - `packages/assurance` (`pspf-assurance`) — assurance evidence and pentest-workbench surface.
@@ -47,12 +56,12 @@ This repository implements the PSPF product ecosystem at v1.74.0: five VS Code e
 - `pspf-entity-link-spec.md` for canonical entity, ID, and link rules.
 - `pspf-explorer-json-bundle-schema-spec.md`, `adr/0009-explorer-single-master-bundle.md`, and `adr/0012-explorer-schema-publication.md` for the master export bundle and schema contract.
 - `pspf-error-and-diagnostics-model.md` for the intended structured diagnostics model. Treat it as aspirational until Tranche 2 of `pspf-grand-plan.md` implements it.
-- `pspf-core-workshop-screen-workflow-spec.md`, `explorer-screen-workflow-spec.md`, and `pspf-vscode-extension-surface-spec.md` for product surfaces and workflows.
+- `docs/history/README.md` for legacy extension and dual-mode Explorer records; ADR 0102 governs the browser-first product surface.
 
 ## Implementation Rules
 
-- Preserve the local-first contract: the four shipped VS Code extensions must remain fully usable with no network access. Any future Microsoft Graph, Teams, Outlook, or AI capability must be default-off, policy-controlled, and isolated from the existing offline-first workflows as described in `pspf-grand-plan.md`.
-- Do not start Graph, AI, Office-output, or assurance-publishing implementation before the relevant ADRs and Tranche 0-2 prerequisites in `pspf-grand-plan.md` are satisfied.
+- Preserve the local-first contract for the shipped extensions: the five VS Code extensions must remain fully usable with no network access while they remain the shipped product. Under the accepted reframe (ADR 0101/0102) the future browser workbench keeps browser-local storage and file-based exchange; publish-to-folder is its only integration, and Microsoft 365 or AI capability beyond that follows the ADR 0101 D4 ladder with organisational approval.
+- Do not start Graph, AI, Office-output, or assurance-publishing implementation before the relevant ADRs are accepted.
 - Use AU English in user-facing copy. Code identifiers and JSON keys may use ecosystem-standard US English where appropriate.
 - Treat all data as sensitive by default. Every schema field must declare `publication`; missing policy is a failure.
 - Never emit `Person.name`, `Person.email`, `Assignment.personId`, restricted fields, or non-public free text in snapshots, export bundles, Explorer artefacts, Graph payloads, AI prompts, Office documents, assurance publications, or external logs.

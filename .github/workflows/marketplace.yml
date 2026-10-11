@@ -62,6 +62,12 @@ jobs:
           echo "Marketplace publish must be dispatched from main (got ${GITHUB_REF}). Re-run with dry_run=true to validate from another branch." >&2
           exit 1
 
+      - name: Refuse publication of frozen extensions
+        if: inputs.dry_run != true
+        run: |
+          echo "The five extensions are frozen at 1.76.0 and are not published after ADR 0102 D8(i) (amended 2026-10-10). Re-run with dry_run=true to package only." >&2
+          exit 1
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
